@@ -165,10 +165,15 @@
     },
     {
       "id": "session.live",
-      "status": "planned",
+      "status": "native_tested",
       "sources": [
-        "historical-vr-socket"
-      ]
+        "official-command-interface"
+      ],
+      "tool": "start_gui_session",
+      "tested_profiles": [
+        "4.13.4 Windows"
+      ],
+      "scope": "Owned GUI, checkpoints, finite command requests; see docs/WORKFLOWS_v0.3.md"
     },
     {
       "id": "solver.run",
@@ -462,12 +467,505 @@
       "sources": [
         "pydyna-official-docs"
       ]
+    },
+    {
+      "id": "automation.show_gui_session",
+      "tool": "show_gui_session",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.list_installations",
+      "tool": "list_installations",
+      "status": "implemented",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+    },
+    {
+      "id": "automation.run_on_version",
+      "tool": "run_on_version",
+      "status": "implemented",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+    },
+    {
+      "id": "automation.probe_environment",
+      "tool": "probe_environment",
+      "status": "implemented",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+    },
+    {
+      "id": "automation.probe_scl",
+      "tool": "probe_scl",
+      "status": "implemented",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+    },
+    {
+      "id": "automation.get_element_connectivity",
+      "tool": "get_element_connectivity",
+      "status": "implemented",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+    },
+    {
+      "id": "automation.export_keyword",
+      "tool": "export_keyword",
+      "status": "implemented",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+    },
+    {
+      "id": "automation.measure_parts",
+      "tool": "measure_parts",
+      "status": "implemented",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+    },
+    {
+      "id": "automation.read_job",
+      "tool": "read_job",
+      "status": "implemented",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+    },
+    {
+      "id": "automation.list_jobs",
+      "tool": "list_jobs",
+      "status": "implemented",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+    },
+    {
+      "id": "automation.inspect_binout",
+      "tool": "inspect_binout",
+      "status": "implemented",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+    },
+    {
+      "id": "automation.inspect_d3plot_database",
+      "tool": "inspect_d3plot_database",
+      "status": "implemented",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+    },
+    {
+      "id": "automation.inspect_lsreader",
+      "tool": "inspect_lsreader",
+      "status": "implemented",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+    },
+    {
+      "id": "automation.create_solid_sphere",
+      "tool": "create_solid_sphere",
+      "status": "native_tested",
+      "sources": [
+        "local-custom-01"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.rotate_mesh_nodes",
+      "tool": "rotate_mesh_nodes",
+      "status": "native_tested",
+      "sources": [
+        "local-custom-02"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.inspect_gui_session",
+      "tool": "inspect_gui_session",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.list_gui_sessions",
+      "tool": "list_gui_sessions",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.open_in_gui_session",
+      "tool": "open_in_gui_session",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.gui_session_action",
+      "tool": "gui_session_action",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.checkpoint_gui_session",
+      "tool": "checkpoint_gui_session",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.restore_gui_checkpoint",
+      "tool": "restore_gui_checkpoint",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.recover_gui_session",
+      "tool": "recover_gui_session",
+      "status": "implemented",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+    },
+    {
+      "id": "automation.reset_gui_session",
+      "tool": "reset_gui_session",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.close_gui_session",
+      "tool": "close_gui_session",
+      "status": "implemented",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+    },
+    {
+      "id": "automation.set_gui_display",
+      "tool": "set_gui_display",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.set_gui_part_visibility",
+      "tool": "set_gui_part_visibility",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.control_gui_animation",
+      "tool": "control_gui_animation",
+      "status": "implemented",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Command submission implemented; visual playback/end-state acceptance pending"
+    },
+    {
+      "id": "automation.list_installation_assets",
+      "tool": "list_installation_assets",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ],
+      "backend": "local installed-file parsing; not GUI execution"
+    },
+    {
+      "id": "automation.describe_installed_template",
+      "tool": "describe_installed_template",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ],
+      "backend": "local installed-file parsing; not GUI execution"
+    },
+    {
+      "id": "automation.apply_keyword_filter",
+      "tool": "apply_keyword_filter",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ],
+      "backend": "local installed-file parsing; not GUI execution"
+    },
+    {
+      "id": "automation.instantiate_installed_template",
+      "tool": "instantiate_installed_template",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "7/7 parameter expansion/native nonempty mesh load; no per-card/SALE-generation/solver validation",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.inspect_mesh_quality",
+      "tool": "inspect_mesh_quality",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ],
+      "backend": "pydyna+geometry-math; optional native reopen"
+    },
+    {
+      "id": "automation.transform_mesh_deck",
+      "tool": "transform_mesh_deck",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ],
+      "backend": "pydyna+geometry-math; optional native reopen"
+    },
+    {
+      "id": "automation.merge_duplicate_mesh_nodes",
+      "tool": "merge_duplicate_mesh_nodes",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ],
+      "backend": "pydyna+geometry-math; optional native reopen"
+    },
+    {
+      "id": "automation.build_tensile_curves",
+      "tool": "build_tensile_curves",
+      "status": "native_tested",
+      "sources": [
+        "tutorial-crossplot"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.combine_history_curves",
+      "tool": "combine_history_curves",
+      "status": "implemented",
+      "sources": [
+        "tutorial-crossplot"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+    },
+    {
+      "id": "automation.assess_energy_balance",
+      "tool": "assess_energy_balance",
+      "status": "implemented",
+      "sources": [
+        "tutorial-crossplot"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+    },
+    {
+      "id": "automation.native_tensile_postprocess",
+      "tool": "native_tensile_postprocess",
+      "status": "native_tested",
+      "sources": [
+        "tutorial-crossplot"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.native_energy_postprocess",
+      "tool": "native_energy_postprocess",
+      "status": "native_tested",
+      "sources": [
+        "tutorial-crossplot"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.create_workflow",
+      "tool": "create_workflow",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.run_workflow",
+      "tool": "run_workflow",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.start_session_recording",
+      "tool": "start_session_recording",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.stop_session_recording",
+      "tool": "stop_session_recording",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.parameterize_workflow",
+      "tool": "parameterize_workflow",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "tested_profiles": [
+        "4.13.4 Windows; operation-specific backend"
+      ]
+    },
+    {
+      "id": "automation.import_command_recording",
+      "tool": "import_command_recording",
+      "status": "implemented",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
     }
   ],
   "native_reference_builds": [
     "4.8.0.1",
     "4.10.0.1",
-    "4.13.0.1"
+    "4.13.0.1",
+    "4.13.4 Windows GUI (v0.3 scoped validation)"
   ],
   "coverage_note": "See docs/COVERAGE.md and docs/PYDYNA_INTEGRATION.md. Catalog entries and source reading are not complete functional coverage."
 }

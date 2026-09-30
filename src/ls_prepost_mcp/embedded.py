@@ -2,6 +2,7 @@
 
 Only this module executes inside LS-PrePost; no user Python is evaluated.
 """
+
 import csv
 import json
 import math
@@ -16,10 +17,13 @@ def run(request_path, response_path):
     try:
         import DataCenter as dc
         import LsPrePost as lp
+
         action = request["action"]
         p = request["parameters"]
         if action in ("extract_nodal", "node_history") and sys.version_info[:2] < (3, 10):
-            raise RuntimeError("Native vector arrays on the older embedded Python ABI did not pass numerical cross-checks. Use the explicit LASSO/LS-Reader tools or the verified 4.13 profile.")
+            raise RuntimeError(
+                "Native vector arrays on the older embedded Python ABI did not pass numerical cross-checks. Use the explicit LASSO/LS-Reader tools or the verified 4.13 profile."
+            )
         job_directory = request.get("job_directory", os.getcwd())
         if request.get("model"):
             # The application may reset cwd from GUI preferences. Load file families
@@ -29,7 +33,12 @@ def run(request_path, response_path):
             try:
                 kind = request["file_type"]
                 opener = "openc" if kind == "d3plot" else "open"
-                lp.execute_command(opener + " " + kind + ' "' + os.path.basename(source) + '"')
+                load_name = (
+                    source.replace("\\", "/")
+                    if kind == "keyword" and request.get("absolute_keyword_path")
+                    else os.path.basename(source)
+                )
+                lp.execute_command(opener + " " + kind + ' "' + load_name + '"')
             finally:
                 os.chdir(job_directory)
             if int(dc.get_data("num_nodes")) <= 0:
@@ -42,10 +51,18 @@ def run(request_path, response_path):
             return [value[i] for i in range(len(value))]
 
         def inventory():
-            data = {"python_version": sys.version, "python_executable": sys.executable,
-                    "python_prefix": sys.prefix, "warnings": [], "counts": {}}
-            aliases = {"nodes": ["num_nodes"], "elements": ["num_elements", "num_elem"],
-                       "states": ["num_states"]}
+            data = {
+                "python_version": sys.version,
+                "python_executable": sys.executable,
+                "python_prefix": sys.prefix,
+                "warnings": [],
+                "counts": {},
+            }
+            aliases = {
+                "nodes": ["num_nodes"],
+                "elements": ["num_elements", "num_elem"],
+                "states": ["num_states"],
+            }
             for label, names in aliases.items():
                 for key in names:
                     try:
@@ -63,6 +80,10 @@ def run(request_path, response_path):
                 data["state_times"] = sequence(get("state_times"))
             except Exception:
                 data["state_times"] = []
+            try:
+                data["current_state"] = int(get("current_state"))
+            except Exception:
+                data["current_state"] = None
             return data
 
         def check_state(state):
@@ -81,13 +102,17 @@ def run(request_path, response_path):
                 raise ValueError("Unknown user node IDs: " + str(missing[:20]))
             # Older bindings may expose application-owned buffers. Materialize
             # each component before the next native call can reuse its memory.
-            arrays = [sequence(dc.get_data(key, dc.Type.NODE, **({"ist": state} if state else {}))) for key in keys]
+            arrays = [
+                sequence(dc.get_data(key, dc.Type.NODE, **({"ist": state} if state else {}))) for key in keys
+            ]
             if any(len(a) != len(all_ids) for a in arrays):
                 raise ValueError("Node IDs and result array lengths differ")
             return [[uid] + [float(a[lookup[uid]]) for a in arrays] for uid in ids]
 
         if action in ("probe", "inspect_model"):
             data = inventory()
+            if action == "probe":
+                data["sdk_functions"] = [name for name in dir(lp) if not name.startswith("_")]
         elif action == "scl_probe":
             with open("scl_nodes.txt") as f:
                 scl_nodes = int(f.read().strip())
@@ -97,13 +122,18 @@ def run(request_path, response_path):
             data = {"scl_nodes": scl_nodes, "python_nodes": python_nodes, "match": True}
         elif action == "list_nodes":
             ids = sequence(get("node_ids"))
-            selected = [int(x) for x in ids[p["offset"]:p["offset"] + p["limit"]]]
+            selected = [int(x) for x in ids[p["offset"] : p["offset"] + p["limit"]]]
             rows = node_rows(selected, ["node_x", "node_y", "node_z"], None)
-            data = {"total": len(ids), "coordinate_configuration": "reference", "columns": ["node_id", "x", "y", "z"], "rows": rows}
+            data = {
+                "total": len(ids),
+                "coordinate_configuration": "reference",
+                "columns": ["node_id", "x", "y", "z"],
+                "rows": rows,
+            }
         elif action == "list_parts":
             ids = sequence(get("validpart_ids"))
             parts = []
-            for uid in ids[:p["limit"]]:
+            for uid in ids[: p["limit"]]:
                 item = {"part_id": int(uid)}
                 try:
                     item["name"] = str(get("part_name", id=int(uid)))
@@ -116,11 +146,18 @@ def run(request_path, response_path):
             nodes = sequence(get("element_connectivity", type=kind, id=p["element_id"]))
             if not nodes:
                 raise ValueError("No connectivity returned for the requested element")
-            data = {"element_id": p["element_id"], "element_type": p["element_type"], "node_ids": nodes, "id_kind": "user"}
+            data = {
+                "element_id": p["element_id"],
+                "element_type": p["element_type"],
+                "node_ids": nodes,
+                "id_kind": "user",
+            }
         elif action in ("extract_nodal", "node_history"):
-            mapping = {"displacement": ["disp_x", "disp_y", "disp_z"],
-                       "velocity": ["velo_x", "velo_y", "velo_z"],
-                       "position": ["state_node_x", "state_node_y", "state_node_z"]}
+            mapping = {
+                "displacement": ["disp_x", "disp_y", "disp_z"],
+                "velocity": ["velo_x", "velo_y", "velo_z"],
+                "position": ["state_node_x", "state_node_y", "state_node_z"],
+            }
             keys = mapping[p["quantity"]]
             states = [p["state"]] if action == "extract_nodal" else p["states"]
             times = sequence(get("state_times"))
@@ -133,7 +170,7 @@ def run(request_path, response_path):
                     rows.append([state, float(times[state - 1])] + row)
             if p["quantity"] != "position":
                 for row in rows:
-                    row.append(math.sqrt(sum(v*v for v in row[-3:])))
+                    row.append(math.sqrt(sum(v * v for v in row[-3:])))
             columns = ["state", "time", "node_id", "x", "y", "z"]
             if p["quantity"] != "position":
                 columns.append("magnitude")
@@ -141,30 +178,114 @@ def run(request_path, response_path):
                 writer = csv.writer(f)
                 writer.writerow(columns)
                 writer.writerows(rows)
-            data = {"quantity": p["quantity"], "columns": columns, "row_count": len(rows),
-                    "states": states, "units": p["units"], "id_kind": "user", "preview": rows[:20]}
+            data = {
+                "quantity": p["quantity"],
+                "columns": columns,
+                "row_count": len(rows),
+                "states": states,
+                "units": p["units"],
+                "id_kind": "user",
+                "preview": rows[:20],
+            }
         elif action == "create_plate":
             nx, ny = p["nx"], p["ny"]
             ox, oy, oz = p["origin"]
             lx, ly = p["size"]
-            coords = [ox, oy, oz, ox+lx, oy, oz, ox+lx, oy+ly, oz, ox, oy+ly, oz]
+            coords = [ox, oy, oz, ox + lx, oy, oz, ox + lx, oy + ly, oz, ox, oy + ly, oz]
             lp.execute_command("meshing 4pshell create %d %d " % (nx, ny) + " ".join(str(x) for x in coords))
-            lp.execute_command("meshing 4pshell accept %d %d %d plate" % (p["part_id"], p["element_start"], p["node_start"]))
+            lp.execute_command(
+                "meshing 4pshell accept %d %d %d plate" % (p["part_id"], p["element_start"], p["node_start"])
+            )
             data = inventory()
-            if data["counts"].get("nodes") != (nx+1)*(ny+1) or data["counts"].get("elements") != nx*ny:
+            if (
+                data["counts"].get("nodes") != (nx + 1) * (ny + 1)
+                or data["counts"].get("elements") != nx * ny
+            ):
                 raise ValueError("Native mesh counts do not match the requested plate")
             data["units"] = p["units"]
         elif action == "create_box":
             nx, ny, nz = p["divisions"]
             lower = p["origin"]
             upper = [lower[i] + p["size"][i] for i in range(3)]
-            lp.execute_command("meshing boxsolid create " + " ".join(str(v) for v in lower + upper)
-                               + " %d %d %d 0.0" % (nx, ny, nz))
-            lp.execute_command("meshing boxsolid accept %d %d %d boxsolid" % (p["part_id"], p["element_start"], p["node_start"]))
+            lp.execute_command(
+                "meshing boxsolid create "
+                + " ".join(str(v) for v in lower + upper)
+                + " %d %d %d 0.0" % (nx, ny, nz)
+            )
+            lp.execute_command(
+                "meshing boxsolid accept %d %d %d boxsolid"
+                % (p["part_id"], p["element_start"], p["node_start"])
+            )
             data = inventory()
-            if data["counts"].get("nodes") != (nx+1)*(ny+1)*(nz+1) or int(get("num_solid_elements")) != nx*ny*nz:
+            if (
+                data["counts"].get("nodes") != (nx + 1) * (ny + 1) * (nz + 1)
+                or int(get("num_solid_elements")) != nx * ny * nz
+            ):
                 raise ValueError("Native box mesh counts differ from requested divisions")
             data["units"] = p["units"]
+        elif action == "create_sphere":
+            try:
+                before = set(int(v) for v in sequence(get("node_ids")))
+                old_parts = set(int(v) for v in sequence(get("validpart_ids")))
+            except Exception:
+                before, old_parts = set(), set()
+            if p["part_id"] in old_parts:
+                raise ValueError("Sphere part ID already exists")
+            lp.execute_command(
+                "meshing spheresolid create "
+                + " ".join(str(v) for v in p["center"])
+                + " %s %d 1 0 0 0 1 0" % (p["radius"], p["divisions"])
+            )
+            lp.execute_command("meshing spheresolid accept %d" % p["part_id"])
+            ids = [int(v) for v in sequence(get("node_ids"))]
+            created = [v for v in ids if v not in before]
+            if not created or len(ids) != len(set(ids)):
+                raise ValueError("Sphere did not create a unique node registry")
+            rows = node_rows(created, ["node_x", "node_y", "node_z"], None)
+            radii = [math.sqrt(sum((row[i + 1] - p["center"][i]) ** 2 for i in range(3))) for row in rows]
+            if abs(max(radii) - p["radius"]) > max(1e-6, p["radius"] * 1e-5):
+                raise ValueError("Sphere mesh extent differs from requested radius")
+            data = inventory()
+            data.update(created_node_count=len(created), maximum_radius=max(radii), units=p["units"])
+        elif action == "rotate_nodes":
+            ids = [int(v) for v in sequence(get("node_ids"))]
+            selected = set(p["node_ids"])
+            if not selected.issubset(set(ids)):
+                raise ValueError("Unknown node ID")
+            before = node_rows(ids, ["node_x", "node_y", "node_z"], None)
+            lp.execute_command("genselect clear")
+            lp.execute_command("genselect target node")
+            lp.execute_command("genselect transfer 0")
+            for uid in p["node_ids"]:
+                lp.execute_command("genselect node add node %d/0" % uid)
+            lp.execute_command(
+                "rotate_model " + " ".join(str(v) for v in p["center"]) + " %s %s" % (p["axis"], p["angle"])
+            )
+            lp.execute_command("rotate_model accept 0 0 0")
+            lp.execute_command("genselect clear")
+            after = node_rows(ids, ["node_x", "node_y", "node_z"], None)
+            angle = math.radians(p["angle"])
+            cos, sin = math.cos(angle), math.sin(angle)
+            axis = {"x": 0, "y": 1, "z": 2}[p["axis"]]
+            a, b = (axis + 1) % 3, (axis + 2) % 3
+            max_error = 0.0
+            for old, new in zip(before, after):
+                expected = old[1:]
+                if old[0] in selected:
+                    qa, qb = expected[a] - p["center"][a], expected[b] - p["center"][b]
+                    expected[a] = p["center"][a] + cos * qa - sin * qb
+                    expected[b] = p["center"][b] + sin * qa + cos * qb
+                for i in range(3):
+                    error = abs(new[i + 1] - expected[i])
+                    max_error = max(max_error, error)
+                    if error > max(1e-6, abs(expected[i]) * 1e-5):
+                        raise ValueError("Native rotation coordinate verification failed")
+            data = {
+                "rotated_nodes": len(selected),
+                "axis": p["axis"],
+                "angle_degrees": p["angle"],
+                "maximum_coordinate_error": max_error,
+            }
         elif action == "translate_nodes":
             all_ids = [int(v) for v in sequence(get("node_ids"))]
             if len(all_ids) > 1000000:
@@ -186,24 +307,31 @@ def run(request_path, response_path):
             after = node_rows(all_ids, ["node_x", "node_y", "node_z"], None)
             max_error = 0.0
             for old, new in zip(before, after):
-                expected = [old[i+1] + (p["offset"][i] if old[0] in selected else 0) for i in range(3)]
+                expected = [old[i + 1] + (p["offset"][i] if old[0] in selected else 0) for i in range(3)]
                 for i in range(3):
-                    error = abs(new[i+1]-expected[i])
-                    max_error = max(max_error,error)
-                    if error > max(1e-7,abs(expected[i])*1e-6):
+                    error = abs(new[i + 1] - expected[i])
+                    max_error = max(max_error, error)
+                    if error > max(1e-7, abs(expected[i]) * 1e-6):
                         raise ValueError("Native translation changed an unexpected coordinate")
-            data = {"translated_nodes":len(selected), "verified_nodes":len(all_ids), "max_coordinate_error":max_error,
-                    "units":p["units"], "verification":"All selected and unselected coordinates checked before save"}
+            data = {
+                "translated_nodes": len(selected),
+                "verified_nodes": len(all_ids),
+                "max_coordinate_error": max_error,
+                "units": p["units"],
+                "verification": "All selected and unselected coordinates checked before save",
+            }
         elif action == "move_elements_to_part":
-            kind = {"shell":dc.Type.SHELL,"solid":dc.Type.SOLID,"beam":dc.Type.BEAM}[p["element_type"]]
-            before_ids = [int(v) for v in sequence(get("element_ids",type=kind))]
+            kind = {"shell": dc.Type.SHELL, "solid": dc.Type.SOLID, "beam": dc.Type.BEAM}[p["element_type"]]
+            before_ids = [int(v) for v in sequence(get("element_ids", type=kind))]
             if not set(p["element_ids"]).issubset(set(before_ids)):
                 raise ValueError("Requested user element ID not found")
-            for other_kind in (dc.Type.SHELL,dc.Type.SOLID,dc.Type.BEAM):
+            for other_kind in (dc.Type.SHELL, dc.Type.SOLID, dc.Type.BEAM):
                 if other_kind != kind:
-                    other_ids = set(int(v) for v in sequence(get("element_ids",type=other_kind)))
+                    other_ids = set(int(v) for v in sequence(get("element_ids", type=other_kind)))
                     if set(p["element_ids"]) & other_ids:
-                        raise ValueError("Generic native selector is ambiguous: selected ID also occurs in another element type")
+                        raise ValueError(
+                            "Generic native selector is ambiguous: selected ID also occurs in another element type"
+                        )
             before_nodes = int(get("num_nodes"))
             before_elements = int(get("num_elements"))
             lp.execute_command("genselect clear")
@@ -213,41 +341,107 @@ def run(request_path, response_path):
             lp.execute_command('elemmove apply %d "mcp_part"' % p["part_id"])
             lp.execute_command("elemmove accept %d" % p["part_id"])
             lp.execute_command("genselect clear")
-            moved = set(int(v) for v in sequence(get("elemofpart_ids",type=1,id=p["part_id"])))
+            moved = set(int(v) for v in sequence(get("elemofpart_ids", type=1, id=p["part_id"])))
             if not set(p["element_ids"]).issubset(moved):
                 raise ValueError("Native target part does not contain requested element IDs")
             if int(get("num_nodes")) != before_nodes or int(get("num_elements")) != before_elements:
                 raise ValueError("Part reassignment changed mesh counts")
-            data = {"element_type":p["element_type"],"element_ids":p["element_ids"],"part_id":p["part_id"],
-                    "verification":"Target part membership and mesh counts checked; target material/section requires explicit configuration"}
+            data = {
+                "element_type": p["element_type"],
+                "element_ids": p["element_ids"],
+                "part_id": p["part_id"],
+                "verification": "Target part membership and mesh counts checked; target material/section requires explicit configuration",
+            }
         elif action == "extrude_shell":
             part_ids = [int(v) for v in sequence(get("validpart_ids"))]
             shell_count = int(get("num_shell_elements"))
             if part_ids != [p["part_id"]] or shell_count != int(get("num_elements")):
                 raise ValueError("Initial extrusion adapter requires a single shell-only part")
-            if shell_count*p["layers"] > 100000:
+            if shell_count * p["layers"] > 100000:
                 raise ValueError("Extrusion exceeds 100000 solid elements")
-            before_shells = [int(v) for v in sequence(get("element_ids",type=dc.Type.SHELL))]
+            before_shells = [int(v) for v in sequence(get("element_ids", type=dc.Type.SHELL))]
             z = [float(v) for v in sequence(get("node_z"))]
-            if max(z)-min(z) > 1e-8:
+            if max(z) - min(z) > 1e-8:
                 raise ValueError("Initial extrusion adapter requires a planar XY shell mesh")
             lp.execute_command("genselect clear")
             lp.execute_command("genselect target shell")
             lp.execute_command("genselect shell add part %d/0" % p["part_id"])
-            lp.execute_command("elgenerate solid shelldrag 2 0 %s %d 0 0 0 0 0 10000" % (p["length"],p["layers"]))
+            lp.execute_command(
+                "elgenerate solid shelldrag 2 0 %s %d 0 0 0 0 0 10000" % (p["length"], p["layers"])
+            )
             lp.execute_command("genselect clear")
             lp.execute_command("elgenerate accept")
             data = inventory()
             data["solid_count"] = int(get("num_solid_elements"))
-            solid_ids = [int(v) for v in sequence(get("element_ids",type=dc.Type.SOLID))]
-            if len(solid_ids) != len(set(solid_ids)) or before_shells != [int(v) for v in sequence(get("element_ids",type=dc.Type.SHELL))]:
+            solid_ids = [int(v) for v in sequence(get("element_ids", type=dc.Type.SOLID))]
+            if len(solid_ids) != len(set(solid_ids)) or before_shells != [
+                int(v) for v in sequence(get("element_ids", type=dc.Type.SHELL))
+            ]:
                 raise ValueError("Extrusion changed source shell IDs or produced duplicate solid IDs")
-            if data["solid_count"] != shell_count*p["layers"]:
+            if data["solid_count"] != shell_count * p["layers"]:
                 raise ValueError("Extrusion did not create expected number of solids")
             after_z = [float(v) for v in sequence(get("node_z"))]
-            if abs((max(after_z)-min(after_z))-p["length"]) > max(1e-6,p["length"]*1e-6):
+            if abs((max(after_z) - min(after_z)) - p["length"]) > max(1e-6, p["length"] * 1e-6):
                 raise ValueError("Extrusion extent does not match requested length")
-            data.update(units=p["units"],source_shells_retained=True,z_extent=max(after_z)-min(after_z))
+            data.update(units=p["units"], source_shells_retained=True, z_extent=max(after_z) - min(after_z))
+        elif action == "gui_new":
+            with open("initial.k", "w") as f:
+                f.write("*KEYWORD\n*TITLE\nMCP session model\n*END\n")
+            lp.execute_command(
+                'open keyword "' + os.path.join(job_directory, "initial.k").replace("\\", "/") + '"'
+            )
+            data = inventory()
+        elif action == "gui_display":
+            if p.get("state") is not None:
+                check_state(p["state"])
+                lp.execute_command("anim stop")
+                lp.switch_state(p["state"])
+            for command in p["commands"]:
+                lp.execute_command(command)
+            if p.get("capture"):
+                output = os.path.join(job_directory, "snapshot.png").replace("\\", "/")
+                lp.execute_command('print png "' + output + '" opaque enlisted "OGL1x1"')
+            data = inventory()
+            data["applied_commands"] = p["commands"]
+        elif action == "gui_parts":
+            valid = [int(v) for v in sequence(get("validpart_ids"))]
+            if not set(p["part_ids"]).issubset(set(valid)):
+                raise ValueError("Unknown part IDs")
+            before = {uid: bool(lp.check_if_part_is_active_u(uid)) for uid in valid}
+            if p["mode"] == "all":
+                lp.execute_command("pall")
+            elif p["mode"] == "isolate":
+                lp.execute_command("m " + ",".join(str(v) for v in p["part_ids"]))
+            else:
+                prefix = "+m " if p["mode"] == "show" else "-m "
+                for uid in p["part_ids"]:
+                    lp.execute_command(prefix + str(uid))
+            after = {uid: bool(lp.check_if_part_is_active_u(uid)) for uid in valid}
+            expected = dict(before)
+            if p["mode"] in ("all", "isolate"):
+                expected = {uid: (p["mode"] == "all" or uid in p["part_ids"]) for uid in valid}
+            else:
+                for uid in p["part_ids"]:
+                    expected[uid] = p["mode"] == "show"
+            if after != expected:
+                raise ValueError("Native part visibility did not match requested state")
+            data = {"visibility": after, "mode": p["mode"], "verified": True}
+        elif action == "gui_animation":
+            if p["operation"] == "stop":
+                lp.execute_command("anim stop")
+            else:
+                check_state(p["first"])
+                check_state(p["last"])
+                lp.execute_command("anim first %d" % p["first"])
+                lp.execute_command("anim last %d" % p["last"])
+                lp.execute_command("anim incr %d" % p["increment"])
+                lp.execute_command("anim " + p["direction"])
+                lp.execute_command("anim start")
+            data = {
+                "operation": p["operation"],
+                "configuration": p,
+                "verification": "Native commands submitted; use current_state/captured frames to observe playback",
+            }
         elif action == "render_snapshot":
             if p.get("state") is not None:
                 check_state(p["state"])
@@ -259,8 +453,12 @@ def run(request_path, response_path):
             lp.execute_command("ac")
             output = os.path.join(job_directory, "snapshot.png").replace("\\", "/")
             lp.execute_command('print png "' + output + '" opaque enlisted "OGL1x1"')
-            data = {"view": p["view"], "state": p.get("state"), "fringe_code": p.get("fringe_code"),
-                    "note": "Image validation does not establish physical result correctness"}
+            data = {
+                "view": p["view"],
+                "state": p.get("state"),
+                "fringe_code": p.get("fringe_code"),
+                "note": "Image validation does not establish physical result correctness",
+            }
         elif action == "export_keyword":
             data = inventory()
         elif action == "measure_parts":
@@ -274,12 +472,17 @@ def run(request_path, response_path):
                 if not values:
                     raise ValueError("Native measurement returned no values")
                 rows.append({"part_id": uid, "command_values": values})
-            data = {"measurements": rows, "note": "Raw command-result layout is build-dependent; values are not assigned guessed units"}
+            data = {
+                "measurements": rows,
+                "note": "Raw command-result layout is build-dependent; values are not assigned guessed units",
+            }
         else:
             raise ValueError("Unsupported bridge action: " + action)
         response.update(ok=True, data=data)
     except Exception as exc:
-        response.update(error={"type": type(exc).__name__, "message": str(exc), "traceback": traceback.format_exc()})
+        response.update(
+            error={"type": type(exc).__name__, "message": str(exc), "traceback": traceback.format_exc()}
+        )
     with open(response_path + ".tmp", "w", encoding="utf-8") as f:
         json.dump(response, f, ensure_ascii=False, indent=2, allow_nan=False)
     os.replace(response_path + ".tmp", response_path)

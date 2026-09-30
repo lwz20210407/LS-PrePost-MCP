@@ -7,12 +7,18 @@ import subprocess
 from pathlib import Path
 
 from .config import Settings, command_path
+from .engineering import EngineeringTools
+from .gui_controls import GuiControls
+from .installation_assets import InstallationTools
 from .jobs import Jobs, atomic_json, check_artifact, fingerprint, now
 from .keyword_tools import KeywordTools
+from .mesh_tools import MeshTools
 from .post_tools import PostTools
 from .pre_tools import PreTools
 from .results import lasso_vectors, open_binout
 from .runner import decode, execute
+from .sessions import SessionTools
+from .workflows import WorkflowTools
 
 VIEWS = {"isometric": "isometric x", "top": "top", "bottom": "bottom", "front": "front",
          "back": "back", "left": "left", "right": "right"}
@@ -39,7 +45,7 @@ def unit_label(units: str) -> str:
     return units.strip()
 
 
-class Service(PostTools, PreTools, KeywordTools):
+class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, GuiControls):
     def __init__(self, settings: Settings):
         self.settings = settings
         self.jobs = Jobs(settings.workspace)
@@ -148,7 +154,8 @@ class Service(PostTools, PreTools, KeywordTools):
                    "extract_nodal_results", "extract_node_history", "render_snapshot", "measure_parts",
                    "extract_native_fields", "extract_native_stress", "extract_native_ascii_curve",
                    "extract_native_binout_curve", "native_postprocess_case", "create_tensile_shell_plate",
-                   "create_solid_box", "translate_mesh_nodes", "move_elements_to_part", "extrude_shell_part"}
+                   "create_solid_box", "translate_mesh_nodes", "move_elements_to_part", "extrude_shell_part",
+                   "rotate_mesh_nodes", "create_solid_sphere", "native_tensile_postprocess", "native_energy_postprocess"}
         if version not in self.settings.profiles:
             raise ValueError("Unknown installation profile")
         if action not in allowed:

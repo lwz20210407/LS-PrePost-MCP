@@ -807,13 +807,14 @@ wheels = [
 
 [[package]]
 name = "ls-prepost-mcp"
-version = "0.2.0"
+version = "0.3.0"
 source = { editable = "." }
 dependencies = [
     { name = "mcp" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "pillow" },
+    { name = "psutil" },
 ]
 
 [package.optional-dependencies]
@@ -835,6 +836,7 @@ requires-dist = [
     { name = "mcp", specifier = ">=1.27,<2" },
     { name = "numpy", specifier = ">=2,<3" },
     { name = "pillow", specifier = ">=11,<13" },
+    { name = "psutil", specifier = ">=5.9,<8" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8,<10" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.11" },
 ]
