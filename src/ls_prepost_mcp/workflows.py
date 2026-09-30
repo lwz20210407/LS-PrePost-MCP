@@ -8,7 +8,7 @@ from pathlib import Path
 from .jobs import atomic_json, check_artifact, now
 from .sessions import NATIVE_ACTIONS
 
-GUI_ACTIONS = {"set_gui_display", "set_gui_part_visibility", "control_gui_animation"}
+GUI_ACTIONS = {"set_gui_display", "set_gui_part_visibility", "control_gui_animation", "execute_gui_command"}
 WORKFLOW_ACTIONS = (
     NATIVE_ACTIONS
     | GUI_ACTIONS
@@ -214,6 +214,7 @@ class WorkflowTools:
                     "partial",
                     "uncertain",
                     "needs_review",
+                    "completed_unverified",
                 ):
                     raise RuntimeError("Workflow stopped at step " + step["id"])
             manifest.update(status="succeeded", data={"steps": results, "completed_steps": len(results)})

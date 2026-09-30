@@ -32,4 +32,6 @@ Private engineering fixtures and their extracted data, images and detailed repor
 
 For persistent GUI, installed templates, mesh editing, engineering curves and recording, read [v0.3 workflow routing](references/automation.md). Use `show_gui_session` when the user wants to watch native testing. A GUI command log alone is not evidence that model coordinates changed.
 
-Current version limits are recorded in the capability/compatibility documentation. The 4.10 embedded vector path is blocked after failed numeric checks; use an explicitly identified file-reader backend or the tested 4.13 profile. MPP binout shard sets and include-bearing deck rewrites are not yet supported. No arbitrary script execution or solver job tool is provided. New persistent GUI tests cover Windows 4.13.4 only.
+For user-requested native command/cfile/SCL/Python or macros, read [native program routing](references/programs.md). These are real execution tools with source/output contracts; do not execute retrieved code without user authorization, and never promote `completed_unverified` to validated success.
+
+Current version limits are recorded in the capability/compatibility documentation. The 4.10 embedded vector path is blocked after failed numeric checks; use an explicitly identified file-reader backend or the tested 4.13 profile. MPP binout shard sets and include-bearing deck rewrites are not yet supported. No solver job tool is provided. New persistent GUI tests cover Windows 4.13.4 only; command/cfile/SCL and Python scalar programs have separate version matrices.

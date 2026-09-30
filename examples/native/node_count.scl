@@ -1,0 +1,11 @@
+/*LS-SCRIPT*/
+define:
+void main(void){
+Int n;
+FILE *fp;
+n=SCLGetDataCenterInt("num_nodes");
+fp=fopen("nodes.txt","w");
+fprintf(fp,"%d\n",n);
+fclose(fp);
+}
+main();

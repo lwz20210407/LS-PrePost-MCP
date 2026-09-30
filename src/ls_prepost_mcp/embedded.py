@@ -461,6 +461,15 @@ def run(request_path, response_path):
             }
         elif action == "export_keyword":
             data = inventory()
+        elif action == "raw_command":
+            lp.execute_command(p["command"])
+            os.chdir(job_directory)
+            data = inventory()
+            for key, expected in p["expected_counts"].items():
+                if data["counts"].get(key) != expected:
+                    raise ValueError("Raw command count verification failed: " + key)
+            data["command"] = p["command"]
+            data["verification_scope"] = "Inventory and declared outputs only; raw command semantics are user-defined"
         elif action == "measure_parts":
             valid = set(int(x) for x in sequence(get("validpart_ids")))
             if not set(p["part_ids"]).issubset(valid):

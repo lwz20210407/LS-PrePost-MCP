@@ -1,6 +1,11 @@
 """Shared explicit public tool registry for MCP and CLI."""
 
 SERVICE_TOOLS = (
+    "prepare_native_program",
+    "execute_native_program",
+    "execute_gui_command",
+    "create_native_macro",
+    "run_native_macro",
     "show_gui_session",
     "list_installations",
     "run_on_version",

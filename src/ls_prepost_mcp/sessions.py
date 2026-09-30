@@ -151,6 +151,7 @@ class Sessions:
             model_kind="keyword",
             last_checkpoint=None,
             transport="owned-process Windows command entry + finite embedded Python",
+            bridge_protocol=2,
             recording=None,
         )
         self.save(ident, data)

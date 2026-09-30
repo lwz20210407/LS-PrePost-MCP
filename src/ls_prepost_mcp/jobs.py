@@ -82,4 +82,6 @@ def check_artifact(path: Path, kind: str) -> dict:
         text = path.read_text(encoding="utf-8", errors="replace").upper()
         if "*KEYWORD" not in text or "*END" not in text:
             raise ValueError("Invalid keyword artifact")
+    elif kind == "json":
+        json.loads(path.read_text(encoding="utf-8"))
     return {**fingerprint(path), "kind": kind, "validated": True}

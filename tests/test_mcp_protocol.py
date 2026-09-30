@@ -19,7 +19,9 @@ def test_stdio_discovery_reference_and_rejection(tmp_path):
                 listing = await session.list_tools()
                 names = {tool.name for tool in listing.tools}
                 assert {"create_shell_plate", "probe_scl", "extract_lsreader_nodal", "search_commands",
-                        "extract_native_stress", "create_solid_box", "compose_keyword_deck"} <= names
+                        "extract_native_stress", "create_solid_box", "compose_keyword_deck",
+                        "prepare_native_program", "execute_native_program", "execute_gui_command",
+                        "create_native_macro", "run_native_macro"} <= names
                 result = await session.call_tool("search_commands", {"query": "runpython", "limit": 3})
                 assert not result.isError
                 invalid = await session.call_tool("create_shell_plate", {"nx": 0, "ny": 1, "size": [1, 1], "units": "mm"})

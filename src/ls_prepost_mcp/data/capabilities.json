@@ -959,6 +959,71 @@
         "official-2026r1-guide"
       ],
       "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+    },
+    {
+      "id": "programs.prepare_native_program",
+      "tool": "prepare_native_program",
+      "status": "native_tested",
+      "sources": [
+        "official-command-interface",
+        "official-scl-rev11"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows"
+      ],
+      "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits"
+    },
+    {
+      "id": "programs.execute_native_program",
+      "tool": "execute_native_program",
+      "status": "native_tested",
+      "sources": [
+        "official-command-interface",
+        "official-scl-rev11"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows"
+      ],
+      "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits"
+    },
+    {
+      "id": "programs.execute_gui_command",
+      "tool": "execute_gui_command",
+      "status": "native_tested",
+      "sources": [
+        "official-command-interface",
+        "official-scl-rev11"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows"
+      ],
+      "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits"
+    },
+    {
+      "id": "programs.create_native_macro",
+      "tool": "create_native_macro",
+      "status": "native_tested",
+      "sources": [
+        "official-command-interface",
+        "official-scl-rev11"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows"
+      ],
+      "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits"
+    },
+    {
+      "id": "programs.run_native_macro",
+      "tool": "run_native_macro",
+      "status": "native_tested",
+      "sources": [
+        "official-command-interface",
+        "official-scl-rev11"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows"
+      ],
+      "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits"
     }
   ],
   "native_reference_builds": [
