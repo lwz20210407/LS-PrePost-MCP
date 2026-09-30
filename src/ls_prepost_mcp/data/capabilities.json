@@ -136,11 +136,18 @@
     },
     {
       "id": "results.stress_tensor",
-      "status": "planned",
+      "status": "native_tested",
       "sources": [
         "local-StressExtraction-solid",
         "local-StressExtraction-shell"
-      ]
+      ],
+      "tool": "extract_native_stress",
+      "tested_profiles": [
+        "4.8",
+        "4.10",
+        "4.13"
+      ],
+      "verification": "SCL six stresses checked against native Mises; explicit selection and tensor definitions; private result data excluded"
     },
     {
       "id": "results.fragments",
@@ -235,11 +242,232 @@
       "sources": [
         "official-2026r1-guide"
       ]
+    },
+    {
+      "id": "mesh.solid_box",
+      "tool": "create_solid_box",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "tested_profiles": [
+        "4.10",
+        "4.13"
+      ]
+    },
+    {
+      "id": "mesh.translate_nodes",
+      "tool": "translate_mesh_nodes",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "tested_profiles": [
+        "4.13"
+      ]
+    },
+    {
+      "id": "mesh.move_elements",
+      "tool": "move_elements_to_part",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "tested_profiles": [
+        "4.13"
+      ]
+    },
+    {
+      "id": "mesh.shell_extrusion",
+      "tool": "extrude_shell_part",
+      "status": "native_tested",
+      "sources": [
+        "local-Example10"
+      ],
+      "tested_profiles": [
+        "4.13"
+      ]
+    },
+    {
+      "id": "deck.tensile_plate",
+      "tool": "create_tensile_shell_plate",
+      "status": "native_tested",
+      "sources": [
+        "library-pydyna"
+      ],
+      "tested_profiles": [
+        "4.13"
+      ]
+    },
+    {
+      "id": "deck.node_set_box",
+      "tool": "create_node_set_by_box",
+      "status": "native_tested",
+      "sources": [
+        "library-pydyna"
+      ]
+    },
+    {
+      "id": "deck.reference_check",
+      "tool": "validate_model_references",
+      "status": "implemented",
+      "sources": [
+        "library-pydyna"
+      ]
+    },
+    {
+      "id": "results.native_fields",
+      "tool": "extract_native_fields",
+      "status": "native_tested",
+      "sources": [
+        "official-scl-rev11"
+      ],
+      "tested_profiles": [
+        "4.13"
+      ]
+    },
+    {
+      "id": "results.native_ascii",
+      "tool": "extract_native_ascii_curve",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "tested_profiles": [
+        "4.13"
+      ]
+    },
+    {
+      "id": "results.native_binout",
+      "tool": "extract_native_binout_curve",
+      "status": "native_tested",
+      "sources": [
+        "official-scl-rev11"
+      ],
+      "tested_profiles": [
+        "4.13"
+      ]
+    },
+    {
+      "id": "results.native_acceptance",
+      "tool": "native_postprocess_case",
+      "status": "native_tested",
+      "sources": [
+        "official-scl-rev11"
+      ],
+      "tested_profiles": [
+        "4.13"
+      ]
+    },
+    {
+      "id": "results.invariants",
+      "tool": "compute_stress_invariants",
+      "status": "implemented",
+      "sources": [
+        "local-StressExtraction-solid"
+      ]
+    },
+    {
+      "id": "results.field_inventory",
+      "tool": "inspect_result_fields",
+      "status": "native_tested",
+      "sources": [
+        "library-lasso"
+      ]
+    },
+    {
+      "id": "results.reader_fields",
+      "tool": "extract_d3plot_field",
+      "status": "native_tested",
+      "sources": [
+        "library-lasso"
+      ]
+    },
+    {
+      "id": "results.reader_stress",
+      "tool": "extract_d3plot_stress",
+      "status": "native_tested",
+      "sources": [
+        "library-lasso"
+      ]
+    },
+    {
+      "id": "results.binout_variable",
+      "tool": "inspect_binout_variable",
+      "status": "implemented",
+      "sources": [
+        "library-lasso"
+      ]
+    },
+    {
+      "id": "results.binout_table",
+      "tool": "extract_binout_table",
+      "status": "native_tested",
+      "sources": [
+        "library-lasso"
+      ]
+    },
+    {
+      "id": "results.numeric_ascii",
+      "tool": "extract_ascii_curve",
+      "status": "implemented",
+      "sources": [
+        "official-history-extraction"
+      ]
+    },
+    {
+      "id": "results.curve_math",
+      "tool": "process_curve",
+      "status": "implemented",
+      "sources": [
+        "official-history-extraction"
+      ]
+    },
+    {
+      "id": "pydyna.catalog",
+      "tool": "list_pydyna_keywords",
+      "status": "implemented",
+      "sources": [
+        "pydyna-official-docs"
+      ]
+    },
+    {
+      "id": "pydyna.schema",
+      "tool": "describe_pydyna_keyword",
+      "status": "implemented",
+      "sources": [
+        "pydyna-official-docs"
+      ]
+    },
+    {
+      "id": "pydyna.compose",
+      "tool": "compose_keyword_deck",
+      "status": "implemented",
+      "sources": [
+        "pydyna-official-docs"
+      ]
+    },
+    {
+      "id": "pydyna.update_fields",
+      "tool": "update_keyword_fields",
+      "status": "implemented",
+      "sources": [
+        "pydyna-official-docs"
+      ]
+    },
+    {
+      "id": "pydyna.update_table_row",
+      "tool": "update_keyword_table_row",
+      "status": "implemented",
+      "sources": [
+        "pydyna-official-docs"
+      ]
     }
   ],
   "native_reference_builds": [
     "4.8.0.1",
     "4.10.0.1",
     "4.13.0.1"
-  ]
+  ],
+  "coverage_note": "See docs/COVERAGE.md and docs/PYDYNA_INTEGRATION.md. Catalog entries and source reading are not complete functional coverage."
 }

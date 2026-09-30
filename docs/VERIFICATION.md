@@ -1,10 +1,10 @@
-# Initial implementation verification
+# Implementation verification
 
 This is a bounded development acceptance record, not certification of all LS-PrePost features or engineering models.
 
 ## Automated checks
 
-- 33 Python tests including input boundaries, include handling, old-output rejection, job correlation, process isolation, vector semantics, version dispatch, optional PyDYNA reimport, literal binout paths and standard MCP stdio discovery/tool calls.
+- 49 Python tests including input boundaries, include handling, old-output rejection, job correlation, process isolation, vector semantics, version dispatch, PyDYNA scalar/table/series reimport, keyword typo/injection rejection, exact integer IDs, analytic and rotated stress tensors, nonuniform curve calculus, staged native failures and standard MCP stdio discovery/tool calls.
 - Skill frontmatter validation and Ruff checks.
 - Embedded bridge and LS-Reader worker syntax checked against the older Python grammar they target.
 
@@ -31,3 +31,15 @@ PyDYNA 0.12.1 created, updated, exported and reimported an elastic material card
 - Keep failed and superseded prototype evidence local; do not publish raw user/vendor fixtures.
 
 The first commit's hosted CI passed. Later commits must pass their own workflow; consult the current GitHub Actions status rather than treating this sentence as a perpetual green badge.
+
+## v0.2 development checks
+
+- Native SCL six-component stress exports and comparison with native `von_mises` passed on 4.8, 4.10 and 4.13 representative data. The derived definitions are explicit; private tensors/curves/numeric reports are not published.
+- Native ASCII/XYPlot GLSTAT, NODOUT and MATSUM routes and native SCLBinout NODOUT/GLSTAT were exercised on 4.13. Unverified branches are not certified by these checks.
+- 4.10 and 4.13 generated structured solid boxes. 4.13 additionally performed selected-node translation, element part reassignment and planar shell extrusion. Count, coordinate/ID/part-membership and extent checks were included.
+- The prescribed-displacement shell plate builder exported an analysis deck and reopened it in 4.13. No solver was launched; no quasi-static or physical validation is claimed.
+- The generic PyDYNA composer created a synthetic mesh/material/section/part/control deck, reopened in 4.13 with correct node/element IDs and connectivity. This checks that composed standard cards can reach the native workflow, not that all installed keyword classes are supported correctly.
+- Graphics startup and SCL file resolution use different native working-directory behavior. Batch numeric export uses SCL without graphics; images use a separate verified Python bridge job while staged inputs remain available.
+- A raw `historyvar` probe did not establish trustworthy native slot semantics. That generic native route remains unverified; it is not exposed as a working history-variable tool.
+
+Private case processing was stopped when repetitive runs no longer added coverage. Logs and test output remain local; future tests should target distinct interfaces, formats and failure conditions. Public examples and tests use synthetic inputs only.

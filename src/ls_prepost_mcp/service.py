@@ -8,6 +8,9 @@ from pathlib import Path
 
 from .config import Settings, command_path
 from .jobs import Jobs, atomic_json, check_artifact, fingerprint, now
+from .keyword_tools import KeywordTools
+from .post_tools import PostTools
+from .pre_tools import PreTools
 from .results import lasso_vectors, open_binout
 from .runner import decode, execute
 
@@ -36,7 +39,7 @@ def unit_label(units: str) -> str:
     return units.strip()
 
 
-class Service:
+class Service(PostTools, PreTools, KeywordTools):
     def __init__(self, settings: Settings):
         self.settings = settings
         self.jobs = Jobs(settings.workspace)
@@ -142,7 +145,10 @@ class Service:
         """Run an existing typed action using an explicitly configured installation; no global switch."""
         allowed = {"probe_environment", "probe_scl", "inspect_d3plot_scl", "inspect_model", "list_nodes", "list_parts",
                    "get_element_connectivity", "create_shell_plate", "export_keyword",
-                   "extract_nodal_results", "extract_node_history", "render_snapshot", "measure_parts"}
+                   "extract_nodal_results", "extract_node_history", "render_snapshot", "measure_parts",
+                   "extract_native_fields", "extract_native_stress", "extract_native_ascii_curve",
+                   "extract_native_binout_curve", "native_postprocess_case", "create_tensile_shell_plate",
+                   "create_solid_box", "translate_mesh_nodes", "move_elements_to_part", "extrude_shell_part"}
         if version not in self.settings.profiles:
             raise ValueError("Unknown installation profile")
         if action not in allowed:

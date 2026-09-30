@@ -154,6 +154,100 @@ def run(request_path, response_path):
             if data["counts"].get("nodes") != (nx+1)*(ny+1) or data["counts"].get("elements") != nx*ny:
                 raise ValueError("Native mesh counts do not match the requested plate")
             data["units"] = p["units"]
+        elif action == "create_box":
+            nx, ny, nz = p["divisions"]
+            lower = p["origin"]
+            upper = [lower[i] + p["size"][i] for i in range(3)]
+            lp.execute_command("meshing boxsolid create " + " ".join(str(v) for v in lower + upper)
+                               + " %d %d %d 0.0" % (nx, ny, nz))
+            lp.execute_command("meshing boxsolid accept %d %d %d boxsolid" % (p["part_id"], p["element_start"], p["node_start"]))
+            data = inventory()
+            if data["counts"].get("nodes") != (nx+1)*(ny+1)*(nz+1) or int(get("num_solid_elements")) != nx*ny*nz:
+                raise ValueError("Native box mesh counts differ from requested divisions")
+            data["units"] = p["units"]
+        elif action == "translate_nodes":
+            all_ids = [int(v) for v in sequence(get("node_ids"))]
+            if len(all_ids) > 1000000:
+                raise ValueError("Translation verification is limited to one million nodes")
+            selected = set(p["node_ids"])
+            if not selected.issubset(set(all_ids)):
+                raise ValueError("Requested user node ID does not exist")
+            before = node_rows(all_ids, ["node_x", "node_y", "node_z"], None)
+            lp.execute_command("genselect clear")
+            lp.execute_command("genselect target node")
+            for uid in p["node_ids"]:
+                lp.execute_command("genselect node add node %d/0" % uid)
+            lp.execute_command("translate_model " + " ".join(str(v) for v in p["offset"]))
+            lp.execute_command("translate_model accept")
+            lp.execute_command("genselect clear")
+            after_ids = [int(v) for v in sequence(get("node_ids"))]
+            if after_ids != all_ids:
+                raise ValueError("Translation unexpectedly changed the node ID registry")
+            after = node_rows(all_ids, ["node_x", "node_y", "node_z"], None)
+            max_error = 0.0
+            for old, new in zip(before, after):
+                expected = [old[i+1] + (p["offset"][i] if old[0] in selected else 0) for i in range(3)]
+                for i in range(3):
+                    error = abs(new[i+1]-expected[i])
+                    max_error = max(max_error,error)
+                    if error > max(1e-7,abs(expected[i])*1e-6):
+                        raise ValueError("Native translation changed an unexpected coordinate")
+            data = {"translated_nodes":len(selected), "verified_nodes":len(all_ids), "max_coordinate_error":max_error,
+                    "units":p["units"], "verification":"All selected and unselected coordinates checked before save"}
+        elif action == "move_elements_to_part":
+            kind = {"shell":dc.Type.SHELL,"solid":dc.Type.SOLID,"beam":dc.Type.BEAM}[p["element_type"]]
+            before_ids = [int(v) for v in sequence(get("element_ids",type=kind))]
+            if not set(p["element_ids"]).issubset(set(before_ids)):
+                raise ValueError("Requested user element ID not found")
+            for other_kind in (dc.Type.SHELL,dc.Type.SOLID,dc.Type.BEAM):
+                if other_kind != kind:
+                    other_ids = set(int(v) for v in sequence(get("element_ids",type=other_kind)))
+                    if set(p["element_ids"]) & other_ids:
+                        raise ValueError("Generic native selector is ambiguous: selected ID also occurs in another element type")
+            before_nodes = int(get("num_nodes"))
+            before_elements = int(get("num_elements"))
+            lp.execute_command("genselect clear")
+            lp.execute_command("genselect target element")
+            for uid in p["element_ids"]:
+                lp.execute_command("genselect element add element %d/0" % uid)
+            lp.execute_command('elemmove apply %d "mcp_part"' % p["part_id"])
+            lp.execute_command("elemmove accept %d" % p["part_id"])
+            lp.execute_command("genselect clear")
+            moved = set(int(v) for v in sequence(get("elemofpart_ids",type=1,id=p["part_id"])))
+            if not set(p["element_ids"]).issubset(moved):
+                raise ValueError("Native target part does not contain requested element IDs")
+            if int(get("num_nodes")) != before_nodes or int(get("num_elements")) != before_elements:
+                raise ValueError("Part reassignment changed mesh counts")
+            data = {"element_type":p["element_type"],"element_ids":p["element_ids"],"part_id":p["part_id"],
+                    "verification":"Target part membership and mesh counts checked; target material/section requires explicit configuration"}
+        elif action == "extrude_shell":
+            part_ids = [int(v) for v in sequence(get("validpart_ids"))]
+            shell_count = int(get("num_shell_elements"))
+            if part_ids != [p["part_id"]] or shell_count != int(get("num_elements")):
+                raise ValueError("Initial extrusion adapter requires a single shell-only part")
+            if shell_count*p["layers"] > 100000:
+                raise ValueError("Extrusion exceeds 100000 solid elements")
+            before_shells = [int(v) for v in sequence(get("element_ids",type=dc.Type.SHELL))]
+            z = [float(v) for v in sequence(get("node_z"))]
+            if max(z)-min(z) > 1e-8:
+                raise ValueError("Initial extrusion adapter requires a planar XY shell mesh")
+            lp.execute_command("genselect clear")
+            lp.execute_command("genselect target shell")
+            lp.execute_command("genselect shell add part %d/0" % p["part_id"])
+            lp.execute_command("elgenerate solid shelldrag 2 0 %s %d 0 0 0 0 0 10000" % (p["length"],p["layers"]))
+            lp.execute_command("genselect clear")
+            lp.execute_command("elgenerate accept")
+            data = inventory()
+            data["solid_count"] = int(get("num_solid_elements"))
+            solid_ids = [int(v) for v in sequence(get("element_ids",type=dc.Type.SOLID))]
+            if len(solid_ids) != len(set(solid_ids)) or before_shells != [int(v) for v in sequence(get("element_ids",type=dc.Type.SHELL))]:
+                raise ValueError("Extrusion changed source shell IDs or produced duplicate solid IDs")
+            if data["solid_count"] != shell_count*p["layers"]:
+                raise ValueError("Extrusion did not create expected number of solids")
+            after_z = [float(v) for v in sequence(get("node_z"))]
+            if abs((max(after_z)-min(after_z))-p["length"]) > max(1e-6,p["length"]*1e-6):
+                raise ValueError("Extrusion extent does not match requested length")
+            data.update(units=p["units"],source_shells_retained=True,z_extent=max(after_z)-min(after_z))
         elif action == "render_snapshot":
             if p.get("state") is not None:
                 check_state(p["state"])
