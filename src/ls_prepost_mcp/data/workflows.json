@@ -1,0 +1,402 @@
+[
+  {
+    "id": "ball_plate-1",
+    "title": "III.1 球撞板完整建模 / 创建板",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch15s01.html",
+    "parameters_and_selection": "4N-Shell；四角(-150,-150,0),(150,-150,0),(150,150,0),(-150,150,0)；NxNo=16,NyNo=16；Target=plate；Create→Accept",
+    "acceptance": "核验板包围盒、256个四边形壳（16×16推导）、节点连接、part1。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "ball_plate-2",
+    "title": "III.1 球撞板完整建模 / 创建球",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch15s02.html",
+    "parameters_and_selection": "Sphere_Solid；Radius=50；Density=6；Center=(0,0,51)；Target=ball；Create→Accept→Done",
+    "acceptance": "Density是Shape Mesher网格设置，不能误用为材料密度；核验球中心半径、实体元素类型、与板间隙。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "ball_plate-3",
+    "title": "III.1 球撞板完整建模 / 材料",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch15s03.html",
+    "parameters_and_selection": "球MAT020-RIGID：RO=7.83e-6,E=207,PR=.3；板MAT024：同RO/E/PR，SIGY=.2,ETAN=2.0；分别NewID/Accept",
+    "acceptance": "读取材料卡核验模型类型和字段；单位制需另外明确，不由数值静默猜测。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "ball_plate-4",
+    "title": "III.1 球撞板完整建模 / 截面",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch15s04.html",
+    "parameters_and_selection": "球SECTION_SOLID新ID；板SECTION_SHELL：NIP=5,T1=1，Return使T2/T3/T4同步",
+    "acceptance": "验收所有四角厚度1、NIP5；不能只写T1而漏其余字段。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "ball_plate-5",
+    "title": "III.1 球撞板完整建模 / 赋属性",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch15s05.html",
+    "parameters_and_selection": "Part Data Assign：S1 plate→SECID2/MID2；H2 ball→SECID1/MID1；各Assign Part Apply",
+    "acceptance": "读取PART卡确认引用存在且对象映射正确。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "ball_plate-6",
+    "title": "III.1 球撞板完整建模 / 核验属性",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch15s06.html",
+    "parameters_and_selection": "Part Data Prop中逐part查看Section和Material",
+    "acceptance": "MCP必须提供readback报告，不能把写卡成功当成赋值正确。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "ball_plate-7",
+    "title": "III.1 球撞板完整建模 / 约束",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch15s07.html",
+    "parameters_and_selection": "Create Entity→Boundary Spc→Cre→Set；只激活X/Y/Z；Edge render→Visible→Apply→ShaEle",
+    "acceptance": "图中板边界节点被约束，旋转自由度未勾选。用显式板边缘node set替代依赖Visible状态；验证集合与DOF。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "ball_plate-8",
+    "title": "III.1 球撞板完整建模 / 初速度",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch15s08.html",
+    "parameters_and_selection": "Initial Velocity→Cre；V=(0,0,-10)；ByPart选球→Apply",
+    "acceptance": "仅球相关节点得到向下速度，板无误选；核验卡与集合。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "ball_plate-9",
+    "title": "III.1 球撞板完整建模 / 接触集合",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch15s09.html",
+    "parameters_and_selection": "Set Data *SET_PART→Cre；Title contact part set；图形选板和球→Apply→Show",
+    "acceptance": "set1成员恰为两个part，无漏选/重复。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "ball_plate-10",
+    "title": "III.1 球撞板完整建模 / 接触卡",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch15s10.html",
+    "parameters_and_selection": "CONTACT AUTOMATIC_SINGLE_SURFACE；NewID；SSTYP=2；SSID链接set1；MSID=0",
+    "acceptance": "检查集合引用与SSTYP的语义一致，不能硬编码猜材料/接触参数。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "ball_plate-11",
+    "title": "III.1 球撞板完整建模 / 终止时间",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch15s11.html",
+    "parameters_and_selection": "CONTROL_TERMINATION：ENDTIM=10；Accept",
+    "acceptance": "读取卡确认。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "ball_plate-12",
+    "title": "III.1 球撞板完整建模 / 二进制输出",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch15s12.html",
+    "parameters_and_selection": "DATABASE_BINARY_D3PLOT：DT=1；教程注每1ms输出完整状态",
+    "acceptance": "读取输出卡；实际状态数需要求解后验证，本轮未求解。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "ball_plate-13",
+    "title": "III.1 球撞板完整建模 / ASCII输出",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch15s13.html",
+    "parameters_and_selection": "DATABASE ASCII_option：Default DT=.1；GLSTAT/MATSUM/SLEOUT开启",
+    "acceptance": "核验三输出卡及频率。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "ball_plate-14",
+    "title": "III.1 球撞板完整建模 / 保存",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch15s14.html",
+    "parameters_and_selection": "File→Save Keyword；ball_plate.k；教程要求与示例输入文件对照",
+    "acceptance": "建议增加保存后重新打开、卡/节点/元素/引用差异验收；不是教程已实施的求解验证。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "element_edit-1",
+    "title": "II.2 Element Editing / 打开",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch10s01.html",
+    "parameters_and_selection": "打开cube_corner.k",
+    "acceptance": "仅操作副本。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "element_edit-2",
+    "title": "II.2 Element Editing / 孤立节点",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch10s02.html",
+    "parameters_and_selection": "Unreferenced Nodes On/Off显示free/unreferenced nodes",
+    "acceptance": "显式查询孤立节点数避免toggle歧义。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "element_edit-3",
+    "title": "II.2 Element Editing / 两节点间创建",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch10s03.html",
+    "parameters_and_selection": "Node Editing Create→ByTwo；依次NID248、247；Create→Accept",
+    "acceptance": "新节点处于两端中点；后续识别NID249；ID分配不能泛化为固定249。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "element_edit-4",
+    "title": "II.2 Element Editing / 识别节点",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch10s04.html",
+    "parameters_and_selection": "Identify节点236,237,238,248,249,247",
+    "acceptance": "返回坐标/连接状态供选择确认。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "element_edit-5",
+    "title": "II.2 Element Editing / 替换节点",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch10s05.html",
+    "parameters_and_selection": "Replace按236→248、237→249、238→247逐对点选；Accept",
+    "acceptance": "验收连接引用替换、无孤立残留或单元塌陷。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "element_edit-6",
+    "title": "II.2 Element Editing / 对齐",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch10s06.html",
+    "parameters_and_selection": "Front；Node Editing Align；按96→232→229→230→231选择；Align→Accept",
+    "acceptance": "顺序是语义，接口应把基准/目标角色显式化。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "element_edit-7",
+    "title": "II.2 Element Editing / 分裂",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch10s07.html",
+    "parameters_and_selection": "Element Editing Split/Merge；指定边中点到对角的quad图标；对28、214靠共享边点选；Apply→Accept",
+    "acceptance": "除element_id还要edge/corner角色；验证新连接拓扑与三角/四边形数量变化。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "element_edit-8",
+    "title": "II.2 Element Editing / 删除",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch10s08.html",
+    "parameters_and_selection": "Delete图中4个三角形；Delete→Accept",
+    "acceptance": "原文未列4个ID，需用原模型解析/录制确认，不能自行捏造ID。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "element_edit-9",
+    "title": "II.2 Element Editing / 创建单元",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch10s09.html",
+    "parameters_and_selection": "Create；PID1；按孔周边节点依次选四节点，分别补右上、左下两孔；Accept",
+    "acceptance": "需稳定有序node_ids；检查法向、Jacobian、连接与孔闭合。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "element_edit-10",
+    "title": "II.2 Element Editing / 平滑",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch10s10.html",
+    "parameters_and_selection": "Smooth Iterations50；Area框选图示区域；Smooth→Accept",
+    "acceptance": "已看图：选64单元；Feature angle30、Lock Boundary、Project back启用。需要记录确切元素集合并验收边界不移、质量改善。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "element_edit-11",
+    "title": "II.2 Element Editing / 复制平移",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch10s11.html",
+    "parameters_and_selection": "Top；Transform Translate方向Y/Distance40；Copy Elem；part ID1；框选ByElem；Tran-→Accept",
+    "acceptance": "实际位移为负Y40；接口用向量避免按钮正负误解。原文框选未给IDs。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "element_edit-12",
+    "title": "II.2 Element Editing / 反射",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch10s12.html",
+    "parameters_and_selection": "Transform Reflect；Plane Norm X，XYZ0,0,0；Copy Elem，Whole；然后Norm Y再Norm Z",
+    "acceptance": "逐阶段作用于当时whole模型；验证镜像位置、法向/体积、part归属。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "element_edit-13",
+    "title": "II.2 Element Editing / 合并节点",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch10s13.html",
+    "parameters_and_selection": "Duplicate Nodes tolerance=.0001；Show Free Edges；Show Dup.Nodes→Merge→Accept",
+    "acceptance": "合并前后重复数、节点数、free-edge数量、单元无退化。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "elgen-1",
+    "title": "II.4 ElGen / 打开",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch12s01.html",
+    "parameters_and_selection": "head_and_neck.k；Right view",
+    "acceptance": "记录输入hash/part清单。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "elgen-2",
+    "title": "II.4 ElGen / 壳偏置实体",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch12s02.html",
+    "parameters_and_selection": "Solid By Shell_Offset；Thickness10,Segment1；ByPart选head；Create→Accept",
+    "acceptance": "厚度、层数、实体连通性、正体积。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "elgen-3",
+    "title": "II.4 ElGen / 实体面生成壳",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch12s03.html",
+    "parameters_and_selection": "Shell By Solid_Face；ByElem，Prop，Ang45；选新增实体层外表面",
+    "acceptance": "选择传播角影响集合；检查目标面与法向。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "elgen-4",
+    "title": "II.4 ElGen / 隐藏头部",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch12s04.html",
+    "parameters_and_selection": "Assembly选择仅2 neck(solids)",
+    "acceptance": "显示集合影响后续选择，接口显式限定part。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "elgen-5",
+    "title": "II.4 ElGen / 实体外表面壳",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch12s05.html",
+    "parameters_and_selection": "Shell By Solid_Surface；ByPart选neck；Create→Accept",
+    "acceptance": "外表面集合/内部面排除核验。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "elgen-6",
+    "title": "II.4 ElGen / 壳拖拽",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch12s06.html",
+    "parameters_and_selection": "只显S5；Solid Shell_Drag厚24/Segment4，方向(0,0,-1)；Prop选盘下表面；另一拖拽方向由NID223→94定义",
+    "acceptance": "方向端点次序重要；读回层数、厚度、目标面。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "elgen-7",
+    "title": "II.4 ElGen / 两壳层填充",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch12s07.html",
+    "parameters_and_selection": "Two Shell Sets Segment4；set1为中盘下表面，N1=429,N2=518；set2为倒数第二盘上表面，N1=309,N2=296；Create→Accept",
+    "acceptance": "两个参考节点对应关系决定映射；验收匹配、连通、正Jacobian。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "elgen-8",
+    "title": "II.4 ElGen / 删水平壳面",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch12s08.html",
+    "parameters_and_selection": "只显S5；Delete ByElem/Prop；分别盘top/bottom面Delete→Accept",
+    "acceptance": "需要面集合显式化；保留壳环。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "elgen-9",
+    "title": "II.4 ElGen / 壳环偏置",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch12s09.html",
+    "parameters_and_selection": "Shell_Offset；PartID2；Thickness6,Segment1；ByPart选壳环",
+    "acceptance": "实体回到指定part2，厚度/层数/连接正确。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "elgen-10",
+    "title": "II.4 ElGen / 清理",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch12s10.html",
+    "parameters_and_selection": "仅显1 head(shells)和S5；Part Data All→Del；最后Assembly All",
+    "acceptance": "删除前明确目标part和引用；建议另存读回，本教程该章末未要求文件保存。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "block_mesher-1",
+    "title": "II.5 Block Mesher / 导入缝合",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch13s01.html",
+    "parameters_and_selection": "Import block.igs；Stitch Faces All Faces,Dis Tol=.8；Apply",
+    "acceptance": "读取几何连接/free edges前后变化，不把.8推广为所有几何默认容差。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "block_mesher-2",
+    "title": "II.5 Block Mesher / 直块",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch13s02.html",
+    "parameters_and_selection": "Single Block；WirGeo；按图指定P1→P8；I/J/K元素数18/12/3；Create，明确暂不Accept",
+    "acceptance": "已看原图8角标号；接口必须接收有序角点。648实体单元为网格分段推导，真机须检验。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "block_mesher-3",
+    "title": "II.5 Block Mesher / 投影边",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch13s03.html",
+    "parameters_and_selection": "Project Line；BlockM计算窗口选node1与I/J/K红节点，再主视图选对应几何边；project；继续node2/3/4",
+    "acceptance": "要记录拓扑边对应而非鼠标像素；检查网格边与几何边偏差。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "block_mesher-4",
+    "title": "II.5 Block Mesher / 投影面",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch13s04.html",
+    "parameters_and_selection": "Project Surface；从node1选IJ/IK/JK红节点对，选择对应几何面并project；node2同理",
+    "acceptance": "建立block-face→geometry-face映射；验收表面偏差和单元质量。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "block_mesher-5",
+    "title": "II.5 Block Mesher / 接受网格",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch13s05.html",
+    "parameters_and_selection": "投影结束后Accept；EdgGeo",
+    "acceptance": "拓扑数、负Jacobian、最小质量及几何偏差；建议另存和重新读取，原页未提供保存步骤。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "lsdyna_prepost_tut_repair_terms",
+    "title": "I.Geometry 修复/中面 / 修复术语",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/lsdyna_prepost_tut_repair_terms.html",
+    "parameters_and_selection": "Free edge仅1面、shared edge2面、non-manifold多于2面；内孔是单面内环、外孔是多面构成shell的环。",
+    "acceptance": "检测工具应区分孔与shell外边界，不能按所有闭合环填孔。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "lsdyna_prepost_tut_repair_import",
+    "title": "I.Geometry 修复/中面 / 几何修复2.2完整10子节",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/lsdyna_prepost_tut_repair_import.html",
+    "parameters_and_selection": "模型ham_sheet.igs/iges（原文后缀有不一致）；重复面19/10删除19；延伸到顶点；Vertex Move后Edge Toggle；直边替换到圆边方向不可颠倒；3内孔；外孔最大项为整体边界Not Fill，填另外2孔；局部zigzag reshape；Remove redundant vertices。",
+    "acceptance": "作为独立修复任务集：各操作前后拓扑计数、最大外环保留、几何偏差限值、最终可网格化。原文依赖图示选择的位置尚未逐图解析，不能生成可执行选取ID。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "lsdyna_prepost_tut_repair_meshmo",
+    "title": "I.Geometry 修复/中面 / 修复后网格",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/lsdyna_prepost_tut_repair_meshmo.html",
+    "parameters_and_selection": "AutoMesher Size/Mixed；Compute尺寸；框选所有faces或Feature Tree shell；Mesh预览→Accept。",
+    "acceptance": "前后几何不变、混合壳网格质量与孔边界检验；具体Compute尺寸须运行读回。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "lsdyna_prepost_tut_midsurf_load",
+    "title": "I.Geometry 修复/中面 / 中面载入",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/lsdyna_prepost_tut_midsurf_load.html",
+    "parameters_and_selection": "File Open Step，bottle.stp。",
+    "acceptance": "需原始实体闭合/厚度结构检查。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "lsdyna_prepost_tut_midsurf_getmiddle",
+    "title": "I.Geometry 修复/中面 / 取中面",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/lsdyna_prepost_tut_midsurf_getmiddle.html",
+    "parameters_and_selection": "Surface Middle Surface；By Solid；图注Stitch Mid-Surfs勾选。",
+    "acceptance": "中面离上下表面距离、连通性与厚度归属；教程不给Python命令。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "lsdyna_prepost_tut_midsurf_getsub",
+    "title": "I.Geometry 修复/中面 / 取上下子面",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/lsdyna_prepost_tut_midsurf_getsub.html",
+    "parameters_and_selection": "Top&Bottom；选seed face搜索同层面；图注Remove Left Faces。",
+    "acceptance": "此法取已有top/bottom子面，不是生成中面；工具命名/验收需区分。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "lsdyna_prepost_tut_midsurf_shell",
+    "title": "I.Geometry 修复/中面 / 按角取同层面",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/lsdyna_prepost_tut_midsurf_shell.html",
+    "parameters_and_selection": "Shell by Angle；一个seed face、共享边角度容差判同层。",
+    "acceptance": "正文没有数值容差，不能编造默认值；seed、角度和保留策略显式参数化。",
+    "status": "documented_not_automated"
+  },
+  {
+    "id": "lsdyna_prepost_tut_midsurf_mesh",
+    "title": "I.Geometry 修复/中面 / 中面网格",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/lsdyna_prepost_tut_midsurf_mesh.html",
+    "parameters_and_selection": "用Get Middle Sheet的结果；AutoMesher Size/Mixed，Compute，选所有面，Mesh→Accept。",
+    "acceptance": "检查中面壳网格、表面偏差、质量和厚度映射；保存读回为新增验收要求。",
+    "status": "documented_not_automated"
+  }
+]

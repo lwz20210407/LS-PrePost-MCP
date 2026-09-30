@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "software_target": "LS-PrePost",
+  "native_reference_build": null,
+  "status_legend": {
+    "implemented": "Code exists; see native verification for supported build/data",
+    "native_tested": "Passed a documented native smoke test; not a claim about all models",
+    "planned": "Not implemented; never route requests as if executable"
+  },
+  "capabilities": [
+    {
+      "id": "model.inspect",
+      "tool": "inspect_model",
+      "status": "implemented",
+      "sources": [
+        "official-scl-rev11",
+        "local-Example2"
+      ]
+    },
+    {
+      "id": "entities.nodes",
+      "tool": "list_nodes",
+      "status": "implemented",
+      "sources": [
+        "local-Example11"
+      ]
+    },
+    {
+      "id": "entities.parts",
+      "tool": "list_parts",
+      "status": "implemented",
+      "sources": [
+        "local-Example1"
+      ]
+    },
+    {
+      "id": "mesh.shell_plate",
+      "tool": "create_shell_plate",
+      "status": "implemented",
+      "sources": [
+        "local-Example2"
+      ]
+    },
+    {
+      "id": "results.nodal",
+      "tool": "extract_nodal_results",
+      "status": "implemented",
+      "sources": [
+        "local-Example5",
+        "local-Example7"
+      ]
+    },
+    {
+      "id": "results.history",
+      "tool": "extract_node_history",
+      "status": "implemented",
+      "sources": [
+        "official-history-extraction"
+      ]
+    },
+    {
+      "id": "render.snapshot",
+      "tool": "render_snapshot",
+      "status": "implemented",
+      "sources": [
+        "local-Example1"
+      ]
+    },
+    {
+      "id": "results.binout",
+      "tool": "extract_binout_curve",
+      "status": "implemented",
+      "sources": [
+        "library-lasso"
+      ]
+    },
+    {
+      "id": "commands.search",
+      "tool": "search_commands",
+      "status": "implemented",
+      "sources": [
+        "library-cfile-support"
+      ]
+    },
+    {
+      "id": "geometry.repair",
+      "status": "planned",
+      "sources": [
+        "official-2026r1-guide"
+      ]
+    },
+    {
+      "id": "mesh.tetra_particles",
+      "status": "planned",
+      "sources": [
+        "extra-pycompact"
+      ]
+    },
+    {
+      "id": "mesh.sph_stl",
+      "status": "planned",
+      "sources": [
+        "extra-sphgen"
+      ]
+    },
+    {
+      "id": "model.material_boundary_contact",
+      "status": "planned",
+      "sources": [
+        "library-pydyna",
+        "SimAgentDev/Ansys-LSPP-AgentKit"
+      ]
+    },
+    {
+      "id": "results.stress_tensor",
+      "status": "planned",
+      "sources": [
+        "local-StressExtraction-solid",
+        "local-StressExtraction-shell"
+      ]
+    },
+    {
+      "id": "results.fragments",
+      "status": "planned",
+      "sources": [
+        "guide-fragments"
+      ]
+    },
+    {
+      "id": "results.virtual_gauge",
+      "status": "planned",
+      "sources": [
+        "guide-vsg"
+      ]
+    },
+    {
+      "id": "session.live",
+      "status": "planned",
+      "sources": [
+        "historical-vr-socket"
+      ]
+    },
+    {
+      "id": "solver.run",
+      "status": "planned",
+      "sources": [
+        "library-pydyna",
+        "LLK-LL/K-agent"
+      ]
+    }
+  ]
+}

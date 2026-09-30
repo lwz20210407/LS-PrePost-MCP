@@ -1,0 +1,1302 @@
+[
+  {
+    "id": "Malps-del/lspp-mcp-server",
+    "title": "Malps-del/lspp-mcp-server",
+    "url": "https://github.com/Malps-del/lspp-mcp-server",
+    "summary": "这是本轮最贴合“LS-PrePost MCP＋Skills”的真实实现。server.py 注册56个工具，Skill 将自然语言意图路由到结构化操作；LS-PrePost 子层由6个白名单 Jinja 模板生成 cfile，再以独立子进程执行。曲线默认 -nographics，云图默认开图形窗口并设置 w=；多帧工具复用一次载入。已有路径白名单、引号/换行拒绝、超时、日志、非空产物检查和可配置变量表，足以作为二次开发底座。不过目前不是内嵌 Python/LSPP API 桥，也不是操纵已打开 GUI 的长期会话。主提交 Windows CI 成功，相关 LSPP 测试主要 mock，不能替代本机版本实测。runner 无 cwd、覆盖时旧产物可能误判、图片无解码校验、安装探测只检查路径，均适合先强化。包元数据声明 MIT，但独立许可证缺失应准确保留这一限制。",
+    "license_status": "pyproject.toml 声明 MIT；仓库无独立 LICENSE；GitHub license=null（声明存在，授权文本完整性待确认）",
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "SimAgentDev/Ansys-LSPP-AgentKit",
+    "title": "SimAgentDev/Ansys-LSPP-AgentKit",
+    "url": "https://github.com/SimAgentDev/Ansys-LSPP-AgentKit",
+    "summary": "agent2 是带聊天入口的桌面助手，main.py 启动 Tkinter，GUI.py 维护对话、TOOLS描述和函数映射，调用LLM后解析 tool_calls，再执行固定 Python 函数。底层部分任务直接改K文件，部分替换旋转、平移、可视化、材料赋值 cfile 并启动 LS-PrePost；GUI指该助手界面及新开的LSPP窗口，不代表鼠标视觉自动化。README要求修改utils路径，但GUI还独立硬编码D盘4.6路径。旋转生成器明确保留模板固定旋转，模板包含具体角度和ID范围；节点容差默认0.1，说明是专用建模工作流而非通用几何Agent。代码树、依赖与入口未见MCP服务；可借鉴自然语言到工具路由和边界/材料流程，接入MCP需重构而非直接注册。MIT可查；本轮未启动GUI、调用模型或LS-PrePost，不能背书端到端效果。",
+    "license_status": "MIT；LICENSE与GitHub API一致",
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "LLK-LL/K-agent",
+    "title": "LLK-LL/K-agent",
+    "url": "https://github.com/LLK-LL/K-agent",
+    "summary": "K-agent的核心是面向Claude/Codex的lsdyna-kfile Skill，包含任务书、模板选型、单位制、K卡生成与L0静态检查/L1短算/L2完整求解的流程；可见配套gen_mesh、check_kfile、run_dyna、parse_results等真实脚本。run_dyna使用subprocess调用本地LS-DYNA并解析日志，与LS-PrePost cfile执行不是同一条链。仓库确有MCP，但位于vendor/academic-search-mcp，提供search_papers/search_scopus/search_sciencedirect文献检索，不应因此标为LS-PrePost MCP。它最适合作为上层工程Skill与验证规则参考，尤其保留既有deck的物理意图和隔离工作副本；不补齐可视化会话控制。默认求解器目标R14.1.1且设置了版本边界，需要适配用户本地安装。本轮只审阅源码，没有运行求解、安装Skill或执行自动配置。",
+    "license_status": "MIT；LICENSE与GitHub API一致",
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "JimmyZhou226/lsdyna-r13-keyword-mcp",
+    "title": "JimmyZhou226/lsdyna-r13-keyword-mcp",
+    "url": "https://github.com/JimmyZhou226/lsdyna-r13-keyword-mcp",
+    "summary": "这是完整形态的MCP知识服务：启动时从library_vol1/2/3.json加载结构化R13手册；5个工具负责列卡、关键词模糊搜索、卡语法、字段信息和节内文本检索。它没有LS-PrePost进程控制、cfile或内嵌Python桥，因此可用作参数/关键字知识伴随服务，不能承担软件操作。README宣称1582节、4019卡块等规模，但仓库不分发PDF或生成JSON，启动代码直接读取这些JSON，缺失时并不能开箱运行；这些覆盖率和抽取质量数字只能归于作者报告。本轮核对到实际解析构建脚本、检索与MCP smoke脚本，未提供手册、构建知识库或运行验证。README还明示上标丢失、公式区域损坏等限制。用于用户更高版本的LS-DYNA时应加版本标注及手册核查，避免将R13字段视为当前通用规则。",
+    "license_status": "MIT代码；PDF和提取数据库不随仓库分发",
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "merghd/pyansys-mcp",
+    "title": "merghd/pyansys-mcp",
+    "url": "https://github.com/merghd/pyansys-mcp",
+    "summary": "该仓库有真正FastMCP，server.py提供PyDYNA关键字内省/文档、材料卡生成、HTTP远程求解及DPF结果摘要和最大值。实现把局域网IP、求解端口、DPF端口写成常量，host_solver.py是FastAPI加后台线程调用LS-DYNA，未见LS-PrePost cfile或Python接口。静态审阅发现材料生成函数创建Mat003但未append到Deck便write；另server.py把/solve返回视为最终status，而host_solver实际立即返回job_id，这条客户端/服务端协议存在不一致，故不宜作为优先底座。它仍可参考远程求解和DPF分层思路，但这些已偏离用户专注的LSPP控制。本轮未执行代码或连接示例私网地址，缺陷为静态证据判定。仓库没有独立LICENSE且API为空，应列为许可待澄清，不应把PyAnsys自身许可套用到本仓库。",
+    "license_status": "未发现LICENSE，GitHub API license=null；pyproject未见license声明",
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "library-ls-toolbox",
+    "title": "lbmc-lyon/ls_toolbox — Python LS-DYNA/LS-PrePost helpers",
+    "url": "https://github.com/lbmc-lyon/ls_toolbox",
+    "summary": "这是本批次唯一已从源码确认直接启动 LS-PrePost 的 Python 小库。prepost_commands.run_prepost 用 -nographics 与 c=命令文件运行外部程序；另有结果节点坐标、节点变量提取和 LS-DYNA 求解启动，读写关键字及 PyVista 显示只是其余能力。它可作为 MCP 执行层的参考，但目前更像实验室脚本：导入时检查环境变量并可能退出进程，运行器使用 shell=True、吞掉全部异常，工作目录内使用固定临时文件且默认删日志，未见测试或 CI。最近实质代码修改是 2026-07-02 的路径要求修复。GitHub 无 LICENSE，PyPI 仅分类标签声称 MIT，正式复用前应核对授权文本。应改造进程参数、工作目录隔离、超时、退出码、日志与产物验证，不能直接当成熟 MCP 后端。",
+    "license_status": {
+      "github_license_file": false,
+      "github_api": null,
+      "pypi_classifier": "License :: OSI Approved :: MIT License",
+      "assessment": "PyPI 元数据声称 MIT，但仓库未提供授权文本；不能把许可完全核实为 MIT。"
+    },
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "library-cfile-support",
+    "title": "Hydrowelder/lsdyna-ls-prepost-cfile-support — VS Code language extension",
+    "url": "https://github.com/Hydrowelder/lsdyna-ls-prepost-cfile-support",
+    "summary": "这是命令文件编辑辅助扩展，而非 LS-PrePost 自动化客户端。核读 extension.js、package.json 和 TSV：扩展读取命令表并注册 hover、completion；package.json 声明语法、片段及文件图标，未包含启动 LS-PrePost 的执行命令。valid_commands.tsv 有 1246 数据行、1063 个不同 Command 单元格值，这不是实测支持数，也不等于完整语法。作者在 2026-01-19 大幅补充表格并发布 2.0.0，同时 README 仍明确无命令验证、文档不全及 hover 有问题。Apache-2.0 许可清晰，可复用为 MCP 的命令检索资源、模板和初步白名单素材；不能据此保证命令有效或安全，更不能宣称它已经能控制应用。表格来自文档的命令提示需与目标安装版本逐项验证。",
+    "license_status": {
+      "spdx": "Apache-2.0",
+      "file": "LICENSE"
+    },
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "library-pydyna",
+    "title": "Ansys PyDYNA — keyword deck construction and LS-DYNA execution",
+    "url": "https://github.com/ansys/pydyna",
+    "summary": "Ansys 官方项目，MIT 许可。当前 main 的 README 将主要接口明确为 keywords 与 run：前者直接创建关键字卡片/输入 deck，后者运行 LS-DYNA；本地路线不要求 gRPC 或 Docker，容器是可选方案。run_dyna 接受文件或 Deck，提供 executable、working_directory、ncpu、内存等参数；Windows runner 可利用 LS-Run 环境脚本，这不表示在控制 LS-PrePost 图形界面。2026-09-24 的实质修复涉及 Windows 路径和自定义求解器，并同时添加本地/Windows runner 测试；此后的提交多为依赖更新。仓库还具关键字生成、单元测试、示例和 CI。作为 MCP 的模型构造与求解后端优先级较高，LS-PrePost 可视化命令仍需单独适配；求解功能仍要求合法的 LS-DYNA 安装许可。",
+    "license_status": {
+      "spdx": "MIT",
+      "file": "LICENSE",
+      "solver_license": "Python 库的 MIT 不替代 LS-DYNA 软件许可。"
+    },
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "library-lasso",
+    "title": "Open LASSO Python — LS-DYNA binary result access",
+    "url": "https://github.com/open-lasso-python/lasso-python",
+    "summary": "公开检索核对了现行仓库为 open-lasso-python/lasso-python。BSD-3-Clause 许可，社区维护，当前默认 develop 分支。核心 lasso.dyna 能读取 d3plot、binout，源码还实现 write_d3plot；因此不能简化为仅只读工具，但它仍不等于启动或控制 LS-PrePost。适合让 MCP 返回节点/单元数组、时间历史、统计量和导出结果，减少必须开 GUI 的任务。最后源码提交为 2025-12-21 的调试日志格式修复；最后检索到的主要格式兼容修复是 2025-08-30 的 SPH 数组及跨版本数据库差异，同期迁移到 Python 3.11+、NumPy 2.2+。仓库有真实测试数据及测试套件，可作后处理优选候选，但需用用户实际求解版本与输出组合回归测试，不能由旧覆盖率页面推断当前全部格式都支持。",
+    "license_status": {
+      "spdx": "BSD-3-Clause",
+      "file": "LICENSE.md"
+    },
+    "integration": "optional_runtime_backend",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "library-qd-cae",
+    "title": "qd-cae-python — archived CAE data library",
+    "url": "https://github.com/qd-cae/qd-cae-python",
+    "summary": "公开检索确认仓库 qd-cae/qd-cae-python，GitHub 已归档，README 明确停止开发并建议迁移 LASSO。它主要访问 d3plot、binout 和 KeyFile，包含 C++ 核心、旧版 wheel/FEMZIP 依赖和示例测试；beta 远程控制对象是 BETA CAE META，不能误读成 LS-PrePost 远控。最后仓库提交在 2021-10-06，只改 README；近十次记录中最后功能代码修改为 2020-03-27 的 PartKeyword 修复，提交信息还承认影响了其他特殊情况。GitHub 自动许可识别为 NOASSERTION，但 LICENSE.txt 原文是标准三条款 BSD 文本，不能据自动字段写成无许可证。可供遗留项目兼容或算法参考，新建 MCP 的文件后处理层优先考虑 LASSO，并回归验证特殊关键字与现代 Python 环境。",
+    "license_status": {
+      "github_spdx": "NOASSERTION",
+      "file": "LICENSE.txt",
+      "manual_assessment": "文件标题 BSD License，实际含三条款 BSD 条件与免责声明。"
+    },
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "extra-sphgen",
+    "title": "SPHgen — STL to LS-DYNA SPH particles",
+    "url": "https://github.com/SwerimOldies/SPHgen",
+    "summary": "SPHgen 将 STL 切片体素化，再写出 *NODE、*PART、*ELEMENT_SPH，适合作为 MCP 的 STL→SPH 输入生成能力参考。它不启动 LS-PrePost，只产生可被导入的 .k。源码将粒子部件号固定为 9，密度写成 7.8e-09，并在当前目录用固定临时文件，集成前需参数化单位、密度、ID 范围和工作目录。最后可见功能提交在 2017-10-25，2019-12-17 仅更新 README。根 LICENSE.md 放置 GPLv3 文本且开头仍称 FAME；嵌入的 stltovoxel 有独立 MIT 许可，应按混合来源逐项确认。",
+    "license_status": "根文件为 GPLv3 文本（开头 FAME 命名残留，GitHub NOASSERTION）；stltovoxel/LICENCE.md 为 MIT。",
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "extra-v50",
+    "title": "V50 automated calculation — workflow prototype with broken runner",
+    "url": "https://github.com/SSongkai/V50_-automated-calculation",
+    "summary": "项目组织了参数化 K 文件、求解提交、剩余速度提取与 V50 搜索/拟合，功能边界对设计 MCP 工作流有参考价值，但不能按 README 认定可运行。result_parser.py 的批处理明确把 timeout 传入 subprocess.Popen；标准 Popen 没有该参数，调用会直接报 TypeError。其 -c 参数与星号大写命令也未取得官方语法支持；所谓 Python API 采用 import lsprepost、open_database、get_node_velocity，与官方嵌入式模块路线不同且无配套实现。节点失败后回退到全模型前100节点也可能产生错误物理结论。仅两次 2026-01-21 上传/文档提交，没有 LICENSE、测试数据或可复现输出。只能参考任务拆分，需重写并实测。",
+    "license_status": "未发现 LICENSE，授权未知。",
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "extra-pycompact",
+    "title": "PyCompact — particle cfile meshing and material generation",
+    "url": "https://github.com/plaslab-kimjh/PyCompact",
+    "summary": "MIT 项目，重点价值是可核查的 LS-PrePost 网格命令生成器。MPFEM/tools/MeshMatGen.ipynb 读取粒子坐标/半径 CSV，写 spheresolid 创建球体、tetmesh skin/remesh/mesh/accept 四面体划分，并按粒子构造 segment set、solid set，输出材料/部件关联块。仓库还附真实 Mesh_file.cfile 和 material.k 样例。它生成命令而不启动 LS-PrePost，README 仍要求在 LSPP 人工完成模具、接触和边界条件，不能称全自动闭环。可为 MCP 增加批量球体、粒子网格、表面集合和属性模板。最后可见源码上传 2025-08-27；硬编码粒子ID与网格计数需重构，实验误差仅作者声明未独立验证。",
+    "license_status": "MIT；LICENSE 原文核实。",
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "extra-dynautils",
+    "title": "dyna-utils — MATLAB/Python keyword and mesh writers",
+    "url": "https://github.com/ivncl/dyna-utils",
+    "summary": "MIT 许可的小型日常工程工具集，实际核心是关键字写出，而非 LS-PrePost 控制。Python LsDynaWrite.py 包含节点、实体、梁、梁截面、部件、变换、曲线、SPH 等固定宽度/CSV 写出函数；MATLAB 目录更广，覆盖筒体/矩形网格、压缩拉伸模型、接触、边界、材料和结果输出请求。最后功能改动 2022-11-11。README 坦言文档不足且可能有 bug，测试经验主要来自 R9/R11/R13，没有通用兼容保证。可为 MCP 补充小型参数化网格和关键词模板，但与 PyDYNA 重叠部分应优先采用维护更活跃、结构化且有测试的实现。",
+    "license_status": "MIT；2022 Ivan Colamartino。",
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "extra-postfem",
+    "title": "PostFEM — penetration, coordinate update and solver diagnostic scripts",
+    "url": "https://github.com/m1lestone/PostFEM",
+    "summary": "PostFEM 将 LS-PrePost 导出和独立 Python 处理串联：示例 cfile 从 d3plot 导出状态节点；UpdateNodes 按 ID 替换 .k 节点并统计缺失项；Penetration 读取两壳面 XYZ 时序及连接关系，用近邻节点法向投影估算间隙/穿透；CheckElements_Opt 扫描 MPP 日志提取壳失效、实体负体积及对应部件。它不自动启动 LSPP；原始 cfile 还夹带界面日志和硬编码网络路径，不能原样回放。对 MCP 的变形节点回写、接触预检、求解诊断功能很有启发，但算法应标为近似检查，坐标块解析与输入输出需重构。最新修改为 2024-12-17，未发现许可证或自动测试。",
+    "license_status": "未发现 LICENSE，授权未知。",
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "extra-parametric",
+    "title": "lsdyna_parametric — Jinja2 case sweep generator",
+    "url": "https://github.com/sabbraxcaddabra/lsdyna_parametric",
+    "summary": "该项目是最小 GUI 参数扫描生成器，读取 Jinja2 input.template、TOML 默认值和可选 JSON 参数说明，用 itertools.product 组合变量，然后按编号写出每个算例目录的 input.k 与配置。它不驱动 LS-PrePost，也不提交 LS-DYNA；README 中 LS-PrePost 只是模板文件的创建来源。源码很清晰，适合借鉴 MCP 的参数扫描预览、组合数预算、算例目录与配置追踪，但其 README 明示普通固定列节点数据格式未被正确处理，因此不适合未经字段宽度校验任意替换关键字。2026-01-20 初始代码，次日仅 README；未发现 LICENSE 或自动测试。可复用设计模式，复制源码需先明确许可。",
+    "license_status": "未发现 LICENSE，授权未知。",
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "extra-umat-lspp",
+    "title": "UMAT_2scale_LSDYNA — LS-PrePost Python examples and model_generation helpers",
+    "url": "https://github.com/DataAnalyticsEngineering/UMAT_2scale_LSDYNA",
+    "summary": "该仓库主任务是LS-DYNA两尺度UMAT研究，不能整体称为LS-PrePost桥接SDK；但附加案例中确有很有价值的应用内Python实作。dyna_utils直接导入DataCenter和LsPrePost，以execute_command创建点、弧、面、复制网格并创建节点/面片集合，同时用get_data读取最新实体ID，另有keyword与JSON辅助输出。gen.cfile通过runpython调用建模脚本，gen.sh从外部启动LS-PrePost，串起应用外调度与应用内建模。thermal_cycles示范逐状态提取温度，用NumPy求最大值，回填云图并保存图片；不是只会导出CSV。限制是状态依赖、实体ID算法、固定温度阈值、固定文件名和shell清理命令均针对研究案例，缺少通用任务隔离、回滚和结构化错误协议。根license并非普通BSD：含德国或EEA公司使用权条款，GitHub标为NOASSERTION；因此适合作技术参考，直接复制分发前须核实授权及夹带第三方示例来源。",
+    "license_status": {
+      "github_spdx": "NOASSERTION",
+      "file": "license",
+      "assessment": "Custom copyright/redistribution conditions plus a Germany/EEA company-use clause; direct incorporation not cleared by this read-only review"
+    },
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "extra-jfriedlein-macros",
+    "title": "LS-DYNA_tools_scripts_post-processing_PYTHON — LS-PrePost macros",
+    "url": "https://github.com/jfriedlein/LS-DYNA_tools_scripts_post-processing_PYTHON",
+    "summary": "该仓库名称虽包含Python，指定的LS-PrePost目录实际只有一个cfile和一个工具栏宏文本，属于小型后处理配方集合，不能描述为应用内Python封装。主宏打开d3plot、选择固定实体5701，依次用fringe/pfringe/stime收集塑性应变、三轴度、Lode及历史变量曲线，最后写curve_file；工具栏文本补充d3plot更新、截面力、透明度和视图命令。值得注意的是作者在宏首行明确记录无图形运行会输出零，提示该工作流依赖绘图状态，不能直接包装成runc纯数据接口；这里仅是项目作者的个案记录，不是所有LS-PrePost数据提取的通则。README承认文档、清理和重构仍待完成。递归树未发现LICENSE/COPYING文件，GitHub license字段为空，因此可学习任务拆分和命令顺序，尚不能把代码按开源许可直接纳入拟建MCP项目。",
+    "license_status": {
+      "github_spdx": null,
+      "file": null,
+      "assessment": "No explicit reuse license found; public visibility is not a copy/distribution grant"
+    },
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "extra-koo-renderer",
+    "title": "KooD3plotReader — LSPrePostRenderer",
+    "url": "https://github.com/squall321/KooD3plotReader",
+    "summary": "LSPrePostRenderer确实实现外部渲染调度：C++生成cfile，配置结果分量、零件显示、剖切面、视角和动画，再启动LS-PrePost。Linux为每个实例选Xvfb显示号，可选择Mesa或VirtualGL路径，并隔离HOME减少配置冲突；Windows使用CreateProcess及-nographics。它因此比零散宏更接近MCP渲染后端参考，但仍不是MCP服务，也没有应用内DataCenter对象访问。代码偏向lspp412/lspp412_mesa部署，存在固定/tmp路径、进程内worker编号、多进程冲突风险及无限等待；Linux shell最后执行清理，不能直接把shell退出码当作LS-PrePost退出码。renderImage基础路径实际生成movie命令，不能仅凭方法名保证输出静态图片，需按产物验证。README许可证节仅称教育研究目的，仓库未见正式LICENSE且GitHub字段为空，尚无明确复制分发许可。",
+    "license_status": {
+      "github_spdx": null,
+      "file": null,
+      "assessment": "No explicit license file; Korean README only states educational/research purpose; direct code incorporation not cleared"
+    },
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "official-2026r1-guide",
+    "title": "LS-PrePost User's Guide — Release 2026 R1",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/pdf/Ansys_LS-PrePost_Users_Guide.pdf",
+    "summary": "本次直接下载的官方2026 R1用户指南在第10章明确区分两个批处理入口。runc=commandfile在完全无界面的环境执行命令文件，不能进行显示、渲染、窗口操纵等图形操作；c=commandfile配合-nographics虽不显示图形界面，同页命令行表明确指出内部仍依赖图形支持，因此不是真正无图形环境。该区别应成为MCP执行器的模式选择依据：纯数据提取可先验证runc，图片或动画交付应安排有图形上下文的进程。指南也确认GUI交互通常记录到lspost.cfile，8.7节保留Run SCL入口。注意网页搜索缓存对同一PDF的片段较旧，缺少runc说明，最终以本次下载正文为准。手册说明不等同于本机可执行程序验证，仍需对实际安装版本及代表任务做烟雾测试。",
+    "license_status": "Vendor documentation; link only",
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "official-scl-rev11",
+    "title": "LS-PrePost Scripting Command Language, Python Language and Data Center",
+    "url": "https://ftp.lstc.com/anonymous/outgoing/lsprepost/SCLexamples/lsppscripting_05Jun2024.pdf",
+    "summary": "Rev.11手册说明SCL原为程序内部执行的类C语言，可调用LS-PrePost命令、读取keyword模型和d3plot结果、计算并输出文件或返回云图；从4.8起加入Python路径。DataCenter负责get_data，LsPrePost提供execute_command、状态切换、数组保存、云图回传等。这支持以薄MCP层调度应用内脚本，但不能据此认为它们是普通系统Python可直接导入的独立SDK。第182页给出4.9及以前对应Python3.6、4.10及以后对应3.10的手册要求；这一历史映射不得当作所有发行构建的ABI保证，父任务已发现本机旧日志有差异，应以实际进程探针为准。第183页确认runpython可写入cfile并传参。setpythonhome会保存到配置文件，因此安装阶段需要明确作用范围。网络403使本次读取依赖既存本地副本，不能声称取到了最新版脚本手册。",
+    "license_status": "Vendor documentation; link only",
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "official-command-interface",
+    "title": "Command Line Interface",
+    "url": "https://lsdyna.ansys.com/command/",
+    "summary": "官方知识库明确GUI中的绝大部分操作会写入lspost.cfile，可以重命名后重放，也可从File→Open→Command File加载。页面记录c=commandfile及-nographics的旧说明，适合证明命令文件路线长期存在，但不应覆盖2026 R1对runc与图形依赖的更精确区分。基础命令表包含open keyword、open d3plot、import keyword、state、视角与显示控制；同时声明这只是命令子集，更多命令应从实际GUI生成的会话文件观察。因此Skills可以保存经实际版本验证的任务模板，避免让语言模型凭记忆拼复杂命令。页面还列出system命令，表明不受约束的原始命令执行拥有超出模型编辑的能力，MCP设计宜暴露限定任务及路径检查。这里没有给出通用远程RPC服务的可调用协议。",
+    "license_status": "Vendor documentation; link only",
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "official-parametric-preprocessor",
+    "title": "Integrating LS-PrePost as a preprocessor",
+    "url": "https://lsdyna.ansys.com/ls-prepost-5/",
+    "summary": "该官方示例把LS-PrePost作为LS-OPT前处理器：先在GUI里创建圆柱壳网格，保留自动生成的命令文件，再用parameter变量替换半径、长度及网格密度，并将生成的节点和单元写成LS-DYNA可包含的keyword文件。这为自然语言参数化建模提供具体可追溯的技术先例：模型不必完全由鼠标驱动，命令模板可通过外部流程重复执行。示例也强调输出写到每次运行的目录，适合映射到独立MCP job目录，避免并发产物覆盖。页面属于集成教程而非完整几何或网格API规范，无法证明任意CAD修复、任意网格控制均有稳定无界面接口，也没有给出自动验证模型物理正确性的保障。实际迁移时应保留模型单位、实体ID及网格参数，并在当前版本重新录制和验证模板。",
+    "license_status": "Vendor documentation; link only",
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "official-history-extraction",
+    "title": "History and response result extraction using LS-PrePost",
+    "url": "https://lsdyna.ansys.com/ls-prepost-4/",
+    "summary": "官方后处理示例展示一个很小的可复用工作流：打开d3plot和rcforc，选择力分量与对象，保存XY曲线并退出。文中说明先手工完成操作、保存自动录制的lspost.cfile，再改名供LS-OPT批处理使用；输出名LsoptHistory是LS-OPT识别规则，不是一般LS-PrePost导出必须使用的名称。这个案例支持先做后处理MVP：用结构化参数选择数据源、实体及分量，导出曲线或标量，再由宿主读取检查。它也说明自动化最终可依赖文件产物而不要求常驻远程会话。示例中的ascii命令针对rcforc，不能不加区分套到binout或每一种历史数据库；实际分量含义、单位、局部坐标及时间范围需要结合模型和目标重新核验。文中还提醒Windows在PATH未设置时须用程序完整路径。",
+    "license_status": "Vendor documentation; link only",
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "historical-vr-socket",
+    "title": "Immersive Visualization and Collaboration with LS-PrePost-VR and LS-PrePost-Remote",
+    "url": "https://lsdyna.ansys.com/wp-content/uploads/attachments/15-1.pdf",
+    "summary": "该官方站点托管论文记载LS-PrePost-VR与LS-PrePost-Remote两个专门分支：VR端作为服务器，Remote端把命令经TCP/IP发送给服务器，再接收回传命令以同步各客户端。文章由Inv3rsion工程师撰写，属于历史产品分支的直接实现描述，足以反驳“LS-PrePost从未使用socket”的绝对判断。但它并不提供当前标准版支持的公共RPC规范，也不能证明现代安装含同样模块、稳定端口、鉴权或MCP能力。文中区域选择等功能当时受窗口尺寸影响而被禁用，也提示把GUI录制命令跨执行环境重放时可能有语义差异。建议报告仅写“本次未确认当前受支持的通用RPC/HTTP接口”，将socket视为后续本机及厂商核实项，而不作为第一阶段架构依赖。",
+    "license_status": "Vendor documentation; link only",
+    "integration": "reference_indexed",
+    "scope": "Source/API reference is not a runtime compatibility certificate"
+  },
+  {
+    "id": "guide-post-semantics",
+    "title": "2026 R1 User Guide §6.4 Post",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost/lspp_ug-fem-post.html",
+    "summary": "已读Fringe、Range、History、XYPlot、BinOut相关正文和Output段落。壳梁结果涉及层/积分点，默认取可用积分点最大值；坐标切换可能要求同时加载keyword。HistVar含义与材料有关，输出数目受NEIPS/NEIPH/NEIPB控制。History明确d3plot时间分辨率受状态数限制，高分辨率应考虑d3thdt、binout或ASCII。Cross-plot在点数不同时会插值；输出可选择internal ID/user ID。对MCP的推论是字段名之外还需数据源、时间、实体、积分点、坐标系等语义。本次不是逐行全文翻译，未验证对应cfile。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored summary only; no manual copies"
+  },
+  {
+    "id": "guide-selection",
+    "title": "2026 R1 User Guide §7.1 General Selection",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost/lspp_ug_gentools_gensel.html",
+    "summary": "已读选择工具正文：支持ID、Box、Sphere、Plane、按part/set、邻接/连通传播及保存选择缓冲。基于此可设计结构化实体选择器，明确model/entity/user-ID和几何条件；自然语言中的顶部、附近等词先转换为可检查的几何查询，并把选中数量及ID返回给用户。指南描述GUI控制，不提供所有Python键名；能力实现仍需DataCenter或录制cfile，并明确选择发生在初始还是当前变形构型。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored summary only; no manual copies"
+  },
+  {
+    "id": "guide-modelcheck",
+    "title": "2026 R1 User Guide §8.3 Model Checking",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost/lspp_ug_app_modelcheck.html",
+    "summary": "已读Keyword Check和Contact Check正文。前者可检查模型关键字并写出信息，还存在删除未引用/未定义数据的Model Clean；后者区分初始穿透、交叉边、tied检查和修复。应把inspect/check与fix分成不同MCP操作，保留问题实体和修复前后差异，避免把通过一次文本检查等同物理模型正确。本次只确认官方功能和界面流程，尚未确认无图形模式下每种检查可用。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored summary only; no manual copies"
+  },
+  {
+    "id": "guide-fragments",
+    "title": "2026 R1 User Guide §8.10 Fragment Analysis",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost/lspp_ug_app_fragment.html",
+    "summary": "已读碎片分析全文。当前状态可识别分离碎片并显示质量、体积、重心等，支持基础有限元类型及SPH；SPH需定义Eps和MinPts。表格可写CSV，碎片可写STL。该功能与用户本地失效单元坐标提取不同：分离碎片统计不能直接由被删除单元集合代替。建议列为领域扩展，参数必须保留连通/聚类设置和时刻，先核实可录制命令或Python接口再宣称自动化。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored summary only; no manual copies"
+  },
+  {
+    "id": "guide-vsg",
+    "title": "2026 R1 User Guide §8.11 Virtual Strain Gauge",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost/lspp_ug_app_virtual_strain_gauge.html",
+    "summary": "已读虚拟应变计全文。用两端点定义测量线，端点可在节点或单元表面，依据相关单元节点位移计算工程应变，支持命名、显示和历史曲线。适合设计虚拟测量Skill以衔接实验对比，但并不是把应力场或对数应变直接改名成试验应变。应记录标距、方向、参考构型和时间，输出测量定义与数值文件。本次没有在本机运行此功能或验证cfile语法。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored summary only; no manual copies"
+  },
+  {
+    "id": "tutorial-crossplot",
+    "title": "2026 R1 Tutorial — Force/Displacement Cross Plot",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch20s07.html",
+    "summary": "已顺序读取力—位移教程全10步骤页面。流程从rcforc取接触侧Z力，选择SAE及秒制滤波，从nodout取节点Z位移并反号，各自保存曲线，然后选择位移作横轴、力作纵轴并保存PNG。教程中的Sl-1、节点1000、单位和反号是案例条件，不是通用默认。由此建议工具输出完整数据来源、滤波和符号处理记录；通用实现需处理两时间轴的交集和插值策略。本来源定位关键交叉图步骤，完整访问清单另存。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored summary only; no manual copies"
+  },
+  {
+    "id": "tutorial-posttools",
+    "title": "2026 R1 Tutorial — Side-by-side model results",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch22s12.html",
+    "summary": "已顺序读取综合后处理教程全部12步骤。包括读取两组计算结果、参考节点Follow、轨迹Trace、标注、拉格朗日截面、速度矢量、Mises云图、色阶、隐藏实体、节点History及多模型同步状态比较。教程用节点65和具体平移距离，是案例ID与显示布置。自然语言工具应基于模型查询产生这些参数，不应原样套用。该流程可测试会话状态和渲染一致性；Sync state不能自动保证两个不同工况具有相同物理时间。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored summary only; no manual copies"
+  },
+  {
+    "id": "vscode-lsdyna",
+    "title": "osullivryan/vscode-lsdyna",
+    "url": "https://github.com/osullivryan/vscode-lsdyna",
+    "summary": "README列出LS-DYNA关键字片段、include树、参数引用与重命名、字段提示，以及LS-PrePost cfile语法高亮；许可文件为GPLv3。其价值在deck理解和编辑，不是LS-PrePost执行器。README说明字段资料由PyDYNA kwd.json生成，这提示MCP知识层可优先使用官方结构化关键字数据，而不只靠PDF切块。未运行VS Code扩展，也未将README中的覆盖数当验证覆盖率；代码集成应独立处理不同许可证，不能统一抹成主库MIT。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored summary only; no manual copies"
+  },
+  {
+    "id": "local-Example1",
+    "title": "逐零件截图",
+    "url": "local://standard-examples/Example1",
+    "integration": "recipe_candidate",
+    "license_status": "Local sample provenance; source is not redistributed",
+    "api_keys": [
+      "validpart_ids",
+      "num_validparts (SCL only)"
+    ],
+    "python_calls": [
+      "DataCenter.get_data",
+      "LsPrePost.execute_command"
+    ],
+    "scl_calls": [
+      "SCLGetDataCenterInt",
+      "SCLGetDataCenterIntArray",
+      "ExecuteCommand"
+    ],
+    "tool_candidate": "render_parts(part_ids, state, camera, output_dir)",
+    "summary": "validpart_ids为用户part ID；不涉及积分点。没有恢复原先可见性或相机。",
+    "acceptance_requirements": [
+      "固定PNG文件名、方向、gamma和OGL1x1；重复运行可能覆盖",
+      "print与镜头操作需要图形上下文，不能据此承诺runc支持"
+    ],
+    "known_issues": [
+      "遍历实际validpart_ids而非假设ID连续；两种语言实现基本同义。"
+    ]
+  },
+  {
+    "id": "local-Example2",
+    "title": "5×5壳网格与拓扑查询",
+    "url": "local://standard-examples/Example2",
+    "integration": "recipe_candidate",
+    "license_status": "Local sample provenance; source is not redistributed",
+    "api_keys": [
+      "num_nodes",
+      "num_elem",
+      "largest_node_id",
+      "largest_elem_id (Python)",
+      "largest_element_id (SCL)",
+      "node_ids",
+      "element_connectivity"
+    ],
+    "python_calls": [
+      "DataCenter.get_data",
+      "LsPrePost.execute_command",
+      "LsPrePost.echo"
+    ],
+    "scl_calls": [
+      "ExecuteCommand",
+      "Echo",
+      "SCLGetDataCenterInt",
+      "SCLGetDataCenterIntArray"
+    ],
+    "tool_candidate": "create_quad_patch(corners, divisions, part_id, start_node_id, start_element_id) + inspect_mesh_topology()",
+    "summary": "node_ids数组位置为内部序号，值为用户ID；element_connectivity通过Type.SHELL和用户element ID查询；无积分点。",
+    "acceptance_requirements": [
+      "模型不为空时ID/part可能冲突",
+      "num_elem与largest_elem_id未出现在Rev.11名称列表；正式名称为num_elements/largest_element_id，历史别名能否用需probe",
+      "桌面包装固定py39env、绝对路径、用户桌面目标、exit，并持久改Python home",
+      "历史lspost.cfile混入Example9/1及重复runpython语法，不是干净可复用配方"
+    ],
+    "known_issues": [
+      "num_elem别名；line25用largest_elem_id而SCL line36使用正式largest_element_id。",
+      "持久Python配置和桌面输出均不可直接沿用为MCP模板。"
+    ]
+  },
+  {
+    "id": "local-Example3",
+    "title": "参数曲线生成与XY导入",
+    "url": "local://standard-examples/Example3",
+    "integration": "recipe_candidate",
+    "license_status": "Local sample provenance; source is not redistributed",
+    "api_keys": [],
+    "python_calls": [
+      "LsPrePost.cmd_result_get_value_count",
+      "LsPrePost.cmd_result_get_value",
+      "LsPrePost.execute_command",
+      "LsPrePost.echo"
+    ],
+    "scl_calls": [
+      "SCLCmdResultGetValueCount",
+      "SCLCmdResultGetValue",
+      "ExecuteCommand",
+      "Echo"
+    ],
+    "tool_candidate": "create_parameter_curve(formula_id, parameters, xmin, xmax, num_points, include_endpoint, output_path)",
+    "summary": "无模型状态/实体ID/积分点；命令结果参数索引0–5。",
+    "acceptance_requirements": [
+      "两版均令首x=0而非xmin，非零xmin失效",
+      "步长=(xmax-xmin)/num且仅num点，通常不包含xmax",
+      "只检查参数个数非零，不要求6个或num>0",
+      "固定curve.txt覆盖；历史lspost.cfile清空模型及改Python路径，不属于曲线配方"
+    ],
+    "known_issues": [
+      "非零xmin被忽略；SCL line27同样。",
+      "num=0除零，点数类型未显式验证。"
+    ]
+  },
+  {
+    "id": "local-Example4",
+    "title": "可见实体零件质量、重心与体积",
+    "url": "local://standard-examples/Example4",
+    "integration": "recipe_candidate",
+    "license_status": "Local sample provenance; source is not redistributed",
+    "api_keys": [
+      "num_validparts",
+      "validpart_ids"
+    ],
+    "python_calls": [
+      "DataCenter.get_data",
+      "LsPrePost.execute_command",
+      "LsPrePost.echo",
+      "LsPrePost.check_if_part_is_active_u",
+      "LsPrePost.cmd_result_get_value_count",
+      "LsPrePost.cmd_result_get_value"
+    ],
+    "scl_calls": [
+      "SCLGetDataCenterInt",
+      "SCLGetDataCenterIntArray",
+      "SCLSwitchStateTo",
+      "SCLCheckIfPartIsActiveU",
+      "SCLCmdResultGetValueCount",
+      "SCLCmdResultGetValue",
+      "ExecuteCommand",
+      "Echo"
+    ],
+    "tool_candidate": "measure_parts(part_ids, state, metrics=[mass,cg,volume], selection_policy, output_path)",
+    "summary": "用户part ID；Python未切换状态，实际依赖当前状态；SCL尝试9999末状态，未检查返回；无积分点。",
+    "acceptance_requirements": [
+      "Python与SCL状态不等价，注释不能代替代码",
+      "未先开启全部solid，初始隐藏solid仍被跳过",
+      "只检查结果非零而不保证inertia至少4值或volume至少1值",
+      "SCL inertia无返回时仍尝试拼接体积输出，可能保留旧buf",
+      "输出覆盖，不自动恢复可见性"
+    ],
+    "known_issues": [
+      "有切末状态注释但没有对应switch_state调用；SCL line30实际调用9999。"
+    ]
+  },
+  {
+    "id": "local-Example4a",
+    "title": "零件整体运动与角速度",
+    "url": "local://standard-examples/Example4a",
+    "integration": "recipe_candidate",
+    "license_status": "Local sample provenance; source is not redistributed",
+    "api_keys": [
+      "num_validparts",
+      "validpart_ids"
+    ],
+    "python_calls": [
+      "DataCenter.get_data",
+      "LsPrePost.execute_command",
+      "LsPrePost.echo",
+      "LsPrePost.check_if_part_is_active_u",
+      "LsPrePost.cmd_result_get_value_count",
+      "LsPrePost.cmd_result_get_value"
+    ],
+    "scl_calls": [
+      "SCLGetDataCenterInt",
+      "SCLGetDataCenterIntArray",
+      "SCLSwitchStateTo",
+      "SCLCheckIfPartIsActiveU",
+      "SCLCmdResultGetValueCount",
+      "SCLCmdResultGetValue",
+      "ExecuteCommand",
+      "Echo"
+    ],
+    "tool_candidate": "measure_part_motion(part_ids, state, output_path)",
+    "summary": "用户part ID；Python当前状态、SCL尝试9999；不涉及积分点。",
+    "acceptance_requirements": [
+      "仅检查返回非零却读取13项",
+      "命令失败时仍写buf，可能是先前诊断文本",
+      "当前可见性和状态影响范围；固定覆盖文件"
+    ],
+    "known_issues": [
+      "应验证noret>=13；SCL同样只判非零。"
+    ]
+  },
+  {
+    "id": "local-Example5",
+    "title": "逐状态合位移计算、保存与回传",
+    "url": "local://standard-examples/Example5",
+    "integration": "recipe_candidate",
+    "license_status": "Local sample provenance; source is not redistributed",
+    "api_keys": [
+      "num_states",
+      "num_nodes",
+      "disp_x",
+      "disp_y",
+      "disp_z"
+    ],
+    "python_calls": [
+      "DataCenter.get_data",
+      "LsPrePost.save_dc_to_file",
+      "LsPrePost.fringe_dc_to_model"
+    ],
+    "scl_calls": [
+      "SCLGetDataCenterInt",
+      "SCLSwitchStateTo",
+      "SCLGetDataCenterFloatArray",
+      "SCLSaveDCToFile",
+      "SCLFringeDCToModel"
+    ],
+    "tool_candidate": "compute_displacement_magnitude(states, node_ids, export, optional_fringe)",
+    "summary": "状态1..N；数组使用内部节点顺序，不是用户ID；NODE无积分点；avg_opt=1。",
+    "acceptance_requirements": [
+      "Python保存sqrt(dx²+dy²+dz²)却回填dispx，图与文件不一致",
+      "所有状态所有节点输出可能很大；固定文件名覆盖",
+      "Python直接逐元素循环和打印大数组；未检验数组长度一致"
+    ],
+    "known_issues": [
+      "fringe_dc_to_model数据参数是dispx，不是results；SCL line47使用results。确定的源码级逻辑差异。"
+    ]
+  },
+  {
+    "id": "local-Example6",
+    "title": "壳中层三个法向应力的算术平均",
+    "url": "local://standard-examples/Example6",
+    "integration": "recipe_candidate",
+    "license_status": "Local sample provenance; source is not redistributed",
+    "api_keys": [
+      "num_states",
+      "num_shell_elements",
+      "stress_x",
+      "stress_y",
+      "stress_z"
+    ],
+    "python_calls": [
+      "DataCenter.get_data",
+      "LsPrePost.save_dc_to_file",
+      "LsPrePost.fringe_dc_to_model"
+    ],
+    "scl_calls": [
+      "SCLGetDataCenterInt",
+      "SCLSwitchStateTo",
+      "SCLGetDataCenterFloatArray",
+      "SCLSaveDCToFile",
+      "SCLFringeDCToModel"
+    ],
+    "tool_candidate": "compute_mean_normal_stress(element_type, layer, states, averaging, output_dir)",
+    "summary": "Python Type.SHELL/Ipt.MIDDLE，SCL SHELL/MID；状态从1开始；数组内部壳序号；avg_opt=1是渲染节点平均。",
+    "acceptance_requirements": [
+      "值为(sx+sy+sz)/3，不是von Mises，也不是壳厚度各层平均；不得误标为等效应力",
+      "仅中层，不遍历全部积分点",
+      "文件里的单元量与显示节点平均有语义差异",
+      "固定文件覆盖、没有数据缺失检查"
+    ],
+    "known_issues": [
+      "公式与标题应明确为法向应力均值；云图参数1另外启用节点平均。"
+    ]
+  },
+  {
+    "id": "local-Example7",
+    "title": "位移差分与存储速度的残差",
+    "url": "local://standard-examples/Example7",
+    "integration": "recipe_candidate",
+    "license_status": "Local sample provenance; source is not redistributed",
+    "api_keys": [
+      "num_states",
+      "num_nodes",
+      "state_times",
+      "velo_z",
+      "disp_z"
+    ],
+    "python_calls": [
+      "DataCenter.get_data",
+      "LsPrePost.echo",
+      "LsPrePost.fringe_dc_to_model"
+    ],
+    "scl_calls": [
+      "SCLGetDataCenterInt",
+      "SCLGetDataCenterFloatArray",
+      "SCLSwitchStateTo",
+      "SCLFringeDCToModel",
+      "Echo"
+    ],
+    "tool_candidate": "validate_velocity_from_displacement(axis, node_ids, states, time_scheme, optional_fringe)",
+    "summary": "两端单边差分，中间用i前后状态跨步割线；状态API1基，时间/节点数组0基；NODE、avg_opt=1。",
+    "acceptance_requirements": [
+      "没有num_states>=2和h非零校验",
+      "中间二阶误差注释依赖等间隔条件，不能保证任意不均匀时间步也二阶",
+      "Python复用并原地改写DataCenter返回缓冲区，必须核实内存归属/写时行为",
+      "固定Z分量；状态和云图有副作用"
+    ],
+    "known_issues": [
+      "单状态数据会请求状态2；line26直接访问times[1]。",
+      "中间差分仅用两邻点跨度；未使用不等距三点公式。"
+    ]
+  },
+  {
+    "id": "local-Example8",
+    "title": "末状态壳截面力与弯矩导出",
+    "url": "local://standard-examples/Example8",
+    "integration": "recipe_candidate",
+    "license_status": "Local sample provenance; source is not redistributed",
+    "api_keys": [
+      "num_states",
+      "num_elements",
+      "mx",
+      "my",
+      "mxy",
+      "nx",
+      "ny",
+      "nxy",
+      "qx",
+      "qy",
+      "user_id (Python)"
+    ],
+    "python_calls": [
+      "DataCenter.get_data",
+      "LsPrePost.fringe_dc_to_model"
+    ],
+    "scl_calls": [
+      "SCLGetDataCenterInt",
+      "SCLGetDataCenterFloatArray",
+      "SCLSwitchStateTo",
+      "SCLFringeDCToModel",
+      "SCLGetUserId"
+    ],
+    "tool_candidate": "export_shell_resultants(state, part_ids, components, coordinate_system, output_path)",
+    "summary": "明确取num_states末状态；type=SHELL；user_id把0基内部壳索引映射为用户ID；Python传Ipt.MEAN，SCL传MID，不能未经验证断言二者等价。",
+    "acceptance_requirements": [
+      "Rev.11文字提MEAN但Ipt枚举只列MIDDLE等，必须检查运行时Ipt成员；不能擅自替换并声称等价",
+      "截面合力/弯矩的单位、局部坐标语义需按模型补充，脚本未声明",
+      "未检查空状态、缺失分量或数组长度一致；固定输出覆盖"
+    ],
+    "known_issues": [
+      "Ipt.MEAN与手册枚举不一致；应列为兼容性待验证，不能直接认定不存在。",
+      "正确显式进行内部索引到用户ID转换。"
+    ]
+  },
+  {
+    "id": "local-Example9",
+    "title": "可见零件体积、包围体积与面积",
+    "url": "local://standard-examples/Example9",
+    "integration": "recipe_candidate",
+    "license_status": "Local sample provenance; source is not redistributed",
+    "api_keys": [
+      "num_validparts",
+      "validpart_ids"
+    ],
+    "python_calls": [
+      "DataCenter.get_data",
+      "LsPrePost.echo",
+      "LsPrePost.check_if_part_is_active_u",
+      "LsPrePost.execute_command",
+      "LsPrePost.cmd_result_get_value",
+      "LsPrePost.cmd_result_get_value_count",
+      "LsPrePost.switch_state"
+    ],
+    "scl_calls": [
+      "SCLGetDataCenterInt",
+      "SCLGetDataCenterIntArray",
+      "SCLSwitchStateTo",
+      "SCLCheckIfPartIsActiveU",
+      "SCLCmdResultGetValueCount",
+      "SCLCmdResultGetValue",
+      "ExecuteCommand",
+      "Echo"
+    ],
+    "tool_candidate": "measure_part_geometry(part_ids, state, metrics, output_path)",
+    "summary": "用户part ID；两版均尝试9999作为最后状态；无积分点；仅visible零件。",
+    "acceptance_requirements": [
+      "9999超范围行为未按手册验证",
+      "只判返回数非零但读取三个返回值",
+      "SCL读取validpart_ids时type、iv尚未赋值；即使该键可能忽略参数也不宜继承",
+      "固定文件覆盖与显示范围依赖"
+    ],
+    "known_issues": [
+      "应确认返回至少3项再读index2。",
+      "向IntArray传入未初始化type/iv。"
+    ]
+  },
+  {
+    "id": "local-Example10",
+    "title": "边界节点→曲线→面网格→挤出实体",
+    "url": "local://standard-examples/Example10",
+    "integration": "recipe_candidate",
+    "license_status": "Local sample provenance; source is not redistributed",
+    "api_keys": [],
+    "python_calls": [
+      "LsPrePost.cmd_result_get_value_count",
+      "LsPrePost.cmd_result_get_value",
+      "LsPrePost.execute_command",
+      "LsPrePost.echo"
+    ],
+    "scl_calls": [
+      "SCLCmdResultGetValueCount",
+      "SCLCmdResultGetStringValue",
+      "SCLCmdResultGetValue",
+      "ExecuteCommand",
+      "Echo"
+    ],
+    "tool_candidate": "mesh_extruded_boundary(input_nodes, mesh_size, extrusion_length, layers, id_policy, output_keyword)",
+    "summary": "无d3plot状态/积分点；假定输入节点按1..n连续，几何边ID1及part1固定；命令结果参数索引0–4。",
+    "acceptance_requirements": [
+      "仅检查至少1参数却读取5项；Python只捕获ValueError，不处理文件/索引/执行失败",
+      "节点数仅计非$/#/*开头行，空行或其他keyword数据会计入；不是健壮keyword解析",
+      "输入输出路径插入命令未加引号，带空格路径风险",
+      "屏幕region选择与allvis使过程依赖视图/显示，不能认定纯headless稳健",
+      "固定几何、part和起始ID；删除节点和part，必须隔离模型",
+      "输出格式参数先9后7；旧绝对路径与覆盖风险"
+    ],
+    "known_issues": [
+      "简易节点计数只跳过三种首字符。",
+      "以屏幕region选对象。",
+      "删除part1，绝不可直接在用户活动模型上执行。"
+    ]
+  },
+  {
+    "id": "local-Example11",
+    "title": "导出选择缓冲区节点的当前状态坐标",
+    "url": "local://standard-examples/Example11",
+    "integration": "recipe_candidate",
+    "license_status": "Local sample provenance; source is not redistributed",
+    "api_keys": [
+      "num_nodes",
+      "current_state",
+      "num_selection",
+      "state_node_x",
+      "state_node_y",
+      "state_node_z",
+      "selection_ids",
+      "internal_id (Python)"
+    ],
+    "python_calls": [
+      "LsPrePost.cmd_result_get_value_count",
+      "LsPrePost.cmd_result_get_value",
+      "LsPrePost.switch_state",
+      "DataCenter.get_data"
+    ],
+    "scl_calls": [
+      "SCLCmdResultGetValueCount",
+      "SCLCmdResultGetStringValue",
+      "SCLGetDataCenterInt",
+      "SCLSwitchStateTo",
+      "SCLGetDataCenterFloatArray",
+      "SCLGetDataCenterIntArray",
+      "SCLGetInternalID",
+      "Echo"
+    ],
+    "tool_candidate": "export_node_coordinates(node_ids, state, coordinate_mode=current, output_path)",
+    "summary": "取current_state并切回；selection_ids为用户ID，通过internal_id/SCLGetInternalID转换0基数组下标；无积分点。",
+    "acceptance_requirements": [
+      "不检查selection_types，假设全部选择都是节点",
+      "不检查ID映射失败、选中数量和数组长度",
+      "current_state对keyword-only模型语义需验证",
+      "文件参数任意路径且覆盖；SCL缺参数使用exit语句，不应复用在用户会话"
+    ],
+    "known_issues": [
+      "显式用户ID→内部索引，是正确桥接ID的参考；仍需失败检查。"
+    ]
+  },
+  {
+    "id": "local-StressExtraction-shell",
+    "title": "零件2末状态壳X应力三层有符号绝对最大值",
+    "url": "local://standard-examples/StressExtraction-shell",
+    "integration": "recipe_candidate",
+    "license_status": "Local sample provenance; source is not redistributed",
+    "api_keys": [
+      "num_shell_elements",
+      "num_states",
+      "element_ids",
+      "stress_x",
+      "elemofpart_ids"
+    ],
+    "python_calls": [],
+    "scl_calls": [
+      "SCLGetDataCenterInt",
+      "SCLSwitchStateTo",
+      "SCLGetDataCenterIntArray",
+      "SCLGetDataCenterFloatArray",
+      "Echo"
+    ],
+    "tool_candidate": "extract_shell_stress_envelope(part_ids, state, component, layers, preserve_sign, output_path)",
+    "summary": "切numState；取MID、INNER、OUTER三层stress_x；elemofpart_ids type=0得到内部索引，用于索引shell stress数组及element_ids。绝对值比较后保留原符号；相等时顺序优先MID、OUTER、INNER。",
+    "acceptance_requirements": [
+      "只有三个预定义层，不等于遍历任意厚度积分点或所有时刻取极值",
+      "假设part2仅包含与shell数组一致的元素；无类型/越界检验",
+      "SCLFloatArray返回size反复覆盖，不验证一致性",
+      "无shell时exit(0)，wrapper最终exit；固定输出覆盖与旧G盘路径"
+    ],
+    "known_issues": [
+      "固定pid=2。",
+      "返回值带产生最大幅值层的符号，不是非负abs。"
+    ]
+  },
+  {
+    "id": "local-StressExtraction-solid",
+    "title": "最后10状态实体六应力分量与均值",
+    "url": "local://standard-examples/StressExtraction-solid",
+    "integration": "recipe_candidate",
+    "license_status": "Local sample provenance; source is not redistributed",
+    "api_keys": [
+      "num_solid_elements",
+      "num_states",
+      "state_times",
+      "stress_x",
+      "stress_y",
+      "stress_z",
+      "stress_xy",
+      "stress_yz",
+      "stress_zx"
+    ],
+    "python_calls": [],
+    "scl_calls": [
+      "SCLGetDataCenterInt",
+      "SCLGetDataCenterFloatArray",
+      "SCLSwitchStateTo",
+      "SCLGetUserId",
+      "Echo"
+    ],
+    "tool_candidate": "export_solid_stress(states, part_ids, components, integration_points, coordinate_system, output_path)",
+    "summary": "循环i=numState-10..numState-1，状态i+1而times[i]为0基；内部solid索引j通过SCLGetUserId转换；调用ipt=0，并未遍历全积分实体1..8积分点。",
+    "acceptance_requirements": [
+      "少于10状态会产生负i、无效状态及times负索引",
+      "ipt=0的该版本具体语义需验证，不能声称全部积分点已提取",
+      "平均为(sx+sy+sz)/3，不是von Mises；坐标系统/单位未记录",
+      "固定输出覆盖、无数组长度/返回检查；times分配后未释放",
+      "历史lspost.cfile含动画/视角/错误双引号记录，不应原样作自动化模板"
+    ],
+    "known_issues": [
+      "最后10状态起点缺max(0,numState-10)保护。",
+      "所有应力读取ipt=0；全积分点分析需额外参数及验证。"
+    ]
+  },
+  {
+    "id": "local-custom-01",
+    "title": "球体实体网格与固定环阵",
+    "url": "local://custom-workflows/01",
+    "integration": "recipe_candidate",
+    "license_status": "Local source not redistributed",
+    "summary": "spheresolid create/accept 真正创建球体网格。zdb.cfile 包含60个球，两层 z=0/1.8、半径1；小球排布.txt 为120球四层固定坐标。Python小例沿x轴按2间距生成半径0.5球。",
+    "api": [
+      "execute_command",
+      "meshing spheresolid create/accept",
+      "rotate_model"
+    ],
+    "tool_candidate": [
+      "mesh_spheres",
+      "create_circular_sphere_array"
+    ],
+    "acceptance_requirements": [
+      "固定数值录制不是随机骨料算法",
+      "没有结果数量/网格质量验证"
+    ]
+  },
+  {
+    "id": "local-custom-02",
+    "title": "规则/错列排列、旋转复制、平移复制",
+    "url": "local://custom-workflows/02",
+    "integration": "recipe_candidate",
+    "license_status": "Local source not redistributed",
+    "summary": "在已有part基础上顺序旋转复制，换行沿Z平移；nonregular在每层加入angle/2错列。",
+    "api": [
+      "execute_command",
+      "genselect node add part",
+      "rotate_model copy/accept",
+      "translate_model copy/accept"
+    ],
+    "tool_candidate": [
+      "array_parts_circular",
+      "array_parts_staggered"
+    ],
+    "acceptance_requirements": [
+      "必须有源part；未校验复制后的部件数和ID",
+      "没有明确长度单位，不能默认mm"
+    ]
+  },
+  {
+    "id": "local-custom-03",
+    "title": "已有网格上的随机骨料球域分区",
+    "url": "local://custom-workflows/03",
+    "integration": "recipe_candidate",
+    "license_status": "Local source not redistributed",
+    "summary": "suiji.py 生成非相交随机球心/半径，用 sphere in 选择已有单元再移到part2；本身不创建球实体。suijiguodu增加内层球域以模拟过渡层。suiji_xiangjiao允许重叠且球心可落边界。根随机骨料代码.cfile实为固定60球域分part，与小球排布不卡.txt完全同hash。",
+    "api": [
+      "execute_command",
+      "genselect element add sphere in",
+      "elemmove apply/accept"
+    ],
+    "tool_candidate": [
+      "partition_mesh_random_spheres",
+      "partition_aggregate_transition_layer"
+    ],
+    "acceptance_requirements": [
+      "while True拒绝采样可能长时间不收敛",
+      "球形随机骨料/suijiguodu.py重复执行command4、未执行command5，apply5与accept6也不一致",
+      "需要校验选中单元集合、part ID、网格边界和选择清理",
+      "suiji.txt夹有明确 Invalid command elements!/未选中单元日志"
+    ]
+  },
+  {
+    "id": "local-custom-04",
+    "title": "随机线段和梁单元生成",
+    "url": "local://custom-workflows/04",
+    "integration": "recipe_candidate",
+    "license_status": "Local source not redistributed",
+    "summary": "生成随机线段，line param创建曲线，再elgenerate beam bycurve划分梁；根版本1000条/1000×100×100，子目录100条/180立方。",
+    "api": [
+      "execute_command",
+      "line param",
+      "occfilter add Edge",
+      "elgenerate beam bycurve/accept",
+      "assembly del shape"
+    ],
+    "tool_candidate": [
+      "generate_random_beam_network"
+    ],
+    "acceptance_requirements": [
+      "is_intersecting只比较两方向叉积接近0，本质检查平行，不是3D线段相交",
+      "没有种子、迭代上限、最小间距、实体ID分配策略"
+    ]
+  },
+  {
+    "id": "local-custom-05",
+    "title": "砖墙几何与网格命令案例",
+    "url": "local://custom-workflows/05",
+    "integration": "recipe_candidate",
+    "license_status": "Local source not redistributed",
+    "summary": "building_coordinate从152个固定点构建38个四点平面，再按6~12高度拉伸几何体；它没有完整实体网格/材料/接触闭环。另一个lspost.cfile演示boxsolid网格及多次平移复制形成砖墙结构，并有梁生成操作记录。",
+    "api": [
+      "cemptymodel",
+      "pnt param",
+      "fillplane",
+      "extrudesld num",
+      "meshing boxsolid create/accept",
+      "translate_model",
+      "elgenerate beam bycurve"
+    ],
+    "tool_candidate": [
+      "create_solids_from_quad_footprints",
+      "mesh_brick_wall_array"
+    ],
+    "acceptance_requirements": [
+      "几何构建与有限元完整建模必须分开标注",
+      "命令流内历史记录不等于当前环境可重跑"
+    ]
+  },
+  {
+    "id": "local-custom-06",
+    "title": "壳/实体失效单元及关联节点导出",
+    "url": "local://custom-workflows/06",
+    "integration": "recipe_candidate",
+    "license_status": "Local source not redistributed",
+    "summary": "elementdeletion==0筛失效元素，映射user_id和element_connectivity，节点去重并输出原始node_x/y/z；zhangwei/solid循环状态22开始、步长2。",
+    "api": [
+      "switch_state",
+      "execute_command('efailonly 1')",
+      "get_data('elementdeletion')",
+      "get_data('user_id')",
+      "get_data('element_connectivity')",
+      "get_data('internal_id')",
+      "get_data('node_x/y/z')"
+    ],
+    "tool_candidate": [
+      "extract_deleted_elements",
+      "export_deleted_element_nodes"
+    ],
+    "acceptance_requirements": [
+      "elementdeletion数组与各类型内部ID对应关系需要混合单元模型验证",
+      "node_x不同于state_node_x，当前代码不能称变形失效坐标",
+      "输出多数仅xyz，无节点ID/元素ID/part/state追溯",
+      "zhangwei/solid.py在节点循环内定义c，空集合会未定义或沿用上次结果"
+    ]
+  },
+  {
+    "id": "local-custom-07",
+    "title": "失效/存活单元共享节点与时序界面",
+    "url": "local://custom-workflows/07",
+    "integration": "recipe_candidate",
+    "license_status": "Local source not redistributed",
+    "summary": "Shell.py/Solid.py求失效元素节点与active_elements_ids关联节点的交集，使用state_node_x/y/z作图；solidjie按state22起每2步输出共享节点原始坐标。node.py仅列末态活跃实体ID。",
+    "api": [
+      "active_elements_ids",
+      "element_connectivity",
+      "internal_id",
+      "state_node_x/y/z",
+      "switch_state"
+    ],
+    "tool_candidate": [
+      "extract_failed_active_interface_nodes",
+      "export_failure_front_history"
+    ],
+    "acceptance_requirements": [
+      "这是拓扑共享节点集合，不能直接称真实断裂面或碎片识别",
+      "原始/变形坐标须显式选项；solidjie仍取node_x/y/z",
+      "成员查找当前用列表，有较差大模型复杂度",
+      "solidjie空结果c变量问题同上"
+    ]
+  },
+  {
+    "id": "local-custom-08",
+    "title": "自定义云图、坐标/速度/最小Y时序",
+    "url": "local://custom-workflows/08",
+    "integration": "recipe_candidate",
+    "license_status": "Local source not redistributed",
+    "summary": "r=sqrt(x²+y²)映射云图；速度字段乘3后云图；miny逐状态导出最小Y；lsmin为独立lsreader路线；laoyanyuan显示固定状态壳节点散点；huanyingli意图计算环应力但存在阻断缺陷。",
+    "api": [
+      "fringe_dc_to_model",
+      "get_data('node_x/y')",
+      "get_data('velo_x/y/z')",
+      "state_times",
+      "state_node_y",
+      "stress_x/y/xy",
+      "lsreader.D3plotReader"
+    ],
+    "tool_candidate": [
+      "fringe_custom_field",
+      "extract_extreme_coordinate_history",
+      "extract_velocity_field"
+    ],
+    "acceptance_requirements": [
+      "huanyingli引用未定义num_nodes，并且只导入num_solids；除零及应力变换公式需重新核对",
+      "较早环距离版本每个节点都调用整场fringe，后版移到循环外",
+      "DataCenter通常1基状态与lsreader示例0基状态不可混用",
+      "disp1=dispx/dispy共享对象，须先复制"
+    ]
+  },
+  {
+    "id": "local-custom-09",
+    "title": "三轴度—断裂应变及数学曲面绘图",
+    "url": "local://custom-workflows/09",
+    "integration": "recipe_candidate",
+    "license_status": "Local source not redistributed",
+    "summary": "三轴度文件仅用给定常数绘制分段函数，未读取应力/应变/失效仿真字段；3.py/4.py/test.py是numpy+matplotlib曲面演示，ceshi/huatu是随机散点演示。",
+    "api": [
+      "numpy.linspace",
+      "matplotlib.pyplot"
+    ],
+    "tool_candidate": [
+      "plot_fracture_locus"
+    ],
+    "acceptance_requirements": [
+      "不能称已实现仿真三轴度提取或材料标定",
+      "需处理奇点、参数来源、适用材料和单位；用户数据未被读取"
+    ]
+  },
+  {
+    "id": "local-custom-10",
+    "title": "逐单元拆part及批量属性赋值",
+    "url": "local://custom-workflows/10",
+    "integration": "recipe_candidate",
+    "license_status": "Local source not redistributed",
+    "summary": "apart/part逐实体单元选择并移动到对应part；partlist批量设定part材料/截面等属性。这些脚本没有按part写出多个文件，不能误归为分part导出。",
+    "api": [
+      "num_solid_elements",
+      "genselect element add solid",
+      "elemmove apply/accept",
+      "partdata readlist",
+      "partdata assignapply"
+    ],
+    "tool_candidate": [
+      "split_elements_into_parts",
+      "assign_part_properties"
+    ],
+    "acceptance_requirements": [
+      "需要get user IDs而非把数量当ID上限",
+      "没有输出目录/按part export动作",
+      "需防止覆盖现有part属性"
+    ]
+  },
+  {
+    "id": "local-custom-11",
+    "title": "状态批量截图、part曲线与文件输出",
+    "url": "local://custom-workflows/11",
+    "integration": "recipe_candidate",
+    "license_status": "Local source not redistributed",
+    "summary": "tu.py按state1..100步长5切换并print PNG；tu.cfile配置SPH显示和fringe8。11.cfile调用排列与属性脚本后输出JPG/PNG与keyword；12.cfile选part7、mtime1生成曲线后保存PlotWindow-1图像。",
+    "api": [
+      "switch_state",
+      "print png/jpg",
+      "save keyword",
+      "runpython",
+      "mtime",
+      "xyplot"
+    ],
+    "tool_candidate": [
+      "render_state_sequence",
+      "plot_part_history",
+      "export_view_image"
+    ],
+    "acceptance_requirements": [
+      "未检查实际state数、输出目录、图形窗口存在性",
+      "图像渲染需要图形上下文，不能直接承诺-nographics支持",
+      "命令脚本本身有文件输出意图，但未执行核验"
+    ]
+  },
+  {
+    "id": "local-custom-12",
+    "title": "启动说明和历史记录",
+    "url": "local://custom-workflows/12",
+    "integration": "recipe_candidate",
+    "license_status": "Local source not redistributed",
+    "summary": "说明主要是setpythonhome/runpython；根lspost.cfile记录LS-PrePost 2025 R1 v4.12.0于2025-08-27打开根随机骨料命令并做球域移动，砖墙历史头记录2024 R2。",
+    "api": [
+      "setpythonhome",
+      "runpython",
+      "open command"
+    ],
+    "tool_candidate": [
+      "probe_embedded_python",
+      "run_registered_script"
+    ],
+    "acceptance_requirements": [
+      "记录头证明曾有录制会话，不证明所有脚本跑通",
+      "当前作用域未取得命令退出码/非空成功日志/结果数量基准",
+      "未读取视频、DOCX、PDF，未执行任何用户脚本"
+    ]
+  },
+  {
+    "id": "research-1",
+    "title": "Malps-del/lspp-mcp-server — src/lspp_mcp/server.py",
+    "url": "https://github.com/Malps-del/lspp-mcp-server/blob/0ca5a92ff68855590a2c956a8548ebddc39ba980/src/lspp_mcp/server.py#L1275",
+    "summary": "这是本轮最贴合“LS-PrePost MCP＋Skills”的真实实现。server.py 注册56个工具，Skill 将自然语言意图路由到结构化操作；LS-PrePost 子层由6个白名单 Jinja 模板生成 cfile，再以独立子进程执行。曲线默认 -nographics，云图默认开图形窗口并设置 w=；多帧工具复用一次载入。已有路径白名单、引号/换行拒绝、超时、日志、非空产物检查和可配置变量表，足以作为二次开发底座。不过目前不是内嵌 Python/LSPP API 桥，也不是操纵已打开 GUI 的长期会话。主提交 Windows CI 成功，相关 LSPP 测试主要 mock，不能替代本机版本实测。runner 无 cwd、覆盖时旧产物可能误判、图片无解码校验、安装探测只检查路径，均适合先强化。包元数据声明 MIT，但独立许可证缺失应准确保留这一限制。 核对GitHub元数据与commit：main，SHA 0ca5a92ff68855590a2c956a8548ebddc39ba980，committed_at 2026-09-09T09:26:02Z。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-2",
+    "title": "Malps-del/lspp-mcp-server — src/lspp_mcp/runner.py",
+    "url": "https://github.com/Malps-del/lspp-mcp-server/blob/0ca5a92ff68855590a2c956a8548ebddc39ba980/src/lspp_mcp/runner.py#L61",
+    "summary": "这是本轮最贴合“LS-PrePost MCP＋Skills”的真实实现。server.py 注册56个工具，Skill 将自然语言意图路由到结构化操作；LS-PrePost 子层由6个白名单 Jinja 模板生成 cfile，再以独立子进程执行。曲线默认 -nographics，云图默认开图形窗口并设置 w=；多帧工具复用一次载入。已有路径白名单、引号/换行拒绝、超时、日志、非空产物检查和可配置变量表，足以作为二次开发底座。不过目前不是内嵌 Python/LSPP API 桥，也不是操纵已打开 GUI 的长期会话。主提交 Windows CI 成功，相关 LSPP 测试主要 mock，不能替代本机版本实测。runner 无 cwd、覆盖时旧产物可能误判、图片无解码校验、安装探测只检查路径，均适合先强化。包元数据声明 MIT，但独立许可证缺失应准确保留这一限制。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-3",
+    "title": "Malps-del/lspp-mcp-server — src/lspp_mcp/templates.py",
+    "url": "https://github.com/Malps-del/lspp-mcp-server/blob/0ca5a92ff68855590a2c956a8548ebddc39ba980/src/lspp_mcp/templates.py#L17",
+    "summary": "这是本轮最贴合“LS-PrePost MCP＋Skills”的真实实现。server.py 注册56个工具，Skill 将自然语言意图路由到结构化操作；LS-PrePost 子层由6个白名单 Jinja 模板生成 cfile，再以独立子进程执行。曲线默认 -nographics，云图默认开图形窗口并设置 w=；多帧工具复用一次载入。已有路径白名单、引号/换行拒绝、超时、日志、非空产物检查和可配置变量表，足以作为二次开发底座。不过目前不是内嵌 Python/LSPP API 桥，也不是操纵已打开 GUI 的长期会话。主提交 Windows CI 成功，相关 LSPP 测试主要 mock，不能替代本机版本实测。runner 无 cwd、覆盖时旧产物可能误判、图片无解码校验、安装探测只检查路径，均适合先强化。包元数据声明 MIT，但独立许可证缺失应准确保留这一限制。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-4",
+    "title": "Malps-del/lspp-mcp-server — skills/lspp-postprocess/SKILL.md",
+    "url": "https://github.com/Malps-del/lspp-mcp-server/blob/0ca5a92ff68855590a2c956a8548ebddc39ba980/skills/lspp-postprocess/SKILL.md#L10",
+    "summary": "这是本轮最贴合“LS-PrePost MCP＋Skills”的真实实现。server.py 注册56个工具，Skill 将自然语言意图路由到结构化操作；LS-PrePost 子层由6个白名单 Jinja 模板生成 cfile，再以独立子进程执行。曲线默认 -nographics，云图默认开图形窗口并设置 w=；多帧工具复用一次载入。已有路径白名单、引号/换行拒绝、超时、日志、非空产物检查和可配置变量表，足以作为二次开发底座。不过目前不是内嵌 Python/LSPP API 桥，也不是操纵已打开 GUI 的长期会话。主提交 Windows CI 成功，相关 LSPP 测试主要 mock，不能替代本机版本实测。runner 无 cwd、覆盖时旧产物可能误判、图片无解码校验、安装探测只检查路径，均适合先强化。包元数据声明 MIT，但独立许可证缺失应准确保留这一限制。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-5",
+    "title": "Malps-del/lspp-mcp-server — src/lspp_mcp/validators.py",
+    "url": "https://github.com/Malps-del/lspp-mcp-server/blob/0ca5a92ff68855590a2c956a8548ebddc39ba980/src/lspp_mcp/validators.py#L217",
+    "summary": "这是本轮最贴合“LS-PrePost MCP＋Skills”的真实实现。server.py 注册56个工具，Skill 将自然语言意图路由到结构化操作；LS-PrePost 子层由6个白名单 Jinja 模板生成 cfile，再以独立子进程执行。曲线默认 -nographics，云图默认开图形窗口并设置 w=；多帧工具复用一次载入。已有路径白名单、引号/换行拒绝、超时、日志、非空产物检查和可配置变量表，足以作为二次开发底座。不过目前不是内嵌 Python/LSPP API 桥，也不是操纵已打开 GUI 的长期会话。主提交 Windows CI 成功，相关 LSPP 测试主要 mock，不能替代本机版本实测。runner 无 cwd、覆盖时旧产物可能误判、图片无解码校验、安装探测只检查路径，均适合先强化。包元数据声明 MIT，但独立许可证缺失应准确保留这一限制。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-6",
+    "title": "Malps-del/lspp-mcp-server — src/lspp_mcp/tools/_common.py",
+    "url": "https://github.com/Malps-del/lspp-mcp-server/blob/0ca5a92ff68855590a2c956a8548ebddc39ba980/src/lspp_mcp/tools/_common.py#L65",
+    "summary": "这是本轮最贴合“LS-PrePost MCP＋Skills”的真实实现。server.py 注册56个工具，Skill 将自然语言意图路由到结构化操作；LS-PrePost 子层由6个白名单 Jinja 模板生成 cfile，再以独立子进程执行。曲线默认 -nographics，云图默认开图形窗口并设置 w=；多帧工具复用一次载入。已有路径白名单、引号/换行拒绝、超时、日志、非空产物检查和可配置变量表，足以作为二次开发底座。不过目前不是内嵌 Python/LSPP API 桥，也不是操纵已打开 GUI 的长期会话。主提交 Windows CI 成功，相关 LSPP 测试主要 mock，不能替代本机版本实测。runner 无 cwd、覆盖时旧产物可能误判、图片无解码校验、安装探测只检查路径，均适合先强化。包元数据声明 MIT，但独立许可证缺失应准确保留这一限制。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-7",
+    "title": "Malps-del/lspp-mcp-server — pyproject.toml",
+    "url": "https://github.com/Malps-del/lspp-mcp-server/blob/0ca5a92ff68855590a2c956a8548ebddc39ba980/pyproject.toml#L11",
+    "summary": "这是本轮最贴合“LS-PrePost MCP＋Skills”的真实实现。server.py 注册56个工具，Skill 将自然语言意图路由到结构化操作；LS-PrePost 子层由6个白名单 Jinja 模板生成 cfile，再以独立子进程执行。曲线默认 -nographics，云图默认开图形窗口并设置 w=；多帧工具复用一次载入。已有路径白名单、引号/换行拒绝、超时、日志、非空产物检查和可配置变量表，足以作为二次开发底座。不过目前不是内嵌 Python/LSPP API 桥，也不是操纵已打开 GUI 的长期会话。主提交 Windows CI 成功，相关 LSPP 测试主要 mock，不能替代本机版本实测。runner 无 cwd、覆盖时旧产物可能误判、图片无解码校验、安装探测只检查路径，均适合先强化。包元数据声明 MIT，但独立许可证缺失应准确保留这一限制。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-8",
+    "title": "Malps-del/lspp-mcp-server — tests/test_runner_mock.py",
+    "url": "https://github.com/Malps-del/lspp-mcp-server/blob/0ca5a92ff68855590a2c956a8548ebddc39ba980/tests/test_runner_mock.py#L34",
+    "summary": "这是本轮最贴合“LS-PrePost MCP＋Skills”的真实实现。server.py 注册56个工具，Skill 将自然语言意图路由到结构化操作；LS-PrePost 子层由6个白名单 Jinja 模板生成 cfile，再以独立子进程执行。曲线默认 -nographics，云图默认开图形窗口并设置 w=；多帧工具复用一次载入。已有路径白名单、引号/换行拒绝、超时、日志、非空产物检查和可配置变量表，足以作为二次开发底座。不过目前不是内嵌 Python/LSPP API 桥，也不是操纵已打开 GUI 的长期会话。主提交 Windows CI 成功，相关 LSPP 测试主要 mock，不能替代本机版本实测。runner 无 cwd、覆盖时旧产物可能误判、图片无解码校验、安装探测只检查路径，均适合先强化。包元数据声明 MIT，但独立许可证缺失应准确保留这一限制。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-9",
+    "title": "Malps-del/lspp-mcp-server — .github/workflows/tests.yml",
+    "url": "https://github.com/Malps-del/lspp-mcp-server/blob/0ca5a92ff68855590a2c956a8548ebddc39ba980/.github/workflows/tests.yml#L12",
+    "summary": "这是本轮最贴合“LS-PrePost MCP＋Skills”的真实实现。server.py 注册56个工具，Skill 将自然语言意图路由到结构化操作；LS-PrePost 子层由6个白名单 Jinja 模板生成 cfile，再以独立子进程执行。曲线默认 -nographics，云图默认开图形窗口并设置 w=；多帧工具复用一次载入。已有路径白名单、引号/换行拒绝、超时、日志、非空产物检查和可配置变量表，足以作为二次开发底座。不过目前不是内嵌 Python/LSPP API 桥，也不是操纵已打开 GUI 的长期会话。主提交 Windows CI 成功，相关 LSPP 测试主要 mock，不能替代本机版本实测。runner 无 cwd、覆盖时旧产物可能误判、图片无解码校验、安装探测只检查路径，均适合先强化。包元数据声明 MIT，但独立许可证缺失应准确保留这一限制。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-25",
+    "title": "Hyper-Dyna-MCP README",
+    "url": "https://github.com/yesooner/hyper-dyna-mcp",
+    "summary": "该项目README描述FastMCP/stdio与本机HyperMesh GUI listener连接，用受控Tcl路线创建有限元实体并赋予部分材料、载荷和约束。其README明确排除LS-PrePost、求解器、hmbatch及K导出执行能力，因此名字里的dyna不代表能够控制LS-PrePost。对本项目的价值是能力矩阵、命令录制验证、GUI监听器状态和分阶段解锁的设计。不能将HyperMesh的Tcl事件循环直接套入LS-PrePost；后者的内嵌Python调度仍须单独验证。此来源只核查README，未运行软件。证据：当前范围只包含 HyperMesh GUI 自动化。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-26",
+    "title": "ANSA MCP MVP README",
+    "url": "https://github.com/ilovedurianhhh/ansa-mcp",
+    "summary": "仓库介绍ANSA内部插件与外部MCP通过JSON命令/结果文件通信，采用临时文件后原子替换。工具覆盖实体清单、几何查询、选择预览、模型保存和部分网格检查；README明确排除求解和META后处理。它证明文件IPC是实际CAE项目采用过的一种架构，但并不能证明LS-PrePost也具备相同主线程调度能力。README说明运行ansa_mcp_loop时使用阻塞轮询，因此参照时应注意GUI交互与长任务响应。本次只读页面，不验证其宣称的实机环境。证据：GUI bridge + 文件 IPC",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-27",
+    "title": "CAE-Agent-Hub architecture and skill index",
+    "url": "https://github.com/Cai-aa/CAE-Agent-Hub/blob/main/README.md",
+    "summary": "CAE-Agent-Hub将MCP工具接入、领域Skill、应用求解与导出的结果查看分层。README列出Abaqus、Fluent、Workbench/Mechanical和HyperWorks等模块，Workbench条目描述Python辅助函数与ACT桥，存在文件队列和socket timer通信形式。Skill索引按几何、材料、网格、接触、载荷和结果等职责拆分。可以借鉴这种拆分组织LS-PrePost的建模、结果读取和检验，但其工具不是LS-PrePost专用协议。本次阅读README，未审计所有子项目或验证整个Hub质量。证据：MCP servers provide tool access to installed CAE applications and solvers.",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-28",
+    "title": "LSPrePost-Development-Group/LSPrePost-Release",
+    "url": "https://github.com/LSPrePost-Development-Group/LSPrePost-Release",
+    "summary": "仓库简介为LSPrePost发布信息，主页目录包含Release4.8及pictures，链接文档与发布网站。它可作为历史发行说明入口；未在主页看到LS-PrePost主程序源代码或完整构建工程。本次不把它归类为LS-PrePost软件开源实现，避免将存在Github发布仓库等同于软件源代码开放。对MCP开发而言仍应调用用户安装的实际软件，而不是假设能从该仓库编译LS-PrePost。证据：Release information about LSPrePost",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-29",
+    "title": "Bing001113/LS-PrePost-Example",
+    "url": "https://github.com/Bing001113/LS-PrePost-Example",
+    "summary": "仓库收录使用LS-PrePost生成并导出的LS-DYNA关键字案例，目录出现crash-box-impact及rigid-ball-impact-plastic-wall。README说明K文件可由LS-PrePost打开或交给LS-Run。它适合作为小模型候选来源或理解输入输出关系的参照，不属于MCP服务器、命令接口封装或通用网格API。本次没有下载求解案例，也未验证其材料、边界和结果物理正确性；纳入自动测试前仍应检查授权和数据大小。证据：LS-DYNA keyword simulation cases created and exported using LS-PrePost.",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-30",
+    "title": "LS-Reader PyPI description",
+    "url": "https://pypi.org/project/lsreader/",
+    "summary": "PyPI页面展示D3plotReader、BinoutReader与枚举DataType/BINOUT_DataType，用于读取LS-DYNA结果，示例支持按状态、积分点、part及part set筛选，也有NumPy返回形式。这是独立结果读取通道，不需要通过GUI逐个查询数值，但不负责控制LS-PrePost会话。页面展示的旧发行和二进制wheel不能代表用户已有新版分发包，本次不把二进制可下载等同于源代码开源，也未核验全部依赖授权。数据读取器可作为图像之外的数值复核，具体支持的单元和变量须用模型检查。证据：The LS-Reader is designed to read LS-DYNA results",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-50",
+    "title": "球撞板建模：网格与材料参数的区分",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch15s02.html",
+    "summary": "球撞板14个步骤已由分节读者逐页读过。球体创建页面属于Shape Mesher，Radius50、Density6、中心0/0/51与Create/Accept有明确步骤；材料在另一页分别定义MAT020与MAT024，因此Density不能混成RO。其余步骤包含板网格、截面、属性核对、约束、速度、接触、输出与保存。逐URL与图像核查记录保存在tutorial-reading，未执行教程。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-51",
+    "title": "Element Editing：重复节点合并",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch10s13.html",
+    "summary": "已读Element Editing全部13步，包含节点建立/替换/对齐、单元分裂/删除/创建/平滑、平移镜像、重复节点合并。末页明确先给容差并显示重复节点，再合并及接受。参数来自具体模型，MCP需回传候选ID和变化计数，不应默认清理全部模型。已抽查分裂和平滑原图，但没有运行。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-52",
+    "title": "ElGen：Shell Drag 生成实体",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch12s06.html",
+    "summary": "已读ElGen全10步，选part后Shell_Drag需要厚度24、Segment4、方向及单元传播选择，Create后Accept。另有shell offset、实体表面生壳和双壳层生成实体。建议将选择、方向、层数、part归属和验收列为配方输入。工具设计是本次推论，教程未提供等价Python API。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-53",
+    "title": "Block Mesher：边投影",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/ch13s03.html",
+    "summary": "已读Block Mesher全5步。创建8角block后先不接受，接着将块的I/J/K边映射到几何边，投影边和面后最终Accept。已查看8角原图。这个状态顺序适合设计预览/接受能力；不能将一个规则六面体写卡工具说成等同原生BlockM几何投影。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-54",
+    "title": "Model Repair：重复面、孔洞和间隙",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/lsdyna_prepost_tut_repair_import.html",
+    "summary": "已读几何修复3页，其中导入修复页含10个子节，处理重复面、延伸填缝、移动顶点、替换填缝、内外孔、锯齿与冗余顶点。正确识别外边界和真实孔洞是关键；图片中的面ID属于示例，通用化需查询对象并记录拓扑变化。教程讲GUI动作，尚无本次录制/回放证据。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "research-55",
+    "title": "Middle Surface：By Solid",
+    "url": "https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/lsdyna_prepost_tut/lsdyna_prepost_tut_midsurf_getmiddle.html",
+    "summary": "已读中面全5步，By Solid中面与Top/Bottom子面是不同结果，后续还涉及按角度分壳及网格。阅读帮助界定前处理工具的语义；实际几何修复/中面能力需结合模型、公差、法向、厚度和网格质量验收，不能只因文件生成就判断成功。",
+    "integration": "reference_indexed",
+    "license_status": "Link and authored research summary only"
+  }
+]
