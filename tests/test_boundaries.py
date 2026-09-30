@@ -102,3 +102,37 @@ def test_response_is_bound_to_job(tmp_path, monkeypatch):
     assert result["status"] == "failed"
     assert "different job" in result["error"]["message"]
 
+
+def test_include_export_refused_before_any_write(tmp_path):
+    child = tmp_path / "part.k"
+    child.write_text("*KEYWORD\n*END")
+    model = tmp_path / "main.k"
+    model.write_text("*KEYWORD\n*INCLUDE\npart.k\n*END")
+    with pytest.raises(ValueError, match="staged include"):
+        Service(Settings(tmp_path, model)).export_keyword(str(model))
+    assert not (tmp_path / "jobs").exists()
+
+
+def test_mpp_shards_are_not_silently_partially_read(tmp_path):
+    (tmp_path / "binout0000").write_bytes(b"one")
+    (tmp_path / "binout0001").write_bytes(b"two")
+    with pytest.raises(ValueError, match="MPP"):
+        Service(Settings(tmp_path)).inspect_binout(str(tmp_path / "binout0000"))
+
+
+def test_version_dispatch_preserves_global_selection(tmp_path, monkeypatch):
+    default = tmp_path / "default.exe"
+    alternate = tmp_path / "alternate.exe"
+    settings = Settings(tmp_path, default, profiles={"4.8": alternate})
+    selected = []
+    def fake(self, *args, **kw):
+        selected.append(self.settings.executable)
+        return {"status": "succeeded"}
+    monkeypatch.setattr(Service, "_native", fake)
+    service = Service(settings)
+    result = service.run_on_version("4.8", "probe_environment", {})
+    assert result["installation_profile"] == "4.8"
+    assert selected == [alternate]
+    assert settings.executable == default
+    with pytest.raises(ValueError):
+        service.run_on_version("4.8", "__getattribute__", {})

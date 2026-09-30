@@ -23,7 +23,7 @@ def main():
             "list_installations", "run_on_version", "probe_environment", "probe_scl", "inspect_model", "list_nodes", "list_parts", "get_element_connectivity",
             "create_shell_plate", "export_keyword", "extract_nodal_results", "extract_node_history",
             "render_snapshot", "measure_parts", "read_job", "list_jobs", "inspect_binout", "extract_binout_curve",
-            "inspect_d3plot_database", "extract_d3plot_nodal", "inspect_keyword_deck",
+            "inspect_d3plot_scl", "inspect_d3plot_database", "extract_d3plot_nodal", "inspect_keyword_deck",
             "create_elastic_material", "update_elastic_material", "inspect_lsreader", "extract_lsreader_nodal"
         }:
             parser.error("Unknown action")

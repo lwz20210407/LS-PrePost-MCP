@@ -1,20 +1,23 @@
 {
   "schema_version": 1,
   "software_target": "LS-PrePost",
-  "native_reference_build": null,
   "status_legend": {
     "implemented": "Code exists; see native verification for supported build/data",
-    "native_tested": "Passed a documented native smoke test; not a claim about all models",
+    "native_tested": "Real applicable backend test (LS-PrePost, reader or PyDYNA); see verification scope, not whole-software certification",
     "planned": "Not implemented; never route requests as if executable"
   },
   "capabilities": [
     {
       "id": "model.inspect",
       "tool": "inspect_model",
-      "status": "implemented",
+      "status": "native_tested",
       "sources": [
         "official-scl-rev11",
         "local-Example2"
+      ],
+      "tested_profiles": [
+        "4.10",
+        "4.13"
       ]
     },
     {
@@ -36,34 +39,54 @@
     {
       "id": "mesh.shell_plate",
       "tool": "create_shell_plate",
-      "status": "implemented",
+      "status": "native_tested",
       "sources": [
         "local-Example2"
+      ],
+      "tested_profiles": [
+        "4.10",
+        "4.13"
       ]
     },
     {
       "id": "results.nodal",
       "tool": "extract_nodal_results",
-      "status": "implemented",
+      "status": "native_tested",
       "sources": [
         "local-Example5",
         "local-Example7"
+      ],
+      "tested_profiles": [
+        "4.13"
+      ],
+      "blocked_profiles": [
+        "older embedded Python vector ABI"
       ]
     },
     {
       "id": "results.history",
       "tool": "extract_node_history",
-      "status": "implemented",
+      "status": "native_tested",
       "sources": [
         "official-history-extraction"
+      ],
+      "tested_profiles": [
+        "4.13"
+      ],
+      "blocked_profiles": [
+        "older embedded Python vector ABI"
       ]
     },
     {
       "id": "render.snapshot",
       "tool": "render_snapshot",
-      "status": "implemented",
+      "status": "native_tested",
       "sources": [
         "local-Example1"
+      ],
+      "tested_profiles": [
+        "4.10",
+        "4.13"
       ]
     },
     {
@@ -147,6 +170,76 @@
         "library-pydyna",
         "LLK-LL/K-agent"
       ]
+    },
+    {
+      "id": "native.scl_inventory",
+      "tool": "inspect_d3plot_scl",
+      "status": "native_tested",
+      "tested_profiles": [
+        "4.8"
+      ],
+      "sources": [
+        "official-scl-rev11"
+      ],
+      "limits": "256 MiB / 1000 staged files"
+    },
+    {
+      "id": "results.lasso_nodal",
+      "tool": "extract_d3plot_nodal",
+      "status": "native_tested",
+      "sources": [
+        "library-lasso"
+      ],
+      "verification": "Real local file + LS-Reader and native 4.13 comparison; lasso-python 2.0.4"
+    },
+    {
+      "id": "results.lsreader",
+      "tool": "extract_lsreader_nodal",
+      "status": "native_tested",
+      "sources": [
+        "lsreader-local-sdk"
+      ],
+      "verification": "ABI-isolated local reader + cross-reader displacement check"
+    },
+    {
+      "id": "deck.inspect",
+      "tool": "inspect_keyword_deck",
+      "status": "native_tested",
+      "sources": [
+        "library-pydyna"
+      ],
+      "verification": "PyDYNA 0.12.1 parser, no solver"
+    },
+    {
+      "id": "deck.elastic_fragment",
+      "tool": "create_elastic_material",
+      "status": "native_tested",
+      "sources": [
+        "library-pydyna"
+      ],
+      "verification": "Export and reimport fields, no solver"
+    },
+    {
+      "id": "deck.elastic_update",
+      "tool": "update_elastic_material",
+      "status": "native_tested",
+      "sources": [
+        "library-pydyna"
+      ],
+      "verification": "Standalone deck only; original file preserved"
+    },
+    {
+      "id": "workflow.search",
+      "tool": "search_workflows",
+      "status": "implemented",
+      "sources": [
+        "official-2026r1-guide"
+      ]
     }
+  ],
+  "native_reference_builds": [
+    "4.8.0.1",
+    "4.10.0.1",
+    "4.13.0.1"
   ]
 }

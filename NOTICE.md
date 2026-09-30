@@ -15,5 +15,4 @@ This catalog is reference material. Upstream explicitly reports no command valid
 - Local SCL/Python examples and research scripts: extracted capability descriptions, API names and failure cases; original files and models remain local.
 - Projects with absent or custom licensing, including UMAT_2scale_LSDYNA, KooD3plotReader and several script collections, are reference-only until their reuse terms are resolved.
 
-Optional `lasso-python` is installed as a dependency under its own BSD-3-Clause license. PyDYNA is a planned optional backend, not yet part of the runtime implementation. Neither dependency license grants rights to vendor software.
-
+Optional `lasso-python` is installed under its own BSD-3-Clause license. Optional `ansys-dyna-core` (PyDYNA) is installed under MIT and powers the Deck/material adapter. LS-Reader is loaded only in a user-configured matching interpreter; its binary package is not redistributed. These dependency licenses do not grant rights to vendor software.

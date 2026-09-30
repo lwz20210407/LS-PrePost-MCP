@@ -18,6 +18,8 @@ def run(request_path, response_path):
         import LsPrePost as lp
         action = request["action"]
         p = request["parameters"]
+        if action in ("extract_nodal", "node_history") and sys.version_info[:2] < (3, 10):
+            raise RuntimeError("Native vector arrays on the older embedded Python ABI did not pass numerical cross-checks. Use the explicit LASSO/LS-Reader tools or the verified 4.13 profile.")
         job_directory = request.get("job_directory", os.getcwd())
         if request.get("model"):
             # The application may reset cwd from GUI preferences. Load file families
@@ -30,6 +32,8 @@ def run(request_path, response_path):
                 lp.execute_command(opener + " " + kind + ' "' + os.path.basename(source) + '"')
             finally:
                 os.chdir(job_directory)
+            if int(dc.get_data("num_nodes")) <= 0:
+                raise ValueError("Input did not load a nonempty finite-element model")
 
         def get(key, **kw):
             return dc.get_data(key, **kw)
@@ -69,12 +73,15 @@ def run(request_path, response_path):
         def node_rows(ids, keys, state):
             if state is not None:
                 check_state(state)
+                lp.switch_state(state)
             all_ids = sequence(get("node_ids"))
             lookup = {int(uid): i for i, uid in enumerate(all_ids)}
             missing = [uid for uid in ids if uid not in lookup]
             if missing:
                 raise ValueError("Unknown user node IDs: " + str(missing[:20]))
-            arrays = [get(key, type=dc.Type.NODE, **({"ist": state} if state else {})) for key in keys]
+            # Older bindings may expose application-owned buffers. Materialize
+            # each component before the next native call can reuse its memory.
+            arrays = [sequence(dc.get_data(key, dc.Type.NODE, **({"ist": state} if state else {}))) for key in keys]
             if any(len(a) != len(all_ids) for a in arrays):
                 raise ValueError("Node IDs and result array lengths differ")
             return [[uid] + [float(a[lookup[uid]]) for a in arrays] for uid in ids]
@@ -170,6 +177,8 @@ def run(request_path, response_path):
             for uid in p["part_ids"]:
                 lp.execute_command("measure vol part %d" % uid)
                 values = [lp.cmd_result_get_value(i) for i in range(lp.cmd_result_get_value_count())]
+                if not values:
+                    raise ValueError("Native measurement returned no values")
                 rows.append({"part_id": uid, "command_values": values})
             data = {"measurements": rows, "note": "Raw command-result layout is build-dependent; values are not assigned guessed units"}
         else:
@@ -180,4 +189,3 @@ def run(request_path, response_path):
     with open(response_path + ".tmp", "w", encoding="utf-8") as f:
         json.dump(response, f, ensure_ascii=False, indent=2, allow_nan=False)
     os.replace(response_path + ".tmp", response_path)
-

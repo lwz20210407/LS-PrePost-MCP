@@ -83,4 +83,3 @@ def check_artifact(path: Path, kind: str) -> dict:
         if "*KEYWORD" not in text or "*END" not in text:
             raise ValueError("Invalid keyword artifact")
     return {**fingerprint(path), "kind": kind, "validated": True}
-

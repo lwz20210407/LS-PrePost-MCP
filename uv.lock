@@ -829,7 +829,7 @@ results = [
 [package.metadata]
 requires-dist = [
     { name = "ansys-dyna-core", marker = "extra == 'pydyna'", specifier = "==0.12.1" },
-    { name = "lasso-python", marker = "extra == 'results'", specifier = ">=2,<3" },
+    { name = "lasso-python", marker = "extra == 'results'", specifier = "==2.0.4" },
     { name = "mcp", specifier = ">=1.27,<2" },
     { name = "pillow", specifier = ">=11,<13" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8,<10" },

@@ -13,8 +13,9 @@
 - 应用内 Python 探测、模型计数、节点/部件查询、单元连通性。
 - 原生壳板网格创建、保存副本、重新读取、PNG 导出。
 - 原生 SCL 探测，不依赖应用内 Python。
-- 节点向量和时程接口；原生 d3plot 路线仍有当前样例兼容问题，见矩阵。
+- 节点向量和时程接口；4.13已作读取器对照，4.10旧ABI的原生向量路径主动拒绝，见矩阵。
 - 可选 LASSO d3plot/binout 数值读取后端，明确返回 `backend=lasso`。
+- LS-Reader独立进程适配、PyDYNA Deck清单与弹性材料创建/修改/重读核对，见[后端合同](docs/BACKENDS.md)。
 - 多安装版本配置和按版本调用，避免全局切换实例。
 - 命令目录、官方教程验收案例、来源索引和配套 [Skill](skills/ls-prepost/SKILL.md)。
 
@@ -29,14 +30,14 @@
 ```shell
 git clone https://github.com/lwz20210407/LS-PrePost-MCP.git
 cd LS-PrePost-MCP
-uv sync --extra dev --extra results
+uv sync --extra dev --extra results --extra pydyna
 ```
 
 不使用 uv 时：
 
 ```shell
 python -m venv .venv
-python -m pip install -e ".[dev,results]"
+python -m pip install -e ".[dev,results,pydyna]"
 ```
 
 上述 pip 命令应在已激活的 `.venv` 中执行，或使用该环境的 Python 绝对路径。
@@ -94,9 +95,9 @@ CI 测试不启动商业软件。实机冒烟需要合法安装，并在用户�
 - 目前没有任意 Python/shell 执行工具，也没有接管既有 GUI 会话。
 - 文件范围检查属于应用层边界，不是操作系统沙箱。
 - 暂仅支持普通 `*INCLUDE`；复杂 include path/参数变换规则会明确拒绝。
+- 原生保存和材料修改暂要求无include的独立deck；MPP binout多分片会明确拒绝，避免只读一片返回不完整结果。
 - 原生渲染依赖图形环境，`-nographics` 不等于真正无图形；未把 `runc=` 推广到旧版本。
 - 输入单位由调用者声明，不进行隐式推断或材料参数补全。
 - 当前没有求解器启动工具。复杂网格、材料/边界/接触、碎片等能力按路线逐步建设。
 
 本项目代码使用 MIT。命令目录来自 Apache-2.0 项目，独立条款见 [NOTICE](NOTICE.md)。LS-PrePost/LS-DYNA、官方手册及其他第三方组件保留各自权利；本仓库不分发厂商软件、手册全文或私有模型。
-

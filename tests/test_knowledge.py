@@ -25,4 +25,3 @@ def test_capability_sources_are_resolvable():
         assert set(capability['sources']) <= known
         if capability['status'] != 'planned':
             assert capability.get('tool')
-

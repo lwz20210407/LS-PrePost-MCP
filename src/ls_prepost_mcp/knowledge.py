@@ -49,4 +49,3 @@ def search_workflows(query: str, limit: int = 10) -> list[dict]:
     tokens = query.casefold().split()
     ranked = [(sum(t in json.dumps(r, ensure_ascii=False).casefold() for t in tokens), r) for r in items]
     return [r for score, r in sorted(ranked, key=lambda p: p[0], reverse=True) if score][:limit]
-

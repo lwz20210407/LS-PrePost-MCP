@@ -39,4 +39,3 @@ def execute(executable: Path, cfile: Path, directory: Path, *, timeout: float, g
     return {"returncode": proc.returncode, "timed_out": timed_out, "pid": proc.pid,
             "elapsed_seconds": round(time.monotonic() - start, 3), "argv": args,
             "cwd": str(directory), "graphics": graphics}
-

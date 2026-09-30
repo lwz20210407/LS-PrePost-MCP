@@ -8,7 +8,7 @@ from pathlib import Path
 
 from .config import Settings, command_path
 from .jobs import Jobs, atomic_json, check_artifact, fingerprint, now
-from .results import open_binout
+from .results import lasso_vectors, open_binout
 from .runner import decode, execute
 
 VIEWS = {"isometric": "isometric x", "top": "top", "bottom": "bottom", "front": "front",
@@ -50,7 +50,13 @@ class Service:
         source = self.settings.input_path(model) if model else None
         if source and file_type == "keyword":
             self.settings.check_keyword_includes(source)
+            if export and any(line.strip().upper().startswith("*INCLUDE")
+                              for line in source.read_text(errors="replace").splitlines()):
+                raise ValueError("Native export of include-bearing models needs a staged include-tree implementation")
         directory, manifest = self.jobs.create(action, parameters)
+        manifest["backend"] = "lsprepost"
+        manifest["executable"] = fingerprint(exe)
+        manifest["native_channel"] = "scl" if action == "scl_probe" else "embedded_python"
         request = {"job_id": manifest["job_id"], "action": action, "parameters": parameters,
                    "job_directory": str(directory), "model": str(source) if source else None,
                    "file_type": file_type}
@@ -132,7 +138,7 @@ class Service:
 
     def run_on_version(self, version: str, action: str, parameters: dict) -> dict:
         """Run an existing typed action using an explicitly configured installation; no global switch."""
-        allowed = {"probe_environment", "probe_scl", "inspect_model", "list_nodes", "list_parts",
+        allowed = {"probe_environment", "probe_scl", "inspect_d3plot_scl", "inspect_model", "list_nodes", "list_parts",
                    "get_element_connectivity", "create_shell_plate", "export_keyword",
                    "extract_nodal_results", "extract_node_history", "render_snapshot", "measure_parts"}
         if version not in self.settings.profiles:
@@ -149,6 +155,11 @@ class Service:
 
     def probe_scl(self, model: str) -> dict:
         return self._native("scl_probe", {}, model, artifacts=(("scl_nodes.txt", "text"),))
+
+    def inspect_d3plot_scl(self, path: str) -> dict:
+        """Native SCL inventory with bounded staged input for builds without Python."""
+        from .scl_backend import inspect_database
+        return inspect_database(self.settings, self.jobs, self.settings.input_path(path))
 
     def inspect_model(self, model: str, file_type: str = "keyword") -> dict:
         return self._native("inspect_model", {}, model, file_type)
@@ -226,10 +237,20 @@ class Service:
         return self.jobs.list(limit)
 
     def inspect_binout(self, path: str, branch: str | None = None) -> dict:
-        source = self.settings.input_path(path)
+        source = self._binout_source(path)
         with open_binout(str(source)) as db:
             values = db.read(branch) if branch else db.read()
-            return {"source": str(source), "branch": branch, "children": [str(x) for x in values]}
+            return {"backend": "lasso", "source": str(source), "branch": branch, "children": [str(x) for x in values]}
+
+    def _binout_source(self, path: str) -> Path:
+        source = self.settings.input_path(path)
+        match = re.fullmatch(r"(binout)(\d+)", source.name, flags=re.I)
+        if match:
+            siblings = [p for p in source.parent.iterdir()
+                        if p.is_file() and re.fullmatch(r"binout\d+", p.name, flags=re.I)]
+            if len(siblings) > 1:
+                raise ValueError("Multiple MPP binout shards detected; single-file extraction would be incomplete. Shard-set support is not verified in this release.")
+        return source
 
     def inspect_d3plot_database(self, path: str) -> dict:
         """Read file metadata through optional LASSO, without launching LS-PrePost."""
@@ -353,7 +374,7 @@ class Service:
             key = "node_" + quantity
             db = D3plot(str(source), state_array_filter=[key, "timesteps"], buffered_reading=True)
             times = np.asarray(db.arrays["timesteps"])
-            vectors = np.asarray(db.arrays[key])
+            vectors = lasso_vectors(db.arrays, quantity)
             user_ids = np.asarray(db.arrays["node_ids"])
             if vectors.ndim != 3 or vectors.shape != (len(times), len(user_ids), 3):
                 raise ValueError("Unexpected nodal result dimensions")
@@ -372,7 +393,8 @@ class Service:
                         writer.writerow([state, float(times[state - 1]), uid, *vec, float(np.linalg.norm(vec))])
             manifest.update(status="succeeded", artifacts=[check_artifact(output, "csv")],
                             data={"row_count": len(native_states)*len(ids_requested), "id_kind": "user",
-                                  "state_index_base": 1, "backend": "lasso"})
+                                  "state_index_base": 1, "backend": "lasso", "quantity": quantity,
+                                  "displacement_reference": "initial_geometry" if quantity == "displacement" else None})
         except Exception as exc:
             manifest.update(status="failed", error={"type": type(exc).__name__, "message": str(exc)})
         manifest.update(finished_at=now(), job_directory=str(directory))
@@ -386,9 +408,9 @@ class Service:
         import numpy as np
         if not re.fullmatch(r"[A-Za-z0-9_]+", branch) or not re.fullmatch(r"[A-Za-z0-9_]+", variable):
             raise ValueError("Use one binout branch and variable name")
-        source = self.settings.input_path(path)
+        source = self._binout_source(path)
         directory, manifest = self.jobs.create("extract_binout_curve", {"branch": branch, "variable": variable,
-                                             "entity_id": entity_id, "units": unit_label(units)})
+                                             "entity_id": entity_id, "units": unit_label(units), "backend": "lasso"})
         try:
             with open_binout(str(source)) as db:
                 times = np.asarray(db.read(branch, "time"))
@@ -411,11 +433,10 @@ class Service:
                     writer = csv.writer(f)
                     writer.writerow(["time", "value"])
                     writer.writerows(zip(times, values))
-            manifest.update(status="succeeded", data={"row_count": len(times)},
+            manifest.update(status="succeeded", data={"row_count": len(times), "backend": "lasso"},
                             artifacts=[check_artifact(directory / "curve.csv", "csv")])
         except Exception as exc:
             manifest.update(status="failed", error={"type": type(exc).__name__, "message": str(exc)})
         manifest.update(finished_at=now(), job_directory=str(directory))
         atomic_json(directory / "job.json", manifest)
         return manifest
-

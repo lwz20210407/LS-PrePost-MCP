@@ -74,4 +74,3 @@ def verify_material(path: Path, material_id: int, values: dict) -> dict:
         raise ValueError("Material did not survive export/reimport verification")
     return {"backend": "pydyna", "material_id": material_id, "values": values, "reimport_verified": True,
             "version": importlib.metadata.version("ansys-dyna-core"), "solver_validated": False}
-

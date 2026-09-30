@@ -80,7 +80,7 @@
       "file": "LICENSE",
       "solver_license": "Python 库的 MIT 不替代 LS-DYNA 软件许可。"
     },
-    "integration": "reference_indexed",
+    "integration": "optional_runtime_backend",
     "scope": "Source/API reference is not a runtime compatibility certificate"
   },
   {
@@ -1298,5 +1298,29 @@
     "summary": "已读中面全5步，By Solid中面与Top/Bottom子面是不同结果，后续还涉及按角度分壳及网格。阅读帮助界定前处理工具的语义；实际几何修复/中面能力需结合模型、公差、法向、厚度和网格质量验收，不能只因文件生成就判断成功。",
     "integration": "reference_indexed",
     "license_status": "Link and authored research summary only"
+  },
+  {
+    "id": "pydyna-official-docs",
+    "title": "PyDYNA 0.12.1 official documentation and examples",
+    "url": "https://dyna.docs.pyansys.com/version/stable/",
+    "summary": "官方文档、API目录与案例已对照本机0.12.1读取。新代码使用Deck/keywords。网页旧横幅与当前run目录说明有差异，求解模块应按安装版本探测，不能混用旧pre服务API。",
+    "integration": "version_aligned_backend",
+    "license_status": "Links and authored summaries; package MIT"
+  },
+  {
+    "id": "local-pydyna-cases",
+    "title": "Local PyDYNA examples and version-aligned agent guides",
+    "url": "local://pydyna/cases",
+    "summary": "本地pydyna-main为0.4.dev0；旧最小demo声称0.4.15、导入pre后手工写卡。已精读最小demo、Taylor-bar的Deck构造/导出和8节点单元案例，并盘点beer-can、pendulum、pipe、optimization、S-ALE的导入及构造入口。旧pre案例要迁移，未运行求解器或声称完整复现这些案例。",
+    "integration": "recipe_candidate",
+    "license_status": "Local source not redistributed"
+  },
+  {
+    "id": "lsreader-local-sdk",
+    "title": "LS-Reader ABI-isolated result reader",
+    "url": "local://lsreader/installed-sdk",
+    "summary": "在配置的独立Python中调用D3plotReader和DataType。实际探测D3P_NODE_IDS、D3P_TIMES、D3P_NODE_DISPLACEMENTS、D3P_NODE_VELOCITIES；对外1-based状态转为底层0-based，按真实ID映射。已读取样例并与LASSO对照；不分发厂商二进制。",
+    "integration": "isolated_runtime_backend",
+    "license_status": "User-provided licensed binary; not redistributed"
   }
 ]

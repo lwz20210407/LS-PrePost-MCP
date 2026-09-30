@@ -27,4 +27,3 @@ def test_timeout_reaps_owned_process_and_keeps_logs(tmp_path):
     process.kill.assert_called_once()
     assert (tmp_path / "stdout.log").read_text() == "partial"
     assert decode(b"\xff") == "\ufffd"
-

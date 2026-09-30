@@ -13,4 +13,3 @@ Inspect the available database and physical states first. Select actual user nod
 Search official/tutorial and local-case records. Identify input selection, state dependencies, output files and known defects. A candidate becomes supported only after implementation and meaningful tests. Geometry repair, Shell Drag, materials/contact, fragments and virtual gauges are roadmap items unless the current capability registry states otherwise.
 
 The sources already expose useful future cases: official ball impact, element editing, ElGen and Block Mesher; local part images, mesh/ID inspection, resultant vectors, stress extraction, deleted elements, aggregate partitioning and arrays. Preserve the difference between a native operation, generated keyword data and a standalone formula plot.
-
