@@ -128,9 +128,11 @@ class Service:
         return manifest
 
     def probe_environment(self) -> dict:
+        """Launch a fresh native instance and report its embedded Python; missing empty-model counters are warnings."""
         return self._native("probe", {})
 
     def list_installations(self) -> dict:
+        """List configured executables only; file existence is not a compatibility test."""
         return {"default": str(self.settings.executable) if self.settings.executable else None,
                 "profiles": [{"version": k, "executable": str(v), "exists": v.is_file(),
                               "verification": "Call an explicit probe; existence does not prove compatibility"}
@@ -154,6 +156,7 @@ class Service:
         return result
 
     def probe_scl(self, model: str) -> dict:
+        """Count nodes in a keyword model through native SCL without requiring embedded Python."""
         return self._native("scl_probe", {}, model, artifacts=(("scl_nodes.txt", "text"),))
 
     def inspect_d3plot_scl(self, path: str) -> dict:
@@ -162,17 +165,21 @@ class Service:
         return inspect_database(self.settings, self.jobs, self.settings.input_path(path))
 
     def inspect_model(self, model: str, file_type: str = "keyword") -> dict:
+        """Open keyword/d3plot in a fresh native Python instance; return counts, user part IDs and state times."""
         return self._native("inspect_model", {}, model, file_type)
 
     def list_nodes(self, model: str, file_type: str = "keyword", offset: int = 0, limit: int = 100) -> dict:
+        """Page native user node IDs and reference coordinates. Offset is zero-based; coordinates are not deformed."""
         return self._native("list_nodes", {"offset": integer(offset, "offset", 0),
                             "limit": integer(limit, "limit", 1, 10000)}, model, file_type)
 
     def list_parts(self, model: str, file_type: str = "keyword", limit: int = 100) -> dict:
+        """List native user part IDs and optional names; null names indicate an unavailable binding."""
         return self._native("list_parts", {"limit": integer(limit, "limit", 1, 10000)}, model, file_type)
 
     def get_element_connectivity(self, model: str, element_id: int, element_type: str = "shell",
                                  file_type: str = "keyword") -> dict:
+        """Query one shell/solid/beam using a user element ID; return connected user node IDs."""
         if element_type not in ("shell", "solid", "beam"):
             raise ValueError("element_type must be shell, solid or beam")
         return self._native("connectivity", {"element_id": integer(element_id, "element_id"),
@@ -181,6 +188,7 @@ class Service:
     def create_shell_plate(self, nx: int, ny: int, size: list[float], units: str,
                            origin: list[float] | None = None, part_id: int = 1,
                            node_start: int = 1, element_start: int = 1) -> dict:
+        """Create an XY shell mesh in native LS-PrePost, verify counts and save a new keyword mesh. Not a complete analysis deck."""
         integer(nx, "nx", 1, 500)
         integer(ny, "ny", 1, 500)
         if nx * ny > 100000:
@@ -192,13 +200,16 @@ class Service:
         return self._native("create_plate", p, artifacts=(("model.k", "keyword"),), export=True)
 
     def export_keyword(self, model: str) -> dict:
+        """Save a standalone keyword model into a new owned job. Include-bearing export is rejected."""
         return self._native("export_keyword", {}, model, artifacts=(("model.k", "keyword"),), export=True)
 
     def extract_nodal_results(self, d3plot: str, node_ids: list[int], quantity: str, state: int, units: str) -> dict:
+        """Extract native position/displacement/velocity at a 1-based state. Older unverified vector ABIs are blocked; use explicit reader tools."""
         return self._nodal("extract_nodal", d3plot, node_ids, quantity, [state], units)
 
     def extract_node_history(self, d3plot: str, node_ids: list[int], quantity: str,
                              states: list[int], units: str) -> dict:
+        """Export native vectors for true user node IDs and explicit 1-based states; tested on the 4.13 profile."""
         return self._nodal("node_history", d3plot, node_ids, quantity, states, units)
 
     def _nodal(self, action, d3plot, node_ids, quantity, states, units):
@@ -214,6 +225,7 @@ class Service:
 
     def render_snapshot(self, model: str, file_type: str = "keyword", view: str = "isometric",
                         state: int | None = None, fringe_code: int | None = None) -> dict:
+        """Render a native PNG. Fringe codes require d3plot/state; shell layer and averaging retain native defaults, not user-specified overrides."""
         if view not in VIEWS:
             raise ValueError("Unsupported view")
         if state is not None:
@@ -226,17 +238,21 @@ class Service:
                             model, file_type, graphics=True, artifacts=(("snapshot.png", "png"),))
 
     def measure_parts(self, model: str, part_ids: list[int]) -> dict:
+        """Return raw native part-volume command values; layout/units remain build-dependent and require interpretation."""
         if not part_ids or len(part_ids) > 1000:
             raise ValueError("part_ids must contain 1..1000 IDs")
         return self._native("measure_parts", {"part_ids": [integer(i, "part_id") for i in part_ids]}, model)
 
     def read_job(self, job_id: str) -> dict:
+        """Read a recorded task including status, errors, log paths and validated artifacts."""
         return self.jobs.get(job_id)
 
     def list_jobs(self, limit: int = 20) -> list[dict]:
+        """List recent task manifests in the configured workspace."""
         return self.jobs.list(limit)
 
     def inspect_binout(self, path: str, branch: str | None = None) -> dict:
+        """List LASSO binout branches/variables from one literal file; reject incomplete MPP shard sets."""
         source = self._binout_source(path)
         with open_binout(str(source)) as db:
             values = db.read(branch) if branch else db.read()
@@ -403,6 +419,7 @@ class Service:
 
     def extract_binout_curve(self, path: str, branch: str, variable: str, units: str,
                              entity_id: int | None = None) -> dict:
+        """Export a scalar or explicitly ID-selected binout curve through LASSO; never guess an entity column."""
         import csv
 
         import numpy as np
