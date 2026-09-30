@@ -32,6 +32,8 @@ GUI 原始命令不是固定的工具名白名单；例如 `save keyword "raw_sa
 
 将返回的 `job_id`、`data.sha256` 传给 `execute_native_program` 的 `prepared_job_id`、`expected_sha256`。更改源码后必须重新准备。这个两步过程用于核对即将执行的源码，不要求用户重复确认已授权的任务。
 
+这两个步骤以及宏定义/执行也可加入 `create_workflow`，通过 `$result` 绑定准备步骤的任务 ID 与哈希，通过 `$artifact` 绑定上一步输出模型。未验证完成状态会让工作流停止，避免被下游步骤当作成功。
+
 - 宏占位符为 `{{name}}`，本版仅允许有限数值参数，不允许把代码或路径作为参数注入。字串/路径参数、GUI 原生宏菜单/快捷键绑定、任意鼠标动作编译仍未实现。
 - `outputs` 支持 keyword、数值 CSV、JSON、文本和 PNG；必须是任务内独立文件名，不能覆盖保留的输入/脚本/日志控制文件。JSON 解析、CSV 结构/有限数值、PNG 解码等校验不等于物理意义验证。
 - `expected_counts` 可指定 nodes/elements/states，检查模型读回。没有输出/计数合同，即使程序正常结束，也只返回 `completed_unverified`。

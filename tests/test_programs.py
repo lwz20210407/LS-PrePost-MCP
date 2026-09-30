@@ -116,3 +116,39 @@ def test_macro_override_is_typed_and_definition_survives(tmp_path, monkeypatch):
     monkeypatch.setattr(s, "execute_native_program", execute)
     s.run_native_macro(path, {"width": 5})
     assert seen == ["mesh 5"] and Path(path).read_bytes() == original
+
+
+def test_program_preparation_and_execution_compose_as_typed_workflow(tmp_path, monkeypatch):
+    s = Service(Settings(tmp_path))
+    seen = []
+
+    def execute(prepared_job_id, expected_sha256):
+        prepared = s.jobs.get(prepared_job_id)
+        assert expected_sha256 == prepared["data"]["sha256"]
+        seen.append(prepared["data"]["rendered_source"])
+        return dict(status="succeeded")
+
+    monkeypatch.setattr(s, "execute_native_program", execute)
+    definition = s.create_workflow(
+        "native program chain",
+        [
+            dict(
+                id="prepare",
+                action="prepare_native_program",
+                arguments=dict(
+                    language="command", code="rotang {{angle}}", parameters={"angle": {"$param": "angle"}}
+                ),
+            ),
+            dict(
+                id="execute",
+                action="execute_native_program",
+                arguments=dict(
+                    prepared_job_id={"$result": "prepare", "path": ["job_id"]},
+                    expected_sha256={"$result": "prepare", "path": ["data", "sha256"]},
+                ),
+            ),
+        ],
+        defaults={"angle": 90},
+    )
+    result = s.run_workflow(definition["artifacts"][0]["path"])
+    assert result["status"] == "succeeded" and seen == ["rotang 90"]
