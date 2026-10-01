@@ -745,7 +745,7 @@
         "SF13"
       ],
       "current_evidence": "docs/GUI_WORKFLOWS.md",
-      "current_scope": "受管三步选择缓存参数回放、13 步 raw cfile 转工作流已验；任意鼠标/跨模型/条件循环未完成。",
+      "current_scope": "网格门槛、选择缓存和 cfile 回放已有证据；新增节点历史/相对位移及 SCL 应力录制回放，显式结果/产物依赖和工作流文件计算保留；任意手工鼠标、分支循环、断点续跑仍未完成。",
       "next_backlog": [
         "A05",
         "A06",
@@ -1207,8 +1207,9 @@
         "未知语义仍阻断",
         "断点续跑不重复不确定修改"
       ],
-      "status": "planned",
-      "milestone": "R1"
+      "status": "in_progress",
+      "milestone": "R1",
+      "progress": "Mesh gate recording retained. Native node/history/relative-displacement and SCL stress recording replay verified. Explicit result/artifact links and workflow file/engineering steps preserved; changed selected IDs drive fresh native curves. General manual macro semantics, control flow and resumable uncertain jobs remain."
     },
     {
       "id": "T10",

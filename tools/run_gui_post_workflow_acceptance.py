@@ -70,6 +70,9 @@ def accept(workspace, executable, source):
     path = definition["artifacts"][0]["path"]
     results = []
     for index, component in enumerate(["xyz"[axis], "xyz"[(axis + 1) % 3]]):
+        if index == 0:
+            service.start_session_recording(sid)
+            assert service.set_gui_display(sid, state=2, capture=False)["status"] == "succeeded"
         result = service.run_workflow(path, parameters=dict(component=component), session_id=sid)
         results.append(result)
         atomic_json(root / "workflow-results.json", results)
@@ -87,6 +90,32 @@ def accept(workspace, executable, source):
         assert after["data"]["selection_ids"] == selected
         assert after["data"]["nodes"] == initial["data"]["nodes"]
         assert after["data"]["part_visibility"] == initial["data"]["part_visibility"]
+        if index == 0:
+            node_recording = service.stop_session_recording(sid)
+            atomic_json(root / "node-recording.json", node_recording)
+            assert node_recording["status"] == "succeeded" and node_recording["managed_steps"] == 4
+            node_template = service.parameterize_workflow(
+                node_recording["workflow"],
+                [
+                    dict(step_id="step2", path=["entity_ids"], parameter="replay_node_ids"),
+                ],
+            )
+            alternative = sorted({nodes[1][0], nodes[-2][0]})
+            assert len(alternative) == 2 and alternative != selected
+            node_replay = service.run_workflow(
+                node_template["artifacts"][0]["path"],
+                parameters=dict(replay_node_ids=alternative),
+                session_id=sid,
+            )
+            atomic_json(root / "node-recording-replay.json", node_replay)
+            print("native_node_dependency_replay", node_replay["status"], flush=True)
+            assert node_replay["status"] == "succeeded", node_replay.get("error")
+            replay_steps = node_replay["data"]["steps"]
+            replay_curves = replay_steps["step3"]["data"]["curves"]
+            assert [curve["node_id"] for curve in replay_curves] == alternative
+            first, second = [matrix(curve["path"]) for curve in replay_curves]
+            delta = matrix(replay_steps["step4"]["artifacts"][0]["path"])
+            assert np.allclose(delta[:, 1], first[:, 1] - second[:, 1], rtol=1e-12, atol=1e-12)
 
     # Independent native quantity identity: position - reference = displacement.
     position = service.gui_session_action(
@@ -193,6 +222,7 @@ def accept(workspace, executable, source):
             same_gui_scl_stress_and_mises_crosscheck=True,
             same_gui_strain_fields=True,
             stress_recording_parameter_replay=True,
+            node_selection_dependency_and_math_replay=True,
             keyword_exports=0,
             scope="Native nodal vectors and component difference; units are explicit unknown model labels, no physical conversion or force/stress inference",
         ),

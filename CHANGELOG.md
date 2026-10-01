@@ -2,6 +2,8 @@
 
 ## 0.4.0 (development)
 
+- Preserve explicit result/artifact dependencies through managed recording and include engineering/file steps of the recorded workflow. Changed selectors now drive new extraction IDs and new curve artifacts; unresolved dependencies and failed argument resolution require review. Verify changed-node replay in visible 4.13.4.
+
 - Route native field/stress actions through the current visible GUI when used in a GUI workflow. Share SCL generation, ID/state matrix validation and Mises/tensor parsing with the batch backend; verify original state, selection, topology and part visibility without reopening or starting another LSPP.
 - Verify selected-solid six-component stress/Mises, strain components and effective plastic strain on a representative private 4.13.4 result. Fix Windows SCL path separators without changing user preferences.
 

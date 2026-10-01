@@ -147,6 +147,48 @@ def set_parameter_binding(document, path, name):
     return original
 
 
+def recording_argument_links(template, results, path=()):
+    """Preserve only explicit recipe dependencies, never infer links from equal values."""
+    links = []
+    if isinstance(template, dict):
+        if "$param" in template:
+            return links  # Parameter values are frozen; explicit reparameterization remains available.
+        source = template.get("$result", template.get("$artifact"))
+        if source is not None:
+            result_path = (
+                template["path"] if "$result" in template else ["artifacts", template.get("index", 0), "path"]
+            )
+            return [
+                dict(
+                    argument_path=list(path),
+                    source_job_directory=results[source].get("job_directory"),
+                    result_path=result_path,
+                )
+            ]
+        for key, value in template.items():
+            links.extend(recording_argument_links(value, results, (*path, key)))
+    elif isinstance(template, list):
+        for index, value in enumerate(template):
+            links.extend(recording_argument_links(value, results, (*path, index)))
+    return links
+
+
+def restore_recording_links(step, links, positions, target_position):
+    for link in links:
+        source = link["source_job_directory"]
+        if source not in positions or positions[source] >= target_position:
+            raise ValueError("Recorded dependency has no earlier uniquely recorded source operation")
+        binding = {"$result": "step" + str(positions[source] + 1), "path": link["result_path"]}
+        path = link["argument_path"]
+        if not path:
+            step["arguments"] = binding
+        else:
+            target = step["arguments"]
+            for key in path[:-1]:
+                target = target[key]
+            target[path[-1]] = binding
+
+
 class WorkflowTools:
     def _recording_workflow_scope(self, session_id, workflow_id, begin):
         """Prevent compiling a recording before its workflow gate annotations arrive."""
@@ -173,19 +215,45 @@ class WorkflowTools:
                 record.pop("workflow_owner", None)
             manager.save(session_id, meta)
 
-    def _record_workflow_gate(self, session_id, result, checks, policy, gate):
-        if not session_id or result.get("session_id") != session_id or not result.get("job_directory"):
+    def _record_workflow_gate(
+        self,
+        session_id,
+        result,
+        checks,
+        policy,
+        gate,
+        *,
+        action=None,
+        arguments=None,
+        template=None,
+        results=None,
+    ):
+        if not session_id or not re.fullmatch(r"[a-f0-9]{32}", session_id):
             return
         manager = self._session_manager()
+        if not (manager.directory(session_id) / "session.json").is_file():
+            return
         with manager.lock(session_id):
             if not manager.read(session_id).get("recording"):
+                return
+            if result.get("session_id") != session_id:
+                # Native GUI actions journal themselves. Pure file/engineering
+                # steps executed in this workflow also belong to its recording.
+                manager.journal(
+                    session_id,
+                    dict(action=action or "workflow_unrecorded", parameters=arguments or {}, result=result),
+                )
+            if not result.get("job_directory"):
                 return
             manager.journal(
                 session_id,
                 dict(
                     action="workflow_gate",
                     parameters=dict(
-                        operation_job_directory=result["job_directory"], checks=checks, quality_policy=policy
+                        operation_job_directory=result["job_directory"],
+                        checks=checks,
+                        quality_policy=policy,
+                        argument_links=recording_argument_links(template or {}, results or {}),
                     ),
                     result=dict(status="succeeded" if gate["passed"] else "failed", gate=gate),
                 ),
@@ -330,7 +398,15 @@ class WorkflowTools:
                 )
                 gates[step["id"]] = gate
                 self._record_workflow_gate(
-                    session_id, result, resolved_checks[step["id"]], step.get("quality_policy", "auto"), gate
+                    session_id,
+                    result,
+                    resolved_checks[step["id"]],
+                    step.get("quality_policy", "auto"),
+                    gate,
+                    action=action,
+                    arguments=arguments,
+                    template=step.get("arguments", {}),
+                    results=results,
                 )
                 atomic_json(directory / "steps.json", results)
                 atomic_json(directory / "outcomes.json", outcomes)
@@ -348,6 +424,18 @@ class WorkflowTools:
                 status="failed",
                 error={"type": type(exc).__name__, "message": str(exc)},
             )
+            try:
+                self._record_workflow_gate(
+                    session_id,
+                    dict(status="failed", error=manifest["error"]),
+                    [],
+                    "auto",
+                    dict(passed=False),
+                    action="workflow_failure",
+                    arguments=dict(failed_step=failed_step, failure_phase=failure_phase),
+                )
+            except Exception as record_error:
+                manifest["warnings"].append("Could not journal workflow failure: " + str(record_error))
         finally:
             try:
                 self._recording_workflow_scope(session_id, manifest["job_id"], False)
@@ -449,7 +537,7 @@ class WorkflowTools:
             steps = []
             operation_positions = {}
             for entry in entries:
-                if entry["result"]["status"] != "succeeded":
+                if not normalize_outcome(entry["action"], entry["result"]).execution_accepted:
                     review_reasons.append(
                         dict(
                             reason="Failed managed operation or gate",
@@ -465,6 +553,15 @@ class WorkflowTools:
                     target_step = steps[operation_positions[target]]
                     target_step["quality_policy"] = annotations["quality_policy"]
                     target_step["checks"] = annotations["checks"]
+                    try:
+                        restore_recording_links(
+                            target_step,
+                            annotations.get("argument_links", []),
+                            operation_positions,
+                            operation_positions[target],
+                        )
+                    except (ValueError, KeyError, IndexError, TypeError) as exc:
+                        review_reasons.append(dict(reason="Unresolved recorded dependency", detail=str(exc)))
                     continue
                 action = "open_model" if entry["action"] == "open" else entry["action"]
                 if action not in WORKFLOW_ACTIONS:
@@ -488,7 +585,7 @@ class WorkflowTools:
                 initial_model=record["initial_model"],
                 initial_file_type=record.get("initial_file_type", "keyword"),
                 requires_gui_session=True,
-                recording_scope="managed_operations_only; manual GUI edits are retained only in raw cfile",
+                recording_scope="managed_GUI_operations_and_typed_workflow_steps; manual GUI edits retained only in raw cfile",
             )
             if review_reasons:
                 workflow["unrecognized_commands"] = review_reasons
