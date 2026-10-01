@@ -99,7 +99,7 @@ def shell_cycle(conn):
     return values
 
 
-def verify_reverse(before, after):
+def verify_reverse(before, after, selected=None):
     old, old_elements = mesh_index(before)
     new, new_elements = mesh_index(after)
     check_same_nodes(old, new)
@@ -107,11 +107,19 @@ def verify_reverse(before, after):
     if old_elements.keys() != new_elements.keys() or set(before["part_ids"]) != set(after["part_ids"]):
         raise ValueError("Normal reversal unexpectedly changed entity registries")
     reversed_count = 0
+    shells = {eid for kind, eid in old_elements if kind == "shell"}
+    selected = shells if selected is None else set(selected)
+    if not selected or not selected <= shells:
+        raise ValueError("No shells or unknown selected shell IDs")
     for key, conn in old_elements.items():
         actual = new_elements[key]
         if key[0] != "shell":
             if actual != conn:
                 raise ValueError("Normal reversal altered a non-shell element")
+            continue
+        if key[1] not in selected:
+            if actual != conn:
+                raise ValueError("Normal reversal altered an unselected shell")
             continue
         a = shell_cycle(conn)
         b = shell_cycle(actual)
@@ -122,7 +130,7 @@ def verify_reverse(before, after):
         raise ValueError("No shell elements to reverse")
     return dict(
         reversed_shells=reversed_count,
-        verification="Reversed cyclic connectivity; all node coordinates and non-shell connectivity preserved",
+        verification="Reversed cyclic connectivity; all node coordinates and unselected connectivity preserved",
     )
 
 
@@ -227,7 +235,16 @@ class GuiMeshTools:
         return result
 
     def _gui_mesh_edit(
-        self, session_id, action, parameters, commands, verify, precheck=None, postcheck=None, preflight=None
+        self,
+        session_id,
+        action,
+        parameters,
+        commands,
+        verify,
+        precheck=None,
+        postcheck=None,
+        preflight=None,
+        on_verified=None,
     ):
         manager = self._session_manager()
         with manager.lock(session_id):
@@ -287,6 +304,8 @@ class GuiMeshTools:
                     result["verification"] = validation
                     result["artifacts"].append(check_artifact(directory / "verification.json", "json"))
                     meta.update(last_checkpoint=str(directory / "model.k"), dirty=False)
+                    if on_verified:
+                        on_verified(before, result["data"], meta)
                 except Exception as exc:
                     result.update(status="failed", error=dict(type=type(exc).__name__, message=str(exc)))
                     meta["state"] = "uncertain"
@@ -335,21 +354,42 @@ class GuiMeshTools:
             lambda state: check_no_collapse(*mesh_index(state), tolerance),
         )
 
-    def reverse_gui_shell_normals(self, session_id: str, units: str) -> dict:
-        """Reverse all shell normals through native GUI commands; verify reversed connectivity while preserving nodes and non-shell elements. Native material/coordinate semantics remain explicit review scope."""
+    def reverse_gui_shell_normals(
+        self, session_id: str, units: str, shell_ids: list[int] | None = None
+    ) -> dict:
+        """Reverse all or explicit shell normals through native GUI commands; verify reversed connectivity and preserve every unselected element. Native material/coordinate semantics remain separate review scope."""
+        from .post_backend import ids
         from .service import unit_label
 
         unit_label(units)
+        if shell_ids is not None:
+            ids(shell_ids, "shell_ids", 20000)
+        selected = None if shell_ids is None else set(shell_ids)
         commands = [
             "pall",
             "genselect clear",
             "genselect target shell",
-            "genselect whole",
-            "normal reverse",
-            "genselect clear",
         ]
+        commands += (
+            ["genselect whole"]
+            if selected is None
+            else ["genselect shell add shell %d" % uid for uid in sorted(selected)]
+        )
+        commands += ["normal reverse", "genselect clear"]
+
+        def precheck(state):
+            _, elements = mesh_index(state)
+            shells = {eid for kind, eid in elements if kind == "shell"}
+            if not shells or (selected is not None and not selected <= shells):
+                raise ValueError("No shells or unknown selected shell IDs")
+
         return self._gui_mesh_edit(
-            session_id, "reverse_gui_shell_normals", dict(units=units), commands, verify_reverse
+            session_id,
+            "reverse_gui_shell_normals",
+            dict(units=units, shell_ids=shell_ids),
+            commands,
+            lambda a, b: verify_reverse(a, b, selected),
+            precheck,
         )
 
     def translate_gui_nodes(

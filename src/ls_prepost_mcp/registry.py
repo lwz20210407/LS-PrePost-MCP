@@ -1,6 +1,10 @@
 """Shared explicit public tool registry for MCP and CLI."""
 
 SERVICE_TOOLS = (
+    "combine_gui_selections",
+    "save_gui_selection_buffer",
+    "load_gui_selection_buffer",
+    "select_gui_nodes_by_plane",
     "select_gui_entities",
     "select_gui_nodes_by_box",
     "select_gui_nodes_by_sphere",

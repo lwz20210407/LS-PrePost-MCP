@@ -1,10 +1,30 @@
 """Typed selection of current GUI entities with exact ID and geometry readback."""
 
+import hashlib
+import json
 import math
 
 import numpy as np
 
 from .gui_mesh import check_same_nodes, check_same_parts, mesh_index
+
+
+def mesh_signature(state):
+    """Bind selection buffers to the model actually read, not a mutable title."""
+    mesh_index(state)
+    canonical = dict(
+        nodes=sorted(state["nodes"]),
+        elements=sorted((e["type"], e["id"], e["nodes"]) for e in state["elements"]),
+        parts=sorted((int(k), sorted(v)) for k, v in state["part_elements"].items()),
+        part_ids=sorted(state["part_ids"]),
+    )
+    return hashlib.sha256(json.dumps(canonical, sort_keys=True, allow_nan=False).encode()).hexdigest()
+
+
+def buffer_slot(slot):
+    if type(slot) is not int or not 1 <= slot <= 10:
+        raise ValueError("Native buffer slot must be an integer from 1 to 10")
+    return slot - 1
 
 
 def available_ids(state, kind):
@@ -51,7 +71,7 @@ def verify_selection(before, after, expected, kind):
 
 
 class GuiSelectionTools:
-    def _select_gui(self, session_id, action, arguments, kind, choose):
+    def _select_gui(self, session_id, action, arguments, kind, choose, suffix=None, on_verified=None):
         expected = set()
         target = "element" if kind in ("solid", "beam") else kind
 
@@ -67,7 +87,7 @@ class GuiSelectionTools:
                 result.append("genselect whole")
             else:
                 result += ["genselect %s add %s %d" % (target, target, uid) for uid in sorted(expected)]
-            return result
+            return result + (suffix or [])
 
         return self._gui_mesh_edit(
             session_id,
@@ -76,6 +96,7 @@ class GuiSelectionTools:
             commands,
             lambda a, b: verify_selection(a, b, expected, kind),
             precheck,
+            on_verified=on_verified,
         )
 
     def select_gui_entities(
@@ -122,6 +143,154 @@ class GuiSelectionTools:
             "select_gui_entities",
             dict(entity_type=entity_type, entity_ids=entity_ids, part_ids=part_ids, invert=invert),
             entity_type,
+            choose,
+        )
+
+    def combine_gui_selections(
+        self,
+        session_id: str,
+        entity_type: str,
+        left_ids: list[int],
+        right_ids: list[int],
+        operation: str = "union",
+    ) -> dict:
+        """Native selection from explicit union/intersection/difference/xor operands; verify exact IDs and unchanged keyword mesh. Does not infer entity type from an unknown current selection."""
+        from .post_backend import ids
+
+        if entity_type not in ("node", "shell", "solid", "beam", "element", "part"):
+            raise ValueError("Unsupported entity selection type")
+        for name, values in [("left_ids", left_ids), ("right_ids", right_ids)]:
+            if not isinstance(values, list):
+                raise ValueError(name + " must be a list")
+            if values:
+                ids(values, name, 20000)
+        operations = dict(
+            union=set.union,
+            intersection=set.intersection,
+            difference=set.difference,
+            xor=set.symmetric_difference,
+        )
+        if operation not in operations:
+            raise ValueError("Unknown selection set operation")
+        left, right = set(left_ids), set(right_ids)
+
+        def choose(state):
+            if not (left | right) <= available_ids(state, entity_type):
+                raise ValueError("Unknown operand entity IDs")
+            return operations[operation](left, right)
+
+        return self._select_gui(
+            session_id,
+            "combine_gui_selections",
+            dict(entity_type=entity_type, left_ids=left_ids, right_ids=right_ids, operation=operation),
+            entity_type,
+            choose,
+        )
+
+    def save_gui_selection_buffer(
+        self, session_id: str, entity_type: str, entity_ids: list[int], slot: int
+    ) -> dict:
+        """Select explicit IDs, save native Buffer1..10, clear and reload to verify it. Replaces that slot; persisted metadata is bound to this owned process and unchanged model."""
+        from .post_backend import ids
+
+        index = buffer_slot(slot)
+        if entity_type not in ("node", "shell", "part"):
+            raise ValueError("Native buffers currently support node, shell or part selection")
+        if not isinstance(entity_ids, list) or not entity_ids:
+            raise ValueError("A nonempty entity_ids list is required")
+        ids(entity_ids, "entity_ids", 20000)
+
+        def remember(before, after, meta):
+            meta.setdefault("selection_buffers", {})[str(slot)] = dict(
+                entity_type=entity_type, entity_ids=sorted(entity_ids), model_signature=mesh_signature(before)
+            )
+
+        return self._select_gui(
+            session_id,
+            "save_gui_selection_buffer",
+            dict(entity_type=entity_type, entity_ids=entity_ids, slot=slot),
+            entity_type,
+            lambda state: set(entity_ids),
+            [f"genselect save {index}", "genselect clear", f"genselect load {index}"],
+            on_verified=remember,
+        )
+
+    def load_gui_selection_buffer(self, session_id: str, slot: int) -> dict:
+        """Replace current selection from an owned verified native buffer. Reject stale model fingerprints; detect manual buffer replacement by native readback. Reopening or editing a model requires saving the slot again."""
+        index = buffer_slot(slot)
+        manager = self._session_manager()
+        entry = {}
+
+        def precheck(state):
+            saved = manager.read(session_id).get("selection_buffers", {}).get(str(slot))
+            if saved is None:
+                raise ValueError("No verified native selection buffer in this session")
+            entry.update(saved)
+            kind, expected = entry["entity_type"], set(entry["entity_ids"])
+            if mesh_signature(state) != entry["model_signature"]:
+                raise ValueError("Selection buffer is stale after model changes; save it again")
+            if not expected <= available_ids(state, kind):
+                raise ValueError("Buffered IDs are absent from this model")
+
+        return self._gui_mesh_edit(
+            session_id,
+            "load_gui_selection_buffer",
+            dict(slot=slot),
+            lambda state, directory: [
+                "genselect clear",
+                "genselect target " + entry["entity_type"],
+                f"genselect load {index}",
+            ],
+            lambda a, b: verify_selection(a, b, entry["entity_ids"], entry["entity_type"]),
+            precheck,
+        )
+
+    def select_gui_nodes_by_plane(
+        self,
+        session_id: str,
+        point: list[float],
+        normal: list[float],
+        units: str,
+        side: str = "band",
+        tolerance: float = 0.0,
+    ) -> dict:
+        """Select reference nodes by signed distance to a plane: band |d|<=tolerance, positive d>tolerance, or negative d<-tolerance. Normalize the supplied normal; native ID readback verifies selection."""
+        from .service import numbers, unit_label
+
+        point, normal = numbers(point, 3, "point"), numbers(normal, 3, "normal")
+        unit_label(units)
+        scale = max(abs(v) for v in normal)
+        if (
+            scale == 0
+            or side not in ("band", "positive", "negative")
+            or not math.isfinite(tolerance)
+            or tolerance < 0
+        ):
+            raise ValueError("Nonzero normal, supported side and nonnegative tolerance required")
+        direction = np.asarray(normal) / scale
+        direction /= np.linalg.norm(direction)
+
+        def choose(state):
+            chosen = set()
+            for row in state["nodes"]:
+                distance = float(np.dot(np.asarray(row[1:]) - point, direction))
+                if not math.isfinite(distance):
+                    raise ValueError("Plane distance exceeds finite numeric range")
+                if (
+                    abs(distance) <= tolerance
+                    if side == "band"
+                    else distance > tolerance
+                    if side == "positive"
+                    else distance < -tolerance
+                ):
+                    chosen.add(row[0])
+            return chosen
+
+        return self._select_gui(
+            session_id,
+            "select_gui_nodes_by_plane",
+            dict(point=point, normal=normal, units=units, side=side, tolerance=tolerance),
+            "node",
             choose,
         )
 

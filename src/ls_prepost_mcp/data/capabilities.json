@@ -1075,7 +1075,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "All-shell reversal and connectivity verification; selected subset/alignment pending"
+      "scope": "All-shell and explicit subset reversal verified; unselected connectivity preserved; automatic alignment pending"
     },
     {
       "id": "gui_mesh.translate_gui_nodes",
@@ -1141,6 +1141,54 @@
         "4.13.4 Windows visible GUI"
       ],
       "scope": "Exited process checkpoint recovery; no uncertain operation replay"
+    },
+    {
+      "id": "gui_selection.combine_gui_selections",
+      "tool": "combine_gui_selections",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Explicit user-ID union/intersection/difference/xor; all four verified through visible native selection"
+    },
+    {
+      "id": "gui_selection.save_gui_selection_buffer",
+      "tool": "save_gui_selection_buffer",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Native buffer clear/reload verification; node slot1, shell slot3, part slot10 tested; model fingerprint bound"
+    },
+    {
+      "id": "gui_selection.load_gui_selection_buffer",
+      "tool": "load_gui_selection_buffer",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Native selection replacement/readback including target switching; reject changed model signatures"
+    },
+    {
+      "id": "gui_selection.select_gui_nodes_by_plane",
+      "tool": "select_gui_nodes_by_plane",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Signed reference-coordinate distance, normalized normal, tolerance; band/positive/negative verified"
     },
     {
       "id": "gui_selection.select_gui_entities",

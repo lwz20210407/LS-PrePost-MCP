@@ -98,3 +98,73 @@ def test_native_node_set_zero_padding_is_not_a_node_reference(tmp_path):
     assert validate_references(path)["valid_within_scope"]
     path.write_text(path.read_text().replace("10,20,0", "10,99,0"))
     assert validate_references(path)["errors"][0]["ids"] == [99]
+
+
+def test_plane_selection_normalization_tolerance_and_sides(tmp_path, monkeypatch):
+    s = Service(Settings(tmp_path))
+    monkeypatch.setattr(s, "_select_gui", lambda sid, action, args, kind, choose: choose(mesh()))
+    assert s.select_gui_nodes_by_plane("s", [0, 0, 0], [1e300, 0, 0], "mm") == {10, 30}
+    assert s.select_gui_nodes_by_plane("s", [0, 0, 0], [1, 0, 0], "mm", "positive") == {20, 40}
+    assert s.select_gui_nodes_by_plane("s", [0, 0, 0], [-1, 0, 0], "mm", "negative") == {20, 40}
+    with pytest.raises(ValueError, match="Nonzero"):
+        s.select_gui_nodes_by_plane("s", [0, 0, 0], [0, 0, 0], "mm")
+
+
+def test_selection_boolean_operations_validate_even_cancelled_unknown_ids(tmp_path, monkeypatch):
+    s = Service(Settings(tmp_path))
+    monkeypatch.setattr(s, "_select_gui", lambda sid, action, args, kind, choose: choose(mesh()))
+    for op, expected in [
+        ("union", {10, 20, 30}),
+        ("intersection", {20}),
+        ("difference", {10}),
+        ("xor", {10, 30}),
+    ]:
+        assert s.combine_gui_selections("s", "node", [10, 20], [20, 30], op) == expected
+    with pytest.raises(ValueError, match="Unknown operand"):
+        s.combine_gui_selections("s", "node", [99], [99], "xor")
+
+
+def test_buffer_slots_and_model_signature():
+    from ls_prepost_mcp.gui_selection import buffer_slot, mesh_signature
+
+    assert buffer_slot(1) == 0 and buffer_slot(10) == 9
+    for invalid in (0, 11, True, 1.0):
+        with pytest.raises(ValueError):
+            buffer_slot(invalid)
+    before, after = mesh(), mesh()
+    after["nodes"].reverse()
+    after["selection_ids"] = [10]
+    assert mesh_signature(before) == mesh_signature(after)
+    after["nodes"][0][1] += 1
+    assert mesh_signature(before) != mesh_signature(after)
+
+
+def test_stale_buffer_rejected_before_native_input(tmp_path, monkeypatch):
+    from contextlib import nullcontext
+
+    from ls_prepost_mcp.gui_selection import mesh_signature
+
+    s = Service(Settings(tmp_path))
+
+    class Manager:
+        def lock(self, sid):
+            return nullcontext()
+
+        def read(self, sid):
+            return {
+                "selection_buffers": {
+                    "1": dict(entity_type="node", entity_ids=[10], model_signature=mesh_signature(mesh()))
+                }
+            }
+
+    monkeypatch.setattr(s, "_session_manager", Manager)
+
+    def edit(sid, action, params, commands, verify, precheck):
+        state = mesh()
+        state["nodes"][0][1] = 5
+        precheck(state)
+        pytest.fail("A stale buffer must not reach native dispatch")
+
+    monkeypatch.setattr(s, "_gui_mesh_edit", edit)
+    with pytest.raises(ValueError, match="stale"):
+        s.load_gui_selection_buffer("s", 1)

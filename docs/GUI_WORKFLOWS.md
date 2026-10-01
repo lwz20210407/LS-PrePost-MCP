@@ -8,10 +8,13 @@
 |---|---|---|
 | `select_gui_entities` | 按节点/单元/部件 ID、部件连接关系选择，全选/清空/反选 | 4.13 节点、壳、部件验证；混合域要求单元 ID 全局唯一；结果模型尚未覆盖 |
 | `select_gui_nodes_by_box` / `select_gui_nodes_by_sphere` | 按参考坐标的三维盒/球内外筛选，原生选择并读回 | 是几何条件，不冒充视口框选；核对选中 ID 与网格保持 |
+| `select_gui_nodes_by_plane` | 按点/法向/容差选择平面带、正侧或负侧 | 三种条件均在 4.13.4 实测，法向自动归一化 |
+| `combine_gui_selections` | 两组显式 ID 的并集、交集、差集、异或，送入原生选择 | 四种均已实测；避免混淆当前选区的实体类型 |
+| `save_gui_selection_buffer` / `load_gui_selection_buffer` | 原生 Buffer1–10，保存后清空/重载核对 | 节点 Buffer1、壳 Buffer3、部件 Buffer10 已验，切换类型后加载节点仍正确；模型指纹变化拒绝旧缓存 |
 | `renumber_gui_entities` | 原生 Renumber 对全部节点/壳/部件编号，使用真实 GUI 控件与映射日志 | 三类均已验证；可检查节点集合与已支持的关键字引用，未认证全部卡片引用 |
 | `inspect_gui_mesh` | 当前模型节点、壳/实体/梁连接关系、部件归属；完整内容保存到 JSON | 标准单元，最多 20000 节点/单元，默认只返回摘要 |
 | `merge_gui_duplicate_nodes` | 原生 DupNode，保留较小 ID 和原坐标，不删除退化单元或额外清理 | 5→4 节点、1 壳保持，验证节点映射/连接关系/部件；其他关键字引用仍需单独检查 |
-| `reverse_gui_shell_normals` | 原生反转全部壳的法向 | 核对反向循环节点顺序，节点及非壳连接保持不变；部分壳/自动统一方向待扩展 |
+| `reverse_gui_shell_normals` | 原生反转全部壳或 `shell_ids` 指定壳的法向 | 整体与局部已验；核对反向循环顺序，节点及未选单元保持；自动统一方向待扩展 |
 | `translate_gui_nodes` | 同一 GUI 中按显式用户 ID 平移节点 | 已验证局部选择与未选节点保持；不再启动后台 LSPP |
 | `rotate_gui_nodes` | 同一 GUI 中绕全局轴/指定中心旋转 | 已验证整体旋转，最大坐标误差约 1.2e-7；未自动旋转载荷/材料轴 |
 | `create_gui_nodes` | 通过原生 keyword import 向当前模型增加节点 | 新增 2 节点且原网格保持；不是整个 Node Edit 面板封装 |
@@ -43,5 +46,7 @@
 节点、壳单元和部件的正式 Renumber 工具均已在同一可见 4.13.4 GUI 实测：6 节点改为 1000–1005、2 壳改为 2000–2001、部件改为 3000，坐标、连接、部件归属和节点集合同步引用通过核对。数字是合成验收案例。工具读取原生编号映射，不硬编码各版本不同的 keyword kind 编号。仅认证该构建及上述范围；偏移、部分实体、所有关键字引用仍需拓展。
 
 修复了原生导出 `SET_NODE_LIST` 补零被引用检查误认为缺失节点的问题。`0` 占位不计入集合，真正缺失的非零节点仍报错。
+
+选择缓存已跑通“开始录制 → 保存节点选区 → 清空 → 加载 → 停止录制 → 参数化节点 ID → 原生重开基线 → 在同一 GUI 回放 → 核对新选区”的完整流程。录制包含 3 个受管操作；参数从合成节点 1000/1001 改为 1002/1003 后回放正确。原生鼠标操作的通用语义转换仍是独立缺口。
 
 来源：[2026R1 用户指南](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/pdf/Ansys_LS-PrePost_Users_Guide.pdf)、[厂商配置说明](https://lsdyna.ansys.com/wp-content/uploads/2025/02/express-webinar_dynamore-lspp-24072020.pdf)及本机合成 GUI 录制。完整待办仍见 [总清单](REQUESTS_AND_PRIORITIES.md)。

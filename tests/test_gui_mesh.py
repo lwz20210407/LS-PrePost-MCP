@@ -127,3 +127,14 @@ def test_private_native_preferences_preserve_original_and_consent(tmp_path):
     assert (jobs[0] / "native-config/lsppconf").read_bytes() != (
         jobs[1] / "native-config/lsppconf"
     ).read_bytes()
+
+
+def test_partial_normal_reversal_checks_unselected_shells():
+    before = mesh()
+    before["elements"].append(dict(type="shell", id=20, nodes=[1, 2, 3, 4]))
+    after = copy.deepcopy(before)
+    after["elements"][0]["nodes"] = [5, 4, 3, 2]
+    assert verify_reverse(before, after, {10})["reversed_shells"] == 1
+    after["elements"][1]["nodes"] = [1, 4, 3, 2]
+    with pytest.raises(ValueError, match="unselected"):
+        verify_reverse(before, after, {10})
