@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "name": "Visible two-node component displacement difference",
+  "requires_gui_session": true,
+  "defaults": {
+    "component": "z"
+  },
+  "steps": [
+    {
+      "id": "selection",
+      "action": "select_gui_entities",
+      "arguments": {
+        "entity_type": "node",
+        "entity_ids": {
+          "$param": "node_ids"
+        }
+      },
+      "checks": [
+        {
+          "path": [
+            "verification",
+            "selected_count"
+          ],
+          "operator": "eq",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "action": "extract_node_history",
+      "arguments": {
+        "node_ids": {
+          "$result": "selection",
+          "path": [
+            "verification",
+            "selected_ids"
+          ]
+        },
+        "quantity": "displacement",
+        "states": {
+          "$param": "states"
+        },
+        "units": {
+          "$param": "units"
+        },
+        "curve_components": [
+          {
+            "$param": "component"
+          }
+        ],
+        "time_unit": {
+          "$param": "time_unit"
+        }
+      },
+      "checks": [
+        {
+          "path": [
+            "data",
+            "state_restored"
+          ],
+          "operator": "is_true"
+        }
+      ]
+    },
+    {
+      "id": "relative",
+      "action": "combine_history_curves",
+      "arguments": {
+        "paths": [
+          {
+            "$result": "history",
+            "path": [
+              "data",
+              "curves",
+              0,
+              "path"
+            ]
+          },
+          {
+            "$result": "history",
+            "path": [
+              "data",
+              "curves",
+              1,
+              "path"
+            ]
+          }
+        ],
+        "operation": "difference",
+        "units": {
+          "$param": "units"
+        }
+      }
+    }
+  ]
+}

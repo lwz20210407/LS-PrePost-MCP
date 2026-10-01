@@ -1,5 +1,38 @@
 """Typed controls for common menu/right/bottom toolbar operations."""
 
+import time
+from pathlib import Path
+
+from .jobs import atomic_json
+
+
+def wait_for_gui_state(manager, session_id, requested, timeout, native_commands=()):
+    """Observe queued state changes after the embedded callback returns; never replay them."""
+    deadline = time.monotonic() + min(timeout, 10.0)
+    observations = []
+    while True:
+        options = dict(native_commands=native_commands) if native_commands else {}
+        observed = manager.dispatch(session_id, "inspect_model", {}, **options)
+        native_commands = ()
+        observations.append(
+            dict(
+                job_directory=observed.get("job_directory"),
+                current_state=(observed.get("data") or {}).get("current_state"),
+                status=observed["status"],
+            )
+        )
+        if observed["status"] != "succeeded" or observations[-1]["current_state"] == requested:
+            return observed, observations
+        if time.monotonic() >= deadline:
+            observed.update(
+                status="failed",
+                error=dict(
+                    message="Native result state did not settle to the requested state; no automatic replay"
+                ),
+            )
+            return observed, observations
+        time.sleep(0.05)
+
 
 class GuiControls:
     def set_gui_display(
@@ -68,11 +101,47 @@ class GuiControls:
             commands += ["fringe " + str(fringe_code), "pfringe"]
         if center:
             commands.append("ac")
-        p = dict(commands=commands, state=state, capture=capture)
+        p = dict(commands=commands, state=None, capture=capture if state is None else False)
         with manager.lock(session_id):
+            if state is not None:
+                baseline = manager.dispatch(session_id, "inspect_model", {})
+                if baseline["status"] != "succeeded":
+                    return baseline
+                if state > baseline["data"].get("counts", {}).get("states", 0):
+                    raise ValueError("Requested GUI state is outside the loaded result database")
             result = manager.dispatch(
-                session_id, "gui_display", p, artifacts=(("snapshot.png", "png"),) if capture else ()
+                session_id,
+                "gui_display",
+                p,
+                artifacts=(("snapshot.png", "png"),) if p["capture"] else (),
+                native_commands=["anim stop", "state %d" % state] if state is not None else (),
             )
+            if state is not None and result["status"] == "succeeded":
+                initial_request = result["job_directory"]
+                observed, observations = wait_for_gui_state(manager, session_id, state, self.settings.timeout)
+                if observed["status"] != "succeeded":
+                    result = observed
+                elif capture:
+                    result = manager.dispatch(
+                        session_id,
+                        "gui_display",
+                        dict(commands=[], state=None, capture=True),
+                        artifacts=(("snapshot.png", "png"),),
+                    )
+                else:
+                    result["data"]["current_state"] = observed["data"]["current_state"]
+                if result["status"] == "succeeded" and result["data"].get("current_state") != state:
+                    result.update(
+                        status="failed",
+                        error=dict(message="Result state changed before display capture completed"),
+                    )
+                result["state_transition"] = dict(
+                    requested_state=state,
+                    command_job_directory=initial_request,
+                    observations=observations,
+                    verified=result["status"] == "succeeded",
+                )
+                atomic_json(Path(result["job_directory"]) / "operation.json", result)
             arguments = dict(
                 view=view,
                 display_mode=display_mode,

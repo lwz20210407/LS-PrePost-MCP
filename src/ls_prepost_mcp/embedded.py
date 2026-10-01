@@ -187,22 +187,52 @@ def run(request_path, response_path):
             states = [p["state"]] if action == "extract_nodal" else p["states"]
             times = sequence(get("state_times"))
             rows = []
-            for state in states:
-                check_state(state)
-                if state > len(times):
-                    raise ValueError("Missing physical state time")
-                for row in node_rows(p["node_ids"], keys, state):
-                    rows.append([state, float(times[state - 1])] + row)
+            if p.get("preserve_state"):
+                lp.execute_command("anim stop")
+            initial_state = int(get("current_state")) if p.get("preserve_state") else None
+            if initial_state is not None:
+                check_state(initial_state)
+            try:
+                for state in states:
+                    check_state(state)
+                    if state > len(times):
+                        raise ValueError("Missing physical state time")
+                    for row in node_rows(p["node_ids"], keys, state):
+                        rows.append([state, float(times[state - 1])] + row)
+            finally:
+                if initial_state is not None:
+                    lp.switch_state(initial_state)
             if p["quantity"] != "position":
                 for row in rows:
                     row.append(math.sqrt(sum(v * v for v in row[-3:])))
             columns = ["state", "time", "node_id", "x", "y", "z"]
             if p["quantity"] != "position":
                 columns.append("magnitude")
-            with open("nodal.csv", "w", newline="", encoding="utf-8") as f:
+            if any(not math.isfinite(float(v)) for row in rows for v in row):
+                raise ValueError("Nonfinite native nodal result/time")
+            components = p.get("curve_components", [])
+            if components:
+                selected_times = [float(times[state - 1]) for state in states]
+                if len(selected_times) < 2 or any(a >= b for a, b in zip(selected_times, selected_times[1:])):
+                    raise ValueError("Scalar curves require strictly increasing physical time")
+            with open(os.path.join(job_directory, "nodal.csv"), "w", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f)
                 writer.writerow(columns)
                 writer.writerows(rows)
+            curves = []
+            for uid in (p["node_ids"] if components else []):
+                samples = [row for row in rows if row[2] == uid]
+                for component in components:
+                    filename = "node_%d_%s.csv" % (uid, component)
+                    column = columns.index(component)
+                    with open(os.path.join(job_directory, filename), "w", newline="", encoding="utf-8") as f:
+                        writer = csv.writer(f)
+                        writer.writerow(["time", "value"])
+                        writer.writerows([[row[1], row[column]] for row in samples])
+                    curves.append({"node_id": uid, "component": component,
+                                   "quantity": p["quantity"], "units": p["units"],
+                                   "time_unit": p.get("time_unit"), "row_count": len(samples),
+                                   "path": os.path.join(job_directory, filename)})
             data = {
                 "quantity": p["quantity"],
                 "columns": columns,
@@ -211,6 +241,12 @@ def run(request_path, response_path):
                 "units": p["units"],
                 "id_kind": "user",
                 "preview": rows[:20],
+                "field_spec": p.get("field_spec"),
+                "curves": curves,
+                "original_state": initial_state,
+                "state_restore_requested": initial_state is not None,
+                "state_restored": False,
+                "animation_policy": "stopped; not automatically resumed" if initial_state is not None else "unchanged",
             }
         elif action == "create_plate":
             nx, ny = p["nx"], p["ny"]

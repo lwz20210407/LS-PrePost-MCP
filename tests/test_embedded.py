@@ -76,3 +76,57 @@ def test_missing_entities_and_invalid_states_fail(model, ids, state):
     r = invoke(model, "extract_nodal", {"quantity": "displacement", "node_ids": ids, "state": state, "units": "mm"})
     assert not r["ok"]
     assert not (model / "nodal.csv").exists()
+
+
+@pytest.mark.parametrize("fails", [False, True])
+def test_history_restores_state_and_exports_entity_component_curves(model, monkeypatch, fails):
+    original = sys.modules["DataCenter"].get_data
+    current = [2]
+
+    def get_data(key, *args, **kw):
+        if key == "current_state":
+            return current[0]
+        if fails and key == "disp_x":
+            raise RuntimeError("Native result unavailable")
+        return original(key, *args, **kw)
+
+    monkeypatch.setattr(sys.modules["DataCenter"], "get_data", get_data)
+    monkeypatch.setattr(sys.modules["LsPrePost"], "switch_state", lambda state: current.__setitem__(0, state))
+    monkeypatch.setattr(sys.modules["LsPrePost"], "execute_command", lambda command: None, raising=False)
+    response = invoke(model, "node_history", dict(
+        quantity="displacement", node_ids=[7, 91], states=[1, 2], units="mm",
+        curve_components=["x", "magnitude"], time_unit="ms", preserve_state=True,
+    ))
+    assert current == [2]
+    assert response["ok"] is not fails
+    if fails:
+        assert not (model / "nodal.csv").exists()
+    else:
+        assert response["data"]["state_restore_requested"] and not response["data"]["state_restored"]
+        assert len(response["data"]["curves"]) == 4
+        with (model / "node_7_magnitude.csv").open() as stream:
+            samples = list(csv.DictReader(stream))
+        assert [float(row["value"]) for row in samples] == [10, 10]
+        assert [float(row["time"]) for row in samples] == [0, .5]
+
+
+def test_scalar_curves_reject_reversed_physical_time_before_writing(model):
+    response = invoke(model, "node_history", dict(
+        quantity="displacement", node_ids=[7], states=[2, 1], units="mm", curve_components=["x"], time_unit="ms",
+    ))
+    assert not response["ok"] and "physical time" in response["error"]["message"]
+    assert not (model / "nodal.csv").exists()
+
+
+def test_native_cwd_reset_cannot_redirect_nodal_outputs(model, monkeypatch):
+    import os
+
+    foreign = model / "application-reset-directory"
+    foreign.mkdir()
+    monkeypatch.setattr(sys.modules["LsPrePost"], "switch_state", lambda _: os.chdir(foreign))
+    response = invoke(model, "node_history", dict(
+        quantity="displacement", node_ids=[7], states=[1, 2], units="mm", curve_components=["x"], time_unit="ms",
+    ))
+    assert response["ok"]
+    assert (model / "nodal.csv").is_file() and (model / "node_7_x.csv").is_file()
+    assert not list(foreign.iterdir())

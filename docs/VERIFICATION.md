@@ -2,7 +2,7 @@
 
 This is a bounded development acceptance record, not certification of all LS-PrePost features or engineering models.
 
-Latest dated increment: at `795a354` (2026-10-01), 117 local tests passed. Windows 4.13.4 visible GUI evidence now also covers selection/buffers, renumbering, subset normals, native shell quality, Keyword Check, and 13-step raw cfile replay. See [GUI verification](GUI_WORKFLOWS.md) and the [current backlog audit](BACKLOG_REVIEW_2026-10-01.md). Older counts below describe earlier releases, not current coverage.
+Latest dated increment (2026-10-01): 181 local tests passed. Visible 4.13.4 verification adds workflow gates/parameter replay, keyword/d3plot selection, 9 synthetic part-visibility cases, 11 private-result selection cases, and two parameterized three-step selected-node history/relative-displacement runs. Original state, geometry, selection, part flags and source-family hashes were checked, including native position minus reference versus displacement. See [result contracts](RESULT_CONTRACTS.md), [GUI verification](GUI_WORKFLOWS.md) and the [current backlog audit](BACKLOG_REVIEW_2026-10-01.md). Test counts do not measure feature coverage; older counts below describe earlier releases.
 
 ## Initial automated checks (historical)
 

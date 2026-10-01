@@ -591,6 +591,22 @@ class SessionTools:
                 manager.journal(session_id, dict(action=action, parameters=parameters, result=result))
                 return result
             result = manager.dispatch(session_id, **captured)
+            if captured["action"] in ("extract_nodal", "node_history") and result["status"] == "succeeded":
+                from .gui_controls import wait_for_gui_state
+
+                requested = result["data"].get("original_state")
+                if requested is None:
+                    result.update(status="failed", error=dict(message="Nodal state-restoration evidence is missing"))
+                else:
+                    observed, evidence = wait_for_gui_state(
+                        manager, session_id, requested, self.settings.timeout,
+                        native_commands=["anim stop", "state %d" % requested],
+                    )
+                    result["data"]["state_restored"] = observed["status"] == "succeeded"
+                    result["state_restoration"] = dict(requested_state=requested, observations=evidence)
+                    if observed["status"] != "succeeded":
+                        result.update(status="failed", error=observed.get("error"))
+                atomic_json(Path(result["job_directory"]) / "operation.json", result)
             data = manager.read(session_id)
             if action in MUTATIONS:
                 data["dirty"] = True

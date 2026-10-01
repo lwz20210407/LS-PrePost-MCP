@@ -75,7 +75,8 @@
       ],
       "blocked_profiles": [
         "older embedded Python vector ABI"
-      ]
+      ],
+      "scope": "Visible 4.13.4 selected-node history -> scalar component CSVs -> relative displacement, two parameterized runs verified; original state restored/read back, selection/geometry/part visibility retained. FieldSpec included; max 100 curves, explicit units/time labels; not arbitrary gauge/stress or old ABI certification."
     },
     {
       "id": "render.snapshot",

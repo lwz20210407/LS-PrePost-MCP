@@ -47,3 +47,15 @@ keyword 与 d3plot 会话现共用 EntitySelection（真实用户 ID）及原生
 共用选择、空间谓词、布尔集合和缓存保存/加载验证部件显隐不变；没有完整读回标志的旧会话会在发命令前拒绝，需重启受管会话加载新桥接代码。4.13.4 合成双部件的 9 项验收，以及结果副本的 11 项验收通过（后者增加隐藏部件全域选择、活动部件过滤和隐藏节点缓存恢复）。并非所有显示模式均已覆盖。
 
 剩余：完整 ModelRef、GUI 选择到场提取/云图的统一绑定、量纲与列级单位、history 变量字典、坐标转换/平均、有效单元掩码与可见 GUI 后处理适配。
+
+## 选区到原生节点历史与工程曲线（T07/WF-POST）
+
+`extract_node_history` 仍输出原有 nodal.csv，新增可选 `curve_components=["x","y","z","magnitude"]`（按需选取）和显式 `time_unit`。每个节点/分量另存标准 `time,value` 曲线，返回 `data.curves`，可直接绑定给 `combine_history_curves`。最多 100 条标量曲线；至少两个递增状态且物理时间严格递增；位置的 magnitude 被拒绝，不能冒充位移。
+
+节点向量也携带 FieldSpec、用户 ID/状态和原生分量来源；单位仍是调用者标签，未推断量纲。GUI 工作流中的 `extract_node_history` 自动走同一会话，并非额外后台 LSPP。先停止动画，提取后通过原生命令恢复原时刻并单独读回确认；不自动重新播放动画。独立批处理仅报告恢复请求，不能冒充已验证的 GUI 恢复。
+
+可复用三步模板见 [visible_gui_relative_displacement.json](../examples/workflows/visible_gui_relative_displacement.json)：选择 → 节点历史 → 第一个选中节点减第二个选中节点。选择 ID 以升序返回，差值正方向因此明确按升序 ID 定义；它不是任意轴投影、随动参考系或自动应变计。必须提供恰好两个节点、状态列表、结果单位和共同时间单位。
+
+`tools/run_gui_post_workflow_acceptance.py` 在代表性私有结果副本上连续执行两个分量版本，各三步；曲线逐点相减、原生位置减参考坐标与原生位移的恒等关系、时刻/选区/几何/显隐保持、原文件族哈希和零 keyword 导出均核对通过。测试使用未知模型单位标签，不据此认证实际单位或材料响应。
+
+实测发现 Python 回调内的 `switch_state` 不能作为 GUI 显示完成证据，且状态读取会改变工作目录。GUI 状态切换改用外部命令流的绝对 `state N` 并读回确认；曲线使用任务绝对路径。旧版 Python 向量 ABI 仍被阻止，未因本批 4.13.4 通过而放开。

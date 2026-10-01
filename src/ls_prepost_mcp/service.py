@@ -6,6 +6,8 @@ import re
 import subprocess
 from pathlib import Path
 
+from pydantic import StrictInt
+
 from .config import Settings, command_path
 from .engineering import EngineeringTools
 from .gui_controls import GuiControls
@@ -222,25 +224,57 @@ class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools
         """Save a standalone keyword model into a new owned job. Include-bearing export is rejected."""
         return self._native("export_keyword", {}, model, artifacts=(("model.k", "keyword"),), export=True)
 
-    def extract_nodal_results(self, d3plot: str, node_ids: list[int], quantity: str, state: int, units: str) -> dict:
+    def extract_nodal_results(self, d3plot: str, node_ids: list[StrictInt], quantity: str, state: StrictInt, units: str) -> dict:
         """Extract native position/displacement/velocity at a 1-based state. Older unverified vector ABIs are blocked; use explicit reader tools."""
         return self._nodal("extract_nodal", d3plot, node_ids, quantity, [state], units)
 
-    def extract_node_history(self, d3plot: str, node_ids: list[int], quantity: str,
-                             states: list[int], units: str) -> dict:
-        """Export native vectors for true user node IDs and explicit 1-based states; tested on the 4.13 profile."""
-        return self._nodal("node_history", d3plot, node_ids, quantity, states, units)
+    def extract_node_history(self, d3plot: str, node_ids: list[StrictInt], quantity: str,
+                             states: list[StrictInt], units: str,
+                             curve_components: list[str] | None = None, time_unit: str | None = None) -> dict:
+        """Export native vectors by user ID/state, restoring the original GUI state. Optional x/y/z/magnitude scalar time,value curves feed engineering tools (100 curves maximum); requires explicit shared time_unit and increasing states. Tested on the 4.13 profile."""
+        return self._nodal("node_history", d3plot, node_ids, quantity, states, units, curve_components, time_unit)
 
-    def _nodal(self, action, d3plot, node_ids, quantity, states, units):
+    def _nodal(self, action, d3plot, node_ids, quantity, states, units, curve_components=None, time_unit=None):
+        from .field_contracts import FieldSpec, ResultSelection, SamplingSpec
+
+        selection = ResultSelection("node", node_ids, states)
+        node_ids, states = list(selection.entity_ids), list(selection.states)
         if not node_ids or not states or len(node_ids) > 10000 or len(node_ids)*len(states) > 100000:
             raise ValueError("Requested node/state matrix is empty or exceeds 100000 rows")
         if len(set(node_ids)) != len(node_ids) or len(set(states)) != len(states):
             raise ValueError("Duplicate node IDs or states")
         if quantity not in ("position", "displacement", "velocity"):
             raise ValueError("Unsupported nodal quantity")
+        if curve_components is not None and (
+            not isinstance(curve_components, list) or not curve_components
+            or any(not isinstance(c, str) or c not in ("x", "y", "z", "magnitude") for c in curve_components)
+            or len(set(curve_components)) != len(curve_components)
+        ):
+            raise ValueError("curve_components requires unique x/y/z/magnitude names")
+        components = list(curve_components or [])
+        if components:
+            if len(node_ids) * len(components) > 100:
+                raise ValueError("Scalar curve export is bounded to 100 curves")
+            if len(states) < 2 or states != sorted(states):
+                raise ValueError("Scalar curves require at least two increasing states")
+            if quantity == "position" and "magnitude" in components:
+                raise ValueError("Position magnitude is not a displacement")
+            unit_label(time_unit)
+        field_spec = FieldSpec(
+            "lsprepost", tuple(quantity + "_" + axis for axis in ("x", "y", "z")), unit_label(units),
+            selection, SamplingSpec.native("node", "mid"),
+            "native DataCenter vector components; no additional coordinate transform",
+            "native nodal values; no additional averaging",
+            "requested registered nodes; no explicit alive/deletion mask",
+        ).describe()
         p = {"node_ids": [integer(i, "node_id") for i in node_ids], "quantity": quantity,
-             "states": [integer(i, "state") for i in states], "state": states[0], "units": unit_label(units)}
-        return self._native(action, p, d3plot, "d3plot", artifacts=(("nodal.csv", "csv"),))
+             "states": [integer(i, "state") for i in states], "state": states[0], "units": unit_label(units),
+             "curve_components": components, "time_unit": time_unit, "field_spec": field_spec,
+             "preserve_state": True}
+        artifacts = [("nodal.csv", "csv")] + [
+            ("node_%d_%s.csv" % (uid, component), "csv") for uid in node_ids for component in components
+        ]
+        return self._native(action, p, d3plot, "d3plot", artifacts=tuple(artifacts))
 
     def render_snapshot(self, model: str, file_type: str = "keyword", view: str = "isometric",
                         state: int | None = None, fringe_code: int | None = None) -> dict:

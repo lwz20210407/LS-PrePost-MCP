@@ -31,5 +31,9 @@ def test_stdio_discovery_reference_and_rejection(tmp_path):
                     "states": [1], "fields": ["stress_x"], "integration_point": "mid", "units": "MPa"})
                 assert invalid_ids.isError
                 assert "integer" in str(invalid_ids.content).lower()
+                invalid_nodal = await session.call_tool("extract_node_history", {
+                    "d3plot": "missing-result", "node_ids": [1], "quantity": "displacement",
+                    "states": [True, 2], "units": "mm"})
+                assert invalid_nodal.isError and "integer" in str(invalid_nodal.content).lower()
                 assert not (tmp_path / "jobs").exists()
     asyncio.run(scenario())

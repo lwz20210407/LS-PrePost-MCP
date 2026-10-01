@@ -2,6 +2,10 @@
 
 ## 0.4.0 (development)
 
+- Connect visible native node selection, component-history export and relative-displacement processing through a reusable three-step workflow; validate two component runs and native position/reference/displacement identity on one private result copy.
+- Add explicit per-node/component scalar curves, bounded output counts and strict physical-time ordering. Preserve nodal FieldSpec and strict integer IDs/states. Restore and confirm GUI state through native command flow; keep animation stopped.
+- Fix state-switch completion checks and application-reset working directories: history files always use owned absolute output paths.
+
 - Unify keyword/d3plot GUI entity selection with shared user-ID contracts and verified reference/state scope. Use native bulk part selection to avoid thousands of individual node commands; retain exact ID readback.
 - Preserve part visibility across selections; add all/active-parts scopes with explicit shared/orphan node and inversion semantics. Verify 9 synthetic keyword cases and 11 representative private result cases in visible 4.13.4; no alive/deletion, deformed-coordinate or full menu coverage is implied.
 - Separate selection/inspection from mesh-edit checkpoints, avoiding unnecessary keyword exports while preserving dirty state and the saved recovery checkpoint.
