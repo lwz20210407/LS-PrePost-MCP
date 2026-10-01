@@ -2,6 +2,8 @@
 
 ## 0.4.0 (development)
 
+- Add bounded absolute global node-coordinate/axis alignment through native grouped translations. Preserve untouched nodes/topology and part flags; report affected elements and checkpoints. Verify native quality gating, coordinate-parameter recording/replay, save/reopen and explicit recovery on a synthetic visible 4.13.4 mesh.
+
 - Preserve explicit result/artifact dependencies through managed recording and include engineering/file steps of the recorded workflow. Changed selectors now drive new extraction IDs and new curve artifacts; unresolved dependencies and failed argument resolution require review. Verify changed-node replay in visible 4.13.4.
 
 - Route native field/stress actions through the current visible GUI when used in a GUI workflow. Share SCL generation, ID/state matrix validation and Mises/tensor parsing with the batch backend; verify original state, selection, topology and part visibility without reopening or starting another LSPP.

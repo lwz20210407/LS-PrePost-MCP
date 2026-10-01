@@ -376,7 +376,8 @@
         "rotate_gui_nodes",
         "create_gui_nodes",
         "create_gui_elements",
-        "measure_parts"
+        "measure_parts",
+        "set_gui_node_coordinates"
       ],
       "status": "partial",
       "contract_doc": "docs/ARCHITECTURE.md"
@@ -993,7 +994,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "OperationOutcome subtask complete. ResultSelection/SamplingSpec/FieldSpec integrated into native SCL and LASSO field/stress exports. ModelRef, GUI unified selection and dimensional-unit contracts remain.",
+      "progress": "OperationOutcome complete within mapped scope. Shared EntitySelection and ResultSelection/SamplingSpec/FieldSpec used by GUI selection, native SCL, native nodal and LASSO exports. Full ModelRef and dimensional-unit contracts remain.",
       "evidence": "docs/WORKFLOW_GATES.md"
     },
     {
@@ -1069,7 +1070,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Shared EntitySelection, keyword/d3plot selection, native bulk part selection and part-visibility preservation implemented. All/active-parts scope and inversion verified: 9 synthetic keyword and 11 representative result cases. Alive/deleted masks, deformed coordinates, per-element visibility and field binding remain."
+      "progress": "Shared EntitySelection, keyword/d3plot selection, native bulk part selection and part-visibility preservation verified. Selected IDs drive native node histories/SCL stress fields and dependency-preserving replay. Alive/deleted masks, deformed coordinates, per-element visibility and wider fringe/field bindings remain."
     },
     {
       "id": "T05",
@@ -1097,8 +1098,9 @@
         "故意退化/错引用的门槛和回退",
         "保存/重开验收"
       ],
-      "status": "planned",
-      "milestone": "R1"
+      "status": "in_progress",
+      "milestone": "R1",
+      "progress": "Bounded absolute node coordinates/axis alignment, full XYZ/multiple translation groups and part-flag preservation passed visible 4.13.4. Edit -> native quality -> save/reopen, parameter recording/replay and failed-quality checkpoint recovery verified. Broader Node/Element editing remains."
     },
     {
       "id": "T06",

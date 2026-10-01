@@ -31,6 +31,7 @@ GUI_ACTIONS = {
     "merge_gui_duplicate_nodes",
     "reverse_gui_shell_normals",
     "translate_gui_nodes",
+    "set_gui_node_coordinates",
     "rotate_gui_nodes",
     "create_gui_nodes",
     "create_gui_elements",

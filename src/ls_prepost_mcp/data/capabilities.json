@@ -1319,6 +1319,18 @@
         "4.13.4 Windows visible GUI"
       ],
       "scope": "Selection/inspection avoid keyword checkpoint exports and preserve prior dirty/checkpoint state. Edit checkpoints retained. Native selection/buffers and full gate replay verified; full snapshots and 20000 bound remain."
+    },
+    {
+      "id": "gui_mesh.set_gui_node_coordinates",
+      "tool": "set_gui_node_coordinates",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "scope": "1..100 existing keyword nodes, absolute global XYZ with null axes preserved; native grouped translations, explicit tolerance, all-coordinate/topology and part-flag checks. Quality pass/failure, recording/parameter replay, checkpoint reopen/recovery, full XYZ and hidden-part/multiple-group cases verified. No CAD projection, load/material-axis updates or full Node Editing panel.",
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ]
     }
   ],
   "native_reference_builds": [

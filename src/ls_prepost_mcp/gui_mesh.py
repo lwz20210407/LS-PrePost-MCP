@@ -5,6 +5,7 @@ import math
 from pathlib import Path
 
 import numpy as np
+from pydantic import StrictFloat
 
 from .config import command_path
 from .jobs import atomic_json, check_artifact
@@ -164,6 +165,14 @@ def verify_transform(before, after, selected, transform):
 
 
 class GuiMeshTools:
+    def set_gui_node_coordinates(
+        self, session_id: str, nodes: list[dict], units: str, tolerance: StrictFloat = 1e-6
+    ) -> dict:
+        """Set absolute global coordinates of 1..100 existing nodes through native translations. Each row has id and coordinates=[x,y,z]; null preserves that axis. Verifies every node/topology and part visibility, with edit checkpoints. Does not project to CAD or move load/material axes; follow with quality checks."""
+        from .gui_node_edit import set_coordinates
+
+        return set_coordinates(self, session_id, nodes, units, tolerance)
+
     def _visible_mesh_session(self, session_id, manager, allow_results=False):
         meta = manager.read(session_id)
         kinds = ("keyword", "d3plot") if allow_results else ("keyword",)
