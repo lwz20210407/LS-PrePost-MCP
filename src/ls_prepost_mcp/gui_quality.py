@@ -2,8 +2,11 @@
 
 import math
 import re
+from pathlib import Path
 
+from .config import command_path
 from .gui_mesh import check_same_nodes, check_same_parts, mesh_index, shell_cycle
+from .jobs import check_artifact
 from .windows_transport import WindowsCommandTransport
 
 # Recorded on Windows 4.13.4. Commands are semantic; controls are validated by caption.
@@ -22,6 +25,53 @@ SHELL_CHECKS = {
     "characteristic_length": (10719, "Char. length", "charlength", "length"),
     "area": (10721, "Area", "area", "length_squared"),
 }
+
+
+def parse_keyword_report(text):
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if not lines or lines[0].lower() != "*model check result" or lines[-1].lower() != "*endcheckinfo":
+        raise ValueError("Native keyword report is missing its complete envelope")
+    totals = {}
+    categories = []
+    details = []
+    for line in lines[1:-1]:
+        total = re.fullmatch(r"total (warning|error|unref|undefine)\s+(\d+)", line, re.I)
+        if total:
+            key = total[1].lower()
+            if key in totals:
+                raise ValueError("Duplicate native keyword summary")
+            totals[key] = int(total[2])
+            continue
+        row = re.fullmatch(
+            r"\*(\S+)\s+\((\d+)\)\s+Warning\((\d+)\)\s+Error\((\d+)\)\s+Unreferenced\((\d+)\)\s+Undefine\((\d+)\)",
+            line,
+            re.I,
+        )
+        if row:
+            categories.append(
+                dict(
+                    keyword=row[1],
+                    count=int(row[2]),
+                    warning=int(row[3]),
+                    error=int(row[4]),
+                    unref=int(row[5]),
+                    undefine=int(row[6]),
+                )
+            )
+        else:
+            details.append(line)
+    if set(totals) != {"warning", "error", "unref", "undefine"}:
+        raise ValueError("Native keyword report is missing summary counts")
+    return dict(
+        totals=totals,
+        categories=categories,
+        details=details,
+        has_findings=any(totals.values()),
+        passed_checks=not any(totals.values()),
+        contacts_checked=False,
+        solver_validated=False,
+        scope="Native Keyword Check only. Unreferenced data is reported, not automatically deleted. This is not solver/physical validation.",
+    )
 
 
 def native_metric_row(rows, name, threshold):
@@ -65,6 +115,40 @@ def native_metric_row(rows, name, threshold):
 
 
 class GuiQualityTools:
+    def check_gui_keywords(self, session_id: str) -> dict:
+        """Run actual native Keyword Check with contact checking excluded, export and parse its completed report, and verify mesh unchanged. Reports warnings/errors/unreferenced/undefined separately; never auto-clean."""
+        context = {}
+
+        def commands(state, directory):
+            manager = self._session_manager()
+            meta = manager.read(session_id)
+            if not meta["process_alive"]:
+                raise RuntimeError("Owned native process exited")
+            transport = WindowsCommandTransport(meta["process"]["pid"])
+            transport.open_menu_item(["Application", "Model Checking", "General Checking"])
+            transport._select_panel_tab("Model Checking", 13339, 1)
+            transport._set_panel_checked("Model Checking", 11377, True, "Do not Check Contact")
+            context["path"] = directory / "native-keyword-check.txt"
+            return ["modelcheck checkgeneral", "modelcheck writetofile " + command_path(context["path"])]
+
+        def verify(before, after):
+            nodes, elements = mesh_index(before)
+            new_nodes, new_elements = mesh_index(after)
+            check_same_nodes(nodes, new_nodes)
+            check_same_parts(before, after)
+            if elements != new_elements:
+                raise ValueError("Native Keyword Check unexpectedly changed connectivity")
+            artifact = check_artifact(context["path"], "text")
+            report = parse_keyword_report(Path(context["path"]).read_text(encoding="utf8", errors="replace"))
+            return dict(
+                backend="lsprepost-native-keyword-check",
+                geometry_unchanged=True,
+                native_report=artifact,
+                **report,
+            )
+
+        return self._gui_mesh_edit(session_id, "check_gui_keywords", {}, commands, verify)
+
     def inspect_gui_menu(
         self, session_id: str, path_prefix: list[str] | None = None, max_depth: int = 2
     ) -> dict:
@@ -124,6 +208,7 @@ class GuiQualityTools:
                 raise RuntimeError("Owned native process exited")
             transport = WindowsCommandTransport(meta["process"]["pid"])
             transport.open_menu_item(["Application", "Model Checking", "General Checking"])
+            transport._select_panel_tab("Model Checking", 13339, 0)
             for name, limit in limits.items():
                 count = (
                     counts[3] if "triangle" in name else counts[4] if "quad" in name else sum(counts.values())
@@ -145,7 +230,13 @@ class GuiQualityTools:
                 report = native_metric_row(transport.inspect_controls(), name, limit)
                 if report["violated_count"] > count:
                     raise ValueError("Native failed-element count exceeds applicable shell count")
-                reports[name] = dict(status="checked", **report)
+                reports[name] = dict(
+                    status="checked",
+                    applicable_shell_count=count,
+                    total_shell_count=sum(counts.values()),
+                    percent_basis="Native displayed percent; not re-normalized to topology subset",
+                    **report,
+                )
             return []
 
         def verify(before, after):

@@ -1143,6 +1143,18 @@
       "scope": "Exited process checkpoint recovery; no uncertain operation replay"
     },
     {
+      "id": "gui_selection.check_gui_keywords",
+      "tool": "check_gui_keywords",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Actual native Keyword Check with contact excluded; complete report parsing, unchanged mesh, valid and missing-material/section synthetic cases verified; not solver validation"
+    },
+    {
       "id": "gui_selection.check_gui_shell_quality",
       "tool": "check_gui_shell_quality",
       "status": "native_tested",

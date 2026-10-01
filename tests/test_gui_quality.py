@@ -64,3 +64,22 @@ def test_quality_threshold_preflight_and_menu_filter_input(tmp_path):
             service.check_gui_shell_quality("no-session-needed", thresholds, "mm")
     with pytest.raises(ValueError, match="max_depth"):
         service.inspect_gui_menu("no-session-needed", max_depth=True)
+
+
+def test_keyword_report_separates_findings_without_claiming_solver_validation():
+    from ls_prepost_mcp.gui_quality import parse_keyword_report
+
+    source = "*Model Check Result\ntotal warning 4\ntotal error 1\ntotal unref 0\ntotal undefine 2\n*PART (1) Warning(0) Error(1) Unreferenced(0) Undefine(0)\n*PART\nMissing material\n*endcheckinfo\n"
+    report = parse_keyword_report(source)
+    assert report["totals"] == dict(warning=4, error=1, unref=0, undefine=2)
+    assert report["categories"][0]["keyword"] == "PART"
+    assert report["has_findings"] and not report["passed_checks"]
+    assert not report["solver_validated"] and not report["contacts_checked"]
+    assert "Missing material" in report["details"]
+    for broken in [
+        source.replace("*endcheckinfo", ""),
+        source.replace("total undefine 2\n", ""),
+        source.replace("total error 1", "total error 1\ntotal error 0"),
+    ]:
+        with pytest.raises(ValueError):
+            parse_keyword_report(broken)

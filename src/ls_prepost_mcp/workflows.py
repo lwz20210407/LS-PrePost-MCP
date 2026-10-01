@@ -9,6 +9,7 @@ from .jobs import atomic_json, check_artifact, now
 from .sessions import NATIVE_ACTIONS
 
 GUI_ACTIONS = {
+    "check_gui_keywords",
     "inspect_gui_menu",
     "check_gui_shell_quality",
     "combine_gui_selections",

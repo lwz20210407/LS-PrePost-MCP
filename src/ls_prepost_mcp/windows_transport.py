@@ -229,12 +229,12 @@ class WindowsCommandTransport:
             raise RuntimeError("Native menu operation timed out; inspect before retrying")
         return matches[0]
 
-    def _panel_control(self, title, control_id, caption=None, class_name=None):
-        if not self.window_state()["enabled"]:
+    def _panel_control(self, title, control_id, caption=None, class_name=None, allow_modal=False):
+        if not allow_modal and not self.window_state()["enabled"]:
             raise RuntimeError("Owned GUI is blocked by a modal dialog")
         rows = self.inspect_controls()
         dialogs = [r for r in rows if r["text"] == title and r["class_name"] == "#32770" and r["visible"]]
-        if len(dialogs) != 1:
+        if len(dialogs) != 1 or not dialogs[0]["enabled"]:
             raise RuntimeError("Expected exactly one owned native panel: " + title)
         parents = {r["hwnd"]: r["parent"] for r in rows}
 
@@ -274,9 +274,9 @@ class WindowsCommandTransport:
         if not self.u.SendMessageTimeoutW(hwnd, 0x00F5, 0, 0, 0x0002, 3000, self.ctypes.byref(result)):
             raise RuntimeError("Native button action timed out")
 
-    def _set_panel_text(self, title, control_id, text):
+    def _set_panel_text(self, title, control_id, text, allow_modal=False):
         self.require_interactive_desktop()
-        hwnd = self._panel_control(title, control_id, class_name="Edit")
+        hwnd = self._panel_control(title, control_id, class_name="Edit", allow_modal=allow_modal)
         cls = self.ctypes.create_unicode_buffer(256)
         self.u.GetClassNameW(hwnd, cls, len(cls))
         if "Edit" not in cls.value or any(c in text for c in "\r\n\x00"):
@@ -286,6 +286,35 @@ class WindowsCommandTransport:
         pointer = self.ctypes.cast(buffer, self.ctypes.c_void_p).value
         if not self.u.SendMessageTimeoutW(hwnd, 0x000C, 0, pointer, 0x0002, 2000, self.ctypes.byref(result)):
             raise RuntimeError("Native value update timed out")
+
+    def _save_model_check_report(self, path):
+        """Complete only the observed owned Model Check info file dialog to a new path."""
+        from pathlib import Path
+
+        target = Path(path)
+        if not target.is_absolute() or not target.parent.is_dir() or target.exists():
+            raise ValueError("Report requires a fresh absolute file in an existing directory")
+        title = "Model Check info file"
+        self._set_panel_text(title, 1001, str(target), allow_modal=True)
+        field = self._panel_control(title, 1001, class_name="Edit", allow_modal=True)
+        if self._read_control_text(field) != str(target):
+            raise RuntimeError("Report filename readback mismatch")
+        button = self._panel_control(title, 1, class_name="Button", allow_modal=True)
+        if not self.u.PostMessageW(button, 0x00F5, 0, 0):
+            raise RuntimeError("Could not submit the owned report save dialog")
+
+    def _read_control_text(self, hwnd):
+        """WM_GETTEXT is needed for live Edit contents in another process."""
+        if self._pid(hwnd) != self.pid:
+            raise ValueError("Control is not owned by this native process")
+        buffer = self.ctypes.create_unicode_buffer(8192)
+        result = self.ctypes.c_size_t()
+        pointer = self.ctypes.cast(buffer, self.ctypes.c_void_p).value
+        if not self.u.SendMessageTimeoutW(
+            hwnd, 0x000D, len(buffer), pointer, 0x0002, 2000, self.ctypes.byref(result)
+        ):
+            raise RuntimeError("Native control text read timed out")
+        return buffer.value
 
     def _enter_panel_field(self, title, control_id):
         self.require_interactive_desktop()
@@ -303,6 +332,21 @@ class WindowsCommandTransport:
             raise RuntimeError("Native option state is indeterminate")
         if bool(result.value) != checked:
             self._click_panel_control(title, control_id, caption)
+
+    def _select_panel_tab(self, title, control_id, index):
+        """Select an observed native tab using focus notification, then verify its index."""
+        self.require_interactive_desktop()
+        if type(index) is not int or not 0 <= index < 10:
+            raise ValueError("Tab index must be 0..9")
+        hwnd = self._panel_control(title, control_id, class_name="_wx_SysTabCtl32")
+        result = self.ctypes.c_size_t()
+        if not self.u.SendMessageTimeoutW(hwnd, 0x1330, index, 0, 0x0002, 10000, self.ctypes.byref(result)):
+            raise RuntimeError("Native tab selection timed out")
+        if (
+            not self.u.SendMessageTimeoutW(hwnd, 0x130B, 0, 0, 0x0002, 2000, self.ctypes.byref(result))
+            or result.value != index
+        ):
+            raise RuntimeError("Native tab selection was not applied")
 
     def _pid(self, hwnd):
         value = self.w.DWORD()

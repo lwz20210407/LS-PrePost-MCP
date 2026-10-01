@@ -22,6 +22,7 @@
 | `inspect_gui_mesh_quality` | 读取当前 GUI 内存网格，计算面积/边长比/翘曲/体积/Jacobian 等 | 原生读取 + 几何数学，不冒充原生 Model Checking；可设 `fail_on_issues=true` |
 | `check_gui_shell_quality` | 真正调用 Model Checking 的壳 Element Quality，13 类可选指标和显式阈值 | 4.13.4 四边壳与三角壳已验；原生最小/最大/违规数量读回，保留 GUI 显示精度。不覆盖全部 Keyword/Contact Check |
 | `inspect_gui_menu` | 按路径/深度读取当前构建菜单、真实命令 ID 与启用状态 | 4.13.4 读取 448 条树记录；包含分组导航，不能等同 448 项功能完成 |
+| `check_gui_keywords` | 原生 Keyword Check、明确排除 Contact Check、原生报告导出与分项解析 | 正常模型/缺材料截面反例均已验；警告、错误、未引用、未定义分开；不自动 Model Clean |
 | `restart_gui_session` | 已退出进程恢复到新可见会话，使用检查点或已暂存输入 | 不关闭仍存活的窗口，不重放不确定操作；未保存手工修改不会凭空恢复 |
 | `show_gui_session` | 最大化及可选临时置顶 | 不解锁桌面；置顶应只用于需要观察的测试步骤，避免长期挡住其他窗口 |
 
@@ -57,6 +58,10 @@
 
 矩形壳的原生长宽比为 2，上限 10 时通过，上限 1.5 时 2 个壳违规（100%）。另外用原生导入新增独立三角壳，最小/最大角 45°/90°，最小角阈值 60° 时正确报出 1 个违规壳。所有检查后核对网格未改变。数值为合成案例；未公开用户仿真数据。
 
-`status=succeeded` 表示检查成功执行，模型是否满足指定阈值看 `verification.passed_checks`；全部指标不适用时为 `null`。这些阈值是用户输入，不代表求解质量标准。原生 Jacobian 的定义/显示值与几何数学后端不同，两个后端必须分别标注。尚不输出所有失败单元 ID，也不将违规数相加冒充独立失败单元总数。Keyword/Contact Check、自动修复、实体/梁质量及旧版本继续开发。
+`status=succeeded` 表示检查成功执行，模型是否满足指定阈值看 `verification.passed_checks`；全部指标不适用时为 `null`。这些阈值是用户输入，不代表求解质量标准。原生 Jacobian 的定义/显示值与几何数学后端不同，两个后端必须分别标注。百分比保留原生口径：混合模型的三角壳角度违规 1 个时，原生显示占全部 3 壳的 33.3%，并非占三角壳的比例。工具同时返回对应拓扑数量与全部壳数量。
+
+Keyword Check 现已独立接入：报告必须包含原生头尾标记和完整四项汇总，保留分组及原始明细，并核对检查前后网格。正常合成模型有 1 个未引用集合；故意缺材料/截面的反例报 4 warning、1 error、2 undefine，工具正确保留这些发现，不清理/删除它们。该工具和 PyDYNA 的限定引用检查是不同后端。原生 Keyword Check 也不能证明求解模型物理正确。
+
+待补仍包括所有质量失败单元 ID、Contact Check、自动修复、实体/梁质量及旧版本；不能把违规数相加冒充独立失败单元总数。
 
 来源：[2026R1 用户指南](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/pdf/Ansys_LS-PrePost_Users_Guide.pdf)、[厂商配置说明](https://lsdyna.ansys.com/wp-content/uploads/2025/02/express-webinar_dynamore-lspp-24072020.pdf)及本机合成 GUI 录制。完整待办仍见 [总清单](REQUESTS_AND_PRIORITIES.md)。
