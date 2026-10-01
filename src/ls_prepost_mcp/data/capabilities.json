@@ -954,11 +954,14 @@
     {
       "id": "automation.import_command_recording",
       "tool": "import_command_recording",
-      "status": "implemented",
+      "status": "native_tested",
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+      "scope": "13-step raw cfile to typed selection/buffer/translation/normals/shell-quality replay verified; explicit model-index mapping required; unknown commands still block",
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ]
     },
     {
       "id": "programs.prepare_native_program",

@@ -140,19 +140,19 @@ def set_parameter_binding(document, path, name):
 
 
 class WorkflowTools:
-    def import_command_recording(self, path: str, units: str) -> dict:
-        """Compile recognized recorded cfile operations into a typed GUI recipe; unknown/script/system commands block replay and are listed for review."""
+    def import_command_recording(self, path: str, units: str, recorded_model_index: int | None = None) -> dict:
+        """Compile recognized cfile operations into a typed GUI recipe. Model-qualified IDs require an explicit recorded model index mapped to the current model; mismatches/unknown/scripts block replay. Does not support multi-model recordings."""
         from .recording_compiler import compile_commands
 
         source = self.settings.input_path(path)
-        compiled = compile_commands(source.read_text(encoding="utf-8-sig", errors="replace"), units)
+        compiled = compile_commands(source.read_text(encoding="utf-8-sig", errors="replace"), units, recorded_model_index)
         for step in compiled["steps"]:
             if step["action"] == "open_model":
                 step["arguments"]["path"] = str(
                     self.settings.input_path(step["arguments"]["path"], base=source.parent)
                 )
         directory, manifest = self.jobs.create(
-            "import_command_recording", dict(source=str(source), units=units)
+            "import_command_recording", dict(source=str(source), units=units, recorded_model_index=recorded_model_index)
         )
         atomic_json(directory / "workflow.json", compiled)
         manifest.update(
