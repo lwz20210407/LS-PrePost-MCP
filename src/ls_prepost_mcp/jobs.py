@@ -3,6 +3,7 @@ import hashlib
 import json
 import math
 import re
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -13,9 +14,24 @@ def now() -> str:
 
 
 def atomic_json(path: Path, value) -> None:
-    tmp = path.with_suffix(path.suffix + ".tmp")
-    tmp.write_text(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False), encoding="utf-8")
-    tmp.replace(path)
+    text = json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False)
+    tmp = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
+    with tmp.open("x", encoding="utf-8") as stream:
+        stream.write(text)
+    try:
+        for attempt in range(6):
+            try:
+                tmp.replace(path)
+                return
+            except PermissionError as exc:
+                # Readers/indexers can briefly deny replacement on Windows.
+                # Never retry syntax, missing-path or unrelated I/O failures.
+                if getattr(exc, "winerror", None) not in (5, 32, 33) or attempt == 5:
+                    raise
+                time.sleep(0.02 * (2 ** attempt))
+    finally:
+        if tmp.exists():
+            tmp.unlink()
 
 
 def fingerprint(path: Path) -> dict:

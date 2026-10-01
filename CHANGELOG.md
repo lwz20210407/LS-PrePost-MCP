@@ -1,5 +1,19 @@
 # Changes
 
+## 0.4.0 (development)
+
+- Add same-session visible GUI mesh editing, duplicate-node merge, all/subset shell normal reversal, native entity selection, boolean selection, geometric predicates and native selection buffers.
+- Add node/shell/part renumbering through the native dialog with mapping-log verification and scoped reference checks; handle zero padding in native node-list sets.
+- Verify selection recording, parameter binding and replay against the same visible application.
+- Add actual native shell Model Checking (13 selectable criteria, explicit thresholds and native statistics) and version-specific menu discovery. These do not imply full menu/solver coverage.
+- Preserve existing user preferences in isolated GUI session configuration and recover exited sessions from checkpoints. Retry transient Windows manifest replacement failures without replacing the original early.
+
+## 0.3.0
+
+- Add trusted native command, cfile, SCL, embedded Python and macro preparation/execution with output contracts.
+- Add persistent GUI sessions, checkpoints, recording/workflow templates, installation filter/template discovery and engineering curve/energy workflows.
+- Track remaining preprocessing, postprocessing, menu and language-interface gaps explicitly. Native evidence is scoped by build and workflow.
+
 ## 0.2.0
 
 - Add native solid-box meshing, planar shell extrusion, selected-node translation and element part reassignment with explicit output checks.

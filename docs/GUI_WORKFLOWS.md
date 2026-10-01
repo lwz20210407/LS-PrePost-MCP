@@ -20,6 +20,8 @@
 | `create_gui_nodes` | 通过原生 keyword import 向当前模型增加节点 | 新增 2 节点且原网格保持；不是整个 Node Edit 面板封装 |
 | `create_gui_elements` | 向已有部件原生导入三角/四边壳或 hex8 | 四边壳已验证；三角/hex8 实现但需补实测。核对目标部件、连接和原网格保持 |
 | `inspect_gui_mesh_quality` | 读取当前 GUI 内存网格，计算面积/边长比/翘曲/体积/Jacobian 等 | 原生读取 + 几何数学，不冒充原生 Model Checking；可设 `fail_on_issues=true` |
+| `check_gui_shell_quality` | 真正调用 Model Checking 的壳 Element Quality，13 类可选指标和显式阈值 | 4.13.4 四边壳与三角壳已验；原生最小/最大/违规数量读回，保留 GUI 显示精度。不覆盖全部 Keyword/Contact Check |
+| `inspect_gui_menu` | 按路径/深度读取当前构建菜单、真实命令 ID 与启用状态 | 4.13.4 读取 448 条树记录；包含分组导航，不能等同 448 项功能完成 |
 | `restart_gui_session` | 已退出进程恢复到新可见会话，使用检查点或已暂存输入 | 不关闭仍存活的窗口，不重放不确定操作；未保存手工修改不会凭空恢复 |
 | `show_gui_session` | 最大化及可选临时置顶 | 不解锁桌面；置顶应只用于需要观察的测试步骤，避免长期挡住其他窗口 |
 
@@ -48,5 +50,13 @@
 修复了原生导出 `SET_NODE_LIST` 补零被引用检查误认为缺失节点的问题。`0` 占位不计入集合，真正缺失的非零节点仍报错。
 
 选择缓存已跑通“开始录制 → 保存节点选区 → 清空 → 加载 → 停止录制 → 参数化节点 ID → 原生重开基线 → 在同一 GUI 回放 → 核对新选区”的完整流程。录制包含 3 个受管操作；参数从合成节点 1000/1001 改为 1002/1003 后回放正确。原生鼠标操作的通用语义转换仍是独立缺口。
+
+## 原生 Model Checking 的新验收
+
+路径是 `Application → Model Checking → General Checking`。右侧 Model 的 `RefCheck` 是另一个引用/连接关系面板，不能代替它。新的壳质量工具逐项执行并读取原生统计：最短/最长边、长宽比、翘曲、四边壳最小/最大角、三角壳最小/最大角、Taper、Skew、Jacobian、特征长度、面积。没有对应拓扑的指标返回 `not_applicable`。
+
+矩形壳的原生长宽比为 2，上限 10 时通过，上限 1.5 时 2 个壳违规（100%）。另外用原生导入新增独立三角壳，最小/最大角 45°/90°，最小角阈值 60° 时正确报出 1 个违规壳。所有检查后核对网格未改变。数值为合成案例；未公开用户仿真数据。
+
+`status=succeeded` 表示检查成功执行，模型是否满足指定阈值看 `verification.passed_checks`；全部指标不适用时为 `null`。这些阈值是用户输入，不代表求解质量标准。原生 Jacobian 的定义/显示值与几何数学后端不同，两个后端必须分别标注。尚不输出所有失败单元 ID，也不将违规数相加冒充独立失败单元总数。Keyword/Contact Check、自动修复、实体/梁质量及旧版本继续开发。
 
 来源：[2026R1 用户指南](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/pdf/Ansys_LS-PrePost_Users_Guide.pdf)、[厂商配置说明](https://lsdyna.ansys.com/wp-content/uploads/2025/02/express-webinar_dynamore-lspp-24072020.pdf)及本机合成 GUI 录制。完整待办仍见 [总清单](REQUESTS_AND_PRIORITIES.md)。

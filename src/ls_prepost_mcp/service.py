@@ -10,6 +10,7 @@ from .config import Settings, command_path
 from .engineering import EngineeringTools
 from .gui_controls import GuiControls
 from .gui_mesh import GuiMeshTools
+from .gui_quality import GuiQualityTools
 from .gui_renumber import GuiRenumberTools
 from .gui_selection import GuiSelectionTools
 from .installation_assets import InstallationTools
@@ -49,7 +50,7 @@ def unit_label(units: str) -> str:
     return units.strip()
 
 
-class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools):
+class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools):
     def __init__(self, settings: Settings):
         self.settings = settings
         self.jobs = Jobs(settings.workspace)

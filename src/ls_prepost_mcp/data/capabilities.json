@@ -1127,7 +1127,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Native import; quad shell tested, tri/hex8 implementation requires further native tests"
+      "scope": "Native import: quad and tri shells tested; hex8 implementation requires separate native acceptance; existing mesh/part membership verified"
     },
     {
       "id": "gui_mesh.restart_gui_session",
@@ -1141,6 +1141,30 @@
         "4.13.4 Windows visible GUI"
       ],
       "scope": "Exited process checkpoint recovery; no uncertain operation replay"
+    },
+    {
+      "id": "gui_selection.check_gui_shell_quality",
+      "tool": "check_gui_shell_quality",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Actual native Model Checking: 13 selectable shell criteria; quad and triangle numeric/violation cases verified. Not full Keyword/Contact Check; dialog precision retained"
+    },
+    {
+      "id": "gui_selection.inspect_gui_menu",
+      "tool": "inspect_gui_menu",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Owned 4.13.4 native menu inventory: 448 tree records, exact paths and IDs; discovery does not certify functions"
     },
     {
       "id": "gui_selection.combine_gui_selections",

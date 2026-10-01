@@ -1,6 +1,8 @@
 """Shared explicit public tool registry for MCP and CLI."""
 
 SERVICE_TOOLS = (
+    "inspect_gui_menu",
+    "check_gui_shell_quality",
     "combine_gui_selections",
     "save_gui_selection_buffer",
     "load_gui_selection_buffer",

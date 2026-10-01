@@ -156,6 +156,79 @@ class WindowsCommandTransport:
         self.u.EnumWindows(self.callback(top), 0)
         return list(rows.values())
 
+    def inspect_menu(self):
+        """Read the owned main window's menu tree and actual command IDs for this build."""
+        self.u.GetMenu.argtypes = [self.w.HWND]
+        self.u.GetMenu.restype = self.w.HMENU
+        self.u.GetSubMenu.argtypes = [self.w.HMENU, self.ctypes.c_int]
+        self.u.GetSubMenu.restype = self.w.HMENU
+        self.u.GetMenuItemCount.argtypes = [self.w.HMENU]
+        self.u.GetMenuItemID.argtypes = [self.w.HMENU, self.ctypes.c_int]
+        self.u.GetMenuItemID.restype = self.w.UINT
+        self.u.GetMenuStringW.argtypes = [
+            self.w.HMENU,
+            self.w.UINT,
+            self.w.LPWSTR,
+            self.ctypes.c_int,
+            self.w.UINT,
+        ]
+        self.u.GetMenuState.argtypes = [self.w.HMENU, self.w.UINT, self.w.UINT]
+        self.u.GetMenuState.restype = self.w.UINT
+        menu = self.u.GetMenu(self.window_state()["main_window"])
+        if not menu:
+            raise RuntimeError("Owned application has no native menu")
+        rows = []
+
+        def visit(handle, parents, depth):
+            if depth > 8 or len(rows) > 5000:
+                raise ValueError("Native menu exceeds inspection bounds")
+            for position in range(self.u.GetMenuItemCount(handle)):
+                label = self.ctypes.create_unicode_buffer(1024)
+                self.u.GetMenuStringW(handle, position, label, len(label), 0x400)
+                name = label.value.split("\t")[0].replace("&", "").strip()
+                if not name:
+                    continue
+                path = parents + [name]
+                child = self.u.GetSubMenu(handle, position)
+                command_id = self.u.GetMenuItemID(handle, position)
+                flags = self.u.GetMenuState(handle, position, 0x400)
+                rows.append(
+                    dict(
+                        path=path,
+                        label=label.value,
+                        command_id=None if child or command_id == 0xFFFFFFFF else command_id,
+                        enabled=not bool(flags & 3),
+                        submenu=bool(child),
+                    )
+                )
+                if child:
+                    visit(child, path, depth + 1)
+
+        visit(menu, [], 0)
+        return rows
+
+    def open_menu_item(self, path):
+        """Invoke one exact observed enabled menu path in the owned process."""
+        self.require_interactive_desktop()
+        state = self.window_state()
+        if not state["enabled"]:
+            raise RuntimeError("Owned GUI has a blocking modal dialog")
+        matches = [item for item in self.inspect_menu() if item["path"] == path and not item["submenu"]]
+        if len(matches) != 1 or not matches[0]["enabled"] or matches[0]["command_id"] is None:
+            raise ValueError("Native menu path is unavailable, ambiguous or disabled")
+        result = self.ctypes.c_size_t()
+        if not self.u.SendMessageTimeoutW(
+            state["main_window"],
+            0x0111,
+            matches[0]["command_id"],
+            0,
+            0x0002,
+            10000,
+            self.ctypes.byref(result),
+        ):
+            raise RuntimeError("Native menu operation timed out; inspect before retrying")
+        return matches[0]
+
     def _panel_control(self, title, control_id, caption=None, class_name=None):
         if not self.window_state()["enabled"]:
             raise RuntimeError("Owned GUI is blocked by a modal dialog")
@@ -163,10 +236,21 @@ class WindowsCommandTransport:
         dialogs = [r for r in rows if r["text"] == title and r["class_name"] == "#32770" and r["visible"]]
         if len(dialogs) != 1:
             raise RuntimeError("Expected exactly one owned native panel: " + title)
+        parents = {r["hwnd"]: r["parent"] for r in rows}
+
+        def belongs(hwnd):
+            visited = set()
+            while hwnd and hwnd not in visited:
+                if hwnd == dialogs[0]["hwnd"]:
+                    return True
+                visited.add(hwnd)
+                hwnd = parents.get(hwnd, 0)
+            return False
+
         matches = [
             r
             for r in rows
-            if r["parent"] == dialogs[0]["hwnd"]
+            if belongs(r["parent"])
             and r["control_id"] == control_id
             and (caption is None or r["text"] == caption)
             and (class_name is None or r["class_name"] == class_name)
