@@ -59,3 +59,15 @@ keyword 与 d3plot 会话现共用 EntitySelection（真实用户 ID）及原生
 `tools/run_gui_post_workflow_acceptance.py` 在代表性私有结果副本上连续执行两个分量版本，各三步；曲线逐点相减、原生位置减参考坐标与原生位移的恒等关系、时刻/选区/几何/显隐保持、原文件族哈希和零 keyword 导出均核对通过。测试使用未知模型单位标签，不据此认证实际单位或材料响应。
 
 实测发现 Python 回调内的 `switch_state` 不能作为 GUI 显示完成证据，且状态读取会改变工作目录。GUI 状态切换改用外部命令流的绝对 `state N` 并读回确认；曲线使用任务绝对路径。旧版 Python 向量 ABI 仍被阻止，未因本批 4.13.4 通过而放开。
+
+## 同一可见 GUI 的 SCL 场与六分量应力
+
+`gui_session_action` 现支持 `action="extract_native_fields"` / `"extract_native_stress"`；参数沿用原工具但省略 `path`，使用当前已暂存的 d3plot。工作流在提供 session_id 时自动使用这一通道；独立调用原工具仍是原来的暂存批处理通道。GUI 请求显式传入 path 会被拒绝，避免误解为重开其他结果。
+
+两条通道复用字段白名单、FieldSpec、SCL 生成、完整 ID×状态矩阵校验以及应力解析。GUI 通道不执行 new/open/exit、不启动额外 LSPP；核对前后参考网格、连接、部件成员、选区、活动标志和原时刻。SCL 诊断或上下文不一致会失败，未知模型变化将会话标为 uncertain。当前验证仍依赖完整快照，上限 20000 节点/单元；不支持快照尚未覆盖的单元族。
+
+4.13.4 代表性实体结果已验：选择 → 原生 SCL 六应力分量及 Mises → Python 三轴度/Lode 派生与原生 Mises 对照；另外导出六个应变分量和等效塑性应变。应变输出保留原生约定，未声明工程剪应变/材料坐标/平均方式的额外解释；壳层、厚壳和特殊实体仍需分别实测。GUI 完成验证使用应用内 Python，因此不能把批处理 SCL 的“不依赖 Python”标签照搬过来。
+
+应力工作流已通过托管录制 → 将 states 参数化 → 原生重开暂存结果 → 同一 GUI 回放，录制的上下文检查也保留。公开 [visible_gui_selected_stress.json](../examples/workflows/visible_gui_selected_stress.json) 提供选择到应力的两步模板，必须填写 element_ids、states、units；默认实体 solid 与原生 default/mid，不代表壳层已获得此次认证。
+
+本机构建的 SCL 加载器要求 Windows 原生反斜杠路径；正斜杠盘符路径会被错误拼接到已有打开目录。路径修复仅作用于专用 SCL 命令，不修改用户配置；生成的 SCL 输出使用明确绝对路径。原命令接口参考仍见 [官方说明](https://lsdyna.ansys.com/command/)，运行结论以此处指定构建实测为准。

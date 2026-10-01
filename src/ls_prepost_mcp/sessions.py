@@ -16,6 +16,8 @@ from .native_config import isolate_preferences
 from .windows_transport import WindowsCommandTransport
 
 NATIVE_ACTIONS = {
+    "extract_native_fields",
+    "extract_native_stress",
     "create_solid_sphere",
     "rotate_mesh_nodes",
     "inspect_model",
@@ -511,6 +513,10 @@ class SessionTools:
             raise ValueError("Unsupported persistent action")
         if not isinstance(parameters, dict) or "model" in parameters or "d3plot" in parameters:
             raise ValueError("Use open_in_gui_session to change the input model")
+        if action in ("extract_native_fields", "extract_native_stress"):
+            from .gui_fields import run_fields
+
+            return run_fields(self, session_id, action, parameters)
         manager = self._session_manager()
         if action in GUI_BATCH_ACTIONS and manager.read(session_id).get("bridge_protocol", 1) >= 3:
             routed = {"translate_mesh_nodes": "translate_gui_nodes", "rotate_mesh_nodes": "rotate_gui_nodes"}[

@@ -1153,7 +1153,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Visible 4.13.4 selected-node history/component curves and relative-displacement workflow verified twice, including original state restoration and native position-reference identity. Full field/cloud, ASCII/binout GUI and curve-window integration remain."
+      "progress": "Visible selected-node component history/relative displacement and selected-solid SCL six-stress/Mises/strain exports integrated in the same session. Context preservation verified, shared field contracts/parsers retained. Full fringe/layer display, ASCII/binout GUI and curve-window integration remain."
     },
     {
       "id": "T08",

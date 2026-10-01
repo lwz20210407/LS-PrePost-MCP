@@ -101,6 +101,83 @@ def accept(workspace, executable, source):
     assert np.array_equal(coordinates[:, :3], displacement[:, :3])
     for row, disp in zip(coordinates, displacement):
         assert np.allclose(row[3:6] - reference[int(row[2])], disp[3:6], rtol=2e-5, atol=1e-5)
+    solids = [e["id"] for e in initial["data"]["elements"] if e["type"] == "solid"]
+    assert solids, "This representative field acceptance requires solids"
+    elements = sorted({solids[0], solids[len(solids) // 2], solids[-1]})
+    service.start_session_recording(sid)
+    assert service.set_gui_display(sid, state=2, capture=False)["status"] == "succeeded"
+    stress_workflow = service.create_workflow(
+        "Visible selected-solid stress history",
+        [
+            dict(
+                id="selected",
+                action="select_gui_entities",
+                arguments=dict(entity_type="solid", entity_ids=elements),
+            ),
+            dict(
+                id="stress",
+                action="extract_native_stress",
+                arguments=dict(
+                    element_type="solid",
+                    element_ids={"$result": "selected", "path": ["verification", "selected_ids"]},
+                    states=states,
+                    integration_point="mid",
+                    units="model_stress",
+                ),
+                checks=[dict(path=["data", "session_context_preserved"], operator="is_true")],
+            ),
+        ],
+    )
+    stresses = service.run_workflow(stress_workflow["artifacts"][0]["path"], session_id=sid)
+    atomic_json(root / "stress-workflow.json", stresses)
+    print("native_selected_stress_workflow", stresses["status"], flush=True)
+    assert stresses["status"] == "succeeded", stresses.get("error")
+    stress_result = stresses["data"]["steps"]["stress"]
+    assert stress_result["execution_mode"] == "visible_gui_native_scl"
+    assert stress_result["data"]["row_count"] == len(elements) * len(states)
+    assert np.any(matrix(stress_result["artifacts"][0]["path"])[:, 3:9] != 0), (
+        "Zero-only fixture cannot certify stress comparison"
+    )
+    recording = service.stop_session_recording(sid)
+    atomic_json(root / "stress-recording.json", recording)
+    assert recording["status"] == "succeeded" and recording["managed_steps"] == 3
+    parameterized = service.parameterize_workflow(
+        recording["workflow"],
+        [
+            dict(step_id="step3", path=["states"], parameter="stress_states"),
+        ],
+    )
+    replay = service.run_workflow(
+        parameterized["artifacts"][0]["path"], parameters=dict(stress_states=states[:2]), session_id=sid
+    )
+    atomic_json(root / "stress-recording-replay.json", replay)
+    print("native_stress_recording_replay", replay["status"], flush=True)
+    assert replay["status"] == "succeeded", replay.get("error")
+    assert replay["data"]["steps"]["step3"]["data"]["row_count"] == len(elements) * 2
+    strain = service.gui_session_action(
+        sid,
+        "extract_native_fields",
+        dict(
+            entity_type="solid",
+            entity_ids=elements,
+            states=states,
+            fields=[
+                "effective_plastic_strain",
+                "strain_x",
+                "strain_y",
+                "strain_z",
+                "strain_xy",
+                "strain_yz",
+                "strain_zx",
+            ],
+            integration_point="mid",
+            units="dimensionless native strain convention",
+        ),
+    )
+    atomic_json(root / "strain-fields.json", strain)
+    print("native_strain_fields", strain["status"], flush=True)
+    assert strain["status"] == "succeeded", strain.get("error")
+    assert strain["data"]["row_count"] == len(elements) * len(states)
     assert hashes(family) == identities
     assert not list((Path(session["directory"]) / "requests").rglob("model.k"))
     atomic_json(
@@ -113,6 +190,9 @@ def accept(workspace, executable, source):
             state_selection_geometry_visibility_preserved=True,
             source_files_unchanged=True,
             native_position_displacement_identity=True,
+            same_gui_scl_stress_and_mises_crosscheck=True,
+            same_gui_strain_fields=True,
+            stress_recording_parameter_replay=True,
             keyword_exports=0,
             scope="Native nodal vectors and component difference; units are explicit unknown model labels, no physical conversion or force/stress inference",
         ),

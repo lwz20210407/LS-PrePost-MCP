@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "name": "Visible selected-element stress history",
+  "requires_gui_session": true,
+  "defaults": {
+    "element_type": "solid",
+    "integration_point": "mid"
+  },
+  "steps": [
+    {
+      "id": "selected",
+      "action": "select_gui_entities",
+      "arguments": {
+        "entity_type": {
+          "$param": "element_type"
+        },
+        "entity_ids": {
+          "$param": "element_ids"
+        }
+      },
+      "checks": [
+        {
+          "path": [
+            "verification",
+            "selected_count"
+          ],
+          "operator": "gt",
+          "value": 0
+        }
+      ]
+    },
+    {
+      "id": "stress",
+      "action": "extract_native_stress",
+      "arguments": {
+        "element_type": {
+          "$param": "element_type"
+        },
+        "element_ids": {
+          "$result": "selected",
+          "path": [
+            "verification",
+            "selected_ids"
+          ]
+        },
+        "states": {
+          "$param": "states"
+        },
+        "integration_point": {
+          "$param": "integration_point"
+        },
+        "units": {
+          "$param": "units"
+        }
+      },
+      "checks": [
+        {
+          "path": [
+            "data",
+            "session_context_preserved"
+          ],
+          "operator": "is_true"
+        }
+      ]
+    }
+  ]
+}

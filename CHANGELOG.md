@@ -2,6 +2,9 @@
 
 ## 0.4.0 (development)
 
+- Route native field/stress actions through the current visible GUI when used in a GUI workflow. Share SCL generation, ID/state matrix validation and Mises/tensor parsing with the batch backend; verify original state, selection, topology and part visibility without reopening or starting another LSPP.
+- Verify selected-solid six-component stress/Mises, strain components and effective plastic strain on a representative private 4.13.4 result. Fix Windows SCL path separators without changing user preferences.
+
 - Connect visible native node selection, component-history export and relative-displacement processing through a reusable three-step workflow; validate two component runs and native position/reference/displacement identity on one private result copy.
 - Add explicit per-node/component scalar curves, bounded output counts and strict physical-time ordering. Preserve nodal FieldSpec and strict integer IDs/states. Restore and confirm GUI state through native command flow; keep animation stopped.
 - Fix state-switch completion checks and application-reset working directories: history files always use owned absolute output paths.

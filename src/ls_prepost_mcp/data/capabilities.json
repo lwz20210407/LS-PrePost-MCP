@@ -148,7 +148,8 @@
         "4.10",
         "4.13"
       ],
-      "verification": "SCL six stresses checked against native Mises; explicit selection and tensor definitions; private result data excluded"
+      "verification": "SCL six stresses checked against native Mises; explicit selection and tensor definitions; private result data excluded",
+      "gui_scope": "gui_session_action or GUI workflow uses current staged d3plot without path/reopen/new process. Visible 4.13.4 solid six-stress/Mises and native strain/plastic-strain exports verified; state/geometry/selection/part flags preserved. Shared parser/contracts. GUI completion uses embedded Python; 20000 snapshot bound, no new shell/tshell certification."
     },
     {
       "id": "results.fragments",
@@ -330,7 +331,8 @@
       ],
       "tested_profiles": [
         "4.13"
-      ]
+      ],
+      "gui_scope": "gui_session_action or GUI workflow uses current staged d3plot without path/reopen/new process. Visible 4.13.4 solid six-stress/Mises and native strain/plastic-strain exports verified; state/geometry/selection/part flags preserved. Shared parser/contracts. GUI completion uses embedded Python; 20000 snapshot bound, no new shell/tshell certification."
     },
     {
       "id": "results.native_ascii",
@@ -1301,7 +1303,8 @@
         "guide-post-semantics",
         "library-lasso"
       ],
-      "scope": "ResultSelection/SamplingSpec/FieldSpec metadata in native SCL and LASSO field/stress paths. No native-layer/reader-slot equivalence, dimension inference or arbitrary history meaning. Request/export/parser tests only; no added native numerical certification."
+      "scope": "ResultSelection/SamplingSpec/FieldSpec metadata in native SCL and LASSO field/stress paths. No native-layer/reader-slot equivalence, dimension inference or arbitrary history meaning. Request/export/parser tests only; no added native numerical certification.",
+      "gui_scope": "gui_session_action or GUI workflow uses current staged d3plot without path/reopen/new process. Visible 4.13.4 solid six-stress/Mises and native strain/plastic-strain exports verified; state/geometry/selection/part flags preserved. Shared parser/contracts. GUI completion uses embedded Python; 20000 snapshot bound, no new shell/tshell certification."
     },
     {
       "id": "gui.transaction_scopes",

@@ -12,6 +12,12 @@ def command_path(path: Path) -> str:
     return '"' + value + '"'
 
 
+def scl_command_path(path: Path) -> str:
+    """Native Windows SCL resolves slash-style drive paths against its open-folder preference."""
+    command_path(path)  # Shared quoting/control-character validation.
+    return '"' + str(path) + '"'
+
+
 @dataclass(frozen=True)
 class Settings:
     workspace: Path

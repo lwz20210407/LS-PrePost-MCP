@@ -1,9 +1,11 @@
 """Native SCL/command-file exports. Only staged copies are opened by LS-PrePost."""
 import csv
+import json
 import math
 import re
 import shutil
 
+from .config import scl_command_path
 from .field_contracts import FieldSpec, ResultSelection, SamplingSpec
 from .jobs import atomic_json, fingerprint, now
 from .post_backend import ids, write_csv
@@ -62,7 +64,7 @@ def finish_native(settings, jobs, action, parameters, source, build, parse, fami
     return manifest
 
 
-def field_script(domain, entity_ids, states, fields, ipt):
+def field_script(domain, entity_ids, states, fields, ipt, output_path="native.csv"):
     kind = domain.upper()
     counter = "num_nodes" if domain == "node" else "num_" + domain + "_elements"
     declarations = "\n".join("Float *v%d=NULL;" % i for i in range(len(fields)))
@@ -82,11 +84,11 @@ def field_script(domain, entity_ids, states, fields, ipt):
             + declarations + '\nne=SCLGetDataCenterInt("' + counter + '");\nns=SCLGetDataCenterInt("num_states");\n'
             'if(ne<=0 || ns<=0) return;\ntimes=malloc(ns*sizeof(Float));\n'
             'n=SCLGetDataCenterFloatArray("state_times",0,0,&times);\nif(n!=ns) return;\n'
-            + allocations + '\nfp=fopen("native.csv","w");\nfprintf(fp,"state,time,entity_id,'
+            + allocations + '\nfp=fopen(' + json.dumps(str(output_path).replace('\\', '/'), ensure_ascii=False) + ',"w");\nfprintf(fp,"state,time,entity_id,'
             + ",".join(fields) + '\\n");\n' + "\n".join(body) + '\nfclose(fp);\n' + frees + '\nfree(times);\n}\nmain();\n')
 
 
-def native_fields(settings, jobs, source, domain, entity_ids, states, fields, integration_point, units, derived=False):
+def native_fields(settings, jobs, source, domain, entity_ids, states, fields, integration_point, units, derived=False, executor=None):
     if domain not in ("shell", "solid", "tshell", "node"):
         raise ValueError("Native fields support node, shell, solid and tshell")
     ids(entity_ids, "entity_ids", 1000)
@@ -106,9 +108,11 @@ def native_fields(settings, jobs, source, domain, entity_ids, states, fields, in
     entity_ids, states, fields = list(spec.selection.entity_ids), list(spec.selection.states), list(spec.fields)
     params = dict(domain=domain, entity_ids=entity_ids, states=states, fields=fields,
                   integration_point=integration_point, units=units, field_spec=spec.describe())
-    def build(directory):
-        (directory / "extract.scl").write_text(field_script(domain, entity_ids, states, fields, ipt), encoding="ascii")
-        (directory / "commands.cfile").write_text('new\nopenc d3plot "d3plot"\nrunscript extract.scl\nexit\n', encoding="ascii")
+    def build(directory, in_memory=False):
+        output = directory / "native.csv" if in_memory else "native.csv"
+        (directory / "extract.scl").write_text(field_script(domain, entity_ids, states, fields, ipt, output), encoding="utf8")
+        commands = ('runscript ' + scl_command_path(directory / "extract.scl") + '\n') if in_memory else 'new\nopenc d3plot "d3plot"\nrunscript extract.scl\nexit\n'
+        (directory / "commands.cfile").write_text(commands, encoding="utf8")
     def parse(directory):
         with (directory / "native.csv").open(newline="", encoding="utf8") as f:
             rows = list(csv.DictReader(f))
@@ -140,6 +144,8 @@ def native_fields(settings, jobs, source, domain, entity_ids, states, fields, in
             data.update(conventions=CONVENTIONS, derived_backend="Python invariant mathematics on native SCL stresses",
                         native_mises_max_absolute_error=max(errors))
         return data, artifacts
+    if executor is not None:
+        return executor("extract_native_stress" if derived else "extract_native_fields", params, build, parse)
     return finish_native(settings, jobs, "extract_native_stress" if derived else "extract_native_fields",
                          params, source, build, parse, family=True)
 
