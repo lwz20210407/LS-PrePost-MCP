@@ -1239,7 +1239,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Visible keyword GUI: node/shell/part IDs, part-connected nodes, whole/inverse/clear tested; solid/beam domains require native acceptance"
+      "scope": "Keyword selection retained. Representative d3plot visible GUI: node/solid/part IDs and bulk part-connected nodes verified against complete ID readback; state/geometry unchanged, no keyword exports. Reference coordinates, 20000 bound, no alive mask; beam domain needs native acceptance."
     },
     {
       "id": "gui_selection.select_gui_nodes_by_box",
@@ -1263,7 +1263,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Reference-coordinate distance predicate followed by native ID selection/readback"
+      "scope": "Reference-coordinate distance predicate followed by native ID selection/readback; representative d3plot test at changed state passed. Not deformed coordinates or alive-only filtering."
     },
     {
       "id": "gui_selection.renumber_gui_entities",

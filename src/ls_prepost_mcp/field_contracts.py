@@ -7,15 +7,47 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
+class EntitySelection:
+    """Common ID domain used by GUI selection and exported result requests."""
+
+    domain: str
+    entity_ids: tuple[int, ...]
+
+    def __post_init__(self):
+        if self.domain not in ("node", "element", "shell", "solid", "tshell", "beam", "part", "global"):
+            raise ValueError("Unsupported entity domain")
+        if not isinstance(self.entity_ids, (list, tuple)):
+            raise ValueError("Entity IDs must be a list or tuple")
+        object.__setattr__(self, "entity_ids", tuple(self.entity_ids))
+        if any(type(v) is not int or not 1 <= v <= 2_000_000_000 for v in self.entity_ids) or len(
+            set(self.entity_ids)
+        ) != len(self.entity_ids):
+            raise ValueError("Entity IDs must be unique positive user integers")
+        if self.domain == "global" and self.entity_ids:
+            raise ValueError("Global quantities have no entity IDs")
+
+    def describe(self):
+        value = json.dumps(dict(domain=self.domain, entity_ids=self.entity_ids), separators=(",", ":"))
+        return dict(
+            domain=self.domain,
+            id_kind="none" if self.domain == "global" else "user",
+            entity_count=len(self.entity_ids),
+            entity_id_sample=list(self.entity_ids[:20]),
+            ordered_entity_sha256=hashlib.sha256(value.encode()).hexdigest(),
+        )
+
+
+@dataclass(frozen=True)
 class ResultSelection:
     domain: str
     entity_ids: tuple[int, ...]
     states: tuple[int, ...]
 
     def __post_init__(self):
+        entities = EntitySelection(self.domain, self.entity_ids)
         if not isinstance(self.entity_ids, (list, tuple)) or not isinstance(self.states, (list, tuple)):
             raise ValueError("Result selection IDs and states must be lists or tuples")
-        object.__setattr__(self, "entity_ids", tuple(self.entity_ids))
+        object.__setattr__(self, "entity_ids", entities.entity_ids)
         object.__setattr__(self, "states", tuple(self.states))
         if self.domain not in ("node", "shell", "solid", "tshell", "beam", "part", "global"):
             raise ValueError("Unsupported result entity domain")
@@ -35,6 +67,7 @@ class ResultSelection:
             dict(domain=self.domain, entity_ids=self.entity_ids, states=self.states), separators=(",", ":")
         )
         return dict(
+            entity_selection=EntitySelection(self.domain, self.entity_ids).describe(),
             domain=self.domain,
             id_kind="none" if self.domain == "global" else "user",
             state_index_base=1,

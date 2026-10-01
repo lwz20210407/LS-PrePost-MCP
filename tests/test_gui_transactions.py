@@ -102,3 +102,30 @@ def test_inspection_verification_failure_marks_uncertainty_without_losing_saved_
     assert result["status"] == "failed" and meta["state"] == "uncertain" and meta["dirty"]
     assert meta["last_checkpoint"] == str(checkpoint)
     assert not any(call["export"] for call in calls)
+
+
+def test_result_session_selection_is_read_only_but_editing_is_rejected(tmp_path, monkeypatch):
+    service, meta, calls, checkpoint = fixture_service(tmp_path, monkeypatch, False)
+    meta["model_kind"] = "d3plot"
+    result = service.select_gui_entities("session", "node", [1])
+    assert result["status"] == "succeeded"
+    assert result["verification"]["model_kind"] == "d3plot"
+    assert result["verification"]["coordinate_configuration"] == "reference"
+    assert result["verification"]["selection_spec"]["id_kind"] == "user"
+    count = len(calls)
+    with pytest.raises(ValueError, match="keyword"):
+        service.translate_gui_nodes("session", [1], [1, 0, 0], "mm")
+    assert len(calls) == count and meta["last_checkpoint"] == str(checkpoint)
+
+
+def test_known_read_only_scope_failure_does_not_poison_the_model_state(tmp_path, monkeypatch):
+    from ls_prepost_mcp.gui_mesh import ReadOnlyScopeMismatch
+
+    service, meta, calls, checkpoint = fixture_service(tmp_path, monkeypatch, False)
+
+    def verify(a, b):
+        raise ReadOnlyScopeMismatch("Selection postcondition differs after unchanged geometry")
+
+    result = service._gui_mesh_edit("session", "select", {}, [], verify, transaction_kind="selection")
+    assert result["status"] == "failed" and meta["state"] == "ready" and not meta["dirty"]
+    assert meta["last_checkpoint"] == str(checkpoint)

@@ -40,7 +40,7 @@ def test_selection_verifies_exact_ids_and_unchanged_mesh():
 
 def test_selection_predicates_and_invalid_inputs(tmp_path, monkeypatch):
     s = Service(Settings(tmp_path))
-    monkeypatch.setattr(s, "_select_gui", lambda sid, action, args, kind, choose: choose(mesh()))
+    monkeypatch.setattr(s, "_select_gui", lambda sid, action, args, kind, choose, **kwargs: choose(mesh()))
     assert s.select_gui_entities("s", "node", [10], invert=True) == {20, 30, 40}
     assert s.select_gui_entities("s", "node", part_ids=[7]) == {10, 20, 30}
     assert s.select_gui_entities("s", "node", []) == set()
@@ -102,7 +102,7 @@ def test_native_node_set_zero_padding_is_not_a_node_reference(tmp_path):
 
 def test_plane_selection_normalization_tolerance_and_sides(tmp_path, monkeypatch):
     s = Service(Settings(tmp_path))
-    monkeypatch.setattr(s, "_select_gui", lambda sid, action, args, kind, choose: choose(mesh()))
+    monkeypatch.setattr(s, "_select_gui", lambda sid, action, args, kind, choose, **kwargs: choose(mesh()))
     assert s.select_gui_nodes_by_plane("s", [0, 0, 0], [1e300, 0, 0], "mm") == {10, 30}
     assert s.select_gui_nodes_by_plane("s", [0, 0, 0], [1, 0, 0], "mm", "positive") == {20, 40}
     assert s.select_gui_nodes_by_plane("s", [0, 0, 0], [-1, 0, 0], "mm", "negative") == {20, 40}
@@ -112,7 +112,7 @@ def test_plane_selection_normalization_tolerance_and_sides(tmp_path, monkeypatch
 
 def test_selection_boolean_operations_validate_even_cancelled_unknown_ids(tmp_path, monkeypatch):
     s = Service(Settings(tmp_path))
-    monkeypatch.setattr(s, "_select_gui", lambda sid, action, args, kind, choose: choose(mesh()))
+    monkeypatch.setattr(s, "_select_gui", lambda sid, action, args, kind, choose, **kwargs: choose(mesh()))
     for op, expected in [
         ("union", {10, 20, 30}),
         ("intersection", {20}),
@@ -168,3 +168,32 @@ def test_stale_buffer_rejected_before_native_input(tmp_path, monkeypatch):
     monkeypatch.setattr(s, "_gui_mesh_edit", edit)
     with pytest.raises(ValueError, match="stale"):
         s.load_gui_selection_buffer("s", 1)
+
+
+def test_result_selection_requires_stable_native_state():
+    a, b = mesh(), mesh()
+    a["current_state"] = 1
+    b["current_state"] = 2
+    with pytest.raises(ValueError, match="state changed"):
+        verify_selection(a, b, [], "node")
+
+
+def test_part_selection_uses_native_bulk_command_with_exact_postcondition(tmp_path, monkeypatch):
+    service = Service(Settings(tmp_path))
+
+    def edit(sid, action, params, commands, verify, precheck, **kwargs):
+        before = mesh()
+        precheck(before)
+        generated = commands(before, tmp_path)
+        assert generated == ["pall", "genselect clear", "genselect target node", "genselect node add part 7"]
+        after = copy.deepcopy(before)
+        after["selection_ids"] = [10, 20, 30]
+        result = verify(before, after)
+        assert result["command_strategy"] == "native_part"
+        after["selection_ids"].append(40)
+        with pytest.raises(ValueError, match="selected IDs"):
+            verify(before, after)
+        return result
+
+    monkeypatch.setattr(service, "_gui_mesh_edit", edit)
+    assert service.select_gui_entities("s", "node", part_ids=[7])["selected_count"] == 3

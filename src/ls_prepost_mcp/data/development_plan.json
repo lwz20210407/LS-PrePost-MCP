@@ -1067,8 +1067,9 @@
         "选区带模型/状态/坐标/可见有效范围",
         "结果模型选择可以驱动提取和云图"
       ],
-      "status": "planned",
-      "milestone": "R1"
+      "status": "in_progress",
+      "milestone": "R1",
+      "progress": "Shared EntitySelection and keyword/d3plot native selection implemented. Eight representative 4.13.4 visible-result cases passed, with unchanged source hashes and no keyword exports. Bulk part selection verified. Visibility preservation, alive/deleted masks, deformed coordinates and field binding remain."
     },
     {
       "id": "T05",

@@ -10,6 +10,10 @@ from .config import command_path
 from .jobs import atomic_json, check_artifact
 
 
+class ReadOnlyScopeMismatch(ValueError):
+    """Geometry was verified unchanged, but selection/state postconditions failed."""
+
+
 def mesh_index(state):
     nodes = {int(n[0]): np.asarray(n[1:], dtype=float) for n in state["nodes"]}
     elements = {(e["type"], e["id"]): tuple(e["nodes"]) for e in state["elements"]}
@@ -160,21 +164,27 @@ def verify_transform(before, after, selected, transform):
 
 
 class GuiMeshTools:
-    def _visible_mesh_session(self, session_id, manager):
+    def _visible_mesh_session(self, session_id, manager, allow_results=False):
         meta = manager.read(session_id)
-        if not meta["process_alive"] or meta["state"] != "ready" or meta["model_kind"] != "keyword":
-            raise ValueError("A ready owned keyword GUI session is required")
+        kinds = ("keyword", "d3plot") if allow_results else ("keyword",)
+        if not meta["process_alive"] or meta["state"] != "ready" or meta["model_kind"] not in kinds:
+            raise ValueError(
+                "A ready owned "
+                + ("keyword/result" if allow_results else "keyword")
+                + " GUI session is required"
+            )
         if meta.get("bridge_protocol", 1) < 3:
             raise ValueError("Start a new GUI session for the verified mesh bridge")
         return meta
 
     def inspect_gui_mesh(self, session_id: str, include_entities: bool = False) -> dict:
-        """Read native node coordinates and shell/solid/beam connectivity in the visible GUI; bounded to 20000 nodes/elements, unknown topologies fail explicitly."""
+        """Read reference nodes/connectivity in an owned keyword or result GUI. Bounded to 20000 nodes/elements; this is not deformed geometry or an alive-only selection."""
         manager = self._session_manager()
         with manager.lock(session_id):
-            self._visible_mesh_session(session_id, manager)
+            meta = self._visible_mesh_session(session_id, manager, allow_results=True)
             result = manager.dispatch(session_id, "gui_mesh_state", {})
             if result["status"] == "succeeded":
+                result["data"].update(model_kind=meta["model_kind"], coordinate_configuration="reference")
                 codes = result["data"].get("selection_types")
                 if codes and any(code < 0 or code > 4096 for code in codes):
                     result["data"]["selection_types"] = None
@@ -220,7 +230,13 @@ class GuiMeshTools:
         report = quality(
             result["data"]["nodes"], result["data"]["elements"], max_aspect, max_warpage, min_scaled_jacobian
         )
-        report.update(backend="lsprepost-readback+geometry-math", units=units, native_model_check=False)
+        report.update(
+            backend="lsprepost-readback+geometry-math",
+            units=units,
+            native_model_check=False,
+            coordinate_configuration="reference",
+            model_kind=result["data"].get("model_kind"),
+        )
         path = Path(result["job_directory"]) / "quality.json"
         atomic_json(path, report)
         result["artifacts"].append(check_artifact(path, "json"))
@@ -255,13 +271,16 @@ class GuiMeshTools:
         artifacts = (("model.k", "keyword"),) if mutates_model else ()
         manager = self._session_manager()
         with manager.lock(session_id):
-            original_meta = self._visible_mesh_session(session_id, manager)
+            original_meta = self._visible_mesh_session(
+                session_id, manager, allow_results=transaction_kind == "selection"
+            )
             baseline = manager.dispatch(
                 session_id, "gui_mesh_state", {}, artifacts=artifacts, export=mutates_model
             )
             if baseline["status"] != "succeeded":
                 return baseline
             before = baseline["data"]
+            before["model_kind"] = original_meta["model_kind"]
             if precheck:
                 precheck(before)
             checkpoint = (
@@ -308,6 +327,7 @@ class GuiMeshTools:
             meta = manager.read(session_id)
             meta["dirty"] = True if mutates_model else original_meta.get("dirty", False)
             if result["status"] == "succeeded":
+                result["data"]["model_kind"] = original_meta["model_kind"]
                 try:
                     validation = verify(before, result["data"])
                     if postcheck:
@@ -323,9 +343,12 @@ class GuiMeshTools:
                         on_verified(before, result["data"], meta)
                 except Exception as exc:
                     result.update(status="failed", error=dict(type=type(exc).__name__, message=str(exc)))
-                    meta["state"] = "uncertain"
-                    # Verification failed: unexpected external/model changes cannot be excluded.
-                    meta["dirty"] = True
+                    if not mutates_model and isinstance(exc, ReadOnlyScopeMismatch):
+                        meta.update(state="ready", dirty=original_meta.get("dirty", False))
+                    else:
+                        meta["state"] = "uncertain"
+                        # Unexpected external/model changes cannot be excluded.
+                        meta["dirty"] = True
             result.update(
                 execution_mode="visible_gui_native_cfile",
                 baseline_checkpoint=checkpoint,

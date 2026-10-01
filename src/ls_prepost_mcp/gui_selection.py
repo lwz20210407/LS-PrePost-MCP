@@ -6,7 +6,8 @@ import math
 
 import numpy as np
 
-from .gui_mesh import check_same_nodes, check_same_parts, mesh_index
+from .field_contracts import EntitySelection
+from .gui_mesh import ReadOnlyScopeMismatch, check_same_nodes, check_same_parts, mesh_index
 
 
 def mesh_signature(state):
@@ -58,26 +59,37 @@ def verify_selection(before, after, expected, kind):
     check_same_parts(before, after)
     if old_elements != new_elements:
         raise ValueError("Selection unexpectedly changed connectivity")
+    if before.get("current_state") != after.get("current_state"):
+        raise ReadOnlyScopeMismatch("Result state changed during selection; pause animation before retrying")
     actual = after.get("selection_ids")
     if actual is None or len(actual) != len(set(actual)) or set(actual) != set(expected):
-        raise ValueError("Native selected IDs differ from the requested set")
+        raise ReadOnlyScopeMismatch("Native selected IDs differ from the requested set")
     return dict(
         entity_type=kind,
         selected_ids=sorted(expected),
         selected_count=len(expected),
         geometry_unchanged=True,
-        model_scope="current keyword model",
+        model_scope="current managed model",
+        model_kind=before.get("model_kind", "keyword"),
+        coordinate_configuration="reference",
+        native_current_state=after.get("current_state"),
+        validity_scope="registered entities accepted by native selection; no explicit alive/deletion mask",
+        selection_spec=EntitySelection(kind, sorted(expected)).describe(),
     )
 
 
 class GuiSelectionTools:
-    def _select_gui(self, session_id, action, arguments, kind, choose, suffix=None, on_verified=None):
+    def _select_gui(
+        self, session_id, action, arguments, kind, choose, suffix=None, on_verified=None, part_selection=None
+    ):
         expected = set()
+        strategy = {}
         target = "element" if kind in ("solid", "beam") else kind
 
         def precheck(state):
             available = available_ids(state, kind)
             expected.update(choose(state))
+            EntitySelection(kind, sorted(expected))
             if not expected <= available or len(expected) > 20000:
                 raise ValueError("Selection is outside the current entity registry or verification bound")
 
@@ -85,8 +97,13 @@ class GuiSelectionTools:
             result = ["pall", "genselect clear", "genselect target " + target]
             if expected and expected == available_ids(state, target):
                 result.append("genselect whole")
+                strategy["name"] = "native_whole"
+            elif part_selection is not None and expected == in_parts(state, target, part_selection):
+                result += ["genselect %s add part %d" % (target, pid) for pid in part_selection]
+                strategy["name"] = "native_part"
             else:
                 result += ["genselect %s add %s %d" % (target, target, uid) for uid in sorted(expected)]
+                strategy["name"] = "explicit_ids"
             return result + (suffix or [])
 
         return self._gui_mesh_edit(
@@ -94,7 +111,7 @@ class GuiSelectionTools:
             action,
             arguments,
             commands,
-            lambda a, b: verify_selection(a, b, expected, kind),
+            lambda a, b: dict(**verify_selection(a, b, expected, kind), command_strategy=strategy["name"]),
             precheck,
             on_verified=on_verified,
             transaction_kind="selection",
@@ -108,7 +125,7 @@ class GuiSelectionTools:
         part_ids: list[int] | None = None,
         invert: bool = False,
     ) -> dict:
-        """Select explicit nodes/shells/solids/beams/elements/parts in the visible keyword GUI. No ID/filter means whole; [] clears. Part filters derive connectivity membership; invert selects the complement."""
+        """Select registered nodes/elements/parts in a keyword or d3plot GUI, using IDs or reference connectivity. No filter means whole; [] clears. No alive/deletion mask or deformed spatial predicate is implied."""
         from .post_backend import ids
 
         if entity_type not in ("node", "shell", "solid", "beam", "element", "part"):
@@ -145,6 +162,7 @@ class GuiSelectionTools:
             dict(entity_type=entity_type, entity_ids=entity_ids, part_ids=part_ids, invert=invert),
             entity_type,
             choose,
+            part_selection=part_ids if not invert else None,
         )
 
     def combine_gui_selections(
