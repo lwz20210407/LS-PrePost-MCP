@@ -6,7 +6,9 @@ import uuid
 from pathlib import Path
 
 from .jobs import atomic_json, check_artifact, now
+from .outcomes import normalize_outcome, result_value
 from .sessions import NATIVE_ACTIONS
+from .workflow_checks import POLICIES, evaluate_gate, validate_checks
 
 GUI_ACTIONS = {
     "check_gui_keywords",
@@ -73,7 +75,13 @@ def validate_steps(steps):
         raise ValueError("Workflow requires 1..100 steps")
     names = set()
     for step in steps:
-        if not isinstance(step, dict) or set(step) - {"id", "action", "arguments"}:
+        if not isinstance(step, dict) or set(step) - {
+            "id",
+            "action",
+            "arguments",
+            "checks",
+            "quality_policy",
+        }:
             raise ValueError("Invalid workflow step")
         name = step.get("id")
         if (
@@ -85,6 +93,10 @@ def validate_steps(steps):
         names.add(name)
         if step.get("action") not in WORKFLOW_ACTIONS or not isinstance(step.get("arguments", {}), dict):
             raise ValueError("Unsupported workflow action")
+        policy = step.get("quality_policy", "auto")
+        if not isinstance(policy, str) or policy not in POLICIES:
+            raise ValueError("quality_policy must be auto, require_pass or report_only")
+        validate_checks(step.get("checks", []))
 
 
 def resolve(value, parameters, results):
@@ -111,12 +123,7 @@ def resolve(value, parameters, results):
             or not isinstance(value["path"], list)
         ):
             raise ValueError("Invalid result binding")
-        current = results[value["$result"]]
-        for key in value["path"]:
-            if not isinstance(key, (str, int)):
-                raise ValueError("Invalid result selector")
-            current = current[key]
-        return current
+        return result_value(results[value["$result"]], value["path"])
     if any(str(k).startswith("$") for k in value):
         raise ValueError("Unknown workflow expression")
     return {k: resolve(v, parameters, results) for k, v in value.items()}
@@ -140,19 +147,24 @@ def set_parameter_binding(document, path, name):
 
 
 class WorkflowTools:
-    def import_command_recording(self, path: str, units: str, recorded_model_index: int | None = None) -> dict:
+    def import_command_recording(
+        self, path: str, units: str, recorded_model_index: int | None = None
+    ) -> dict:
         """Compile recognized cfile operations into a typed GUI recipe. Model-qualified IDs require an explicit recorded model index mapped to the current model; mismatches/unknown/scripts block replay. Does not support multi-model recordings."""
         from .recording_compiler import compile_commands
 
         source = self.settings.input_path(path)
-        compiled = compile_commands(source.read_text(encoding="utf-8-sig", errors="replace"), units, recorded_model_index)
+        compiled = compile_commands(
+            source.read_text(encoding="utf-8-sig", errors="replace"), units, recorded_model_index
+        )
         for step in compiled["steps"]:
             if step["action"] == "open_model":
                 step["arguments"]["path"] = str(
                     self.settings.input_path(step["arguments"]["path"], base=source.parent)
                 )
         directory, manifest = self.jobs.create(
-            "import_command_recording", dict(source=str(source), units=units, recorded_model_index=recorded_model_index)
+            "import_command_recording",
+            dict(source=str(source), units=units, recorded_model_index=recorded_model_index),
         )
         atomic_json(directory / "workflow.json", compiled)
         manifest.update(
@@ -171,8 +183,10 @@ class WorkflowTools:
         return manifest
 
     def create_workflow(self, name: str, steps: list[dict], defaults: dict | None = None) -> dict:
-        """Save a declarative sequence of typed tools with $param/$artifact/$result bindings. Does not execute code or commands."""
+        """Save typed steps with parameter/result bindings, optional checks and quality_policy. Known model checks require a true verdict by default; report_only explicitly opts out of that verdict, not explicit checks. No execution occurs here."""
         validate_steps(steps)
+        if defaults is not None and not isinstance(defaults, dict):
+            raise ValueError("Workflow defaults must be an object")
         if not name.strip() or len(name) > 120:
             raise ValueError("Invalid workflow name")
         directory, manifest = self.jobs.create("create_workflow", dict(name=name))
@@ -189,7 +203,7 @@ class WorkflowTools:
         return manifest
 
     def run_workflow(self, path: str, parameters: dict | None = None, session_id: str | None = None) -> dict:
-        """Run a saved typed workflow, stopping at the first failed step. Native GUI actions can reuse a supplied persistent session; file workflows bind explicit prior artifacts."""
+        """Run typed steps with separate execution and quality gates. Known model checks fail closed by default; explicit checks support finite numeric/boolean predicates. Stop before dependent steps, retain evidence/checkpoints and never automatically replay or roll back."""
         source = self.settings.input_path(path)
         workflow = json.loads(source.read_text(encoding="utf8"))
         if workflow.get("schema_version") != 1 or workflow.get("unrecognized_commands"):
@@ -198,61 +212,115 @@ class WorkflowTools:
         validate_steps(steps)
         if workflow.get("requires_gui_session") and not session_id:
             raise ValueError("This recording requires a persistent GUI session")
+        if not isinstance(workflow.get("defaults", {}), dict) or (
+            parameters is not None and not isinstance(parameters, dict)
+        ):
+            raise ValueError("Workflow parameters/defaults must be objects")
         params = {**workflow.get("defaults", {}), **(parameters or {})}
+        # Resolve every predicate before opening a model or dispatching any action.
+        resolved_checks = {}
+        for step in steps:
+            checks = resolve(step.get("checks", []), params, {})
+            validate_checks(checks, allow_parameters=False)
+            resolved_checks[step["id"]] = checks
         directory, manifest = self.jobs.create(
             "run_workflow", dict(path=str(source), parameters=params, session_id=session_id)
         )
-        results = {}
+        results, outcomes, gates = {}, {}, {}
+        completed, attempted = 0, 0
+        failed_step, failure_phase = None, None
+        remaining = [step["id"] for step in steps]
         atomic_json(directory / "definition.json", workflow)
+        manifest.update(status="running", started_at=now())
+        atomic_json(directory / "job.json", manifest)
         try:
             initial = workflow.get("initial_model")
             if initial and session_id:
+                failure_phase = "initial_model"
                 opened = self.open_in_gui_session(
                     session_id, initial, workflow.get("initial_file_type", "keyword")
                 )
                 if opened["status"] != "succeeded":
                     raise RuntimeError("Cannot restore recording initial model")
             for step in steps:
+                failed_step = step["id"]
+                remaining = remaining[1:]
+                failure_phase = "argument_resolution"
                 action = step["action"]
                 arguments = resolve(step.get("arguments", {}), params, results)
-                if action == "new_model":
-                    if not session_id:
-                        raise ValueError("new_model requires a persistent GUI session")
-                    result = self.reset_gui_session(session_id, **arguments)
-                elif action == "open_model":
-                    if not session_id:
-                        raise ValueError("open_model requires a persistent session")
-                    result = self.open_in_gui_session(session_id, **arguments)
-                elif action == "checkpoint":
-                    if not session_id:
-                        raise ValueError("checkpoint requires a persistent session")
-                    result = self.checkpoint_gui_session(session_id)
-                elif action in GUI_ACTIONS:
-                    if not session_id:
-                        raise ValueError("GUI controls require a persistent session")
-                    result = getattr(self, action)(session_id=session_id, **arguments)
-                elif session_id and action in NATIVE_ACTIONS:
-                    result = self.gui_session_action(session_id, action, arguments)
-                else:
-                    result = getattr(self, action)(**arguments)
+                failure_phase = "execution"
+                attempted += 1
+                try:
+                    if action == "new_model":
+                        if not session_id:
+                            raise ValueError("new_model requires a persistent GUI session")
+                        result = self.reset_gui_session(session_id, **arguments)
+                    elif action == "open_model":
+                        if not session_id:
+                            raise ValueError("open_model requires a persistent session")
+                        result = self.open_in_gui_session(session_id, **arguments)
+                    elif action == "checkpoint":
+                        if not session_id:
+                            raise ValueError("checkpoint requires a persistent session")
+                        result = self.checkpoint_gui_session(session_id)
+                    elif action in GUI_ACTIONS:
+                        if not session_id:
+                            raise ValueError("GUI controls require a persistent session")
+                        result = getattr(self, action)(session_id=session_id, **arguments)
+                    elif session_id and action in NATIVE_ACTIONS:
+                        result = self.gui_session_action(session_id, action, arguments)
+                    else:
+                        result = getattr(self, action)(**arguments)
+                    if not isinstance(result, dict):
+                        raise ValueError("Operation result must be a JSON object")
+                    json.dumps(result, allow_nan=False)
+                except Exception as exc:
+                    result = dict(status="failed", error=dict(type=type(exc).__name__, message=str(exc)))
                 results[step["id"]] = result
+                outcome = normalize_outcome(action, result)
+                outcomes[step["id"]] = outcome.to_dict()
+                gate = evaluate_gate(
+                    outcome, result, resolved_checks[step["id"]], step.get("quality_policy", "auto")
+                )
+                gates[step["id"]] = gate
                 atomic_json(directory / "steps.json", results)
-                if isinstance(result, dict) and result.get("status") in (
-                    "failed",
-                    "partial",
-                    "uncertain",
-                    "needs_review",
-                    "completed_unverified",
-                ):
-                    raise RuntimeError("Workflow stopped at step " + step["id"])
-            manifest.update(status="succeeded", data={"steps": results, "completed_steps": len(results)})
-            manifest["artifacts"] = [check_artifact(directory / "steps.json", "json")]
+                atomic_json(directory / "outcomes.json", outcomes)
+                atomic_json(directory / "gates.json", gates)
+                failure_phase = "quality_gate" if outcome.execution_accepted else "execution"
+                if not gate["passed"]:
+                    raise RuntimeError(
+                        "Workflow stopped at step " + step["id"] + ": " + ", ".join(gate["reasons"])
+                    )
+                completed += 1
+            failed_step, failure_phase = None, None
+            manifest.update(status="succeeded")
         except Exception as exc:
             manifest.update(
                 status="failed",
-                data={"steps": results, "completed_steps": len(results)},
                 error={"type": type(exc).__name__, "message": str(exc)},
             )
+        manifest["data"] = dict(
+            steps=results,
+            outcomes=outcomes,
+            gates=gates,
+            completed_steps=completed,
+            attempted_steps=attempted,
+            failed_step=failed_step,
+            failure_phase=failure_phase,
+            skipped_steps=remaining,
+            baseline_checkpoints={
+                key: r["baseline_checkpoint"]
+                for key, r in results.items()
+                if isinstance(r.get("baseline_checkpoint"), str)
+            },
+            automatic_replay=False,
+            automatic_rollback=False,
+        )
+        for name, content in (("steps.json", results), ("outcomes.json", outcomes), ("gates.json", gates)):
+            atomic_json(directory / name, content)
+        manifest["artifacts"] = [
+            check_artifact(directory / name, "json") for name in ("steps.json", "outcomes.json", "gates.json")
+        ]
         manifest.update(finished_at=now(), job_directory=str(directory))
         atomic_json(directory / "job.json", manifest)
         return manifest
@@ -363,12 +431,19 @@ class WorkflowTools:
             raise ValueError("Provide 1..100 explicit bindings")
         defaults = dict(workflow.get("defaults", {}))
         for binding in bindings:
-            if set(binding) != {"step_id", "path", "parameter"}:
+            if set(binding) - {"step_id", "path", "parameter", "section"} or not {
+                "step_id",
+                "path",
+                "parameter",
+            } <= set(binding):
                 raise ValueError("Invalid binding fields")
+            section = binding.get("section", "arguments")
+            if section not in ("arguments", "checks"):
+                raise ValueError("Parameter section must be arguments or checks")
             found = [s for s in workflow["steps"] if s["id"] == binding["step_id"]]
             if len(found) != 1:
                 raise ValueError("Unknown step ID")
-            default = set_parameter_binding(found[0]["arguments"], binding["path"], binding["parameter"])
+            default = set_parameter_binding(found[0][section], binding["path"], binding["parameter"])
             if binding["parameter"] in defaults and defaults[binding["parameter"]] != default:
                 raise ValueError("Conflicting defaults for shared parameter")
             defaults[binding["parameter"]] = default
@@ -383,6 +458,7 @@ class WorkflowTools:
             "recording_scope",
             "unrecognized_commands",
             "output_policy",
+            "recorded_model_index",
         ):
             if key in workflow:
                 updated[key] = workflow[key]

@@ -771,7 +771,7 @@
     {
       "id": "R0",
       "title": "基线与顶层设计对齐",
-      "status": "in_progress",
+      "status": "complete",
       "workflow_ids": [
         "WF-MESH",
         "WF-POST",
@@ -793,7 +793,7 @@
     {
       "id": "R1",
       "title": "0.4 首个实用版本：三条流程共同收口",
-      "status": "planned",
+      "status": "in_progress",
       "workflow_ids": [
         "WF-MESH",
         "WF-POST",
@@ -968,8 +968,10 @@
         "字段语义与已有工具兼容映射",
         "实体 ID/状态/层/坐标/单位不再散落隐式解释"
       ],
-      "status": "planned",
-      "milestone": "R1"
+      "status": "in_progress",
+      "milestone": "R1",
+      "progress": "OperationOutcome added at workflow boundary; execution/check verdict/backend/scope separate. ModelRef, SelectionSpec, FieldSpec and dimensional units still pending.",
+      "evidence": "docs/WORKFLOW_GATES.md"
     },
     {
       "id": "T02",
@@ -989,8 +991,10 @@
         "执行成功但质量失败时后续步骤不运行",
         "缺字段/未验证/不适用有独立处理"
       ],
-      "status": "planned",
-      "milestone": "R1"
+      "status": "in_progress",
+      "milestone": "R1",
+      "progress": "Default mapped-check gates, explicit predicates, parameterized thresholds and failure artifacts implemented. Five real synthetic file-backend cases passed. Fresh native GUI gate/recording acceptance remains pending.",
+      "evidence": "docs/WORKFLOW_GATES.md"
     },
     {
       "id": "T03",
@@ -1198,8 +1202,9 @@
         "构建/输入/命令/产物/检查可追溯",
         "真实失败和旧版本差异保留"
       ],
-      "status": "planned",
-      "milestone": "R1"
+      "status": "in_progress",
+      "milestone": "R1",
+      "progress": "Reusable synthetic file-backend workflow gate acceptance driver added to CI; reusable live GUI driver remains pending."
     },
     {
       "id": "T11",
@@ -1236,8 +1241,8 @@
     "search_commands",
     "search_workflows"
   ],
-  "current_milestone": "R0",
-  "next_milestone": "R1",
+  "current_milestone": "R1",
+  "next_milestone": "R2",
   "policy": {
     "visible_gui_first": true,
     "target_versions": [

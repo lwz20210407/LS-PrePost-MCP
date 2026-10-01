@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "name": "Visible GUI quality and keyword gates before checkpoint",
+  "requires_gui_session": true,
+  "defaults": {"max_warnings": 0, "max_unreferenced": 0},
+  "steps": [
+    {
+      "id": "shell_quality",
+      "action": "check_gui_shell_quality",
+      "arguments": {"thresholds": {"$param": "shell_thresholds"}, "units": {"$param": "units"}}
+    },
+    {
+      "id": "keyword_check",
+      "action": "check_gui_keywords",
+      "arguments": {},
+      "quality_policy": "report_only",
+      "checks": [
+        {"path": ["verification", "totals", "error"], "operator": "eq", "value": 0},
+        {"path": ["verification", "totals", "undefine"], "operator": "eq", "value": 0},
+        {"path": ["verification", "totals", "warning"], "operator": "le", "value": {"$param": "max_warnings"}},
+        {"path": ["verification", "totals", "unref"], "operator": "le", "value": {"$param": "max_unreferenced"}}
+      ]
+    },
+    {"id": "checked_checkpoint", "action": "checkpoint", "arguments": {}}
+  ]
+}

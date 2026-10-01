@@ -19,6 +19,9 @@ class MeshTools:
         min_scaled_jacobian: float = 0.2,
     ) -> dict:
         """Check standard linear shell/solid/beam geometry, report true IDs, orphan nodes and unsupported topologies. Does not claim full native Model Checking."""
+        from .service import unit_label
+
+        unit_label(units)
         if (
             not all(math.isfinite(v) for v in [max_aspect, max_warpage, min_scaled_jacobian])
             or max_aspect < 1
@@ -31,6 +34,12 @@ class MeshTools:
         def work(directory):
             nodes, elements = from_deck(load_standalone(source))
             report = quality(nodes, elements, max_aspect, max_warpage, min_scaled_jacobian)
+            report.update(
+                backend="pydyna+geometry-math",
+                units=units,
+                scope=report["definitions"]["scope"],
+                native_model_check=False,
+            )
             atomic_json(directory / "quality.json", report)
             brief = {k: v for k, v in report.items() if k not in ("elements", "unsupported", "orphan_nodes")}
             brief["orphan_count"] = len(report["orphan_nodes"])

@@ -17,3 +17,4 @@ jobs:
       - run: python -m pip install -e ".[dev,results,pydyna]"
       - run: python -m pytest -q
       - run: python tools/validate_development_plan.py
+      - run: python tools/run_workflow_gate_acceptance.py --workspace "${{ runner.temp }}/lspp-workflow-gates"

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "name": "Explicit energy screening before selected-energy sum",
+  "defaults": {"max_undefined_rows": 0},
+  "steps": [
+    {
+      "id": "energy_screen",
+      "action": "assess_energy_balance",
+      "arguments": {
+        "kinetic_curve": {"$param": "kinetic_curve"},
+        "internal_curve": {"$param": "internal_curve"},
+        "hourglass_curve": {"$param": "hourglass_curve"},
+        "units": {"$param": "units"},
+        "kinetic_ratio_limit": {"$param": "kinetic_ratio_limit"},
+        "hourglass_ratio_limit": {"$param": "hourglass_ratio_limit"}
+      },
+      "checks": [
+        {"path": ["data", "defined_rows"], "operator": "ge", "value": 1},
+        {"path": ["data", "undefined_rows"], "operator": "le", "value": {"$param": "max_undefined_rows"}},
+        {"path": ["data", "kinetic_exceedances"], "operator": "eq", "value": 0},
+        {"path": ["data", "hourglass_supplied"], "operator": "is_true"},
+        {"path": ["data", "hourglass_exceedances"], "operator": "eq", "value": 0}
+      ]
+    },
+    {
+      "id": "selected_energy_sum",
+      "action": "combine_history_curves",
+      "arguments": {
+        "paths": [{"$param": "kinetic_curve"}, {"$param": "internal_curve"}, {"$param": "hourglass_curve"}],
+        "operation": "sum",
+        "units": {"$param": "units"}
+      }
+    }
+  ]
+}

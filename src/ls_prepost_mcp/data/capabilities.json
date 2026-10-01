@@ -1276,6 +1276,19 @@
         "4.13.4 Windows visible GUI"
       ],
       "scope": "All node/shell/part IDs via native dialog and mapping log; coordinates/connectivity/parts and node-list sets checked; not every keyword reference"
+    },
+    {
+      "id": "workflow.quality_gates",
+      "tool": "run_workflow",
+      "status": "implemented",
+      "sources": [
+        "guide-modelcheck",
+        "official-parametric-preprocessor"
+      ],
+      "scope": "Execution/check outcomes, automatic known-check gates, declarative finite predicates, parameter thresholds and failure evidence. Unit/real synthetic file-backend acceptance; new live GUI integration pending.",
+      "tested_profiles": [
+        "Python workflow engine + PyDYNA/geometry/curve synthetic file backends"
+      ]
     }
   ],
   "native_reference_builds": [
