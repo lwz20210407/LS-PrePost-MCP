@@ -40,3 +40,4 @@ jobs:
       - run: uv run --no-sync python -m pytest -q
       - run: uv run --no-sync python tools/validate_development_plan.py
       - run: uv run --no-sync python tools/run_workflow_gate_acceptance.py --workspace "${{ runner.temp }}/lspp-workflow-gates"
+      - run: uv run --no-sync python tools/run_engineering_unit_acceptance.py --workspace "${{ runner.temp }}/lspp-unit-acceptance"

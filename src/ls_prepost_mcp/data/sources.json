@@ -1354,5 +1354,23 @@
     "summary": "Course listing discovered; not fully watched or converted into tools.",
     "integration": "reference_indexed",
     "scope": "Discovery is not absorption or verification"
+  },
+  {
+    "id": "nist-si-units",
+    "title": "NIST SI base and derived units",
+    "url": "https://www.nist.gov/pml/owm/metric-si/si-units",
+    "summary": "Read SI base/derived unit structure as the reference for explicit mechanical dimension algebra (length, mass, time) and derived force, stress, energy, velocity and acceleration. This supports declared-label compatibility checks, not detection of a solver model unit system.",
+    "license_status": "Link-only factual reference; no page text/images redistributed",
+    "integration": "unit_contract_reference",
+    "scope": "Selected multiplicative mechanical units; not full SI/affine conversion coverage"
+  },
+  {
+    "id": "nist-si-prefixes",
+    "title": "NIST metric SI prefixes",
+    "url": "https://www.nist.gov/pml/owm/metric-si-prefixes",
+    "summary": "Reference for decimal SI prefix scales used in exact rational conversion factors. Implementation deliberately supports a bounded common mechanical subset; unknown labels and unsupported syntax are rejected rather than guessed.",
+    "license_status": "Link-only factual reference; no page text/images redistributed",
+    "integration": "unit_contract_reference",
+    "scope": "Selected prefixes and explicit compound units only"
   }
 ]

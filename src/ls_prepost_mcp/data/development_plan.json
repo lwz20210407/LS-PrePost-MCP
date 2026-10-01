@@ -301,6 +301,22 @@
         "H05"
       ],
       "remaining": "包含 AgentKit、K-agent、ls_toolbox、遗留库、SPH/颗粒/宏、其他 CAE MCP；未声明全量移植或执行。"
+    },
+    {
+      "id": "SF15",
+      "title": "SI 单位与量纲基础",
+      "source_ids": [
+        "nist-si-units",
+        "nist-si-prefixes"
+      ],
+      "review_status": "selected_primary_pages_read",
+      "conversion_status": "implemented_math_with_synthetic_validation",
+      "backlog_ids": [
+        "A09",
+        "E12",
+        "E13"
+      ],
+      "remaining": "仅显式声明单位的常见机械量；完整模型单位传播、温度偏置和物理量含义仍不推断。"
     }
   ],
   "modules": [
@@ -491,7 +507,8 @@
         "SF01",
         "SF02",
         "SF03",
-        "SF13"
+        "SF13",
+        "SF15"
       ],
       "backlog_ids": [
         "A09",
@@ -508,7 +525,8 @@
         "combine_history_curves",
         "assess_energy_balance",
         "native_tensile_postprocess",
-        "native_energy_postprocess"
+        "native_energy_postprocess",
+        "convert_history_units"
       ],
       "status": "partial",
       "contract_doc": "docs/ARCHITECTURE.md"
@@ -1182,8 +1200,9 @@
         "曲线/应力应变/能量有合成真值",
         "缺失能量和无效比值不伪造零"
       ],
-      "status": "planned",
-      "milestone": "R1"
+      "status": "in_progress",
+      "milestone": "R1",
+      "progress": "Explicit mechanical unit conversion and per-source time/value normalization before curve alignment implemented with dimensional rejection and exact-factor provenance. Synthetic workflow acceptance; original solver labels remain unverified. Full energy budget, gauge/section and GUI curve management remain."
     },
     {
       "id": "T09",

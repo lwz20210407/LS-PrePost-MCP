@@ -2,6 +2,8 @@
 
 ## 0.4.0 (development)
 
+- Add explicit scalar-history unit conversion and per-source normalization before curve alignment. Preserve rational scale provenance, reject incompatible dimensions and numerical range loss, and mark legacy shared-unit assumptions. Verify a mixed-unit force/relative-displacement -> stress/strain/work recipe in CI; no solver unit inference is implied.
+
 - Add bounded absolute global node-coordinate/axis alignment through native grouped translations. Preserve untouched nodes/topology and part flags; report affected elements and checkpoints. Verify native quality gating, coordinate-parameter recording/replay, save/reopen and explicit recovery on a synthetic visible 4.13.4 mesh.
 
 - Preserve explicit result/artifact dependencies through managed recording and include engineering/file steps of the recorded workflow. Changed selectors now drive new extraction IDs and new curve artifacts; unresolved dependencies and failed argument resolution require review. Verify changed-node replay in visible 4.13.4.

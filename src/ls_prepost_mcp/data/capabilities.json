@@ -859,7 +859,8 @@
       "sources": [
         "tutorial-crossplot"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "unit_scope": "Optional per-source time/value units converted before alignment. Legacy calls explicitly mark shared units as assumed/unverified."
     },
     {
       "id": "automation.assess_energy_balance",
@@ -1331,6 +1332,17 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ]
+    },
+    {
+      "id": "engineering.convert_history_units",
+      "tool": "convert_history_units",
+      "status": "implemented",
+      "sources": [
+        "nist-si-units",
+        "nist-si-prefixes"
+      ],
+      "backend": "explicit-unit-math",
+      "scope": "Declared scalar-history time/value conversion; exact rational factors, dimension checks and range/underflow guards. Synthetic truth tests; no native/solver unit inference or affine temperature conversion."
     }
   ],
   "native_reference_builds": [

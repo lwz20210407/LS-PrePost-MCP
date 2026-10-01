@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "name": "Declared mixed-unit force and relative-displacement workflow",
+  "defaults": {
+    "force_sign": 1,
+    "displacement_sign": 1
+  },
+  "steps": [
+    {
+      "id": "force",
+      "action": "convert_history_units",
+      "arguments": {
+        "path": {
+          "$param": "force_curve"
+        },
+        "value_unit": {
+          "$param": "force_unit"
+        },
+        "output_value_unit": "N",
+        "time_unit": {
+          "$param": "force_time_unit"
+        },
+        "output_time_unit": "s"
+      }
+    },
+    {
+      "id": "relative",
+      "action": "combine_history_curves",
+      "arguments": {
+        "paths": [
+          {
+            "$param": "moving_curve"
+          },
+          {
+            "$param": "reference_curve"
+          }
+        ],
+        "operation": "difference",
+        "units": "mm",
+        "time_unit": "s",
+        "source_units": [
+          {
+            "time": {
+              "$param": "moving_time_unit"
+            },
+            "value": {
+              "$param": "moving_unit"
+            }
+          },
+          {
+            "time": {
+              "$param": "reference_time_unit"
+            },
+            "value": {
+              "$param": "reference_unit"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "tensile",
+      "action": "build_tensile_curves",
+      "arguments": {
+        "force_curve": {
+          "$artifact": "force"
+        },
+        "displacement_curve": {
+          "$artifact": "relative"
+        },
+        "area": {
+          "$param": "area_mm2"
+        },
+        "gauge_length": {
+          "$param": "gauge_length_mm"
+        },
+        "force_unit": "N",
+        "length_unit": "mm",
+        "time_unit": "s",
+        "force_sign": {
+          "$param": "force_sign"
+        },
+        "displacement_sign": {
+          "$param": "displacement_sign"
+        }
+      }
+    }
+  ]
+}

@@ -57,6 +57,7 @@ WORKFLOW_ACTIONS = (
         "extract_native_fields",
         "build_tensile_curves",
         "combine_history_curves",
+        "convert_history_units",
         "assess_energy_balance",
         "native_energy_postprocess",
         "native_tensile_postprocess",

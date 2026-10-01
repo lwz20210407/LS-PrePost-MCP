@@ -46,7 +46,56 @@ def align(curves):
     return times, [np.interp(times, t, v) for t, v in curves]
 
 
+def convert_samples(curve, conversion):
+    time, values = curve
+    with np.errstate(over="ignore", under="ignore", invalid="ignore"):
+        converted_time = time * conversion["time_factor"]
+        converted_values = values * conversion["value_factor"]
+    if not np.isfinite(converted_time).all() or not np.isfinite(converted_values).all():
+        raise ValueError("Unit conversion produced nonfinite samples")
+    if np.any((values != 0) & (converted_values == 0)) or np.any((time != 0) & (converted_time == 0)):
+        raise ValueError("Unit conversion underflow would erase nonzero samples")
+    if np.any(np.diff(converted_time) <= 0):
+        raise ValueError("Unit conversion collapsed time resolution")
+    return converted_time, converted_values
+
+
 class EngineeringTools:
+    def convert_history_units(
+        self,
+        path: str,
+        value_unit: str,
+        output_value_unit: str,
+        time_unit: str,
+        output_time_unit: str,
+        time_column: str = "time",
+        value_column: str = "value",
+    ) -> dict:
+        """Convert one scalar history with explicit compatible mechanical units, including time. Returns time,value CSV and exact-factor provenance. No unit inference, temperature offsets or mixed-entity curves."""
+        from .units import curve_conversion
+
+        conversion = curve_conversion(time_unit, value_unit, output_time_unit, output_value_unit)
+        source = self.settings.input_path(path)
+
+        def work(directory):
+            times, values = convert_samples(read_curve(source, time_column, value_column), conversion)
+            artifact = write_csv(directory / "curve.csv", ["time", "value"], zip(times, values))
+            return dict(backend="explicit-unit-math", row_count=len(times), unit_contract=conversion), [
+                artifact
+            ]
+
+        return self._post_job(
+            "convert_history_units",
+            dict(
+                units=output_value_unit,
+                unit_contract=conversion,
+                time_column=time_column,
+                value_column=value_column,
+            ),
+            [source],
+            work,
+        )
+
     def build_tensile_curves(
         self,
         force_curve: str,
@@ -136,16 +185,40 @@ class EngineeringTools:
             work,
         )
 
-    def combine_history_curves(self, paths: list[str], operation: str, units: str) -> dict:
-        """Sum, average or subtract aligned scalar histories without extrapolation. Use e.g. nodal reaction-force sums; units must already match."""
+    def combine_history_curves(
+        self,
+        paths: list[str],
+        operation: str,
+        units: str,
+        source_units: list[dict] | None = None,
+        time_unit: str | None = None,
+    ) -> dict:
+        """Sum/average/subtract scalar histories without extrapolation. Optional source_units=[{time,value},...] explicitly converts each curve to units/time_unit before alignment. Without metadata, matching units are caller assumptions, not validated."""
+        from .units import curve_conversion
+
         if not 2 <= len(paths) <= 100 or operation not in ("sum", "mean", "difference"):
             raise ValueError("Provide 2..100 histories and sum/mean/difference")
         if operation == "difference" and len(paths) != 2:
             raise ValueError("Difference requires two curves")
+        conversions = None
+        if source_units is not None:
+            if (
+                not isinstance(source_units, list)
+                or len(source_units) != len(paths)
+                or any(not isinstance(s, dict) or set(s) != {"time", "value"} for s in source_units)
+            ):
+                raise ValueError("source_units requires one {time,value} declaration per input curve")
+            conversions = [curve_conversion(s["time"], s["value"], time_unit, units) for s in source_units]
+            source_units = [dict(time=c["source_time_unit"], value=c["source_value_unit"]) for c in conversions]
+        elif time_unit is not None:
+            raise ValueError("Provide per-source units before specifying a converted output time unit")
         sources = [self.settings.input_path(p) for p in paths]
 
         def work(directory):
-            times, values = align([read_curve(p) for p in sources])
+            curves = [read_curve(p) for p in sources]
+            if conversions is not None:
+                curves = [convert_samples(c, unit) for c, unit in zip(curves, conversions)]
+            times, values = align(curves)
             result = (
                 np.sum(values, axis=0)
                 if operation == "sum"
@@ -155,10 +228,25 @@ class EngineeringTools:
             )
             artifact = write_csv(directory / "curve.csv", ["time", "value"], zip(times, result))
             return dict(
-                operation=operation, row_count=len(times), alignment="common interval, linear interpolation"
+                operation=operation,
+                row_count=len(times),
+                alignment="common interval, linear interpolation",
+                unit_contract=dict(
+                    mode="declared_conversion" if conversions is not None else "assumed_shared",
+                    output_value_unit=units,
+                    output_time_unit=time_unit,
+                    dimensional_compatibility_checked=conversions is not None,
+                    source_unit_labels_verified=False,
+                    conversions=conversions,
+                ),
             ), [artifact]
 
-        return self._post_job("combine_history_curves", dict(operation=operation, units=units), sources, work)
+        return self._post_job(
+            "combine_history_curves",
+            dict(operation=operation, units=units, source_units=source_units, time_unit=time_unit),
+            sources,
+            work,
+        )
 
     def assess_energy_balance(
         self,
