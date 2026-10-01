@@ -1134,7 +1134,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Native import: quad and tri shells tested; hex8 implementation requires separate native acceptance; existing mesh/part membership verified"
+      "scope": "Native quad/tri shell import retained. 4.13.4 shared-face Hex8 creation now verified: native box + four new nodes + adjacent hex, exact connectivity/part membership, geometric quality, native save/reopen; inverted hex rejected before import. No native solid Model Checking, material/contact or solver certification."
     },
     {
       "id": "gui_mesh.restart_gui_session",

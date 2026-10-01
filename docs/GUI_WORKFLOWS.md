@@ -19,7 +19,7 @@
 | `set_gui_node_coordinates` | 指定已有节点的全局绝对 XYZ；null 保留原轴，可沿全局坐标轴对齐 | 1–100 节点，按相同位移分组调用原生 Translate；全节点/连接/部件显隐核对、绝对容差、编辑前后检查点。4.13.4 完整流程与不同位移组已验；不是 CAD 投影或完整 Node Editing 面板 |
 | `rotate_gui_nodes` | 同一 GUI 中绕全局轴/指定中心旋转 | 已验证整体旋转，最大坐标误差约 1.2e-7；未自动旋转载荷/材料轴 |
 | `create_gui_nodes` | 通过原生 keyword import 向当前模型增加节点 | 新增 2 节点且原网格保持；不是整个 Node Edit 面板封装 |
-| `create_gui_elements` | 向已有部件原生导入三角/四边壳或 hex8 | 四边壳已验证；三角/hex8 实现但需补实测。核对目标部件、连接和原网格保持 |
+| `create_gui_elements` | 向已有部件原生导入三角/四边壳或 hex8 | 三角/四边壳及 Hex8 已验证。实体案例：12 节点/2 个相邻六面体共用 4 节点面，核对连接/部件、几何质量、原生重开；反转连接预检拒绝。非原生实体质量面板或物理认证 |
 | `inspect_gui_mesh_quality` | 读取当前 GUI 内存网格，计算面积/边长比/翘曲/体积/Jacobian 等 | 原生读取 + 几何数学，不冒充原生 Model Checking；可设 `fail_on_issues=true` |
 | `check_gui_shell_quality` | 真正调用 Model Checking 的壳 Element Quality，13 类可选指标和显式阈值 | 4.13.4 四边壳与三角壳已验；原生最小/最大/违规数量读回，保留 GUI 显示精度。不覆盖全部 Keyword/Contact Check |
 | `inspect_gui_menu` | 按路径/深度读取当前构建菜单、真实命令 ID 与启用状态 | 4.13.4 读取 448 条树记录；包含分组导航，不能等同 448 项功能完成 |
@@ -78,3 +78,5 @@ Keyword Check 现已独立接入：报告必须包含原生头尾标记和完整
 待补仍包括所有质量失败单元 ID、Contact Check、自动修复、实体/梁质量及旧版本；不能把违规数相加冒充独立失败单元总数。
 
 来源：[2026R1 用户指南](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/pdf/Ansys_LS-PrePost_Users_Guide.pdf)、[厂商配置说明](https://lsdyna.ansys.com/wp-content/uploads/2025/02/express-webinar_dynamore-lspp-24072020.pdf)及本机合成 GUI 录制。完整待办仍见 [总清单](REQUESTS_AND_PRIORITIES.md)。
+
+实体创建复验入口：`tools/run_gui_hex_edit_acceptance.py --workspace <output> --executable <installed-lsprepost>`。只生成自建合成网格；使用现有建模/导入接口，不读取用户求解结果。
