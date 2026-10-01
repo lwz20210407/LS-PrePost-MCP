@@ -1301,6 +1301,19 @@
         "library-lasso"
       ],
       "scope": "ResultSelection/SamplingSpec/FieldSpec metadata in native SCL and LASSO field/stress paths. No native-layer/reader-slot equivalence, dimension inference or arbitrary history meaning. Request/export/parser tests only; no added native numerical certification."
+    },
+    {
+      "id": "gui.transaction_scopes",
+      "tool": "select_gui_entities",
+      "status": "native_tested",
+      "sources": [
+        "guide-selection",
+        "guide-modelcheck"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Selection/inspection avoid keyword checkpoint exports and preserve prior dirty/checkpoint state. Edit checkpoints retained. Native selection/buffers and full gate replay verified; full snapshots and 20000 bound remain."
     }
   ],
   "native_reference_builds": [

@@ -159,7 +159,7 @@ def test_stale_buffer_rejected_before_native_input(tmp_path, monkeypatch):
 
     monkeypatch.setattr(s, "_session_manager", Manager)
 
-    def edit(sid, action, params, commands, verify, precheck):
+    def edit(sid, action, params, commands, verify, precheck, **kwargs):
         state = mesh()
         state["nodes"][0][1] = 5
         precheck(state)

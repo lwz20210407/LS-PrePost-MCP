@@ -65,6 +65,25 @@ def accept(workspace, executable, hold_seconds=0, stop_file=None):
     opened = service.open_in_gui_session(sid, str(source))
     assert opened["status"] == "succeeded", opened
     service.set_gui_display(sid, view="top", display_mode="shaded", center=True, capture=False)
+    requests = Path(session["directory"]) / "requests"
+    saved_before_selection = service.inspect_gui_session(sid).get("last_checkpoint")
+    exports_before_selection = set(requests.rglob("model.k"))
+    selection_results = []
+    for operation in (
+        lambda: service.select_gui_entities(sid, "node", [1, 2]),
+        lambda: service.save_gui_selection_buffer(sid, "node", [1, 2], 1),
+        lambda: service.select_gui_entities(sid, "node", []),
+        lambda: service.load_gui_selection_buffer(sid, 1),
+    ):
+        active()
+        selected = operation()
+        assert selected["status"] == "succeeded", selected
+        assert selected["transaction_kind"] == "selection" and not selected["checkpoint_created"]
+        selection_results.append(selected)
+    assert set(requests.rglob("model.k")) == exports_before_selection
+    assert service.inspect_gui_session(sid).get("last_checkpoint") == saved_before_selection
+    atomic_json(root / "selection-transactions.json", selection_results)
+    print("Selection/buffer operations created no keyword exports", flush=True)
     cases = {}
 
     def run_case(name, first, expect_success, offset):
@@ -89,6 +108,9 @@ def accept(workspace, executable, hold_seconds=0, stop_file=None):
         atomic_json(root / "cases.json", cases)
         print(name, result["status"], result["data"]["skipped_steps"], flush=True)
         assert result["status"] == ("succeeded" if expect_success else "failed"), result
+        checked = result["data"]["steps"]["check"]
+        assert checked["transaction_kind"] == "inspection" and not checked["checkpoint_created"]
+        assert not (Path(checked["job_directory"]) / "model.k").exists()
         active()
         after = service.inspect_gui_mesh(sid, include_entities=True)
         assert after["status"] == "succeeded", after

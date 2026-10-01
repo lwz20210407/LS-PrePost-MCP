@@ -1033,15 +1033,17 @@
         "A04"
       ],
       "depends_on": [
-        "T01"
+        "T01",
+        "T03-TXN"
       ],
       "acceptance": [
         "简单选择不必重复保存整个模型",
         "100000 合成节点/单元目标的规模证据",
         "修改范围与未修改实体可核对"
       ],
-      "status": "planned",
-      "milestone": "R1"
+      "status": "in_progress",
+      "milestone": "R1",
+      "progress": "Transaction subtype now avoids full keyword exports for selection/inspection. Incremental/chunked readback and 100000-entity target are not implemented/verified yet."
     },
     {
       "id": "T04",
@@ -1258,6 +1260,31 @@
       ],
       "status": "planned",
       "milestone": "R1"
+    },
+    {
+      "id": "T03-TXN",
+      "title": "区分选择/检查与模型修改事务",
+      "modules": [
+        "runtime",
+        "selection",
+        "checks"
+      ],
+      "backlog_ids": [
+        "A02"
+      ],
+      "depends_on": [
+        "T01-OUTCOME",
+        "T02"
+      ],
+      "acceptance": [
+        "选择/检查不自动保存整模 k",
+        "保留原 dirty 状态和已有检查点",
+        "模型编辑仍有前后检查点与读回核对"
+      ],
+      "status": "complete",
+      "milestone": "R1",
+      "evidence": "docs/GUI_WORKFLOWS.md",
+      "progress": "Unit tests and 4.13.4 visible selection/buffer/native checks plus gate-recording replay passed. Full snapshots/20000 limits remain."
     }
   ],
   "knowledge_tools": [

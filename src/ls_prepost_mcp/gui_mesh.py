@@ -245,22 +245,32 @@ class GuiMeshTools:
         postcheck=None,
         preflight=None,
         on_verified=None,
+        transaction_kind="edit",
     ):
+        if transaction_kind not in ("edit", "selection", "inspection"):
+            raise ValueError("Unsupported GUI transaction kind")
+        mutates_model = transaction_kind == "edit"
+        if not mutates_model and (preflight or postcheck):
+            raise ValueError("Keyword-file pre/post checks require an edit checkpoint")
+        artifacts = (("model.k", "keyword"),) if mutates_model else ()
         manager = self._session_manager()
         with manager.lock(session_id):
-            self._visible_mesh_session(session_id, manager)
+            original_meta = self._visible_mesh_session(session_id, manager)
             baseline = manager.dispatch(
-                session_id, "gui_mesh_state", {}, artifacts=(("model.k", "keyword"),), export=True
+                session_id, "gui_mesh_state", {}, artifacts=artifacts, export=mutates_model
             )
             if baseline["status"] != "succeeded":
                 return baseline
             before = baseline["data"]
             if precheck:
                 precheck(before)
-            checkpoint = baseline["artifacts"][0]["path"]
+            checkpoint = (
+                baseline["artifacts"][0]["path"] if mutates_model else original_meta.get("last_checkpoint")
+            )
             meta = manager.read(session_id)
-            meta.update(last_checkpoint=checkpoint, dirty=False)
-            manager.save(session_id, meta)
+            if mutates_model:
+                meta.update(last_checkpoint=checkpoint, dirty=False)
+                manager.save(session_id, meta)
             if preflight:
                 preflight(Path(checkpoint))
             try:
@@ -271,12 +281,14 @@ class GuiMeshTools:
                     "gui_mesh_state",
                     {},
                     native_commands=commands,
-                    artifacts=(("model.k", "keyword"),),
-                    export=True,
+                    artifacts=artifacts,
+                    export=mutates_model,
                 )
             except Exception as exc:
                 meta = manager.read(session_id)
-                meta.update(state="uncertain", dirty=True)
+                meta.update(
+                    state="uncertain", dirty=True if mutates_model else original_meta.get("dirty", False)
+                )
                 manager.save(session_id, meta)
                 result = dict(
                     session_id=session_id,
@@ -285,6 +297,8 @@ class GuiMeshTools:
                     artifacts=[],
                     baseline_checkpoint=checkpoint,
                     error=dict(type=type(exc).__name__, message=str(exc)),
+                    transaction_kind=transaction_kind,
+                    checkpoint_created=mutates_model,
                 )
                 atomic_json(Path(baseline["job_directory"]) / "edit-failure.json", result)
                 manager.journal(session_id, dict(action=action, parameters=parameters, result=result))
@@ -292,7 +306,7 @@ class GuiMeshTools:
             directory = Path(result["job_directory"])
             atomic_json(directory / "before.json", before)
             meta = manager.read(session_id)
-            meta["dirty"] = True
+            meta["dirty"] = True if mutates_model else original_meta.get("dirty", False)
             if result["status"] == "succeeded":
                 try:
                     validation = verify(before, result["data"])
@@ -303,13 +317,21 @@ class GuiMeshTools:
                     atomic_json(directory / "verification.json", validation)
                     result["verification"] = validation
                     result["artifacts"].append(check_artifact(directory / "verification.json", "json"))
-                    meta.update(last_checkpoint=str(directory / "model.k"), dirty=False)
+                    if mutates_model:
+                        meta.update(last_checkpoint=str(directory / "model.k"), dirty=False)
                     if on_verified:
                         on_verified(before, result["data"], meta)
                 except Exception as exc:
                     result.update(status="failed", error=dict(type=type(exc).__name__, message=str(exc)))
                     meta["state"] = "uncertain"
-            result.update(execution_mode="visible_gui_native_cfile", baseline_checkpoint=checkpoint)
+                    # Verification failed: unexpected external/model changes cannot be excluded.
+                    meta["dirty"] = True
+            result.update(
+                execution_mode="visible_gui_native_cfile",
+                baseline_checkpoint=checkpoint,
+                transaction_kind=transaction_kind,
+                checkpoint_created=mutates_model,
+            )
             if result.get("data"):
                 atomic_json(directory / "after.json", result["data"])
                 result["artifacts"].append(check_artifact(directory / "after.json", "json"))

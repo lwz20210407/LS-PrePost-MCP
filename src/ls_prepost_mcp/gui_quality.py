@@ -147,7 +147,9 @@ class GuiQualityTools:
                 **report,
             )
 
-        return self._gui_mesh_edit(session_id, "check_gui_keywords", {}, commands, verify)
+        return self._gui_mesh_edit(
+            session_id, "check_gui_keywords", {}, commands, verify, transaction_kind="inspection"
+        )
 
     def inspect_gui_menu(
         self, session_id: str, path_prefix: list[str] | None = None, max_depth: int = 2
@@ -265,4 +267,5 @@ class GuiQualityTools:
             commands,
             verify,
             precheck,
+            transaction_kind="inspection",
         )

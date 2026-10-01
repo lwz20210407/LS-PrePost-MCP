@@ -97,6 +97,7 @@ class GuiSelectionTools:
             lambda a, b: verify_selection(a, b, expected, kind),
             precheck,
             on_verified=on_verified,
+            transaction_kind="selection",
         )
 
     def select_gui_entities(
@@ -243,6 +244,7 @@ class GuiSelectionTools:
             ],
             lambda a, b: verify_selection(a, b, entry["entity_ids"], entry["entity_type"]),
             precheck,
+            transaction_kind="selection",
         )
 
     def select_gui_nodes_by_plane(
