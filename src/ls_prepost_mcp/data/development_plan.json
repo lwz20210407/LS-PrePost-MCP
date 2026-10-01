@@ -1,0 +1,1255 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-10-01",
+  "baseline_commit": "795a354",
+  "product_goal": "自然语言通过 MCP 与 Skills，在明确模型、单位、选区、版本和后端的前提下，完成可验证、可恢复的 LS-PrePost 常用前后处理完整流程。",
+  "backlog_document": "docs/BACKLOG_REVIEW_2026-10-01.md",
+  "architecture_document": "docs/ARCHITECTURE.md",
+  "source_families": [
+    {
+      "id": "SF01",
+      "title": "官方 LS-PrePost 帮助与用户手册",
+      "source_ids": [
+        "official-2026r1-guide",
+        "official-command-interface",
+        "guide-selection",
+        "guide-modelcheck",
+        "guide-post-semantics",
+        "guide-fragments",
+        "guide-vsg"
+      ],
+      "review_status": "selected_sections_reviewed",
+      "conversion_status": "partial",
+      "backlog_ids": [
+        "A03",
+        "B02",
+        "C01",
+        "D03",
+        "E01",
+        "E10",
+        "H01"
+      ],
+      "remaining": "未逐项覆盖全部章节、折叠菜单和不同版本；2026R1 与其他 4.13 文档需继续逐功能对照。"
+    },
+    {
+      "id": "SF02",
+      "title": "官方教程与参数化/后处理教学",
+      "source_ids": [
+        "tutorial-crossplot",
+        "tutorial-posttools",
+        "official-parametric-preprocessor",
+        "official-history-extraction",
+        "research-50",
+        "research-51",
+        "research-52",
+        "research-53",
+        "research-54",
+        "research-55"
+      ],
+      "review_status": "selected_workflows_reviewed",
+      "conversion_status": "partial",
+      "backlog_ids": [
+        "D10",
+        "D11",
+        "E08",
+        "H01"
+      ],
+      "remaining": "球撞板、修复、中面、Block Mesher 等尚未全部转成完整可执行验收。"
+    },
+    {
+      "id": "SF03",
+      "title": "官方 SCL/Python/DataCenter 与本地标准 PyLSPP 示例",
+      "source_ids": [
+        "official-scl-rev11",
+        "local-Example1",
+        "local-Example2",
+        "local-Example3",
+        "local-Example4",
+        "local-Example4a",
+        "local-Example5",
+        "local-Example6",
+        "local-Example7",
+        "local-Example8",
+        "local-Example9",
+        "local-Example10",
+        "local-Example11",
+        "local-StressExtraction-shell",
+        "local-StressExtraction-solid"
+      ],
+      "review_status": "indexed_and_selected_cases_reviewed",
+      "conversion_status": "partial",
+      "backlog_ids": [
+        "E01",
+        "E02",
+        "G04",
+        "G05",
+        "H01"
+      ],
+      "remaining": "API 族、数组生命期、选择/历史/层语义仍缺；标准示例索引不等于每个示例执行完毕。"
+    },
+    {
+      "id": "SF04",
+      "title": "用户本地自定义 SCL/Python/命令案例",
+      "source_ids": [
+        "local-custom-01",
+        "local-custom-02",
+        "local-custom-03",
+        "local-custom-04",
+        "local-custom-05",
+        "local-custom-06",
+        "local-custom-07",
+        "local-custom-08",
+        "local-custom-09",
+        "local-custom-10",
+        "local-custom-11",
+        "local-custom-12"
+      ],
+      "review_status": "classified_and_selected_cases_reviewed",
+      "conversion_status": "partial",
+      "backlog_ids": [
+        "C07",
+        "C12",
+        "E07",
+        "E14",
+        "H01"
+      ],
+      "remaining": "骨料、阵列、失效实体、时程及截图流程仅部分转化；不直接执行未经检查的旧脚本。"
+    },
+    {
+      "id": "SF05",
+      "title": "PyDYNA 官方仓库与六个官网文档板块",
+      "source_ids": [
+        "library-pydyna",
+        "pydyna-official-docs"
+      ],
+      "review_status": "six_sections_have_review_notes",
+      "conversion_status": "partial",
+      "backlog_ids": [
+        "D02",
+        "D05",
+        "D11",
+        "H02",
+        "H07"
+      ],
+      "remaining": "Deck/关键字层部分接入；完整示例、复杂 include/card-set、求解/优化/DPF 尚未迁移。"
+    },
+    {
+      "id": "SF06",
+      "title": "F 盘本地 PyDYNA 材料与版本对应案例",
+      "source_ids": [
+        "local-pydyna-cases"
+      ],
+      "review_status": "selected_versioned_examples_reviewed",
+      "conversion_status": "partial",
+      "backlog_ids": [
+        "D02",
+        "D10",
+        "H02"
+      ],
+      "remaining": "旧 pre/solvers 案例与新 keywords/Deck 需逐例迁移，不能整体视为当前版本可运行。"
+    },
+    {
+      "id": "SF07",
+      "title": "Malps-del/lspp-mcp-server",
+      "source_ids": [
+        "Malps-del/lspp-mcp-server",
+        "research-1",
+        "research-2",
+        "research-3",
+        "research-4",
+        "research-5",
+        "research-6",
+        "research-7",
+        "research-8",
+        "research-9"
+      ],
+      "review_status": "core_architecture_reviewed",
+      "conversion_status": "design_reference",
+      "backlog_ids": [
+        "G01",
+        "G02",
+        "H05"
+      ],
+      "remaining": "当前核心独立实现，未宣称完整继承上游；能力逐项比较和迁移仍需完善。"
+    },
+    {
+      "id": "SF08",
+      "title": "Hydrowelder 命令编辑辅助资料",
+      "source_ids": [
+        "library-cfile-support"
+      ],
+      "review_status": "command_catalog_reviewed",
+      "conversion_status": "catalog_integrated",
+      "backlog_ids": [
+        "G02",
+        "H01"
+      ],
+      "remaining": "命令表用于检索，参数语义、版本、执行验证仍需逐项转化。"
+    },
+    {
+      "id": "SF09",
+      "title": "LASSO",
+      "source_ids": [
+        "library-lasso"
+      ],
+      "review_status": "selected_reader_paths_reviewed",
+      "conversion_status": "partial",
+      "backlog_ids": [
+        "E06",
+        "E07",
+        "H03"
+      ],
+      "remaining": "大文件、MPP、特殊结果与有效实体语义仍未完整适配。"
+    },
+    {
+      "id": "SF10",
+      "title": "LS-Reader 与本地 SDK",
+      "source_ids": [
+        "research-30",
+        "lsreader-local-sdk"
+      ],
+      "review_status": "selected_sdk_paths_reviewed",
+      "conversion_status": "partial",
+      "backlog_ids": [
+        "E03",
+        "E04",
+        "H03"
+      ],
+      "remaining": "ABI 隔离和节点对照已有，更多元素/历史量/版本尚未覆盖。"
+    },
+    {
+      "id": "SF11",
+      "title": "公开图文视频教程",
+      "source_ids": [
+        "video-selection-tips",
+        "video-aisol-course"
+      ],
+      "review_status": "mixed_review_and_discovery",
+      "conversion_status": "partial",
+      "backlog_ids": [
+        "B02",
+        "B03",
+        "B04",
+        "B07",
+        "H04"
+      ],
+      "remaining": "仅选定视频片段转成缓存等功能，其他课程不是已完成学习/移植。"
+    },
+    {
+      "id": "SF12",
+      "title": "本机安装过滤器与模板包",
+      "source_ids": [
+        "local-installation-assets-413"
+      ],
+      "review_status": "inventoried_and_scoped_native_load_tested",
+      "conversion_status": "partial",
+      "backlog_ids": [
+        "D09",
+        "D10"
+      ],
+      "remaining": "41/7 基础接入不等于 GUI 操作和工况工程语义完成。"
+    },
+    {
+      "id": "SF13",
+      "title": "用户授权的本地模型与结果",
+      "source_ids": [
+        "private-native-fixtures"
+      ],
+      "review_status": "representative_validation_only",
+      "conversion_status": "private_test_evidence",
+      "backlog_ids": [
+        "A07",
+        "E01",
+        "E02",
+        "E06"
+      ],
+      "remaining": "仅作测试夹具，不发布原始与派生数据，不作为功能数量或资料吸收完成证明。"
+    },
+    {
+      "id": "SF14",
+      "title": "其他公开仓库、编辑器与架构/专项工作流参考",
+      "source_ids": [
+        "JimmyZhou226/lsdyna-r13-keyword-mcp",
+        "LLK-LL/K-agent",
+        "SimAgentDev/Ansys-LSPP-AgentKit",
+        "extra-dynautils",
+        "extra-jfriedlein-macros",
+        "extra-koo-renderer",
+        "extra-parametric",
+        "extra-postfem",
+        "extra-pycompact",
+        "extra-sphgen",
+        "extra-umat-lspp",
+        "extra-v50",
+        "historical-vr-socket",
+        "library-ls-toolbox",
+        "library-qd-cae",
+        "merghd/pyansys-mcp",
+        "research-25",
+        "research-26",
+        "research-27",
+        "research-28",
+        "research-29",
+        "vscode-lsdyna"
+      ],
+      "review_status": "indexed_or_selected_sources_reviewed",
+      "conversion_status": "reference_only",
+      "backlog_ids": [
+        "C12",
+        "G02",
+        "H04",
+        "H05"
+      ],
+      "remaining": "包含 AgentKit、K-agent、ls_toolbox、遗留库、SPH/颗粒/宏、其他 CAE MCP；未声明全量移植或执行。"
+    }
+  ],
+  "modules": [
+    {
+      "id": "selection",
+      "title": "选择与集合",
+      "source_families": [
+        "SF01",
+        "SF03",
+        "SF04",
+        "SF11"
+      ],
+      "backlog_ids": [
+        "A03",
+        "A04",
+        "B01",
+        "B02",
+        "B03",
+        "B04",
+        "B05",
+        "B06",
+        "B07"
+      ],
+      "current_tools": [
+        "select_gui_entities",
+        "select_gui_nodes_by_box",
+        "select_gui_nodes_by_sphere",
+        "select_gui_nodes_by_plane",
+        "combine_gui_selections",
+        "save_gui_selection_buffer",
+        "load_gui_selection_buffer"
+      ],
+      "status": "partial",
+      "contract_doc": "docs/ARCHITECTURE.md"
+    },
+    {
+      "id": "mesh",
+      "title": "网格生成与编辑",
+      "source_families": [
+        "SF01",
+        "SF02",
+        "SF03",
+        "SF04"
+      ],
+      "backlog_ids": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08",
+        "C09",
+        "C10",
+        "C11",
+        "C12"
+      ],
+      "current_tools": [
+        "create_shell_plate",
+        "create_solid_box",
+        "create_solid_sphere",
+        "extrude_shell_part",
+        "translate_mesh_nodes",
+        "rotate_mesh_nodes",
+        "move_elements_to_part",
+        "transform_mesh_deck",
+        "merge_duplicate_mesh_nodes",
+        "inspect_gui_mesh",
+        "merge_gui_duplicate_nodes",
+        "reverse_gui_shell_normals",
+        "translate_gui_nodes",
+        "rotate_gui_nodes",
+        "create_gui_nodes",
+        "create_gui_elements",
+        "measure_parts"
+      ],
+      "status": "partial",
+      "contract_doc": "docs/ARCHITECTURE.md"
+    },
+    {
+      "id": "model",
+      "title": "模型/关键字/引用与编号",
+      "source_families": [
+        "SF01",
+        "SF03",
+        "SF05",
+        "SF06"
+      ],
+      "backlog_ids": [
+        "D01",
+        "D02",
+        "D04",
+        "D05",
+        "D06"
+      ],
+      "current_tools": [
+        "inspect_keyword_deck",
+        "create_elastic_material",
+        "update_elastic_material",
+        "create_node_set_by_box",
+        "create_tensile_shell_plate",
+        "list_pydyna_keywords",
+        "describe_pydyna_keyword",
+        "compose_keyword_deck",
+        "update_keyword_fields",
+        "update_keyword_table_row",
+        "renumber_gui_entities"
+      ],
+      "status": "partial",
+      "contract_doc": "docs/ARCHITECTURE.md"
+    },
+    {
+      "id": "checks",
+      "title": "模型检查与质量判定",
+      "source_families": [
+        "SF01",
+        "SF02",
+        "SF13"
+      ],
+      "backlog_ids": [
+        "A05",
+        "D03",
+        "D07",
+        "D08"
+      ],
+      "current_tools": [
+        "validate_model_references",
+        "inspect_mesh_quality",
+        "inspect_gui_mesh_quality",
+        "check_gui_shell_quality",
+        "check_gui_keywords"
+      ],
+      "status": "partial",
+      "contract_doc": "docs/ARCHITECTURE.md"
+    },
+    {
+      "id": "results",
+      "title": "原生与可选读取器结果提取",
+      "source_families": [
+        "SF01",
+        "SF03",
+        "SF04",
+        "SF09",
+        "SF10",
+        "SF13"
+      ],
+      "backlog_ids": [
+        "E01",
+        "E02",
+        "E03",
+        "E04",
+        "E05",
+        "E06",
+        "E07",
+        "E10",
+        "E14"
+      ],
+      "current_tools": [
+        "extract_nodal_results",
+        "extract_node_history",
+        "inspect_binout",
+        "extract_binout_curve",
+        "inspect_d3plot_scl",
+        "inspect_d3plot_database",
+        "extract_d3plot_nodal",
+        "extract_lsreader_nodal",
+        "inspect_result_fields",
+        "extract_d3plot_field",
+        "extract_d3plot_stress",
+        "inspect_binout_variable",
+        "extract_binout_table",
+        "extract_ascii_curve",
+        "extract_native_fields",
+        "extract_native_stress",
+        "extract_native_ascii_curve",
+        "extract_native_binout_curve",
+        "native_postprocess_case"
+      ],
+      "status": "partial",
+      "contract_doc": "docs/ARCHITECTURE.md"
+    },
+    {
+      "id": "engineering",
+      "title": "工程量与曲线语义",
+      "source_families": [
+        "SF01",
+        "SF02",
+        "SF03",
+        "SF13"
+      ],
+      "backlog_ids": [
+        "A09",
+        "E08",
+        "E09",
+        "E11",
+        "E12",
+        "E13"
+      ],
+      "current_tools": [
+        "compute_stress_invariants",
+        "process_curve",
+        "build_tensile_curves",
+        "combine_history_curves",
+        "assess_energy_balance",
+        "native_tensile_postprocess",
+        "native_energy_postprocess"
+      ],
+      "status": "partial",
+      "contract_doc": "docs/ARCHITECTURE.md"
+    },
+    {
+      "id": "presentation",
+      "title": "视图/菜单/云图与动画",
+      "source_families": [
+        "SF01",
+        "SF02",
+        "SF03"
+      ],
+      "backlog_ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F05",
+        "F06",
+        "F07"
+      ],
+      "current_tools": [
+        "render_snapshot",
+        "set_gui_display",
+        "set_gui_part_visibility",
+        "control_gui_animation",
+        "inspect_gui_menu"
+      ],
+      "status": "partial",
+      "contract_doc": "docs/ARCHITECTURE.md"
+    },
+    {
+      "id": "automation",
+      "title": "脚本/宏/录制与参数工作流",
+      "source_families": [
+        "SF02",
+        "SF03",
+        "SF07",
+        "SF08",
+        "SF14"
+      ],
+      "backlog_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08"
+      ],
+      "current_tools": [
+        "prepare_native_program",
+        "execute_native_program",
+        "execute_gui_command",
+        "create_native_macro",
+        "run_native_macro",
+        "create_workflow",
+        "run_workflow",
+        "start_session_recording",
+        "stop_session_recording",
+        "parameterize_workflow",
+        "import_command_recording"
+      ],
+      "status": "partial",
+      "contract_doc": "docs/ARCHITECTURE.md"
+    },
+    {
+      "id": "assets",
+      "title": "安装资源与工程模板",
+      "source_families": [
+        "SF05",
+        "SF06",
+        "SF12"
+      ],
+      "backlog_ids": [
+        "D09",
+        "D10",
+        "D11"
+      ],
+      "current_tools": [
+        "list_installation_assets",
+        "describe_installed_template",
+        "apply_keyword_filter",
+        "instantiate_installed_template"
+      ],
+      "status": "partial",
+      "contract_doc": "docs/ARCHITECTURE.md"
+    },
+    {
+      "id": "runtime",
+      "title": "会话/版本/数据对象与任务证据",
+      "source_families": [
+        "SF01",
+        "SF03",
+        "SF07",
+        "SF13"
+      ],
+      "backlog_ids": [
+        "A01",
+        "A02",
+        "A06",
+        "A07",
+        "A08"
+      ],
+      "current_tools": [
+        "checkpoint_gui_session",
+        "close_gui_session",
+        "export_keyword",
+        "get_element_connectivity",
+        "gui_session_action",
+        "inspect_gui_session",
+        "inspect_lsreader",
+        "inspect_model",
+        "list_gui_sessions",
+        "list_installations",
+        "list_jobs",
+        "list_nodes",
+        "list_parts",
+        "open_in_gui_session",
+        "probe_environment",
+        "probe_scl",
+        "read_job",
+        "recover_gui_session",
+        "reset_gui_session",
+        "restart_gui_session",
+        "restore_gui_checkpoint",
+        "run_on_version",
+        "show_gui_session",
+        "start_gui_session"
+      ],
+      "status": "partial",
+      "contract_doc": "docs/ARCHITECTURE.md"
+    }
+  ],
+  "workflows": [
+    {
+      "id": "WF-MESH",
+      "title": "常用网格编辑与检查",
+      "status": "partial",
+      "modules": [
+        "runtime",
+        "selection",
+        "mesh",
+        "model",
+        "checks"
+      ],
+      "sources": [
+        "SF01",
+        "SF02",
+        "SF03",
+        "SF04",
+        "SF13"
+      ],
+      "current_evidence": "docs/GUI_WORKFLOWS.md",
+      "current_scope": "4.13.4 单一 keyword 小网格，选择/合并/变换/法向/重编号及原生检查已形成限定流程。",
+      "next_backlog": [
+        "A01",
+        "A02",
+        "A04",
+        "A05",
+        "A07",
+        "B02",
+        "C01",
+        "C04",
+        "D07"
+      ],
+      "acceptance": [
+        "显式单位/模型/选区合同",
+        "全部修改有坐标/连接/引用读回",
+        "违规门槛能阻止后续步骤",
+        "输出 k 原生重开和修改范围核对",
+        "正反例及代表性大模型测试"
+      ]
+    },
+    {
+      "id": "WF-POST",
+      "title": "具有明确语义的工程后处理",
+      "status": "partial",
+      "modules": [
+        "runtime",
+        "selection",
+        "results",
+        "engineering",
+        "presentation"
+      ],
+      "sources": [
+        "SF01",
+        "SF02",
+        "SF03",
+        "SF09",
+        "SF10",
+        "SF13"
+      ],
+      "current_evidence": "docs/POSTPROCESSING.md",
+      "current_scope": "限定应力/节点/ASCII/binout 路线和工程曲线已有证据，完整 Post 选择/层/历史/显示语义未齐。",
+      "next_backlog": [
+        "A03",
+        "A09",
+        "E01",
+        "E02",
+        "E05",
+        "E06",
+        "E07",
+        "E08",
+        "E09",
+        "E11",
+        "F03",
+        "F04"
+      ],
+      "acceptance": [
+        "真实实体 ID/状态/时间/单位",
+        "量/分量/层/积分点/参考系/平均明示",
+        "原生导出与数值及图片相符",
+        "缺变量/失效实体/多分片不静默遗漏",
+        "原生与读取器后端标签和交叉核验"
+      ]
+    },
+    {
+      "id": "WF-AUTO",
+      "title": "录制与参数化复用",
+      "status": "partial",
+      "modules": [
+        "runtime",
+        "automation",
+        "checks",
+        "assets"
+      ],
+      "sources": [
+        "SF02",
+        "SF03",
+        "SF07",
+        "SF08",
+        "SF12",
+        "SF13"
+      ],
+      "current_evidence": "docs/GUI_WORKFLOWS.md",
+      "current_scope": "受管三步选择缓存参数回放、13 步 raw cfile 转工作流已验；任意鼠标/跨模型/条件循环未完成。",
+      "next_backlog": [
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "G01",
+        "G02",
+        "G03",
+        "G05",
+        "G06",
+        "G07"
+      ],
+      "acceptance": [
+        "保留源程序身份和显式参数",
+        "换参数不改原模型",
+        "模型/版本不匹配可解释地拒绝",
+        "支持质量断言与确定性失败恢复",
+        "同一受管 GUI 完整回放与产物核验"
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "id": "R0",
+      "title": "基线与顶层设计对齐",
+      "status": "in_progress",
+      "workflow_ids": [
+        "WF-MESH",
+        "WF-POST",
+        "WF-AUTO"
+      ],
+      "backlog_ids": [
+        "H01",
+        "F06",
+        "A07"
+      ],
+      "exit_criteria": [
+        "所有已有来源有分类与未转化项",
+        "所有正式操作有模块归属",
+        "三条流程有范围和验收标准",
+        "旧文档与当前基线不矛盾",
+        "CI 检查计划中的来源/工具/待办引用"
+      ]
+    },
+    {
+      "id": "R1",
+      "title": "0.4 首个实用版本：三条流程共同收口",
+      "status": "planned",
+      "workflow_ids": [
+        "WF-MESH",
+        "WF-POST",
+        "WF-AUTO"
+      ],
+      "backlog_ids": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A07",
+        "A08",
+        "A09",
+        "B02",
+        "B05",
+        "C01",
+        "C03",
+        "C04",
+        "D07",
+        "D08",
+        "E01",
+        "E02",
+        "E05",
+        "E08",
+        "E09",
+        "E11",
+        "F03",
+        "G01",
+        "G06"
+      ],
+      "exit_criteria": [
+        "ARCHITECTURE.md 冻结范围内三条流程均有正常/失败原生验收",
+        "不把前处理单独通过当作版本完成",
+        "模型/实体/结果/单位/检查结果的公共合同贯通",
+        "代表性合成规模目标 100000 节点/单元完成实测或明确调整目标后重新确认范围",
+        "可复用原生验收入口、Skill 和实际能力矩阵同交付"
+      ]
+    },
+    {
+      "id": "R2",
+      "title": "常用操作矩阵扩展",
+      "status": "planned",
+      "workflow_ids": [
+        "WF-MESH",
+        "WF-POST",
+        "WF-AUTO"
+      ],
+      "backlog_ids": [
+        "B01",
+        "B03",
+        "B04",
+        "B06",
+        "B07",
+        "C05",
+        "C06",
+        "C07",
+        "C08",
+        "C09",
+        "C10",
+        "C11",
+        "C12",
+        "E03",
+        "E04",
+        "E06",
+        "E07",
+        "E10",
+        "E12",
+        "E13",
+        "E14",
+        "F01",
+        "F02",
+        "F04",
+        "F05",
+        "F06",
+        "F07"
+      ],
+      "exit_criteria": [
+        "每个选定高频子模块都有冻结操作范围",
+        "新操作进入完整流程而非孤立按钮验收",
+        "扩展数量与缺口由能力矩阵报告，不能冒充全手册覆盖"
+      ]
+    },
+    {
+      "id": "R3",
+      "title": "模板工程化与自动化扩展",
+      "status": "planned",
+      "workflow_ids": [
+        "WF-MESH",
+        "WF-AUTO",
+        "WF-POST"
+      ],
+      "backlog_ids": [
+        "D01",
+        "D02",
+        "D03",
+        "D04",
+        "D05",
+        "D09",
+        "D10",
+        "D11",
+        "G01",
+        "G02",
+        "G03",
+        "G06",
+        "G07"
+      ],
+      "exit_criteria": [
+        "7 模板逐工况完整验收",
+        "常用材料/边界/接触与引用保真",
+        "参数工况与录制可复用",
+        "中断恢复不重复不确定修改"
+      ]
+    },
+    {
+      "id": "R4",
+      "title": "版本矩阵与两种无 GUI 模式",
+      "status": "planned",
+      "workflow_ids": [
+        "WF-MESH",
+        "WF-POST",
+        "WF-AUTO"
+      ],
+      "backlog_ids": [
+        "A06",
+        "G05",
+        "G08"
+      ],
+      "exit_criteria": [
+        "先完成上述可见 GUI 主流程",
+        "4.8/4.10/4.13 按能力验证",
+        "-nographics 与 runc= 分别验收",
+        "旧 ABI 和无图形限制显式化"
+      ]
+    },
+    {
+      "id": "R5",
+      "title": "几何与高级领域功能",
+      "status": "deferred",
+      "workflow_ids": [
+        "WF-MESH"
+      ],
+      "backlog_ids": [
+        "H06",
+        "H07"
+      ],
+      "exit_criteria": [
+        "按用户后排顺序开展几何/中面/几何划网格",
+        "求解服务及高级模块单独定义许可资源与验收"
+      ]
+    }
+  ],
+  "work_items": [
+    {
+      "id": "T01",
+      "title": "统一模型/选择/结果/单位/执行结果合同",
+      "modules": [
+        "runtime",
+        "selection",
+        "results",
+        "engineering"
+      ],
+      "backlog_ids": [
+        "A03",
+        "A04",
+        "A05",
+        "A09",
+        "E01"
+      ],
+      "depends_on": [],
+      "acceptance": [
+        "字段语义与已有工具兼容映射",
+        "实体 ID/状态/层/坐标/单位不再散落隐式解释"
+      ],
+      "status": "planned",
+      "milestone": "R1"
+    },
+    {
+      "id": "T02",
+      "title": "工作流显式质量断言与失败停止",
+      "modules": [
+        "automation",
+        "checks"
+      ],
+      "backlog_ids": [
+        "A05",
+        "G06"
+      ],
+      "depends_on": [
+        "T01"
+      ],
+      "acceptance": [
+        "执行成功但质量失败时后续步骤不运行",
+        "缺字段/未验证/不适用有独立处理"
+      ],
+      "status": "planned",
+      "milestone": "R1"
+    },
+    {
+      "id": "T03",
+      "title": "按需访问与只读/选区/编辑事务分离",
+      "modules": [
+        "runtime",
+        "mesh",
+        "selection"
+      ],
+      "backlog_ids": [
+        "A01",
+        "A02",
+        "A04"
+      ],
+      "depends_on": [
+        "T01"
+      ],
+      "acceptance": [
+        "简单选择不必重复保存整个模型",
+        "100000 合成节点/单元目标的规模证据",
+        "修改范围与未修改实体可核对"
+      ],
+      "status": "planned",
+      "milestone": "R1"
+    },
+    {
+      "id": "T04",
+      "title": "统一 keyword/d3plot 选择与有效实体范围",
+      "modules": [
+        "selection",
+        "results"
+      ],
+      "backlog_ids": [
+        "A03",
+        "A04",
+        "B02",
+        "B05",
+        "E07"
+      ],
+      "depends_on": [
+        "T01",
+        "T03"
+      ],
+      "acceptance": [
+        "选区带模型/状态/坐标/可见有效范围",
+        "结果模型选择可以驱动提取和云图"
+      ],
+      "status": "planned",
+      "milestone": "R1"
+    },
+    {
+      "id": "T05",
+      "title": "常用节点/单元编辑进入网格完整流程",
+      "modules": [
+        "mesh",
+        "model",
+        "checks"
+      ],
+      "backlog_ids": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C06",
+        "D07"
+      ],
+      "depends_on": [
+        "T02",
+        "T03",
+        "T04"
+      ],
+      "acceptance": [
+        "原生编辑与引用/拓扑一致",
+        "故意退化/错引用的门槛和回退",
+        "保存/重开验收"
+      ],
+      "status": "planned",
+      "milestone": "R1"
+    },
+    {
+      "id": "T06",
+      "title": "结果变量/层/积分点/坐标语义收敛",
+      "modules": [
+        "results",
+        "engineering"
+      ],
+      "backlog_ids": [
+        "E01",
+        "E02",
+        "E03",
+        "E04",
+        "A09"
+      ],
+      "depends_on": [
+        "T01"
+      ],
+      "acceptance": [
+        "常用量有明确原生与读取器映射",
+        "未确认 history slot 不作为已知物理量输出",
+        "张量与原生 Mises 对照"
+      ],
+      "status": "planned",
+      "milestone": "R1"
+    },
+    {
+      "id": "T07",
+      "title": "可见 GUI 原生结果提取与显示贯通",
+      "modules": [
+        "runtime",
+        "results",
+        "presentation"
+      ],
+      "backlog_ids": [
+        "E05",
+        "E06",
+        "E08",
+        "F03"
+      ],
+      "depends_on": [
+        "T03",
+        "T04",
+        "T06"
+      ],
+      "acceptance": [
+        "提取不暗中转为未声明的后台实例",
+        "数据/曲线/图像共享模型/状态/FieldSpec",
+        "缺文件分片/变量明确失败"
+      ],
+      "status": "planned",
+      "milestone": "R1"
+    },
+    {
+      "id": "T08",
+      "title": "工程曲线和能量主流程收口",
+      "modules": [
+        "engineering",
+        "checks",
+        "presentation"
+      ],
+      "backlog_ids": [
+        "E08",
+        "E09",
+        "E11",
+        "E12",
+        "A09"
+      ],
+      "depends_on": [
+        "T02",
+        "T06",
+        "T07"
+      ],
+      "acceptance": [
+        "单位/符号/时间对齐/面积标距显式",
+        "曲线/应力应变/能量有合成真值",
+        "缺失能量和无效比值不伪造零"
+      ],
+      "status": "planned",
+      "milestone": "R1"
+    },
+    {
+      "id": "T09",
+      "title": "录制参数复用接入两条业务主流程",
+      "modules": [
+        "automation",
+        "assets"
+      ],
+      "backlog_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G06",
+        "G07"
+      ],
+      "depends_on": [
+        "T02",
+        "T05",
+        "T08"
+      ],
+      "acceptance": [
+        "网格与后处理都能录制/改参数/回放",
+        "未知语义仍阻断",
+        "断点续跑不重复不确定修改"
+      ],
+      "status": "planned",
+      "milestone": "R1"
+    },
+    {
+      "id": "T10",
+      "title": "可复用合成 GUI 验收和版本能力记录",
+      "modules": [
+        "runtime",
+        "checks"
+      ],
+      "backlog_ids": [
+        "A06",
+        "A07",
+        "A08",
+        "F06"
+      ],
+      "depends_on": [
+        "T01"
+      ],
+      "acceptance": [
+        "私有临时验收方法转为通用测试驱动",
+        "构建/输入/命令/产物/检查可追溯",
+        "真实失败和旧版本差异保留"
+      ],
+      "status": "planned",
+      "milestone": "R1"
+    },
+    {
+      "id": "T11",
+      "title": "三条流程集成并发布首个实用版本",
+      "modules": [
+        "runtime",
+        "automation",
+        "checks",
+        "results"
+      ],
+      "backlog_ids": [
+        "A07",
+        "A08",
+        "H05"
+      ],
+      "depends_on": [
+        "T05",
+        "T08",
+        "T09",
+        "T10"
+      ],
+      "acceptance": [
+        "遵守首版本明确范围",
+        "三条流程全部通过原生与逻辑门槛",
+        "文档、Skill、包版本、支持矩阵一致"
+      ],
+      "status": "planned",
+      "milestone": "R1"
+    }
+  ],
+  "knowledge_tools": [
+    "search_knowledge",
+    "list_capabilities",
+    "search_commands",
+    "search_workflows"
+  ],
+  "current_milestone": "R0",
+  "next_milestone": "R1",
+  "policy": {
+    "visible_gui_first": true,
+    "target_versions": [
+      "4.8",
+      "4.10",
+      "4.13"
+    ],
+    "exclude_versions": [
+      "4.11"
+    ],
+    "private_fixtures_local_only": true,
+    "catalog_is_not_capability": true,
+    "unknown_native_semantics_block_promotion": true
+  }
+}

@@ -2,7 +2,9 @@
 
 This is a bounded development acceptance record, not certification of all LS-PrePost features or engineering models.
 
-## Automated checks
+Latest dated increment: at `795a354` (2026-10-01), 117 local tests passed. Windows 4.13.4 visible GUI evidence now also covers selection/buffers, renumbering, subset normals, native shell quality, Keyword Check, and 13-step raw cfile replay. See [GUI verification](GUI_WORKFLOWS.md) and the [current backlog audit](BACKLOG_REVIEW_2026-10-01.md). Older counts below describe earlier releases, not current coverage.
+
+## Initial automated checks (historical)
 
 - 49 Python tests including input boundaries, include handling, old-output rejection, job correlation, process isolation, vector semantics, version dispatch, PyDYNA scalar/table/series reimport, keyword typo/injection rejection, exact integer IDs, analytic and rotated stress tensors, nonuniform curve calculus, staged native failures and standard MCP stdio discovery/tool calls.
 - Skill frontmatter validation and Ruff checks.

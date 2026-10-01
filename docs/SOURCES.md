@@ -1,11 +1,14 @@
 # 来源吸收与验收追踪
 
+当前真实转化范围见 [资料转化状态](SOURCE_ADOPTION.md)。所有**已登记**记录现已归属机器开发计划的来源类别，但尚未全部精读、移植和原生验收；资料索引不能代替 [产品顶层设计](ARCHITECTURE.md)。
+
 可查询的机器记录位于 `src/ls_prepost_mcp/data/`：
 
 - `sources.json`：公开仓库、官方资料、标准案例与自定义工作流的来源、真实功能、许可和接入状态。
 - `commands.tsv`：Hydrowelder 命令目录，保留上游许可；用于 `search_commands`，不用于绕过执行检查。
 - `workflows.json`：官方球撞板、Element Editing、ElGen、Block Mesher、修复和中面教程的逐步参数与验收建议。
 - `capabilities.json`：实施与验证状态，不把文档存在等同于工具可执行。
+- `development_plan.json`：模块归属、来源类别、三条主流程、待办依赖和里程碑；CI 校验引用关系。
 
 ## 吸收规则
 

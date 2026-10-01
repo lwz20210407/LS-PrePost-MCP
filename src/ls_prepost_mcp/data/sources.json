@@ -1322,5 +1322,37 @@
     "summary": "在配置的独立Python中调用D3plotReader和DataType。实际探测D3P_NODE_IDS、D3P_TIMES、D3P_NODE_DISPLACEMENTS、D3P_NODE_VELOCITIES；对外1-based状态转为底层0-based，按真实ID映射。已读取样例并与LASSO对照；不分发厂商二进制。",
     "integration": "isolated_runtime_backend",
     "license_status": "User-provided licensed binary; not redistributed"
+  },
+  {
+    "id": "local-installation-assets-413",
+    "title": "Local LS-PrePost 4.13 installed filters and templates",
+    "summary": "41 keyword filters and 7 template packages inventoried. Runtime lookup/expansion/native load is partial engineering integration; proprietary installation contents are not redistributed.",
+    "integration": "local_runtime_assets",
+    "scope": "Private installed resource references; not full application coverage",
+    "url": "local://installed-assets/lspp-4.13"
+  },
+  {
+    "id": "private-native-fixtures",
+    "title": "User-authorized local keyword and simulation fixtures",
+    "summary": "Representative read-only native validation fixtures. Original files and all derived data/images/reports remain local. Equivalent cases are not repeatedly extracted for coverage counts.",
+    "integration": "private_validation_only",
+    "scope": "Test evidence only; never published as example datasets",
+    "url": "local://private-validation-fixtures"
+  },
+  {
+    "id": "video-selection-tips",
+    "title": "UnpopularMechanics: LS-PrePost Entity Selection Tips",
+    "url": "https://www.youtube.com/watch?v=VcBN-EtX-nc",
+    "summary": "Full captions and selected timestamp frames reviewed; buffer workflow reproduced on 4.13.4. Propagation/path/proximity examples not all implemented.",
+    "integration": "partially_converted",
+    "scope": "Attribution/reference only; video/transcript not redistributed"
+  },
+  {
+    "id": "video-aisol-course",
+    "title": "AISOL LS-PrePost course discovery",
+    "url": "https://www.bilibili.com/video/BV1kg8WzZENv/",
+    "summary": "Course listing discovered; not fully watched or converted into tools.",
+    "integration": "reference_indexed",
+    "scope": "Discovery is not absorption or verification"
   }
 ]

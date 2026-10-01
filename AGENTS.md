@@ -1,5 +1,8 @@
 # Development notes
 
+- Product direction and implementation order are defined in `docs/ARCHITECTURE.md` and `data/development_plan.json` under the package. Before new feature work, identify its owning module, backlog item and one of the three end-to-end workflows. Preserve validated existing code and public interfaces while unifying contracts; do not grow isolated tools merely because a button is easy to automate.
+- Keep source adoption, tool ownership, workflow acceptance and milestone dependencies synchronized. Run `python tools/validate_development_plan.py` when changing the tool registry, source catalog or development plan. Its success validates traceability only, never native completeness.
+
 - Keep vendor binaries, manual PDFs, user models, credentials and native run logs out of Git.
 - Respect parent workspace output rules. Native inputs and outputs must be in explicit task directories; never run ad-hoc scripts from a user workspace root.
 - Run `uv run --extra dev --extra results --extra pydyna pytest` and `uv run --extra dev ruff check src tests` for changes affecting the respective backends.

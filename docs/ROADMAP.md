@@ -1,5 +1,7 @@
 # 常用功能建设路线
 
+当前权威设计与顺序见 [ARCHITECTURE.md](ARCHITECTURE.md) 和 `data/development_plan.json`。下面早期方向保留作历史背景；不能用它绕过统一合同、三条主流程和明确版本退出标准。
+
 目标版本：4.8、4.10、4.13。4.11不在当前范围。未来版本按同一矩阵加入，不自动宣称兼容。
 
 当前完成与缺口以[覆盖矩阵](COVERAGE.md)为准。PyDYNA六个文档板块的实际转化见[集成分析](PYDYNA_INTEGRATION.md)。以下是持续建设方向，不是已完成功能清单。
