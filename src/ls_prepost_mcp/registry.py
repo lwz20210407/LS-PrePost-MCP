@@ -1,6 +1,15 @@
 """Shared explicit public tool registry for MCP and CLI."""
 
 SERVICE_TOOLS = (
+    "inspect_gui_mesh",
+    "inspect_gui_mesh_quality",
+    "merge_gui_duplicate_nodes",
+    "reverse_gui_shell_normals",
+    "translate_gui_nodes",
+    "rotate_gui_nodes",
+    "create_gui_nodes",
+    "create_gui_elements",
+    "restart_gui_session",
     "prepare_native_program",
     "execute_native_program",
     "execute_gui_command",

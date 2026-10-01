@@ -12,6 +12,7 @@ from pathlib import Path
 
 from .config import command_path
 from .jobs import atomic_json, check_artifact, fingerprint, now
+from .native_config import isolate_preferences
 from .windows_transport import WindowsCommandTransport
 
 NATIVE_ACTIONS = {
@@ -104,6 +105,7 @@ class Sessions:
             path.unlink()
 
     def start(self):
+        WindowsCommandTransport(0).require_interactive_desktop()
         if os.name != "nt":
             raise RuntimeError("Persistent GUI sessions currently support Windows")
         exe = self.settings.native_executable()
@@ -127,8 +129,11 @@ class Sessions:
             encoding="utf8",
         )
         cfile = directory / "initialize.cfile"
-        cfile.write_text("new\nrunpython " + command_path(bootstrap) + "\n", encoding="utf8")
-        env = dict(os.environ, TEMP=str(directory / "tmp"), TMP=str(directory / "tmp"))
+        # A fresh process needs no `new`: some GUI builds treat it as Restart
+        # and block the startup command file behind a confirmation dialog.
+        cfile.write_text("runpython " + command_path(bootstrap) + "\n", encoding="utf8")
+        env, configuration = isolate_preferences(exe, directory)
+        env.update(TEMP=str(directory / "tmp"), TMP=str(directory / "tmp"))
         with (directory / "process.log").open("wb") as log:
             process = subprocess.Popen(
                 [str(exe), "c=" + str(cfile), "w=1200x800"],
@@ -151,8 +156,9 @@ class Sessions:
             model_kind="keyword",
             last_checkpoint=None,
             transport="owned-process Windows command entry + finite embedded Python",
-            bridge_protocol=2,
+            bridge_protocol=3,
             recording=None,
+            configuration=configuration,
         )
         self.save(ident, data)
         deadline = time.monotonic() + min(60, self.settings.timeout)
@@ -175,8 +181,24 @@ class Sessions:
         raise RuntimeError("Native GUI session did not initialize; see " + str(directory / "process.log"))
 
     def dispatch(
-        self, ident, action, parameters, *, model=None, file_type="keyword", artifacts=(), export=False
+        self,
+        ident,
+        action,
+        parameters,
+        *,
+        model=None,
+        file_type="keyword",
+        artifacts=(),
+        export=False,
+        native_commands=(),
     ):
+        if native_commands and model is not None:
+            raise ValueError("Open the model before submitting in-memory native commands")
+        if any(
+            not isinstance(c, str) or not c.strip() or any(x in c for x in "\r\n\x00")
+            for c in native_commands
+        ):
+            raise ValueError("Native command sequence requires nonempty single lines")
         data = self.read(ident)
         if not data["process_alive"] or data["state"] not in ("ready", "uncertain"):
             raise RuntimeError("Session is not available")
@@ -193,6 +215,7 @@ class Sessions:
             model=str(model) if model else None,
             file_type=file_type,
             absolute_keyword_path=True,
+            native_commands=list(native_commands),
         )
         atomic_json(directory / "request.json", request)
         atomic_json(
@@ -224,7 +247,12 @@ class Sessions:
         bootstrap = directory / "dispatch.py"
         bootstrap.write_text(code, encoding="utf8")
         command_file = directory / "dispatch.cfile"
-        command_file.write_text("runpython " + command_path(bootstrap) + "\n", encoding="utf8")
+        # Let LS-PrePost itself interpret selection/edit commands outside the
+        # embedded Python callback, then use Python only for readback.
+        command_file.write_text(
+            "\n".join(list(native_commands) + ["runpython " + command_path(bootstrap)]) + "\n",
+            encoding="utf8",
+        )
         data.update(state="busy", active_request=directory.name)
         self.save(ident, data)
         try:
@@ -309,12 +337,16 @@ class Sessions:
 
 
 class SessionTools:
-    def show_gui_session(self, session_id: str) -> dict:
+    def show_gui_session(self, session_id: str, maximize: bool = True, keep_on_top: bool = False) -> dict:
         """Restore and foreground only the verified owned GUI process, for interactive inspection."""
         meta = self._session_manager().read(session_id)
         if not meta["process_alive"]:
             raise RuntimeError("Owned process is no longer alive")
-        return WindowsCommandTransport(meta["process"]["pid"]).show()
+        if type(maximize) is not bool or type(keep_on_top) is not bool:
+            raise ValueError("Window options require booleans")
+        return WindowsCommandTransport(meta["process"]["pid"]).show(
+            maximize=maximize, keep_on_top=keep_on_top
+        )
 
     def list_gui_sessions(self) -> list[dict]:
         """List only this workspace's managed GUI sessions, including exited sessions and saved checkpoints."""
@@ -406,6 +438,39 @@ class SessionTools:
         """Read process identity, health, dirty/checkpoint state and the last correlated request."""
         return self._session_manager().read(session_id)
 
+    def restart_gui_session(self, session_id: str) -> dict:
+        """Recover an exited owned session into a new visible process using its last checkpoint or staged result source; never replay uncertain commands or terminate a live process."""
+        old = self._session_manager().read(session_id)
+        if old["process_alive"]:
+            raise ValueError(
+                "The original GUI process is still alive; inspect/recover it instead of duplicating it"
+            )
+        source = (
+            (old.get("last_checkpoint") or old.get("staged_model"))
+            if old["model_kind"] == "keyword"
+            else old.get("staged_model")
+        )
+        new = self.start_gui_session()
+        if source:
+            opened = self.open_in_gui_session(new["session_id"], source, old["model_kind"])
+            if opened["status"] != "succeeded":
+                return dict(
+                    status="failed",
+                    previous_session_id=session_id,
+                    session_id=new["session_id"],
+                    restoration=opened,
+                )
+        else:
+            opened = None
+        self.show_gui_session(new["session_id"], maximize=True)
+        return dict(
+            status="succeeded",
+            previous_session_id=session_id,
+            session_id=new["session_id"],
+            restoration=opened,
+            recovery_scope="Saved model/source only; unsaved manual changes and uncertain commands are not replayed",
+        )
+
     def open_in_gui_session(
         self, session_id: str, path: str, file_type: str = "keyword", discard: bool = False
     ) -> dict:
@@ -427,6 +492,8 @@ class SessionTools:
                     source=str(self.settings.input_path(path)),
                     staged_model=str(staged),
                 )
+                if file_type == "keyword":
+                    data["last_checkpoint"] = str(staged)
                 manager.save(session_id, data)
             manager.journal(
                 session_id,
@@ -445,6 +512,11 @@ class SessionTools:
         if not isinstance(parameters, dict) or "model" in parameters or "d3plot" in parameters:
             raise ValueError("Use open_in_gui_session to change the input model")
         manager = self._session_manager()
+        if action in GUI_BATCH_ACTIONS and manager.read(session_id).get("bridge_protocol", 1) >= 3:
+            routed = {"translate_mesh_nodes": "translate_gui_nodes", "rotate_mesh_nodes": "rotate_gui_nodes"}[
+                action
+            ]
+            return getattr(self, routed)(session_id=session_id, **parameters)
         with manager.lock(session_id):
             meta = manager.read(session_id)
             if meta["state"] == "uncertain" and action in MUTATIONS:

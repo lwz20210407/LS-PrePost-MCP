@@ -9,6 +9,7 @@ from pathlib import Path
 from .config import Settings, command_path
 from .engineering import EngineeringTools
 from .gui_controls import GuiControls
+from .gui_mesh import GuiMeshTools
 from .installation_assets import InstallationTools
 from .jobs import Jobs, atomic_json, check_artifact, fingerprint, now
 from .keyword_tools import KeywordTools
@@ -46,7 +47,7 @@ def unit_label(units: str) -> str:
     return units.strip()
 
 
-class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, GuiControls, ProgramTools):
+class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, GuiControls, ProgramTools, GuiMeshTools):
     def __init__(self, settings: Settings):
         self.settings = settings
         self.jobs = Jobs(settings.workspace)

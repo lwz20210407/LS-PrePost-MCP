@@ -37,16 +37,175 @@ class WindowsCommandTransport:
         self.u.PostMessageW.restype = w.BOOL
         self.u.GetAncestor.argtypes = [w.HWND, w.UINT]
         self.u.GetAncestor.restype = w.HWND
+        self.u.GetDlgItem.argtypes = [w.HWND, ctypes.c_int]
+        self.u.GetDlgItem.restype = w.HWND
+        self.u.GetParent.argtypes = [w.HWND]
+        self.u.GetParent.restype = w.HWND
+        self.u.IsWindowVisible.argtypes = [w.HWND]
+        self.u.SetWindowPos.argtypes = [
+            w.HWND,
+            w.HWND,
+            ctypes.c_int,
+            ctypes.c_int,
+            ctypes.c_int,
+            ctypes.c_int,
+            w.UINT,
+        ]
         self.u.IsWindowEnabled.argtypes = [w.HWND]
         self.u.IsWindowEnabled.restype = w.BOOL
         self.u.ShowWindow.argtypes = [w.HWND, ctypes.c_int]
         self.u.SetForegroundWindow.argtypes = [w.HWND]
         self.u.SetForegroundWindow.restype = w.BOOL
 
-    def show(self):
+    def show(self, maximize=False, keep_on_top=False):
+        self.require_interactive_desktop()
         state = self.window_state()
-        self.u.ShowWindow(state["main_window"], 9)
-        return dict(**state, foreground_requested=bool(self.u.SetForegroundWindow(state["main_window"])))
+        self.u.ShowWindow(state["main_window"], 3 if maximize else 9)
+        if not self.u.SetWindowPos(
+            state["main_window"], -1 if keep_on_top else -2, 0, 0, 0, 0, 0x0001 | 0x0002 | 0x0010 | 0x0040
+        ):
+            raise RuntimeError("Could not arrange the owned GUI window")
+        return dict(
+            **state,
+            maximized=maximize,
+            keep_on_top=keep_on_top,
+            foreground_requested=bool(self.u.SetForegroundWindow(state["main_window"])),
+        )
+
+    def require_interactive_desktop(self):
+        """Read input-desktop availability; never switch or unlock a desktop."""
+        self.u.OpenInputDesktop.argtypes = [self.w.DWORD, self.w.BOOL, self.w.DWORD]
+        self.u.OpenInputDesktop.restype = self.w.HANDLE
+        self.u.GetUserObjectInformationW.argtypes = [
+            self.w.HANDLE,
+            self.ctypes.c_int,
+            self.ctypes.c_void_p,
+            self.w.DWORD,
+            self.ctypes.POINTER(self.w.DWORD),
+        ]
+        self.u.CloseDesktop.argtypes = [self.w.HANDLE]
+        desktop = self.u.OpenInputDesktop(0, False, 0x0001)
+        if not desktop:
+            raise RuntimeError(
+                "Interactive desktop is unavailable; unlock Windows before visible GUI operations"
+            )
+        try:
+            name = self.ctypes.create_unicode_buffer(256)
+            needed = self.w.DWORD()
+            if (
+                not self.u.GetUserObjectInformationW(
+                    desktop, 2, name, self.ctypes.sizeof(name), self.ctypes.byref(needed)
+                )
+                or name.value.lower() != "default"
+            ):
+                raise RuntimeError("Interactive desktop is locked or unavailable; no GUI input sent")
+        finally:
+            self.u.CloseDesktop(desktop)
+
+    def open_panel(self, panel):
+        """Observed LS-PrePost 4.13 menu IDs, scoped to this owned process."""
+        self.require_interactive_desktop()
+        menu_ids = {
+            "duplicate_nodes": 30308,
+            "normals": 30306,
+            "node_edit": 30309,
+            "element_edit": 30310,
+            "transform": 30305,
+            "renumber": 30260,
+            "reference_check": 30259,
+        }
+        if panel not in menu_ids:
+            raise ValueError("Unsupported native panel")
+        state = self.window_state()
+        if not state["enabled"]:
+            raise RuntimeError("Owned GUI has a blocking modal dialog")
+        result = self.ctypes.c_size_t()
+        if not self.u.SendMessageTimeoutW(
+            state["main_window"], 0x0111, menu_ids[panel], 0, 0x0002, 2000, self.ctypes.byref(result)
+        ):
+            raise RuntimeError("Native panel did not accept the menu command")
+        return dict(panel=panel, menu_id=menu_ids[panel], pid=self.pid)
+
+    def inspect_controls(self):
+        """Read owned native control IDs for adapter development; no global input."""
+        rows = {}
+
+        def collect(hwnd, _):
+            if self._pid(hwnd) != self.pid:
+                return True
+            name, cls = self.ctypes.create_unicode_buffer(8192), self.ctypes.create_unicode_buffer(256)
+            self.u.GetWindowTextW(hwnd, name, len(name))
+            self.u.GetClassNameW(hwnd, cls, len(cls))
+            rows[int(hwnd)] = dict(
+                hwnd=int(hwnd),
+                control_id=self.u.GetDlgCtrlID(hwnd),
+                text=name.value,
+                class_name=cls.value,
+                enabled=bool(self.u.IsWindowEnabled(hwnd)),
+                parent=int(self.u.GetParent(hwnd) or 0),
+                visible=bool(self.u.IsWindowVisible(hwnd)),
+            )
+            return True
+
+        def top(hwnd, _):
+            if self._pid(hwnd) == self.pid:
+                collect(hwnd, 0)
+                self.u.EnumChildWindows(hwnd, self.callback(collect), 0)
+            return True
+
+        self.u.EnumWindows(self.callback(top), 0)
+        return list(rows.values())
+
+    def _panel_control(self, title, control_id, caption=None, class_name=None):
+        rows = self.inspect_controls()
+        dialogs = [r for r in rows if r["text"] == title and r["class_name"] == "#32770" and r["visible"]]
+        if len(dialogs) != 1:
+            raise RuntimeError("Expected exactly one owned native panel: " + title)
+        matches = [
+            r
+            for r in rows
+            if r["parent"] == dialogs[0]["hwnd"]
+            and r["control_id"] == control_id
+            and (caption is None or r["text"] == caption)
+            and (class_name is None or r["class_name"] == class_name)
+            and r["visible"]
+        ]
+        if len(matches) != 1:
+            raise RuntimeError("Native control identity is missing or ambiguous")
+        hwnd = matches[0]["hwnd"]
+        if not hwnd or self._pid(hwnd) != self.pid or not self.u.IsWindowEnabled(hwnd):
+            raise RuntimeError("Native panel control is missing or disabled")
+        return int(hwnd)
+
+    def _click_panel_control(self, title, control_id, caption=None):
+        self.require_interactive_desktop()
+        hwnd = self._panel_control(title, control_id, caption, "Button")
+        cls = self.ctypes.create_unicode_buffer(256)
+        self.u.GetClassNameW(hwnd, cls, len(cls))
+        if cls.value != "Button":
+            raise RuntimeError("Expected native button")
+        result = self.ctypes.c_size_t()
+        if not self.u.SendMessageTimeoutW(hwnd, 0x00F5, 0, 0, 0x0002, 3000, self.ctypes.byref(result)):
+            raise RuntimeError("Native button action timed out")
+
+    def _set_panel_text(self, title, control_id, text):
+        self.require_interactive_desktop()
+        hwnd = self._panel_control(title, control_id, class_name="Edit")
+        cls = self.ctypes.create_unicode_buffer(256)
+        self.u.GetClassNameW(hwnd, cls, len(cls))
+        if "Edit" not in cls.value or any(c in text for c in "\r\n\x00"):
+            raise ValueError("Expected a native single-line edit control")
+        buffer = self.ctypes.create_unicode_buffer(text)
+        result = self.ctypes.c_size_t()
+        pointer = self.ctypes.cast(buffer, self.ctypes.c_void_p).value
+        if not self.u.SendMessageTimeoutW(hwnd, 0x000C, 0, pointer, 0x0002, 2000, self.ctypes.byref(result)):
+            raise RuntimeError("Native value update timed out")
+
+    def _enter_panel_field(self, title, control_id):
+        self.require_interactive_desktop()
+        hwnd = self._panel_control(title, control_id, class_name="Edit")
+        if not self.u.PostMessageW(hwnd, 0x0100, 13, 0) or not self.u.PostMessageW(hwnd, 0x0101, 13, 0):
+            raise RuntimeError("Native field entry failed")
 
     def _pid(self, hwnd):
         value = self.w.DWORD()
@@ -86,6 +245,7 @@ class WindowsCommandTransport:
         }
 
     def submit(self, command):
+        self.require_interactive_desktop()
         if not isinstance(command, str) or any(c in command for c in "\r\n\x00"):
             raise ValueError("Exactly one native command is required")
         hwnd = self.command_window()

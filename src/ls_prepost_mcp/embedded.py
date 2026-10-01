@@ -120,6 +120,30 @@ def run(request_path, response_path):
             if scl_nodes != python_nodes:
                 raise ValueError("SCL and Python counters disagree")
             data = {"scl_nodes": scl_nodes, "python_nodes": python_nodes, "match": True}
+        elif action == "gui_mesh_state":
+            data = inventory()
+            if max(data["counts"].get("nodes", 0), data["counts"].get("elements", 0)) > 20000:
+                raise ValueError("GUI mesh verification currently supports at most 20000 nodes/elements")
+            node_ids = [int(x) for x in sequence(get("node_ids"))]
+            data["nodes"] = node_rows(node_ids, ["node_x", "node_y", "node_z"], None)
+            elements = []
+            for label, kind in [("shell", dc.Type.SHELL), ("solid", dc.Type.SOLID), ("beam", dc.Type.BEAM)]:
+                for eid in sequence(get("element_ids", type=kind)):
+                    elements.append({"type": label, "id": int(eid),
+                                     "nodes": [int(n) for n in sequence(get("element_connectivity", type=kind, id=int(eid)))]})
+            if len(elements) != data["counts"].get("elements"):
+                raise ValueError("GUI mesh snapshot does not cover this model's element types")
+            data["elements"] = elements
+            data["part_elements"] = {str(int(pid)): [int(eid) for eid in sequence(get("elemofpart_ids", type=1, id=int(pid)))] for pid in data["part_ids"]}
+            try:
+                data["selection_ids"] = [int(x) for x in sequence(get("selection_ids", type=0))]
+                # This binding returned invalid pointer-like integers for the
+                # selection_types array in a real 4.13 GUI check. Do not expose
+                # those values as verified entity type codes.
+                data["selection_types"] = None
+            except Exception:
+                data["selection_ids"] = None
+                data["selection_types"] = None
         elif action == "list_nodes":
             ids = sequence(get("node_ids"))
             selected = [int(x) for x in ids[p["offset"] : p["offset"] + p["limit"]]]
@@ -257,7 +281,7 @@ def run(request_path, response_path):
             lp.execute_command("genselect target node")
             lp.execute_command("genselect transfer 0")
             for uid in p["node_ids"]:
-                lp.execute_command("genselect node add node %d/0" % uid)
+                lp.execute_command("genselect node add node %d" % uid)
             lp.execute_command(
                 "rotate_model " + " ".join(str(v) for v in p["center"]) + " %s %s" % (p["axis"], p["angle"])
             )
@@ -297,7 +321,7 @@ def run(request_path, response_path):
             lp.execute_command("genselect clear")
             lp.execute_command("genselect target node")
             for uid in p["node_ids"]:
-                lp.execute_command("genselect node add node %d/0" % uid)
+                lp.execute_command("genselect node add node %d" % uid)
             lp.execute_command("translate_model " + " ".join(str(v) for v in p["offset"]))
             lp.execute_command("translate_model accept")
             lp.execute_command("genselect clear")
@@ -337,7 +361,7 @@ def run(request_path, response_path):
             lp.execute_command("genselect clear")
             lp.execute_command("genselect target element")
             for uid in p["element_ids"]:
-                lp.execute_command("genselect element add element %d/0" % uid)
+                lp.execute_command("genselect element add element %d" % uid)
             lp.execute_command('elemmove apply %d "mcp_part"' % p["part_id"])
             lp.execute_command("elemmove accept %d" % p["part_id"])
             lp.execute_command("genselect clear")
@@ -365,7 +389,7 @@ def run(request_path, response_path):
                 raise ValueError("Initial extrusion adapter requires a planar XY shell mesh")
             lp.execute_command("genselect clear")
             lp.execute_command("genselect target shell")
-            lp.execute_command("genselect shell add part %d/0" % p["part_id"])
+            lp.execute_command("genselect shell add part %d" % p["part_id"])
             lp.execute_command(
                 "elgenerate solid shelldrag 2 0 %s %d 0 0 0 0 0 10000" % (p["length"], p["layers"])
             )

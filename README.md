@@ -14,6 +14,8 @@
 
 全部用户要求的持续开发清单见 [需求总清单与优先级](docs/REQUESTS_AND_PRIORITIES.md)。仓库现已提供 [原始 command / cfile / SCL / Python / 参数宏](docs/NATIVE_PROGRAMS.md) 的正式执行工具，逐通道记录实机范围；原始脚本入口不等于所有软件功能都已完成工程封装。
 
+最新进展：[同一可见 GUI 的网格编辑工作流](docs/GUI_WORKFLOWS.md)，包括原生合并、法向、原位变换、新增节点/单元与质量读回；[图文/代码/视频转化记录](docs/TUTORIAL_INTEGRATION.md)标注实际阅读、观看与复现进度。
+
 ## 已实现的能力
 
 - 标准 MCP stdio 服务及同源 CLI。

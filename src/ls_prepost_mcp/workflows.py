@@ -8,7 +8,20 @@ from pathlib import Path
 from .jobs import atomic_json, check_artifact, now
 from .sessions import NATIVE_ACTIONS
 
-GUI_ACTIONS = {"set_gui_display", "set_gui_part_visibility", "control_gui_animation", "execute_gui_command"}
+GUI_ACTIONS = {
+    "set_gui_display",
+    "set_gui_part_visibility",
+    "control_gui_animation",
+    "execute_gui_command",
+    "inspect_gui_mesh",
+    "merge_gui_duplicate_nodes",
+    "reverse_gui_shell_normals",
+    "translate_gui_nodes",
+    "rotate_gui_nodes",
+    "create_gui_nodes",
+    "create_gui_elements",
+    "inspect_gui_mesh_quality",
+}
 WORKFLOW_ACTIONS = (
     NATIVE_ACTIONS
     | GUI_ACTIONS

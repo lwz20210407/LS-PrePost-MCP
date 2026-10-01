@@ -1024,6 +1024,123 @@
         "4.13.4 Windows"
       ],
       "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits"
+    },
+    {
+      "id": "gui_mesh.inspect_gui_mesh",
+      "tool": "inspect_gui_mesh",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide",
+        "local-Example11"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Native current keyword mesh readback; shell fixture tested; 20000-entity bound"
+    },
+    {
+      "id": "gui_mesh.inspect_gui_mesh_quality",
+      "tool": "inspect_gui_mesh_quality",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide",
+        "local-Example11"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Native GUI readback + geometry math; not full native Model Checking"
+    },
+    {
+      "id": "gui_mesh.merge_gui_duplicate_nodes",
+      "tool": "merge_gui_duplicate_nodes",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide",
+        "local-Example11"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Native DupNode; 5 to 4 nodes verified; broader keyword references remain separate"
+    },
+    {
+      "id": "gui_mesh.reverse_gui_shell_normals",
+      "tool": "reverse_gui_shell_normals",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide",
+        "local-Example11"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "All-shell reversal and connectivity verification; selected subset/alignment pending"
+    },
+    {
+      "id": "gui_mesh.translate_gui_nodes",
+      "tool": "translate_gui_nodes",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide",
+        "local-Example11"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Selected nodes moved in the SAME visible GUI, unselected coordinates checked"
+    },
+    {
+      "id": "gui_mesh.rotate_gui_nodes",
+      "tool": "rotate_gui_nodes",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide",
+        "local-Example11"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Same visible GUI; global Z-axis synthetic case tested; all coordinates checked"
+    },
+    {
+      "id": "gui_mesh.create_gui_nodes",
+      "tool": "create_gui_nodes",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide",
+        "local-Example11"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Native keyword import of explicit new nodes; existing mesh verified unchanged"
+    },
+    {
+      "id": "gui_mesh.create_gui_elements",
+      "tool": "create_gui_elements",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide",
+        "local-Example11"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Native import; quad shell tested, tri/hex8 implementation requires further native tests"
+    },
+    {
+      "id": "gui_mesh.restart_gui_session",
+      "tool": "restart_gui_session",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide",
+        "local-Example11"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Exited process checkpoint recovery; no uncertain operation replay"
     }
   ],
   "native_reference_builds": [
