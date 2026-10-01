@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 import sys
 from pathlib import Path
@@ -21,9 +22,17 @@ def test_stdio_discovery_reference_and_rejection(tmp_path):
                 assert {"create_shell_plate", "probe_scl", "extract_lsreader_nodal", "search_commands",
                         "extract_native_stress", "create_solid_box", "compose_keyword_deck",
                         "prepare_native_program", "execute_native_program", "execute_gui_command",
-                        "create_native_macro", "run_native_macro", "check_gui_solid_quality"} <= names
+                        "create_native_macro", "run_native_macro", "check_gui_solid_quality",
+                        "inspect_workflow", "run_workflow_sweep"} <= names
                 result = await session.call_tool("search_commands", {"query": "runpython", "limit": 3})
                 assert not result.isError
+                recipe = tmp_path / "preview.json"
+                recipe.write_text(json.dumps(dict(schema_version=1, steps=[dict(
+                    id="later", action="inspect_model", arguments={"model": {"$param": "missing"}}
+                )])))
+                preview = await session.call_tool("inspect_workflow", {"path": str(recipe)})
+                assert not preview.isError
+                assert json.loads(preview.content[0].text)["ready"] is False
                 invalid = await session.call_tool("create_shell_plate", {"nx": 0, "ny": 1, "size": [1, 1], "units": "mm"})
                 assert invalid.isError
                 invalid_ids = await session.call_tool("extract_native_fields", {

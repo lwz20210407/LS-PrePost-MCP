@@ -108,6 +108,18 @@ def validate():
 
     for key in tasks:
         visit(key, set())
+    if not (ROOT / plan["delivery_document"]).is_file():
+        raise ValueError("Delivery plan document missing")
+    batches = {item["id"]: item for item in plan["delivery_batches"]}
+    unique((item["id"] for item in plan["delivery_batches"]), "delivery batches")
+    ordered = set()
+    for item in batches.values():
+        require_subset(item["work_items"], set(tasks), "delivery work items")
+        require_subset(item["workflow_ids"], workflow_ids, "delivery workflows")
+        require_subset(item["depends_on"], ordered, "earlier delivery dependencies")
+        if not item["exit_criteria"] or not item["work_items"] or not item["workflow_ids"]:
+            raise ValueError("Delivery batch lacks scope or acceptance")
+        ordered.add(item["id"])
     capabilities = read_json("capabilities.json")["capabilities"]
     for capability in capabilities:
         require_subset(capability.get("sources", []), sources, "capability sources")
@@ -120,6 +132,7 @@ def validate():
         workflows=len(workflow_ids),
         backlog_items=len(backlog_ids),
         work_items=len(tasks),
+        delivery_batches=len(batches),
         note="Traceability validation only; not native or feature-completeness certification",
     )
 

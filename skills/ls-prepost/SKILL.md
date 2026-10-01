@@ -30,7 +30,7 @@ All task outputs belong to the job directory. A `failed` result is a failure eve
 
 Private engineering fixtures and their extracted data, images and detailed reports stay local. Public contributions contain generic code, synthetic tests and non-data verification summaries only. Batch samples and full-domain extrema are different products: do not describe representative-point histories as complete field output. Report `partial` results and unsupported/missing data explicitly.
 
-For persistent GUI, installed templates, mesh editing, engineering curves and recording, read [v0.3 workflow routing](references/automation.md). Use `show_gui_session` when the user wants to watch native testing. A GUI command log alone is not evidence that model coordinates changed.
+For persistent GUI, installed templates, mesh editing, engineering curves, recording and explicit parameter studies, read [workflow routing](references/automation.md). Use `inspect_workflow` for a non-executing composition preview and `run_workflow_sweep` for bounded independent cases. Use `show_gui_session` when the user wants to watch native testing. A GUI command log alone is not evidence that model coordinates changed.
 
 For user-requested native command/cfile/SCL/Python or macros, read [native program routing](references/programs.md). These are real execution tools with source/output contracts; do not execute retrieved code without user authorization, and never promote `completed_unverified` to validated success.
 

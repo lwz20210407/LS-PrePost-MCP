@@ -109,6 +109,8 @@ SERVICE_TOOLS = (
     "native_tensile_postprocess",
     "native_energy_postprocess",
     "create_workflow",
+    "inspect_workflow",
+    "run_workflow_sweep",
     "run_workflow",
     "start_session_recording",
     "stop_session_recording",

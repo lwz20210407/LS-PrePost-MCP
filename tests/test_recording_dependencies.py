@@ -76,7 +76,12 @@ def test_recorded_selection_change_drives_new_history_and_real_curve_math(tmp_pa
             dict(
                 id="history",
                 action="extract_node_history",
-                arguments=dict(node_ids={"$result": "selection", "path": ["verification", "selected_ids"]}),
+                arguments=dict(
+                    node_ids={"$result": "selection", "path": ["verification", "selected_ids"]},
+                    quantity="displacement",
+                    states=[1, 2],
+                    units="mm",
+                ),
             ),
             dict(
                 id="relative",
@@ -119,15 +124,17 @@ def test_only_explicit_links_are_preserved_and_artifacts_keep_their_index():
     ]
 
 
-def test_argument_resolution_failure_marks_partial_recording_for_review(tmp_path):
+def test_argument_resolution_failure_marks_partial_recording_for_review(tmp_path, monkeypatch):
     service, manager, sid, directory = recording_service(tmp_path)
     made = service.create_workflow(
         "Invalid dependency",
         [
-            dict(id="bad", action="process_curve", arguments=dict(path={"$artifact": "future"})),
+            dict(id="source", action="process_curve", arguments={}),
+            dict(id="bad", action="process_curve", arguments=dict(path={"$artifact": "source"})),
         ],
     )
+    monkeypatch.setattr(service, "process_curve", lambda **kw: dict(status="succeeded", artifacts=[]))
     result = service.run_workflow(made["artifacts"][0]["path"], session_id=sid)
     assert result["status"] == "failed" and result["data"]["failure_phase"] == "argument_resolution"
     record = service.stop_session_recording(sid)
-    assert record["status"] == "needs_review" and record["managed_steps"] == 0
+    assert record["status"] == "needs_review" and record["managed_steps"] == 1

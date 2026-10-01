@@ -30,3 +30,11 @@
 - `native_tensile_postprocess`: specify force database/entity/component, top/bottom nodes, displacement component, area, gauge length and units/signs. Source curves come from native LS-PrePost; engineering calculations use explicit math. Alignment is linear within the shared time interval. Area unit is length squared. True conversion, when requested through `build_tensile_curves`, assumes uniform incompressible pre-necking deformation.
 - `native_energy_postprocess` reads named GLSTAT quantities using native SCLBinout, then computes a screening report. Missing requested energy fails. Omitted hourglass energy stays undefined, never inferred zero. Zero denominators are null. Neither KE/IE thresholds nor a partial budget certify quasi-static behavior or complete energy conservation.
 - Keep all private source/result/derived data local. Prefer synthetic complete-workflow checks to re-running many equivalent private cases. See `docs/WORKFLOWS_v0.3.md` for concrete verification scope and remaining gaps.
+
+## Workflow framework and explicit parameter studies
+
+For a multi-step task, use `inspect_workflow` to see missing parameters, route/module ownership, dependency errors and deferred output bindings before execution. `run_workflow` enforces the same static preflight. A ready preview does not prove files, native build, current model or engineering validity.
+
+For repeated preprocessing/postprocessing with different explicit parameters, use `run_workflow_sweep` with 1–20 `{id, parameters}` cases and optional named `{step_id, path}` scalar outputs. All cases are preflighted before the first runs; failures stop later cases. GUI studies require a recorded initial model or first `open_model`/`new_model`; preserve/checkpoint a dirty current model before changing it. Do not silently convert this into cumulative edits or retry an uncertain mutation. Reuse the visible mesh transform and declared-unit tensile recipes; report the child outputs and case summary. This is not solver scheduling, arbitrary branching or crash resume.
+
+Native curve CSVs and engineered stress/strain are available in bounded scopes. Complete native XYPlot curve-image export, plot styling and field-aware batch cloud plots remain unfinished; do not present CSV output or basic PNG capture as completion of those workflows.

@@ -10,6 +10,7 @@ from .jobs import atomic_json, check_artifact, now
 from .outcomes import normalize_outcome, result_value
 from .sessions import NATIVE_ACTIONS, alive, process_identity
 from .workflow_checks import POLICIES, evaluate_gate, validate_checks
+from .workflow_runtime import compile_workflow, operation_route
 
 GUI_ACTIONS = {
     "check_gui_keywords",
@@ -95,7 +96,7 @@ def validate_steps(steps):
         ):
             raise ValueError("Step IDs must be unique identifiers")
         names.add(name)
-        if step.get("action") not in WORKFLOW_ACTIONS or not isinstance(step.get("arguments", {}), dict):
+        if not isinstance(step.get("action"), str) or step["action"] not in WORKFLOW_ACTIONS or not isinstance(step.get("arguments", {}), dict):
             raise ValueError("Unsupported workflow action")
         policy = step.get("quality_policy", "auto")
         if not isinstance(policy, str) or policy not in POLICIES:
@@ -317,27 +318,22 @@ class WorkflowTools:
         atomic_json(directory / "job.json", manifest)
         return manifest
 
+    def inspect_workflow(self, path: str, parameters: dict | None = None, session_id: str | None = None) -> dict:
+        """Preview a workflow without execution, jobs or GUI access. Report module/routes, dependencies, argument/check errors and deferred result bindings. ready means static composition only, not native support, model validity or available input files."""
+        source = self.settings.input_path(path)
+        workflow = json.loads(source.read_text(encoding="utf8"))
+        return compile_workflow(self, workflow, parameters, session_id)
+
     def run_workflow(self, path: str, parameters: dict | None = None, session_id: str | None = None) -> dict:
         """Run typed steps with separate execution and quality gates. Known model checks fail closed by default; explicit checks support finite numeric/boolean predicates. Stop before dependent steps, retain evidence/checkpoints and never automatically replay or roll back."""
         source = self.settings.input_path(path)
         workflow = json.loads(source.read_text(encoding="utf8"))
-        if workflow.get("schema_version") != 1 or workflow.get("unrecognized_commands"):
-            raise ValueError("Workflow requires review or has unsupported schema")
+        preflight = compile_workflow(self, workflow, parameters, session_id)
+        if not preflight["ready"]:
+            raise ValueError("Workflow preflight failed: " + json.dumps(preflight["errors"], ensure_ascii=False))
         steps = workflow["steps"]
-        validate_steps(steps)
-        if workflow.get("requires_gui_session") and not session_id:
-            raise ValueError("This recording requires a persistent GUI session")
-        if not isinstance(workflow.get("defaults", {}), dict) or (
-            parameters is not None and not isinstance(parameters, dict)
-        ):
-            raise ValueError("Workflow parameters/defaults must be objects")
         params = {**workflow.get("defaults", {}), **(parameters or {})}
-        # Resolve every predicate before opening a model or dispatching any action.
-        resolved_checks = {}
-        for step in steps:
-            checks = resolve(step.get("checks", []), params, {})
-            validate_checks(checks, allow_parameters=False)
-            resolved_checks[step["id"]] = checks
+        resolved_checks = {step["id"]: step["resolved_checks"] for step in preflight["steps"]}
         directory, manifest = self.jobs.create(
             "run_workflow", dict(path=str(source), parameters=params, session_id=session_id)
         )
@@ -346,6 +342,7 @@ class WorkflowTools:
         failed_step, failure_phase = None, None
         remaining = [step["id"] for step in steps]
         atomic_json(directory / "definition.json", workflow)
+        atomic_json(directory / "preflight.json", preflight)
         manifest.update(status="running", started_at=now())
         atomic_json(directory / "job.json", manifest)
         try:
@@ -368,26 +365,7 @@ class WorkflowTools:
                 failure_phase = "execution"
                 attempted += 1
                 try:
-                    if action == "new_model":
-                        if not session_id:
-                            raise ValueError("new_model requires a persistent GUI session")
-                        result = self.reset_gui_session(session_id, **arguments)
-                    elif action == "open_model":
-                        if not session_id:
-                            raise ValueError("open_model requires a persistent session")
-                        result = self.open_in_gui_session(session_id, **arguments)
-                    elif action == "checkpoint":
-                        if not session_id:
-                            raise ValueError("checkpoint requires a persistent session")
-                        result = self.checkpoint_gui_session(session_id)
-                    elif action in GUI_ACTIONS:
-                        if not session_id:
-                            raise ValueError("GUI controls require a persistent session")
-                        result = getattr(self, action)(session_id=session_id, **arguments)
-                    elif session_id and action in NATIVE_ACTIONS:
-                        result = self.gui_session_action(session_id, action, arguments)
-                    else:
-                        result = getattr(self, action)(**arguments)
+                    result = operation_route(self, action, session_id).execute(self, arguments, session_id)
                     if not isinstance(result, dict):
                         raise ValueError("Operation result must be a JSON object")
                     json.dumps(result, allow_nan=False)
@@ -446,6 +424,7 @@ class WorkflowTools:
                 manifest.update(status="failed", error=dict(type=type(exc).__name__, message=str(exc)))
                 failure_phase = "recording_finalization"
         manifest["data"] = dict(
+            preflight=preflight,
             steps=results,
             outcomes=outcomes,
             gates=gates,

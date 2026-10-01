@@ -1356,6 +1356,23 @@
         "4.13.4 Windows visible GUI"
       ],
       "scope": "Six native Hex8 criteria and per-criterion count/percent/zero-capture evidence. Optional native failed-user-ID capture validates counts/registry, exports criterion sets and returns their distinct union; explicitly overwrites Buffer1 and clears selection, preserves other slots. Noncontiguous ID localization and changed-threshold recording replay verified in 4.13.4. All-part flags restored; no inspection k exports. Other topologies/repair/solver validity remain outside scope."
+    },
+    {
+      "id": "workflow.preflight",
+      "tool": "inspect_workflow",
+      "status": "implemented",
+      "sources": [],
+      "scope": "Static workflow composition: routes/modules, signatures, explicit parameters, forward-reference rejection, deferred bindings. No native capability/session/model certification."
+    },
+    {
+      "id": "workflow.parameter_study",
+      "tool": "run_workflow_sweep",
+      "status": "native_tested",
+      "sources": [],
+      "tested_profiles": [
+        "4.13"
+      ],
+      "scope": "1..20 explicit sequential cases. Fresh child jobs, explicit GUI baseline, failure stop and scalar/CSV summaries. Two synthetic visible 4.13.4 Hex8 translate/check/save/reopen cases and analytical tensile curves verified. No solver, DOE optimization, branching or crash resume."
     }
   ],
   "native_reference_builds": [

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "name": "Independent native mesh transform, check, save and reopen",
+  "requires_gui_session": true,
+  "defaults": {"aspect_limit": 10},
+  "steps": [
+    {"id": "baseline", "action": "open_model", "arguments": {"path": {"$param": "model"}}},
+    {"id": "select", "action": "select_gui_entities", "arguments": {"entity_type": "node", "part_ids": {"$param": "part_ids"}}},
+    {"id": "translate", "action": "translate_gui_nodes", "arguments": {
+      "node_ids": {"$result": "select", "path": ["verification", "selected_ids"]},
+      "offset": {"$param": "offset"}, "units": {"$param": "units"}
+    }},
+    {"id": "quality", "action": "check_gui_solid_quality", "arguments": {
+      "checks": [{"metric": "aspect_ratio", "comparison": "gt", "threshold": {"$param": "aspect_limit"}}],
+      "units": {"$param": "units"}
+    }},
+    {"id": "save", "action": "checkpoint"},
+    {"id": "reopen", "action": "open_model", "arguments": {"path": {"$artifact": "save"}}},
+    {"id": "verify", "action": "inspect_gui_mesh", "arguments": {"include_entities": true}}
+  ]
+}

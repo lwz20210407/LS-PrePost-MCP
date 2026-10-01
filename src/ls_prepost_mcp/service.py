@@ -25,6 +25,7 @@ from .programs import ProgramTools
 from .results import lasso_vectors, open_binout
 from .runner import decode, execute
 from .sessions import SessionTools
+from .workflow_sweeps import WorkflowSweepTools
 from .workflows import WorkflowTools
 
 VIEWS = {"isometric": "isometric x", "top": "top", "bottom": "bottom", "front": "front",
@@ -52,7 +53,7 @@ def unit_label(units: str) -> str:
     return units.strip()
 
 
-class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools):
+class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools):
     def __init__(self, settings: Settings):
         self.settings = settings
         self.jobs = Jobs(settings.workspace)

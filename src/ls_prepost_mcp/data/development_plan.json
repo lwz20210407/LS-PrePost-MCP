@@ -590,10 +590,12 @@
         "start_session_recording",
         "stop_session_recording",
         "parameterize_workflow",
-        "import_command_recording"
+        "import_command_recording",
+        "inspect_workflow",
+        "run_workflow_sweep"
       ],
       "status": "partial",
-      "contract_doc": "docs/ARCHITECTURE.md"
+      "contract_doc": "docs/WORKFLOW_FRAMEWORK.md"
     },
     {
       "id": "assets",
@@ -1231,7 +1233,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Mesh gate recording retained. Native node/history/relative-displacement and SCL stress recording replay verified. Explicit result/artifact links and workflow file/engineering steps preserved; changed selected IDs drive fresh native curves. General manual macro semantics, control flow and resumable uncertain jobs remain."
+      "progress": "Mesh gate recording retained. Native node/history/relative-displacement and SCL stress recording replay verified. Explicit result/artifact links and workflow file/engineering steps preserved; changed selected IDs drive fresh native curves. General manual macro semantics, control flow and resumable uncertain jobs remain. Shared static preflight and operation routing now feed bounded independent parameter studies; all cases preflight before execution, failures stop later cases, child jobs and scalar CSV summaries retained. Synthetic engineering truth and two visible GUI mesh save/reopen cases passed. General branches and crash resume remain."
     },
     {
       "id": "T10",
@@ -1256,7 +1258,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Reusable file-backend gate acceptance in CI and opt-in visible GUI gate/recording acceptance driver now exist; full three-workflow/scale/version coverage still pending."
+      "progress": "Reusable file-backend gate acceptance in CI and opt-in visible GUI gate/recording acceptance driver now exist; full three-workflow/scale/version coverage still pending. Reusable parameter-study acceptance covers engineering math and opt-in visible GUI baseline reset/edit/quality/save/reopen."
     },
     {
       "id": "T11",
@@ -1333,5 +1335,112 @@
     "private_fixtures_local_only": true,
     "catalog_is_not_capability": true,
     "unknown_native_semantics_block_promotion": true
-  }
+  },
+  "delivery_document": "docs/DELIVERY_PLAN.md",
+  "delivery_batches": [
+    {
+      "id": "B0",
+      "title": "共用框架接入现有能力",
+      "depends_on": [],
+      "work_items": [
+        "T01-OUTCOME",
+        "T01",
+        "T02",
+        "T03-TXN"
+      ],
+      "workflow_ids": [
+        "WF-MESH",
+        "WF-POST",
+        "WF-AUTO"
+      ],
+      "exit_criteria": [
+        "统一执行路由、静态预检、动态结果检查与质量门槛串联",
+        "模块归属可查；保持现有原生工具接口",
+        "模型身份与按需访问限制显式保留"
+      ]
+    },
+    {
+      "id": "B1",
+      "title": "前处理核心流程",
+      "depends_on": [
+        "B0"
+      ],
+      "work_items": [
+        "T03",
+        "T04",
+        "T05",
+        "T10"
+      ],
+      "workflow_ids": [
+        "WF-MESH"
+      ],
+      "exit_criteria": [
+        "选择→常用编辑→原生质量检查→保存→原生重开",
+        "大模型按需访问、拓扑选择和常用引用更新先于低频菜单扩展"
+      ]
+    },
+    {
+      "id": "B2",
+      "title": "后处理核心流程、曲线出图与动画导出",
+      "depends_on": [
+        "B0"
+      ],
+      "work_items": [
+        "T06",
+        "T07",
+        "T08",
+        "T10"
+      ],
+      "workflow_ids": [
+        "WF-POST"
+      ],
+      "exit_criteria": [
+        "原生提取→相对位移/力位移/应力应变/能量→CSV与可核对图像",
+        "动画文件导出核对状态范围、步长、帧率、帧数、时间顺序与可播放性；现有播放控制不算完成",
+        "优先补原生曲线图保存、色标/层语义、常用ASCII/binout与历史变量",
+        "数据与图像语义一致，用户结果不公开"
+      ]
+    },
+    {
+      "id": "B3",
+      "title": "前后处理流程参数复用",
+      "depends_on": [
+        "B0"
+      ],
+      "work_items": [
+        "T09"
+      ],
+      "workflow_ids": [
+        "WF-AUTO",
+        "WF-MESH",
+        "WF-POST"
+      ],
+      "exit_criteria": [
+        "录制→参数绑定→多工况预检→独立执行→指标汇总",
+        "失败停止，模型重置显式，禁止不确定修改自动重试",
+        "分别给出前处理和后处理可复用案例"
+      ]
+    },
+    {
+      "id": "B4",
+      "title": "限定范围首个实用版本",
+      "depends_on": [
+        "B1",
+        "B2",
+        "B3"
+      ],
+      "work_items": [
+        "T11"
+      ],
+      "workflow_ids": [
+        "WF-MESH",
+        "WF-POST",
+        "WF-AUTO"
+      ],
+      "exit_criteria": [
+        "三条核心流程通过集成验收后发布；不等全部菜单完成",
+        "版本、规模、未完成项和原生验收范围公开一致"
+      ]
+    }
+  ]
 }

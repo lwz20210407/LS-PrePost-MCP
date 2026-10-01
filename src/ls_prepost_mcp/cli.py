@@ -24,7 +24,7 @@ def main():
             parser.error("Unknown action")
         result = getattr(service, args.action)(**params)
     print(json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False))
-    if isinstance(result, dict) and result.get("status") in ("failed", "partial", "uncertain", "needs_review", "completed_unverified"):
+    if isinstance(result, dict) and result.get("status") in ("failed", "partial", "uncertain", "needs_review", "completed_unverified", "invalid"):
         raise SystemExit(1)
 
 

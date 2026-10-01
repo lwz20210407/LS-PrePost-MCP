@@ -2,6 +2,9 @@
 
 ## 0.4.0 (development)
 
+- Unify workflow operation routing and add a non-executing `inspect_workflow` preview. Preflight every step's parameters, signatures, references and quality thresholds before any native action; validate resolved dependency types again before dispatch.
+- Add bounded explicit parameter studies with all-case preflight, separate child jobs, explicit GUI baselines, failure stopping and scalar/CSV summaries. Verify two native synthetic Hex8 transform/check/save/reopen cases and analytical engineering curves; recheck native post/recording flows. Native curve-image and animation export remain core gaps.
+
 - Add opt-in native failed-solid ID capture, per-criterion artifacts and a verified deduplicated union for localization and dependency-preserving replay. Explicitly invalidate/backup known Buffer1 metadata and preserve other slots. Invalidate stale selection identities when replacing/resetting models; prevent a d3plot session from inheriting the prior keyword's default checkpoint.
 
 - Add six native visible Hex8 quality criteria with explicit comparison thresholds, native failure counts/percent and zero-failure capture-state evidence. Preserve part visibility and mesh; integrate automatic workflow gates and recorded-threshold replay. Verify twelve pass/fail cases plus partial failures, hidden parts and blocked edits on synthetic 4.13.4 models.
