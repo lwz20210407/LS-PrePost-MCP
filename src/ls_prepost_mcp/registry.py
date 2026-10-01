@@ -1,6 +1,10 @@
 """Shared explicit public tool registry for MCP and CLI."""
 
 SERVICE_TOOLS = (
+    "select_gui_entities",
+    "select_gui_nodes_by_box",
+    "select_gui_nodes_by_sphere",
+    "renumber_gui_entities",
     "inspect_gui_mesh",
     "inspect_gui_mesh_quality",
     "merge_gui_duplicate_nodes",

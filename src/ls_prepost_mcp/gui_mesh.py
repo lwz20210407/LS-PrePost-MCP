@@ -226,7 +226,9 @@ class GuiMeshTools:
         atomic_json(Path(result["job_directory"]) / "operation.json", result)
         return result
 
-    def _gui_mesh_edit(self, session_id, action, parameters, commands, verify, precheck=None):
+    def _gui_mesh_edit(
+        self, session_id, action, parameters, commands, verify, precheck=None, postcheck=None, preflight=None
+    ):
         manager = self._session_manager()
         with manager.lock(session_id):
             self._visible_mesh_session(session_id, manager)
@@ -242,16 +244,34 @@ class GuiMeshTools:
             meta = manager.read(session_id)
             meta.update(last_checkpoint=checkpoint, dirty=False)
             manager.save(session_id, meta)
-            if callable(commands):
-                commands = commands(before, Path(baseline["job_directory"]))
-            result = manager.dispatch(
-                session_id,
-                "gui_mesh_state",
-                {},
-                native_commands=commands,
-                artifacts=(("model.k", "keyword"),),
-                export=True,
-            )
+            if preflight:
+                preflight(Path(checkpoint))
+            try:
+                if callable(commands):
+                    commands = commands(before, Path(baseline["job_directory"]))
+                result = manager.dispatch(
+                    session_id,
+                    "gui_mesh_state",
+                    {},
+                    native_commands=commands,
+                    artifacts=(("model.k", "keyword"),),
+                    export=True,
+                )
+            except Exception as exc:
+                meta = manager.read(session_id)
+                meta.update(state="uncertain", dirty=True)
+                manager.save(session_id, meta)
+                result = dict(
+                    session_id=session_id,
+                    status="uncertain" if meta.get("active_request") else "failed",
+                    job_directory=baseline["job_directory"],
+                    artifacts=[],
+                    baseline_checkpoint=checkpoint,
+                    error=dict(type=type(exc).__name__, message=str(exc)),
+                )
+                atomic_json(Path(baseline["job_directory"]) / "edit-failure.json", result)
+                manager.journal(session_id, dict(action=action, parameters=parameters, result=result))
+                return result
             directory = Path(result["job_directory"])
             atomic_json(directory / "before.json", before)
             meta = manager.read(session_id)
@@ -259,6 +279,10 @@ class GuiMeshTools:
             if result["status"] == "succeeded":
                 try:
                     validation = verify(before, result["data"])
+                    if postcheck:
+                        validation["reference_checks"] = postcheck(
+                            Path(checkpoint), directory / "model.k", validation
+                        )
                     atomic_json(directory / "verification.json", validation)
                     result["verification"] = validation
                     result["artifacts"].append(check_artifact(directory / "verification.json", "json"))

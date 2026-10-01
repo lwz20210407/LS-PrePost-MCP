@@ -1141,6 +1141,54 @@
         "4.13.4 Windows visible GUI"
       ],
       "scope": "Exited process checkpoint recovery; no uncertain operation replay"
+    },
+    {
+      "id": "gui_selection.select_gui_entities",
+      "tool": "select_gui_entities",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Visible keyword GUI: node/shell/part IDs, part-connected nodes, whole/inverse/clear tested; solid/beam domains require native acceptance"
+    },
+    {
+      "id": "gui_selection.select_gui_nodes_by_box",
+      "tool": "select_gui_nodes_by_box",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Reference-coordinate predicate followed by native ID selection/readback; not camera-space Area picking"
+    },
+    {
+      "id": "gui_selection.select_gui_nodes_by_sphere",
+      "tool": "select_gui_nodes_by_sphere",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Reference-coordinate distance predicate followed by native ID selection/readback"
+    },
+    {
+      "id": "gui_selection.renumber_gui_entities",
+      "tool": "renumber_gui_entities",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "All node/shell/part IDs via native dialog and mapping log; coordinates/connectivity/parts and node-list sets checked; not every keyword reference"
     }
   ],
   "native_reference_builds": [

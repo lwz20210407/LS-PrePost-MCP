@@ -9,6 +9,10 @@ from .jobs import atomic_json, check_artifact, now
 from .sessions import NATIVE_ACTIONS
 
 GUI_ACTIONS = {
+    "select_gui_entities",
+    "select_gui_nodes_by_box",
+    "select_gui_nodes_by_sphere",
+    "renumber_gui_entities",
     "set_gui_display",
     "set_gui_part_visibility",
     "control_gui_animation",

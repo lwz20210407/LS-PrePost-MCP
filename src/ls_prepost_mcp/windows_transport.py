@@ -157,6 +157,8 @@ class WindowsCommandTransport:
         return list(rows.values())
 
     def _panel_control(self, title, control_id, caption=None, class_name=None):
+        if not self.window_state()["enabled"]:
+            raise RuntimeError("Owned GUI is blocked by a modal dialog")
         rows = self.inspect_controls()
         dialogs = [r for r in rows if r["text"] == title and r["class_name"] == "#32770" and r["visible"]]
         if len(dialogs) != 1:
@@ -206,6 +208,17 @@ class WindowsCommandTransport:
         hwnd = self._panel_control(title, control_id, class_name="Edit")
         if not self.u.PostMessageW(hwnd, 0x0100, 13, 0) or not self.u.PostMessageW(hwnd, 0x0101, 13, 0):
             raise RuntimeError("Native field entry failed")
+
+    def _set_panel_checked(self, title, control_id, checked, caption=None):
+        self.require_interactive_desktop()
+        hwnd = self._panel_control(title, control_id, caption, "Button")
+        result = self.ctypes.c_size_t()
+        if not self.u.SendMessageTimeoutW(hwnd, 0x00F0, 0, 0, 0x0002, 2000, self.ctypes.byref(result)):
+            raise RuntimeError("Cannot read native option state")
+        if result.value not in (0, 1):
+            raise RuntimeError("Native option state is indeterminate")
+        if bool(result.value) != checked:
+            self._click_panel_control(title, control_id, caption)
 
     def _pid(self, hwnd):
         value = self.w.DWORD()

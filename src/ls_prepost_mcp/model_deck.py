@@ -59,7 +59,8 @@ def validate_references(path):
             references(kind,row['eid'],'node',[row['n'+str(i)] for i in range(1,count+1) if int(row['n'+str(i)]) != 0])
     for card in deck.keywords:
         if isinstance(card,kw.SetNodeList):
-            references('node_set',card.sid,'node',card.nodes)
+            # Native export pads the final node-list row with zero (no entity).
+            references('node_set',card.sid,'node',[n for n in card.nodes if int(n) != 0])
         if isinstance(card,(kw.BoundarySpcSet,kw.BoundaryPrescribedMotionSet)):
             references('boundary',card.nsid,'node_set',[card.nsid])
         if isinstance(card,kw.BoundaryPrescribedMotionSet):
