@@ -7,11 +7,23 @@ import math
 import numpy as np
 
 from .field_contracts import EntitySelection
-from .gui_mesh import ReadOnlyScopeMismatch, check_same_nodes, check_same_parts, mesh_index
+from .gui_mesh import (
+    ReadOnlyScopeMismatch,
+    check_same_nodes,
+    check_same_parts,
+    mesh_index,
+    verify_mesh_digest,
+)
 
 
 def mesh_signature(state):
     """Bind selection buffers to the model actually read, not a mutable title."""
+    if "mesh_digest" in state:
+        verify_mesh_digest(state, state)
+        canonical = dict(contract=state["digest_contract"], counts=state["counts"],
+                         parts=state["part_ids"], **{key: state["mesh_digest"][key]
+                         for key in ("node_ids", "coordinates", "connectivity", "part_membership")})
+        return hashlib.sha256(json.dumps(canonical, sort_keys=True).encode()).hexdigest()
     mesh_index(state)
     canonical = dict(
         nodes=sorted(state["nodes"]),
@@ -29,6 +41,8 @@ def buffer_slot(slot):
 
 
 def available_ids(state, kind):
+    if "mesh_digest" in state:
+        return set(state["registry_matches"])
     if kind == "node":
         return {row[0] for row in state["nodes"]}
     if kind == "part":
@@ -67,6 +81,8 @@ def part_visibility(state):
 
 
 def verify_selection(before, after, expected, kind):
+    if "mesh_digest" in before or "mesh_digest" in after:
+        verify_mesh_digest(before, after)
     old_nodes, old_elements = mesh_index(before)
     new_nodes, new_elements = mesh_index(after)
     check_same_nodes(old_nodes, new_nodes)
@@ -97,7 +113,8 @@ def verify_selection(before, after, expected, kind):
 
 class GuiSelectionTools:
     def _select_gui(
-        self, session_id, action, arguments, kind, choose, suffix=None, on_verified=None, part_selection=None
+        self, session_id, action, arguments, kind, choose, suffix=None, on_verified=None, part_selection=None,
+        snapshot_parameters=None,
     ):
         expected = set()
         strategy = {}
@@ -113,7 +130,10 @@ class GuiSelectionTools:
 
         def commands(state, directory):
             result = ["pall", "genselect clear", "genselect target " + target]
-            if expected and expected == available_ids(state, target):
+            if "mesh_digest" in state:
+                result += ["genselect %s add %s %d" % (target, target, uid) for uid in sorted(expected)]
+                strategy["name"] = "explicit_ids_streamed_verification"
+            elif expected and expected == available_ids(state, target):
                 result.append("genselect whole")
                 strategy["name"] = "native_whole"
             elif part_selection is not None and expected == in_parts(state, target, part_selection):
@@ -138,6 +158,7 @@ class GuiSelectionTools:
             precheck,
             on_verified=on_verified,
             transaction_kind="selection",
+            snapshot_parameters=snapshot_parameters,
         )
 
     def select_gui_entities(
@@ -149,7 +170,7 @@ class GuiSelectionTools:
         invert: bool = False,
         scope: str = "all",
     ) -> dict:
-        """Select user IDs in keyword/d3plot and preserve part visibility. scope=all includes hidden parts; active_parts restricts to displayed parts and their connectivity (shared nodes included, orphan nodes excluded). Inversion is within scope. No filter means whole scope; [] clears. No alive/deletion mask or screen/deformed picking."""
+        """Select user IDs in keyword/d3plot and preserve part visibility. Explicit IDs with scope=all/invert=false use complete streamed verification without the global20000 snapshot limit; at most20000 requested IDs. Other modes retain legacy full snapshots. scope=all includes hidden parts; active_parts restricts to displayed parts/connectivity. Inversion is within scope. No filter means whole scope; [] clears. No alive/deletion mask or screen/deformed picking."""
         from .post_backend import ids
 
         if entity_type not in ("node", "shell", "solid", "beam", "element", "part"):
@@ -198,6 +219,8 @@ class GuiSelectionTools:
             entity_type,
             choose,
             part_selection=part_ids if not invert else None,
+            snapshot_parameters=dict(entity_type=entity_type, entity_ids=entity_ids)
+            if entity_ids is not None and not invert and scope == "all" else None,
         )
 
     def combine_gui_selections(
@@ -239,6 +262,7 @@ class GuiSelectionTools:
             dict(entity_type=entity_type, left_ids=left_ids, right_ids=right_ids, operation=operation),
             entity_type,
             choose,
+            snapshot_parameters=dict(entity_type=entity_type, entity_ids=sorted(left | right)),
         )
 
     def save_gui_selection_buffer(
@@ -267,12 +291,16 @@ class GuiSelectionTools:
             lambda state: set(entity_ids),
             [f"genselect save {index}", "genselect clear", f"genselect load {index}"],
             on_verified=remember,
+            snapshot_parameters=dict(entity_type=entity_type, entity_ids=entity_ids),
         )
 
     def load_gui_selection_buffer(self, session_id: str, slot: int) -> dict:
         """Replace current selection from an owned verified native buffer. Reject stale model fingerprints; detect manual buffer replacement by native readback. Reopening or editing a model requires saving the slot again."""
         index = buffer_slot(slot)
         manager = self._session_manager()
+        initial = manager.read(session_id).get("selection_buffers", {}).get(str(slot))
+        if initial is None:
+            raise ValueError("No verified native selection buffer in this session")
         entry = {}
 
         def precheck(state):
@@ -280,6 +308,8 @@ class GuiSelectionTools:
             saved = manager.read(session_id).get("selection_buffers", {}).get(str(slot))
             if saved is None:
                 raise ValueError("No verified native selection buffer in this session")
+            if saved != initial:
+                raise ValueError("Selection buffer metadata changed before the operation")
             entry.update(saved)
             kind, expected = entry["entity_type"], set(entry["entity_ids"])
             if mesh_signature(state) != entry["model_signature"]:
@@ -299,6 +329,7 @@ class GuiSelectionTools:
             lambda a, b: verify_selection(a, b, entry["entity_ids"], entry["entity_type"]),
             precheck,
             transaction_kind="selection",
+            snapshot_parameters=dict(entity_type=initial["entity_type"], entity_ids=initial["entity_ids"]),
         )
 
     def select_gui_nodes_by_plane(

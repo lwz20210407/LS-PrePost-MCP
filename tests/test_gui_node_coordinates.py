@@ -21,7 +21,8 @@ def mesh():
 def test_absolute_axis_targets_group_translations_and_preserve_other_axes(tmp_path, monkeypatch):
     service = Service(Settings(tmp_path))
 
-    def edit(sid, action, arguments, commands, verify, precheck):
+    def edit(sid, action, arguments, commands, verify, precheck, snapshot_parameters=None):
+        assert snapshot_parameters == dict(node_ids=[2, 3])
         before = mesh()
         precheck(before)
         native = commands(before, tmp_path)

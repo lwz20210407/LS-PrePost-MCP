@@ -4,11 +4,123 @@ Only this module executes inside LS-PrePost; no user Python is evaluated.
 """
 
 import csv
+import hashlib
 import json
 import math
 import os
+import struct
 import sys
 import traceback
+
+
+def scoped_mesh_state(dc, lp, parameters):
+    """Stream complete native geometry fingerprints, materialize only requested nodes.
+
+    This remains O(model size) work: unchanged entities are checked, not sampled.
+    Native SDK arrays may be transient, so consume each before the next SDK call.
+    """
+    wanted_nodes = parameters.get("node_ids", [])
+    wanted_ids = parameters.get("entity_ids", [])
+    domain = parameters.get("entity_type", "node")
+    if domain not in ("node", "shell", "solid", "beam", "element", "part"):
+        raise ValueError("Unsupported scoped entity domain")
+    for values in (wanted_nodes, wanted_ids):
+        if (not isinstance(values, list) or len(values) > 20000
+                or any(type(v) is not int or v <= 0 for v in values)
+                or len(values) != len(set(values))):
+            raise ValueError("Scoped IDs must be unique positive integers, at most20000")
+    wanted_nodes, wanted_ids = set(wanted_nodes), set(wanted_ids)
+    hashes = {key: hashlib.sha256() for key in (
+        "node_ids", "coordinates", "unselected_coordinates", "connectivity", "part_membership")}
+    node_indices, rows, matched, occurrences = {}, {}, [], {}
+    get = dc.get_data
+    registry = get("node_ids")
+    count = len(registry)
+    for i in range(count):
+        uid = int(registry[i])
+        hashes["node_ids"].update(struct.pack("!q", uid))
+        if uid in wanted_nodes:
+            if uid in rows:
+                raise ValueError("Duplicate requested native node ID")
+            node_indices[i] = uid
+            rows[uid] = [uid]
+        if domain == "node" and uid in wanted_ids:
+            matched.append(uid)
+    if set(rows) != wanted_nodes:
+        raise ValueError("Unknown requested node IDs")
+    for key in ("node_x", "node_y", "node_z"):
+        array = get(key, type=dc.Type.NODE)
+        if len(array) != count:
+            raise ValueError("Native node coordinate count differs from registry")
+        for start in range(0, count, 1024):
+            whole, unchanged = bytearray(), bytearray()
+            for i in range(start, min(count, start + 1024)):
+                value = float(array[i])
+                if not math.isfinite(value):
+                    raise ValueError("Nonfinite native reference coordinate")
+                packed = struct.pack("!d", value)
+                whole.extend(packed)
+                if i in node_indices:
+                    rows[node_indices[i]].append(value)
+                else:
+                    unchanged.extend(packed)
+            hashes["coordinates"].update(whole)
+            hashes["unselected_coordinates"].update(unchanged)
+    element_count, affected_count, affected = 0, 0, []
+    for label, kind in (("shell", dc.Type.SHELL), ("solid", dc.Type.SOLID), ("beam", dc.Type.BEAM)):
+        # Materialize only domain IDs: a new SDK call may invalidate the array.
+        # Coordinates/connectivity are never retained for unrequested entities.
+        array = get("element_ids", type=kind)
+        eids = [int(array[i]) for i in range(len(array))]
+        hashes["connectivity"].update(label.encode("ascii") + struct.pack("!q", len(eids)))
+        for uid in eids:
+            array = get("element_connectivity", type=kind, id=uid)
+            conn = [int(array[i]) for i in range(len(array))]
+            hashes["connectivity"].update(struct.pack("!qq", uid, len(conn)))
+            hashes["connectivity"].update(struct.pack("!" + "q" * len(conn), *conn))
+            element_count += 1
+            if wanted_nodes.intersection(conn):
+                affected_count += 1
+                if len(affected) < 20:
+                    affected.append(dict(type=label, id=uid))
+            if uid in wanted_ids and domain not in ("node", "part"):
+                occurrences[uid] = occurrences.get(uid, 0) + 1
+                if domain in (label, "element"):
+                    matched.append(uid)
+    if element_count != int(get("num_elements")):
+        raise ValueError("Scoped verification does not cover this model's element types")
+    if any(n > 1 for n in occurrences.values()):
+        raise ValueError("Requested element IDs are ambiguous across native domains")
+    array = get("validpart_ids")
+    parts = [int(array[i]) for i in range(len(array))]
+    visibility = {}
+    for pid in parts:
+        array = get("elemofpart_ids", type=1, id=pid)
+        hashes["part_membership"].update(struct.pack("!qq", pid, len(array)))
+        for i in range(len(array)):
+            hashes["part_membership"].update(struct.pack("!q", int(array[i])))
+        visibility[str(pid)] = bool(lp.check_if_part_is_active_u(pid))
+        if domain == "part" and pid in wanted_ids:
+            matched.append(pid)
+    if set(matched) != wanted_ids or len(matched) != len(wanted_ids):
+        raise ValueError("Requested IDs are absent or duplicated in the native entity registry")
+    selection_count = int(get("num_selection"))
+    selected = None
+    if selection_count <= 20000:
+        array = get("selection_ids", type=0)
+        selected = [int(array[i]) for i in range(len(array))]
+        if len(selected) != selection_count:
+            raise ValueError("Native selection count differs from selected-ID readback")
+    return dict(
+        nodes=[rows[k] for k in sorted(rows)], elements=[],
+        part_ids=parts, part_visibility=visibility, selection_ids=selected,
+        selection_types=None, registry_matches=matched,
+        affected_element_count=affected_count, affected_element_sample=affected,
+        mesh_digest={key: value.hexdigest() for key, value in hashes.items()},
+        digest_contract="native_registry_order_sha256_v1",
+        digest_node_ids=sorted(wanted_nodes),
+        verification_scope="All reference coordinates/connectivity/part membership streamed; only requested nodes materialized",
+    )
 
 
 def run(request_path, response_path):
@@ -123,6 +235,9 @@ def run(request_path, response_path):
             if scl_nodes != python_nodes:
                 raise ValueError("SCL and Python counters disagree")
             data = {"scl_nodes": scl_nodes, "python_nodes": python_nodes, "match": True}
+        elif action == "gui_mesh_digest":
+            data = inventory()
+            data.update(scoped_mesh_state(dc, lp, p))
         elif action == "gui_mesh_page":
             label, offset, limit = p["entity_type"], p["offset"], p["limit"]
             if label not in ("node", "shell", "solid", "beam"):

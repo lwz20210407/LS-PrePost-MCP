@@ -15,6 +15,24 @@ class ReadOnlyScopeMismatch(ValueError):
     """Geometry was verified unchanged, but selection/state postconditions failed."""
 
 
+def verify_mesh_digest(before, after, allow_selected_coordinates=False):
+    """Reject mismatched scopes; hash equality verifies full unchanged populations."""
+    if (before.get("digest_contract") != "native_registry_order_sha256_v1"
+            or after.get("digest_contract") != before["digest_contract"]
+            or before.get("digest_node_ids") != after.get("digest_node_ids")
+            or before.get("counts") != after.get("counts")
+            or before.get("part_ids") != after.get("part_ids")):
+        raise ValueError("Native mesh digest scope or model inventory changed")
+    required = {"node_ids", "connectivity", "part_membership", "unselected_coordinates"}
+    if not allow_selected_coordinates:
+        required.add("coordinates")
+    for key in required:
+        a = before.get("mesh_digest", {}).get(key)
+        b = after.get("mesh_digest", {}).get(key)
+        if not isinstance(a, str) or len(a) != 64 or a != b:
+            raise ValueError("Native operation changed " + key + " or digest is unavailable")
+
+
 def mesh_index(state):
     nodes = {int(n[0]): np.asarray(n[1:], dtype=float) for n in state["nodes"]}
     elements = {(e["type"], e["id"]): tuple(e["nodes"]) for e in state["elements"]}
@@ -140,6 +158,12 @@ def verify_reverse(before, after, selected=None):
 
 
 def verify_transform(before, after, selected, transform):
+    if "mesh_digest" in before or "mesh_digest" in after:
+        verify_mesh_digest(before, after, allow_selected_coordinates=True)
+        if set(before["digest_node_ids"]) != set(selected):
+            raise ValueError("Transform verification excludes the wrong node set")
+    if before.get("part_visibility") != after.get("part_visibility"):
+        raise ValueError("Transform did not preserve part visibility")
     old, old_elements = mesh_index(before)
     new, new_elements = mesh_index(after)
     if (
@@ -284,6 +308,7 @@ class GuiMeshTools:
         preflight=None,
         on_verified=None,
         transaction_kind="edit",
+        snapshot_parameters=None,
     ):
         if transaction_kind not in ("edit", "selection", "inspection"):
             raise ValueError("Unsupported GUI transaction kind")
@@ -291,13 +316,15 @@ class GuiMeshTools:
         if not mutates_model and (preflight or postcheck):
             raise ValueError("Keyword-file pre/post checks require an edit checkpoint")
         artifacts = (("model.k", "keyword"),) if mutates_model else ()
+        snapshot_action = "gui_mesh_state" if snapshot_parameters is None else "gui_mesh_digest"
+        snapshot_parameters = {} if snapshot_parameters is None else snapshot_parameters
         manager = self._session_manager()
         with manager.lock(session_id):
             original_meta = self._visible_mesh_session(
                 session_id, manager, allow_results=transaction_kind == "selection"
             )
             baseline = manager.dispatch(
-                session_id, "gui_mesh_state", {}, artifacts=artifacts, export=mutates_model
+                session_id, snapshot_action, snapshot_parameters, artifacts=artifacts, export=mutates_model
             )
             if baseline["status"] != "succeeded":
                 return baseline
@@ -319,8 +346,8 @@ class GuiMeshTools:
                     commands = commands(before, Path(baseline["job_directory"]))
                 result = manager.dispatch(
                     session_id,
-                    "gui_mesh_state",
-                    {},
+                    snapshot_action,
+                    snapshot_parameters,
                     native_commands=commands,
                     artifacts=artifacts,
                     export=mutates_model,
@@ -352,6 +379,14 @@ class GuiMeshTools:
                 result["data"]["model_kind"] = original_meta["model_kind"]
                 try:
                     validation = verify(before, result["data"])
+                    if snapshot_action == "gui_mesh_digest":
+                        validation["mesh_verification"] = dict(
+                            method="complete_native_scan_sha256_and_requested_coordinates",
+                            model_counts=before["counts"],
+                            materialized_node_count=len(before["nodes"]),
+                            whole_mesh_json=False,
+                            scope="Reference geometry/topology/part membership, not all keyword semantics or mesh quality",
+                        )
                     if postcheck:
                         validation["reference_checks"] = postcheck(
                             Path(checkpoint), directory / "model.k", validation
@@ -486,9 +521,10 @@ class GuiMeshTools:
             session_id,
             "translate_gui_nodes",
             dict(node_ids=node_ids, offset=offset, units=units),
-            commands,
+            lambda state, directory: commands + ["-m " + pid for pid, active in state["part_visibility"].items() if not active],
             lambda a, b: verify_transform(a, b, selected, lambda xyz: xyz + offset),
             precheck,
+            snapshot_parameters=dict(node_ids=node_ids),
         )
 
     def rotate_gui_nodes(
@@ -534,9 +570,10 @@ class GuiMeshTools:
             session_id,
             "rotate_gui_nodes",
             dict(node_ids=node_ids, axis=axis, angle=angle, center=center.tolist(), units=units),
-            commands,
+            lambda state, directory: commands + ["-m " + pid for pid, active in state["part_visibility"].items() if not active],
             lambda old, new: verify_transform(old, new, selected, transform),
             precheck,
+            snapshot_parameters=dict(node_ids=node_ids),
         )
 
     def create_gui_nodes(self, session_id: str, nodes: list[dict], units: str) -> dict:

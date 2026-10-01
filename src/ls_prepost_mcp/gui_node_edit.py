@@ -4,11 +4,15 @@ import math
 
 import numpy as np
 
-from .gui_mesh import check_same_parts, mesh_index
+from .gui_mesh import check_same_parts, mesh_index, verify_mesh_digest
 from .gui_selection import part_visibility
 
 
 def verify_coordinates(before, after, targets, tolerance):
+    if "mesh_digest" in before or "mesh_digest" in after:
+        verify_mesh_digest(before, after, allow_selected_coordinates=True)
+        if set(before["digest_node_ids"]) != set(targets):
+            raise ValueError("Coordinate verification excludes the wrong node set")
     old, old_elements = mesh_index(before)
     actual, actual_elements = mesh_index(after)
     if old.keys() != actual.keys() or old_elements != actual_elements:
@@ -35,8 +39,8 @@ def verify_coordinates(before, after, targets, tolerance):
         changed_count=sum(not np.array_equal(old[uid], actual[uid]) for uid in targets),
         maximum_coordinate_error=maximum_error,
         absolute_tolerance=tolerance,
-        affected_element_count=len(affected),
-        affected_element_sample=affected[:20],
+        affected_element_count=before.get("affected_element_count", len(affected)),
+        affected_element_sample=before.get("affected_element_sample", affected[:20]),
         all_connectivity_preserved=True,
         unrequested_nodes_preserved=True,
         part_visibility_preserved=True,
@@ -106,4 +110,5 @@ def set_coordinates(service, session_id, nodes, units, tolerance):
         commands,
         lambda before, after: verify_coordinates(before, after, targets, tolerance),
         precheck,
+        snapshot_parameters=dict(node_ids=sorted(updates)),
     )

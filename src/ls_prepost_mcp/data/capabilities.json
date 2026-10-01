@@ -1096,7 +1096,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Selected nodes moved in the SAME visible GUI, unselected coordinates checked"
+      "scope": "Selected nodes moved in the SAME visible GUI, unselected coordinates checked. Complete streamed topology/unrequested-coordinate digests plus requested coordinates; no global20000 bound.100000native-shell and over300000private-solid edit/save/reopen passed. Explicit request limit10000nodes; keyword references/quality remain separate."
     },
     {
       "id": "gui_mesh.rotate_gui_nodes",
@@ -1109,7 +1109,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Same visible GUI; global Z-axis synthetic case tested; all coordinates checked"
+      "scope": "Same visible GUI; global Z-axis synthetic case tested; all coordinates checked. Complete streamed topology/unrequested-coordinate digests plus requested coordinates; no global20000 bound.100000native-shell and over300000private-solid edit/save/reopen passed. Explicit request limit10000nodes; keyword references/quality remain separate."
     },
     {
       "id": "gui_mesh.create_gui_nodes",
@@ -1196,7 +1196,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Explicit user-ID union/intersection/difference/xor; all four verified through visible native selection"
+      "scope": "Explicit user-ID union/intersection/difference/xor; all four verified through visible native selection Explicit operands now use streamed geometry/selection verification without global20000 bound; native100000shell-mesh intersection passed."
     },
     {
       "id": "gui_selection.save_gui_selection_buffer",
@@ -1208,7 +1208,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Native buffer clear/reload verification; node slot1, shell slot3, part slot10 tested; model fingerprint bound"
+      "scope": "Native buffer clear/reload verification; node slot1, shell slot3, part slot10 tested; model fingerprint bound Streamed whole-geometry identity replaces full snapshot;100000shell-mesh node Buffer save/clear/load and post-edit stale rejection passed."
     },
     {
       "id": "gui_selection.load_gui_selection_buffer",
@@ -1220,7 +1220,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Native selection replacement/readback including target switching; reject changed model signatures"
+      "scope": "Native selection replacement/readback including target switching; reject changed model signatures Streamed whole-geometry identity replaces full snapshot;100000shell-mesh node Buffer save/clear/load and post-edit stale rejection passed."
     },
     {
       "id": "gui_selection.select_gui_nodes_by_plane",
@@ -1244,7 +1244,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Keyword selection retained. Representative d3plot visible GUI: node/solid/part IDs and bulk part-connected nodes verified against complete ID readback; state/geometry unchanged, no keyword exports. Reference coordinates, 20000 bound, no alive mask; beam domain needs native acceptance. Preserves native part activity flags; all/active_parts and scoped inversion verified on keyword and d3plot. Not per-element/pixel visibility."
+      "scope": "Keyword selection retained. Representative d3plot visible GUI: node/solid/part IDs and bulk part-connected nodes verified against complete ID readback; state/geometry unchanged, no keyword exports. Reference coordinates; legacy scope modes retain20000 bound; no alive mask; beam domain needs native acceptance. Preserves native part activity flags; all/active_parts and scoped inversion verified on keyword and d3plot. Not per-element/pixel visibility. Explicit entity_ids with scope=all and no inversion now use complete streamed geometry fingerprints, not global20000 snapshots. Node/shell/part selection passed on100000shell mesh; other scope modes remain snapshot-bound."
     },
     {
       "id": "gui_selection.select_gui_nodes_by_box",
@@ -1319,7 +1319,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Selection/inspection avoid keyword checkpoint exports and preserve prior dirty/checkpoint state. Edit checkpoints retained. Native selection/buffers and full gate replay verified; full snapshots and 20000 bound remain."
+      "scope": "Selection/inspection avoid keyword checkpoint exports and preserve prior dirty/checkpoint state. Edit checkpoints retained. Native selection/buffers and full gate replay verified; full snapshots and 20000 bound remain. Explicit entity_ids with scope=all and no inversion now use complete streamed geometry fingerprints, not global20000 snapshots. Node/shell/part selection passed on100000shell mesh; other scope modes remain snapshot-bound."
     },
     {
       "id": "gui_mesh.set_gui_node_coordinates",
@@ -1328,7 +1328,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "1..100 existing keyword nodes, absolute global XYZ with null axes preserved; native grouped translations, explicit tolerance, all-coordinate/topology and part-flag checks. Quality pass/failure, recording/parameter replay, checkpoint reopen/recovery, full XYZ and hidden-part/multiple-group cases verified. No CAD projection, load/material-axis updates or full Node Editing panel.",
+      "scope": "1..100 existing keyword nodes, absolute global XYZ with null axes preserved; native grouped translations, explicit tolerance, all-coordinate/topology and part-flag checks. Quality pass/failure, recording/parameter replay, checkpoint reopen/recovery, full XYZ and hidden-part/multiple-group cases verified. No CAD projection, load/material-axis updates or full Node Editing panel. Complete streamed topology/unrequested-coordinate digests plus requested coordinates; no global20000 bound.100000native-shell and over300000private-solid edit/save/reopen passed. Explicit correction limit100nodes; keyword references/quality remain separate.",
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ]
