@@ -2,6 +2,8 @@
 
 ## 0.4.0 (development)
 
+- Add native single-curve XYPlot PNG export from explicit CSV columns, labeled axes/units, fresh plot windows and numeric readback. Preserve hysteresis row order and original engineering CSV; disclose and validate native float32 storage. Verify changed-area recording/replay, old plot data preservation and native result-history/relative-displacement-to-PNG integration.
+
 - Add native visible-GUI H264 MP4 export with state1/step1 bounds, explicit fps/resolution, ordered native frame evidence, independent full decode validation and state restoration. Verify complete57-state timeline and3/4-frame recorded parameter replay; arbitrary start/step modes remain rejected after failed native probes.
 
 - Unify workflow operation routing and add a non-executing `inspect_workflow` preview. Preflight every step's parameters, signatures, references and quality thresholds before any native action; validate resolved dependency types again before dispatch.

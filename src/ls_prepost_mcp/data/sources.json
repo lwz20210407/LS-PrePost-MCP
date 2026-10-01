@@ -391,7 +391,7 @@
     "id": "local-Example3",
     "title": "参数曲线生成与XY导入",
     "url": "local://standard-examples/Example3",
-    "integration": "recipe_candidate",
+    "integration": "bounded_native_workflow",
     "license_status": "Local sample provenance; source is not redistributed",
     "api_keys": [],
     "python_calls": [
@@ -417,7 +417,8 @@
     "known_issues": [
       "非零xmin被忽略；SCL line27同样。",
       "num=0除零，点数类型未显式验证。"
-    ]
+    ],
+    "native_adoption": "Reused XY-pair file/open xydata/show concepts for independently implemented CSV-column plot export; original demo scripts are not executed or redistributed. New-window PNG plus native float32 readback, hysteresis order and engineering parameter replay verified on4.13.4."
   },
   {
     "id": "local-Example4",

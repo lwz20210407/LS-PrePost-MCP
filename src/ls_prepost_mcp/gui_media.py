@@ -12,6 +12,25 @@ from .programs import native_errors
 
 
 class GuiMediaTools:
+    def export_gui_curve_plot(
+        self,
+        session_id: str,
+        path: str,
+        x_column: str,
+        y_column: str,
+        title: str,
+        x_label: str,
+        y_label: str,
+        x_unit: str,
+        y_unit: str,
+    ) -> dict:
+        """Render two explicit CSV columns as one new native XYPlot and export PNG plus verified XY data. Preserve row order (including hysteresis), model inventory/current state and existing plot windows. Units are declared, not converted or inferred; short ASCII labels only. Numeric native round-trip and nonblank PNG are required. No implicit solver extraction or existing-plot overwrite."""
+        from .gui_curves import export_curve_plot
+
+        return export_curve_plot(
+            self, session_id, path, x_column, y_column, title, x_label, y_label, x_unit, y_unit
+        )
+
     def export_gui_animation(
         self,
         session_id: str,

@@ -23,7 +23,7 @@ def test_stdio_discovery_reference_and_rejection(tmp_path):
                         "extract_native_stress", "create_solid_box", "compose_keyword_deck",
                         "prepare_native_program", "execute_native_program", "execute_gui_command",
                         "create_native_macro", "run_native_macro", "check_gui_solid_quality",
-                        "inspect_workflow", "run_workflow_sweep", "export_gui_animation"} <= names
+                        "inspect_workflow", "run_workflow_sweep", "export_gui_animation", "export_gui_curve_plot"} <= names
                 result = await session.call_tool("search_commands", {"query": "runpython", "limit": 3})
                 assert not result.isError
                 recipe = tmp_path / "preview.json"

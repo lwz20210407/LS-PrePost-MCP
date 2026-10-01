@@ -556,7 +556,8 @@
         "set_gui_part_visibility",
         "control_gui_animation",
         "inspect_gui_menu",
-        "export_gui_animation"
+        "export_gui_animation",
+        "export_gui_curve_plot"
       ],
       "status": "partial",
       "contract_doc": "docs/ARCHITECTURE.md"
@@ -1179,7 +1180,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Visible selected-node component history/relative displacement and selected-solid SCL six-stress/Mises/strain exports integrated in the same session. Context preservation verified, shared field contracts/parsers retained. Full fringe/layer display, ASCII/binout GUI and curve-window integration remain. Native H264 MP4 export from state1 with step1 verified for complete 57-state timeline and 3/4-frame recorded parameter replay; decoded frame/rate/dimension/duration checks and original-state restoration. Arbitrary start/step, GIF and fringe semantic binding remain."
+      "progress": "Visible selected-node component history/relative displacement and selected-solid SCL six-stress/Mises/strain exports integrated in the same session. Context preservation verified, shared field contracts/parsers retained. Full fringe/layer display, ASCII/binout GUI and curve-window integration remain. Native H264 MP4 export from state1 with step1 verified for complete 57-state timeline and 3/4-frame recorded parameter replay; decoded frame/rate/dimension/duration checks and original-state restoration. Arbitrary start/step, GIF and fringe semantic binding remain. Native single-curve CSV->XYPlot PNG now uses new plot windows, explicit title/axis units and float32 numeric readback; engineering area-parameter recording replay and preservation of old plot data verified. Multiple overlays, styling and arbitrary curve-window management remain."
     },
     {
       "id": "T08",

@@ -2,6 +2,8 @@
 
 This is a bounded development acceptance record, not certification of all LS-PrePost features or engineering models.
 
+Latest curve-output increment (2026-10-01): 296 tests passed. Visible4.13.4 synthetic force/displacement→engineering stress-strain→labeled native XYPlot PNG, changed-area recording replay, old-plot numeric preservation and native float32 round-trip passed. A representative private node-history→relative-displacement→PNG chain passed with state/source identity preserved. Curve PNG is single-series with short ASCII labels; this does not cover the entire XYPlot module or fringe semantic binding.
+
 Native media increment: Windows4.13.4 exported a complete57-state native H264 movie and3/4-frame workflow-recording replay. Native state/frame logs, independent decoded frame count, dimensions/fps/duration, full decoding and source-family hashes passed; original current state restored. Non-default start/step probes failed and remain unsupported. See [native media scope](NATIVE_MEDIA.md).
 
 Latest framework increment (2026-10-01): 265 local tests passed, including static workflow rejection before side effects, runtime dependency type checks and parameter-study stop/summary behavior. Two synthetic visible 4.13.4 mesh parameter cases passed native quality and save/reopen, and representative private native post/recording workflows passed again through the shared runner. Engineering parameter cases matched analytical peak stress/work. This does not verify complete curve image export or animation file export. Counts below describe earlier increments.

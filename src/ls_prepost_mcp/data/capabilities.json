@@ -1385,6 +1385,19 @@
         "4.13"
       ],
       "scope": "Visible Windows4.13.4 native H264 MP4; start1/step1 only, explicit fps/resolution and <=1800-frame/resource budget. Exact native log states and independently decoded count/rate/dimensions/duration required. ffprobe/ffmpeg validators required, no transcoding. Original current state restored; animation left stopped with output bounds; current display has no inferred fringe/layer/units. 57-state and3/4-frame recorded replay passed; arbitrary ranges/GIF/older versions/headless not certified."
+    },
+    {
+      "id": "presentation.native_curve_png",
+      "tool": "export_gui_curve_plot",
+      "status": "native_tested",
+      "sources": [
+        "local-Example3",
+        "guide-post-semantics"
+      ],
+      "tested_profiles": [
+        "4.13"
+      ],
+      "scope": "One explicit CSV XY-column pair -> new native XYPlot -> labeled PNG and native numeric readback. Short ASCII labels, declared units, float32 storage disclosed; original engineering CSV preserved. 100000-sample/32-window bound. Synthetic stress-strain parameter recording replay and old-plot data preservation tested; no implicit extraction, overlays or full XYPlot UI coverage."
     }
   ],
   "native_reference_builds": [

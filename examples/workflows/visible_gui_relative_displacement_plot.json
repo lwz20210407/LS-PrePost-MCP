@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "name": "Native selected-node history and relative displacement to labeled XYPlot PNG",
+  "requires_gui_session": true,
+  "defaults": {
+    "component": "z"
+  },
+  "steps": [
+    {
+      "id": "selection",
+      "action": "select_gui_entities",
+      "arguments": {
+        "entity_type": "node",
+        "entity_ids": {
+          "$param": "node_ids"
+        }
+      },
+      "checks": [
+        {
+          "path": [
+            "verification",
+            "selected_count"
+          ],
+          "operator": "eq",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "action": "extract_node_history",
+      "arguments": {
+        "node_ids": {
+          "$result": "selection",
+          "path": [
+            "verification",
+            "selected_ids"
+          ]
+        },
+        "quantity": "displacement",
+        "states": {
+          "$param": "states"
+        },
+        "units": {
+          "$param": "units"
+        },
+        "curve_components": [
+          {
+            "$param": "component"
+          }
+        ],
+        "time_unit": {
+          "$param": "time_unit"
+        }
+      },
+      "checks": [
+        {
+          "path": [
+            "data",
+            "state_restored"
+          ],
+          "operator": "is_true"
+        }
+      ]
+    },
+    {
+      "id": "relative",
+      "action": "combine_history_curves",
+      "arguments": {
+        "paths": [
+          {
+            "$result": "history",
+            "path": [
+              "data",
+              "curves",
+              0,
+              "path"
+            ]
+          },
+          {
+            "$result": "history",
+            "path": [
+              "data",
+              "curves",
+              1,
+              "path"
+            ]
+          }
+        ],
+        "operation": "difference",
+        "units": {
+          "$param": "units"
+        }
+      }
+    },
+    {
+      "id": "plot",
+      "action": "export_gui_curve_plot",
+      "arguments": {
+        "path": {
+          "$artifact": "relative"
+        },
+        "x_column": "time",
+        "y_column": "value",
+        "title": "Relative displacement",
+        "x_label": "Time",
+        "y_label": "Displacement",
+        "x_unit": {
+          "$param": "time_unit"
+        },
+        "y_unit": {
+          "$param": "units"
+        }
+      }
+    }
+  ]
+}
