@@ -125,12 +125,21 @@ class GuiSelectionTools:
             available = available_ids(state, kind)
             expected.update(state["query_selected_ids"] if state.get("query_selected_ids") is not None else choose(state))
             EntitySelection(kind, sorted(expected))
-            if not expected <= available or len(expected) > 20000:
+            if not expected <= available or len(expected) > state.get("selection_limit", 20000):
                 raise ValueError("Selection is outside the current entity registry or verification bound")
 
         def commands(state, directory):
             result = ["pall", "genselect clear", "genselect target " + target]
-            if "mesh_digest" in state:
+            plan = state.get("native_selection_plan")
+            if plan:
+                if plan["target"] != target:
+                    raise ValueError("Native bulk-selection plan targets the wrong domain")
+                if plan["strategy"] == "whole":
+                    result.append("genselect whole")
+                else:
+                    result += ["genselect %s add part %d" % (target, pid) for pid in plan["part_ids"]]
+                strategy["name"] = "native_" + plan["strategy"] + "_streamed_verification"
+            elif "mesh_digest" in state:
                 result += ["genselect %s add %s %d" % (target, target, uid) for uid in sorted(expected)]
                 strategy["name"] = "explicit_ids_streamed_verification"
             elif expected and expected == available_ids(state, target):
@@ -170,7 +179,7 @@ class GuiSelectionTools:
         invert: bool = False,
         scope: str = "all",
     ) -> dict:
-        """Select user IDs in keyword/d3plot and preserve part visibility. Explicit IDs with scope=all/invert=false use complete streamed verification without the global20000 snapshot limit; at most20000 requested IDs. Other modes retain legacy full snapshots. scope=all includes hidden parts; active_parts restricts to displayed parts/connectivity. Inversion is within scope. No filter means whole scope; [] clears. No alive/deletion mask or screen/deformed picking."""
+        """Select keyword/d3plot entities with complete streamed geometry and exact ID verification, preserving part visibility/state. all includes hidden parts/orphan nodes; active_parts uses displayed-part connectivity, including shared nodes. Inversion is within scope. No filter means whole scope; [] clears. Native whole/part bulk plans allow up to1000000 selected entities; explicit ID arguments and non-bulk fallback remain20000. No global model-size cap, alive/deletion mask or screen/deformed picking."""
         from .post_backend import ids
 
         if entity_type not in ("node", "shell", "solid", "beam", "element", "part"):
@@ -219,8 +228,8 @@ class GuiSelectionTools:
             entity_type,
             choose,
             part_selection=part_ids if not invert else None,
-            snapshot_parameters=dict(entity_type=entity_type, entity_ids=entity_ids)
-            if entity_ids is not None and not invert and scope == "all" else None,
+            snapshot_parameters=dict(entity_type=entity_type, registry_query=dict(
+                entity_ids=entity_ids, part_ids=part_ids, invert=invert, scope=scope)),
         )
 
     def combine_gui_selections(

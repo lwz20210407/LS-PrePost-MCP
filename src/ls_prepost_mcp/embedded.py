@@ -24,6 +24,9 @@ def scoped_mesh_state(dc, lp, parameters):
     wanted_ids = parameters.get("entity_ids", [])
     domain = parameters.get("entity_type", "node")
     query = parameters.get("selection_query")
+    registry_query = parameters.get("registry_query")
+    if registry_query and (query or wanted_nodes or wanted_ids):
+        raise ValueError("Registry query cannot be combined with explicit digest scopes")
     if query and (domain != "node" or wanted_nodes or wanted_ids or query.get("kind") not in ("box", "sphere", "plane")):
         raise ValueError("Spatial queries require node domain and no explicit IDs")
     if domain not in ("node", "shell", "solid", "beam", "element", "part"):
@@ -38,12 +41,35 @@ def scoped_mesh_state(dc, lp, parameters):
         "node_ids", "coordinates", "unselected_coordinates", "connectivity", "part_membership")}
     node_indices, rows, matched, occurrences = {}, {}, [], {}
     get = dc.get_data
+    array = get("validpart_ids")
+    parts = [int(array[i]) for i in range(len(array))]
+    visibility, filter_elements, active_elements = {}, set(), set()
+    requested_parts = registry_query.get("part_ids") if registry_query else None
+    if requested_parts is not None and not set(requested_parts) <= set(parts):
+        raise ValueError("Unknown part ID")
+    for pid in parts:
+        visibility[str(pid)] = bool(lp.check_if_part_is_active_u(pid))
+        array = get("elemofpart_ids", type=1, id=pid)
+        hashes["part_membership"].update(struct.pack("!qq", pid, len(array)))
+        for i in range(len(array)):
+            eid = int(array[i])
+            hashes["part_membership"].update(struct.pack("!q", eid))
+            if registry_query:
+                if requested_parts is not None and pid in requested_parts:
+                    filter_elements.add(eid)
+                if visibility[str(pid)]:
+                    active_elements.add(eid)
+        if domain == "part" and pid in wanted_ids:
+            matched.append(pid)
+    domain_ids, filter_ids, active_ids, both_ids, seen_elements = set(), set(), set(), set(), set()
     registry = get("node_ids")
     count = len(registry)
     query_ids = packed_array("q") if query else None
     accum = packed_array("d", [0.0]) * count if query else None
     for i in range(count):
         uid = int(registry[i])
+        if registry_query and domain == "node":
+            domain_ids.add(uid)
         if query:
             query_ids.append(uid)
         hashes["node_ids"].update(struct.pack("!q", uid))
@@ -111,6 +137,25 @@ def scoped_mesh_state(dc, lp, parameters):
             hashes["connectivity"].update(struct.pack("!qq", uid, len(conn)))
             hashes["connectivity"].update(struct.pack("!" + "q" * len(conn), *conn))
             element_count += 1
+            if registry_query:
+                needs_unique = domain not in ("node", "part") or (domain == "node" and
+                    (requested_parts is not None or registry_query["scope"] == "active_parts"))
+                if needs_unique and uid in seen_elements:
+                    raise ValueError("Part-aware selection requires globally unique element IDs")
+                seen_elements.add(uid)
+                if domain == "node":
+                    if uid in filter_elements:
+                        filter_ids.update(n for n in conn if n)
+                    if uid in active_elements:
+                        active_ids.update(n for n in conn if n)
+                    if uid in filter_elements and uid in active_elements:
+                        both_ids.update(n for n in conn if n)
+                elif domain in (label, "element"):
+                    domain_ids.add(uid)
+                    if uid in filter_elements:
+                        filter_ids.add(uid)
+                    if uid in active_elements:
+                        active_ids.add(uid)
             if wanted_nodes.intersection(conn):
                 affected_count += 1
                 if len(affected) < 20:
@@ -123,22 +168,47 @@ def scoped_mesh_state(dc, lp, parameters):
         raise ValueError("Scoped verification does not cover this model's element types")
     if any(n > 1 for n in occurrences.values()):
         raise ValueError("Requested element IDs are ambiguous across native domains")
-    array = get("validpart_ids")
-    parts = [int(array[i]) for i in range(len(array))]
-    visibility = {}
-    for pid in parts:
-        array = get("elemofpart_ids", type=1, id=pid)
-        hashes["part_membership"].update(struct.pack("!qq", pid, len(array)))
-        for i in range(len(array)):
-            hashes["part_membership"].update(struct.pack("!q", int(array[i])))
-        visibility[str(pid)] = bool(lp.check_if_part_is_active_u(pid))
-        if domain == "part" and pid in wanted_ids:
-            matched.append(pid)
-    if not query and (set(matched) != wanted_ids or len(matched) != len(wanted_ids)):
+    native_plan, selection_limit = None, 20000
+    if registry_query:
+        if domain == "node" and (not filter_ids <= domain_ids or not active_ids <= domain_ids):
+            raise ValueError("Part connectivity refers to an unregistered node")
+        if domain == "part":
+            domain_ids = set(parts)
+            filter_ids = set(requested_parts or [])
+            active_ids = {pid for pid in parts if visibility[str(pid)]}
+        explicit = registry_query.get("entity_ids")
+        if explicit is not None and not set(explicit) <= domain_ids:
+            raise ValueError("Unknown selected entity IDs")
+        candidates = set(explicit) if explicit is not None else filter_ids if requested_parts is not None else domain_ids
+        eligible = domain_ids if registry_query["scope"] == "all" else active_ids
+        selected_set = eligible - candidates if registry_query["invert"] else candidates & eligible
+        target = "element" if domain in ("solid", "beam") else domain
+        whole_domain = domain in ("node", "part", "shell", "element") or len(domain_ids) == element_count
+        if selected_set and selected_set == domain_ids and whole_domain:
+            native_plan = dict(strategy="whole", target=target)
+        elif domain != "part" and explicit is None and not registry_query["invert"]:
+            chosen_parts = parts if requested_parts is None else requested_parts
+            if registry_query["scope"] == "active_parts":
+                chosen_parts = [pid for pid in chosen_parts if visibility[str(pid)]]
+            # Whole-scope node selection includes orphans, so only use part
+            # commands when connectivity precisely defines the requested scope.
+            if domain == "node":
+                bulk_ids = (both_ids if requested_parts is not None and registry_query["scope"] == "active_parts" else
+                            filter_ids if requested_parts is not None else active_ids)
+            else:
+                bulk_ids = (filter_elements & active_elements if requested_parts is not None and registry_query["scope"] == "active_parts" else
+                            filter_elements if requested_parts is not None else active_elements if registry_query["scope"] == "active_parts" else seen_elements)
+            if selected_set == bulk_ids and (domain != "node" or requested_parts is not None or registry_query["scope"] == "active_parts"):
+                native_plan = dict(strategy="parts", target=target, part_ids=chosen_parts)
+        selection_limit = 1000000 if native_plan else 20000
+        if len(selected_set) > selection_limit:
+            raise ValueError("Selected set exceeds the command/readback budget for this operation; this is not a global model-size limit")
+        matched = sorted(selected_set)
+    if not query and not registry_query and (set(matched) != wanted_ids or len(matched) != len(wanted_ids)):
         raise ValueError("Requested IDs are absent or duplicated in the native entity registry")
     selection_count = int(get("num_selection"))
     selected = None
-    if selection_count <= 20000:
+    if selection_count <= selection_limit:
         array = get("selection_ids", type=0)
         selected = [int(array[i]) for i in range(len(array))]
         if len(selected) != selection_count:
@@ -147,7 +217,8 @@ def scoped_mesh_state(dc, lp, parameters):
         nodes=[rows[k] for k in sorted(rows)], elements=[],
         part_ids=parts, part_visibility=visibility, selection_ids=selected,
         selection_types=None, registry_matches=matched,
-        query_selected_ids=matched if query else None,
+        query_selected_ids=matched if query or registry_query else None,
+        native_selection_plan=native_plan, selection_limit=selection_limit,
         affected_element_count=affected_count, affected_element_sample=affected,
         mesh_digest={key: value.hexdigest() for key, value in hashes.items()},
         digest_contract="native_registry_order_sha256_v1",

@@ -127,3 +127,61 @@ def test_large_spatial_query_bounds_selection_not_model_population():
     query["upper"][0] = 100000.
     with pytest.raises(ValueError, match="selected nodes per operation"):
         snapshot(model, selection_query=query)
+
+
+def shared_parts():
+    model = native_model()
+    model["nodes"].update({44: [1., 1., 0.], 55: [9., 9., 9.]})
+    model["elements"][1][102] = [22, 44, 33, 33]
+    model["parts"][8] = [102]
+    model["visible"][8] = False
+    return model
+
+
+@pytest.mark.parametrize("arguments,expected,strategy", [
+    ({}, [11, 22, 33, 44, 55], "whole"),
+    (dict(scope="active_parts"), [11, 22, 33], "parts"),
+    (dict(part_ids=[8]), [22, 33, 44], "parts"),
+    (dict(part_ids=[8], scope="active_parts"), [22, 33], None),
+    (dict(part_ids=[8], scope="active_parts", invert=True), [11], None),
+    (dict(part_ids=[7], invert=True), [44, 55], None),
+    (dict(entity_ids=[44], scope="active_parts"), [], None),
+    (dict(entity_ids=[], invert=True), [11, 22, 33, 44, 55], "whole"),
+    (dict(part_ids=[]), [], "parts"),
+])
+def test_part_scope_shared_nodes_orphans_and_scoped_inversion(arguments, expected, strategy):
+    query = dict(part_ids=None, entity_ids=None, scope="all", invert=False)
+    query.update(arguments)
+    result = snapshot(shared_parts(), entity_type="node", registry_query=query)
+    assert result["query_selected_ids"] == expected
+    plan = result["native_selection_plan"]
+    assert (plan["strategy"] if plan else None) == strategy
+    assert not result["nodes"] and not result["elements"]
+
+
+def test_typed_part_query_cannot_bulk_select_other_domains():
+    model = shared_parts()
+    model["elements"][2][201] = [11, 22, 33, 44, 44, 44, 44, 44]
+    model["parts"][9] = [201]
+    model["visible"][9] = True
+    query = dict(part_ids=[7, 9], entity_ids=None, scope="all", invert=False)
+    result = snapshot(model, entity_type="solid", registry_query=query)
+    assert result["query_selected_ids"] == [201]
+    assert result["native_selection_plan"] is None
+    query["part_ids"] = [9]
+    result = snapshot(model, entity_type="solid", registry_query=query)
+    assert result["native_selection_plan"] == dict(strategy="parts", target="element", part_ids=[9])
+
+
+def test_large_bulk_part_selection_has_no_20000_global_or_selected_bound():
+    model = native_model()
+    model["nodes"] = {i: [float(i), 0., 0.] for i in range(1, 100003)}
+    model["elements"] = {1: {}, 2: {}, 3: {i: [i, i + 1] for i in range(1, 100001)}}
+    model["parts"][7] = list(range(1, 100001))
+    model["selected"] = list(range(1, 100002))
+    query = dict(part_ids=[7], entity_ids=None, scope="all", invert=False)
+    result = snapshot(model, entity_type="node", registry_query=query)
+    assert result["query_selected_ids"] == model["selected"]
+    assert result["selection_ids"] == model["selected"]
+    assert result["native_selection_plan"] == dict(strategy="parts", target="node", part_ids=[7])
+    assert result["selection_limit"] == 1000000

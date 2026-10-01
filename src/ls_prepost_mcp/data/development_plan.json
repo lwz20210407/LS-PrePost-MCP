@@ -1069,7 +1069,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Native pages plus scoped complete-geometry SHA256 verification now support explicit selection/set operations/buffers and translation/rotation/absolute coordinates without global20000 bound. Native100000shell/100651node synthetic and over300000element private-solid coordinate edit-save-reopen passed, checking every unrequested coordinate/topology/part membership. Explicit selected-node request bounds still apply. Part/active-part/inverted selection, merge/normals/renumber and snapshot-based quality remain open. See docs/MODEL_SCALE.md. Box/sphere/plane native predicates now use streamed verification without a global model bound;100000shell native and parameterized replay passed. Selected-set limit20000 remains explicit."
+      "progress": "Native pages, explicit/part/active-part/whole/scoped-inverse/spatial selection, set operations/buffers and node translation/rotation/absolute correction use complete streamed geometry verification without global20000 snapshots. Native100000shell/100651node synthetic and over300000element private-solid coordinate edit-save-reopen passed. Hidden/shared-node/inversion/empty scope and large d3plot selection-to-field IDs passed. Explicit/fallback selected-set budgets remain; bulk whole/part plans allow1000000 guard, not certification at that size. Merge/normals/renumber and snapshot-based quality remain open. See docs/MODEL_SCALE.md."
     },
     {
       "id": "T04",
