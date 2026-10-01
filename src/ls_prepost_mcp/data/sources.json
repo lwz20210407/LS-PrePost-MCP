@@ -1372,5 +1372,13 @@
     "license_status": "Link-only factual reference; no page text/images redistributed",
     "integration": "unit_contract_reference",
     "scope": "Selected prefixes and explicit compound units only"
+  },
+  {
+    "id": "official-movie-tutorial",
+    "title": "LS-PrePost native Movie tutorial",
+    "url": "https://lsdyna.ansys.com/movie1/",
+    "summary": "官方教程说明通过 File/Movie 导出动画。结合本机4.13.4界面录制确认 MP4/H264、分辨率及fps参数，原生完成日志和ffprobe/ffmpeg用于逐帧与文件校验。任意起点/跳步探查失败，当前只认证state1起连续逐状态导出；完整57状态、3/4状态录制参数回放已验。",
+    "integration": "bounded_native_workflow",
+    "license_status": "Reference only; no vendor media redistributed"
   }
 ]

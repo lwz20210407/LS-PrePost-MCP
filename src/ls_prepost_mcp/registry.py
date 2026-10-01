@@ -1,6 +1,7 @@
 """Shared explicit public tool registry for MCP and CLI."""
 
 SERVICE_TOOLS = (
+    "export_gui_animation",
     "convert_history_units",
     "check_gui_keywords",
     "inspect_gui_menu",

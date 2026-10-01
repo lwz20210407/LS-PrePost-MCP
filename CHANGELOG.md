@@ -2,6 +2,8 @@
 
 ## 0.4.0 (development)
 
+- Add native visible-GUI H264 MP4 export with state1/step1 bounds, explicit fps/resolution, ordered native frame evidence, independent full decode validation and state restoration. Verify complete57-state timeline and3/4-frame recorded parameter replay; arbitrary start/step modes remain rejected after failed native probes.
+
 - Unify workflow operation routing and add a non-executing `inspect_workflow` preview. Preflight every step's parameters, signatures, references and quality thresholds before any native action; validate resolved dependency types again before dispatch.
 - Add bounded explicit parameter studies with all-case preflight, separate child jobs, explicit GUI baselines, failure stopping and scalar/CSV summaries. Verify two native synthetic Hex8 transform/check/save/reopen cases and analytical engineering curves; recheck native post/recording flows. Native curve-image and animation export remain core gaps.
 

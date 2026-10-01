@@ -44,7 +44,8 @@
         "research-52",
         "research-53",
         "research-54",
-        "research-55"
+        "research-55",
+        "official-movie-tutorial"
       ],
       "review_status": "selected_workflows_reviewed",
       "conversion_status": "partial",
@@ -554,7 +555,8 @@
         "set_gui_display",
         "set_gui_part_visibility",
         "control_gui_animation",
-        "inspect_gui_menu"
+        "inspect_gui_menu",
+        "export_gui_animation"
       ],
       "status": "partial",
       "contract_doc": "docs/ARCHITECTURE.md"
@@ -1162,7 +1164,8 @@
         "E05",
         "E06",
         "E08",
-        "F03"
+        "F03",
+        "F04"
       ],
       "depends_on": [
         "T03",
@@ -1176,7 +1179,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Visible selected-node component history/relative displacement and selected-solid SCL six-stress/Mises/strain exports integrated in the same session. Context preservation verified, shared field contracts/parsers retained. Full fringe/layer display, ASCII/binout GUI and curve-window integration remain."
+      "progress": "Visible selected-node component history/relative displacement and selected-solid SCL six-stress/Mises/strain exports integrated in the same session. Context preservation verified, shared field contracts/parsers retained. Full fringe/layer display, ASCII/binout GUI and curve-window integration remain. Native H264 MP4 export from state1 with step1 verified for complete 57-state timeline and 3/4-frame recorded parameter replay; decoded frame/rate/dimension/duration checks and original-state restoration. Arbitrary start/step, GIF and fringe semantic binding remain."
     },
     {
       "id": "T08",

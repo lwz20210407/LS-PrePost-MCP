@@ -1373,6 +1373,18 @@
         "4.13"
       ],
       "scope": "1..20 explicit sequential cases. Fresh child jobs, explicit GUI baseline, failure stop and scalar/CSV summaries. Two synthetic visible 4.13.4 Hex8 translate/check/save/reopen cases and analytical tensile curves verified. No solver, DOE optimization, branching or crash resume."
+    },
+    {
+      "id": "presentation.native_movie",
+      "tool": "export_gui_animation",
+      "status": "native_tested",
+      "sources": [
+        "official-movie-tutorial"
+      ],
+      "tested_profiles": [
+        "4.13"
+      ],
+      "scope": "Visible Windows4.13.4 native H264 MP4; start1/step1 only, explicit fps/resolution and <=1800-frame/resource budget. Exact native log states and independently decoded count/rate/dimensions/duration required. ffprobe/ffmpeg validators required, no transcoding. Original current state restored; animation left stopped with output bounds; current display has no inferred fringe/layer/units. 57-state and3/4-frame recorded replay passed; arbitrary ranges/GIF/older versions/headless not certified."
     }
   ],
   "native_reference_builds": [
