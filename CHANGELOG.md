@@ -2,6 +2,9 @@
 
 ## 0.4.0 (development)
 
+- Add backend-aware ResultSelection/SamplingSpec/FieldSpec to native SCL and LASSO field/stress exports. Preserve immutable ordered selection provenance, sampling distinctions and actual displacement-reference transformations. These metadata contracts do not infer layer equivalence or physical units.
+- Enforce strict integer entity/state/reader-index inputs at the MCP boundary for these extraction tools; reject meaningless nodal integration-point selectors.
+
 - Implement workflow-boundary execution/check outcomes, automatic gates for mapped checks, strict scalar predicates and parameterized thresholds. Failed gates stop dependent actions while preserving original reports/checkpoints and explicit failure evidence.
 - Accept prepared programs only as preparation, reject unknown/missing/unverified execution statuses, and distinguish attempted steps from completed steps. Add five reproducible synthetic file-backend gate cases and packaged MCP smoke verification.
 - Verify gates in visible 4.13.4: failed checks block actual coordinate edits; explicit finding policies and thresholds survive managed recording, parameterization and replay. Provide an opt-in native acceptance driver; no hosted CI or arbitrary-version GUI certification is implied.

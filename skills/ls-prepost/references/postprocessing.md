@@ -1,5 +1,7 @@
 # Result routing
 
+Native SCL fields/stresses and LASSO scalar/stress exports now include `field_spec` in parameters and returned data. Read its backend, user-ID/state selection identity, sampling kind, frame, averaging, validity and transformations before comparing results. Native MID/INNER/OUTER, solid default selector 0, and reader stored slot 1 are not automatically equivalent. Nodal native extraction uses the legacy `mid` argument only as default/no-layer; numeric node integration points are rejected. Unit labels are retained with dimensional_validation=false, not inferred conversions.
+
 Use the native route when requested. `extract_native_stress` obtains all six components and Mises from native SCL; its derived triaxiality/Lode calculation is explicitly labeled Python mathematics on native data. Inspect the native-Mises agreement rather than inferring correctness from a valid CSV.
 
 Tensor order: xx, yy, zz, xy, yz, xz. Tension positive. Shell/solid integration point must be explicit; no averaging is implied. Mises=sqrt(3J2), triaxiality=mean/Mises. `lode_angle_parameter=1−6θ/π` is +1 in uniaxial tension; `lode_parameter=(2σ2−σ1−σ3)/(σ1−σ3)` is −1. Preserve these different names and the returned definitions. Hydrostatic ratios are null/empty, not zero.

@@ -1290,6 +1290,17 @@
         "Python/PyDYNA synthetic file backends",
         "4.13.4 Windows visible GUI"
       ]
+    },
+    {
+      "id": "results.field_contracts",
+      "tool": "extract_native_fields",
+      "status": "implemented",
+      "sources": [
+        "official-scl-rev11",
+        "guide-post-semantics",
+        "library-lasso"
+      ],
+      "scope": "ResultSelection/SamplingSpec/FieldSpec metadata in native SCL and LASSO field/stress paths. No native-layer/reader-slot equivalence, dimension inference or arbitrary history meaning. Request/export/parser tests only; no added native numerical certification."
     }
   ],
   "native_reference_builds": [

@@ -1,5 +1,7 @@
 # 后处理：执行范围与结果含义
 
+原生 SCL 与读取器提取现共享 [结果选择/取值位置合同](RESULT_CONTRACTS.md)，随任务和结果保留 `field_spec`。这区分原生层、默认选择器与读取器存储轴，不会自动建立跨后端积分点等价或推断量纲。
+
 ## 原生工作流
 
 优先用 `extract_native_fields`、`extract_native_stress`、`extract_native_ascii_curve` 和 `extract_native_binout_curve`。这些工具实际启动 LS-PrePost，使用 SCL/DataCenter、SCLBinout 或 ASCII/XYPlot。输入先复制到独立任务目录；软件打开副本。

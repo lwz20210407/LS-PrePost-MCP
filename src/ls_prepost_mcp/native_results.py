@@ -4,6 +4,7 @@ import math
 import re
 import shutil
 
+from .field_contracts import FieldSpec, ResultSelection, SamplingSpec
 from .jobs import atomic_json, fingerprint, now
 from .post_backend import ids, write_csv
 from .runner import execute
@@ -95,16 +96,16 @@ def native_fields(settings, jobs, source, domain, entity_ids, states, fields, in
     allowed = NODE_FIELDS if domain == "node" else ELEMENT_FIELDS
     if not fields or len(fields) > 32 or len(set(fields)) != len(fields) or not set(fields) <= allowed:
         raise ValueError("Unsupported or duplicate native fields")
-    if integration_point not in ("mid", "inner", "outer") and not re.fullmatch(r"[1-9][0-9]?", integration_point):
-        raise ValueError("Integration point is mid/inner/outer or a 1-based integer string 1..99")
-    if domain in ("solid", "node") and integration_point in ("inner", "outer"):
-        raise ValueError("Inner/outer applies to shell/tshell only")
-    ipt = integration_point.upper() if integration_point in ("mid", "inner", "outer") else integration_point
-    # Solid default=0, not shell MID enum. Explicit numeric integration points remain unchanged.
-    if domain in ("solid", "node") and integration_point == "mid":
-        ipt = "0"
+    sampling = SamplingSpec.native(domain, integration_point)
+    ipt = sampling.native_selector
+    spec = FieldSpec('lsprepost', tuple(fields), units,
+                     ResultSelection(domain, entity_ids, states), sampling,
+                     'native DataCenter component frame; no coordinate transformation',
+                     'native field/layer definition; no additional averaging',
+                     'native field population; no explicit alive/deletion filtering')
+    entity_ids, states, fields = list(spec.selection.entity_ids), list(spec.selection.states), list(spec.fields)
     params = dict(domain=domain, entity_ids=entity_ids, states=states, fields=fields,
-                  integration_point=integration_point, units=units)
+                  integration_point=integration_point, units=units, field_spec=spec.describe())
     def build(directory):
         (directory / "extract.scl").write_text(field_script(domain, entity_ids, states, fields, ipt), encoding="ascii")
         (directory / "commands.cfile").write_text('new\nopenc d3plot "d3plot"\nrunscript extract.scl\nexit\n', encoding="ascii")
@@ -122,6 +123,7 @@ def native_fields(settings, jobs, source, domain, entity_ids, states, fields, in
                 "frame": "native DataCenter component frame; no coordinate transformation",
                 "selection": "SCLGetUserId; native layer selection; no additional averaging",
                 "read_only": "LS-PrePost opened staged copies only"}
+        data['field_spec'] = spec.describe()
         artifacts = [artifact]
         if derived:
             metric_rows = []

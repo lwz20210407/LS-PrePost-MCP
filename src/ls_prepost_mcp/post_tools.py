@@ -2,6 +2,9 @@
 import math
 import re
 
+from pydantic import StrictInt
+
+from .field_contracts import FieldSpec, ResultSelection, SamplingSpec
 from .jobs import atomic_json, fingerprint, now
 from .post_backend import (
     ascii_table,
@@ -29,15 +32,15 @@ class PostTools:
             raise ValueError("Explicit units required")
         return run_case(self.settings, self.jobs, self.settings.input_path(path), units)
 
-    def extract_native_fields(self, path: str, entity_type: str, entity_ids: list[int],
-                               states: list[int], fields: list[str], integration_point: str, units: str) -> dict:
+    def extract_native_fields(self, path: str, entity_type: str, entity_ids: list[StrictInt],
+                               states: list[StrictInt], fields: list[str], integration_point: str, units: str) -> dict:
         """Use LS-PrePost SCL to export native stress/strain/plastic-strain or nodal components. Opens staged copies only; states/user IDs are explicit."""
         from .native_results import native_fields
         return native_fields(self.settings, self.jobs, self.settings.input_path(path), entity_type,
                              entity_ids, states, fields, integration_point, units)
 
-    def extract_native_stress(self, path: str, element_type: str, element_ids: list[int],
-                               states: list[int], integration_point: str, units: str) -> dict:
+    def extract_native_stress(self, path: str, element_type: str, element_ids: list[StrictInt],
+                               states: list[StrictInt], integration_point: str, units: str) -> dict:
         """LS-PrePost SCL six-component stresses and native Mises crosscheck, then derive triaxiality and both Lode conventions. Opens staged copies only."""
         from .native_results import STRESS_KEYS, native_fields
         if element_type == "node":
@@ -110,9 +113,9 @@ class PostTools:
         return {"backend": "lasso", "state": state, "time": float(db.arrays["timesteps"][0]), "fields": fields,
                 "selection": "slot indices are 1-based stored indices; no shell top/bottom or material-history meaning inferred"}
 
-    def extract_d3plot_field(self, path: str, field: str, states: list[int], units: str,
-                             entity_ids: list[int] | None = None,
-                             component_indices: list[int] | None = None) -> dict:
+    def extract_d3plot_field(self, path: str, field: str, states: list[StrictInt], units: str,
+                             entity_ids: list[StrictInt] | None = None,
+                             component_indices: list[StrictInt] | None = None) -> dict:
         """Export any supported stored node/element/part/global scalar slice. Explicit 1-based trailing indices select component, layer or history slot; no averaging."""
         import numpy as np
         domain = field_domain(field)
@@ -126,6 +129,14 @@ class PostTools:
             raise ValueError("Component indices are 1-based")
         if len(states)*max(1, len(entity_ids or [])) > 1000000:
             raise ValueError("Requested export exceeds one million rows")
+        spec = FieldSpec('lasso', (field,), units,
+                         ResultSelection(domain, entity_ids if entity_ids is not None else [], states),
+                         SamplingSpec.stored(indices), 'as_stored', 'none',
+                         'stored field population; no explicit alive/deletion filtering',
+                         ('state_coordinates_minus_reference_nodes',) if field == 'node_displacement' else ())
+        states = list(spec.selection.states)
+        entity_ids = list(spec.selection.entity_ids) if domain != 'global' else None
+        indices = list(spec.sampling.value)
         sources = self._result_family(path)
         def work(directory):
             db, mapping = selected_database(sources[0], states, [field])
@@ -151,12 +162,12 @@ class PostTools:
             return {"backend": "lasso", "field": field, "domain": domain, "state_index_base": 1,
                     "component_indices": indices, "stored_axis_sizes": list(trailing), "averaging": "none",
                     "frame": "as_stored", "history_meaning": "consult material manual; raw stored slot only",
-                    "row_count": artifact["row_count"]}, [artifact]
+                    "row_count": artifact["row_count"], "field_spec": spec.describe()}, [artifact]
         return self._post_job("extract_d3plot_field", {"field": field, "states": states, "units": units,
-                              "entity_ids": entity_ids, "component_indices": indices}, sources, work)
+                              "entity_ids": entity_ids, "component_indices": indices, "field_spec": spec.describe()}, sources, work)
 
-    def extract_d3plot_stress(self, path: str, element_type: str, element_ids: list[int],
-                              states: list[int], integration_point: int, units: str,
+    def extract_d3plot_stress(self, path: str, element_type: str, element_ids: list[StrictInt],
+                              states: list[StrictInt], integration_point: StrictInt, units: str,
                               relative_tolerance: float = 1e-12) -> dict:
         """Export shell/solid/tshell six stresses, principals, Mises, triaxiality and Lode metrics at one explicit stored integration point. No averaging/rotation."""
         import numpy as np
@@ -169,6 +180,12 @@ class PostTools:
             raise ValueError("Stress export exceeds 100000 tensors")
         sources = self._result_family(path)
         field = "element_" + element_type + "_stress"
+        spec = FieldSpec('lasso', (field,), units,
+                         ResultSelection(element_type, element_ids, states),
+                         SamplingSpec.stored([integration_point], stress=True),
+                         'as_stored; no coordinate transformation', 'none',
+                         'stored stress records; no explicit alive/deletion filtering')
+        element_ids, states = list(spec.selection.entity_ids), list(spec.selection.states)
         def work(directory):
             db, mapping = selected_database(sources[0], states, [field])
             values = np.asarray(db.arrays[field])
@@ -192,9 +209,9 @@ class PostTools:
                     "integration_point": integration_point, "stored_integration_points": int(values.shape[2]),
                     "averaging": "none", "undefined_ratio_rows": undefined, "relative_tolerance": relative_tolerance,
                     "deletion_policy": "stored stresses retained; inspect element_is_alive separately",
-                    "row_count": artifact["row_count"]}, [artifact]
+                    "row_count": artifact["row_count"], "field_spec": spec.describe()}, [artifact]
         return self._post_job("extract_d3plot_stress", {"element_type": element_type, "element_ids": element_ids,
-                              "states": states, "integration_point": integration_point, "units": units}, sources, work)
+                              "states": states, "integration_point": integration_point, "units": units, "field_spec": spec.describe()}, sources, work)
 
     def inspect_binout_variable(self, path: str, branch: str, variable: str) -> dict:
         """Inspect a nested binout variable's shape, time alignment and ID sample before extraction; single-file input."""

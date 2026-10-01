@@ -993,7 +993,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "OperationOutcome subtask complete; remaining ModelRef, SelectionSpec, FieldSpec and dimensional-unit contracts still in progress.",
+      "progress": "OperationOutcome subtask complete. ResultSelection/SamplingSpec/FieldSpec integrated into native SCL and LASSO field/stress exports. ModelRef, GUI unified selection and dimensional-unit contracts remain.",
       "evidence": "docs/WORKFLOW_GATES.md"
     },
     {
@@ -1119,8 +1119,10 @@
         "未确认 history slot 不作为已知物理量输出",
         "张量与原生 Mises 对照"
       ],
-      "status": "planned",
-      "milestone": "R1"
+      "status": "in_progress",
+      "milestone": "R1",
+      "progress": "Backend-aware request/provenance contracts distinguish native layer/default/index selectors from stored reader axes; metadata tracks actual reference subtraction. Tests cover request, SCL export and reader parsing. History semantics/frames/averaging/variable matrices remain.",
+      "evidence": "docs/RESULT_CONTRACTS.md"
     },
     {
       "id": "T07",

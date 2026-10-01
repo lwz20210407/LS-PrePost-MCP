@@ -26,5 +26,10 @@ def test_stdio_discovery_reference_and_rejection(tmp_path):
                 assert not result.isError
                 invalid = await session.call_tool("create_shell_plate", {"nx": 0, "ny": 1, "size": [1, 1], "units": "mm"})
                 assert invalid.isError
+                invalid_ids = await session.call_tool("extract_native_fields", {
+                    "path": "missing-result", "entity_type": "solid", "entity_ids": [True],
+                    "states": [1], "fields": ["stress_x"], "integration_point": "mid", "units": "MPa"})
+                assert invalid_ids.isError
+                assert "integer" in str(invalid_ids.content).lower()
                 assert not (tmp_path / "jobs").exists()
     asyncio.run(scenario())
