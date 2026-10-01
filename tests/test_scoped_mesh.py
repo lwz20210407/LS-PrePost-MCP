@@ -100,3 +100,30 @@ def test_large_population_does_not_leak_unrequested_rows():
     assert result["nodes"] == [[99999, 99999., 0., 0.]]
     assert result["elements"] == [] and result["affected_element_count"] == 2
     assert all(len(value) == 64 for value in result["mesh_digest"].values())
+
+
+@pytest.mark.parametrize("query,expected", [
+    (dict(kind="box", lower=[0., 0., 0.], upper=[1., 0., 0.], inside=True), [11, 22]),
+    (dict(kind="box", lower=[0., 0., 0.], upper=[1., 0., 0.], inside=False), [33]),
+    (dict(kind="sphere", center=[0., 0., 0.], radius=1., inside=True), [11, 22, 33]),
+    (dict(kind="sphere", center=[0., 0., 0.], radius=.5, inside=False), [22, 33]),
+    (dict(kind="plane", point=[0., 0., 0.], direction=[1., 0., 0.], side="band", tolerance=0.), [11, 33]),
+    (dict(kind="plane", point=[0., 0., 0.], direction=[1., 0., 0.], side="positive", tolerance=0.), [22]),
+    (dict(kind="plane", point=[1., 0., 0.], direction=[1., 0., 0.], side="negative", tolerance=0.), [11, 33]),
+])
+def test_streamed_spatial_predicates_include_boundaries_and_outside(query, expected):
+    result = snapshot(native_model(), selection_query=query)
+    assert result["registry_matches"] == expected and result["query_selected_ids"] == expected
+    assert result["nodes"] == [] and result["elements"] == []
+    assert result["mesh_digest"] == snapshot(native_model())["mesh_digest"]
+
+
+def test_large_spatial_query_bounds_selection_not_model_population():
+    model = native_model()
+    model["nodes"] = {i: [float(i), 0., 0.] for i in range(1, 100002)}
+    query = dict(kind="box", lower=[1., 0., 0.], upper=[3., 0., 0.], inside=True)
+    result = snapshot(model, selection_query=query)
+    assert result["query_selected_ids"] == [1, 2, 3]
+    query["upper"][0] = 100000.
+    with pytest.raises(ValueError, match="selected nodes per operation"):
+        snapshot(model, selection_query=query)

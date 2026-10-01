@@ -11,6 +11,7 @@ import os
 import struct
 import sys
 import traceback
+from array import array as packed_array
 
 
 def scoped_mesh_state(dc, lp, parameters):
@@ -22,6 +23,9 @@ def scoped_mesh_state(dc, lp, parameters):
     wanted_nodes = parameters.get("node_ids", [])
     wanted_ids = parameters.get("entity_ids", [])
     domain = parameters.get("entity_type", "node")
+    query = parameters.get("selection_query")
+    if query and (domain != "node" or wanted_nodes or wanted_ids or query.get("kind") not in ("box", "sphere", "plane")):
+        raise ValueError("Spatial queries require node domain and no explicit IDs")
     if domain not in ("node", "shell", "solid", "beam", "element", "part"):
         raise ValueError("Unsupported scoped entity domain")
     for values in (wanted_nodes, wanted_ids):
@@ -36,8 +40,12 @@ def scoped_mesh_state(dc, lp, parameters):
     get = dc.get_data
     registry = get("node_ids")
     count = len(registry)
+    query_ids = packed_array("q") if query else None
+    accum = packed_array("d", [0.0]) * count if query else None
     for i in range(count):
         uid = int(registry[i])
+        if query:
+            query_ids.append(uid)
         hashes["node_ids"].update(struct.pack("!q", uid))
         if uid in wanted_nodes:
             if uid in rows:
@@ -48,7 +56,7 @@ def scoped_mesh_state(dc, lp, parameters):
             matched.append(uid)
     if set(rows) != wanted_nodes:
         raise ValueError("Unknown requested node IDs")
-    for key in ("node_x", "node_y", "node_z"):
+    for axis, key in enumerate(("node_x", "node_y", "node_z")):
         array = get(key, type=dc.Type.NODE)
         if len(array) != count:
             raise ValueError("Native node coordinate count differs from registry")
@@ -58,6 +66,16 @@ def scoped_mesh_state(dc, lp, parameters):
                 value = float(array[i])
                 if not math.isfinite(value):
                     raise ValueError("Nonfinite native reference coordinate")
+                if query:
+                    if query["kind"] == "box":
+                        if not query["lower"][axis] <= value <= query["upper"][axis]:
+                            accum[i] = 1.0
+                    elif query["kind"] == "sphere":
+                        accum[i] = math.hypot(accum[i], value - query["center"][axis])
+                    else:
+                        accum[i] += (value - query["point"][axis]) * query["direction"][axis]
+                    if not math.isfinite(accum[i]):
+                        raise ValueError("Spatial predicate exceeds finite numeric range")
                 packed = struct.pack("!d", value)
                 whole.extend(packed)
                 if i in node_indices:
@@ -66,6 +84,20 @@ def scoped_mesh_state(dc, lp, parameters):
                     unchanged.extend(packed)
             hashes["coordinates"].update(whole)
             hashes["unselected_coordinates"].update(unchanged)
+    if query:
+        for i, value in enumerate(accum):
+            if query["kind"] == "box":
+                chosen = (value == 0) == query["inside"]
+            elif query["kind"] == "sphere":
+                chosen = (value <= query["radius"]) == query["inside"]
+            else:
+                chosen = (abs(value) <= query["tolerance"] if query["side"] == "band" else
+                          value > query["tolerance"] if query["side"] == "positive" else
+                          value < -query["tolerance"])
+            if chosen:
+                matched.append(query_ids[i])
+                if len(matched) > 20000:
+                    raise ValueError("Spatial selection exceeds20000 selected nodes per operation; narrow the region. This is not a global model-size limit")
     element_count, affected_count, affected = 0, 0, []
     for label, kind in (("shell", dc.Type.SHELL), ("solid", dc.Type.SOLID), ("beam", dc.Type.BEAM)):
         # Materialize only domain IDs: a new SDK call may invalidate the array.
@@ -102,7 +134,7 @@ def scoped_mesh_state(dc, lp, parameters):
         visibility[str(pid)] = bool(lp.check_if_part_is_active_u(pid))
         if domain == "part" and pid in wanted_ids:
             matched.append(pid)
-    if set(matched) != wanted_ids or len(matched) != len(wanted_ids):
+    if not query and (set(matched) != wanted_ids or len(matched) != len(wanted_ids)):
         raise ValueError("Requested IDs are absent or duplicated in the native entity registry")
     selection_count = int(get("num_selection"))
     selected = None
@@ -115,6 +147,7 @@ def scoped_mesh_state(dc, lp, parameters):
         nodes=[rows[k] for k in sorted(rows)], elements=[],
         part_ids=parts, part_visibility=visibility, selection_ids=selected,
         selection_types=None, registry_matches=matched,
+        query_selected_ids=matched if query else None,
         affected_element_count=affected_count, affected_element_sample=affected,
         mesh_digest={key: value.hexdigest() for key, value in hashes.items()},
         digest_contract="native_registry_order_sha256_v1",

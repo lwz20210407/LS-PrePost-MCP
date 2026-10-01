@@ -123,7 +123,7 @@ class GuiSelectionTools:
         def precheck(state):
             part_visibility(state)
             available = available_ids(state, kind)
-            expected.update(choose(state))
+            expected.update(state["query_selected_ids"] if state.get("query_selected_ids") is not None else choose(state))
             EntitySelection(kind, sorted(expected))
             if not expected <= available or len(expected) > 20000:
                 raise ValueError("Selection is outside the current entity registry or verification bound")
@@ -379,6 +379,8 @@ class GuiSelectionTools:
             dict(point=point, normal=normal, units=units, side=side, tolerance=tolerance),
             "node",
             choose,
+            snapshot_parameters=dict(selection_query=dict(kind="plane", point=point,
+                direction=direction.tolist(), side=side, tolerance=tolerance)),
         )
 
     def select_gui_nodes_by_box(
@@ -397,6 +399,8 @@ class GuiSelectionTools:
         ):
             raise ValueError("Invalid box/tolerance/inside flag")
         lower, upper = np.asarray(box[:3]) - tolerance, np.asarray(box[3:]) + tolerance
+        if not np.isfinite(lower).all() or not np.isfinite(upper).all():
+            raise ValueError("Expanded box bounds exceed finite numeric range")
 
         def choose(state):
             return {
@@ -412,6 +416,8 @@ class GuiSelectionTools:
             dict(bounds=box, units=units, inside=inside, tolerance=tolerance),
             "node",
             choose,
+            snapshot_parameters=dict(selection_query=dict(kind="box", lower=lower.tolist(),
+                upper=upper.tolist(), inside=inside)),
         )
 
     def select_gui_nodes_by_sphere(
@@ -436,6 +442,8 @@ class GuiSelectionTools:
             or type(inside) is not bool
         ):
             raise ValueError("Positive radius, nonnegative tolerance and boolean inside required")
+        if not math.isfinite(radius + tolerance):
+            raise ValueError("Expanded sphere radius exceeds finite numeric range")
 
         def choose(state):
             return {
@@ -450,4 +458,6 @@ class GuiSelectionTools:
             dict(center=center, radius=radius, units=units, inside=inside, tolerance=tolerance),
             "node",
             choose,
+            snapshot_parameters=dict(selection_query=dict(kind="sphere", center=center,
+                radius=radius + tolerance, inside=inside)),
         )

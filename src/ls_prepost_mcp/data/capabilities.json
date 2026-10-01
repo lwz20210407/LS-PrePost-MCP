@@ -1232,7 +1232,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Signed reference-coordinate distance, normalized normal, tolerance; band/positive/negative verified"
+      "scope": "Signed reference-coordinate distance, normalized normal, tolerance; band/positive/negative verified Large-model native bridge predicate with complete streamed geometry fingerprints; no global20000 model cap, at most20000 selected nodes per operation. Native100000shell fixture passed boundaries, inside/outside/empty and plane-side checks; changed-box recorded replay checked against independent exported NODE coordinates. Reference geometry only."
     },
     {
       "id": "gui_selection.select_gui_entities",
@@ -1256,7 +1256,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Reference-coordinate predicate followed by native ID selection/readback; not camera-space Area picking"
+      "scope": "Reference-coordinate predicate followed by native ID selection/readback; not camera-space Area picking Large-model native bridge predicate with complete streamed geometry fingerprints; no global20000 model cap, at most20000 selected nodes per operation. Native100000shell fixture passed boundaries, inside/outside/empty and plane-side checks; changed-box recorded replay checked against independent exported NODE coordinates. Reference geometry only."
     },
     {
       "id": "gui_selection.select_gui_nodes_by_sphere",
@@ -1268,7 +1268,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Reference-coordinate distance predicate followed by native ID selection/readback; representative d3plot test at changed state passed. Not deformed coordinates or alive-only filtering."
+      "scope": "Reference-coordinate distance predicate followed by native ID selection/readback; representative d3plot test at changed state passed. Not deformed coordinates or alive-only filtering. Large-model native bridge predicate with complete streamed geometry fingerprints; no global20000 model cap, at most20000 selected nodes per operation. Native100000shell fixture passed boundaries, inside/outside/empty and plane-side checks; changed-box recorded replay checked against independent exported NODE coordinates. Reference geometry only."
     },
     {
       "id": "gui_selection.renumber_gui_entities",
