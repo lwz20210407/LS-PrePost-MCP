@@ -13,6 +13,7 @@ from .workflow_checks import POLICIES, evaluate_gate, validate_checks
 from .workflow_runtime import compile_workflow, operation_route
 
 GUI_ACTIONS = {
+    "render_gui_field",
     "export_gui_curve_plot",
     "export_gui_animation",
     "check_gui_keywords",

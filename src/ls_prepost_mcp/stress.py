@@ -18,6 +18,17 @@ NULLABLE = {"triaxiality", "lode_cos3theta", "lode_angle_rad", "lode_angle_deg",
             "lode_angle_parameter", "lode_parameter"}
 
 
+def native_mises_matches(components, derived, native):
+    """Compare native float32-result invariants without an absolute unit-dependent floor."""
+    if not math.isfinite(native) or native < 0:
+        return False
+    scale = max(abs(float(value)) for value in components)
+    # Accommodate component rounding near hydrostatic stress; remain invariant
+    # under changing stress units. A zero tensor must have exactly zero Mises.
+    tolerance = scale * 8 * 2**-23
+    return math.isclose(derived, native, rel_tol=2e-4, abs_tol=tolerance)
+
+
 def stress_metrics(components, relative_tolerance=1e-12):
     import numpy as np
     a = np.asarray(components, dtype=float)

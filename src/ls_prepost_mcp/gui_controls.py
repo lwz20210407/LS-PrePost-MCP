@@ -157,6 +157,11 @@ class GuiControls:
                 capture=capture,
             )
             manager.journal(session_id, dict(action="set_gui_display", parameters=arguments, result=result))
+            if fringe_code is not None:
+                meta = manager.read(session_id)
+                if meta.get("managed_fringe") is not None:
+                    meta["managed_fringe"]["status"] = "changed_by_numeric_fringe_code"
+                    manager.save(session_id,meta)
             return result
 
     def set_gui_part_visibility(self, session_id: str, mode: str, part_ids: list[int] | None = None) -> dict:

@@ -1,5 +1,7 @@
 # Persistent automation routing
 
+For large-model inspection, use `inspect_gui_mesh` with an explicit `entity_type` and bounded `offset`/`limit`, then follow `next_offset`. This returns a native node-coordinate or element-connectivity page without whole-model JSON. Legacy snapshot-based selection/edit/check tools still have the20,000 global bound; do not describe it as an LS-PrePost limit or assume paging removes edit-validation limits. Cross-call pages are not an atomic model snapshot. See `docs/MODEL_SCALE.md`.
+
 - Discover `list_installation_assets`, then `describe_installed_template` before parameterizing. Read unit/dependency labels. `apply_keyword_filter` selects keyword blocks; it does not switch the GUI filter. `instantiate_installed_template` creates a new deck. Template reopen is not per-card or solver validation; SALE/control fragments need a model seed for mesh loading.
 - Start `start_gui_session`, show via `show_gui_session`, open a staged copy, then use `gui_session_action`. Node/part selections are explicit IDs. Choose `set_gui_display` and `set_gui_part_visibility` for common view/display controls. Animation submission has not received complete visual/end-state acceptance.
 - Save `checkpoint_gui_session` before replacing meaningful state. `reset_gui_session` clears by opening a fresh empty deck; never send `new` to a live GUI. `restore_gui_checkpoint` replaces current state explicitly. PID/create-time/exe must still match.

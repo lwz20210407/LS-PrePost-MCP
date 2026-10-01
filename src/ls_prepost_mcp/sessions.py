@@ -392,7 +392,7 @@ class SessionTools:
             if contract["export"]:
                 meta.update(last_checkpoint=str(directory / "model.k"), dirty=False)
             if request.get("model"):
-                meta.update(model_kind=request["file_type"], staged_model=request["model"], dirty=False)
+                meta.update(model_kind=request["file_type"], staged_model=request["model"], dirty=False, selection_buffers={}, managed_fringe=None, fringe_storage={})
             manager.save(session_id, meta)
             return dict(**meta, recovery="Late completion reconciled; no replay", artifacts=artifacts)
 
@@ -425,6 +425,8 @@ class SessionTools:
                     source=None,
                     staged_model=None,
                     selection_buffers={},
+                    managed_fringe=None,
+                    fringe_storage={},
                 )
                 manager.save(session_id, updated)
             manager.journal(session_id, dict(action="new_model", parameters={}, result=result))
@@ -495,6 +497,8 @@ class SessionTools:
                     source=str(self.settings.input_path(path)),
                     staged_model=str(staged),
                     selection_buffers={},
+                    managed_fringe=None,
+                    fringe_storage={},
                     last_checkpoint=str(staged) if file_type == "keyword" else None,
                 )
                 manager.save(session_id, data)
@@ -597,6 +601,8 @@ class SessionTools:
                             source=output,
                             dirty=False,
                             selection_buffers={},
+                            managed_fringe=None,
+                            fringe_storage={},
                         )
                         manager.save(session_id, meta)
                 manager.journal(session_id, dict(action=action, parameters=parameters, result=result))

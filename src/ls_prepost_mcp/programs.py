@@ -340,6 +340,8 @@ class ProgramTools:
             )
             meta = manager.read(session_id)
             meta["dirty"] = True
+            if meta.get("managed_fringe") is not None:
+                meta["managed_fringe"]["status"] = "changed_by_raw_command"
             if log.exists():
                 with log.open("rb") as stream:
                     stream.seek(offset)

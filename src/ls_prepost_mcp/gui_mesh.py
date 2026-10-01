@@ -5,7 +5,7 @@ import math
 from pathlib import Path
 
 import numpy as np
-from pydantic import StrictFloat
+from pydantic import StrictFloat, StrictInt
 
 from .config import command_path
 from .jobs import atomic_json, check_artifact
@@ -186,12 +186,25 @@ class GuiMeshTools:
             raise ValueError("Start a new GUI session for the verified mesh bridge")
         return meta
 
-    def inspect_gui_mesh(self, session_id: str, include_entities: bool = False) -> dict:
-        """Read reference nodes/connectivity in an owned keyword or result GUI. Bounded to 20000 nodes/elements; this is not deformed geometry or an alive-only selection."""
+    def inspect_gui_mesh(
+        self, session_id: str, include_entities: bool = False,
+        entity_type: str | None = None, offset: StrictInt = 0, limit: StrictInt = 1000,
+    ) -> dict:
+        """Read native reference mesh. Specify entity_type=node/shell/solid/beam for a bounded page (0-based offset, limit1..5000) without the legacy whole-model20000 cap. Pages return entities and next_offset; stable native registry order, not sorted user IDs. No deformed/alive-only filter or cross-call snapshot guarantee. With entity_type=None retain legacy full snapshot, at most20000 nodes/elements."""
+        if entity_type not in (None, "node", "shell", "solid", "beam"):
+            raise ValueError("Unsupported mesh page entity_type")
+        if type(offset) is not int or offset < 0 or type(limit) is not int or not 1 <= limit <= 5000:
+            raise ValueError("Mesh page offset must be nonnegative and limit an integer from 1 to 5000")
+        if entity_type is None and (offset != 0 or limit != 1000):
+            raise ValueError("Specify entity_type when requesting a mesh page")
         manager = self._session_manager()
         with manager.lock(session_id):
             meta = self._visible_mesh_session(session_id, manager, allow_results=True)
-            result = manager.dispatch(session_id, "gui_mesh_state", {})
+            paged = entity_type is not None
+            result = manager.dispatch(
+                session_id, "gui_mesh_page" if paged else "gui_mesh_state",
+                dict(entity_type=entity_type, offset=offset, limit=limit) if paged else {},
+            )
             if result["status"] == "succeeded":
                 result["data"].update(model_kind=meta["model_kind"], coordinate_configuration="reference")
                 codes = result["data"].get("selection_types")
@@ -203,7 +216,7 @@ class GuiMeshTools:
                 path = Path(result["job_directory"]) / "mesh.json"
                 atomic_json(path, result["data"])
                 result["artifacts"] = [check_artifact(path, "json")]
-                if not include_entities:
+                if not include_entities and not paged:
                     result["data"] = {
                         k: v
                         for k, v in result["data"].items()

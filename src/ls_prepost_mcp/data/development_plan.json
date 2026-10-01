@@ -557,10 +557,11 @@
         "control_gui_animation",
         "inspect_gui_menu",
         "export_gui_animation",
-        "export_gui_curve_plot"
+        "export_gui_curve_plot",
+        "render_gui_field"
       ],
       "status": "partial",
-      "contract_doc": "docs/ARCHITECTURE.md"
+      "contract_doc": "docs/NATIVE_MEDIA.md"
     },
     {
       "id": "automation",
@@ -1068,7 +1069,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Transaction subtype now avoids full keyword exports for selection/inspection. Incremental/chunked readback and 100000-entity target are not implemented/verified yet."
+      "progress": "Selection/inspection no longer export whole keyword files. Explicit entity_type mesh pages read only selected coordinate slices/connectivity; private model over300000elements passed keyword/result first/middle/last pages and full native Mises export without whole-mesh JSON. Legacy snapshot-based selection/edit/check tools retain20000 bound. Scoped edit verification and100000synthetic edit acceptance remain open; see docs/MODEL_SCALE.md."
     },
     {
       "id": "T04",
@@ -1180,7 +1181,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Visible selected-node component history/relative displacement and selected-solid SCL six-stress/Mises/strain exports integrated in the same session. Context preservation verified, shared field contracts/parsers retained. Full fringe/layer display, ASCII/binout GUI and curve-window integration remain. Native H264 MP4 export from state1 with step1 verified for complete 57-state timeline and 3/4-frame recorded parameter replay; decoded frame/rate/dimension/duration checks and original-state restoration. Arbitrary start/step, GIF and fringe semantic binding remain. Native single-curve CSV->XYPlot PNG now uses new plot windows, explicit title/axis units and float32 numeric readback; engineering area-parameter recording replay and preservation of old plot data verified. Multiple overlays, styling and arbitrary curve-window management remain."
+      "progress": "Visible selected-node component history/relative displacement and selected-solid SCL six-stress/Mises/strain exports integrated in the same session. Context preservation verified, shared field contracts/parsers retained. Full fringe/layer display, ASCII/binout GUI and curve-window integration remain. Native H264 MP4 export from state1 with step1 verified for complete 57-state timeline and 3/4-frame recorded parameter replay; decoded frame/rate/dimension/duration checks and original-state restoration. Arbitrary start/step, GIF and fringe semantic binding remain. Native single-curve CSV->XYPlot PNG now uses new plot windows, explicit title/axis units and float32 numeric readback; engineering area-parameter recording replay and preservation of old plot data verified. Multiple overlays, styling and arbitrary curve-window management remain. Named native field-to-fringe/CSV uses explicit SCL state, sampling, avg_opt0, part/connectivity masks and fixed scalar color bounds. LASSO header checks metadata only. Native solid Mises/pressure/mean stress and nodal magnitude, independent values, recorded fixed-range replay and managed-field movie coverage verified. Field-only path passed59936nodes/53536elements without mesh JSON; full selection/edit scaling remains."
     },
     {
       "id": "T08",

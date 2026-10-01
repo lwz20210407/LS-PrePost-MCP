@@ -93,7 +93,8 @@
       "file": "LICENSE.md"
     },
     "integration": "optional_runtime_backend",
-    "scope": "Source/API reference is not a runtime compatibility certificate"
+    "scope": "Source/API reference is not a runtime compatibility certificate",
+    "native_adoption": "Additional use: pinned2.0.4 header-only prerequisite/layer/count checks for named native fringe; data extraction and rendering remain LS-PrePost. Legacy tutorial header unsupported by reader; no silent zero/fallback."
   },
   {
     "id": "library-qd-cae",
@@ -217,7 +218,8 @@
     "summary": "Rev.11手册说明SCL原为程序内部执行的类C语言，可调用LS-PrePost命令、读取keyword模型和d3plot结果、计算并输出文件或返回云图；从4.8起加入Python路径。DataCenter负责get_data，LsPrePost提供execute_command、状态切换、数组保存、云图回传等。这支持以薄MCP层调度应用内脚本，但不能据此认为它们是普通系统Python可直接导入的独立SDK。第182页给出4.9及以前对应Python3.6、4.10及以后对应3.10的手册要求；这一历史映射不得当作所有发行构建的ABI保证，父任务已发现本机旧日志有差异，应以实际进程探针为准。第183页确认runpython可写入cfile并传参。setpythonhome会保存到配置文件，因此安装阶段需要明确作用范围。网络403使本次读取依赖既存本地副本，不能声称取到了最新版脚本手册。",
     "license_status": "Vendor documentation; link only",
     "integration": "reference_indexed",
-    "scope": "Source/API reference is not a runtime compatibility certificate"
+    "scope": "Source/API reference is not a runtime compatibility certificate",
+    "native_adoption": "Local2024API pages4-7/178-185 checked: integer array argument order differs from float-array order; avg_opt0 means no nodal average,1 nodal. SCL state must be set within each script even when GUI state already matches. Unsupported solid point requests can silently default, so wrapper checks stored counts/native full-integration flag."
   },
   {
     "id": "official-command-interface",
@@ -504,7 +506,7 @@
     "id": "local-Example5",
     "title": "逐状态合位移计算、保存与回传",
     "url": "local://standard-examples/Example5",
-    "integration": "recipe_candidate",
+    "integration": "bounded_native_workflow",
     "license_status": "Local sample provenance; source is not redistributed",
     "api_keys": [
       "num_states",
@@ -534,13 +536,14 @@
     ],
     "known_issues": [
       "fringe_dc_to_model数据参数是dispx，不是results；SCL line47使用results。确定的源码级逻辑差异。"
-    ]
+    ],
+    "native_adoption": "Native three-component magnitude and fringe return concepts adopted. Python sample passes disp_x instead of computed magnitude; new implementation uses all three components and compares native vector norms. Original sample is not executed or redistributed."
   },
   {
     "id": "local-Example6",
     "title": "壳中层三个法向应力的算术平均",
     "url": "local://standard-examples/Example6",
-    "integration": "recipe_candidate",
+    "integration": "bounded_native_workflow",
     "license_status": "Local sample provenance; source is not redistributed",
     "api_keys": [
       "num_states",
@@ -571,7 +574,8 @@
     ],
     "known_issues": [
       "公式与标题应明确为法向应力均值；云图参数1另外启用节点平均。"
-    ]
+    ],
+    "native_adoption": "Native explicit state/layer array reading and avg_opt fringe concepts adopted; new mean-stress/pressure uses native normal-stress components. No claim that original shell example or every layer is fully validated."
   },
   {
     "id": "local-Example7",

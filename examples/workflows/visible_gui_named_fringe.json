@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "name": "Named native field with explicit fixed color scale",
+  "requires_gui_session": true,
+  "steps": [
+    {
+      "id": "field",
+      "action": "render_gui_field",
+      "arguments": {
+        "entity_type": {
+          "$param": "entity_type"
+        },
+        "field": {
+          "$param": "field"
+        },
+        "state": {
+          "$param": "state"
+        },
+        "units": {
+          "$param": "units"
+        },
+        "integration_point": {
+          "$param": "integration_point"
+        },
+        "part_ids": {
+          "$param": "part_ids"
+        },
+        "color_range": {
+          "$param": "color_range"
+        }
+      }
+    }
+  ],
+  "defaults": {
+    "integration_point": "mid"
+  }
+}

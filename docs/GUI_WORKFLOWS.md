@@ -16,7 +16,7 @@
 | `combine_gui_selections` | 两组显式 ID 的并集、交集、差集、异或，送入原生选择 | 四种均已实测；避免混淆当前选区的实体类型 |
 | `save_gui_selection_buffer` / `load_gui_selection_buffer` | 原生 Buffer1–10，保存后清空/重载核对 | 节点 Buffer1、壳 Buffer3、部件 Buffer10 已验，切换类型后加载节点仍正确；模型指纹变化拒绝旧缓存 |
 | `renumber_gui_entities` | 原生 Renumber 对全部节点/壳/部件编号，使用真实 GUI 控件与映射日志 | 三类均已验证；可检查节点集合与已支持的关键字引用，未认证全部卡片引用 |
-| `inspect_gui_mesh` | 当前模型节点、壳/实体/梁连接关系、部件归属；完整内容保存到 JSON | 标准单元，最多 20000 节点/单元，默认只返回摘要 |
+| `inspect_gui_mesh` | 当前模型完整快照，或按 `entity_type` 分页读取节点/壳/实体/梁 | 旧整模快照最多 20000；分页 `offset` 从0起、`limit` 1–5000，无整模20000上限 |
 | `merge_gui_duplicate_nodes` | 原生 DupNode，保留较小 ID 和原坐标，不删除退化单元或额外清理 | 5→4 节点、1 壳保持，验证节点映射/连接关系/部件；其他关键字引用仍需单独检查 |
 | `reverse_gui_shell_normals` | 原生反转全部壳或 `shell_ids` 指定壳的法向 | 整体与局部已验；核对反向循环顺序，节点及未选单元保持；自动统一方向待扩展 |
 | `translate_gui_nodes` | 同一 GUI 中按显式用户 ID 平移节点 | 已验证局部选择与未选节点保持；不再启动后台 LSPP |

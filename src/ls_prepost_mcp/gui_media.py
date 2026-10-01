@@ -2,16 +2,35 @@
 
 import math
 
-from pydantic import StrictInt
+from pydantic import StrictFloat, StrictInt
 
 from .config import scl_command_path
 from .gui_controls import wait_for_gui_state
 from .jobs import atomic_json, check_artifact, now
 from .media_validation import movie_validators, parse_movie_log, validate_mp4
 from .programs import native_errors
+from .scene_state import require_movie_field_coverage
 
 
 class GuiMediaTools:
+    def render_gui_field(
+        self,
+        session_id: str,
+        entity_type: str,
+        field: str,
+        state: StrictInt,
+        units: str,
+        integration_point: str = "mid",
+        part_ids: list[StrictInt] | None = None,
+        color_range: list[StrictFloat] | None = None,
+    ) -> dict:
+        """Render a named native SCL field with explicit state/sampling/units and avg_opt=0, exporting the same display-active entity values plus PNG/metadata. Isolate matching domain parts (or explicit parts), set fixed data/explicit color bounds and retain that scene. Standard node/shell/solid/tshell only; no inferred physical alive mask, frame conversion or material-history semantics. Node magnitudes use all three native components. Does not use whole-mesh JSON snapshots."""
+        from .gui_fringe import render_field
+
+        return render_field(
+            self, session_id, entity_type, field, state, units, integration_point, part_ids, color_range
+        )
+
     def export_gui_curve_plot(
         self,
         session_id: str,
@@ -57,7 +76,11 @@ class GuiMediaTools:
             meta = self._visible_mesh_session(session_id, manager, allow_results=True)
             if meta["model_kind"] != "d3plot":
                 raise ValueError("Movie export requires a result GUI session")
-            before = manager.dispatch(session_id, "inspect_model", {})
+            before = manager.dispatch(
+                session_id,
+                "inspect_model",
+                {"include_display_scope": True} if meta.get("managed_fringe") else {},
+            )
             if before["status"] != "succeeded":
                 return before
             inventory = before["data"]
@@ -68,6 +91,16 @@ class GuiMediaTools:
                 raise ValueError(
                     "Movie exceeds the 600 million pixel-frame budget; reduce resolution or states"
                 )
+            managed_field = require_movie_field_coverage(meta, final_state)
+            if managed_field:
+                if "part_visibility" not in inventory or "selection_count" not in inventory:
+                    raise ValueError("Start a new GUI session for verified custom-fringe movies")
+                if {int(pid) for pid, visible in inventory["part_visibility"].items() if visible} != set(
+                    managed_field["definition"]["parts"]
+                ) or inventory["selection_count"]:
+                    raise ValueError(
+                        "Custom-fringe movie display scope changed; re-render the field before exporting"
+                    )
             original = inventory["current_state"]
             if type(original) is not int or not 1 <= original <= inventory["counts"]["states"]:
                 raise ValueError("Cannot establish the original result state")
@@ -132,6 +165,7 @@ class GuiMediaTools:
                         time_unit="model_time_unspecified",
                         rendering="current_native_display",
                         field_semantics_verified=False,
+                        managed_field=managed_field,
                         animation_controls_after=dict(first=1, last=final_state, increment=1, playing=False),
                     ),
                 )

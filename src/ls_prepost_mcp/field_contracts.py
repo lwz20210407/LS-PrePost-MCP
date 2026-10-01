@@ -5,6 +5,8 @@ import json
 import re
 from dataclasses import dataclass
 
+ELEMENT_SCALARS = {"area", "volume", "thickness", "internal_energy_density"}
+
 
 @dataclass(frozen=True)
 class EntitySelection:
@@ -111,6 +113,9 @@ class SamplingSpec:
         elif self.kind == "native_default":
             if self.value != "solid_default" or self.native_selector != "0":
                 raise ValueError("Invalid native solid default selector")
+        elif self.kind == "native_element_scalar":
+            if self.value != "element" or self.native_selector != "0":
+                raise ValueError("Invalid element-scalar sampling definition")
         elif self.kind == "not_applicable":
             if self.value != "nodal" or self.native_selector != "0":
                 raise ValueError("Invalid native nodal selector")
@@ -137,7 +142,20 @@ class SamplingSpec:
             return cls("native_default", "solid_default", "0")
         if selection in ("mid", "inner", "outer"):
             return cls("native_shell_layer", selection, selection.upper())
+        if domain == "solid" and int(selection) > 8:
+            raise ValueError("Native fully-integrated solid selectors are limited to 1..8")
         return cls("native_integration_point", int(selection), selection)
+
+    @classmethod
+    def native_fields(cls, domain, selection, fields):
+        if domain != "node" and set(fields) & ELEMENT_SCALARS:
+            if selection != "mid":
+                raise ValueError(
+                    "Element scalar quantities have no layer/point; use the native default and split layer-specific requests"
+                )
+            if set(fields) <= ELEMENT_SCALARS:
+                return cls("native_element_scalar", "element", "0")
+        return cls.native(domain, selection)
 
     @classmethod
     def stored(cls, indices, *, stress=False):
@@ -194,12 +212,14 @@ class FieldSpec:
         if self.backend == "lsprepost":
             allowed = {
                 "node": {"not_applicable"},
-                "solid": {"native_default", "native_integration_point"},
-                "shell": {"native_shell_layer", "native_integration_point"},
-                "tshell": {"native_shell_layer", "native_integration_point"},
+                "solid": {"native_default", "native_integration_point", "native_element_scalar"},
+                "shell": {"native_shell_layer", "native_integration_point", "native_element_scalar"},
+                "tshell": {"native_shell_layer", "native_integration_point", "native_element_scalar"},
             }
             if self.sampling.kind not in allowed.get(self.selection.domain, set()):
                 raise ValueError("Native sampling does not match the entity domain")
+            if self.sampling.kind == "native_element_scalar" and not set(self.fields) <= ELEMENT_SCALARS:
+                raise ValueError("Element-scalar sampling cannot describe layered tensor components")
         if any(not isinstance(v, str) or not v.strip() for v in (self.frame, self.averaging, self.validity)):
             raise ValueError("Frame, averaging and validity scope must be explicit")
         if not isinstance(self.transformations, (list, tuple)) or any(
@@ -216,6 +236,12 @@ class FieldSpec:
             units=dict(label=self.units, dimensional_validation=False, conversion="none"),
             selection=self.selection.describe(),
             sampling=self.sampling.describe(),
+            sampling_by_field={
+                field: SamplingSpec("native_element_scalar", "element", "0").describe()
+                if self.backend == "lsprepost" and field in ELEMENT_SCALARS
+                else self.sampling.describe()
+                for field in self.fields
+            },
             frame=self.frame,
             averaging=self.averaging,
             validity=self.validity,

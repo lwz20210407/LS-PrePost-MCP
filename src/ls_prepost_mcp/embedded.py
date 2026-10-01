@@ -111,6 +111,9 @@ def run(request_path, response_path):
 
         if action in ("probe", "inspect_model"):
             data = inventory()
+            if p.get("include_display_scope"):
+                data["part_visibility"] = {str(int(pid)): bool(lp.check_if_part_is_active_u(int(pid))) for pid in data["part_ids"]}
+                data["selection_count"] = int(get("num_selection"))
             if action == "probe":
                 data["sdk_functions"] = [name for name in dir(lp) if not name.startswith("_")]
         elif action == "scl_probe":
@@ -120,6 +123,40 @@ def run(request_path, response_path):
             if scl_nodes != python_nodes:
                 raise ValueError("SCL and Python counters disagree")
             data = {"scl_nodes": scl_nodes, "python_nodes": python_nodes, "match": True}
+        elif action == "gui_mesh_page":
+            label, offset, limit = p["entity_type"], p["offset"], p["limit"]
+            if label not in ("node", "shell", "solid", "beam"):
+                raise ValueError("Unsupported mesh page entity_type")
+            if type(offset) is not int or offset < 0 or type(limit) is not int or not 1 <= limit <= 5000:
+                raise ValueError("Invalid mesh page bounds")
+            data = inventory()
+            kind = {"node": dc.Type.NODE, "shell": dc.Type.SHELL,
+                    "solid": dc.Type.SOLID, "beam": dc.Type.BEAM}[label]
+            registry = get("node_ids") if label == "node" else get("element_ids", type=kind)
+            total = len(registry)
+            end = min(total, offset + limit)
+            selected = [int(registry[i]) for i in range(offset, end)]
+            if label == "node":
+                # Native coordinate arrays are whole-domain buffers, but only
+                # the requested slice is materialized before another SDK call.
+                arrays = []
+                for key in ("node_x", "node_y", "node_z"):
+                    values = get(key, type=kind)
+                    if len(values) != total:
+                        raise ValueError("Native node coordinate length differs from registry")
+                    arrays.append([float(values[i]) for i in range(offset, end)])
+                rows = [[uid] + [a[i] for a in arrays] for i, uid in enumerate(selected)]
+                data["nodes"] = rows
+            else:
+                data["elements"] = [
+                    {"type": label, "id": uid,
+                     "nodes": [int(n) for n in sequence(get("element_connectivity", type=kind, id=uid))]}
+                    for uid in selected
+                ]
+            data.update(entity_type=label, offset=offset, limit=limit, total=total,
+                        returned=len(selected), next_offset=end if end < total else None,
+                        id_kind="user", coordinate_configuration="reference",
+                        snapshot_scope="one locked native request; no cross-page atomicity")
         elif action == "gui_mesh_state":
             data = inventory()
             if max(data["counts"].get("nodes", 0), data["counts"].get("elements", 0)) > 20000:

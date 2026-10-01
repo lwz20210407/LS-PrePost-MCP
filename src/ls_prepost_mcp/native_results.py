@@ -1,16 +1,15 @@
 """Native SCL/command-file exports. Only staged copies are opened by LS-PrePost."""
 import csv
 import json
-import math
 import re
 import shutil
 
 from .config import scl_command_path
-from .field_contracts import FieldSpec, ResultSelection, SamplingSpec
+from .field_contracts import ELEMENT_SCALARS, FieldSpec, ResultSelection, SamplingSpec
 from .jobs import atomic_json, fingerprint, now
 from .post_backend import ids, write_csv
 from .runner import execute
-from .stress import CONVENTIONS, NULLABLE, stress_metrics
+from .stress import CONVENTIONS, NULLABLE, native_mises_matches, stress_metrics
 
 STRESS_KEYS = ["stress_x", "stress_y", "stress_z", "stress_xy", "stress_yz", "stress_zx"]
 ELEMENT_FIELDS = set(STRESS_KEYS + ["von_mises", "effective_plastic_strain", "stress_1stprincipal",
@@ -69,7 +68,7 @@ def field_script(domain, entity_ids, states, fields, ipt, output_path="native.cs
     counter = "num_nodes" if domain == "node" else "num_" + domain + "_elements"
     declarations = "\n".join("Float *v%d=NULL;" % i for i in range(len(fields)))
     allocations = "\n".join("v%d=malloc(ne*sizeof(Float));" % i for i in range(len(fields)))
-    loads = "\n".join('n=SCLGetDataCenterFloatArray("%s",%s,%s,&v%d);\nif(n!=ne) { fprintf(fp,"ERROR_%s,count_%%d_expected_%%d\\n",n,ne); fclose(fp); return; }' % (key, kind, ipt, i, key)
+    loads = "\n".join('n=SCLGetDataCenterFloatArray("%s",%s,%s,&v%d);\nif(n!=ne) { fprintf(fp,"ERROR_%s,count_%%d_expected_%%d\\n",n,ne); fclose(fp); return; }' % (key, kind, "0" if key in ELEMENT_SCALARS else ipt, i, key)
                       for i, key in enumerate(fields))
     selects = " || ".join("uid==%d" % uid for uid in entity_ids)
     body = []
@@ -80,8 +79,13 @@ def field_script(domain, entity_ids, states, fields, ipt, output_path="native.cs
                     'for(j=0;j<ne;j=j+1){\nuid=SCLGetUserId(j,%s);\nif(%s) fprintf(fp,"%s",%d,times[%d],uid,%s);\n}'
                     % (state, state, loads, kind, selects, fmt, state, state-1, arguments))
     frees = "\n".join("free(v%d);" % i for i in range(len(fields)))
+    point_guard = ''
+    if domain == 'solid' and ipt.isdigit() and int(ipt) > 0:
+        point_guard = ('if(SCLGetDataCenterInt("is_full_integrated")!=1){fp=fopen('
+                       + json.dumps(str(output_path).replace('\\', '/'), ensure_ascii=False)
+                       + ',"w");if(fp!=NULL){fprintf(fp,"ERROR_SOLID_POINT_UNAVAILABLE\\n");fclose(fp);}return;}\n')
     return ('/*LS-SCRIPT*/\ndefine:\nvoid main(void)\n{\nInt ne,ns,n,j,uid;\nFILE *fp;\nFloat *times=NULL;\n'
-            + declarations + '\nne=SCLGetDataCenterInt("' + counter + '");\nns=SCLGetDataCenterInt("num_states");\n'
+            + declarations + '\n' + point_guard + 'ne=SCLGetDataCenterInt("' + counter + '");\nns=SCLGetDataCenterInt("num_states");\n'
             'if(ne<=0 || ns<=0) return;\ntimes=malloc(ns*sizeof(Float));\n'
             'n=SCLGetDataCenterFloatArray("state_times",0,0,&times);\nif(n!=ns) return;\n'
             + allocations + '\nfp=fopen(' + json.dumps(str(output_path).replace('\\', '/'), ensure_ascii=False) + ',"w");\nfprintf(fp,"state,time,entity_id,'
@@ -98,7 +102,7 @@ def native_fields(settings, jobs, source, domain, entity_ids, states, fields, in
     allowed = NODE_FIELDS if domain == "node" else ELEMENT_FIELDS
     if not fields or len(fields) > 32 or len(set(fields)) != len(fields) or not set(fields) <= allowed:
         raise ValueError("Unsupported or duplicate native fields")
-    sampling = SamplingSpec.native(domain, integration_point)
+    sampling = SamplingSpec.native_fields(domain, integration_point, fields)
     ipt = sampling.native_selector
     spec = FieldSpec('lsprepost', tuple(fields), units,
                      ResultSelection(domain, entity_ids, states), sampling,
@@ -115,6 +119,9 @@ def native_fields(settings, jobs, source, domain, entity_ids, states, fields, in
         (directory / "commands.cfile").write_text(commands, encoding="utf8")
     def parse(directory):
         with (directory / "native.csv").open(newline="", encoding="utf8") as f:
+            if f.readline().startswith('ERROR_SOLID_POINT_UNAVAILABLE'):
+                raise ValueError('Numbered solid points are unavailable in this native database; use the native default or output fully-integrated results')
+            f.seek(0)
             rows = list(csv.DictReader(f))
         expected = {(s, uid) for s in states for uid in entity_ids}
         actual = [(int(r["state"]), int(r["entity_id"])) for r in rows]
@@ -136,7 +143,7 @@ def native_fields(settings, jobs, source, domain, entity_ids, states, fields, in
             for row in rows:
                 metrics = stress_metrics([float(row[k]) for k in STRESS_KEYS])
                 native_mises = float(row["von_mises"])
-                if not math.isclose(metrics["von_mises"], native_mises, rel_tol=2e-4, abs_tol=1e-6):
+                if not native_mises_matches([float(row[k]) for k in STRESS_KEYS], metrics["von_mises"], native_mises):
                     raise ValueError("Six-component Mises disagrees with native von_mises; check layer/frame semantics")
                 errors.append(abs(metrics["von_mises"]-native_mises))
                 metric_rows.append([row["state"], row["time"], row["entity_id"], *[metrics[k] for k in names]])
