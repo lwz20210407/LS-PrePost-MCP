@@ -1,13 +1,14 @@
 """Declarative typed workflows and session/native command recordings."""
 
 import json
+import os
 import re
 import uuid
 from pathlib import Path
 
 from .jobs import atomic_json, check_artifact, now
 from .outcomes import normalize_outcome, result_value
-from .sessions import NATIVE_ACTIONS
+from .sessions import NATIVE_ACTIONS, alive, process_identity
 from .workflow_checks import POLICIES, evaluate_gate, validate_checks
 
 GUI_ACTIONS = {
@@ -147,6 +148,49 @@ def set_parameter_binding(document, path, name):
 
 
 class WorkflowTools:
+    def _recording_workflow_scope(self, session_id, workflow_id, begin):
+        """Prevent compiling a recording before its workflow gate annotations arrive."""
+        if not session_id or not re.fullmatch(r"[a-f0-9]{32}", session_id):
+            return
+        manager = self._session_manager()
+        if not (manager.directory(session_id) / "session.json").is_file():
+            return
+        with manager.lock(session_id):
+            meta = manager.read(session_id)
+            record = meta.get("recording")
+            if not record:
+                return
+            active = record.get("active_workflow")
+            if begin:
+                if active:
+                    raise ValueError(
+                        "Recording has an unfinished workflow; finish it or stop the interrupted recording for review"
+                    )
+                record["active_workflow"] = workflow_id
+                record["workflow_owner"] = process_identity(os.getpid())
+            elif active == workflow_id:
+                record.pop("active_workflow")
+                record.pop("workflow_owner", None)
+            manager.save(session_id, meta)
+
+    def _record_workflow_gate(self, session_id, result, checks, policy, gate):
+        if not session_id or result.get("session_id") != session_id or not result.get("job_directory"):
+            return
+        manager = self._session_manager()
+        with manager.lock(session_id):
+            if not manager.read(session_id).get("recording"):
+                return
+            manager.journal(
+                session_id,
+                dict(
+                    action="workflow_gate",
+                    parameters=dict(
+                        operation_job_directory=result["job_directory"], checks=checks, quality_policy=policy
+                    ),
+                    result=dict(status="succeeded" if gate["passed"] else "failed", gate=gate),
+                ),
+            )
+
     def import_command_recording(
         self, path: str, units: str, recorded_model_index: int | None = None
     ) -> dict:
@@ -234,6 +278,8 @@ class WorkflowTools:
         manifest.update(status="running", started_at=now())
         atomic_json(directory / "job.json", manifest)
         try:
+            failure_phase = "recording_setup"
+            self._recording_workflow_scope(session_id, manifest["job_id"], True)
             initial = workflow.get("initial_model")
             if initial and session_id:
                 failure_phase = "initial_model"
@@ -283,6 +329,9 @@ class WorkflowTools:
                     outcome, result, resolved_checks[step["id"]], step.get("quality_policy", "auto")
                 )
                 gates[step["id"]] = gate
+                self._record_workflow_gate(
+                    session_id, result, resolved_checks[step["id"]], step.get("quality_policy", "auto"), gate
+                )
                 atomic_json(directory / "steps.json", results)
                 atomic_json(directory / "outcomes.json", outcomes)
                 atomic_json(directory / "gates.json", gates)
@@ -299,6 +348,12 @@ class WorkflowTools:
                 status="failed",
                 error={"type": type(exc).__name__, "message": str(exc)},
             )
+        finally:
+            try:
+                self._recording_workflow_scope(session_id, manifest["job_id"], False)
+            except Exception as exc:
+                manifest.update(status="failed", error=dict(type=type(exc).__name__, message=str(exc)))
+                failure_phase = "recording_finalization"
         manifest["data"] = dict(
             steps=results,
             outcomes=outcomes,
@@ -362,13 +417,26 @@ class WorkflowTools:
         return dict(session_id=session_id, recording=record, native_available=native.exists())
 
     def stop_session_recording(self, session_id: str) -> dict:
-        """Finish a recording. Managed operations become a typed replay recipe; raw GUI commands remain separately preserved for review, not silently executed."""
+        """Finish a recording, preserving resolved workflow gates and raw cfile. Failed/interrupted records return needs_review and cannot replay. A still-running recorded workflow must finish first."""
         manager = self._session_manager()
         with manager.lock(session_id):
             meta = manager.read(session_id)
             record = meta.get("recording")
             if not record:
                 raise ValueError("No active recording")
+            review_reasons = []
+            if record.get("active_workflow"):
+                owner = record.get("workflow_owner")
+                if owner is None or alive(owner):
+                    raise ValueError(
+                        "A recorded workflow is still executing; finish it before stopping recording"
+                    )
+                review_reasons.append(
+                    dict(
+                        reason="Recorded workflow owner exited before gate finalization",
+                        workflow_id=record["active_workflow"],
+                    )
+                )
             root = manager.directory(session_id)
             directory = root / "recordings" / record["id"]
             directory.mkdir(parents=True)
@@ -379,17 +447,39 @@ class WorkflowTools:
                     f.seek(record["journal_offset"])
                     entries = [json.loads(s) for s in f.read().decode("utf8").splitlines() if s.strip()]
             steps = []
+            operation_positions = {}
             for entry in entries:
                 if entry["result"]["status"] != "succeeded":
-                    raise ValueError(
-                        "Recording contains a failed managed operation; review it before compiling"
+                    review_reasons.append(
+                        dict(
+                            reason="Failed managed operation or gate",
+                            action=entry["action"],
+                            status=entry["result"]["status"],
+                        )
                     )
+                if entry["action"] == "workflow_gate":
+                    annotations = entry["parameters"]
+                    target = annotations.get("operation_job_directory")
+                    if target not in operation_positions:
+                        raise ValueError("Recorded gate has no uniquely identified native operation")
+                    target_step = steps[operation_positions[target]]
+                    target_step["quality_policy"] = annotations["quality_policy"]
+                    target_step["checks"] = annotations["checks"]
+                    continue
                 action = "open_model" if entry["action"] == "open" else entry["action"]
                 if action not in WORKFLOW_ACTIONS:
-                    raise ValueError("Recording contains unsupported operation")
+                    review_reasons.append(dict(reason="Unsupported recorded operation", action=action))
+                    continue
                 steps.append(
                     dict(id="step" + str(len(steps) + 1), action=action, arguments=entry["parameters"])
                 )
+                directory_id = entry["result"].get("job_directory")
+                if directory_id:
+                    if directory_id in operation_positions:
+                        raise ValueError("Repeated native operation identity in recording")
+                    operation_positions[directory_id] = len(steps) - 1
+            if steps:
+                validate_steps(steps)
             workflow = dict(
                 schema_version=1,
                 name="Session recording",
@@ -400,6 +490,8 @@ class WorkflowTools:
                 requires_gui_session=True,
                 recording_scope="managed_operations_only; manual GUI edits are retained only in raw cfile",
             )
+            if review_reasons:
+                workflow["unrecognized_commands"] = review_reasons
             atomic_json(directory / "workflow.json", workflow)
             native = root / "lspost.cfile"
             raw = b""
@@ -411,6 +503,7 @@ class WorkflowTools:
             meta["recording"] = None
             manager.save(session_id, meta)
             report = dict(
+                status="needs_review" if review_reasons else "succeeded",
                 session_id=session_id,
                 recording_id=record["id"],
                 managed_steps=len(steps),
@@ -418,12 +511,13 @@ class WorkflowTools:
                 workflow=str(directory / "workflow.json"),
                 raw_commands=str(directory / "native.cfile"),
                 raw_replay_status="Requires command import/review; managed recipe does not claim capture of arbitrary GUI semantics",
+                review_reasons=review_reasons,
             )
             atomic_json(directory / "recording.json", report)
             return report
 
     def parameterize_workflow(self, path: str, bindings: list[dict]) -> dict:
-        """Replace explicit JSON paths in step arguments with named parameters, retaining original values as defaults. No string/code substitution."""
+        """Parameterize JSON paths in step arguments or checks (section), preserving policy and review blockers. No string/code substitution."""
         source = self.settings.input_path(path)
         workflow = json.loads(source.read_text(encoding="utf8"))
         validate_steps(workflow["steps"])

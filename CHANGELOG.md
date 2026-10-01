@@ -3,7 +3,8 @@
 ## 0.4.0 (development)
 
 - Implement workflow-boundary execution/check outcomes, automatic gates for mapped checks, strict scalar predicates and parameterized thresholds. Failed gates stop dependent actions while preserving original reports/checkpoints and explicit failure evidence.
-- Accept prepared programs only as preparation, reject unknown/missing/unverified execution statuses, and distinguish attempted steps from completed steps. Add five reproducible synthetic file-backend gate cases and packaged MCP smoke verification; fresh GUI gate integration remains pending.
+- Accept prepared programs only as preparation, reject unknown/missing/unverified execution statuses, and distinguish attempted steps from completed steps. Add five reproducible synthetic file-backend gate cases and packaged MCP smoke verification.
+- Verify gates in visible 4.13.4: failed checks block actual coordinate edits; explicit finding policies and thresholds survive managed recording, parameterization and replay. Provide an opt-in native acceptance driver; no hosted CI or arbitrary-version GUI certification is implied.
 
 - Add same-session visible GUI mesh editing, duplicate-node merge, all/subset shell normal reversal, native entity selection, boolean selection, geometric predicates and native selection buffers.
 - Add node/shell/part renumbering through the native dialog with mapping-log verification and scoped reference checks; handle zero padding in native node-list sets.

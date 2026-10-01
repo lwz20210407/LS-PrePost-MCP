@@ -223,3 +223,151 @@ def test_real_deck_quality_gate_blocks_export_without_native_software(tmp_path, 
     assert result["data"]["outcomes"]["check"]["backend"] == "pydyna+geometry-math"
     assert result["data"]["steps"]["check"]["data"]["valid_within_scope"] is False
     assert source.read_bytes() == original
+
+
+def test_managed_recording_preserves_resolved_quality_policy_and_blocks_premature_stop(tmp_path, monkeypatch):
+    import os
+    import uuid
+
+    from ls_prepost_mcp.jobs import atomic_json
+    from ls_prepost_mcp.sessions import process_identity
+
+    s = Service(Settings(tmp_path))
+    manager = s._session_manager()
+    sid = "b" * 32
+    directory = manager.directory(sid)
+    directory.mkdir(parents=True)
+    atomic_json(
+        directory / "session.json",
+        dict(
+            process=process_identity(os.getpid()),
+            state="ready",
+            model_kind="keyword",
+            recording=dict(
+                id="c" * 32,
+                initial_model=None,
+                initial_file_type="keyword",
+                native_offset=None,
+                journal_offset=0,
+            ),
+        ),
+    )
+    calls = []
+
+    def operation(**kwargs):
+        calls.append("check")
+        record = manager.read(sid).get("recording")
+        if record:
+            assert record["active_workflow"]
+            with pytest.raises(ValueError, match="still executing"):
+                s.stop_session_recording(sid)
+        result = dict(
+            status="succeeded",
+            session_id=sid,
+            job_directory=str(directory / uuid.uuid4().hex),
+            verification=dict(passed_checks=False, totals=dict(unref=1)),
+        )
+        manager.journal(sid, dict(action="check_gui_keywords", parameters={}, result=result))
+        return result
+
+    monkeypatch.setattr(s, "check_gui_keywords", operation)
+    path = recipe(
+        s,
+        dict(
+            action="check_gui_keywords",
+            arguments={},
+            quality_policy="report_only",
+            checks=[dict(path=["verification", "totals", "unref"], operator="le", value={"$param": "limit"})],
+        ),
+        False,
+        dict(limit=1),
+    )
+    assert s.run_workflow(path, session_id=sid)["status"] == "succeeded"
+    recording = s.stop_session_recording(sid)
+    assert recording["managed_steps"] == 1
+    recorded = json.loads(Path(recording["workflow"]).read_text())
+    assert recorded["steps"][0]["quality_policy"] == "report_only"
+    assert recorded["steps"][0]["checks"][0]["value"] == 1
+    assert s.run_workflow(recording["workflow"], session_id=sid)["status"] == "succeeded"
+    assert calls == ["check", "check"]
+
+
+def test_interrupted_recording_can_stop_for_review_but_never_replay_automatically(tmp_path):
+    import os
+
+    from ls_prepost_mcp.jobs import atomic_json
+    from ls_prepost_mcp.sessions import process_identity
+
+    s = Service(Settings(tmp_path))
+    manager = s._session_manager()
+    sid = "d" * 32
+    directory = manager.directory(sid)
+    directory.mkdir(parents=True)
+    dead_owner = dict(process_identity(os.getpid()), create_time=-1)
+    atomic_json(
+        directory / "session.json",
+        dict(
+            process=process_identity(os.getpid()),
+            state="ready",
+            model_kind="keyword",
+            recording=dict(
+                id="e" * 32,
+                initial_model=None,
+                initial_file_type="keyword",
+                native_offset=None,
+                journal_offset=0,
+                active_workflow="interrupted",
+                workflow_owner=dead_owner,
+            ),
+        ),
+    )
+    manager.journal(
+        sid,
+        dict(
+            action="check_gui_keywords",
+            parameters={},
+            result=dict(
+                status="succeeded", job_directory="native-job", verification=dict(passed_checks=True)
+            ),
+        ),
+    )
+    record = s.stop_session_recording(sid)
+    assert record["status"] == "needs_review"
+    assert not manager.read(sid)["recording"]
+    assert Path(record["raw_commands"]).exists()
+    with pytest.raises(ValueError, match="review"):
+        s.run_workflow(record["workflow"], session_id=sid)
+
+
+def test_failed_managed_recording_preserves_reviewable_artifacts(tmp_path):
+    import os
+
+    from ls_prepost_mcp.jobs import atomic_json
+    from ls_prepost_mcp.sessions import process_identity
+
+    s = Service(Settings(tmp_path))
+    manager = s._session_manager()
+    sid = "f" * 32
+    directory = manager.directory(sid)
+    directory.mkdir(parents=True)
+    atomic_json(
+        directory / "session.json",
+        dict(
+            process=process_identity(os.getpid()),
+            state="uncertain",
+            model_kind="keyword",
+            recording=dict(id="a" * 32, initial_model=None, native_offset=None, journal_offset=0),
+        ),
+    )
+    manager.journal(
+        sid,
+        dict(
+            action="translate_gui_nodes",
+            parameters={"node_ids": [1], "offset": [1, 0, 0], "units": "mm"},
+            result=dict(status="uncertain"),
+        ),
+    )
+    record = s.stop_session_recording(sid)
+    assert record["status"] == "needs_review" and record["managed_steps"] == 1
+    with pytest.raises(ValueError, match="review"):
+        s.run_workflow(record["workflow"], session_id=sid)

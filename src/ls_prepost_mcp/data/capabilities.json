@@ -1280,14 +1280,15 @@
     {
       "id": "workflow.quality_gates",
       "tool": "run_workflow",
-      "status": "implemented",
+      "status": "native_tested",
       "sources": [
         "guide-modelcheck",
         "official-parametric-preprocessor"
       ],
-      "scope": "Execution/check outcomes, automatic known-check gates, declarative finite predicates, parameter thresholds and failure evidence. Unit/real synthetic file-backend acceptance; new live GUI integration pending.",
+      "scope": "Execution/check outcomes, automatic known-check gates, declarative predicates and threshold recording/replay. File-backend cases plus visible 4.13.4 allowed/blocked native edits verified by coordinates. Other versions and full workflow recovery not certified.",
       "tested_profiles": [
-        "Python workflow engine + PyDYNA/geometry/curve synthetic file backends"
+        "Python/PyDYNA synthetic file backends",
+        "4.13.4 Windows visible GUI"
       ]
     }
   ],

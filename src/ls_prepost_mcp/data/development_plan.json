@@ -948,6 +948,27 @@
   ],
   "work_items": [
     {
+      "id": "T01-OUTCOME",
+      "title": "工作流边界执行/检查结果合同",
+      "modules": [
+        "runtime",
+        "checks",
+        "automation"
+      ],
+      "backlog_ids": [
+        "A05"
+      ],
+      "depends_on": [],
+      "acceptance": [
+        "不改变原始工具结果，独立报告执行与检查结论",
+        "缺失/无效/不适用结果不伪造通过",
+        "保留后端与范围，供门槛使用"
+      ],
+      "status": "complete",
+      "milestone": "R1",
+      "evidence": "docs/WORKFLOW_GATES.md"
+    },
+    {
       "id": "T01",
       "title": "统一模型/选择/结果/单位/执行结果合同",
       "modules": [
@@ -963,14 +984,16 @@
         "A09",
         "E01"
       ],
-      "depends_on": [],
+      "depends_on": [
+        "T01-OUTCOME"
+      ],
       "acceptance": [
         "字段语义与已有工具兼容映射",
         "实体 ID/状态/层/坐标/单位不再散落隐式解释"
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "OperationOutcome added at workflow boundary; execution/check verdict/backend/scope separate. ModelRef, SelectionSpec, FieldSpec and dimensional units still pending.",
+      "progress": "OperationOutcome subtask complete; remaining ModelRef, SelectionSpec, FieldSpec and dimensional-unit contracts still in progress.",
       "evidence": "docs/WORKFLOW_GATES.md"
     },
     {
@@ -985,15 +1008,15 @@
         "G06"
       ],
       "depends_on": [
-        "T01"
+        "T01-OUTCOME"
       ],
       "acceptance": [
         "执行成功但质量失败时后续步骤不运行",
         "缺字段/未验证/不适用有独立处理"
       ],
-      "status": "in_progress",
+      "status": "complete",
       "milestone": "R1",
-      "progress": "Default mapped-check gates, explicit predicates, parameterized thresholds and failure artifacts implemented. Five real synthetic file-backend cases passed. Fresh native GUI gate/recording acceptance remains pending.",
+      "progress": "Default mapped-check gates, explicit predicates, parameterized thresholds and failure artifacts passed unit/file-backend acceptance plus 4.13.4 visible native checks, blocked coordinate edits and parameterized policy recording/replay. Broader workflow recovery and other versions are separate work.",
       "evidence": "docs/WORKFLOW_GATES.md"
     },
     {
@@ -1204,7 +1227,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Reusable synthetic file-backend workflow gate acceptance driver added to CI; reusable live GUI driver remains pending."
+      "progress": "Reusable file-backend gate acceptance in CI and opt-in visible GUI gate/recording acceptance driver now exist; full three-workflow/scale/version coverage still pending."
     },
     {
       "id": "T11",
