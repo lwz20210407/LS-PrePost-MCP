@@ -4,6 +4,8 @@ import math
 import re
 from pathlib import Path
 
+from pydantic import StrictBool
+
 from .config import command_path
 from .gui_mesh import check_same_nodes, check_same_parts, mesh_index, shell_cycle
 from .jobs import check_artifact
@@ -115,11 +117,13 @@ def native_metric_row(rows, name, threshold):
 
 
 class GuiQualityTools:
-    def check_gui_solid_quality(self, session_id: str, checks: list[dict], units: str) -> dict:
-        """Native visible Hex8 checks: minimum_angle, maximum_angle, distortion_index, volume, characteristic_length, aspect_ratio. Each criterion supplies metric, comparison(gt/lt) and threshold. Angles use degrees, volume uses model-length cubed. Native counts/zero evidence, all-part checking and restored part flags; no repair or solver validation. Inspect passed_checks."""
+    def check_gui_solid_quality(
+        self, session_id: str, checks: list[dict], units: str, capture_failed_ids: StrictBool = False
+    ) -> dict:
+        """Native visible Hex8 checks: minimum_angle, maximum_angle, distortion_index, volume, characteristic_length, aspect_ratio. Supply metric/comparison(gt|lt)/threshold. Optional capture_failed_ids exports verified user IDs and their union; it overwrites native Buffer1 and clears general selection. Angles use degrees; volume uses model-length cubed. All-part checking, restored part flags, no repair/solver validation. Inspect passed_checks."""
         from .gui_solid_quality import check_solids
 
-        return check_solids(self, session_id, checks, units)
+        return check_solids(self, session_id, checks, units, capture_failed_ids)
 
     def check_gui_keywords(self, session_id: str) -> dict:
         """Run actual native Keyword Check with contact checking excluded, export and parse its completed report, and verify mesh unchanged. Reports warnings/errors/unreferenced/undefined separately; never auto-clean."""

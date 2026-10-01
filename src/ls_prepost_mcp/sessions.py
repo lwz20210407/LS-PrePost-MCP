@@ -424,6 +424,7 @@ class SessionTools:
                     last_checkpoint=meta.get("last_checkpoint"),
                     source=None,
                     staged_model=None,
+                    selection_buffers={},
                 )
                 manager.save(session_id, updated)
             manager.journal(session_id, dict(action="new_model", parameters={}, result=result))
@@ -493,9 +494,9 @@ class SessionTools:
                     dirty=False,
                     source=str(self.settings.input_path(path)),
                     staged_model=str(staged),
+                    selection_buffers={},
+                    last_checkpoint=str(staged) if file_type == "keyword" else None,
                 )
-                if file_type == "keyword":
-                    data["last_checkpoint"] = str(staged)
                 manager.save(session_id, data)
             manager.journal(
                 session_id,
@@ -591,7 +592,11 @@ class SessionTools:
                     if result["status"] == "succeeded":
                         meta = manager.read(session_id)
                         meta.update(
-                            last_checkpoint=output, staged_model=str(staged), source=output, dirty=False
+                            last_checkpoint=output,
+                            staged_model=str(staged),
+                            source=output,
+                            dirty=False,
+                            selection_buffers={},
                         )
                         manager.save(session_id, meta)
                 manager.journal(session_id, dict(action=action, parameters=parameters, result=result))
@@ -602,10 +607,15 @@ class SessionTools:
 
                 requested = result["data"].get("original_state")
                 if requested is None:
-                    result.update(status="failed", error=dict(message="Nodal state-restoration evidence is missing"))
+                    result.update(
+                        status="failed", error=dict(message="Nodal state-restoration evidence is missing")
+                    )
                 else:
                     observed, evidence = wait_for_gui_state(
-                        manager, session_id, requested, self.settings.timeout,
+                        manager,
+                        session_id,
+                        requested,
+                        self.settings.timeout,
                         native_commands=["anim stop", "state %d" % requested],
                     )
                     result["data"]["state_restored"] = observed["status"] == "succeeded"

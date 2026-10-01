@@ -22,7 +22,7 @@
 | `create_gui_elements` | 向已有部件原生导入三角/四边壳或 hex8 | 三角/四边壳及 Hex8 已验证。实体案例：12 节点/2 个相邻六面体共用 4 节点面，核对连接/部件、几何质量、原生重开；反转连接预检拒绝。非原生实体质量面板或物理认证 |
 | `inspect_gui_mesh_quality` | 读取当前 GUI 内存网格，计算面积/边长比/翘曲/体积/Jacobian 等 | 原生读取 + 几何数学，不冒充原生 Model Checking；可设 `fail_on_issues=true` |
 | `check_gui_shell_quality` | 真正调用 Model Checking 的壳 Element Quality，13 类可选指标和显式阈值 | 4.13.4 四边壳与三角壳已验；原生最小/最大/违规数量读回，保留 GUI 显示精度。不覆盖全部 Keyword/Contact Check |
-| `check_gui_solid_quality` | 原生实体 Element Quality：最小/最大角、畸变指标、体积、特征长度、长宽比，显式 gt/lt 阈值 | 4.13.4 Hex8 的 12 个通过/失败检查已验；原生失败数/百分比，零失败另核对 Save Failed 禁用状态；全体部件检查后恢复原显隐。非失败 ID 并集或其他实体拓扑认证 |
+| `check_gui_solid_quality` | 原生实体 Element Quality 的 6 项显式 gt/lt 检查；可选捕获失败用户 ID 与去重并集 | 4.13.4 Hex8 通过/失败、显隐恢复、失败集合定位及阈值回放已验；捕获显式占用 Buffer1 并清空通用选区。其他实体拓扑未获得此次认证 |
 | `inspect_gui_menu` | 按路径/深度读取当前构建菜单、真实命令 ID 与启用状态 | 4.13.4 读取 448 条树记录；包含分组导航，不能等同 448 项功能完成 |
 | `check_gui_keywords` | 原生 Keyword Check、明确排除 Contact Check、原生报告导出与分项解析 | 正常模型/缺材料截面反例均已验；警告、错误、未引用、未定义分开；不自动 Model Clean |
 | `restart_gui_session` | 已退出进程恢复到新可见会话，使用检查点或已暂存输入 | 不关闭仍存活的窗口，不重放不确定操作；未保存手工修改不会凭空恢复 |
@@ -88,4 +88,14 @@ Keyword Check 现已独立接入：报告必须包含原生头尾标记和完整
 
 本机检查通过时不输出零失败日志，因此工具要求相关原生命令完成、命令日志匹配、原生 Save Failed 按钮明确禁用，才报告 0。失败时同时核对原生数量、百分比与捕获按钮状态。缺失/矛盾证据会失败，不能把空日志直接当通过。报告是逐准则计数，同一单元可能触发多项，不能将它们相加当作失败实体并集。
 
-`tools/run_gui_solid_quality_acceptance.py` 以两个合成 Hex8 验证 6 项各自通过/失败、部分超限 1/2、隐藏部件仍被检查且显隐恢复、检查不导出 k、超限阻止节点编辑，以及录制后修改阈值回放仍阻止编辑。原文件指纹保持。当前限非空 Hex8 实体集合与 20000 实体快照；四面体/厚壳/梁、时间步、接触、失败 ID 导出和自动修复继续开发。
+`tools/run_gui_solid_quality_acceptance.py` 以两个合成 Hex8 验证 6 项各自通过/失败、部分超限 1/2、隐藏部件仍被检查且显隐恢复、检查不导出 k、超限阻止节点编辑，以及录制后修改阈值回放仍阻止编辑。原文件指纹保持。当前限非空 Hex8 实体集合与 20000 实体快照；四面体/厚壳/梁、时间步、接触和自动修复继续开发。
+
+### 失败集合捕获与定位
+
+`capture_failed_ids=true` 使用本机构建实际记录的 `elemcheck savetogen`，通过原生 Buffer1 读出失败用户 ID。每个准则的数量、唯一性和当前实体注册表都必须一致；不同准则的完整 ID 单独存 JSON，返回有限样本以及独立去重的 `failed_element_ids` / `unique_failed_element_count` / `failed_part_ids`。未请求捕获时不返回 ID 集合字段；工作流绑定缺失字段会失败，不把 null 误传成选择工具的“全选”默认值。
+
+这一可选模式会覆盖原生 Buffer1，并在完成时清空通用选区；其他缓冲槽保留。受管 Buffer1 身份在发命令前作废，已有受管元数据保存为恢复参考；这不是未知手工缓存内容的快照。随后可把 `failed_element_ids` 绑定给 `select_gui_entities`。默认统计模式不改变受管缓存身份。
+
+仅定位问题、不要求质量合格时，[定位配方](../examples/workflows/visible_gui_locate_failed_solids.json) 明确使用 `quality_policy="report_only"`，然后选择失败并集；它没有批准继续编辑坏网格。原生验证使用不连续单元 ID 101/507，分别捕获不同体积条件、验证通过后的空集合、其他缓冲槽保留，并验证录制后改阈值会选择新的失败集合。入口为 `tools/run_gui_failed_ids_acceptance.py`。
+
+模型重开、重置和检查点替换会作废旧受管选区缓存身份，即使新模型坐标/ID 恰好相同。旧配方若依赖录制开始前的缓存，应把保存选区步骤纳入模板。打开 d3plot 时也会清除上一 keyword 的默认检查点引用；原文件、历史检查点和日志仍保留，可通过明确路径恢复。

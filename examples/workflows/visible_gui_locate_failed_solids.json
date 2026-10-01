@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "name": "Locate failed Hex8 user IDs",
+  "requires_gui_session": true,
+  "defaults": {},
+  "steps": [
+    {
+      "id": "quality",
+      "action": "check_gui_solid_quality",
+      "quality_policy": "report_only",
+      "arguments": {
+        "checks": {
+          "$param": "failure_checks"
+        },
+        "units": {
+          "$param": "units"
+        },
+        "capture_failed_ids": true
+      }
+    },
+    {
+      "id": "locate",
+      "action": "select_gui_entities",
+      "arguments": {
+        "entity_type": "solid",
+        "entity_ids": {
+          "$result": "quality",
+          "path": [
+            "verification",
+            "failed_element_ids"
+          ]
+        }
+      }
+    }
+  ]
+}

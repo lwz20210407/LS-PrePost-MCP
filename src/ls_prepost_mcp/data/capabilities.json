@@ -1355,7 +1355,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Six native Hex8 criteria (angle min/max, distortion, volume, characteristic length, aspect ratio), explicit gt/lt thresholds, per-criterion native counts/percent and zero-failure UI evidence. All parts checked and flags restored; no inspection k exports. 12 positive/negative cases plus failed-gate/edit blocking and recorded-threshold replay verified. No other solid topologies, union of failed IDs, repair or solver certification."
+      "scope": "Six native Hex8 criteria and per-criterion count/percent/zero-capture evidence. Optional native failed-user-ID capture validates counts/registry, exports criterion sets and returns their distinct union; explicitly overwrites Buffer1 and clears selection, preserves other slots. Noncontiguous ID localization and changed-threshold recording replay verified in 4.13.4. All-part flags restored; no inspection k exports. Other topologies/repair/solver validity remain outside scope."
     }
   ],
   "native_reference_builds": [

@@ -1,7 +1,7 @@
 import pytest
 
 from ls_prepost_mcp.config import Settings
-from ls_prepost_mcp.gui_solid_quality import parse_solid_check
+from ls_prepost_mcp.gui_solid_quality import parse_solid_check, verified_failed_ids
 from ls_prepost_mcp.outcomes import normalize_outcome
 from ls_prepost_mcp.service import Service
 from ls_prepost_mcp.workflow_checks import evaluate_gate
@@ -64,3 +64,10 @@ def test_invalid_criteria_fail_before_native_access(tmp_path, checks):
     with pytest.raises(ValueError):
         Service(Settings(tmp_path)).check_gui_solid_quality("absent", checks, "mm")
     assert not (tmp_path / "jobs").exists()
+
+
+def test_captured_ids_are_true_unique_registry_ids_not_array_indexes():
+    assert verified_failed_ids([507, 101], 2, {101, 507}) == [101, 507]
+    for values, count in [([1, 2], 2), ([101, 101], 2), ([101], 2), ([True], 1), (None, 0)]:
+        with pytest.raises(ValueError):
+            verified_failed_ids(values, count, {101, 507})
