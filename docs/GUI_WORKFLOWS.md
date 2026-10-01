@@ -22,6 +22,7 @@
 | `create_gui_elements` | 向已有部件原生导入三角/四边壳或 hex8 | 三角/四边壳及 Hex8 已验证。实体案例：12 节点/2 个相邻六面体共用 4 节点面，核对连接/部件、几何质量、原生重开；反转连接预检拒绝。非原生实体质量面板或物理认证 |
 | `inspect_gui_mesh_quality` | 读取当前 GUI 内存网格，计算面积/边长比/翘曲/体积/Jacobian 等 | 原生读取 + 几何数学，不冒充原生 Model Checking；可设 `fail_on_issues=true` |
 | `check_gui_shell_quality` | 真正调用 Model Checking 的壳 Element Quality，13 类可选指标和显式阈值 | 4.13.4 四边壳与三角壳已验；原生最小/最大/违规数量读回，保留 GUI 显示精度。不覆盖全部 Keyword/Contact Check |
+| `check_gui_solid_quality` | 原生实体 Element Quality：最小/最大角、畸变指标、体积、特征长度、长宽比，显式 gt/lt 阈值 | 4.13.4 Hex8 的 12 个通过/失败检查已验；原生失败数/百分比，零失败另核对 Save Failed 禁用状态；全体部件检查后恢复原显隐。非失败 ID 并集或其他实体拓扑认证 |
 | `inspect_gui_menu` | 按路径/深度读取当前构建菜单、真实命令 ID 与启用状态 | 4.13.4 读取 448 条树记录；包含分组导航，不能等同 448 项功能完成 |
 | `check_gui_keywords` | 原生 Keyword Check、明确排除 Contact Check、原生报告导出与分项解析 | 正常模型/缺材料截面反例均已验；警告、错误、未引用、未定义分开；不自动 Model Clean |
 | `restart_gui_session` | 已退出进程恢复到新可见会话，使用检查点或已暂存输入 | 不关闭仍存活的窗口，不重放不确定操作；未保存手工修改不会凭空恢复 |
@@ -80,3 +81,11 @@ Keyword Check 现已独立接入：报告必须包含原生头尾标记和完整
 来源：[2026R1 用户指南](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/pdf/Ansys_LS-PrePost_Users_Guide.pdf)、[厂商配置说明](https://lsdyna.ansys.com/wp-content/uploads/2025/02/express-webinar_dynamore-lspp-24072020.pdf)及本机合成 GUI 录制。完整待办仍见 [总清单](REQUESTS_AND_PRIORITIES.md)。
 
 实体创建复验入口：`tools/run_gui_hex_edit_acceptance.py --workspace <output> --executable <installed-lsprepost>`。只生成自建合成网格；使用现有建模/导入接口，不读取用户求解结果。
+
+## 原生实体质量门槛
+
+`check_gui_solid_quality` 使用 `checks=[{"metric":"aspect_ratio","comparison":"gt","threshold":1.5}]`。gt/lt 表示由原生检查器判断“大于/小于阈值”的失败实体；不自动改为包含边界的比较。支持 `minimum_angle`、`maximum_angle`、`distortion_index`、`volume`、`characteristic_length`、`aspect_ratio`。检查全体部件，检查后恢复部件活动标志；检查显示及原生捕获状态可以变化。
+
+本机检查通过时不输出零失败日志，因此工具要求相关原生命令完成、命令日志匹配、原生 Save Failed 按钮明确禁用，才报告 0。失败时同时核对原生数量、百分比与捕获按钮状态。缺失/矛盾证据会失败，不能把空日志直接当通过。报告是逐准则计数，同一单元可能触发多项，不能将它们相加当作失败实体并集。
+
+`tools/run_gui_solid_quality_acceptance.py` 以两个合成 Hex8 验证 6 项各自通过/失败、部分超限 1/2、隐藏部件仍被检查且显隐恢复、检查不导出 k、超限阻止节点编辑，以及录制后修改阈值回放仍阻止编辑。原文件指纹保持。当前限非空 Hex8 实体集合与 20000 实体快照；四面体/厚壳/梁、时间步、接触、失败 ID 导出和自动修复继续开发。

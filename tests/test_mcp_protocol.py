@@ -21,7 +21,7 @@ def test_stdio_discovery_reference_and_rejection(tmp_path):
                 assert {"create_shell_plate", "probe_scl", "extract_lsreader_nodal", "search_commands",
                         "extract_native_stress", "create_solid_box", "compose_keyword_deck",
                         "prepare_native_program", "execute_native_program", "execute_gui_command",
-                        "create_native_macro", "run_native_macro"} <= names
+                        "create_native_macro", "run_native_macro", "check_gui_solid_quality"} <= names
                 result = await session.call_tool("search_commands", {"query": "runpython", "limit": 3})
                 assert not result.isError
                 invalid = await session.call_tool("create_shell_plate", {"nx": 0, "ny": 1, "size": [1, 1], "units": "mm"})
@@ -35,5 +35,9 @@ def test_stdio_discovery_reference_and_rejection(tmp_path):
                     "d3plot": "missing-result", "node_ids": [1], "quantity": "displacement",
                     "states": [True, 2], "units": "mm"})
                 assert invalid_nodal.isError and "integer" in str(invalid_nodal.content).lower()
+                invalid_solid = await session.call_tool("check_gui_solid_quality", {
+                    "session_id": "absent", "checks": [{"metric": "volume", "comparison": "gt", "threshold": True}],
+                    "units": "mm"})
+                assert invalid_solid.isError
                 assert not (tmp_path / "jobs").exists()
     asyncio.run(scenario())

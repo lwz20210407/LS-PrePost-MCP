@@ -4,7 +4,7 @@
 
 落地增量：[工作流结果合同与质量门槛](WORKFLOW_GATES.md)已实现 T01 的 OperationResult 投影与 T02 的门槛执行。其他语义对象、按需访问和完整恢复尚未因此完成。当前推进 R1，保留三条主流程共同验收的发布标准。
 
-后处理增量：[结果选择与取值位置合同](RESULT_CONTRACTS.md)已接入原生 SCL 与 LASSO 的场/应力提取路径。它是 T01/T06 的部分落地；ModelRef、GUI 统一选区、量纲转换及更多变量语义仍未完成。
+增量已串联 keyword/d3plot 选区、可见原生字段/曲线提取、录制依赖回放和[显式曲线单位换算](UNIT_CONTRACTS.md)，并补入原生 Hex8 质量门槛。详见[结果合同](RESULT_CONTRACTS.md)和[GUI 验收](GUI_WORKFLOWS.md)。完整 ModelRef、有效实体、更多变量语义与规模能力仍待完成，三条主流程保持各自的退出标准。
 
 ## 1. 产品目标与交付对象
 

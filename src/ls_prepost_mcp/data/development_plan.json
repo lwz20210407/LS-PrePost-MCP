@@ -449,7 +449,8 @@
         "inspect_mesh_quality",
         "inspect_gui_mesh_quality",
         "check_gui_shell_quality",
-        "check_gui_keywords"
+        "check_gui_keywords",
+        "check_gui_solid_quality"
       ],
       "status": "partial",
       "contract_doc": "docs/ARCHITECTURE.md"
@@ -1118,7 +1119,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Bounded absolute node coordinates/axis alignment, full XYZ/multiple translation groups and part-flag preservation passed visible 4.13.4. Edit -> native quality -> save/reopen, parameter recording/replay and failed-quality checkpoint recovery verified. Broader Node/Element editing remains."
+      "progress": "Bounded absolute node coordinates/axis alignment, full XYZ/multiple translation groups and part-flag preservation passed visible 4.13.4. Edit -> native quality -> save/reopen, parameter recording/replay and failed-quality checkpoint recovery verified. Broader Node/Element editing remains. Native Hex8 Model Checking now covers six recorded criteria, explicit zero-failure evidence, hidden-part preservation and gate/recorded-threshold rejection on synthetic positive/negative cases."
     },
     {
       "id": "T06",

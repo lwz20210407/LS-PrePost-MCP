@@ -2,6 +2,8 @@
 
 ## 0.4.0 (development)
 
+- Add six native visible Hex8 quality criteria with explicit comparison thresholds, native failure counts/percent and zero-failure capture-state evidence. Preserve part visibility and mesh; integrate automatic workflow gates and recorded-threshold replay. Verify twelve pass/fail cases plus partial failures, hidden parts and blocked edits on synthetic 4.13.4 models.
+
 - Add explicit scalar-history unit conversion and per-source normalization before curve alignment. Preserve rational scale provenance, reject incompatible dimensions and numerical range loss, and mark legacy shared-unit assumptions. Verify a mixed-unit force/relative-displacement -> stress/strain/work recipe in CI; no solver unit inference is implied.
 
 - Add bounded absolute global node-coordinate/axis alignment through native grouped translations. Preserve untouched nodes/topology and part flags; report affected elements and checkpoints. Verify native quality gating, coordinate-parameter recording/replay, save/reopen and explicit recovery on a synthetic visible 4.13.4 mesh.

@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass
 
 CHECK_PATHS = {
     "check_gui_shell_quality": ("verification", "passed_checks"),
+    "check_gui_solid_quality": ("verification", "passed_checks"),
     "check_gui_keywords": ("verification", "passed_checks"),
     "inspect_gui_mesh_quality": ("data", "valid_within_scope"),
     "inspect_mesh_quality": ("data", "valid_within_scope"),

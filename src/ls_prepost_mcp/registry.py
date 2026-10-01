@@ -5,6 +5,7 @@ SERVICE_TOOLS = (
     "check_gui_keywords",
     "inspect_gui_menu",
     "check_gui_shell_quality",
+    "check_gui_solid_quality",
     "combine_gui_selections",
     "save_gui_selection_buffer",
     "load_gui_selection_buffer",
