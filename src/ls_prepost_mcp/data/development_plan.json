@@ -1069,7 +1069,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Shared EntitySelection and keyword/d3plot native selection implemented. Eight representative 4.13.4 visible-result cases passed, with unchanged source hashes and no keyword exports. Bulk part selection verified. Visibility preservation, alive/deleted masks, deformed coordinates and field binding remain."
+      "progress": "Shared EntitySelection, keyword/d3plot selection, native bulk part selection and part-visibility preservation implemented. All/active-parts scope and inversion verified: 9 synthetic keyword and 11 representative result cases. Alive/deleted masks, deformed coordinates, per-element visibility and field binding remain."
     },
     {
       "id": "T05",

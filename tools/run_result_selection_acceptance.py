@@ -76,6 +76,14 @@ def accept(workspace, executable, source):
     radius = max(1.0, max(abs(v) for v in point)) * 1e-6
     check("reference_sphere", service.select_gui_nodes_by_sphere(sid, point, radius, "original model units"))
     assert node_ids[0] in results["reference_sphere"]["verification"]["selected_ids"]
+    hidden = service.set_gui_part_visibility(sid, "hide", part_ids)
+    assert hidden["status"] == "succeeded"
+    check("hidden_part_all_scope", service.select_gui_entities(sid, "node", part_ids=part_ids))
+    assert results["hidden_part_all_scope"]["verification"]["selected_count"] > 0
+    assert results["hidden_part_all_scope"]["verification"]["part_visibility_preserved"]
+    check("hidden_part_active_scope", service.select_gui_entities(sid, "part", part_ids, scope="active_parts"))
+    assert results["hidden_part_active_scope"]["verification"]["selected_count"] == 0
+    check("hidden_buffer_restore", service.load_gui_selection_buffer(sid, 1))
     try:
         service.translate_gui_nodes(sid, node_ids, [1, 0, 0], "original model units")
     except ValueError as exc:

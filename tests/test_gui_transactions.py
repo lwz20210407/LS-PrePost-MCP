@@ -23,6 +23,7 @@ def fixture_service(tmp_path, monkeypatch, dirty):
         elements=[dict(type="shell", id=10, nodes=[1, 2, 3, 3])],
         part_ids=[1],
         part_elements={"1": [10]},
+        part_visibility={"1": True},
         selection_ids=[],
         counts={"nodes": 3, "elements": 1},
     )

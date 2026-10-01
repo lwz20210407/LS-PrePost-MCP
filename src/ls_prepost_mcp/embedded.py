@@ -135,6 +135,7 @@ def run(request_path, response_path):
                 raise ValueError("GUI mesh snapshot does not cover this model's element types")
             data["elements"] = elements
             data["part_elements"] = {str(int(pid)): [int(eid) for eid in sequence(get("elemofpart_ids", type=1, id=int(pid)))] for pid in data["part_ids"]}
+            data["part_visibility"] = {str(int(pid)): bool(lp.check_if_part_is_active_u(int(pid))) for pid in data["part_ids"]}
             try:
                 data["selection_ids"] = [int(x) for x in sequence(get("selection_ids", type=0))]
                 # This binding returned invalid pointer-like integers for the

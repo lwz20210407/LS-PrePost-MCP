@@ -14,6 +14,7 @@ def mesh():
         elements=[dict(type="shell", id=50, nodes=[10, 20, 30, 30])],
         part_ids=[7],
         part_elements={"7": [50]},
+        part_visibility={"7": True},
         selection_ids=[],
     )
 
@@ -197,3 +198,52 @@ def test_part_selection_uses_native_bulk_command_with_exact_postcondition(tmp_pa
 
     monkeypatch.setattr(service, "_gui_mesh_edit", edit)
     assert service.select_gui_entities("s", "node", part_ids=[7])["selected_count"] == 3
+
+
+def test_active_part_scope_filters_before_inversion_and_excludes_orphans(tmp_path, monkeypatch):
+    service = Service(Settings(tmp_path))
+    state = mesh()
+    monkeypatch.setattr(service, "_select_gui", lambda sid, action, args, kind, choose, **kw: choose(state))
+    assert service.select_gui_entities("s", "node", scope="active_parts") == {10, 20, 30}
+    assert service.select_gui_entities("s", "node", [10], invert=True, scope="active_parts") == {20, 30}
+    assert service.select_gui_entities("s", "node", [40], scope="active_parts") == set()
+    state["part_visibility"]["7"] = False
+    assert service.select_gui_entities("s", "part", scope="active_parts") == set()
+    assert service.select_gui_entities("s", "node", scope="all") == {10, 20, 30, 40}
+    with pytest.raises(ValueError, match="Unknown selected"):
+        service.select_gui_entities("s", "node", [99], scope="active_parts")
+    with pytest.raises(ValueError, match="scope"):
+        service.select_gui_entities("s", "node", scope="visible_pixels")
+
+
+def test_selection_rejects_missing_visibility_and_detects_unrestored_flags(tmp_path, monkeypatch):
+    service = Service(Settings(tmp_path))
+    state = mesh()
+    state.pop("part_visibility")
+
+    def edit(sid, action, params, commands, verify, precheck, **kwargs):
+        precheck(state)
+        pytest.fail("Missing visibility must fail before dispatch")
+
+    monkeypatch.setattr(service, "_gui_mesh_edit", edit)
+    with pytest.raises(ValueError, match="updated bridge"):
+        service.select_gui_entities("s", "node", [10])
+    before, after = mesh(), mesh()
+    after["part_visibility"]["7"] = False
+    with pytest.raises(ValueError, match="visibility changed"):
+        verify_selection(before, after, [], "node")
+
+
+def test_selection_restores_original_hidden_parts_after_buffer_suffix(tmp_path, monkeypatch):
+    service = Service(Settings(tmp_path))
+
+    def edit(sid, action, params, commands, verify, precheck, **kwargs):
+        state = mesh()
+        state["part_visibility"]["7"] = False
+        precheck(state)
+        generated = commands(state, tmp_path)
+        assert generated[-2:] == ["genselect load 0", "-m 7"]
+        return generated
+
+    monkeypatch.setattr(service, "_gui_mesh_edit", edit)
+    service.save_gui_selection_buffer("s", "node", [10], 1)

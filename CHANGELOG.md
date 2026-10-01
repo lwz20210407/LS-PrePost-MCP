@@ -2,6 +2,10 @@
 
 ## 0.4.0 (development)
 
+- Unify keyword/d3plot GUI entity selection with shared user-ID contracts and verified reference/state scope. Use native bulk part selection to avoid thousands of individual node commands; retain exact ID readback.
+- Preserve part visibility across selections; add all/active-parts scopes with explicit shared/orphan node and inversion semantics. Verify 9 synthetic keyword cases and 11 representative private result cases in visible 4.13.4; no alive/deletion, deformed-coordinate or full menu coverage is implied.
+- Separate selection/inspection from mesh-edit checkpoints, avoiding unnecessary keyword exports while preserving dirty state and the saved recovery checkpoint.
+
 - Add backend-aware ResultSelection/SamplingSpec/FieldSpec to native SCL and LASSO field/stress exports. Preserve immutable ordered selection provenance, sampling distinctions and actual displacement-reference transformations. These metadata contracts do not infer layer equivalence or physical units.
 - Enforce strict integer entity/state/reader-index inputs at the MCP boundary for these extraction tools; reject meaningless nodal integration-point selectors.
 

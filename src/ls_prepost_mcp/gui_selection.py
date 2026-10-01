@@ -52,6 +52,20 @@ def in_parts(state, kind, parts):
     return element_ids & available_ids(state, kind)
 
 
+def part_visibility(state):
+    """Require complete native part flags before a display-preserving selection."""
+    flags = state.get("part_visibility")
+    if (
+        not isinstance(flags, dict)
+        or set(flags) != {str(uid) for uid in state["part_ids"]}
+        or any(type(value) is not bool for value in flags.values())
+    ):
+        raise ValueError(
+            "Complete native part visibility is required; start a new GUI session for the updated bridge"
+        )
+    return flags
+
+
 def verify_selection(before, after, expected, kind):
     old_nodes, old_elements = mesh_index(before)
     new_nodes, new_elements = mesh_index(after)
@@ -61,6 +75,8 @@ def verify_selection(before, after, expected, kind):
         raise ValueError("Selection unexpectedly changed connectivity")
     if before.get("current_state") != after.get("current_state"):
         raise ReadOnlyScopeMismatch("Result state changed during selection; pause animation before retrying")
+    if part_visibility(before) != part_visibility(after):
+        raise ReadOnlyScopeMismatch("Native part visibility changed during selection")
     actual = after.get("selection_ids")
     if actual is None or len(actual) != len(set(actual)) or set(actual) != set(expected):
         raise ReadOnlyScopeMismatch("Native selected IDs differ from the requested set")
@@ -75,6 +91,7 @@ def verify_selection(before, after, expected, kind):
         native_current_state=after.get("current_state"),
         validity_scope="registered entities accepted by native selection; no explicit alive/deletion mask",
         selection_spec=EntitySelection(kind, sorted(expected)).describe(),
+        part_visibility_preserved=True,
     )
 
 
@@ -87,6 +104,7 @@ class GuiSelectionTools:
         target = "element" if kind in ("solid", "beam") else kind
 
         def precheck(state):
+            part_visibility(state)
             available = available_ids(state, kind)
             expected.update(choose(state))
             EntitySelection(kind, sorted(expected))
@@ -104,14 +122,19 @@ class GuiSelectionTools:
             else:
                 result += ["genselect %s add %s %d" % (target, target, uid) for uid in sorted(expected)]
                 strategy["name"] = "explicit_ids"
-            return result + (suffix or [])
+            restore = ["-m " + pid for pid, active in part_visibility(state).items() if not active]
+            return result + (suffix or []) + restore
 
         return self._gui_mesh_edit(
             session_id,
             action,
             arguments,
             commands,
-            lambda a, b: dict(**verify_selection(a, b, expected, kind), command_strategy=strategy["name"]),
+            lambda a, b: dict(
+                **verify_selection(a, b, expected, kind),
+                command_strategy=strategy["name"],
+                selection_scope=arguments.get("scope", "all"),
+            ),
             precheck,
             on_verified=on_verified,
             transaction_kind="selection",
@@ -124,8 +147,9 @@ class GuiSelectionTools:
         entity_ids: list[int] | None = None,
         part_ids: list[int] | None = None,
         invert: bool = False,
+        scope: str = "all",
     ) -> dict:
-        """Select registered nodes/elements/parts in a keyword or d3plot GUI, using IDs or reference connectivity. No filter means whole; [] clears. No alive/deletion mask or deformed spatial predicate is implied."""
+        """Select user IDs in keyword/d3plot and preserve part visibility. scope=all includes hidden parts; active_parts restricts to displayed parts and their connectivity (shared nodes included, orphan nodes excluded). Inversion is within scope. No filter means whole scope; [] clears. No alive/deletion mask or screen/deformed picking."""
         from .post_backend import ids
 
         if entity_type not in ("node", "shell", "solid", "beam", "element", "part"):
@@ -142,6 +166,8 @@ class GuiSelectionTools:
             ids(part_ids, "part_ids", 1000)
         if type(invert) is not bool:
             raise ValueError("invert must be a boolean")
+        if scope not in ("all", "active_parts"):
+            raise ValueError("Selection scope must be all or active_parts")
 
         def choose(state):
             available = available_ids(state, entity_type)
@@ -154,12 +180,21 @@ class GuiSelectionTools:
             )
             if not selected <= available:
                 raise ValueError("Unknown selected entity IDs")
-            return available - selected if invert else selected
+            eligible = (
+                available
+                if scope == "all"
+                else in_parts(
+                    state, entity_type, [int(pid) for pid, active in part_visibility(state).items() if active]
+                )
+            )
+            return eligible - selected if invert else selected & eligible
 
         return self._select_gui(
             session_id,
             "select_gui_entities",
-            dict(entity_type=entity_type, entity_ids=entity_ids, part_ids=part_ids, invert=invert),
+            dict(
+                entity_type=entity_type, entity_ids=entity_ids, part_ids=part_ids, invert=invert, scope=scope
+            ),
             entity_type,
             choose,
             part_selection=part_ids if not invert else None,
@@ -241,6 +276,7 @@ class GuiSelectionTools:
         entry = {}
 
         def precheck(state):
+            part_visibility(state)
             saved = manager.read(session_id).get("selection_buffers", {}).get(str(slot))
             if saved is None:
                 raise ValueError("No verified native selection buffer in this session")
