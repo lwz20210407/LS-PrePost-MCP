@@ -1,5 +1,11 @@
 # Native entity visibility
 
+## Selection interoperability (2026-10-03)
+
+Selections now avoid `pall` and compare before/after native display-active descriptors. With any inactive elements, native whole/by-part selection is replaced with exact IDs: 4.13.4 by-part node selection was observed to omit nodes attached to Blank elements. The fallback accepts at most20,000 selected IDs and rejects larger requests before dispatch; this is not a model-size limit. All-active bulk selection retains its existing bound. Descriptor comparison occurs with original part flags; it is not an independent hidden-part erosion/Blank classification. Mixed-domain native acceptance additionally reveals/restores hidden parts and verifies their underlying flags.
+
+`tools/run_selection_scene_acceptance.py` passed visible maximized4.13.4 mixed shell/solid/beam explicit, part, box, boolean, buffer, hidden-part and recorded display-setup+selection replay checks, preserving geometry/state and original fixture bytes. A keyword checkpoint does not store Blank flags: record explicit display setup if a replay must reconstruct that scene. Full checkpoint scene recovery remains open.
+
 `set_gui_entity_visibility(session_id, entity_type, mode, entity_ids=None, capture=False)` supports standard shell, solid, beam or their combined `element` domain. Modes are hide, show, isolate, reverse and owned restore_last. IDs are user IDs. None selects the whole domain; an empty list is an explicit empty scope (therefore isolate with [] hides the whole domain). Unknown IDs or globally ambiguous cross-domain element IDs are rejected.
 
 The tool checks all display-active flags, reference geometry/connectivity/membership, state and original part flags. This is a display contract, not physical alive/erosion classification. Original part visibility is restored; general selection is cleared and animation stopped. A restore belongs to the last verified change in that session/model/state and checks that touched flags have not changed externally. Opening/resetting a model invalidates that history. A failed or uncertain native request is not automatically replayed.

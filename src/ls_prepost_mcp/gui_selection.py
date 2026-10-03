@@ -93,6 +93,9 @@ def verify_selection(before, after, expected, kind):
         raise ReadOnlyScopeMismatch("Result state changed during selection; pause animation before retrying")
     if part_visibility(before) != part_visibility(after):
         raise ReadOnlyScopeMismatch("Native part visibility changed during selection")
+    visibility = before.get("visibility_binary")
+    if visibility is not None and visibility != after.get("visibility_binary"):
+        raise ReadOnlyScopeMismatch("Native entity display-active flags changed during selection")
     actual = after.get("selection_ids")
     if actual is None or len(actual) != len(set(actual)) or set(actual) != set(expected):
         raise ReadOnlyScopeMismatch("Native selected IDs differ from the requested set")
@@ -108,6 +111,8 @@ def verify_selection(before, after, expected, kind):
         validity_scope="registered entities accepted by native selection; no explicit alive/deletion mask",
         selection_spec=EntitySelection(kind, sorted(expected)).describe(),
         part_visibility_preserved=True,
+        entity_display_active_preserved=visibility is not None,
+        display_check_scope="Current part configuration; display-active is not physical erosion",
     )
 
 
@@ -122,15 +127,28 @@ class GuiSelectionTools:
 
         def precheck(state):
             part_visibility(state)
+            if "mesh_digest" in state and state.get("visibility_binary") is None:
+                raise ValueError("Restart the GUI session to enable selection display-state verification")
             available = available_ids(state, kind)
             expected.update(state["query_selected_ids"] if state.get("query_selected_ids") is not None else choose(state))
             EntitySelection(kind, sorted(expected))
             if not expected <= available or len(expected) > state.get("selection_limit", 20000):
                 raise ValueError("Selection is outside the current entity registry or verification bound")
+            visibility = state.get("visibility_binary")
+            if visibility and visibility.get("active_count", 0) < visibility["count"] and len(expected) > 20000:
+                raise ValueError("Hidden entities require exact-ID selection (20,000 selected-ID budget); narrow the scope or explicitly show entities first")
 
         def commands(state, directory):
-            result = ["pall", "genselect clear", "genselect target " + target]
+            # pall also clears per-element Blank flags. Reveal only hidden parts;
+            # +m/-m retains those flags, as checked by native mixed-domain tests.
+            result = ["+m " + pid for pid, active in part_visibility(state).items() if not active]
+            result += ["genselect clear", "genselect target " + target]
             plan = state.get("native_selection_plan")
+            visibility = state.get("visibility_binary")
+            if visibility and visibility.get("active_count", 0) < visibility["count"]:
+                # Whole/by-part native selection omits Blank members in 4.13.
+                # Explicit IDs preserve the declared registered-entity semantics.
+                plan = None
             if plan:
                 if plan["target"] != target:
                     raise ValueError("Native bulk-selection plan targets the wrong domain")
@@ -167,7 +185,7 @@ class GuiSelectionTools:
             precheck,
             on_verified=on_verified,
             transaction_kind="selection",
-            snapshot_parameters=snapshot_parameters,
+            snapshot_parameters=dict(snapshot_parameters or {}, visibility_readback=True),
         )
 
     def select_gui_entities(
@@ -179,7 +197,7 @@ class GuiSelectionTools:
         invert: bool = False,
         scope: str = "all",
     ) -> dict:
-        """Select keyword/d3plot entities with complete streamed geometry and exact ID verification, preserving part visibility/state. all includes hidden parts/orphan nodes; active_parts uses displayed-part connectivity, including shared nodes. Inversion is within scope. No filter means whole scope; [] clears. Native whole/part bulk plans allow up to1000000 selected entities; explicit ID arguments and non-bulk fallback remain20000. No global model-size cap, alive/deletion mask or screen/deformed picking."""
+        """Select keyword/d3plot entities with streamed geometry and exact ID verification, preserving part/entity display-active flags/state. all includes hidden parts/orphan nodes; active_parts uses displayed-part connectivity, including shared nodes. Inversion is within scope. No filter means whole scope; [] clears. Native whole/part bulk plans allow up to1000000 selected entities only when all elements are display-active; hidden entities require exact-ID fallback within20000 selected IDs. No global model-size cap, alive/deletion mask or screen/deformed picking."""
         from .post_backend import ids
 
         if entity_type not in ("node", "shell", "solid", "beam", "element", "part"):
@@ -314,6 +332,8 @@ class GuiSelectionTools:
 
         def precheck(state):
             part_visibility(state)
+            if "mesh_digest" in state and state.get("visibility_binary") is None:
+                raise ValueError("Restart the GUI session to enable selection display-state verification")
             saved = manager.read(session_id).get("selection_buffers", {}).get(str(slot))
             if saved is None:
                 raise ValueError("No verified native selection buffer in this session")
@@ -338,7 +358,8 @@ class GuiSelectionTools:
             lambda a, b: verify_selection(a, b, entry["entity_ids"], entry["entity_type"]),
             precheck,
             transaction_kind="selection",
-            snapshot_parameters=dict(entity_type=initial["entity_type"], entity_ids=initial["entity_ids"]),
+            snapshot_parameters=dict(entity_type=initial["entity_type"], entity_ids=initial["entity_ids"],
+                                     visibility_readback=True),
         )
 
     def select_gui_nodes_by_plane(

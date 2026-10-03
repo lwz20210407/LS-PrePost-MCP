@@ -188,6 +188,7 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
                 if len(matched) > 20000:
                     raise ValueError("Spatial selection exceeds20000 selected nodes per operation; narrow the region. This is not a global model-size limit")
     element_count, affected_count, affected = 0, 0, []
+    display_active_count = 0
     visibility_path, visibility_buffer, visibility_hash = None, bytearray(), hashlib.sha256()
     if parameters.get("visibility_readback"):
         if output_directory is None:
@@ -229,8 +230,10 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
             if parameters.get("visibility_readback"):
                 if element_count > 1000000:
                     raise ValueError("Visibility readback exceeds one million entities")
+                display_active = int(bool(lp.check_if_element_is_active_u(uid, kind)))
+                display_active_count += display_active
                 visibility_buffer.extend(struct.pack("!BqB", {"beam": 1, "shell": 2, "solid": 3}[label],
-                                         uid, int(bool(lp.check_if_element_is_active_u(uid, kind)))))
+                                         uid, display_active))
                 if len(visibility_buffer) >= 40960:
                     flush_visibility()
             if registry_query:
@@ -324,7 +327,8 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
         digest_node_ids=sorted(wanted_nodes),
         normal_scope=normal_scope, normal_count=normal_count,
         visibility_binary=(dict(format="native_display_active_v1", file="visibility.bin", record_format="!BqB",
-                               count=element_count, byte_count=element_count*10, sha256=visibility_hash.hexdigest())
+                               count=element_count, active_count=display_active_count,
+                               byte_count=element_count*10, sha256=visibility_hash.hexdigest())
                            if visibility_path else None),
         verification_scope="All reference coordinates/connectivity/part membership streamed; only requested nodes materialized",
     )

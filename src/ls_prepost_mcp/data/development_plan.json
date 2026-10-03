@@ -1316,7 +1316,8 @@
         "T05",
         "T08",
         "T09",
-        "T10"
+        "T10",
+        "T12-ENTITY"
       ],
       "acceptance": [
         "遵守首版本明确范围",
@@ -1350,6 +1351,36 @@
       "milestone": "R1",
       "evidence": "docs/GUI_WORKFLOWS.md",
       "progress": "Unit tests and 4.13.4 visible selection/buffer/native checks plus gate-recording replay passed. Full snapshots/20000 limits remain."
+    },
+    {
+      "id": "T12-ENTITY",
+      "title": "选择驱动的Entity Creation集合与约束载荷闭环",
+      "modules": [
+        "selection",
+        "model",
+        "checks"
+      ],
+      "backlog_ids": [
+        "B05",
+        "D02",
+        "D03"
+      ],
+      "depends_on": [
+        "T04",
+        "T05"
+      ],
+      "acceptance": [
+        "节点集与Part集",
+        "三维Segment集",
+        "二维边界Segment集",
+        "节点/节点集SPC约束",
+        "Segment压力载荷",
+        "二维/三维无反射边界"
+      ],
+      "status": "in_progress",
+      "milestone": "R1",
+      "evidence": "docs/ENTITY_CREATION.md",
+      "progress": "User-prioritized on 2026-10-03; official local guide and public selection/SPC sources reviewed. Generic GUI entity-set/boundary closure not yet implemented."
     }
   ],
   "knowledge_tools": [
@@ -1407,7 +1438,8 @@
         "T03",
         "T04",
         "T05",
-        "T10"
+        "T10",
+        "T12-ENTITY"
       ],
       "workflow_ids": [
         "WF-MESH"

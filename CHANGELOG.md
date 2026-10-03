@@ -2,6 +2,9 @@
 
 ## 0.4.0 (development)
 
+- Preserve per-element display-active flags during selection. Remove `pall`, avoid native whole/by-part selection when hidden members would be omitted, and verify exact IDs plus scene digests. Add mixed-element/hidden-part/buffer/display-setup replay native regression and fail-before-dispatch limits.
+- Add an evidence-based local release progress dashboard with explicit denominator history. Promote selection-driven Entity Creation sets/constraints/loads to required release work; these workflows remain incomplete and are not advertised as implemented tools.
+
 - Extend the existing display tool with strict native absolute zoom/pan and incremental X/Y/Z view rotations. Preserve operation ordering and managed parameter replay; verify zoom/pan idempotence, changed pixels, X/inverse rotation and reference-mesh preservation in visible4.13.4. Named view persistence remains a separate incomplete feature.
 
 - Add optional compact MCP discovery/schema/execution profile while keeping original interfaces; preserve strict validation and explicit GUI routing without silent fallback. Resolve common panels through the current menu tree, constrain command-entry fallback, and reject locked desktops before creating pending native jobs.

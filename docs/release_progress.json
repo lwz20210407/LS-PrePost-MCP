@@ -1,0 +1,443 @@
+{
+  "schema_version": 1,
+  "baseline_id": "R1-20261003-36",
+  "updated_at": "2026-10-03T23:28:24+08:00",
+  "verified_commit": "6e9ba74d6e45d7575bcf94843a479bd4070f0cb2",
+  "frozen_gate_count": 36,
+  "scope": "范围：Windows LS-PrePost 4.13.4 可见 GUI 的首个实用版本；按36项等权验收门槛计算，不是整个软件功能覆盖率或剩余工时。",
+  "outside_scope": "后续总体路线仍保留：常用菜单扩展、接触与Include工程化、7模板完整工况、4.8/4.10及两种无GUI、后排CAD与高级模块。未纳入本期36项，不能据本进度称全部完成。",
+  "current_task": "本批选区Blank/隐藏部件/混合实体/Buffer/显式显隐回放已实机通过；正在核验Entity Creation接口，下一项为节点集/Part集→SPC约束。",
+  "groups": [
+    {
+      "id": "B0",
+      "title": "共用框架与会话"
+    },
+    {
+      "id": "B1",
+      "title": "常用网格前处理"
+    },
+    {
+      "id": "EC",
+      "title": "Entity Creation：集合、约束与载荷"
+    },
+    {
+      "id": "B2",
+      "title": "工程后处理与出图"
+    },
+    {
+      "id": "B3",
+      "title": "脚本、录制与参数化"
+    },
+    {
+      "id": "B4",
+      "title": "稳定性与发布验收"
+    }
+  ],
+  "gates": [
+    {
+      "id": "B0-01",
+      "group": "B0",
+      "title": "统一模型与结果语义合同",
+      "state": "partial",
+      "work_item": "T01",
+      "note": "局部 FieldSpec 已接入，完整 ModelRef 和单位传播未齐",
+      "evidence": [
+        "docs/RESULT_CONTRACTS.md"
+      ]
+    },
+    {
+      "id": "B0-02",
+      "group": "B0",
+      "title": "明确后端与类型参数路由",
+      "state": "passed",
+      "work_item": "T01",
+      "note": "按需入口和原接口兼容；会话不自动切后台",
+      "evidence": [
+        "docs/MCP_TOOL_PROFILES.md"
+      ]
+    },
+    {
+      "id": "B0-03",
+      "group": "B0",
+      "title": "执行结果、质量门槛及失败停止",
+      "state": "passed",
+      "work_item": "T02",
+      "note": "包括原生坏网格门槛与参数化阈值",
+      "evidence": [
+        "docs/WORKFLOW_GATES.md"
+      ]
+    },
+    {
+      "id": "B0-04",
+      "group": "B0",
+      "title": "拥有进程与交互桌面前置保护",
+      "state": "passed",
+      "work_item": "T03-TXN",
+      "note": "4.13 动态菜单/命令控件与前置检查；非长期可靠性认证",
+      "evidence": [
+        "docs/REVIEW_RESPONSE_2026-10-03.md"
+      ]
+    },
+    {
+      "id": "B0-05",
+      "group": "B0",
+      "title": "大模型按需访问与范围验证",
+      "state": "passed",
+      "work_item": "T03",
+      "note": "10万壳及30万以上实体限定操作；其他编辑仍有边界",
+      "evidence": [
+        "docs/MODEL_SCALE.md"
+      ]
+    },
+    {
+      "id": "B0-06",
+      "group": "B0",
+      "title": "完整会话状态与长期恢复",
+      "state": "partial",
+      "work_item": "T10",
+      "note": "模型检查点可用；选区/视口/所有宏完整恢复未齐",
+      "evidence": [
+        "docs/GUI_WORKFLOWS.md"
+      ]
+    },
+    {
+      "id": "B1-01",
+      "group": "B1",
+      "title": "部件、显式ID、区域及布尔选择",
+      "state": "passed",
+      "work_item": "T04",
+      "note": "基础选择已原生验证；连续选择显隐回归本批加固",
+      "evidence": [
+        "docs/MODEL_SCALE.md"
+      ]
+    },
+    {
+      "id": "B1-02",
+      "group": "B1",
+      "title": "节点变换、坐标和壳法向反转",
+      "state": "passed",
+      "work_item": "T05",
+      "note": "全局变换与限定范围；自动统一法向另列",
+      "evidence": [
+        "docs/MODEL_SCALE.md"
+      ]
+    },
+    {
+      "id": "B1-03",
+      "group": "B1",
+      "title": "重复节点、重编号的大模型适配",
+      "state": "partial",
+      "work_item": "T03",
+      "note": "小模型已有原生证据；范围与引用体系迁移未齐",
+      "evidence": [
+        "docs/GUI_WORKFLOWS.md"
+      ]
+    },
+    {
+      "id": "B1-04",
+      "group": "B1",
+      "title": "基本拓扑传播选择和连接编辑",
+      "state": "pending",
+      "work_item": "T05",
+      "note": "邻接/传播/常用连接修改需明确原生命令与正反例",
+      "evidence": [
+        "docs/BACKLOG_REVIEW_2026-10-01.md"
+      ]
+    },
+    {
+      "id": "B1-05",
+      "group": "B1",
+      "title": "原生质量检查到保存重开",
+      "state": "passed",
+      "work_item": "T05",
+      "note": "壳/Hex8 限定指标与选区修改重开链通过",
+      "evidence": [
+        "docs/GUI_WORKFLOWS.md"
+      ]
+    },
+    {
+      "id": "B1-06",
+      "group": "B1",
+      "title": "坏网格拒绝与基线恢复",
+      "state": "passed",
+      "work_item": "T02",
+      "note": "错误门槛停止后续编辑，已有合成反例",
+      "evidence": [
+        "docs/WORKFLOW_GATES.md"
+      ]
+    },
+    {
+      "id": "B2-01",
+      "group": "B2",
+      "title": "标准实体六应力与不变量",
+      "state": "passed",
+      "work_item": "T06",
+      "note": "原生 Mises 对照；不代表全部单元/层/坐标系",
+      "evidence": [
+        "docs/POSTPROCESSING.md"
+      ]
+    },
+    {
+      "id": "B2-02",
+      "group": "B2",
+      "title": "选定节点原生历程和相对位移",
+      "state": "passed",
+      "work_item": "T07",
+      "note": "指定分量两点位移差；随动参考和区域平均待扩展",
+      "evidence": [
+        "docs/GUI_WORKFLOWS.md"
+      ]
+    },
+    {
+      "id": "B2-03",
+      "group": "B2",
+      "title": "单位换算、工程曲线和能量基础",
+      "state": "passed",
+      "work_item": "T08",
+      "note": "显式单位/面积/标距、缺项拒绝；完整能量预算另列",
+      "evidence": [
+        "docs/UNIT_CONTRACTS.md"
+      ]
+    },
+    {
+      "id": "B2-04",
+      "group": "B2",
+      "title": "曲线PNG、原生云图及连续MP4",
+      "state": "passed",
+      "work_item": "T07",
+      "note": "单曲线、限定场量和连续状态；默认MinMax平均、原生标题",
+      "evidence": [
+        "docs/NATIVE_MEDIA.md"
+      ]
+    },
+    {
+      "id": "B2-05",
+      "group": "B2",
+      "title": "失效/侵蚀有效性与极值统计",
+      "state": "pending",
+      "work_item": "T04",
+      "note": "不可拿 Blank 或部件显示状态冒充物理失效",
+      "evidence": [
+        "docs/RESULT_CONTRACTS.md"
+      ]
+    },
+    {
+      "id": "B2-06",
+      "group": "B2",
+      "title": "常用变量/层及ASCII-binout矩阵",
+      "state": "partial",
+      "work_item": "T06",
+      "note": "已有子集，分片/层/更多分量需原生对照",
+      "evidence": [
+        "docs/POSTPROCESSING.md"
+      ]
+    },
+    {
+      "id": "B3-01",
+      "group": "B3",
+      "title": "command/cfile/SCL/Python/参数宏入口",
+      "state": "passed",
+      "work_item": "T09",
+      "note": "五路限定原生案例和产物合同；任意脚本不自动视为可靠",
+      "evidence": [
+        "docs/NATIVE_PROGRAMS.md"
+      ]
+    },
+    {
+      "id": "B3-02",
+      "group": "B3",
+      "title": "前后处理受管录制和回放",
+      "state": "passed",
+      "work_item": "T09",
+      "note": "两条业务流程与视图参数已有原生回放证据",
+      "evidence": [
+        "docs/GUI_WORKFLOWS.md"
+      ]
+    },
+    {
+      "id": "B3-03",
+      "group": "B3",
+      "title": "参数绑定、依赖及预检",
+      "state": "passed",
+      "work_item": "T09",
+      "note": "缺参数/错误依赖拒绝，输出随参数改变",
+      "evidence": [
+        "docs/WORKFLOW_FRAMEWORK.md"
+      ]
+    },
+    {
+      "id": "B3-04",
+      "group": "B3",
+      "title": "独立工况表、失败停止及汇总",
+      "state": "passed",
+      "work_item": "T09",
+      "note": "1–20组有界顺序工况；网格原生/工程曲线真值",
+      "evidence": [
+        "docs/WORKFLOW_FRAMEWORK.md"
+      ]
+    },
+    {
+      "id": "B3-05",
+      "group": "B3",
+      "title": "多文件脚本依赖与宏语义扩展",
+      "state": "partial",
+      "work_item": "T09",
+      "note": "基础入口通过，嵌套依赖/原生宏管理尚未闭环",
+      "evidence": [
+        "docs/NATIVE_PROGRAMS.md"
+      ]
+    },
+    {
+      "id": "B3-06",
+      "group": "B3",
+      "title": "崩溃续跑与不确定修改恢复",
+      "state": "pending",
+      "work_item": "T09",
+      "note": "当前保守拒绝不确定重放；可恢复续跑尚未验收",
+      "evidence": [
+        "docs/WORKFLOW_FRAMEWORK.md"
+      ]
+    },
+    {
+      "id": "B4-01",
+      "group": "B4",
+      "title": "包构建与基本安装入口",
+      "state": "passed",
+      "work_item": "T11",
+      "note": "当前开发包构建、MCP/CLI入口；非新机器认证",
+      "evidence": [
+        "docs/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "B4-02",
+      "group": "B4",
+      "title": "逻辑、协议与CI回归",
+      "state": "passed",
+      "work_item": "T10",
+      "note": "6e9ba74 基线416测试与GitHub CI成功",
+      "evidence": [
+        "docs/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "B4-03",
+      "group": "B4",
+      "title": "完整支持矩阵与Skills发布审校",
+      "state": "partial",
+      "work_item": "T11",
+      "note": "持续同步；最终支持范围冻结和完整一致性审校待做",
+      "evidence": [
+        "docs/COVERAGE.md"
+      ]
+    },
+    {
+      "id": "B4-04",
+      "group": "B4",
+      "title": "同一版本三条主流程联合回归",
+      "state": "pending",
+      "work_item": "T11",
+      "note": "各限定流程有证据，发布候选版联合验收待做",
+      "evidence": [
+        "docs/ARCHITECTURE.md"
+      ]
+    },
+    {
+      "id": "B4-05",
+      "group": "B4",
+      "title": "长流程、故障与多实例隔离回归",
+      "state": "pending",
+      "work_item": "T10",
+      "note": "已有短流程和失败案例；系统稳定性矩阵待完成",
+      "evidence": [
+        "docs/VERIFICATION.md"
+      ]
+    },
+    {
+      "id": "B4-06",
+      "group": "B4",
+      "title": "发布候选包、版本标签与说明",
+      "state": "pending",
+      "work_item": "T11",
+      "note": "仍为0.4.0开发版，没有发布新稳定版",
+      "evidence": [
+        "docs/DELIVERY_PLAN.md"
+      ]
+    },
+    {
+      "id": "EC01",
+      "group": "EC",
+      "title": "节点集与Part集",
+      "state": "partial",
+      "work_item": "T12-ENTITY",
+      "note": "先组合原生选择、创建、引用核对与保存重开；详见ENTITY_CREATION.md",
+      "evidence": [
+        "docs/ENTITY_CREATION.md"
+      ]
+    },
+    {
+      "id": "EC02",
+      "group": "EC",
+      "title": "三维Segment集",
+      "state": "pending",
+      "work_item": "T12-ENTITY",
+      "note": "先组合原生选择、创建、引用核对与保存重开；详见ENTITY_CREATION.md",
+      "evidence": [
+        "docs/ENTITY_CREATION.md"
+      ]
+    },
+    {
+      "id": "EC03",
+      "group": "EC",
+      "title": "二维边界Segment集",
+      "state": "pending",
+      "work_item": "T12-ENTITY",
+      "note": "先组合原生选择、创建、引用核对与保存重开；详见ENTITY_CREATION.md",
+      "evidence": [
+        "docs/ENTITY_CREATION.md"
+      ]
+    },
+    {
+      "id": "EC04",
+      "group": "EC",
+      "title": "节点/节点集SPC约束",
+      "state": "partial",
+      "work_item": "T12-ENTITY",
+      "note": "先组合原生选择、创建、引用核对与保存重开；详见ENTITY_CREATION.md",
+      "evidence": [
+        "docs/ENTITY_CREATION.md"
+      ]
+    },
+    {
+      "id": "EC05",
+      "group": "EC",
+      "title": "Segment压力载荷",
+      "state": "pending",
+      "work_item": "T12-ENTITY",
+      "note": "先组合原生选择、创建、引用核对与保存重开；详见ENTITY_CREATION.md",
+      "evidence": [
+        "docs/ENTITY_CREATION.md"
+      ]
+    },
+    {
+      "id": "EC06",
+      "group": "EC",
+      "title": "二维/三维无反射边界",
+      "state": "pending",
+      "work_item": "T12-ENTITY",
+      "note": "先组合原生选择、创建、引用核对与保存重开；详见ENTITY_CREATION.md",
+      "evidence": [
+        "docs/ENTITY_CREATION.md"
+      ]
+    }
+  ],
+  "baseline_change": "口径修正：初表18/30（60%）漏拆Entity Creation核心验收；补6项后18/36（50%），已通过项不变。",
+  "baseline_history": [
+    {
+      "id": "R1-20261003-30",
+      "passed": 18,
+      "total": 30,
+      "reason": "Initial inventory; Entity Creation gates omitted"
+    }
+  ]
+}

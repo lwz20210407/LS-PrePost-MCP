@@ -39,6 +39,64 @@ def test_selection_verifies_exact_ids_and_unchanged_mesh():
         verify_selection(a, b, {10, 20}, "node")
 
 
+def test_selection_rejects_display_change_even_when_ids_and_geometry_match():
+    a, b = mesh(), mesh()
+    a["visibility_binary"] = dict(format="native_display_active_v1", count=1, sha256="a" * 64)
+    b["visibility_binary"] = dict(a["visibility_binary"])
+    b["selection_ids"] = [10]
+    assert verify_selection(a, b, {10}, "node")["entity_display_active_preserved"]
+    b["visibility_binary"]["sha256"] = "b" * 64
+    with pytest.raises(ValueError, match="display-active"):
+        verify_selection(a, b, {10}, "node")
+
+
+def test_selection_reveals_only_hidden_parts_and_restores_them(tmp_path, monkeypatch):
+    service = Service(Settings(tmp_path))
+    def edit(sid, action, params, commands, verify, precheck, **kwargs):
+        state = mesh()
+        state["part_visibility"]["7"] = False
+        precheck(state)
+        generated = commands(state, tmp_path)
+        assert "pall" not in generated
+        assert generated[0] == "+m 7" and generated[-1] == "-m 7"
+        assert kwargs["snapshot_parameters"]["visibility_readback"] is True
+        return generated
+    monkeypatch.setattr(service, "_gui_mesh_edit", edit)
+    service.select_gui_entities("s", "node", [10])
+
+
+@pytest.mark.parametrize("active", [0, 1])
+def test_blank_disables_native_part_plan_and_keeps_exact_ids(tmp_path, monkeypatch, active):
+    service = Service(Settings(tmp_path))
+    def edit(sid, action, params, commands, verify, precheck, **kwargs):
+        state = mesh()
+        state.update(mesh_digest={}, registry_matches=[10, 20, 30, 40], query_selected_ids=[10, 20, 30],
+                     visibility_binary=dict(count=1, active_count=active),
+                     native_selection_plan=dict(strategy="part", target="node", part_ids=[7]))
+        precheck(state)
+        generated = commands(state, tmp_path)
+        assert ("genselect node add part 7" in generated) == bool(active)
+        if not active:
+            assert "genselect node add node 10" in generated
+        return generated
+    monkeypatch.setattr(service, "_gui_mesh_edit", edit)
+    service.select_gui_entities("s", "node", part_ids=[7])
+
+
+def test_large_hidden_selection_rejected_before_native_commands(tmp_path, monkeypatch):
+    service = Service(Settings(tmp_path))
+    def edit(sid, action, params, commands, verify, precheck, **kwargs):
+        state = mesh()
+        wanted = list(range(1, 20002))
+        state.update(mesh_digest={}, registry_matches=wanted, query_selected_ids=wanted,
+                     selection_limit=1000000, visibility_binary=dict(count=1, active_count=0))
+        precheck(state)
+        pytest.fail("Must reject before native commands")
+    monkeypatch.setattr(service, "_gui_mesh_edit", edit)
+    with pytest.raises(ValueError, match="Hidden entities require exact-ID"):
+        service.select_gui_entities("s", "node", part_ids=[7])
+
+
 def test_selection_predicates_and_invalid_inputs(tmp_path, monkeypatch):
     s = Service(Settings(tmp_path))
     monkeypatch.setattr(s, "_select_gui", lambda sid, action, args, kind, choose, **kwargs: choose(mesh()))
@@ -186,7 +244,7 @@ def test_part_selection_uses_native_bulk_command_with_exact_postcondition(tmp_pa
         before = mesh()
         precheck(before)
         generated = commands(before, tmp_path)
-        assert generated == ["pall", "genselect clear", "genselect target node", "genselect node add part 7"]
+        assert generated == ["genselect clear", "genselect target node", "genselect node add part 7"]
         after = copy.deepcopy(before)
         after["selection_ids"] = [10, 20, 30]
         result = verify(before, after)
