@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "baseline_id": "R1-20261003-36",
-  "updated_at": "2026-10-03T23:28:24+08:00",
-  "verified_commit": "6e9ba74d6e45d7575bcf94843a479bd4070f0cb2",
+  "updated_at": "2026-10-04T00:12:54+08:00",
+  "verified_commit": "b40b5fa81a42a845abcb060dcc210a8d2e5d9035",
   "frozen_gate_count": 36,
   "scope": "范围：Windows LS-PrePost 4.13.4 可见 GUI 的首个实用版本；按36项等权验收门槛计算，不是整个软件功能覆盖率或剩余工时。",
   "outside_scope": "后续总体路线仍保留：常用菜单扩展、接触与Include工程化、7模板完整工况、4.8/4.10及两种无GUI、后排CAD与高级模块。未纳入本期36项，不能据本进度称全部完成。",
-  "current_task": "本批选区Blank/隐藏部件/混合实体/Buffer/显式显隐回放已实机通过；正在核验Entity Creation接口，下一项为节点集/Part集→SPC约束。",
+  "current_task": "本批节点/Part列表集合与全局SPC闭环已完成；按用户要求收尾后暂停。后续等待用户继续，再做Segment、压力和无反射边界。",
   "groups": [
     {
       "id": "B0",
@@ -315,7 +315,7 @@
       "title": "逻辑、协议与CI回归",
       "state": "passed",
       "work_item": "T10",
-      "note": "6e9ba74 基线416测试与GitHub CI成功",
+      "note": "b40b5fa本地444项测试通过；先前CI通过，当前提交CI单独核验。",
       "evidence": [
         "docs/VERIFICATION.md"
       ]
@@ -368,9 +368,9 @@
       "id": "EC01",
       "group": "EC",
       "title": "节点集与Part集",
-      "state": "partial",
+      "state": "passed",
       "work_item": "T12-ENTITY",
-      "note": "先组合原生选择、创建、引用核对与保存重开；详见ENTITY_CREATION.md",
+      "note": "4.13.4：选择→LIST节点/Part集新建、分页查询、成员替换、DA属性保留、保存重开；20000成员上限与ASCII名称，其他集合变体待扩展",
       "evidence": [
         "docs/ENTITY_CREATION.md"
       ]
@@ -401,9 +401,9 @@
       "id": "EC04",
       "group": "EC",
       "title": "节点/节点集SPC约束",
-      "state": "partial",
+      "state": "passed",
       "work_item": "T12-ENTITY",
-      "note": "先组合原生选择、创建、引用核对与保存重开；详见ENTITY_CREATION.md",
+      "note": "4.13.4：全局SPC_SET/NODE_ID、平动/转动卡片、节点-ID映射、冲突拒绝、参数化回放及保存重开；非零坐标与求解物理验证另列",
       "evidence": [
         "docs/ENTITY_CREATION.md"
       ]
