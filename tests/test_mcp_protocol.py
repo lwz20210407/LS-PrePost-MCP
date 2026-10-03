@@ -24,7 +24,7 @@ def test_stdio_discovery_reference_and_rejection(tmp_path):
                         "prepare_native_program", "execute_native_program", "execute_gui_command",
                         "create_native_macro", "run_native_macro", "check_gui_solid_quality",
                         "inspect_workflow", "run_workflow_sweep", "export_gui_animation", "export_gui_curve_plot", "render_gui_field",
-                        "probe_dpf_runtime", "inspect_dpf_results", "export_dpf_result"} <= names
+                        "probe_dpf_runtime", "inspect_dpf_results", "export_dpf_result", "measure_gui_geometry"} <= names
                 result = await session.call_tool("search_commands", {"query": "runpython", "limit": 3})
                 assert not result.isError
                 recipe = tmp_path / "preview.json"

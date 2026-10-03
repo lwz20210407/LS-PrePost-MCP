@@ -17,7 +17,7 @@ from .runner import execute
 LANGUAGES = {"command": "cfile", "cfile": "cfile", "scl": "scl", "python": "py"}
 PLACEHOLDER = re.compile(r"\{\{([A-Za-z][A-Za-z0-9_]*)\}\}")
 NATIVE_ERROR = re.compile(
-    r"^\s*(?:\*+\s*)?(?:invalid command\b|error while compiling\b|error occurred in parsing script\b|syntax error\b|runtime error\b)",
+    r"^\s*(?:\*+\s*)?(?:invalid(?:\s+[A-Za-z][\w-]*){0,3}\s+command\b|error while compiling\b|error occurred in parsing script\b|syntax error\b|runtime error\b)",
     re.IGNORECASE,
 )
 RESERVED = {

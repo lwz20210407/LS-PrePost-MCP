@@ -16,7 +16,10 @@
         "guide-modelcheck",
         "guide-post-semantics",
         "guide-fragments",
-        "guide-vsg"
+        "guide-vsg",
+        "guide-common-measure",
+        "guide-common-ident",
+        "guide-common-blank"
       ],
       "review_status": "selected_sections_reviewed",
       "conversion_status": "partial",
@@ -555,7 +558,8 @@
         "assess_energy_balance",
         "native_tensile_postprocess",
         "native_energy_postprocess",
-        "convert_history_units"
+        "convert_history_units",
+        "measure_gui_geometry"
       ],
       "status": "partial",
       "contract_doc": "docs/ARCHITECTURE.md"
@@ -1179,7 +1183,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Backend-aware request/provenance contracts distinguish native layer/default/index selectors from stored reader axes; metadata tracks actual reference subtraction. Tests cover request, SCL export and reader parsing. History semantics/frames/averaging/variable matrices remain. DPF gallery adopted into optional local adapter and shared FieldSpec. Branch time IDs, label spaces, local beam extrema and binary erosion contracts have synthetic tests; no Server runtime acceptance.",
+      "progress": "Backend-aware request/provenance contracts distinguish native layer/default/index selectors from stored reader axes; metadata tracks actual reference subtraction. Tests cover request, SCL export and reader parsing. History semantics/frames/averaging/variable matrices remain. DPF gallery adopted into optional local adapter and shared FieldSpec. Branch time IDs, label spaces, local beam extrema and binary erosion contracts have synthetic tests; no Server runtime acceptance. Shared pre/post geometry measurement now has native reference/state XYZ/distance and keyword angle/circle checks; global model context, labels and F-key controls have an explicit common coverage audit.",
       "evidence": "docs/RESULT_CONTRACTS.md"
     },
     {

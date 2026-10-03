@@ -1458,6 +1458,20 @@
       ],
       "tested_profiles": [],
       "scope": "Optional local in-process Entry DPF adapter; client0.16.1 diagnostic and synthetic field/protocol tests only. Server absent: real reader, operator licensing/version and numerical comparisons NOT certified. Explicit labels/time IDs/units; no native LS-PrePost substitution. See docs/DPF_INTEGRATION.md."
+    },
+    {
+      "id": "common.measure_gui_geometry",
+      "tool": "measure_gui_geometry",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide",
+        "guide-common-measure",
+        "guide-common-ident"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Native coordinates/distance/global-axis height/3D3-node and4-node angles/3-point circle radius and logged center. Keyword truth box, independent coordinate checks, preservation, collinear precondition and parameter replay passed; private d3plot current-state coordinates/distance passed with tail IDs and family hash checks. Active model tokens avoid stale model0. Projected angles uninterpreted; complete F4/F5 controls and annotation lifecycle remain open."
     }
   ],
   "native_reference_builds": [

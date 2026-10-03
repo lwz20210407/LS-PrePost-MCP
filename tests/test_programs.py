@@ -87,6 +87,8 @@ def test_program_execution_completion_and_artifact_contracts(tmp_path, monkeypat
 
 def test_native_error_detection_excludes_success_message():
     assert not native_errors("Script file program.scl parsed. no error found")
+    assert native_errors("Invalid measure command!")
+    assert not native_errors("Invalid solid elements accounted for 2%")
     assert (
         len(
             native_errors(

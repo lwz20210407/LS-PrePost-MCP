@@ -828,6 +828,46 @@ def run(request_path, response_path):
                     raise ValueError("Raw command count verification failed: " + key)
             data["command"] = p["command"]
             data["verification_scope"] = "Inventory and declared outputs only; raw command semantics are user-defined"
+        elif action == "gui_measure":
+            response["query_started"] = False
+            mode = p["measurement"]
+            uids = p["node_ids"]
+            state = p.get("state")
+            data = inventory()
+            keys = ["node_x", "node_y", "node_z"] if state is None else ["state_node_x", "state_node_y", "state_node_z"]
+            positions = node_rows(uids, keys, state)
+            if any(not math.isfinite(v) for row in positions for v in row[1:]):
+                raise ValueError("Nonfinite native measurement coordinates")
+            if mode in ("distance", "height", "angle3", "angle4", "circle3"):
+                pairs = [(0, 1)] if mode in ("distance", "height") else [(0, 1), (1, 2)] if mode in ("angle3", "circle3") else [(0, 1), (2, 3)]
+                for a, b in pairs:
+                    if positions[a][1:] == positions[b][1:]:
+                        raise ValueError("Native coordinate precision cannot resolve a required segment")
+                if mode == "circle3":
+                    a = [positions[1][j] - positions[0][j] for j in (1, 2, 3)]
+                    b = [positions[2][j] - positions[0][j] for j in (1, 2, 3)]
+                    cross = [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]]
+                    if sum(v*v for v in cross) <= 1e-20 * sum(v*v for v in a) * sum(v*v for v in b):
+                        raise ValueError("Three-point circle requires noncollinear native coordinates")
+            commands = ["measure axes set 0", "measure scalefactor 1"]
+            response["query_started"] = True
+            if mode == "coordinates":
+                queries = ["ident node %d" % uid for uid in uids]
+            else:
+                token = {"distance": "dist", "height": "dist", "angle3": "angle3", "angle4": "angle4", "circle3": "3pt-radius"}[mode]
+                queries = ["measure " + token + " " + " ".join("N%d" % uid for uid in uids)]
+            for command in commands:
+                lp.execute_command(command)
+            values = []
+            for command in queries:
+                lp.execute_command(command)
+                raw = [lp.cmd_result_get_value(i) for i in range(lp.cmd_result_get_value_count())]
+                if not raw or any(type(v) not in (int, float) or not math.isfinite(v) for v in raw):
+                    raise ValueError("Native measurement returned no finite numeric result")
+                values.append(raw)
+            data.update(measurement=mode, node_positions=positions, native_values=values,
+                        native_commands=commands+queries, axes_requested=0, scale_requested=1,
+                        native_model_context="active model, unqualified node tokens", coordinate_configuration="reference" if state is None else "current_state")
         elif action == "measure_parts":
             valid = set(int(x) for x in sequence(get("validpart_ids")))
             if not set(p["part_ids"]).issubset(valid):

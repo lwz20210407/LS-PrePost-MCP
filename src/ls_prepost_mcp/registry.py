@@ -1,6 +1,7 @@
 """Shared explicit public tool registry for MCP and CLI."""
 
 SERVICE_TOOLS = (
+    "measure_gui_geometry",
     "probe_dpf_runtime",
     "inspect_dpf_results",
     "export_dpf_result",

@@ -1439,5 +1439,32 @@
     "license_status": "Official documentation reference; no vendor Server/manual/example dataset redistribution",
     "integration": "adapter_implemented_runtime_unverified",
     "scope": "Reviewed2026-10-03; docs/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
+  },
+  {
+    "id": "guide-common-measure",
+    "title": "Official Measure common pre/post panel",
+    "url": "https://lsdyna.ansys.com/measur/",
+    "summary": "Reviewed legacy controls plus2026R1sections6.3.10 and current4.13Item21-entry list. Coordinate/distance/height/angle/circle subset now implemented with native numeric and geometry checks; complete local axes, mass/inertia, surface/segment/SALE/throat and history controls remain open.",
+    "license_status": "Official reference; vendor PDF/images/binaries not redistributed",
+    "integration": "reference_reviewed_with_partial_native_adoption",
+    "scope": "docs/COMMON_OPERATIONS_COVERAGE.md records full controls and gaps"
+  },
+  {
+    "id": "guide-common-ident",
+    "title": "Official Identify common panel",
+    "url": "https://lsdyna.ansys.com/ident/",
+    "summary": "Reviewed entity types, supplied XYZ highlight, fringe/directions/popup/part-name/echo and separate clear operations. Checked node Identify coordinate query is implemented; full annotation lifecycle is not.",
+    "license_status": "Official reference; vendor PDF/images/binaries not redistributed",
+    "integration": "reference_reviewed_with_partial_native_adoption",
+    "scope": "docs/COMMON_OPERATIONS_COVERAGE.md records full controls and gaps"
+  },
+  {
+    "id": "guide-common-blank",
+    "title": "Official Blank common panel",
+    "url": "https://lsdyna.ansys.com/blank/",
+    "summary": "Reviewed entity-level blank/unblank/reverse/last-selection and surface/edge update. These operations differ from whole-part visibility; not counted as implemented by existing part controls.",
+    "license_status": "Official reference; vendor PDF/images/binaries not redistributed",
+    "integration": "reference_reviewed_with_partial_native_adoption",
+    "scope": "docs/COMMON_OPERATIONS_COVERAGE.md records full controls and gaps"
   }
 ]
