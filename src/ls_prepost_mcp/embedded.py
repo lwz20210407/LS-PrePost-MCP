@@ -14,6 +14,43 @@ import traceback
 from array import array as packed_array
 
 
+class BeamSafeDataCenter:
+    """Read standard beam endpoints from a fresh native keyword export, not the faulty array binding."""
+    def __init__(self, dc, directory):
+        self.original = dc
+        self.Type = dc.Type
+        expected = {int(v) for v in dc.get_data("element_ids", type=dc.Type.BEAM)}
+        self.beams = {}
+        with open(os.path.join(directory, "beam-count.json")) as stream:
+            count = json.load(stream)
+        if type(count) is not int or not 0 <= count <= 1000000 or count != len(expected):
+            raise ValueError("Native beam registry count mismatch")
+        if count:
+            keyword = None
+            with open(os.path.join(directory, "beam-connectivity.k"), encoding="utf8", errors="replace") as stream:
+                for line in stream:
+                    text = line.strip()
+                    if not text or text.startswith("$"):
+                        continue
+                    if text.startswith("*"):
+                        keyword = text.upper()
+                        continue
+                    if keyword != "*ELEMENT_BEAM":
+                        continue
+                    fields = line.split(",") if "," in line else [line[i:i+8] for i in range(0, 40, 8)]
+                    uid, pid, n1, n2 = [int(v) for v in fields[:4]]
+                    if uid not in expected or uid in self.beams or min(pid, n1, n2) <= 0:
+                        raise ValueError("Invalid native keyword beam record")
+                    self.beams[uid] = [n1, n2]
+        if set(self.beams) != expected:
+            raise ValueError("Incomplete/unsupported native keyword beam connectivity; standard ELEMENT_BEAM only")
+
+    def get_data(self, key, **kwargs):
+        if key == "element_connectivity" and kwargs.get("type") == self.Type.BEAM:
+            return self.beams[kwargs["id"]]
+        return self.original.get_data(key, **kwargs)
+
+
 def shell_orientation_cycle(connectivity):
     values = list(connectivity)
     if len(values) == 4 and values[3] in (0, values[2]):
@@ -28,7 +65,7 @@ def orientation_digest_update(digest, uid, cycle):
     digest.update(struct.pack("!" + "q" * len(cycle), *cycle))
 
 
-def scoped_mesh_state(dc, lp, parameters):
+def scoped_mesh_state(dc, lp, parameters, output_directory=None):
     """Stream complete native geometry fingerprints, materialize only requested nodes.
 
     This remains O(model size) work: unchanged entities are checked, not sampled.
@@ -151,6 +188,20 @@ def scoped_mesh_state(dc, lp, parameters):
                 if len(matched) > 20000:
                     raise ValueError("Spatial selection exceeds20000 selected nodes per operation; narrow the region. This is not a global model-size limit")
     element_count, affected_count, affected = 0, 0, []
+    visibility_path, visibility_buffer, visibility_hash = None, bytearray(), hashlib.sha256()
+    if parameters.get("visibility_readback"):
+        if output_directory is None:
+            raise ValueError("Visibility binary requires an explicit job directory")
+        visibility_path = os.path.join(output_directory, "visibility.bin")
+        with open(visibility_path, "wb"):
+            pass
+
+    def flush_visibility():
+        if visibility_buffer:
+            with open(visibility_path, "ab") as stream:
+                stream.write(visibility_buffer)
+            visibility_hash.update(visibility_buffer)
+            visibility_buffer.clear()
     normal_count = 0
     for label, kind in (("shell", dc.Type.SHELL), ("solid", dc.Type.SOLID), ("beam", dc.Type.BEAM)):
         # Materialize only domain IDs: a new SDK call may invalidate the array.
@@ -175,6 +226,13 @@ def scoped_mesh_state(dc, lp, parameters):
                 hashes["unselected_connectivity"].update(struct.pack("!qq", uid, len(conn)))
                 hashes["unselected_connectivity"].update(struct.pack("!" + "q" * len(conn), *conn))
             element_count += 1
+            if parameters.get("visibility_readback"):
+                if element_count > 1000000:
+                    raise ValueError("Visibility readback exceeds one million entities")
+                visibility_buffer.extend(struct.pack("!BqB", {"beam": 1, "shell": 2, "solid": 3}[label],
+                                         uid, int(bool(lp.check_if_element_is_active_u(uid, kind)))))
+                if len(visibility_buffer) >= 40960:
+                    flush_visibility()
             if registry_query:
                 needs_unique = domain not in ("node", "part") or (domain == "node" and
                     (requested_parts is not None or registry_query["scope"] == "active_parts"))
@@ -204,6 +262,7 @@ def scoped_mesh_state(dc, lp, parameters):
                     matched.append(uid)
     if element_count != int(get("num_elements")):
         raise ValueError("Scoped verification does not cover this model's element types")
+    flush_visibility()
     if normal_scope is not None and (normal_count == 0 or normal_ids is not None and normal_count != len(normal_ids)):
         raise ValueError("No shells or unknown explicit shell IDs for normal reversal")
     if any(n > 1 for n in occurrences.values()):
@@ -264,6 +323,9 @@ def scoped_mesh_state(dc, lp, parameters):
         digest_contract="native_registry_order_sha256_v1",
         digest_node_ids=sorted(wanted_nodes),
         normal_scope=normal_scope, normal_count=normal_count,
+        visibility_binary=(dict(format="native_display_active_v1", file="visibility.bin", record_format="!BqB",
+                               count=element_count, byte_count=element_count*10, sha256=visibility_hash.hexdigest())
+                           if visibility_path else None),
         verification_scope="All reference coordinates/connectivity/part membership streamed; only requested nodes materialized",
     )
 
@@ -277,11 +339,15 @@ def run(request_path, response_path):
 
         action = request["action"]
         p = request["parameters"]
+        if action == "connectivity" and p.get("element_type") == "beam" and not request.get("safe_beam_connectivity"):
+            raise RuntimeError("Native beam connectivity array binding failed heap-safety tests; use a protocol4 GUI session with native keyword readback")
         if action in ("extract_nodal", "node_history") and sys.version_info[:2] < (3, 10):
             raise RuntimeError(
                 "Native vector arrays on the older embedded Python ABI did not pass numerical cross-checks. Use the explicit LASSO/LS-Reader tools or the verified 4.13 profile."
             )
         job_directory = request.get("job_directory", os.getcwd())
+        if request.get("safe_beam_connectivity"):
+            dc = BeamSafeDataCenter(dc, job_directory)
         if request.get("model"):
             # The application may reset cwd from GUI preferences. Load file families
             # from their parent, then restore the owned job cwd for every artifact.
@@ -315,6 +381,9 @@ def run(request_path, response_path):
                 "warnings": [],
                 "counts": {},
             }
+            if isinstance(dc, BeamSafeDataCenter) and dc.beams:
+                data["beam_connectivity_backend"] = "lsprepost_native_keyword_export"
+                data["beam_connectivity_scope"] = "Standard ELEMENT_BEAM endpoints; fresh full keyword export per structural read, no array-binding call"
             aliases = {
                 "nodes": ["num_nodes"],
                 "elements": ["num_elements", "num_elem"],
@@ -382,7 +451,7 @@ def run(request_path, response_path):
             data = {"scl_nodes": scl_nodes, "python_nodes": python_nodes, "match": True}
         elif action == "gui_mesh_digest":
             data = inventory()
-            data.update(scoped_mesh_state(dc, lp, p))
+            data.update(scoped_mesh_state(dc, lp, p, job_directory))
         elif action == "gui_mesh_page":
             label, offset, limit = p["entity_type"], p["offset"], p["limit"]
             if label not in ("node", "shell", "solid", "beam"):
@@ -801,12 +870,16 @@ def run(request_path, response_path):
                 "verification": "Native commands submitted; use current_state/captured frames to observe playback",
             }
         elif action == "render_snapshot":
+            averaging = p.get("averaging", "minmax")
+            if averaging not in ("minmax", "nodal", "none"):
+                raise ValueError("Unsupported display averaging")
             if p.get("state") is not None:
                 check_state(p["state"])
                 lp.switch_state(p["state"])
             if p.get("fringe_code") is not None:
                 lp.execute_command("fringe " + str(p["fringe_code"]))
                 lp.execute_command("pfringe")
+            lp.execute_command("range avgfrng " + averaging)
             lp.execute_command(p["view"])
             lp.execute_command("ac")
             output = os.path.join(job_directory, "snapshot.png").replace("\\", "/")
@@ -815,6 +888,8 @@ def run(request_path, response_path):
                 "view": p["view"],
                 "state": p.get("state"),
                 "fringe_code": p.get("fringe_code"),
+                "display_averaging": averaging,
+                "title_policy": "Preserve model title and native result names",
                 "note": "Image validation does not establish physical result correctness",
             }
         elif action == "export_keyword":

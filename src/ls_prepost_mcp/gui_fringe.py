@@ -6,6 +6,7 @@ import math
 
 from .config import command_path, scl_command_path
 from .field_contracts import FieldSpec, ResultSelection, SamplingSpec
+from .fringe_presentation import averaging_command, result_name
 from .gui_controls import wait_for_gui_state
 from .gui_curves import plot_text
 from .jobs import atomic_json, check_artifact, now
@@ -179,8 +180,9 @@ def field_range(values, requested):
 
 
 def render_field(
-    service, session_id, entity_type, field, state, units, integration_point, part_ids, color_range
+    service, session_id, entity_type, field, state, units, integration_point, part_ids, color_range, averaging="minmax"
 ):
+    average_command = averaging_command(averaging)
     if entity_type not in ("node", "solid", "shell", "tshell") or field not in (
         NODE_FIELDS if entity_type == "node" else RENDER_ELEMENT_FIELDS
     ):
@@ -226,6 +228,7 @@ def render_field(
             integration_point=integration_point,
             part_ids=part_ids,
             color_range=color_range,
+            averaging=averaging,
         )
         directory, manifest = service.jobs.create(
             "render_gui_field", dict(session_id=session_id, **parameters)
@@ -299,7 +302,7 @@ def render_field(
                 units=units,
                 sampling=sampling.describe(),
                 parts=sorted(chosen),
-                averaging=0,
+                averaging=averaging,
             )
             previous = meta.get("managed_fringe")
             storage = {key: set(value) for key, value in meta.get("fringe_storage", {}).items()}
@@ -331,14 +334,7 @@ def render_field(
             if ready["status"] != "succeeded":
                 raise ValueError("Result state did not settle before field extraction")
             time_value = before["state_times"][state - 1]
-            sample_label = (
-                "element"
-                if sampling.kind == "native_element_scalar"
-                else "nodal"
-                if entity_type == "node"
-                else f"ip:{sampling.native_selector}"
-            )
-            label = f"{field} [{units}] {entity_type} {sample_label} avg:0"
+            label = result_name(field)
             script = directory / "field.scl"
             script.write_text(
                 field_fringe_script(
@@ -376,6 +372,7 @@ def render_field(
             )
             bounds = field_range([r[-1] for r in rows], color_range)
             commands = [
+                average_command,
                 "range reversesigns off",
                 f"range userdef {bounds[0]:.17g} {bounds[1]:.17g};",
                 "showlegend 1",
@@ -403,7 +400,7 @@ def render_field(
                 ResultSelection(entity_type, [r[2] for r in rows], [state]),
                 sampling,
                 "native DataCenter component frame; no transformation",
-                "SCLFringeDCToModel avg_opt=0; no nodal averaging",
+                "Raw SCL entity values (avg_opt=0 buffer); display averaging="+averaging,
                 "native display-active elements (or connected nodes); not a physical alive/deletion classification",
                 ("SCL magnitude from native disp_x/y/z",)
                 if field == "disp_magnitude"
@@ -430,6 +427,9 @@ def render_field(
                 value_min=min(r[-1] for r in rows),
                 value_max=max(r[-1] for r in rows),
                 averaging_option=0,
+                display_averaging=averaging,
+                csv_averaging="none: raw native entity values, distinct from display averaging",
+                title_policy="Preserve model title; native result name without automatic suffixes",
                 state=state,
                 time=time_value,
                 legend_label=label,

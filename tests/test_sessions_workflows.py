@@ -109,6 +109,9 @@ def test_uncertain_session_read_does_not_clear_failure(tmp_path, monkeypatch):
         def __init__(self, pid):
             assert pid == 123
 
+        def preflight(self):
+            pass
+
         def submit(self, command):
             request = next((manager.directory(sid) / "requests").iterdir())
             atomic_json(
@@ -126,6 +129,9 @@ def test_timeout_blocks_redispatch_until_late_completion_recovered(tmp_path, mon
 
     class Transport:
         def __init__(self, pid):
+            pass
+
+        def preflight(self):
             pass
 
         def submit(self, command):
@@ -157,6 +163,25 @@ def test_session_identity_and_directory_boundaries(tmp_path, monkeypatch):
         module, "process_identity", lambda _: dict(pid=123, exe="different.exe", create_time=10)
     )
     assert not module.alive(dict(pid=123, exe="old.exe", create_time=1))
+
+
+def test_locked_desktop_rejection_preserves_session_and_creates_no_pending_job(tmp_path, monkeypatch):
+    manager, sid, module = session_fixture(tmp_path, monkeypatch)
+    class LockedTransport:
+        def __init__(self, pid):
+            pass
+
+        def preflight(self):
+            raise RuntimeError("Interactive desktop is unavailable")
+
+        def submit(self, command):
+            raise AssertionError("Must not dispatch or fallback")
+    monkeypatch.setattr(module, "WindowsCommandTransport", LockedTransport)
+    before = manager.read(sid)
+    with pytest.raises(RuntimeError, match="desktop"):
+        manager.dispatch(sid, "create_box", {})
+    assert manager.read(sid) == before
+    assert not (manager.directory(sid)/"requests").exists()
 
 
 def test_quality_rejects_empty_and_invalid_repetition():

@@ -2,6 +2,10 @@
 
 ## 0.4.0 (development)
 
+- Add optional compact MCP discovery/schema/execution profile while keeping original interfaces; preserve strict validation and explicit GUI routing without silent fallback. Resolve common panels through the current menu tree, constrain command-entry fallback, and reject locked desktops before creating pending native jobs.
+- Add standard element Blank operations with whole-state binary readback, geometry/state/part preservation and owned restore/replay. Optimize sparse isolation using the smaller complement. Verify mixed shell/solid/beam and representative result workflows in visible4.13.4; use fresh native keyword beam endpoints after reproducing native array-binding heap faults.
+- Preserve model titles and plain native result captions. Default field PNG/snapshot/movie display averaging to MinMax, retain explicit nodal/none overrides and keep raw CSV sampling distinct. Verify native averaging control, identical raw values, recorded replay and decoded three-frame MP4.
+
 - Add native single-curve XYPlot PNG export from explicit CSV columns, labeled axes/units, fresh plot windows and numeric readback. Preserve hysteresis row order and original engineering CSV; disclose and validate native float32 storage. Verify changed-area recording/replay, old plot data preservation and native result-history/relative-displacement-to-PNG integration.
 
 - Add native visible-GUI H264 MP4 export with state1/step1 bounds, explicit fps/resolution, ordered native frame evidence, independent full decode validation and state restoration. Verify complete57-state timeline and3/4-frame recorded parameter replay; arbitrary start/step modes remain rejected after failed native probes.

@@ -5,6 +5,7 @@ import math
 from pydantic import StrictFloat, StrictInt
 
 from .config import scl_command_path
+from .fringe_presentation import averaging_command
 from .gui_controls import wait_for_gui_state
 from .jobs import atomic_json, check_artifact, now
 from .media_validation import movie_validators, parse_movie_log, validate_mp4
@@ -23,12 +24,13 @@ class GuiMediaTools:
         integration_point: str = "mid",
         part_ids: list[StrictInt] | None = None,
         color_range: list[StrictFloat] | None = None,
+        averaging: str = "minmax",
     ) -> dict:
-        """Render a named native SCL field with explicit state/sampling/units and avg_opt=0, exporting the same display-active entity values plus PNG/metadata. Isolate matching domain parts (or explicit parts), set fixed data/explicit color bounds and retain that scene. Standard node/shell/solid/tshell only; no inferred physical alive mask, frame conversion or material-history semantics. Node magnitudes use all three native components. Does not use whole-mesh JSON snapshots."""
+        """Render native field CSV/PNG with MinMax display averaging by default (or explicit nodal/none). Preserve model title, use native result captions without metadata suffixes. CSV contains raw SCL entity values, not averaged display samples. Explicit state/sampling/units, matching/requested parts and fixed data/explicit bounds; scene retained. Standard node/shell/solid/tshell only; no inferred physical alive mask, frame conversion or history semantics. Node magnitudes use all three native components."""
         from .gui_fringe import render_field
 
         return render_field(
-            self, session_id, entity_type, field, state, units, integration_point, part_ids, color_range
+            self, session_id, entity_type, field, state, units, integration_point, part_ids, color_range, averaging
         )
 
     def export_gui_curve_plot(
@@ -57,8 +59,10 @@ class GuiMediaTools:
         fps: StrictInt = 10,
         width: StrictInt = 1280,
         height: StrictInt = 720,
+        averaging: str = "minmax",
     ) -> dict:
-        """Export native H264 MP4 of the current display, from state1 through last inclusive, step1 only. Requires ffprobe/ffmpeg for validation (no transcoding). Restore current state; leave animation stopped with exported bounds. Native log sequence, decoded frames, dimensions, rate and duration must agree. Current fringe/layer/view are used without inferring their physical meaning. Non-unit steps or later starts are intentionally unsupported after failed native probes."""
+        """Export native H264 MP4 of the current display with default MinMax averaging (explicit nodal/none supported), preserving model/result titles. State1..last step1 only; ffprobe/ffmpeg validate native sequence, frames, size/rate/duration. Restore current state; animation stopped with exported bounds. Current fringe/layer/view are used without inferring physical meaning."""
+        average_command = averaging_command(averaging)
         for name, value, low, high in (
             ("fps", fps, 1, 60),
             ("width", width, 64, 3840),
@@ -109,7 +113,7 @@ class GuiMediaTools:
                 type(t) not in (int, float) or not math.isfinite(t) for t in times[:final_state]
             ):
                 raise ValueError("Native movie timeline has missing or nonfinite state times")
-            parameters = dict(last=final_state, fps=fps, width=width, height=height)
+            parameters = dict(last=final_state, fps=fps, width=width, height=height, averaging=averaging)
             directory, manifest = self.jobs.create(
                 "export_gui_animation", dict(session_id=session_id, **parameters)
             )
@@ -135,6 +139,7 @@ class GuiMediaTools:
                     raise ValueError("Cannot verify the initial movie state")
                 commands = [
                     "anim stop",
+                    average_command,
                     "anim first 1",
                     f"anim last {final_state}",
                     "anim incr 1",
@@ -166,6 +171,8 @@ class GuiMediaTools:
                         rendering="current_native_display",
                         field_semantics_verified=False,
                         managed_field=managed_field,
+                        display_averaging=averaging,
+                        title_policy="Preserve existing model/result titles; no title commands or suffixes",
                         animation_controls_after=dict(first=1, last=final_state, increment=1, playing=False),
                     ),
                 )

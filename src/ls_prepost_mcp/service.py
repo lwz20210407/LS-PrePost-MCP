@@ -11,6 +11,7 @@ from pydantic import StrictInt
 from .config import Settings, command_path
 from .dpf_tools import DpfTools
 from .engineering import EngineeringTools
+from .fringe_presentation import averaging_command
 from .gui_common import GuiCommonTools
 from .gui_controls import GuiControls
 from .gui_media import GuiMediaTools
@@ -18,6 +19,7 @@ from .gui_mesh import GuiMeshTools
 from .gui_quality import GuiQualityTools
 from .gui_renumber import GuiRenumberTools
 from .gui_selection import GuiSelectionTools
+from .gui_visibility import GuiVisibilityTools
 from .installation_assets import InstallationTools
 from .jobs import Jobs, atomic_json, check_artifact, fingerprint, now
 from .keyword_tools import KeywordTools
@@ -56,7 +58,7 @@ def unit_label(units: str) -> str:
     return units.strip()
 
 
-class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools):
+class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools):
     def __init__(self, settings: Settings):
         self.settings = settings
         self.jobs = Jobs(settings.workspace)
@@ -281,8 +283,9 @@ class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools
         return self._native(action, p, d3plot, "d3plot", artifacts=tuple(artifacts))
 
     def render_snapshot(self, model: str, file_type: str = "keyword", view: str = "isometric",
-                        state: int | None = None, fringe_code: int | None = None) -> dict:
-        """Render a native PNG. Fringe codes require d3plot/state; shell layer and averaging retain native defaults, not user-specified overrides."""
+                        state: int | None = None, fringe_code: int | None = None, averaging: str = "minmax") -> dict:
+        """Render native PNG with default MinMax display averaging. Preserve model title and native result names. Fringe codes require d3plot/state; no implicit shell-layer override."""
+        averaging_command(averaging)
         if view not in VIEWS:
             raise ValueError("Unsupported view")
         if state is not None:
@@ -291,7 +294,7 @@ class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools
             integer(fringe_code, "fringe_code", 1, 9999)
             if file_type != "d3plot" or state is None:
                 raise ValueError("A fringe requires d3plot and an explicit native state")
-        return self._native("render_snapshot", {"view": VIEWS[view], "state": state, "fringe_code": fringe_code},
+        return self._native("render_snapshot", {"view": VIEWS[view], "state": state, "fringe_code": fringe_code, "averaging": averaging},
                             model, file_type, graphics=True, artifacts=(("snapshot.png", "png"),))
 
     def measure_parts(self, model: str, part_ids: list[int]) -> dict:

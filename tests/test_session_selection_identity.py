@@ -18,6 +18,7 @@ def fixture(tmp_path, monkeypatch):
         selection_buffers={"1": dict(entity_type="node", entity_ids=[1], model_signature="same-geometry")},
         managed_fringe={"status": "verified", "frames": {"1": "old-job"}},
         fringe_storage={"solid": [1]},
+        entity_visibility_last={"model": "old"},
     )
 
     class Manager:
@@ -50,6 +51,7 @@ def test_reopening_a_model_invalidates_old_selection_identities(tmp_path, monkey
     assert service.open_in_gui_session("s", str(source), kind)["status"] == "succeeded"
     assert meta["selection_buffers"] == {}
     assert meta["managed_fringe"] is None and meta["fringe_storage"] == {}
+    assert meta["entity_visibility_last"] is None
     assert meta["last_checkpoint"] == (str(source) if kind == "keyword" else None)
 
 
@@ -58,3 +60,4 @@ def test_new_model_invalidates_buffers_but_keeps_explicit_recovery_checkpoint(tm
     assert service.reset_gui_session("s", save_checkpoint=False)["status"] == "succeeded"
     assert meta["selection_buffers"] == {} and meta["last_checkpoint"] == "previous.k"
     assert meta["managed_fringe"] is None and meta["fringe_storage"] == {}
+    assert meta["entity_visibility_last"] is None

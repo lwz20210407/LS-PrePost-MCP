@@ -16,7 +16,7 @@ def native_model():
                 parts={7: [101]}, selected=[22], visible={7: True})
 
 
-def snapshot(model, **parameters):
+def snapshot(model, output_directory=None, **parameters):
     def get(key, **kw):
         if key == "node_ids":
             return list(model["nodes"])
@@ -40,10 +40,25 @@ def snapshot(model, **parameters):
         raise AssertionError(key)
 
     dc = SimpleNamespace(get_data=get, Type=SimpleNamespace(NODE=0, SHELL=1, SOLID=2, BEAM=3))
-    lp = SimpleNamespace(check_if_part_is_active_u=lambda pid: model["visible"][pid])
-    result = scoped_mesh_state(dc, lp, parameters)
+    lp = SimpleNamespace(check_if_part_is_active_u=lambda pid: model["visible"][pid],
+                         check_if_element_is_active_u=lambda uid, kind: list(model["elements"][kind]).index(uid) % 2 == 0)
+    result = scoped_mesh_state(dc, lp, parameters, output_directory)
     result.update(counts=dict(nodes=len(model["nodes"]), elements=get("num_elements")), current_state=1)
     return result
+
+
+def test_visibility_bridge_streams_multiple_binary_chunks_without_json_rows(tmp_path):
+    from ls_prepost_mcp.gui_visibility import flags
+    model = native_model()
+    model["elements"][1] = {i: [11, 22, 33, 33] for i in range(101, 5102)}
+    model["parts"][7] = list(model["elements"][1])
+    result = snapshot(model, output_directory=tmp_path, visibility_readback=True)
+    assert "visibility_rows" not in result
+    assert result["visibility_binary"]["byte_count"] == 50010
+    visible = flags(result, tmp_path)
+    assert len(visible) == 5001
+    assert visible[("shell", 101)] is True and visible[("shell", 102)] is False
+    assert visible[("shell", 5101)] is True
 
 
 def test_selected_coordinates_change_but_every_other_entity_is_protected():

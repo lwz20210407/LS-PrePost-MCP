@@ -7,6 +7,25 @@ requests. No desktop-global keystrokes, focus changes or window-title matching.
 import os
 
 
+def resolve_command_candidate(rows, preferred_id=30827):
+    """Resolve an owned main-window command entry, never an arbitrary single-line edit."""
+    candidates = [row for row in rows if "edit" in row["class_name"].lower()
+                  and row["main_title"].startswith("LS-PrePost")
+                  and row["visible"] and row["enabled"] and not row["style"] & 0x0800]
+    preferred = [row for row in candidates if row["control_id"] == preferred_id]
+    if len(preferred) == 1:
+        return preferred[0]["hwnd"]
+    if preferred:
+        raise RuntimeError("Ambiguous native command-entry profile; no input sent")
+    # 4.13's real command Edit has ES_MULTILINE. A single-line-only heuristic
+    # rejects the real entry. Require the observed command/history pairing.
+    prompted = [row for row in candidates if row.get("history_peer") and
+                row["text"].lstrip().startswith(">") and not any(c in row["text"] for c in "\r\n")]
+    if len(prompted) != 1:
+        raise RuntimeError("No unique owned command prompt; inspect this build before sending input")
+    return prompted[0]["hwnd"]
+
+
 class WindowsCommandTransport:
     def __init__(self, pid, control_id=30827):
         if os.name != "nt":
@@ -22,6 +41,8 @@ class WindowsCommandTransport:
         self.u.GetWindowThreadProcessId.argtypes = [w.HWND, ctypes.POINTER(w.DWORD)]
         self.u.GetDlgCtrlID.argtypes = [w.HWND]
         self.u.GetClassNameW.argtypes = [w.HWND, w.LPWSTR, ctypes.c_int]
+        self.u.GetWindowLongW.argtypes = [w.HWND, ctypes.c_int]
+        self.u.GetWindowLongW.restype = ctypes.c_long
         self.u.GetWindowTextW.argtypes = [w.HWND, w.LPWSTR, ctypes.c_int]
         self.u.SendMessageTimeoutW.argtypes = [
             w.HWND,
@@ -103,28 +124,20 @@ class WindowsCommandTransport:
             self.u.CloseDesktop(desktop)
 
     def open_panel(self, panel):
-        """Observed LS-PrePost 4.13 menu IDs, scoped to this owned process."""
-        self.require_interactive_desktop()
-        menu_ids = {
-            "duplicate_nodes": 30308,
-            "normals": 30306,
-            "node_edit": 30309,
-            "element_edit": 30310,
-            "transform": 30305,
-            "renumber": 30260,
-            "reference_check": 30259,
+        """Resolve the exact native menu path on each call; menu IDs are build-specific."""
+        paths = {
+            "duplicate_nodes": ["FEM", "Element Tools", "Duplicate Nodes"],
+            "normals": ["FEM", "Element Tools", "Normals"],
+            "node_edit": ["FEM", "Element Tools", "Node Editing"],
+            "element_edit": ["FEM", "Element Tools", "Element Editing"],
+            "transform": ["FEM", "Element Tools", "Transform"],
+            "renumber": ["FEM", "Model and Part", "Renumber"],
+            "reference_check": ["FEM", "Model and Part", "Reference Check"],
         }
-        if panel not in menu_ids:
+        if panel not in paths:
             raise ValueError("Unsupported native panel")
-        state = self.window_state()
-        if not state["enabled"]:
-            raise RuntimeError("Owned GUI has a blocking modal dialog")
-        result = self.ctypes.c_size_t()
-        if not self.u.SendMessageTimeoutW(
-            state["main_window"], 0x0111, menu_ids[panel], 0, 0x0002, 2000, self.ctypes.byref(result)
-        ):
-            raise RuntimeError("Native panel did not accept the menu command")
-        return dict(panel=panel, menu_id=menu_ids[panel], pid=self.pid)
+        entry = self.open_menu_item(paths[panel])
+        return dict(panel=panel, menu_id=entry["command_id"], pid=self.pid, path=entry["path"])
 
     def inspect_controls(self):
         """Read owned native control IDs for adapter development; no global input."""
@@ -357,11 +370,17 @@ class WindowsCommandTransport:
         matches = []
 
         def child(hwnd, _):
-            if self._pid(hwnd) == self.pid and self.u.GetDlgCtrlID(hwnd) == self.control_id:
+            if self._pid(hwnd) == self.pid:
                 name = self.ctypes.create_unicode_buffer(256)
                 self.u.GetClassNameW(hwnd, name, 256)
                 if "edit" in name.value.lower():
-                    matches.append(int(hwnd))
+                    text, title = self.ctypes.create_unicode_buffer(8192), self.ctypes.create_unicode_buffer(1024)
+                    self.u.GetWindowTextW(hwnd, text, len(text))
+                    self.u.GetWindowTextW(self.u.GetAncestor(hwnd, 2), title, len(title))
+                    matches.append(dict(hwnd=int(hwnd), parent=int(self.u.GetParent(hwnd)), class_name=name.value,
+                        control_id=self.u.GetDlgCtrlID(hwnd), text=text.value, main_title=title.value,
+                        style=self.u.GetWindowLongW(hwnd, -16), visible=bool(self.u.IsWindowVisible(hwnd)),
+                        enabled=bool(self.u.IsWindowEnabled(hwnd))))
             return True
 
         def top(hwnd, _):
@@ -370,10 +389,18 @@ class WindowsCommandTransport:
             return True
 
         self.u.EnumWindows(self.callback(top), 0)
-        matches = sorted(set(matches))
-        if len(matches) != 1:
-            raise RuntimeError("Owned process must expose exactly one supported command-entry control")
-        return matches[0]
+        for row in matches:
+            row["history_peer"] = any(other["parent"] == row["parent"] and
+                other["class_name"].lower().startswith("richedit") and other["style"] & 0x0800 for other in matches)
+        return resolve_command_candidate(list({row["hwnd"]: row for row in matches}.values()), self.control_id)
+
+    def preflight(self):
+        """No input or filesystem mutation; a locked desktop never triggers batch fallback."""
+        self.require_interactive_desktop()
+        state = self.window_state()
+        if not state["enabled"]:
+            raise RuntimeError("Owned GUI has a blocking modal dialog; no command dispatched")
+        return state
 
     def window_state(self):
         hwnd = self.command_window()

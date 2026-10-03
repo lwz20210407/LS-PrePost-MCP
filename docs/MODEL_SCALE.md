@@ -1,5 +1,7 @@
 # Model size and verification scope
 
+2026-10-03 entity visibility adds a chunked binary flag payload; geometry still uses streamed digests. Mixed standard beams use fresh native keyword endpoint readback after reproducible heap faults in native connectivity-array bindings. This adds whole-keyword export cost for beam-containing structural reads and is not a performance claim for large beams. See [visibility scope and evidence](GUI_VISIBILITY.md).
+
 The20,000 node/element limit is an implementation bound on **legacy full-mesh snapshots and tools that depend on them**. It is not an LS-PrePost limit, a license restriction, or a limit on all MCP operations. Increasing the constant would still serialize complete coordinates/connectivity for each operation and would not solve the design problem.
 
 | Route | Current behavior |

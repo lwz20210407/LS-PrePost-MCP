@@ -3,6 +3,7 @@
 import time
 from pathlib import Path
 
+from .fringe_presentation import averaging_command
 from .jobs import atomic_json
 
 
@@ -50,11 +51,14 @@ class GuiControls:
         fringe_code: int | None = None,
         center: bool = False,
         capture: bool = True,
+        averaging: str | None = None,
     ) -> dict:
         """Set the current persistent GUI's view, display mode, RGB background, projection, overlays or result state/fringe. Optionally capture the unchanged current camera."""
         from .service import VIEWS, integer, numbers
 
         commands = []
+        if averaging is not None:
+            commands.append(averaging_command(averaging))
         if view is not None:
             if view not in VIEWS and view != "home":
                 raise ValueError("Unknown view")
@@ -155,6 +159,7 @@ class GuiControls:
                 fringe_code=fringe_code,
                 center=center,
                 capture=capture,
+                averaging=averaging,
             )
             manager.journal(session_id, dict(action="set_gui_display", parameters=arguments, result=result))
             if fringe_code is not None:

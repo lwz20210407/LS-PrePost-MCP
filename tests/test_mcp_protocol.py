@@ -10,7 +10,7 @@ from mcp.client.stdio import stdio_client
 
 def test_stdio_discovery_reference_and_rejection(tmp_path):
     async def scenario():
-        env = dict(os.environ, LSPP_WORKSPACE=str(tmp_path),
+        env = dict(os.environ, LSPP_WORKSPACE=str(tmp_path), LSPP_TOOL_PROFILE="full",
                    PYTHONPATH=str(Path(__file__).resolve().parents[1] / "src"))
         config = StdioServerParameters(command=sys.executable,
                                        args=["-B", "-m", "ls_prepost_mcp.server"], env=env)
@@ -50,4 +50,27 @@ def test_stdio_discovery_reference_and_rejection(tmp_path):
                     "units": "mm"})
                 assert invalid_solid.isError
                 assert not (tmp_path / "jobs").exists()
+    asyncio.run(scenario())
+
+
+def test_compact_stdio_discovers_validates_and_executes_on_demand(tmp_path):
+    async def scenario():
+        env = dict(os.environ, LSPP_WORKSPACE=str(tmp_path), LSPP_TOOL_PROFILE="compact",
+                   PYTHONPATH=str(Path(__file__).resolve().parents[1]/"src"))
+        config = StdioServerParameters(command=sys.executable, args=["-B", "-m", "ls_prepost_mcp.server"], env=env)
+        async with stdio_client(config) as (reader, writer):
+            async with ClientSession(reader, writer) as session:
+                await session.initialize()
+                listing = await session.list_tools()
+                assert len(listing.tools) == 3
+                description = await session.call_tool("lspp_describe_operation", dict(operation="search_commands"))
+                assert not description.isError and "query" in json.loads(description.content[0].text)["input_schema"]["properties"]
+                result = await session.call_tool("lspp_run_operation", dict(operation="search_commands", execution="direct", arguments=dict(query="runpython", limit=1)))
+                assert not result.isError
+                result = await session.call_tool("lspp_run_operation", dict(operation="list_jobs", execution="direct", arguments={}))
+                assert not result.isError
+                invalid = await session.call_tool("lspp_run_operation", dict(operation="extract_native_fields", execution="gui", session_id="missing",
+                    arguments=dict(entity_type="solid", entity_ids=[True], states=[1], fields=["stress_x"], units="MPa")))
+                assert invalid.isError
+                assert not list(tmp_path.iterdir())
     asyncio.run(scenario())

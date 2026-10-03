@@ -13,6 +13,7 @@ from pathlib import Path
 from .config import command_path
 from .jobs import atomic_json, check_artifact, fingerprint, now
 from .native_config import isolate_preferences
+from .native_connectivity import beam_connectivity_prelude
 from .windows_transport import WindowsCommandTransport
 
 NATIVE_ACTIONS = {
@@ -158,7 +159,7 @@ class Sessions:
             model_kind="keyword",
             last_checkpoint=None,
             transport="owned-process Windows command entry + finite embedded Python",
-            bridge_protocol=3,
+            bridge_protocol=4,
             recording=None,
             configuration=configuration,
         )
@@ -169,10 +170,14 @@ class Sessions:
                 response = json.loads(ready.read_text())
                 if response != {"session_id": ident, "pid": process.pid}:
                     raise RuntimeError("Native bootstrap identity mismatch")
-                WindowsCommandTransport(process.pid).command_window()
-                data["state"] = "ready"
-                self.save(ident, data)
-                return self.read(ident)
+                try:
+                    WindowsCommandTransport(process.pid).command_window()
+                except RuntimeError as exc:
+                    data["last_error"] = str(exc)
+                else:
+                    data["state"] = "ready"
+                    self.save(ident, data)
+                    return self.read(ident)
             if process.poll() is not None:
                 break
             time.sleep(0.1)
@@ -206,6 +211,17 @@ class Sessions:
             raise RuntimeError("Session is not available")
         if data.get("active_request"):
             raise RuntimeError("Reconcile the outstanding request before dispatching another operation")
+        safe_beams = action in ("gui_mesh_digest", "gui_mesh_state", "gui_mesh_page", "connectivity")
+        if action == "gui_mesh_page" and parameters.get("entity_type") != "beam":
+            safe_beams = False
+        if action == "connectivity" and parameters.get("element_type") != "beam":
+            safe_beams = False
+        if safe_beams and model is not None:
+            raise ValueError("Open the model before requesting native beam-aware structural readback")
+        if safe_beams and data.get("bridge_protocol", 1) < 4:
+            raise RuntimeError("Start a new GUI session for the native-keyword beam connectivity bridge")
+        transport = WindowsCommandTransport(data["process"]["pid"])
+        transport.preflight()
         was_uncertain = data["state"] == "uncertain"
         directory = self.directory(ident) / "requests" / uuid.uuid4().hex
         directory.mkdir(parents=True)
@@ -218,6 +234,7 @@ class Sessions:
             file_type=file_type,
             absolute_keyword_path=True,
             native_commands=list(native_commands),
+            safe_beam_connectivity=safe_beams,
         )
         atomic_json(directory / "request.json", request)
         atomic_json(
@@ -251,14 +268,19 @@ class Sessions:
         command_file = directory / "dispatch.cfile"
         # Let LS-PrePost itself interpret selection/edit commands outside the
         # embedded Python callback, then use Python only for readback.
+        commands = list(native_commands)
+        if safe_beams:
+            script = directory/"beam-connectivity.py"
+            script.write_text(beam_connectivity_prelude(directory), encoding="utf8")
+            commands.append("runpython "+command_path(script))
         command_file.write_text(
-            "\n".join(list(native_commands) + ["runpython " + command_path(bootstrap)]) + "\n",
+            "\n".join(commands + ["runpython " + command_path(bootstrap)]) + "\n",
             encoding="utf8",
         )
         data.update(state="busy", active_request=directory.name)
         self.save(ident, data)
         try:
-            WindowsCommandTransport(data["process"]["pid"]).submit(
+            transport.submit(
                 "openc command " + command_path(command_file) + " nodialog"
             )
         except Exception as exc:
@@ -297,7 +319,9 @@ class Sessions:
                 atomic_json(directory / "operation.json", result)
                 return result
             if not alive(data["process"]):
-                break
+                data.update(state="uncertain", last_error="Owned LS-PrePost exited before correlated completion; do not replay")
+                self.save(ident, data)
+                raise RuntimeError("Owned LS-PrePost exited before completion; inspect native logs before recovery")
             time.sleep(0.05)
         data.update(state="uncertain", last_error="No completion received; do not blindly replay mutation")
         self.save(ident, data)
@@ -381,18 +405,20 @@ class SessionTools:
                 )
             artifacts = [check_artifact(directory / name, kind) for name, kind in contract["artifacts"]]
             request = json.loads((directory / "request.json").read_text(encoding="utf8"))
+            opened_model = request.get("model")
             state = (
                 "uncertain"
                 if contract.get("was_uncertain")
-                and not request.get("model")
+                and not opened_model
                 and request["action"] != "gui_new"
                 else "ready"
             )
             meta.update(state=state, active_request=None)
             if contract["export"]:
                 meta.update(last_checkpoint=str(directory / "model.k"), dirty=False)
-            if request.get("model"):
-                meta.update(model_kind=request["file_type"], staged_model=request["model"], dirty=False, selection_buffers={}, managed_fringe=None, fringe_storage={})
+            if opened_model:
+                meta.update(model_kind=request["file_type"], staged_model=opened_model, dirty=False,
+                            selection_buffers={}, entity_visibility_last=None, managed_fringe=None, fringe_storage={})
             manager.save(session_id, meta)
             return dict(**meta, recovery="Late completion reconciled; no replay", artifacts=artifacts)
 
@@ -425,6 +451,7 @@ class SessionTools:
                     source=None,
                     staged_model=None,
                     selection_buffers={},
+                    entity_visibility_last=None,
                     managed_fringe=None,
                     fringe_storage={},
                 )
@@ -497,6 +524,7 @@ class SessionTools:
                     source=str(self.settings.input_path(path)),
                     staged_model=str(staged),
                     selection_buffers={},
+                    entity_visibility_last=None,
                     managed_fringe=None,
                     fringe_storage={},
                     last_checkpoint=str(staged) if file_type == "keyword" else None,
@@ -601,6 +629,7 @@ class SessionTools:
                             source=output,
                             dirty=False,
                             selection_buffers={},
+                            entity_visibility_last=None,
                             managed_fringe=None,
                             fringe_storage={},
                         )
