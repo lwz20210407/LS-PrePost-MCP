@@ -724,7 +724,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Standard view/display options plus native absolute zoom_scale/pan_xy and ordered incremental X/Y/Z view rotations. Visible4.13.4 synthetic keyword and representative d3plot checks cover pixel-exact absolute-setting repetition, inverse-rotation raster tolerance, geometry/state/part preservation and changed-zoom managed replay. Last rotation increment remains. Numeric camera matrices, managed bookmarks, arbitrary pivots and selected-only fit are not certified. See docs/GUI_CAMERA.md.",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ]

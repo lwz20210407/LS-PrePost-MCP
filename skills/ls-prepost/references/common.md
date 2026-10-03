@@ -2,6 +2,8 @@
 
 Read `docs/COMMON_OPERATIONS_COVERAGE.md` for actual F1–F10 mappings and all reviewed panel controls, including items still missing. F-keys are configurable entry points, not completeness evidence.
 
+Use `set_gui_display` for standard views/fit and native absolute `zoom_scale`/`pan_xy`. Do not interpret these as relative factors/deltas or model-coordinate edits. `rotation_xyz_degrees` is incremental global X/Y/Z view rotation; fit follows rotations, explicit zoom/pan follow fit. Managed recording supports these parameters. Named-view/bookmark and numeric camera-matrix contracts remain separate work; see `docs/GUI_CAMERA.md`.
+
 `measure_gui_geometry` provides native coordinates, node distance/global deltas, two-node axis height,3D3-node/4-node angles and3-point circle radius/center. Units are explicit; keywords use reference geometry, d3plot uses an explicit result state. Targets the active model. Native outputs must match independently checked coordinates and complete preservation readback. Circle centers require a matching native message; collinear points fail. Projected angles remain uninterpreted. The requested state, native overlays and measure axes/scale settings remain; optional PNG is not OCR verification of every label.
 
 Use `set_gui_part_visibility` for part show/hide/isolate/all. `set_gui_entity_visibility` provides standard shell/solid/beam/element hide/show/isolate/reverse and owned `restore_last`, preserving geometry/state/part flags and checking every native display-active flag. None means the whole requested domain, [] an explicit empty scope. Restore checks model/state and touched flags; external changes invalidate it. Node glyphs, special entities and physical erosion masks remain separate gaps.

@@ -2,6 +2,8 @@
 
 ## 0.4.0 (development)
 
+- Extend the existing display tool with strict native absolute zoom/pan and incremental X/Y/Z view rotations. Preserve operation ordering and managed parameter replay; verify zoom/pan idempotence, changed pixels, X/inverse rotation and reference-mesh preservation in visible4.13.4. Named view persistence remains a separate incomplete feature.
+
 - Add optional compact MCP discovery/schema/execution profile while keeping original interfaces; preserve strict validation and explicit GUI routing without silent fallback. Resolve common panels through the current menu tree, constrain command-entry fallback, and reject locked desktops before creating pending native jobs.
 - Add standard element Blank operations with whole-state binary readback, geometry/state/part preservation and owned restore/replay. Optimize sparse isolation using the smaller complement. Verify mixed shell/solid/beam and representative result workflows in visible4.13.4; use fresh native keyword beam endpoints after reproducing native array-binding heap faults.
 - Preserve model titles and plain native result captions. Default field PNG/snapshot/movie display averaging to MinMax, retain explicit nodal/none overrides and keep raw CSV sampling distinct. Verify native averaging control, identical raw values, recorded replay and decoded three-frame MP4.

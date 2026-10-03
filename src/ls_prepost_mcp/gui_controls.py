@@ -1,10 +1,37 @@
 """Typed controls for common menu/right/bottom toolbar operations."""
 
+import math
 import time
 from pathlib import Path
 
+from pydantic import StrictFloat
+
 from .fringe_presentation import averaging_command
 from .jobs import atomic_json
+
+
+def camera_commands(zoom_scale=None, pan_xy=None, rotation_xyz_degrees=None):
+    """Validate all camera inputs before dispatch; native zoom/pan setters are absolute."""
+    def values(value, length, name, bound):
+        if not isinstance(value, list) or len(value) != length or any(
+            type(v) not in (int, float) or not math.isfinite(v) or abs(v) > bound for v in value
+        ):
+            raise ValueError(name+" requires "+str(length)+" finite numbers within +/-"+str(bound))
+        return [float(v) for v in value]
+    rotations, after_fit = [], []
+    if zoom_scale is not None:
+        if type(zoom_scale) not in (int, float) or not math.isfinite(zoom_scale) or not 0.01 <= zoom_scale <= 100:
+            raise ValueError("zoom_scale must be a finite native absolute scale in 0.01..100")
+        after_fit.append("zoom "+format(zoom_scale, ".17g"))
+    if pan_xy is not None:
+        pan = values(pan_xy, 2, "pan_xy", 100)
+        after_fit.append("pan "+" ".join(format(v, ".17g") for v in pan))
+    if rotation_xyz_degrees is not None:
+        angles = values(rotation_xyz_degrees, 3, "rotation_xyz_degrees", 360)
+        for axis, angle in zip("xyz", angles, strict=True):
+            if angle:
+                rotations.extend(["rotang "+format(angle, ".17g"), "r"+axis])
+    return rotations, after_fit
 
 
 def wait_for_gui_state(manager, session_id, requested, timeout, native_commands=()):
@@ -52,10 +79,14 @@ class GuiControls:
         center: bool = False,
         capture: bool = True,
         averaging: str | None = None,
+        zoom_scale: StrictFloat | None = None,
+        pan_xy: list[StrictFloat] | None = None,
+        rotation_xyz_degrees: list[StrictFloat] | None = None,
     ) -> dict:
-        """Set the current persistent GUI's view, display mode, RGB background, projection, overlays or result state/fringe. Optionally capture the unchanged current camera."""
+        """Set native GUI view/display/projection/overlays/state/fringe; optionally capture PNG. zoom_scale and pan_xy are ABSOLUTE native view settings, not multipliers/deltas or model-coordinate edits. Incremental global X/Y/Z view rotations run in that order, before optional center-fit; zoom/pan follow fit. Last nonzero rotation step remains in native toolbar settings. Preserve model/result titles unless explicitly toggled. Defaults retain the current camera."""
         from .service import VIEWS, integer, numbers
 
+        rotations, after_fit = camera_commands(zoom_scale, pan_xy, rotation_xyz_degrees)
         commands = []
         if averaging is not None:
             commands.append(averaging_command(averaging))
@@ -103,8 +134,10 @@ class GuiControls:
             if manager.read(session_id)["model_kind"] != "d3plot":
                 raise ValueError("Fringe requires a result session")
             commands += ["fringe " + str(fringe_code), "pfringe"]
+        commands.extend(rotations)
         if center:
             commands.append("ac")
+        commands.extend(after_fit)
         p = dict(commands=commands, state=None, capture=capture if state is None else False)
         with manager.lock(session_id):
             if state is not None:
@@ -160,6 +193,9 @@ class GuiControls:
                 center=center,
                 capture=capture,
                 averaging=averaging,
+                zoom_scale=zoom_scale,
+                pan_xy=pan_xy,
+                rotation_xyz_degrees=rotation_xyz_degrees,
             )
             manager.journal(session_id, dict(action="set_gui_display", parameters=arguments, result=result))
             if fringe_code is not None:
