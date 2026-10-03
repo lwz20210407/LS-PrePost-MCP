@@ -15,7 +15,7 @@ class ReadOnlyScopeMismatch(ValueError):
     """Geometry was verified unchanged, but selection/state postconditions failed."""
 
 
-def verify_mesh_digest(before, after, allow_selected_coordinates=False):
+def verify_mesh_digest(before, after, allow_selected_coordinates=False, allow_normal_reversal=False):
     """Reject mismatched scopes; hash equality verifies full unchanged populations."""
     if (before.get("digest_contract") != "native_registry_order_sha256_v1"
             or after.get("digest_contract") != before["digest_contract"]
@@ -24,6 +24,12 @@ def verify_mesh_digest(before, after, allow_selected_coordinates=False):
             or before.get("part_ids") != after.get("part_ids")):
         raise ValueError("Native mesh digest scope or model inventory changed")
     required = {"node_ids", "connectivity", "part_membership", "unselected_coordinates"}
+    if allow_normal_reversal:
+        if (before.get("normal_scope") is None or before.get("normal_scope") != after.get("normal_scope")
+                or before.get("normal_count", 0) < 1 or before["normal_count"] != after.get("normal_count")):
+            raise ValueError("Native normal verification scope changed")
+        required.remove("connectivity")
+        required.add("unselected_connectivity")
     if not allow_selected_coordinates:
         required.add("coordinates")
     for key in required:
@@ -123,6 +129,17 @@ def shell_cycle(conn):
 
 
 def verify_reverse(before, after, selected=None):
+    if "mesh_digest" in before or "mesh_digest" in after:
+        verify_mesh_digest(before, after, allow_normal_reversal=True)
+        scope = before["normal_scope"]["shell_ids"]
+        if (scope is None) != (selected is None) or scope is not None and set(scope) != set(selected):
+            raise ValueError("Normal digest does not cover the requested shells")
+        if before["mesh_digest"]["normal_reversed"] != after["mesh_digest"]["normal_current"]:
+            raise ValueError("Shell cyclic connectivity was not reversed exactly")
+        if before.get("part_visibility") != after.get("part_visibility"):
+            raise ValueError("Normal reversal did not restore part visibility")
+        return dict(reversed_shells=before["normal_count"],
+                    verification="All requested shell cyclic orientations reversed; every coordinate, unselected connectivity and part membership preserved via complete native scans")
     old, old_elements = mesh_index(before)
     new, new_elements = mesh_index(after)
     check_same_nodes(old, new)
@@ -480,6 +497,12 @@ class GuiMeshTools:
         commands += ["normal reverse", "genselect clear"]
 
         def precheck(state):
+            if "mesh_digest" in state:
+                if state.get("normal_count") is None:
+                    raise ValueError("Start a new owned GUI session for the updated normal-verification bridge")
+                if state["normal_count"] < 1:
+                    raise ValueError("No selected shells")
+                return
             _, elements = mesh_index(state)
             shells = {eid for kind, eid in elements if kind == "shell"}
             if not shells or (selected is not None and not selected <= shells):
@@ -489,9 +512,10 @@ class GuiMeshTools:
             session_id,
             "reverse_gui_shell_normals",
             dict(units=units, shell_ids=shell_ids),
-            commands,
+            lambda state, directory: commands + ["-m " + pid for pid, active in state["part_visibility"].items() if not active],
             lambda a, b: verify_reverse(a, b, selected),
             precheck,
+            snapshot_parameters=dict(normal_scope=dict(shell_ids=shell_ids)),
         )
 
     def translate_gui_nodes(

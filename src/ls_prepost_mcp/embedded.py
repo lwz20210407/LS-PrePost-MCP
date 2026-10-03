@@ -14,6 +14,20 @@ import traceback
 from array import array as packed_array
 
 
+def shell_orientation_cycle(connectivity):
+    values = list(connectivity)
+    if len(values) == 4 and values[3] in (0, values[2]):
+        values.pop()
+    if len(values) not in (3, 4) or any(n <= 0 for n in values) or len(set(values)) != len(values):
+        raise ValueError("Normal reversal supports standard noncollapsed Tri3/Quad4 shells")
+    return min(tuple(values[i:] + values[:i]) for i in range(len(values)))
+
+
+def orientation_digest_update(digest, uid, cycle):
+    digest.update(struct.pack("!qq", uid, len(cycle)))
+    digest.update(struct.pack("!" + "q" * len(cycle), *cycle))
+
+
 def scoped_mesh_state(dc, lp, parameters):
     """Stream complete native geometry fingerprints, materialize only requested nodes.
 
@@ -25,6 +39,17 @@ def scoped_mesh_state(dc, lp, parameters):
     domain = parameters.get("entity_type", "node")
     query = parameters.get("selection_query")
     registry_query = parameters.get("registry_query")
+    normal_scope = parameters.get("normal_scope")
+    normal_ids = None
+    if normal_scope is not None:
+        if query or registry_query or wanted_nodes or wanted_ids or not isinstance(normal_scope, dict):
+            raise ValueError("Normal scope cannot be combined with another mesh scope")
+        normal_ids = normal_scope.get("shell_ids")
+        if normal_ids is not None:
+            if (not isinstance(normal_ids, list) or not 1 <= len(normal_ids) <= 20000 or
+                    any(type(uid) is not int or uid <= 0 for uid in normal_ids) or len(set(normal_ids)) != len(normal_ids)):
+                raise ValueError("Explicit normal scope requires1..20000 unique shell IDs")
+            normal_ids = set(normal_ids)
     if registry_query and (query or wanted_nodes or wanted_ids):
         raise ValueError("Registry query cannot be combined with explicit digest scopes")
     if query and (domain != "node" or wanted_nodes or wanted_ids or query.get("kind") not in ("box", "sphere", "plane")):
@@ -38,7 +63,8 @@ def scoped_mesh_state(dc, lp, parameters):
             raise ValueError("Scoped IDs must be unique positive integers, at most20000")
     wanted_nodes, wanted_ids = set(wanted_nodes), set(wanted_ids)
     hashes = {key: hashlib.sha256() for key in (
-        "node_ids", "coordinates", "unselected_coordinates", "connectivity", "part_membership")}
+        "node_ids", "coordinates", "unselected_coordinates", "connectivity", "part_membership",
+        "unselected_connectivity", "normal_current", "normal_reversed")}
     node_indices, rows, matched, occurrences = {}, {}, [], {}
     get = dc.get_data
     array = get("validpart_ids")
@@ -125,17 +151,29 @@ def scoped_mesh_state(dc, lp, parameters):
                 if len(matched) > 20000:
                     raise ValueError("Spatial selection exceeds20000 selected nodes per operation; narrow the region. This is not a global model-size limit")
     element_count, affected_count, affected = 0, 0, []
+    normal_count = 0
     for label, kind in (("shell", dc.Type.SHELL), ("solid", dc.Type.SOLID), ("beam", dc.Type.BEAM)):
         # Materialize only domain IDs: a new SDK call may invalidate the array.
         # Coordinates/connectivity are never retained for unrequested entities.
         array = get("element_ids", type=kind)
         eids = [int(array[i]) for i in range(len(array))]
         hashes["connectivity"].update(label.encode("ascii") + struct.pack("!q", len(eids)))
+        if normal_scope is not None:
+            hashes["unselected_connectivity"].update(label.encode("ascii") + struct.pack("!q", len(eids)))
         for uid in eids:
             array = get("element_connectivity", type=kind, id=uid)
             conn = [int(array[i]) for i in range(len(array))]
             hashes["connectivity"].update(struct.pack("!qq", uid, len(conn)))
             hashes["connectivity"].update(struct.pack("!" + "q" * len(conn), *conn))
+            if normal_scope is not None and label == "shell" and (normal_ids is None or uid in normal_ids):
+                cycle = shell_orientation_cycle(conn)
+                reversed_cycle = shell_orientation_cycle(list(reversed(cycle)))
+                orientation_digest_update(hashes["normal_current"], uid, cycle)
+                orientation_digest_update(hashes["normal_reversed"], uid, reversed_cycle)
+                normal_count += 1
+            elif normal_scope is not None:
+                hashes["unselected_connectivity"].update(struct.pack("!qq", uid, len(conn)))
+                hashes["unselected_connectivity"].update(struct.pack("!" + "q" * len(conn), *conn))
             element_count += 1
             if registry_query:
                 needs_unique = domain not in ("node", "part") or (domain == "node" and
@@ -166,6 +204,8 @@ def scoped_mesh_state(dc, lp, parameters):
                     matched.append(uid)
     if element_count != int(get("num_elements")):
         raise ValueError("Scoped verification does not cover this model's element types")
+    if normal_scope is not None and (normal_count == 0 or normal_ids is not None and normal_count != len(normal_ids)):
+        raise ValueError("No shells or unknown explicit shell IDs for normal reversal")
     if any(n > 1 for n in occurrences.values()):
         raise ValueError("Requested element IDs are ambiguous across native domains")
     native_plan, selection_limit = None, 20000
@@ -223,6 +263,7 @@ def scoped_mesh_state(dc, lp, parameters):
         mesh_digest={key: value.hexdigest() for key, value in hashes.items()},
         digest_contract="native_registry_order_sha256_v1",
         digest_node_ids=sorted(wanted_nodes),
+        normal_scope=normal_scope, normal_count=normal_count,
         verification_scope="All reference coordinates/connectivity/part membership streamed; only requested nodes materialized",
     )
 

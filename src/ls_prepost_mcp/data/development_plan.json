@@ -1097,7 +1097,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Native pages, explicit/part/active-part/whole/scoped-inverse/spatial selection, set operations/buffers and node translation/rotation/absolute correction use complete streamed geometry verification without global20000 snapshots. Native100000shell/100651node synthetic and over300000element private-solid coordinate edit-save-reopen passed. Hidden/shared-node/inversion/empty scope and large d3plot selection-to-field IDs passed. Explicit/fallback selected-set budgets remain; bulk whole/part plans allow1000000 guard, not certification at that size. Merge/normals/renumber and snapshot-based quality remain open. See docs/MODEL_SCALE.md."
+      "progress": "Native pages, explicit/part/active-part/whole/scoped-inverse/spatial selection, set operations/buffers and node translation/rotation/absolute correction use complete streamed geometry verification without global20000 snapshots. Native100000shell/100651node synthetic and over300000element private-solid coordinate edit-save-reopen passed. Hidden/shared-node/inversion/empty scope and large d3plot selection-to-field IDs passed. Explicit/fallback selected-set budgets remain; bulk whole/part plans allow1000000 guard, not certification at that size. Merge/renumber and snapshot-based quality remain open. See docs/MODEL_SCALE.md. Native100000shell all/partial normal reversal now uses streamed orientation proof, including unchanged geometry/visibility and save/reopen. Automatic normal unification remains open."
     },
     {
       "id": "T04",

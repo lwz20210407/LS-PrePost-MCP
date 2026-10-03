@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from ls_prepost_mcp.embedded import scoped_mesh_state
-from ls_prepost_mcp.gui_mesh import verify_mesh_digest, verify_transform
+from ls_prepost_mcp.gui_mesh import verify_mesh_digest, verify_reverse, verify_transform
 from ls_prepost_mcp.gui_node_edit import verify_coordinates
 from ls_prepost_mcp.gui_selection import verify_selection
 
@@ -185,3 +185,30 @@ def test_large_bulk_part_selection_has_no_20000_global_or_selected_bound():
     assert result["selection_ids"] == model["selected"]
     assert result["native_selection_plan"] == dict(strategy="parts", target="node", part_ids=[7])
     assert result["selection_limit"] == 1000000
+
+
+def test_streamed_normal_scope_allows_cyclic_reversal_and_preserves_other_shells():
+    model = shared_parts()
+    before = snapshot(model, normal_scope=dict(shell_ids=[101]))
+    model["elements"][1][101] = [33, 22, 11, 11]
+    after = snapshot(model, normal_scope=dict(shell_ids=[101]))
+    assert verify_reverse(before, after, [101])["reversed_shells"] == 1
+    model["elements"][1][102] = [22, 33, 44, 44]
+    with pytest.raises(ValueError, match="unselected_connectivity"):
+        verify_reverse(before, snapshot(model, normal_scope=dict(shell_ids=[101])), [101])
+
+
+def test_streamed_normal_noop_coordinate_and_scope_errors_are_rejected():
+    model = native_model()
+    before = snapshot(model, normal_scope=dict(shell_ids=None))
+    with pytest.raises(ValueError, match="not reversed"):
+        verify_reverse(before, before)
+    model["elements"][1][101] = [11, 33, 22, 22]
+    model["nodes"][33][2] = .001
+    with pytest.raises(ValueError, match="coordinates"):
+        verify_reverse(before, snapshot(model, normal_scope=dict(shell_ids=None)))
+    with pytest.raises(ValueError, match="unknown"):
+        snapshot(model, normal_scope=dict(shell_ids=[999]))
+    model["elements"][1][101] = [11, 11, 33, 33]
+    with pytest.raises(ValueError, match="noncollapsed"):
+        snapshot(model, normal_scope=dict(shell_ids=None))

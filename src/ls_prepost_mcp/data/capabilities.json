@@ -1083,7 +1083,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "All-shell and explicit subset reversal verified; unselected connectivity preserved; automatic alignment pending"
+      "scope": "Native standard Tri3/Quad4 all/explicit normal reversal with complete streamed cyclic-orientation, coordinate, unselected-connectivity, part-membership and visibility preservation; no global20000 snapshot.100000native-shell double/full/partial reversal and normalized save/reopen passed. Automatic seed/outward unification, thick shells, material axes and all keyword references remain outside scope."
     },
     {
       "id": "gui_mesh.translate_gui_nodes",
