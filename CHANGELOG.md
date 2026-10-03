@@ -2,6 +2,9 @@
 
 ## 0.4.0 (development)
 
+- Add selection-bound native node/part list-set creation, paged inspection and member replacement preserving native attributes; add explicit global SPC set/node constraint creation, ID/DOF conflict checks and native card/mesh/scene verification. Verify changed-selection/SID recording replay and native reopen. Add model-load generations to reject old selection artifacts even after reopening identical geometry.
+- Preserve all CSV list members and native packed SPC-ID header/data pairs during targeted readback; emit one named SPC_NODE card per node after native multirow truncation was reproduced. Segment sets, pressure and nonreflecting boundaries remain incomplete.
+
 - Preserve per-element display-active flags during selection. Remove `pall`, avoid native whole/by-part selection when hidden members would be omitted, and verify exact IDs plus scene digests. Add mixed-element/hidden-part/buffer/display-setup replay native regression and fail-before-dispatch limits.
 - Add an evidence-based local release progress dashboard with explicit denominator history. Promote selection-driven Entity Creation sets/constraints/loads to required release work; these workflows remain incomplete and are not advertised as implemented tools.
 

@@ -160,6 +160,7 @@ class Sessions:
             last_checkpoint=None,
             transport="owned-process Windows command entry + finite embedded Python",
             bridge_protocol=4,
+            model_generation=uuid.uuid4().hex,
             recording=None,
             configuration=configuration,
         )
@@ -418,6 +419,7 @@ class SessionTools:
                 meta.update(last_checkpoint=str(directory / "model.k"), dirty=False)
             if opened_model:
                 meta.update(model_kind=request["file_type"], staged_model=opened_model, dirty=False,
+                            model_generation=uuid.uuid4().hex,
                             selection_buffers={}, entity_visibility_last=None, managed_fringe=None, fringe_storage={})
             manager.save(session_id, meta)
             return dict(**meta, recovery="Late completion reconciled; no replay", artifacts=artifacts)
@@ -450,6 +452,7 @@ class SessionTools:
                     last_checkpoint=meta.get("last_checkpoint"),
                     source=None,
                     staged_model=None,
+                    model_generation=uuid.uuid4().hex,
                     selection_buffers={},
                     entity_visibility_last=None,
                     managed_fringe=None,
@@ -523,6 +526,7 @@ class SessionTools:
                     dirty=False,
                     source=str(self.settings.input_path(path)),
                     staged_model=str(staged),
+                    model_generation=uuid.uuid4().hex,
                     selection_buffers={},
                     entity_visibility_last=None,
                     managed_fringe=None,
@@ -627,6 +631,7 @@ class SessionTools:
                             last_checkpoint=output,
                             staged_model=str(staged),
                             source=output,
+                            model_generation=uuid.uuid4().hex,
                             dirty=False,
                             selection_buffers={},
                             entity_visibility_last=None,

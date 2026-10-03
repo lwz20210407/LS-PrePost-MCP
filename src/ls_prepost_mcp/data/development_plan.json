@@ -452,7 +452,10 @@
         "compose_keyword_deck",
         "update_keyword_fields",
         "update_keyword_table_row",
-        "renumber_gui_entities"
+        "renumber_gui_entities",
+        "create_gui_entity_set",
+        "inspect_gui_entity_sets",
+        "create_gui_spc"
       ],
       "status": "partial",
       "contract_doc": "docs/ARCHITECTURE.md"
@@ -1380,7 +1383,7 @@
       "status": "in_progress",
       "milestone": "R1",
       "evidence": "docs/ENTITY_CREATION.md",
-      "progress": "User-prioritized on 2026-10-03; official local guide and public selection/SPC sources reviewed. Generic GUI entity-set/boundary closure not yet implemented."
+      "progress": "Native4.13.4 selection-bound NODE/PART LIST create, paged inspection, member replacement with DA/solver/ITS preservation, SPC_SET/NODE_ID, conflict rejection, changed-selection/SID replay and save/reopen passed. Segment2D/3D, pressure and nonreflecting boundaries remain open. No solver/Include/full-panel certification."
     }
   ],
   "knowledge_tools": [

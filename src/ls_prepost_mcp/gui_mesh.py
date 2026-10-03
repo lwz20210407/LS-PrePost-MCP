@@ -429,6 +429,7 @@ class GuiMeshTools:
                 transaction_kind=transaction_kind,
                 checkpoint_created=mutates_model,
             )
+            result["model_generation"] = original_meta.get("model_generation")
             if result.get("data"):
                 atomic_json(directory / "after.json", result["data"])
                 result["artifacts"].append(check_artifact(directory / "after.json", "json"))

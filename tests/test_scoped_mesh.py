@@ -61,6 +61,18 @@ def test_visibility_bridge_streams_multiple_binary_chunks_without_json_rows(tmp_
     assert visible[("shell", 5101)] is True
 
 
+def test_entity_registry_probe_reports_missing_without_relaxing_default_or_duplicate_checks():
+    model = native_model()
+    result = snapshot(model, entity_type="node", entity_ids=[11, 999], allow_missing_entity_ids=True)
+    assert result["registry_probe"] and result["registry_matches"] == [11]
+    assert result["missing_entity_ids"] == [999]
+    verify_mesh_digest(snapshot(model), result)
+    with pytest.raises(ValueError, match="absent"):
+        snapshot(model, entity_type="node", entity_ids=[11, 999])
+    with pytest.raises(ValueError, match="unique positive"):
+        snapshot(model, entity_type="node", entity_ids=[11, 11], allow_missing_entity_ids=True)
+
+
 def test_selected_coordinates_change_but_every_other_entity_is_protected():
     model = native_model()
     before = snapshot(model, node_ids=[22])

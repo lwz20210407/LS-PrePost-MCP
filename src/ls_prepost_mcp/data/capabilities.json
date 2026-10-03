@@ -1485,6 +1485,45 @@
         "4.13.4 Windows maximized visible GUI"
       ],
       "scope": "Standard shell/solid/beam/element hide/show/isolate/reverse/owned restore; exact binary display-flag and geometry/state/part checks. Native 49-operation synthetic/mixed/private-result workflow, stale-restore rejection and managed replay passed. Protocol4 uses native keyword beam endpoints after array-binding heap faults; full export cost on beam-containing structural reads. Node glyphs/special entities/physical erosion remain open. One-million readback and 20000 explicit transition guards are not size certification. See docs/GUI_VISIBILITY.md."
+    },
+    {
+      "id": "gui_entities.create_gui_entity_set",
+      "tool": "create_gui_entity_set",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide",
+        "library-pydyna"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Native controlled fragment import of node/part LIST sets from IDs or owned current-model selection jobs; create/replace members, preserve DA/solver/ITS, collision/conflict rejection, exact native saved cards and streamed mesh/scene checks. 4.13.4 mixed standard elements, parameterized replay and reopen passed. At most20000 members, ASCII names, standalone decks; no arbitrary set variants/Include/full-panel certification."
+    },
+    {
+      "id": "gui_entities.inspect_gui_entity_sets",
+      "tool": "inspect_gui_entity_sets",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide",
+        "library-pydyna"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Native full keyword export with node/part LIST inventory and paged member IDs; typed card parser handles fixed10-column/CSV lists without dropping members. Display/mesh/state checked. Full-export I/O cost; unsupported variants reported, not expanded."
+    },
+    {
+      "id": "gui_entities.create_gui_spc",
+      "tool": "create_gui_spc",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide",
+        "library-pydyna"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Native SPC_SET and per-node SPC_NODE_ID with explicit six binary DOFs; node-list constraint IDs allocated consecutively in sorted node order and returned. IDs, coordinates, targets and supported SPC overlap checked. Global coordinate native create/replay/save/reopen passed. Nonzero coordinate references have code checks but not native certification; no rigid/material/solver validity claim, no prescribed motion/pressure/nonreflecting support."
     }
   ],
   "native_reference_builds": [

@@ -306,8 +306,9 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
         if len(selected_set) > selection_limit:
             raise ValueError("Selected set exceeds the command/readback budget for this operation; this is not a global model-size limit")
         matched = sorted(selected_set)
-    if not query and not registry_query and (set(matched) != wanted_ids or len(matched) != len(wanted_ids)):
-        raise ValueError("Requested IDs are absent or duplicated in the native entity registry")
+    if not query and not registry_query:
+        if len(matched) != len(set(matched)) or (set(matched) != wanted_ids and parameters.get("allow_missing_entity_ids") is not True):
+            raise ValueError("Requested IDs are absent or duplicated in the native entity registry")
     selection_count = int(get("num_selection"))
     selected = None
     if selection_count <= selection_limit:
@@ -318,6 +319,8 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
     return dict(
         nodes=[rows[k] for k in sorted(rows)], elements=[],
         part_ids=parts, part_visibility=visibility, selection_ids=selected,
+        registry_probe=parameters.get("allow_missing_entity_ids") is True,
+        missing_entity_ids=sorted(wanted_ids - set(matched)),
         selection_types=None, registry_matches=matched,
         query_selected_ids=matched if query or registry_query else None,
         native_selection_plan=native_plan, selection_limit=selection_limit,

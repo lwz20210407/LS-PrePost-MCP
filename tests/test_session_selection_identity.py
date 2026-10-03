@@ -53,6 +53,9 @@ def test_reopening_a_model_invalidates_old_selection_identities(tmp_path, monkey
     assert meta["managed_fringe"] is None and meta["fringe_storage"] == {}
     assert meta["entity_visibility_last"] is None
     assert meta["last_checkpoint"] == (str(source) if kind == "keyword" else None)
+    generation = meta["model_generation"]
+    service.open_in_gui_session("s", str(source), kind)
+    assert meta["model_generation"] != generation
 
 
 def test_new_model_invalidates_buffers_but_keeps_explicit_recovery_checkpoint(tmp_path, monkeypatch):

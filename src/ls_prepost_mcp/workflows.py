@@ -13,6 +13,9 @@ from .workflow_checks import POLICIES, evaluate_gate, validate_checks
 from .workflow_runtime import compile_workflow, operation_route
 
 GUI_ACTIONS = {
+    "create_gui_entity_set",
+    "inspect_gui_entity_sets",
+    "create_gui_spc",
     "set_gui_entity_visibility",
     "measure_gui_geometry",
     "render_gui_field",
@@ -560,6 +563,13 @@ class WorkflowTools:
                 steps.append(
                     dict(id="step" + str(len(steps) + 1), action=action, arguments=entry["parameters"])
                 )
+                if action == "create_gui_entity_set" and entry["parameters"].get("selection_job"):
+                    source = entry["parameters"]["selection_job"]
+                    if source not in operation_positions:
+                        review_reasons.append(dict(reason="Entity-set selection source was not recorded earlier", action=action))
+                    else:
+                        steps[-1]["arguments"]["selection_job"] = {
+                            "$result": "step" + str(operation_positions[source] + 1), "path": ["job_directory"]}
                 directory_id = entry["result"].get("job_directory")
                 if directory_id:
                     if directory_id in operation_positions:
