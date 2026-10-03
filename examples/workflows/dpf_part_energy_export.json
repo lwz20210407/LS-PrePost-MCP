@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "name": "Optional DPF labelled part-energy export (runtime acceptance pending)",
+  "steps": [
+    {
+      "id": "inventory",
+      "action": "inspect_dpf_results",
+      "arguments": {"path": {"$param": "path"}, "file_type": "binout"}
+    },
+    {
+      "id": "energy",
+      "action": "export_dpf_result",
+      "arguments": {
+        "path": {"$param": "path"}, "file_type": "binout",
+        "result": "part_kinetic_energy", "units": {"$param": "units"},
+        "label_filter": {"part": {"$param": "part_id"}}
+      }
+    }
+  ]
+}

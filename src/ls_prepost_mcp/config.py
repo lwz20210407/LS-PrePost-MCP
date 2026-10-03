@@ -25,6 +25,7 @@ class Settings:
     allowed_roots: tuple[Path, ...] = ()
     timeout: float = 120.0
     profiles: dict[str, Path] = field(default_factory=dict)
+    dpf_path: str | None = None
 
     def __post_init__(self):
         object.__setattr__(self, "workspace", Path(self.workspace).expanduser().resolve())
@@ -34,6 +35,8 @@ class Settings:
         if not 0 < self.timeout <= 3600:
             raise ValueError("timeout must be in (0, 3600] seconds")
         object.__setattr__(self, "profiles", {name: Path(value).expanduser().resolve() for name, value in self.profiles.items()})
+        if self.dpf_path is not None:
+            object.__setattr__(self, "dpf_path", str(Path(self.dpf_path).expanduser().resolve()))
 
     @classmethod
     def from_env(cls):
@@ -44,7 +47,7 @@ class Settings:
         roots = tuple(Path(p) for p in os.environ.get("LSPP_ALLOWED_ROOTS", "").split(os.pathsep) if p)
         profiles = json.loads(os.environ.get("LSPP_EXECUTABLES", "{}"))
         return cls(Path(workspace), Path(exe) if exe else None, roots,
-                   float(os.environ.get("LSPP_TIMEOUT", "120")), profiles)
+                   float(os.environ.get("LSPP_TIMEOUT", "120")), profiles, os.environ.get("LSPP_DPF_PATH"))
 
     def input_path(self, value: str, *, base: Path | None = None) -> Path:
         p = Path(value).expanduser()

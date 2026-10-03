@@ -1,6 +1,9 @@
 """Shared explicit public tool registry for MCP and CLI."""
 
 SERVICE_TOOLS = (
+    "probe_dpf_runtime",
+    "inspect_dpf_results",
+    "export_dpf_result",
     "render_gui_field",
     "export_gui_curve_plot",
     "export_gui_animation",

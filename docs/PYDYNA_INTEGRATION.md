@@ -16,7 +16,7 @@
 
 区分三个执行层：PyDYNA 创建/修改关键字；LS-PrePost 原生前后处理；LS-DYNA 求解进程。后处理示例中的 DPF 是另一个软件组件，不能因安装了 PyDYNA 就宣称 DPF 服务或全部结果算子可用。
 
-已实现 Deck 构造/修改与原生重开衔接；`run_dyna` 的平台 runner、工作目录、资源参数和失败处理已检查源码，但求解调度与 DPF 工具尚未接入。本仓库当前不会因运行官方案例说明而自动启动求解器。
+已实现 Deck 构造/修改与原生重开衔接；`run_dyna` 的平台 runner、工作目录、资源参数和失败处理已检查源码，求解调度尚未接入。2026-10-03 新增独立的 [DPF 可选适配](DPF_INTEGRATION.md)，当前缺 Server，仅诊断与合成合同测试通过，不代表真实结果读取验收。本仓库不会因参考官方案例而自动启动求解器。
 
 来源：[User guide](https://dyna.docs.pyansys.com/version/stable/user-guide/index.html)、[local_solver.py](https://github.com/ansys/pydyna/blob/v0.12.1/src/ansys/dyna/core/run/local_solver.py)。
 

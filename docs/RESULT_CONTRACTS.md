@@ -71,3 +71,6 @@ keyword 与 d3plot 会话现共用 EntitySelection（真实用户 ID）及原生
 应力工作流已通过托管录制 → 将 states 参数化 → 原生重开暂存结果 → 同一 GUI 回放，录制的上下文检查也保留。公开 [visible_gui_selected_stress.json](../examples/workflows/visible_gui_selected_stress.json) 提供选择到应力的两步模板，必须填写 element_ids、states、units；默认实体 solid 与原生 default/mid，不代表壳层已获得此次认证。
 
 本机构建的 SCL 加载器要求 Windows 原生反斜杠路径；正斜杠盘符路径会被错误拼接到已有打开目录。路径修复仅作用于专用 SCL 命令，不修改用户配置；生成的 SCL 输出使用明确绝对路径。原命令接口参考仍见 [官方说明](https://lsdyna.ansys.com/command/)，运行结论以此处指定构建实测为准。
+# DPF extension, 2026-10-03
+
+The shared `FieldSpec` now accepts backend `dpf` and `dpf_native_location` sampling. This is neither a native LS-PrePost layer selector nor a stored reader slot. Generic elemental erosion and interface-history domains are explicit. Label spaces, per-result time-set IDs, reported units and null history mesh-entity IDs remain in CSV/semantics metadata. See [DPF integration](DPF_INTEGRATION.md); actual Server acceptance is pending.

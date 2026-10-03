@@ -17,6 +17,7 @@ Choose the backend explicitly:
 - `inspect_d3plot_scl` supports a bounded staged file family for older builds without Python.
 - `inspect_d3plot_database`, `extract_d3plot_nodal`, and binout tools use optional LASSO; report that backend, never describe it as native LS-PrePost execution.
 - `inspect_lsreader` and `extract_lsreader_nodal` use an explicitly configured independent LS-Reader interpreter. PyDYNA tools inspect decks and create/update elastic material fragments, with reimport checks.
+- For explicitly requested optional DPF processing, read [DPF routing](references/dpf.md), then `probe_dpf_runtime` and `inspect_dpf_results`. Client availability is not Server readiness. `export_dpf_result` preserves labelled field/time semantics; real Server extraction is not yet certified. Do not substitute it for native LS-PrePost silently.
 - `create_node_set_by_box` writes a fresh standalone deck. `validate_model_references` checks a declared subset of ID links. `create_tensile_shell_plate` uses native mesh generation, PyDYNA analysis cards and native reopen; it does not run a solver or establish quasi-static loading.
 - For broader keyword work, first call `list_pydyna_keywords` / `describe_pydyna_keyword`, then `compose_keyword_deck`, `update_keyword_fields` or `update_keyword_table_row`. Use actual properties and table columns; never invent constructor kwargs. These are PyDYNA operations, followed by explicit native inspection when needed. See [PyDYNA routing](references/pydyna.md).
 

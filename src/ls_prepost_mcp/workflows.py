@@ -46,6 +46,9 @@ WORKFLOW_ACTIONS = (
     NATIVE_ACTIONS
     | GUI_ACTIONS
     | {
+        "probe_dpf_runtime",
+        "inspect_dpf_results",
+        "export_dpf_result",
         "inspect_mesh_quality",
         "transform_mesh_deck",
         "merge_duplicate_mesh_nodes",

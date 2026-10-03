@@ -36,3 +36,6 @@
 机器记录在 `data/development_plan.json` 的 `source_families` 中，每类含 `source_ids`、`review_status`、`conversion_status`、`backlog_ids` 和 `remaining`。原始来源详情仍以 `data/sources.json` 为准。CI 检查已登记来源是否存在遗漏归属，但不能自动证明阅读质量或原生正确性。
 
 现有细节见 [来源说明](SOURCES.md)、[PyDYNA 六板块解析](PYDYNA_INTEGRATION.md)、[图文视频转化记录](TUTORIAL_INTEGRATION.md)。后续仍需补逐文件/逐 API/逐教程到测试的细粒度映射；本次分类没有把该工作冒充完成。
+# DPF source update, 2026-10-03
+
+The supplied PyDPF LS-DYNA gallery's three examples and its compatibility/licensing pages are now mapped to source family SF16 and the results module. Typed adapter code and shared label/time/location contracts exist; local runtime discovery and synthetic tests passed. No DPF Server was found, so real extraction/erosion/beam acceptance remains open. See [DPF_INTEGRATION.md](DPF_INTEGRATION.md); cataloguing and mock tests do not count as vendor-reader verification.

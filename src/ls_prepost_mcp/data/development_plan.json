@@ -318,6 +318,29 @@
         "E13"
       ],
       "remaining": "仅显式声明单位的常见机械量；完整模型单位传播、温度偏置和物理量含义仍不推断。"
+    },
+    {
+      "id": "SF16",
+      "title": "PyDPF 官方 LS-DYNA 示例与运行条件",
+      "source_ids": [
+        "official-dpf-lsdyna",
+        "official-dpf-lsdyna-results",
+        "official-dpf-lsdyna-beams",
+        "official-dpf-lsdyna-erosion",
+        "official-dpf-compatibility",
+        "official-dpf-licensing"
+      ],
+      "review_status": "three_examples_and_runtime_conditions_reviewed",
+      "conversion_status": "typed_optional_adapter_and_shared_semantics_implemented",
+      "backlog_ids": [
+        "A09",
+        "E04",
+        "E06",
+        "E07",
+        "E11",
+        "E14"
+      ],
+      "remaining": "本机缺 DPF Server；仅诊断与合成合同测试。真实梁/侵蚀/分支结果、子网格、变形显示和原生数值对照尚未验收。"
     }
   ],
   "modules": [
@@ -465,7 +488,8 @@
         "SF04",
         "SF09",
         "SF10",
-        "SF13"
+        "SF13",
+        "SF16"
       ],
       "backlog_ids": [
         "E01",
@@ -497,7 +521,10 @@
         "extract_native_stress",
         "extract_native_ascii_curve",
         "extract_native_binout_curve",
-        "native_postprocess_case"
+        "native_postprocess_case",
+        "probe_dpf_runtime",
+        "inspect_dpf_results",
+        "export_dpf_result"
       ],
       "status": "partial",
       "contract_doc": "docs/ARCHITECTURE.md"
@@ -726,10 +753,11 @@
         "SF03",
         "SF09",
         "SF10",
-        "SF13"
+        "SF13",
+        "SF16"
       ],
       "current_evidence": "docs/POSTPROCESSING.md",
-      "current_scope": "可见同会话节点选择→原生分量历史→相对位移三步模板、原时刻恢复已验；限定应力/ASCII/binout与工程曲线保留；完整层/历史/有效性/曲线窗口仍缺。",
+      "current_scope": "可见同会话节点选择→原生分量历史→相对位移三步模板、原时刻恢复已验；限定应力/ASCII/binout与工程曲线保留；完整层/历史/有效性/曲线窗口仍缺。 DPF 可选适配、标签/时间轴/侵蚀与梁局部量合同已实现；Server 缺失，不能计入真实后端验收。",
       "next_backlog": [
         "A03",
         "A09",
@@ -1151,7 +1179,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Backend-aware request/provenance contracts distinguish native layer/default/index selectors from stored reader axes; metadata tracks actual reference subtraction. Tests cover request, SCL export and reader parsing. History semantics/frames/averaging/variable matrices remain.",
+      "progress": "Backend-aware request/provenance contracts distinguish native layer/default/index selectors from stored reader axes; metadata tracks actual reference subtraction. Tests cover request, SCL export and reader parsing. History semantics/frames/averaging/variable matrices remain. DPF gallery adopted into optional local adapter and shared FieldSpec. Branch time IDs, label spaces, local beam extrema and binary erosion contracts have synthetic tests; no Server runtime acceptance.",
       "evidence": "docs/RESULT_CONTRACTS.md"
     },
     {

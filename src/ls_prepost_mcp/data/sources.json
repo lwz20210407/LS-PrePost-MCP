@@ -1385,5 +1385,59 @@
     "summary": "官方教程说明通过 File/Movie 导出动画。结合本机4.13.4界面录制确认 MP4/H264、分辨率及fps参数，原生完成日志和ffprobe/ffmpeg用于逐帧与文件校验。任意起点/跳步探查失败，当前只认证state1起连续逐状态导出；完整57状态、3/4状态录制参数回放已验。",
     "integration": "bounded_native_workflow",
     "license_status": "Reference only; no vendor media redistributed"
+  },
+  {
+    "id": "official-dpf-lsdyna",
+    "title": "PyDPF LS-DYNA gallery",
+    "url": "https://dpf.docs.pyansys.com/version/stable/examples/14-lsdyna/index.html",
+    "summary": "Three reviewed workflows: result providers, beam manipulation and erosion. Optional DPF backend, not LS-PrePost GUI control.",
+    "license_status": "Official documentation reference; no vendor Server/manual/example dataset redistribution",
+    "integration": "adapter_implemented_runtime_unverified",
+    "scope": "Reviewed2026-10-03; docs/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
+  },
+  {
+    "id": "official-dpf-lsdyna-results",
+    "title": "DPF LS-DYNA result providers",
+    "url": "https://dpf.docs.pyansys.com/version/stable/examples/14-lsdyna/00-lsdyna_operators.html",
+    "summary": "d3plot/binout DataSources, optional actunits, global and labelled part/interface histories. Branch field scoping must map to its own time support; master/slave idtype stays distinct.",
+    "license_status": "Official documentation reference; no vendor Server/manual/example dataset redistribution",
+    "integration": "adapter_implemented_runtime_unverified",
+    "scope": "Reviewed2026-10-03; docs/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
+  },
+  {
+    "id": "official-dpf-lsdyna-beams",
+    "title": "DPF beam result manipulation",
+    "url": "https://dpf.docs.pyansys.com/version/stable/examples/14-lsdyna/01-lsdyna_beam.html",
+    "summary": "DPF8.0+ beam scalar force/moment/stress/strain in local directions, mesh/body scoping and extrema workflows. Norm-based maxima mean absolute peaks, not maximum signed stress. Local/global rotation is not supplied by these LS-DYNA operators.",
+    "license_status": "Official documentation reference; no vendor Server/manual/example dataset redistribution",
+    "integration": "adapter_implemented_runtime_unverified",
+    "scope": "Reviewed2026-10-03; docs/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
+  },
+  {
+    "id": "official-dpf-lsdyna-erosion",
+    "title": "DPF erosion postprocessing",
+    "url": "https://dpf.docs.pyansys.com/version/stable/examples/14-lsdyna/02-lsdyna_erosion.html",
+    "summary": "DPF8.0+ erosion_flag active1/eroded0, complete d3plot family, surviving element submesh and corresponding nodal displacement. Display visibility does not establish physical erosion.",
+    "license_status": "Official documentation reference; no vendor Server/manual/example dataset redistribution",
+    "integration": "adapter_implemented_runtime_unverified",
+    "scope": "Reviewed2026-10-03; docs/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
+  },
+  {
+    "id": "official-dpf-compatibility",
+    "title": "PyDPF compatibility",
+    "url": "https://dpf.docs.pyansys.com/version/stable/getting_started/compatibility.html",
+    "summary": "Client/server versions have distinct compatibility requirements. Adapter aligns client0.16.1 and Server7.1+, with8.0+ for beam/erosion; no installed-server acceptance yet.",
+    "license_status": "Official documentation reference; no vendor Server/manual/example dataset redistribution",
+    "integration": "adapter_implemented_runtime_unverified",
+    "scope": "Reviewed2026-10-03; docs/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
+  },
+  {
+    "id": "official-dpf-licensing",
+    "title": "DPF licensing",
+    "url": "https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html",
+    "summary": "Standalone Server requires user acceptance of separate vendor terms; client MIT does not redistribute Server. Entry context prohibits license checkout; transformation operators may require licensing. No agreement or license setting is changed by the adapter.",
+    "license_status": "Official documentation reference; no vendor Server/manual/example dataset redistribution",
+    "integration": "adapter_implemented_runtime_unverified",
+    "scope": "Reviewed2026-10-03; docs/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
   }
 ]

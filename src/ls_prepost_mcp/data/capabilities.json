@@ -1413,6 +1413,51 @@
         "4.13"
       ],
       "scope": "Visible4.13.4 named field SCL arrays -> same-data CSV/custom fringe PNG, explicit state/layer/units, avg_opt0, native-active part/connected-node scope and fixed color bounds. Native solid Mises/pressure/mean stress and node displacement magnitude have nontrivial native crosschecks and replay;over300000solid-element field-only path tested. LASSO2.0.4 reads staged header prerequisites only; incompatible headers fail. Shell/tshell nontrivial layers, per-material/rigid/deleted validity and transformed frames remain unverified. Reopen models to clear custom buffers; movie requires complete consistent managed field states."
+    },
+    {
+      "id": "dpf.probe_dpf_runtime",
+      "tool": "probe_dpf_runtime",
+      "status": "implemented",
+      "sources": [
+        "official-dpf-lsdyna",
+        "official-dpf-lsdyna-results",
+        "official-dpf-lsdyna-beams",
+        "official-dpf-lsdyna-erosion",
+        "official-dpf-compatibility",
+        "official-dpf-licensing"
+      ],
+      "tested_profiles": [],
+      "scope": "Optional local in-process Entry DPF adapter; client0.16.1 diagnostic and synthetic field/protocol tests only. Server absent: real reader, operator licensing/version and numerical comparisons NOT certified. Explicit labels/time IDs/units; no native LS-PrePost substitution. See docs/DPF_INTEGRATION.md."
+    },
+    {
+      "id": "dpf.inspect_dpf_results",
+      "tool": "inspect_dpf_results",
+      "status": "implemented",
+      "sources": [
+        "official-dpf-lsdyna",
+        "official-dpf-lsdyna-results",
+        "official-dpf-lsdyna-beams",
+        "official-dpf-lsdyna-erosion",
+        "official-dpf-compatibility",
+        "official-dpf-licensing"
+      ],
+      "tested_profiles": [],
+      "scope": "Optional local in-process Entry DPF adapter; client0.16.1 diagnostic and synthetic field/protocol tests only. Server absent: real reader, operator licensing/version and numerical comparisons NOT certified. Explicit labels/time IDs/units; no native LS-PrePost substitution. See docs/DPF_INTEGRATION.md."
+    },
+    {
+      "id": "dpf.export_dpf_result",
+      "tool": "export_dpf_result",
+      "status": "implemented",
+      "sources": [
+        "official-dpf-lsdyna",
+        "official-dpf-lsdyna-results",
+        "official-dpf-lsdyna-beams",
+        "official-dpf-lsdyna-erosion",
+        "official-dpf-compatibility",
+        "official-dpf-licensing"
+      ],
+      "tested_profiles": [],
+      "scope": "Optional local in-process Entry DPF adapter; client0.16.1 diagnostic and synthetic field/protocol tests only. Server absent: real reader, operator licensing/version and numerical comparisons NOT certified. Explicit labels/time IDs/units; no native LS-PrePost substitution. See docs/DPF_INTEGRATION.md."
     }
   ],
   "native_reference_builds": [

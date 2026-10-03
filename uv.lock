@@ -823,6 +823,9 @@ dev = [
     { name = "pytest" },
     { name = "ruff" },
 ]
+dpf = [
+    { name = "ansys-dpf-core" },
+]
 pydyna = [
     { name = "ansys-dyna-core" },
 ]
@@ -832,6 +835,7 @@ results = [
 
 [package.metadata]
 requires-dist = [
+    { name = "ansys-dpf-core", marker = "extra == 'dpf'", specifier = "==0.16.1" },
     { name = "ansys-dyna-core", marker = "extra == 'pydyna'", specifier = "==0.12.1" },
     { name = "lasso-python", marker = "extra == 'results'", specifier = "==2.0.4" },
     { name = "mcp", specifier = ">=1.27,<2" },
@@ -842,7 +846,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8,<10" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.11" },
 ]
-provides-extras = ["results", "pydyna", "dev"]
+provides-extras = ["results", "dpf", "pydyna", "dev"]
 
 [[package]]
 name = "markdown-it-py"

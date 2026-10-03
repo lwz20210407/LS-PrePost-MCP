@@ -16,7 +16,7 @@ class EntitySelection:
     entity_ids: tuple[int, ...]
 
     def __post_init__(self):
-        if self.domain not in ("node", "element", "shell", "solid", "tshell", "beam", "part", "global"):
+        if self.domain not in ("node", "element", "shell", "solid", "tshell", "beam", "part", "interface", "global"):
             raise ValueError("Unsupported entity domain")
         if not isinstance(self.entity_ids, (list, tuple)):
             raise ValueError("Entity IDs must be a list or tuple")
@@ -51,7 +51,7 @@ class ResultSelection:
             raise ValueError("Result selection IDs and states must be lists or tuples")
         object.__setattr__(self, "entity_ids", entities.entity_ids)
         object.__setattr__(self, "states", tuple(self.states))
-        if self.domain not in ("node", "shell", "solid", "tshell", "beam", "part", "global"):
+        if self.domain not in ("node", "element", "shell", "solid", "tshell", "beam", "part", "interface", "global"):
             raise ValueError("Unsupported result entity domain")
         if not self.states or (self.domain != "global" and not self.entity_ids):
             raise ValueError("Explicit states and entity IDs are required")
@@ -119,6 +119,9 @@ class SamplingSpec:
         elif self.kind == "not_applicable":
             if self.value != "nodal" or self.native_selector != "0":
                 raise ValueError("Invalid native nodal selector")
+        elif self.kind == "dpf_native_location":
+            if self.value not in ("Nodal", "Elemental", "TimeFreq_steps") or self.native_selector is not None:
+                raise ValueError("Invalid DPF native-location sampling")
         else:
             raise ValueError("Unknown sampling kind")
 
@@ -195,7 +198,7 @@ class FieldSpec:
         if not isinstance(self.fields, (list, tuple)):
             raise ValueError("Field names must be a list or tuple")
         object.__setattr__(self, "fields", tuple(self.fields))
-        if self.backend not in ("lsprepost", "lasso", "lsreader"):
+        if self.backend not in ("lsprepost", "lasso", "lsreader", "dpf"):
             raise ValueError("Unknown field backend")
         if not isinstance(self.units, str) or not self.units.strip() or len(self.units) > 100:
             raise ValueError("An explicit unit label is required; dimensional validation is not inferred")
@@ -209,6 +212,13 @@ class FieldSpec:
             raise ValueError("Stored reader slots cannot be treated as native sampling selectors")
         if self.backend != "lsprepost" and self.sampling.native_selector is not None:
             raise ValueError("Native layer selectors cannot be treated as reader slots")
+        if (self.backend == "dpf") != (self.sampling.kind == "dpf_native_location"):
+            raise ValueError("DPF source-location sampling must stay attached to the DPF backend")
+        if self.backend == "dpf" and self.selection.domain not in {
+            "Nodal": {"node"}, "Elemental": {"element", "beam"},
+            "TimeFreq_steps": {"global", "part", "interface"},
+        }[self.sampling.value]:
+            raise ValueError("DPF location does not match its selection domain")
         if self.backend == "lsprepost":
             allowed = {
                 "node": {"not_applicable"},

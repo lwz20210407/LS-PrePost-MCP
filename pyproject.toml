@@ -14,6 +14,7 @@ dependencies = ["mcp>=1.27,<2", "pydantic>=2.11,<3", "pillow>=11,<13", "numpy>=2
 
 [project.optional-dependencies]
 results = ["lasso-python==2.0.4"]
+dpf = ["ansys-dpf-core==0.16.1"]
 pydyna = ["ansys-dyna-core==0.12.1"]
 dev = ["pytest>=8,<10", "ruff>=0.11"]
 
