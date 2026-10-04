@@ -225,7 +225,8 @@ def test_late_reopen_clears_previous_model_checkpoint_and_caches(tmp_path, monke
     atomic_json(directory / "request.json", dict(job_id=rid, action="inspect_model", model=str(model),
                                                 native_commands=[], file_type="d3plot"))
     atomic_json(directory / "contract.json", dict(artifacts=[], export=False, was_uncertain=True))
-    atomic_json(directory / "complete.json", dict(job_id=rid, ok=True, data=dict(counts={})))
+    atomic_json(directory / "complete.json", dict(job_id=rid, ok=True,
+        data=dict(model_directory=str(model.parent), counts=dict(nodes=1, states=2))))
     result = Service(manager.settings).recover_gui_session(sid)
     assert result["state"] == "ready" and result["model_kind"] == "d3plot"
     assert result["source"] == "original-result/d3plot" and result["last_checkpoint"] is None

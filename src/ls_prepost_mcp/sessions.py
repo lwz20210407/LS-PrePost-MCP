@@ -12,6 +12,7 @@ from pathlib import Path
 
 from .config import command_path, scl_command_path
 from .jobs import atomic_json, check_artifact, fingerprint, now
+from .model_context import verify_load_reply
 from .native_config import isolate_preferences
 from .native_connectivity import beam_connectivity_prelude
 from .windows_transport import WindowsCommandTransport
@@ -259,10 +260,11 @@ class Sessions:
             safe_beam_connectivity=safe_beams,
         )
         atomic_json(directory / "request.json", request)
-        atomic_json(
-            directory / "contract.json",
-            dict(artifacts=list(artifacts), export=export, was_uncertain=was_uncertain),
-        )
+        contract = dict(artifacts=list(artifacts), export=export, was_uncertain=was_uncertain)
+        if model is not None or action == "gui_new":
+            log = self.directory(ident) / "lspost.msg"
+            contract["model_load_log"] = dict(existed=log.exists(), offset=log.stat().st_size if log.exists() else 0)
+        atomic_json(directory / "contract.json", contract)
         response = directory / "response.json"
         bridge = self.directory(ident) / "bridge.py"
         code = (
@@ -326,6 +328,9 @@ class Sessions:
                 )
                 if reply.get("ok"):
                     try:
+                        context = verify_load_reply(request, reply, directory, contract)
+                        if context is not None:
+                            result["model_context"] = context
                         result["artifacts"] = [
                             check_artifact(directory / name, kind) for name, kind in artifacts
                         ]
@@ -427,6 +432,12 @@ class SessionTools:
                     raise RuntimeError("Saved request identity mismatch")
                 mode = recovery_mode(request)
                 artifacts = []
+                context = None
+                if reply.get("ok"):
+                    try:
+                        context = verify_load_reply(request, reply, directory, contract)
+                    except ValueError as exc:
+                        reply = dict(reply, ok=False, error=dict(type="NativeModelContextError", message=str(exc)))
                 if reply.get("ok"):
                     for name, kind in contract["artifacts"]:
                         path = (directory / name).resolve()
@@ -445,6 +456,10 @@ class SessionTools:
                 if meta["model_kind"] == "keyword" and mode != "native_read":
                     meta["dirty"] = True
                 manager.save(session_id, meta)
+                atomic_json(directory / "recovery.json", dict(
+                    session_id=session_id, request_id=request_id, status="failed",
+                    error=reply.get("error"), replayed=False,
+                    scope="Correlated completion rejected; managed model identity was not advanced"))
                 return dict(
                     **meta,
                     recovery="Native action failed; restore a checkpoint",
@@ -483,6 +498,8 @@ class SessionTools:
                              if mode == "requires_host_validation" else "succeeded"), data=reply.get("data"),
                              artifacts=artifacts, recovery_mode=mode, replayed=False,
                              scope="Native request/artifact reconciliation only; parent workflow/postcondition checks are not replayed")
+            if context is not None:
+                recovered["model_context"] = context
             atomic_json(directory / "recovery.json", recovered)
             meta["last_recovery"] = str(directory / "recovery.json")
             manager.save(session_id, meta)
