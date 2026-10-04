@@ -51,5 +51,7 @@ directory. A legacy native snapshot regression was also fixed: the beam-safe
 DataCenter proxy now forwards positional node-type arguments while continuing
 to intercept the known-unsafe beam connectivity getter.
 
-The release item also requires connection editing, which remains unfinished.
-Discovery/probes of node replacement commands are not a published editing tool.
+The basic connection-editing increment is now published as
+[`replace_gui_node`](NODE_REPLACEMENT.md): native directed replacement plus
+supported Node/Segment/SPC reference repair and native reopen. This does not
+complete arbitrary connection editing or remove that operation's snapshot bound.

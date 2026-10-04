@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "baseline_id": "R1-20261003-36",
-  "updated_at": "2026-10-04T21:50:17+08:00",
-  "verified_commit": "3ca2e3b099041241df974cf08889b115e57916ff",
+  "updated_at": "2026-10-04T22:58:04+08:00",
+  "verified_commit": "5dc5197db75b960da6cf5b68c71e927d7c12f1e8",
   "frozen_gate_count": 36,
   "scope": "范围：Windows LS-PrePost 4.13.4 可见 GUI 的首个实用版本；按36项等权验收门槛计算，不是整个软件功能覆盖率或剩余工时。",
   "outside_scope": "后续总体路线仍保留：常用菜单扩展、接触与Include工程化、7模板完整工况、4.8/4.10及两种无GUI、后排CAD与高级模块。未纳入本期36项，不能据本进度称全部完成。",
-  "current_task": "定向节点替换、Node/Segment/SPC引用修复、参数回放及原生重开通过；转向Post/XYPlot多曲线输出与通用Entity载荷扩展。首版门槛不代表全软件覆盖。",
+  "current_task": "按用户要求先做全界面截图与资料/代码交叉审计，再新增功能。已有顶部菜单、主要Element/Entity和部分Post及底栏记录，审计未完成；最新屏幕为Windows锁屏，等待解锁，继续离线整理。",
   "groups": [
     {
       "id": "B0",
@@ -322,7 +322,7 @@
       "title": "逻辑、协议与CI回归",
       "state": "passed",
       "work_item": "T10",
-      "note": "本批532项本地测试通过；上一提交3ca2e3b的CI通过，当前提交CI独立核验。测试数不是功能覆盖率。",
+      "note": "5dc5197本地532项测试及CI37207085736通过；测试数不是功能覆盖率。",
       "evidence": [
         "docs/VERIFICATION.md"
       ]
@@ -447,5 +447,5 @@
       "reason": "Initial inventory; Entity Creation gates omitted"
     }
   ],
-  "verification_increment": "Node replacement increment on this baseline:532 local tests,26 native4.13.4 recorded checks; current-commit hosted CI tracked separately."
+  "verification_increment": "532 local tests;26 native node-replacement checks; hosted CI37207085736 succeeded. GUI audit captures are not functional acceptance passes."
 }

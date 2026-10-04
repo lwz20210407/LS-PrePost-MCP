@@ -80,7 +80,7 @@
 
 Keyword Check 现已独立接入：报告必须包含原生头尾标记和完整四项汇总，保留分组及原始明细，并核对检查前后网格。正常合成模型有 1 个未引用集合；故意缺材料/截面的反例报 4 warning、1 error、2 undefine，工具正确保留这些发现，不清理/删除它们。该工具和 PyDYNA 的限定引用检查是不同后端。原生 Keyword Check 也不能证明求解模型物理正确。
 
-待补仍包括所有质量失败单元 ID、Contact Check、自动修复、实体/梁质量及旧版本；不能把违规数相加冒充独立失败单元总数。
+上段是早期壳检查增量。后续已补Hex8六项质量及可选失败单元ID定位（见下节）；全部壳/其他实体/梁的失败ID闭环、Contact Check、自动修复和旧版本仍待补。不能把逐准则违规数相加冒充独立失败单元总数。
 
 来源：[2026R1 用户指南](https://ansyshelp.ansys.com/public/Views/Secured/corp/v261/en/pdf/Ansys_LS-PrePost_Users_Guide.pdf)、[厂商配置说明](https://lsdyna.ansys.com/wp-content/uploads/2025/02/express-webinar_dynamore-lspp-24072020.pdf)及本机合成 GUI 录制。完整待办仍见 [总清单](REQUESTS_AND_PRIORITIES.md)。
 

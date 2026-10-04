@@ -8,7 +8,7 @@
 
 | 工具 | 当前范围 | 选择与限制 |
 |---|---|---|
-| `extract_native_fields` | 节点位移、速度、加速度；单元应力、应变、等效塑性应变、主应力等白名单字段 | 显式用户 ID、1-based 状态；`mid/inner/outer` 或积分点数字字符串；字段是否实际保存仍取决于数据库 |
+| `extract_native_fields` | 节点位移、速度、加速度；单元应力、应变、等效塑性应变、主应力等白名单字段 | 显式用户 ID、1-based 状态；层/积分点按实体合同验证。原生实体积分点2–8已因取值错误而阻断；壳层和读取器存储轴不可混称。字段是否保存取决于数据库 |
 | `extract_native_stress` | 六分量、原生 Mises，以及主应力、三轴度、Lode 派生量 | 原生 SCL 取值；Python 计算张量不变量，并与原生 Mises 对照；不做空间平均 |
 | `extract_native_ascii_curve` | GLSTAT、NODOUT、MATSUM、SPCFORC、SECFORC、RBDOUT 的单曲线接口 | 使用原生对话框分量编号；实机验证范围见能力记录；RCFORC 主从面选择尚未开放 |
 | `extract_native_binout_curve` | NODOUT 位移/速度/加速度/坐标分量；GLSTAT 能量 | 当前仅完整单文件；不支持 MPP 分片集 |
@@ -16,7 +16,7 @@
 
 批处理驱动 `tools/run_native_acceptance.py` 接受显式私有 inventory JSON、输出目录、安装路径和单位标签。逐组运行，清除本轮创建的输入副本，保留结果及失败日志。不要把私有 inventory、原始文件、CSV、截图和报告上传到公开仓库。
 
-`succeeded` 表示约定的导出/一致性检查通过。它不表示全部求解量已保存、物理模型正确、失效单元已剔除或所有 LS-PrePost 功能都受支持。全域极值当前包含数据库返回的全部实体；解释热点前应检查失效状态、部件与材料。
+`succeeded` 表示约定的导出/一致性检查通过。它不表示全部求解量已保存、物理模型正确或所有 LS-PrePost 功能都受支持。支持该参数的字段/应力工具中，兼容默认 `validity_policy=raw` 保留原始实体，显式 `alive` 才使用已验证的标准壳/实体物理删除过滤；参见[逐状态有效性](RESULT_VALIDITY.md)。不能把一条工具的过滤能力外推给所有后处理入口。
 
 ## 张量与 Lode 约定
 
@@ -30,6 +30,8 @@
 - `lode_parameter = (2σ2−σ1−σ3)/(σ1−σ3)`，其中 `σ1≥σ2≥σ3`；单轴拉伸 `−1`，压缩 `+1`。
 
 两个参数的定义不同，不能混称或自动套用某个材料模型的断裂曲面。相对偏应力低于阈值时，三轴度及 Lode 量输出 `null`；CSV 用空字段并保留 `deviatoric_defined` 标志。静水应力状态不能伪装成纯剪切。应先选择积分点/壳层，再计算不变量；“先平均张量再求不变量”与“先求不变量再平均”不同。
+
+2026-10-04界面审计注意：4.13.4 Fringe Component → Misc 列出的 `lode parameter` 带上述主应力比值的负号，`lode parameter-alt` 列为 `(27/2)*(J3/vm^3)`。因此本工具明确定义的 `lode_parameter` 不能直接宣称等于界面同名项，`lode_angle_parameter` 也不能冒充 native alt。此次截图只确认界面公式文字，尚未新增这两项的原生数值对照验收；保持现有公开数学定义，不静默改符号。
 
 返回值保留原始应力分量、主应力、最大剪应力、J2/J3、压力、三轴度、Lode 角（弧度/度）和两种明确命名的参数。`compute_stress_invariants` 也可直接处理给定张量，便于合成解析解测试。
 
@@ -45,9 +47,9 @@
 ## 后续优先建设
 
 1. 原生历史变量编号与层选择、ELOUT/RCFORC 的明确实体/主从面选择，以及 MPP binout 分片。
-2. 失效/存活实体过滤、按部件/材料选择，局部坐标系和壳层统一，热点自动追踪。
-3. 力—位移、工程/真实应力应变、虚拟引伸计、能量平衡与准静态检查；必须由用户提供截面积、标距、单位和测量位置。
+2. 已有标准壳/实体MDLOPT2过滤之外的有效性类型、材料条件，局部坐标系和壳层统一，热点自动追踪。
+3. 已有力—位移、工程曲线、单位换算和基础能量筛查之外的区域/随动虚拟引伸计与完整预算；必须由用户提供截面积、标距、单位和测量位置。
 4. 加权平均、截面合力/力矩、接触力、路径和截面结果，避免把简单节点平均当体积/面积加权。
-5. 多工况时间对齐、曲线比较、受控色标批量图像/动画、可复核报告。
+5. 已有单曲线PNG、固定色标云图与两种动画路线之外的多曲线/多工况比较及通用报告；参见[NATIVE_MEDIA](NATIVE_MEDIA.md)与[FIELD_MOVIES](FIELD_MOVIES.md)，不能将媒体导出整体列作未实现。
 
 接口依据：[官方 SCL/API 手册](https://ftp.lstc.com/anonymous/outgoing/lsprepost/SCLexamples/lsppscripting_05Jun2024.pdf)、[官方历史变量说明](https://lsdyna.ansys.com/history-variables-for-certain-material-models/)、[LASSO 数组说明](https://open-lasso-python.github.io/lasso-python/dyna/ArrayType/)。具体使用仍以安装版本的接口和实机验证为准。
