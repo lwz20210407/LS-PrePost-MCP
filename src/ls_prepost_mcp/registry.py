@@ -1,6 +1,8 @@
 """Shared explicit public tool registry for MCP and CLI."""
 
 SERVICE_TOOLS = (
+    "create_gui_segment_pressure",
+    "create_gui_nonreflecting_boundary",
     "create_gui_segment_set",
     "create_gui_entity_set",
     "inspect_gui_entity_sets",

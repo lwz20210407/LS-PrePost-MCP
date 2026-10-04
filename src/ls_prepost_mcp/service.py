@@ -12,6 +12,7 @@ from .config import Settings, command_path
 from .dpf_tools import DpfTools
 from .engineering import EngineeringTools
 from .fringe_presentation import averaging_command
+from .gui_boundaries import GuiBoundaryTools
 from .gui_common import GuiCommonTools
 from .gui_controls import GuiControls
 from .gui_entities import GuiEntityTools
@@ -60,7 +61,7 @@ def unit_label(units: str) -> str:
     return units.strip()
 
 
-class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools):
+class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools):
     def __init__(self, settings: Settings):
         self.settings = settings
         self.jobs = Jobs(settings.workspace)

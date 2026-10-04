@@ -1466,5 +1466,23 @@
     "license_status": "Official reference; vendor PDF/images/binaries not redistributed",
     "integration": "reference_reviewed_with_partial_native_adoption",
     "scope": "docs/COMMON_OPERATIONS_COVERAGE.md records full controls and gaps"
+  },
+  {
+    "id": "keyword-r11-boundaries",
+    "title": "LS-DYNA R11 Volume I boundary and segment keywords",
+    "url": "https://lsdyna.ansys.com/wp-content/uploads/2026/08/LS-DYNA_Manual_Volume_I_R11.pdf",
+    "summary": "Selected pressure/Segment/nonreflecting chapters read locally. Adopted ordered-node2D versus Segment3D reference rules, wave flag meanings and pressure sign convention. Native preprocessing checked, not solver behavior.",
+    "license_status": "Proprietary Ansys manual; references only, no redistribution",
+    "integration": "selected_semantics_adopted",
+    "scope": "R11 keyword references; not a solver certification"
+  },
+  {
+    "id": "keyword-r16-boundaries",
+    "title": "LS-DYNA R16 Volume I boundary and segment keywords",
+    "url": "https://lsdyna.ansys.com/wp-content/uploads/2026/08/LS-DYNA_Manual_Vol_I_R16.pdf",
+    "summary": "Selected pressure/Segment/nonreflecting chapters read locally. Adopted negative Segment-SID2D route, explicit wave activation and named pressure-load definitions, checked against current generated keyword schemas.",
+    "license_status": "Proprietary Ansys manual; references only, no redistribution",
+    "integration": "selected_semantics_adopted",
+    "scope": "R16 keyword references; not full manual/software coverage"
   }
 ]

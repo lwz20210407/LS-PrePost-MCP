@@ -10,7 +10,7 @@ DOFS = ("dofx", "dofy", "dofz", "dofrx", "dofry", "dofrz")
 CAPTURE = ("*SET_NODE", "*SET_PART", "*SET_SEGMENT", "*BOUNDARY_SPC", "*BOUNDARY_PRESCRIBED_MOTION", "*DEFINE_COORDINATE")
 
 
-def native_blocks(path):
+def native_blocks(path, capture_prefixes=CAPTURE):
     """Hash unmodified native card blocks incrementally, retain only entity cards."""
     name, lines, digest, size = None, [], None, 0
     with path.open(encoding="utf-8-sig", errors="strict") as stream:
@@ -26,7 +26,7 @@ def native_blocks(path):
             if name is None:
                 raise ValueError("Native export contains data outside a keyword")
             digest.update((line + "\n").encode("utf-8"))
-            if name.startswith(CAPTURE):
+            if name.startswith(capture_prefixes):
                 size += len(line)
                 if size > 16 * 1024 * 1024:
                     raise ValueError("Entity card exceeds the 16 MiB inspection budget")

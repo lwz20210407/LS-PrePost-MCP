@@ -8,7 +8,7 @@
   "source_families": [
     {
       "id": "SF01",
-      "title": "官方 LS-PrePost 帮助与用户手册",
+      "title": "官方 LS-PrePost 帮助与 LS-DYNA 关键字手册",
       "source_ids": [
         "official-2026r1-guide",
         "official-command-interface",
@@ -19,7 +19,9 @@
         "guide-vsg",
         "guide-common-measure",
         "guide-common-ident",
-        "guide-common-blank"
+        "guide-common-blank",
+        "keyword-r11-boundaries",
+        "keyword-r16-boundaries"
       ],
       "review_status": "selected_sections_reviewed",
       "conversion_status": "partial",
@@ -456,7 +458,9 @@
         "create_gui_entity_set",
         "inspect_gui_entity_sets",
         "create_gui_spc",
-        "create_gui_segment_set"
+        "create_gui_segment_set",
+        "create_gui_segment_pressure",
+        "create_gui_nonreflecting_boundary"
       ],
       "status": "partial",
       "contract_doc": "docs/ARCHITECTURE.md"
@@ -1384,7 +1388,7 @@
       "status": "in_progress",
       "milestone": "R1",
       "evidence": "docs/ENTITY_CREATION.md",
-      "progress": "Native4.13.4 node/part LIST creation, inspection/replacement, global SPC, typed selection replay and reopen passed. Segment creation/replay/reopen for Hex8/Tet4 exterior, Quad4 faces and directed XY edges also passed. Pressure and nonreflecting boundaries remain open; no solver/Include/full-panel certification."
+      "progress": "Six first-release Entity Creation gates now have bounded native4.13.4 evidence: node/part LIST, global SPC, conforming Segment faces/edges, pressure curves/named IDs/units/sign metadata,3D nonreflecting and modern/legacy2D routes. Includes replay, collision/overlap/formulation/order rejection and reopen. Broader panel variants, other LSPP builds, solver physics and Include workflows remain separate work."
     }
   ],
   "knowledge_tools": [

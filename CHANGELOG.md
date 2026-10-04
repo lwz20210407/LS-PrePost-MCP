@@ -2,6 +2,8 @@
 
 ## 0.4.0 (development)
 
+- Add native Segment pressure curves/named loads with explicit units, monotonic time, ID collision checks, direction reports, parameter replay and numeric/card readback. Add exterior3D and directed2D nonreflecting conditions, with R14+ negative Segment IDs and a separately verified ordered two-node-set route for R11..13. Reject overlap, reversed2D edges, incompatible formulations and allocation collisions. Native4.13.4 create/reopen checks do not certify solver absorption.
+
 - Add selection-bound native Segment sets from conforming Hex8/Tet4 exterior faces, shell faces and directed XY boundary edges. Verify ownership against unselected/hidden neighbors, orientation and normal filtering, native connectivity/scene preservation, parameterized replay and reopen. Pressure/nonreflecting conditions remain separate work.
 
 - Add selection-bound native node/part list-set creation, paged inspection and member replacement preserving native attributes; add explicit global SPC set/node constraint creation, ID/DOF conflict checks and native card/mesh/scene verification. Verify changed-selection/SID recording replay and native reopen. Add model-load generations to reject old selection artifacts even after reopening identical geometry.

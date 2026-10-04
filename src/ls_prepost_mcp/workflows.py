@@ -13,6 +13,8 @@ from .workflow_checks import POLICIES, evaluate_gate, validate_checks
 from .workflow_runtime import compile_workflow, operation_route
 
 GUI_ACTIONS = {
+    "create_gui_segment_pressure",
+    "create_gui_nonreflecting_boundary",
     "create_gui_segment_set",
     "create_gui_entity_set",
     "inspect_gui_entity_sets",

@@ -1537,6 +1537,34 @@
         "4.13.4 Windows visible GUI"
       ],
       "scope": "Selection-bound native import/readback for conforming Hex8/Tet4 exterior, shell faces and XY edges, normal filtering/reverse, global topology ownership, preserved mesh/scene, replay and reopen. Native shell example Quad4; Tri3 geometric path not separately certified. Max20000 requested cells/created segments; no nonconforming intersections or pressure/NR/solver certification."
+    },
+    {
+      "id": "gui_boundaries.create_gui_segment_pressure",
+      "tool": "create_gui_segment_pressure",
+      "status": "native_tested",
+      "sources": [
+        "keyword-r11-boundaries",
+        "keyword-r16-boundaries",
+        "library-pydyna"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Native DEFINE_CURVE and Segment-set pressure/named-ID loads; explicit unit dimensions, monotonic time, SID/curve-table-function/load-ID checks and reference normal sign report. Native readback, changed-scale replay and reopen passed for3D faces and2D continuum edges. No inferred model units, general function pressure, complete overlap detection or solver follower-response certification."
+    },
+    {
+      "id": "gui_boundaries.create_gui_nonreflecting_boundary",
+      "tool": "create_gui_nonreflecting_boundary",
+      "status": "native_tested",
+      "sources": [
+        "keyword-r11-boundaries",
+        "keyword-r16-boundaries",
+        "library-pydyna"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Native3D Segment and2D modern negative-SID or legacy ordered two-node-set routes; documented targetsR11..16, unique exterior ownership,2D continuum formulation/order, namespace and overlap rejection, native endpoint order and reopen. Legacy2D requires explicit allocation start and default enabled waves. LSPP ingestion evidence only; no executed LS-DYNA/absorption/material/DR/stability certification."
     }
   ],
   "native_reference_builds": [

@@ -79,7 +79,7 @@ def topology_faces(conn, mode):
 
 
 def build_segments(path, mode, element_ids, normal_direction=None, cosine_min=0.99,
-                   reverse=False, max_warpage=15.0):
+                   reverse=False, max_warpage=15.0, face_keys=None):
     """Remove shared topological faces/edges against the entire matching domain.
 
     Conforming linear Hex8/Tet4 or Tri3/Quad4 only; this is not geometric
@@ -104,7 +104,9 @@ def build_segments(path, mode, element_ids, normal_direction=None, cosine_min=0.
                 or metric.get("warpage_degrees", 0) > max_warpage):
             raise ValueError("Cannot build boundary from a degenerate/inverted cell")
         for face in topology_faces(conn, mode):
-            candidates.setdefault(tuple(sorted(face)), (eid, pid, conn, face))
+            key = tuple(sorted(face))
+            if face_keys is None or key in face_keys:
+                candidates.setdefault(key, (eid, pid, conn, face))
     owners = Counter()
     for _, _, conn in element_rows(path, kind):
         for face in topology_faces(conn, mode):
