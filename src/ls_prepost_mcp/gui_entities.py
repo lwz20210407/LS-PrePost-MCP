@@ -130,11 +130,11 @@ class GuiEntityTools:
 
     def inspect_gui_entity_sets(self, session_id: str, entity_type: str,
                                 set_id: StrictInt | None = None, offset: StrictInt = 0, limit: StrictInt = 1000) -> dict:
-        """Query native-export NODE_LIST/PART_LIST sets with titles/counts; optional SID returns paged member user IDs. Uses a temporary full native export and scene verification without changing dirty/checkpoint ownership. Other set variants are reported unresolved, not expanded or silently treated as empty."""
+        """Query native-export node/part LIST or segment sets with titles/counts; optional SID returns paged member user IDs or oriented segment node tuples. Uses a temporary full native export and scene verification without changing dirty/checkpoint ownership. Other set variants are reported unresolved, not expanded or silently treated as empty."""
         from .service import integer
 
-        if entity_type not in ("node", "part"):
-            raise ValueError("Set type must be node or part")
+        if entity_type not in ("node", "part", "segment"):
+            raise ValueError("Set type must be node, part or segment")
         integer(offset, "offset", 0)
         integer(limit, "limit", 1, 5000)
         if set_id is not None:
@@ -155,13 +155,15 @@ class GuiEntityTools:
                 verification = stable_scene(before["data"], result["data"])
                 preserved = True
                 index = inspect_cards(directory / "model.k")
-                records = [dict(entity_type=k, set_id=sid, title=s["title"], member_count=len(s["member_ids"]))
+                records = [dict(entity_type=k, set_id=sid, title=s["title"], member_count=len(s.get("segments", s.get("member_ids", []))))
                            for (k, sid), s in sorted(index["sets"].items()) if k == entity_type]
                 if set_id is not None:
-                    members = set_members(index, entity_type, set_id)
+                    members = (index["sets"][("segment", set_id)]["segments"] if entity_type == "segment"
+                               else set_members(index, entity_type, set_id))
                     record = index["sets"][(entity_type, set_id)]
-                    data = dict(**{k: v for k, v in record.items() if k != "member_ids"},
-                                member_ids=members[offset:offset+limit], total=len(members))
+                    data = dict(**{k: v for k, v in record.items() if k not in ("member_ids", "segments")},
+                                total=len(members))
+                    data["segments" if entity_type == "segment" else "member_ids"] = members[offset:offset+limit]
                 else:
                     data = dict(sets=records[offset:offset+limit], total=len(records))
                 data.update(offset=offset, limit=limit, next_offset=(offset+limit if offset+limit < data["total"] else None),

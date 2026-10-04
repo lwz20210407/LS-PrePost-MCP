@@ -1510,7 +1510,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Native full keyword export with node/part LIST inventory and paged member IDs; typed card parser handles fixed10-column/CSV lists without dropping members. Display/mesh/state checked. Full-export I/O cost; unsupported variants reported, not expanded."
+      "scope": "Native full keyword export with node/part LIST inventory and paged member IDs; typed card parser handles fixed10-column/CSV lists without dropping members. Display/mesh/state checked. Full-export I/O cost; unsupported variants reported, not expanded. Also native Segment inventory and paged directed connectivity, including triangle padding and two-node edges, passed."
     },
     {
       "id": "gui_entities.create_gui_spc",
@@ -1524,6 +1524,19 @@
         "4.13.4 Windows visible GUI"
       ],
       "scope": "Native SPC_SET and per-node SPC_NODE_ID with explicit six binary DOFs; node-list constraint IDs allocated consecutively in sorted node order and returned. IDs, coordinates, targets and supported SPC overlap checked. Global coordinate native create/replay/save/reopen passed. Nonzero coordinate references have code checks but not native certification; no rigid/material/solver validity claim, no prescribed motion/pressure/nonreflecting support."
+    },
+    {
+      "id": "gui_entities.create_gui_segment_set",
+      "tool": "create_gui_segment_set",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide",
+        "library-pydyna"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible GUI"
+      ],
+      "scope": "Selection-bound native import/readback for conforming Hex8/Tet4 exterior, shell faces and XY edges, normal filtering/reverse, global topology ownership, preserved mesh/scene, replay and reopen. Native shell example Quad4; Tri3 geometric path not separately certified. Max20000 requested cells/created segments; no nonconforming intersections or pressure/NR/solver certification."
     }
   ],
   "native_reference_builds": [

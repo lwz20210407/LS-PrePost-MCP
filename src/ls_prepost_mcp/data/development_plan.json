@@ -455,7 +455,8 @@
         "renumber_gui_entities",
         "create_gui_entity_set",
         "inspect_gui_entity_sets",
-        "create_gui_spc"
+        "create_gui_spc",
+        "create_gui_segment_set"
       ],
       "status": "partial",
       "contract_doc": "docs/ARCHITECTURE.md"
@@ -1383,7 +1384,7 @@
       "status": "in_progress",
       "milestone": "R1",
       "evidence": "docs/ENTITY_CREATION.md",
-      "progress": "Native4.13.4 selection-bound NODE/PART LIST create, paged inspection, member replacement with DA/solver/ITS preservation, SPC_SET/NODE_ID, conflict rejection, changed-selection/SID replay and save/reopen passed. Segment2D/3D, pressure and nonreflecting boundaries remain open. No solver/Include/full-panel certification."
+      "progress": "Native4.13.4 node/part LIST creation, inspection/replacement, global SPC, typed selection replay and reopen passed. Segment creation/replay/reopen for Hex8/Tet4 exterior, Quad4 faces and directed XY edges also passed. Pressure and nonreflecting boundaries remain open; no solver/Include/full-panel certification."
     }
   ],
   "knowledge_tools": [

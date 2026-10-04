@@ -2,6 +2,8 @@
 
 ## 0.4.0 (development)
 
+- Add selection-bound native Segment sets from conforming Hex8/Tet4 exterior faces, shell faces and directed XY boundary edges. Verify ownership against unselected/hidden neighbors, orientation and normal filtering, native connectivity/scene preservation, parameterized replay and reopen. Pressure/nonreflecting conditions remain separate work.
+
 - Add selection-bound native node/part list-set creation, paged inspection and member replacement preserving native attributes; add explicit global SPC set/node constraint creation, ID/DOF conflict checks and native card/mesh/scene verification. Verify changed-selection/SID recording replay and native reopen. Add model-load generations to reject old selection artifacts even after reopening identical geometry.
 - Preserve all CSV list members and native packed SPC-ID header/data pairs during targeted readback; emit one named SPC_NODE card per node after native multirow truncation was reproduced. Segment sets, pressure and nonreflecting boundaries remain incomplete.
 

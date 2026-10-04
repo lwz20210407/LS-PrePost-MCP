@@ -13,6 +13,7 @@ from .workflow_checks import POLICIES, evaluate_gate, validate_checks
 from .workflow_runtime import compile_workflow, operation_route
 
 GUI_ACTIONS = {
+    "create_gui_segment_set",
     "create_gui_entity_set",
     "inspect_gui_entity_sets",
     "create_gui_spc",
@@ -563,7 +564,7 @@ class WorkflowTools:
                 steps.append(
                     dict(id="step" + str(len(steps) + 1), action=action, arguments=entry["parameters"])
                 )
-                if action == "create_gui_entity_set" and entry["parameters"].get("selection_job"):
+                if action in ("create_gui_entity_set", "create_gui_segment_set") and entry["parameters"].get("selection_job"):
                     source = entry["parameters"]["selection_job"]
                     if source not in operation_positions:
                         review_reasons.append(dict(reason="Entity-set selection source was not recorded earlier", action=action))

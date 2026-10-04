@@ -7,7 +7,7 @@ from collections import Counter
 from .deck_backend import api
 
 DOFS = ("dofx", "dofy", "dofz", "dofrx", "dofry", "dofrz")
-CAPTURE = ("*SET_NODE", "*SET_PART", "*BOUNDARY_SPC", "*BOUNDARY_PRESCRIBED_MOTION", "*DEFINE_COORDINATE")
+CAPTURE = ("*SET_NODE", "*SET_PART", "*SET_SEGMENT", "*BOUNDARY_SPC", "*BOUNDARY_PRESCRIBED_MOTION", "*DEFINE_COORDINATE")
 
 
 def native_blocks(path):
@@ -102,6 +102,38 @@ def spc_rows(name, lines):
     return rows
 
 
+def segment_set(name, lines):
+    from .segment_geometry import canonical_cycle
+
+    start = 2 if name.endswith("_TITLE") else 1
+    if len(lines) <= start:
+        raise ValueError("Missing segment-set header")
+    header = fields(lines[start]) + [""] * 8
+    sid = int(header[0])
+    records, seen = [], set()
+    for line in lines[start+1:]:
+        row = fields(line) + [""] * 8
+        nodes = [int(n) if n else 0 for n in row[:4]]
+        if nodes[2:] == [0, 0]:
+            nodes = nodes[:2]
+        elif nodes[3] in (0, nodes[2]):
+            nodes = nodes[:3]
+        if any(n <= 0 for n in nodes) or len(nodes) != len(set(nodes)):
+            raise ValueError("Invalid native segment connectivity")
+        key = tuple(sorted(nodes))
+        if key in seen:
+            raise ValueError("Duplicate native segment face/edge")
+        seen.add(key)
+        attrs = [float(v) if v else 0.0 for v in row[4:8]]
+        records.append(dict(node_ids=list(canonical_cycle(nodes)), attributes=attrs))
+    attrs = [float(v) if v else 0.0 for v in header[1:5]]
+    if sid <= 0 or not all(math.isfinite(v) for v in attrs + [v for r in records for v in r["attributes"]]):
+        raise ValueError("Invalid segment-set ID/attributes")
+    return dict(entity_type="segment", set_id=sid, title=lines[1].strip() if start == 2 else "",
+                attributes=attrs, solver=header[5] or "MECH", its=int(header[6] or 0),
+                segments=sorted(records, key=lambda r: r["node_ids"]))
+
+
 def inspect_cards(path):
     Deck, _ = api()
     result = dict(sets={}, spcs=[], coordinates={0}, unresolved=[], other=Counter())
@@ -112,6 +144,13 @@ def inspect_cards(path):
             continue
         if not name.startswith(CAPTURE):
             result["other"][(name, digest)] += 1
+            continue
+        if name in ("*SET_SEGMENT", "*SET_SEGMENT_TITLE"):
+            record = segment_set(name, lines)
+            key = ("segment", record["set_id"])
+            if key in result["sets"]:
+                raise ValueError("Duplicate segment set IDs")
+            result["sets"][key] = record
             continue
         if name in ("*SET_NODE_LIST", "*SET_NODE_LIST_TITLE", "*SET_PART_LIST", "*SET_PART_LIST_TITLE"):
             record = list_set(name, lines)

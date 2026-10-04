@@ -2,9 +2,11 @@
 
 面向自然语言的 LS-PrePost 前后处理自动化：MCP 工具、原生命令/SCL/Python 接口、结果读取与可追溯工作流。
 
+新增[选择驱动的三维/二维Segment集](docs/SEGMENT_SETS.md)：外表面/壳面/XY边界、法向筛选、属性读回与参数化重开已有限定原生验收；压力和无反射边界仍在后续实现中。
+
 **状态：早期开发版。目标版本为 4.8、4.10、4.13。目标覆盖常用功能，不代表当前已覆盖。**
 
-开发进度见[验收台账与实时面板](docs/PROGRESS.md)，不以工具数当功能覆盖率。[Entity Creation](docs/ENTITY_CREATION.md) 已打通4.13.4选区→节点/Part列表集合创建/修改→SPC约束→参数化回放/保存重开；Segment、压力与无反射边界仍待完成。
+开发进度见[验收台账与实时面板](docs/PROGRESS.md)，不以工具数当功能覆盖率。[Entity Creation](docs/ENTITY_CREATION.md) 已打通4.13.4选区→节点/Part列表集合创建/修改→SPC约束→参数化回放/保存重开；Segment也有独立限定验收；压力与无反射边界仍待完成。
 
 近期增量：[标准单元显隐与受管恢复](docs/GUI_VISIBILITY.md)、保留模型标题/原生结果名称和默认 MinMax 显示平均、[可选精简 MCP 入口](docs/MCP_TOOL_PROFILES.md)。原生 4.13.4 验收与未支持范围分别记录；[外部评审处理](docs/REVIEW_RESPONSE_2026-10-03.md)保持通用前后处理定位，不把专项案例变成产品主线。
 
