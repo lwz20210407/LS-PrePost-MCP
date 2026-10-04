@@ -54,6 +54,27 @@ Local evidence folders, under the current dated task's `public-corpus`:
 - `native-open-a75c362792f64f2694804660f0b8176a`: three keyword opens and session closure.
 - `download-manifest.json`, `keyword-download-manifest.json`, `reader-inventory.json`.
 
+## Additional acquired history fixture (2026-10-04)
+
+[saudbinayed/binout](https://github.com/saudbinayed/binout) supplies an MIT-licensed
+plane-strain example at pinned commit `345d6997514059baf0c4e1f0608dafef9c43ee7d`.
+Five files were fetched locally: license, sample README, `plane_strain_impact.k`,
+root `d3plot` and the81,205,008-byte `binout`. Exact size, upstream Git blob SHA1
+and local SHA256 were checked. No upstream executable script was run.
+
+Read-only LASSO inventory confirms `elout`, `glstat`, `matsum`, `ncforc`, `nodout`.
+The sample README's `rcforc` wording does not match the actual `ncforc` branch.
+ELOUT/shell, GLSTAT, MATSUM and NODOUT have138 finite, strictly increasing time
+samples; ELOUT shell IDs are a138×4200 per-state array, so a fixed one-dimensional
+ID mapping cannot be assumed. NCFORC has master/slave subbranches.
+
+The upstream **root d3plot is mesh/control data only**, not a complete solved
+state family. Use the binout for the database-panel audit; do not use this root
+file to claim animation or d3plot time-history completeness. Native4.13.4 opening,
+UI inspection, curve extraction and numerical cross-checks of this new fixture
+remain pending. Local data/manifest are retained under the dated task's
+`ui-audit/public-history-corpus/saudbinayed-binout`; binaries are not committed.
+
 ## Additional verified sources awaiting acquisition
 
 [DYNAmore's example collection](https://www.dynaexamples.com/) provides public
