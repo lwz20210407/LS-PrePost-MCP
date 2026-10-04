@@ -40,9 +40,15 @@ def parse_model_rows(rows):
         match = re.fullmatch(r"([1-9]\d*)-(.*)", row[0])
         if not row[0].strip():
             raise ValueError("Missing native model display label")
-        result.append(dict(row_index=position, display_label=row[0],
-                           display_number=int(match[1]) if match else None,
-                           title=match[2] if match else row[0], path=row[1] or None))
+        result.append(
+            dict(
+                row_index=position,
+                display_label=row[0],
+                display_number=int(match[1]) if match else None,
+                title=match[2] if match else row[0],
+                path=row[1] or None,
+            )
+        )
     return result
 
 
@@ -161,7 +167,7 @@ def read_model_list(transport, hwnd):
         k.CloseHandle(process)
 
 
-def inspect_models(transport):
+def inspect_models(transport, close_panel=False):
     transport.preflight()
     transport.open_menu_item(["FEM", "Model and Part", "Model Selection"])
     rows = transport.inspect_controls()
@@ -181,9 +187,27 @@ def inspect_models(transport):
     if len(lists) != 1:
         raise RuntimeError("Expected one visible owned model list")
     models = read_model_list(transport, lists[0]["hwnd"])
+    if close_panel:
+        buttons = [
+            r
+            for r in rows
+            if r["parent"] == panels[0]["hwnd"]
+            and r["class_name"] == "Button"
+            and r["text"].replace("&", "") == "Done"
+            and r["visible"]
+            and r["enabled"]
+        ]
+        if len(buttons) != 1:
+            raise RuntimeError("Expected one owned Model Selection Done button")
+        transport._click_panel_control("Model Selection", buttons[0]["control_id"], buttons[0]["text"])
+        if any(
+            r["class_name"] == "#32770" and r["text"] == "Model Selection" and r["visible"]
+            for r in transport.inspect_controls()
+        ):
+            raise RuntimeError("Model Selection panel did not close before model transaction")
     return dict(
         models=models,
-        panel_left_open=True,
+        panel_left_open=not close_panel,
         backend="native_model_selection_listview",
         scope="Loaded model rows/display labels/paths only; select/remove numbering differs in the tested 4.13.4 fixture. Neither field is a universal command ID; refresh after model-list changes",
     )

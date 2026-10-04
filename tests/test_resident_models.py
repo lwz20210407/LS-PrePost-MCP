@@ -130,6 +130,9 @@ def test_auxiliary_export_identity_is_bound_without_replacing_recovery_checkpoin
     assert verify_context(meta, dict(native, model_directory=str(output)), "s")["empty_model_verified"]
     remember_exports(meta, [output], native, "s", tmp_path)
     assert meta["native_export_aliases"] == [str(output)]
+    original_row = dict(row_index=1, display_label="1-Model", path=str(original))
+    saved_row = dict(original_row, path=str(output))
+    assert list_identities([original_row], meta, "s") == list_identities([saved_row], meta, "s")
     bad = dict(native, model_directory=str(tmp_path / "unrelated" / "model.k"))
     other = dict(staged_model=str(original), model_kind="keyword")
     assert not remember_exports(other, [output], bad, "s", tmp_path)["registered"]

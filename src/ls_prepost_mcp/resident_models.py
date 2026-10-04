@@ -188,7 +188,7 @@ def activate(service, session_id, source_path, *, _manager=None):
             raise ValueError("Current native source has no managed context; explicitly open a model first")
         transport = WindowsCommandTransport(meta["process"]["pid"])
         transport.preflight()
-        listed = inspect_models(transport)
+        listed = inspect_models(transport, close_panel=True)
         row = matching_resident_row(listed["models"], target, session_id)
         baseline = manager.dispatch(session_id, "inspect_model", {})
         if baseline["status"] != "succeeded":
@@ -236,10 +236,12 @@ def activate(service, session_id, source_path, *, _manager=None):
             return result
         atomic_json(Path(result["job_directory"]) / "models-before.json", listed)
         try:
-            after = inspect_models(transport)
+            after = inspect_models(transport, close_panel=True)
             atomic_json(Path(result["job_directory"]) / "models-after.json", after)
             verified = verify_context(target, result["data"], session_id)
-            if after["models"] != listed["models"]:
+            if list_identities(after["models"], meta, session_id) != list_identities(
+                listed["models"], meta, session_id
+            ):
                 raise ValueError("Resident model list changed during activation")
             incoming = checkpoint(target)
             meta = manager.read(session_id)
@@ -305,9 +307,9 @@ def list_identities(rows, meta, session_id):
     return identities
 
 
-def unload(service, session_id, source_path, activate_source_path):
-    manager = service._session_manager()
-    with manager.lock(session_id):
+def unload(service, session_id, source_path, activate_source_path, *, _manager=None):
+    manager = _manager or service._session_manager()
+    with contextlib.nullcontext() if _manager is not None else manager.lock(session_id):
         meta = manager.read(session_id)
         if meta["state"] != "ready" or meta.get("active_request") or meta.get("recording"):
             raise ValueError(
@@ -322,7 +324,7 @@ def unload(service, session_id, source_path, activate_source_path):
             raise ValueError("Specify a different managed model to keep active after unloading")
         transport = WindowsCommandTransport(meta["process"]["pid"])
         transport.preflight()
-        initial = inspect_models(transport)
+        initial = inspect_models(transport, close_panel=True)
         audit = manager.directory(session_id) / "model-operations" / uuid.uuid4().hex
         audit.mkdir(parents=True)
         atomic_json(
@@ -331,11 +333,30 @@ def unload(service, session_id, source_path, activate_source_path):
         target_row = matching_resident_row(initial["models"], target, session_id)
         matching_resident_row(initial["models"], survivor, session_id)
         removal_number(initial["models"], target_row)
+        removal_survivor = survivor
+        if target["model_kind"] == "d3plot" and survivor["model_kind"] == "d3plot":
+            # The tested native build can exit when removing one result while
+            # another result is active. Use a verified resident keyword as the
+            # temporary active model; still return the requested result active.
+            removal_survivor = None
+            for context in meta.get("resident_model_contexts", {}).values():
+                if context.get("model_kind") != "keyword":
+                    continue
+                try:
+                    matching_resident_row(initial["models"], context, session_id)
+                except (ValueError, OSError):
+                    continue
+                removal_survivor = context
+                break
+            if removal_survivor is None:
+                raise ValueError(
+                    "Result-to-result unload requires a verified resident keyword intermediary; explicit replace_gui_model creates one"
+                )
 
         # Capture even untracked manual keyword edits by visiting the target,
         # then preserve its memory while moving to the requested survivor.
         prepared = []
-        for context in (target, survivor):
+        for context in (target, removal_survivor):
             result = activate(service, session_id, context["staged_model"], _manager=manager)
             prepared.append(result)
             if result["status"] != "succeeded":
@@ -343,7 +364,7 @@ def unload(service, session_id, source_path, activate_source_path):
         meta = manager.read(session_id)
         target = owned_target(meta, target["staged_model"], session_id)
         survivor = owned_target(meta, survivor["staged_model"], session_id)
-        before = inspect_models(transport)
+        before = inspect_models(transport, close_panel=True)
         target_row = matching_resident_row(before["models"], target, session_id)
         number = removal_number(before["models"], target_row)
         remaining = [r for r in before["models"] if r["row_index"] != target_row["row_index"]]
@@ -359,12 +380,13 @@ def unload(service, session_id, source_path, activate_source_path):
             preparation=prepared,
             remove_display_number=number,
             removed_checkpoint=target.get("last_checkpoint"),
+            removal_active_source=removal_survivor["staged_model"],
         )
         atomic_json(directory / "unload-preparation.json", evidence)
         if result["status"] != "succeeded":
             return dict(result, unload_submitted=True, removed_checkpoint=target.get("last_checkpoint"))
         try:
-            after = inspect_models(transport)
+            after = inspect_models(transport, close_panel=True)
             atomic_json(directory / "models-after-remove.json", after)
             if list_identities(after["models"], meta, session_id) != expected:
                 raise ValueError(
@@ -378,7 +400,7 @@ def unload(service, session_id, source_path, activate_source_path):
             if selected["status"] != "succeeded":
                 raise ValueError("Could not verify surviving active model after unload")
             verified = verify_context(survivor, selected["data"], session_id)
-            final = inspect_models(transport)
+            final = inspect_models(transport, close_panel=True)
             if list_identities(final["models"], meta, session_id) != expected:
                 raise ValueError("Native list changed while reselecting the surviving model")
             meta = manager.read(session_id)
@@ -407,6 +429,7 @@ def unload(service, session_id, source_path, activate_source_path):
                 removed_source=target["staged_model"],
                 active_source=survivor["staged_model"],
                 remove_display_number=number,
+                removal_active_source=removal_survivor["staged_model"],
                 unload_scope="One managed resident model only; keyword checkpoint retained, files not deleted. Explicit survivor reselected and all remaining list entries verified. Full scene/multi-model crash recovery and replace/attach workflows remain separate.",
             )
         except Exception as exc:

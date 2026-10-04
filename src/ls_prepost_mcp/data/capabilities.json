@@ -1683,7 +1683,22 @@
         "4.13.4 Windows visible maximized GUI"
       ],
       "scope": "Unload one known resident model with an explicit distinct managed survivor. Saves keyword memory during preparation, verifies unique native display number, exactly one removed list entry and survivor reactivation. Retains removed keyword checkpoint; no source files deleted. Recording/uncertainty/ambiguous ownership reject. General replace/attach, full scene/crash recovery, old versions and headless remain separate.",
-      "validation": "Synthetic A/B/C edits plus official general d3plot: inactive A then sparse-number B unload, checkpoint reopen with edited node, active restored A unload, result unload, survivor C edit retained, input family SHA-256 unchanged. Relative beam export replaced by absolute path; native export aliases require pre-export source and file-bound identity."
+      "validation": "Synthetic A/B/C edits plus official general d3plot: inactive A then sparse-number B unload, checkpoint reopen with edited node, active restored A unload, result unload, survivor C edit retained, input family SHA-256 unchanged. Relative beam export replaced by absolute path; native export aliases require pre-export source and file-bound identity.",
+      "result_pair_scope": "Result-to-result removal uses a verified resident keyword intermediary before reactivating the requested result; absent intermediary rejects before removal. Explicit replacement creates an intermediary. Part of the visible general-to-beam replacement matrix; no general native stability guarantee."
+    },
+    {
+      "id": "automation.replace_gui_model",
+      "tool": "replace_gui_model",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide",
+        "local-custom-05"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible maximized GUI"
+      ],
+      "scope": "Explicit same-process keyword/result replacement: saved keyword memory, verified new input before old removal, result-mode keyword staging and cleanup, remaining-model identity checks. Four kind combinations, explicit empty and unexpected-empty rejection, independent edited keeper and checkpoint recovery passed. No association, multi-model recordings, full scene/crash recovery, old-version or headless certification.",
+      "validation": "tools/run_model_replacement_acceptance.py:18-case matrix with official general/beam results. tools/run_stale_model_regression.py:public bird 2957nodes/3005elements/1keyword state, stale-result failure rejected and explicit replacement verified. Raw input families unchanged."
     }
   ],
   "native_reference_builds": [

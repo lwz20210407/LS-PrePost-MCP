@@ -53,6 +53,8 @@ Binout后续增量：`extract_native_binout_curve` 已增加MATSUM映射与显�
 
 ## 新公开案例揭示的发布阻断项
 
+2026-10-05 后续裁定：下述原始误报已通过同一公开鸟撞案例再次回归，普通打开报错返回failed且不推进来源；新的显式替换正确读到1状态keyword。原生质量/keyword门槛及录制失败阻断也重新通过，详见 [MODEL_REPLACEMENT](MODEL_REPLACEMENT.md)。冻结B0-03恢复passed，首版26/36；不将这一裁定扩展为SPH/复材场数组或全部模型关联能力完成。原始失败证据和下文历史判断保留。
+
 2026-10-05，连续打开普通、梁/实体、复材/SPH三套官方d3plot后，尝试在同一会话打开复材案例 `input.k`：
 
 - 原生日志在 `open keyword` 后报告 `Invalid entity ID! ** Prog Error`，窗口标题仍为之前的d3plot。

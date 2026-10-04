@@ -718,10 +718,16 @@ class SessionTools:
         return activate(self, session_id, source_path)
 
     def unload_gui_model(self, session_id: str, source_path: str, activate_source_path: str) -> dict:
-        """Unload one managed resident source, explicitly choosing a different managed survivor. Saves keyword memory before removal, uses uniquely verified native display number, checks exactly one entry removed, and reselects the survivor by refreshed row. Retains removed keyword checkpoint; never deletes source files. Rejects uncertainty/recording/unmanaged or ambiguous models. Does not restore arbitrary viewport/selection or all models after a crash."""
+        """Unload one managed resident source, explicitly choosing a different managed survivor. Saves keyword memory before removal, uses uniquely verified native display number, checks exactly one entry removed, and reselects the survivor by refreshed row. Result-to-result removal requires a verified resident keyword intermediary. Retains removed keyword checkpoint; never deletes source files. Rejects uncertainty/recording/unmanaged or ambiguous models. Does not restore arbitrary viewport/selection or all models after a crash."""
         from .resident_models import unload
 
         return unload(self, session_id, source_path, activate_source_path)
+
+    def replace_gui_model(self, session_id: str, path: str, file_type: str = 'keyword', expected_empty: bool = False) -> dict:
+        """Explicitly replace the current managed model in the same GUI. Preserve keyword memory; when leaving result mode create/save a native empty staging model. Verify the new load before unloading old and temporary models, retaining other entries. Accept keyword/d3plot, with expected_empty only for intentional zero-entity keyword. Reject pending/uncertain/recording states. Failures retain phase evidence/checkpoints and require reconciliation; old_model_unloaded=null is unknown, not false. No automatic retry or association semantics."""
+        from .model_replacement import replace
+
+        return replace(self, session_id, path, file_type, expected_empty)
 
     def gui_session_action(self, session_id: str, action: str, parameters: dict) -> dict:
         """Execute an existing typed native operation against the same in-memory model; no unrestricted script or shell. Failed mutations mark state uncertain."""
