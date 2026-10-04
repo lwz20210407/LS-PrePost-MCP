@@ -41,7 +41,8 @@ def test_numbered_points_require_actual_recorded_layers():
         )
     with pytest.raises(ValueError, match="recorded output count"):
         header_field_contract(
-            header(), dict(nodes=8, elements=2), "solid", "stress_x", SamplingSpec.native("solid", "2")
+            header(), dict(nodes=8, elements=2), "solid", "stress_x",
+            SamplingSpec("native_integration_point", 2, "2")
         )
     result = header_field_contract(
         header(), dict(nodes=8, elements=2), "shell", "stress_x", SamplingSpec.native("shell", "outer")

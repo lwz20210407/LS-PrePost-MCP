@@ -52,6 +52,20 @@ def test_selection_is_immutable_bounded_metadata_with_ordered_identity():
             ResultSelection(domain, ids, states)
 
 
+def test_native_solid_point_mislabel_rejected_before_gui_dispatch(tmp_path):
+    service = Service(Settings(tmp_path))
+    for point in ("2", "8"):
+        with pytest.raises(ValueError, match="can return point 1"):
+            service.gui_session_action("not-started", "extract_native_stress",
+                dict(element_type="solid", element_ids=[1001], states=[1],
+                     integration_point=point, units="source_units"))
+    assert not (tmp_path / "jobs").exists()
+    # The separately named reader contract remains usable and does not silently
+    # replace the rejected native operation.
+    assert SamplingSpec.stored([8], stress=True).value == (8,)
+    assert SamplingSpec.native("shell", "5").native_selector == "5"
+
+
 def test_field_contract_preserves_units_and_rejects_backend_or_domain_confusion():
     selection = ResultSelection("shell", [7], [1])
     native = SamplingSpec.native("shell", "outer")

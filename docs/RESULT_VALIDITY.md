@@ -25,6 +25,21 @@ MDLOPT=1 nodal visibility is a different contract. SPH, adaptive mesh epochs,
 material damage criteria and arbitrary history-slot interpretations are outside
 this implementation.
 
+Public mixed-solid/shell regression subsequently found a separate native SDK
+sampling defect: on 4.13.4, requesting solid point 8 through the scalar-array
+SCL getter returned the point-1 tensor unchanged. Scalar getter and an explicit
+`sintpt 8` probe did not resolve it. Consequently native solid selectors 2..8
+now reject before dispatch, including native image requests using the shared
+sampling contract. Point 1 and default remain distinct labelled selections;
+reader stored-point extraction remains available only when explicitly selected.
+Do not silently relabel point 1 or switch backend. A validated native adapter
+for the remaining solid points is still required.
+
+On the same public mixed fixture, native shell selectors 1, 3 and 5 exactly
+matched their six stored stress components at the last state for the sampled
+element; this is bounded evidence, not all-shell/material/frame certification.
+Local probe: `native-point-probe-4d852c99f6ae4ffe8a42f2aa85b4b62c`.
+
 Physical deletion, display Blank, rigid material and variable availability are
 separate properties. A present entity with no stress record is not assigned
 zero stress. Unsupported/missing variables still fail. A request containing only

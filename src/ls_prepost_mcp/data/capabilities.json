@@ -150,7 +150,8 @@
       ],
       "verification": "SCL six stresses checked against native Mises; explicit selection and tensor definitions; private result data excluded",
       "gui_scope": "gui_session_action or GUI workflow uses current staged d3plot without path/reopen/new process. Visible 4.13.4 solid six-stress/Mises and native strain/plastic-strain exports verified; state/geometry/selection/part flags preserved. Shared parser/contracts. GUI completion uses embedded Python; streaming geometry/visibility digest plus selected-ID snapshot; per-request limits remain, no new shell/tshell certification.",
-      "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/RESULT_VALIDITY.md."
+      "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/RESULT_VALIDITY.md.",
+      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/RESULT_VALIDITY.md. No silent reader fallback."
     },
     {
       "id": "results.fragments",
@@ -334,7 +335,8 @@
         "4.13"
       ],
       "gui_scope": "gui_session_action or GUI workflow uses current staged d3plot without path/reopen/new process. Visible 4.13.4 solid six-stress/Mises and native strain/plastic-strain exports verified; state/geometry/selection/part flags preserved. Shared parser/contracts. GUI completion uses embedded Python; streaming geometry/visibility digest plus selected-ID snapshot; per-request limits remain, no new shell/tshell certification.",
-      "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/RESULT_VALIDITY.md."
+      "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/RESULT_VALIDITY.md.",
+      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/RESULT_VALIDITY.md. No silent reader fallback."
     },
     {
       "id": "results.native_ascii",
@@ -1311,7 +1313,8 @@
       ],
       "scope": "ResultSelection/SamplingSpec/FieldSpec metadata in native SCL and LASSO field/stress paths. No native-layer/reader-slot equivalence, dimension inference or arbitrary history meaning. Request/export/parser tests only; no added native numerical certification.",
       "gui_scope": "gui_session_action or GUI workflow uses current staged d3plot without path/reopen/new process. Visible 4.13.4 solid six-stress/Mises and native strain/plastic-strain exports verified; state/geometry/selection/part flags preserved. Shared parser/contracts. GUI completion uses embedded Python; streaming geometry/visibility digest plus selected-ID snapshot; per-request limits remain, no new shell/tshell certification.",
-      "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/RESULT_VALIDITY.md."
+      "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/RESULT_VALIDITY.md.",
+      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/RESULT_VALIDITY.md. No silent reader fallback."
     },
     {
       "id": "gui.transaction_scopes",
@@ -1417,7 +1420,8 @@
       "tested_profiles": [
         "4.13"
       ],
-      "scope": "Visible4.13.4 named native field raw CSV/custom source buffer and PNG; explicit state/layer/units. Plain native result captions, model title preserved, default MinMax display averaging with explicit nodal/none. Raw entity samples stay unaveraged. Native solid Mises/pressure/mean stress and node magnitude crosschecks, fixed-range replay and managed-field movie passed; over300000-solid field-only path tested. New MinMax/None combo readback and three-frame MP4 passed. LASSO header prerequisites only. Shell/tshell nontrivial layers, rigid/deleted validity and frames remain unverified."
+      "scope": "Visible4.13.4 named native field raw CSV/custom source buffer and PNG; explicit state/layer/units. Plain native result captions, model title preserved, default MinMax display averaging with explicit nodal/none. Raw entity samples stay unaveraged. Native solid Mises/pressure/mean stress and node magnitude crosschecks, fixed-range replay and managed-field movie passed; over300000-solid field-only path tested. New MinMax/None combo readback and three-frame MP4 passed. LASSO header prerequisites only. Shell/tshell nontrivial layers, rigid/deleted validity and frames remain unverified.",
+      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/RESULT_VALIDITY.md. No silent reader fallback."
     },
     {
       "id": "dpf.probe_dpf_runtime",

@@ -54,3 +54,7 @@ Native-tested nontrivial layer semantics do not yet cover shell/tshell. File-lev
 For movies after custom rendering, every output state must have a verified, consistent field definition. Missing states, a raw display change or changed part/selection scope cause rejection. Per-state producer evidence and the final color range are recorded; uniform color bounds should be supplied when comparing frames. This is coverage validation, not independent dimensional/physical certification.
 
 Drivers: `tools/run_gui_fringe_acceptance.py` for native field/replay/movie checks; `tools/run_mesh_page_acceptance.py` for a solid-only private keyword/result pair, paged reference mesh checks and large native field export. Both require explicit private output directories. Recipe: `examples/workflows/visible_gui_named_fringe.json`. Broader curve windows and physical validity remain in the [delivery plan](DELIVERY_PLAN.md).
+
+## Solid point regression (2026-10-04)
+
+The public mixed solid/shell fixture showed native SCL returning the point-1 tensor for a point-8 request despite positive full-integration status. Shared sampling validation now rejects native solid selectors2..8 before field or image dispatch. The earlier header guard was necessary but insufficient; it did not verify actual point selection. Default/point1 and shell selections retain their separate scope. See [evidence and remaining adapter work](RESULT_VALIDITY.md).

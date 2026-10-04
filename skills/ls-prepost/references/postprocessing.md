@@ -18,6 +18,8 @@ Use `convert_history_units` for explicit single-entity scalar CSV conversion, or
 
 Tensor order: xx, yy, zz, xy, yz, xz. Tension positive. Shell/solid integration point must be explicit; no averaging is implied. Mises=sqrt(3J2), triaxiality=mean/Mises. `lode_angle_parameter=1−6θ/π` is +1 in uniaxial tension; `lode_parameter=(2σ2−σ1−σ3)/(σ1−σ3)` is −1. Preserve these different names and the returned definitions. Hydrostatic ratios are null/empty, not zero.
 
+Native solid point selectors 2..8 currently reject: real 4.13.4 SCL evidence showed point 8 returning point 1. Do not replace the requested point with `mid`/1 or silently switch to a reader. Explicit reader stored-point extraction is a separate option; the native adapter remains unfinished. Native shell point selectors have separate bounded evidence.
+
 Native ASCII uses database-specific UI component numbers, not d3plot fringe/ntime codes. Inspect installed-version documentation and the tested scope. Contact master/slave selectors and ELOUT integration points need dedicated adapters; do not append arbitrary tokens to existing tools.
 
 For optional reader extraction, call `inspect_result_fields`, then select actual user IDs, states and every trailing stored-axis index. History-slot interpretation requires the material/version/output definition. A missing field cannot be reconstructed by naming it. No generic native history-variable route is certified yet.

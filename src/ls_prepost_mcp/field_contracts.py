@@ -147,6 +147,13 @@ class SamplingSpec:
             return cls("native_shell_layer", selection, selection.upper())
         if domain == "solid" and int(selection) > 8:
             raise ValueError("Native fully-integrated solid selectors are limited to 1..8")
+        if domain == "solid" and int(selection) > 1:
+            raise ValueError(
+                "Native solid integration points 2..8 are not verified: LS-PrePost 4.13.4 "
+                "SCL can return point 1 for another requested point. Use an explicitly "
+                "selected reader stored-point backend, or wait for a validated native adapter; "
+                "no automatic backend or sampling fallback is performed"
+            )
         return cls("native_integration_point", int(selection), selection)
 
     @classmethod
