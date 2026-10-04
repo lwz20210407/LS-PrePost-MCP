@@ -632,10 +632,11 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Metadata by default; include_models=True reads owned native Model Selection row indexes, display labels and paths. Unique-source active-row candidate only. Opens/leaves panel; verifies active counters/Part IDs/state/source. Windows x64, <=256 rows, bounded text. No general model mutation interface.",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
-      ]
+      ],
+      "model_inventory_validation": "4.13.4 visible maximized synthetic inventory 1->3->2->1 passed. After initial removal, display2/3 differs from rows1/2; model select2 activates second source and model remove3 removes it. Source bytes unchanged. Old versions/headless/duplicate-label mutations/forced-hang allocation cleanup unverified."
     },
     {
       "id": "automation.list_gui_sessions",

@@ -579,9 +579,37 @@ class SessionTools:
         """Start an owned persistent native GUI process; subsequent tools reuse its model and normal event loop. Windows only; configured embedded Python required."""
         return self._session_manager().start()
 
-    def inspect_gui_session(self, session_id: str) -> dict:
-        """Read process identity, health, dirty/checkpoint state and the last correlated request."""
-        return self._session_manager().read(session_id)
+    def inspect_gui_session(self, session_id: str, include_models: bool = False) -> dict:
+        """Read session metadata. include_models=True opens the owned Model Selection panel and reads current row indexes/display labels/paths (Windows x64, up to256). Display-number prefixes can differ from command positions after removal. Unique source match yields an active-row candidate, never a stable model ID or genselect suffix. Checks inventory/source/state unchanged and leaves panel open. Pending/locked/unavailable native inspections reject; metadata-only remains available."""
+        if type(include_models) is not bool:
+            raise ValueError("include_models must be a boolean")
+        manager = self._session_manager()
+        if not include_models:
+            return manager.read(session_id)
+        from .windows_model_list import active_model_candidate, inspect_models
+
+        with manager.lock(session_id):
+            meta = manager.read(session_id)
+            before = manager.dispatch(session_id, "inspect_model", {})
+            if before["status"] != "succeeded":
+                raise RuntimeError("Cannot establish model-inventory baseline")
+            inventory = inspect_models(WindowsCommandTransport(meta["process"]["pid"]))
+            after = manager.dispatch(session_id, "inspect_model", {})
+            if after["status"] != "succeeded":
+                raise RuntimeError("Cannot verify model-inventory readback")
+            keys = ("counts","part_ids","current_state","model_directory")
+            if any(k not in before["data"] or k not in after["data"] or before["data"][k] != after["data"][k] for k in keys):
+                meta = manager.read(session_id)
+                meta.update(state="uncertain", dirty=True)
+                manager.save(session_id, meta)
+                raise RuntimeError("Active model inventory/source/state changed during inspection")
+            inventory.update(active_row_index_candidate=active_model_candidate(inventory['models'], after['data'].get('model_directory')),
+                             observed_model_directory=after['data'].get('model_directory'),
+                             id_scope="row_index is current 1-based visible position; display_number is label text. Recorded select/remove use different numbering in the 4.13.4 fixture; neither is a universal command ID or inferred genselect suffix",
+                             active_candidate_basis="Unique native source-path match only; null when ambiguous/unavailable")
+            path = Path(after['job_directory'])/'model-list.json'
+            atomic_json(path, inventory)
+            return dict(manager.read(session_id), native_models=inventory, model_inventory_evidence=str(path))
 
     def restart_gui_session(self, session_id: str) -> dict:
         """Recover an exited owned session into a new visible process using its last checkpoint or staged result source; never replay uncertain commands or terminate a live process."""

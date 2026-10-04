@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "baseline_id": "R1-20261003-36",
-  "updated_at": "2026-10-04T20:17:38.509502+00:00",
+  "updated_at": "2026-10-04T21:05:17.571329+00:00",
   "verified_commit": "5dc5197db75b960da6cf5b68c71e927d7c12f1e8",
   "frozen_gate_count": 36,
   "scope": "范围：Windows LS-PrePost 4.13.4 可见 GUI 的首个实用版本；按36项等权验收门槛计算，不是整个软件功能覆盖率或剩余工时。",
   "outside_scope": "后续总体路线仍保留：常用菜单扩展、接触与Include工程化、7模板完整工况、4.8/4.10及两种无GUI、后排CAD与高级模块。未纳入本期36项，不能据本进度称全部完成。",
-  "current_task": "Private持续开发：修复reset后重启误选清空前检查点；零网格材料卡也保存，默认显式恢复能识别可信空检查点。4.13.4旧网格清空后重启为空、两材料恢复、新节点保存后恢复通过。完整resident模型管理/处理中崩溃仍待补，25/36不升级。",
+  "current_task": "Private持续开发：原生Model Selection清单读取通过4.13.4最大化可见验收，1→3→2→1；选择行号与移除显示编号分别验证。完整多模型生命周期未完成，B0-03保持partial，25/36不变。",
   "groups": [
     {
       "id": "B0",

@@ -145,4 +145,6 @@
 
 当前总目标尚未完成。每项完成应同时更新本清单、`data/capabilities.json`、Skill 路由、相应测试和版本验证摘要；资料、接口或代码单独存在不够。
 
+2026-10-05 P0增量：`inspect_gui_session(include_models=True)` 已读取真实 Model Selection 清单；合成验收确认选择行号与移除显示编号不同，避免共用错误编号。归属 runtime / A01、A02 / T03，支持三条工作流的模型身份检查；完整 replace/attach/activate 与未保存状态保护仍在待开发范围，首版25/36不变。
+
 2026-10-04增量与优先级修正：标准壳/实体物理删除过滤、限定云图/动画、节点/Part/Segment集合与SPC/压力/无反射边界、壳拓扑选择已有原生证据，以[COVERAGE](COVERAGE.md)及各专页为准；上表保留的早期缺口描述不代表这些增量仍未实现。[定向节点替换](NODE_REPLACEMENT.md)新增原生连接更新、限定引用修复和回放重开。用户再次指出覆盖偏少、偏局部；按[交付计划的六域扩展顺序](DELIVERY_PLAN.md)推进，下一批转到Post/XYPlot多曲线，再扩常用载荷/规定运动等通用Entity能力。36项首版验收不取代总体75项backlog。
