@@ -1421,7 +1421,8 @@
         "4.13"
       ],
       "scope": "Visible4.13.4 named native field raw CSV/custom source buffer and PNG; explicit state/layer/units. Plain native result captions, model title preserved, default MinMax display averaging with explicit nodal/none. Raw entity samples stay unaveraged. Native solid Mises/pressure/mean stress and node magnitude crosschecks, fixed-range replay and managed-field movie passed; over300000-solid field-only path tested. New MinMax/None combo readback and three-frame MP4 passed. LASSO header prerequisites only. Shell/tshell nontrivial layers, rigid/deleted validity and frames remain unverified.",
-      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/RESULT_VALIDITY.md. No silent reader fallback."
+      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/RESULT_VALIDITY.md. No silent reader fallback.",
+      "validity_scope": "Explicit raw/alive. Static4.13.4 solid SCL values + LASSO physical deletion mask: native flags/CSV population/retained extrema/recording replay checked. Fixed-presentation excluded-buffer pixel invariance passed. Shell implementation pending native verification; no physical-mask movie, node/tshell mask, old-build certification. Existing visibility budgets apply."
     },
     {
       "id": "dpf.probe_dpf_runtime",

@@ -14,6 +14,7 @@ from .native_results import ELEMENT_FIELDS, NODE_FIELDS
 from .post_backend import ids, write_csv
 from .programs import native_errors
 from .result_availability import validate_field_availability
+from .result_validity import validity_scope
 from .scene_state import fringe_coverage
 
 KINDS = {"beam": 1, "shell": 2, "solid": 3, "tshell": 4}
@@ -40,7 +41,7 @@ def context_script(parts, path):
     )
 
 
-def field_fringe_script(domain, field, state, time_value, ipt, selected_parts, path, label, marker):
+def field_fringe_script(domain, field, state, time_value, ipt, selected_parts, path, label, marker, physical_mask=False):
     kind = domain.upper()
     counter = "num_nodes" if domain == "node" else "num_" + domain + "_elements"
     select = " || ".join("pid==%d" % pid for pid in selected_parts)
@@ -113,7 +114,9 @@ for(j=0;j<n;j=j+1)mask[j]=0;
         + loads
         + "\nif(ok){\n"
         + selection
-        + "\n}\nif(ok){\nfor(j=0;j<n;j=j+1)if(v[j]!=v[j] || v[j]>3e38 || v[j]<-3e38)ok=0;\n}\nif(ok){\nfp=fopen("
+        + ("\n}\nif(ok){\nfor(j=0;j<n;j=j+1){if(mask[j]){if(v[j]!=v[j] || v[j]>3e38 || v[j]<-3e38)ok=0;}else v[j]=0;}\n}\nif(ok){\nfp=fopen("
+           if physical_mask else
+           "\n}\nif(ok){\nfor(j=0;j<n;j=j+1)if(v[j]!=v[j] || v[j]>3e38 || v[j]<-3e38)ok=0;\n}\nif(ok){\nfp=fopen(")
         + scl_string(path)
         + ',"w");\nif(fp!=NULL){\nfprintf(fp,"state,time,entity_id,part_id,'
         + field
@@ -180,8 +183,12 @@ def field_range(values, requested):
 
 
 def render_field(
-    service, session_id, entity_type, field, state, units, integration_point, part_ids, color_range, averaging="minmax"
+    service, session_id, entity_type, field, state, units, integration_point, part_ids, color_range, averaging="minmax",
+    validity_policy="raw"
 ):
+    validity_scope(validity_policy)
+    if validity_policy == "alive" and entity_type not in ("solid", "shell"):
+        raise ValueError("Physical fringe masking currently supports standard solid/shell elements")
     average_command = averaging_command(averaging)
     if entity_type not in ("node", "solid", "shell", "tshell") or field not in (
         NODE_FIELDS if entity_type == "node" else RENDER_ELEMENT_FIELDS
@@ -229,6 +236,7 @@ def render_field(
             part_ids=part_ids,
             color_range=color_range,
             averaging=averaging,
+            validity_policy=validity_policy,
         )
         directory, manifest = service.jobs.create(
             "render_gui_field", dict(session_id=session_id, **parameters)
@@ -303,6 +311,7 @@ def render_field(
                 sampling=sampling.describe(),
                 parts=sorted(chosen),
                 averaging=averaging,
+                validity_policy=validity_policy,
             )
             previous = meta.get("managed_fringe")
             storage = {key: set(value) for key, value in meta.get("fringe_storage", {}).items()}
@@ -334,6 +343,13 @@ def render_field(
             if ready["status"] != "succeeded":
                 raise ValueError("Result state did not settle before field extraction")
             time_value = before["state_times"][state - 1]
+            physical_report, physical_ids = None, None
+            if validity_policy == "alive":
+                from .gui_result_validity import physical_fringe_scope
+
+                physical_report, physical_ids = physical_fringe_scope(
+                    service, manager, session_id, meta, entity_type, state, time_value, directory
+                )
             label = result_name(field)
             script = directory / "field.scl"
             script.write_text(
@@ -347,6 +363,7 @@ def render_field(
                     directory / "native.csv",
                     label,
                     directory / "complete.txt",
+                    physical_mask=physical_report is not None,
                 ),
                 encoding="utf8",
             )
@@ -371,6 +388,8 @@ def render_field(
                 chosen,
             )
             bounds = field_range([r[-1] for r in rows], color_range)
+            if physical_ids is not None and {r[2] for r in rows} != physical_ids:
+                raise ValueError("Native fringe CSV does not match the verified visible physical population")
             commands = [
                 average_command,
                 "range reversesigns off",
@@ -401,6 +420,7 @@ def render_field(
                 sampling,
                 "native DataCenter component frame; no transformation",
                 "Raw SCL entity values (avg_opt=0 buffer); display averaging="+averaging,
+                validity_scope(validity_policy) if physical_report else
                 "native display-active elements (or connected nodes); not a physical alive/deletion classification",
                 ("SCL magnitude from native disp_x/y/z",)
                 if field == "disp_magnitude"
@@ -416,6 +436,9 @@ def render_field(
             )
             provenance = dict(
                 variable_availability=availability,
+                validity_policy=validity_policy,
+                physical_deletion_filter_applied=physical_report is not None,
+                validity=physical_report,
                 field_spec=described,
                 display_part_ids=chosen,
                 color_range=bounds,

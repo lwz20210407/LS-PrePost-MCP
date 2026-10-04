@@ -25,12 +25,14 @@ class GuiMediaTools:
         part_ids: list[StrictInt] | None = None,
         color_range: list[StrictFloat] | None = None,
         averaging: str = "minmax",
+        validity_policy: str = "raw",
     ) -> dict:
-        """Render native field CSV/PNG with MinMax display averaging by default (or explicit nodal/none). Preserve model title, use native result captions without metadata suffixes. CSV contains raw SCL entity values, not averaged display samples. Explicit state/sampling/units, matching/requested parts and fixed data/explicit bounds; scene retained. Standard node/shell/solid/tshell only; no inferred physical alive mask, frame conversion or history semantics. Node magnitudes use all three native components."""
+        """Render native field CSV/PNG with default MinMax averaging; preserve model/title captions. CSV is raw entity values, not averaged pixels. validity_policy=alive explicitly adds a LASSO MDLOPT2 mask for solid/shell, verifies native deleted-element hiding and exact CSV population; missing masks fail. Default raw retains legacy display scope. Scene/physical Blank retained; physical-mask movie replay is not yet supported. No inferred units/frame/history meaning."""
         from .gui_fringe import render_field
 
         return render_field(
-            self, session_id, entity_type, field, state, units, integration_point, part_ids, color_range, averaging
+            self, session_id, entity_type, field, state, units, integration_point, part_ids, color_range, averaging,
+            validity_policy
         )
 
     def export_gui_curve_plot(

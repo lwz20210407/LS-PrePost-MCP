@@ -16,6 +16,8 @@ def require_movie_field_coverage(metadata, last):
         raise ValueError(
             "Custom fringe coverage is uncertain; render a consistent field sequence or reopen the model"
         )
+    if field.get("definition", {}).get("validity_policy") == "alive":
+        raise ValueError("Physical-fringe animation requires verified per-state visibility replay; static Blank cannot certify all movie states")
     missing = [state for state in range(1, last + 1) if str(state) not in field.get("frames", {})]
     if missing:
         raise ValueError("Custom fringe is not defined for all movie states: " + str(missing[:20]))

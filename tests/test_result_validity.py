@@ -116,3 +116,15 @@ def test_native_deleted_nan_filtered_before_native_mises_comparison(tmp_path, mo
     assert result["status"] == "succeeded", result
     assert result["data"]["row_count"] == 1 and result["data"]["excluded_deleted_count"] == 1
     assert result["data"]["derived_statistics"]["von_mises"]["maximum"] == dict(value=10., state=2, entity_id=7)
+
+
+def test_physical_fringe_mask_keeps_domain_and_manual_blank_separate():
+    from ls_prepost_mcp.gui_result_validity import masked_flags
+
+    status = mask()
+    old = {("solid",303): False, ("solid",101): True, ("shell",101): True}
+    assert masked_flags(old, status, 2, "solid") == {
+        ("solid",303): False, ("solid",101): False, ("shell",101): True}
+    assert masked_flags(old, status, 5, "solid") == old
+    with pytest.raises(ValueError, match="registries disagree"):
+        masked_flags({("solid",1): True}, status, 2, "solid")

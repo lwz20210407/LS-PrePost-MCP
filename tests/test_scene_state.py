@@ -17,3 +17,9 @@ def test_movie_cannot_use_sparse_mixed_or_uncertain_custom_fields():
     with pytest.raises(ValueError, match="uncertain"):
         require_movie_field_coverage(dict(managed_fringe=dict(second, status="changed_by_raw_command")), 2)
     assert require_movie_field_coverage({}, 2) is None
+
+
+def test_static_physical_blank_is_not_a_per_state_movie_mask():
+    field = fringe_coverage(None, dict(domain="solid", validity_policy="alive"), 1, "a")
+    with pytest.raises(ValueError, match="per-state visibility"):
+        require_movie_field_coverage(dict(managed_fringe=field), 1)

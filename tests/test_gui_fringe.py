@@ -62,6 +62,9 @@ def test_constant_nonzero_field_padding_scales_with_declared_data_units():
         dict(entity_type="solid", field="stress_x", state=1, units='Pa";exit'),
         dict(entity_type="solid", field="stress_x", state=1, units="Pa", part_ids=[True]),
         dict(entity_type="solid", field="stress_x", state=1, units="Pa", color_range=[0, float("inf")]),
+        dict(entity_type="node", field="disp_x", state=1, units="mm", validity_policy="alive"),
+        dict(entity_type="tshell", field="stress_x", state=1, units="Pa", validity_policy="alive"),
+        dict(entity_type="solid", field="stress_x", state=1, units="Pa", validity_policy="guess"),
     ],
 )
 def test_bad_render_requests_never_contact_native_session(tmp_path, args):

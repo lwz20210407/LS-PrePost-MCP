@@ -27,8 +27,8 @@ this implementation.
 
 Public mixed-solid/shell regression subsequently found a separate native SDK
 sampling defect: on 4.13.4, requesting solid point 8 through the scalar-array
-SCL getter returned the point-1 tensor unchanged. Scalar getter and an explicit
-`sintpt 8` probe did not resolve it. Consequently native solid selectors 2..8
+SCL getter returned the point-1 tensor unchanged. Scalar getter, application-internal
+Python `get_data`, `sintpt 8` and legacy reader-mode probes did not resolve it. Consequently native solid selectors 2..8
 now reject before dispatch, including native image requests using the shared
 sampling contract. Point 1 and default remain distinct labelled selections;
 reader stored-point extraction remains available only when explicitly selected.
@@ -75,10 +75,49 @@ rigid-shell compressed records, deleted NaNs, empty extrema, time mismatch and
 adaptive-family rejection. Shell/tshell/beam real deletion cases, old builds
 and headless modes still need their own acceptance.
 
+## Static native PNG/CSV integration
+
+`render_gui_field(..., validity_policy="alive")` now applies the explicit
+physical mask for standard solid/shell fields after setting the requested parts
+and state. It checks native/reader user-ID registries, hides deleted elements
+with the existing native Blank route, verifies geometry and display flags, and
+requires the CSV IDs to match the verified visible population exactly. Values
+remain SCL-derived; provenance identifies the LASSO mask separately. The title
+policy and default MinMax presentation averaging remain unchanged. Legacy `raw`
+rendering retains its prior behavior.
+
+Deleted/unselected buffer slots are neutralized before custom-fringe transfer;
+only retained values must be finite. Color bounds are calculated from the
+retained CSV. The public solid last-state check retained 5,050 of 5,664 elements
+and agreed with the separately extracted effective-stress range. A native pixel
+probe changed excluded buffer values from zero to 1e10, then reapplied identical
+camera, color bounds and MinMax settings: the PNG pixels were unchanged. This
+is evidence for this build/fixture, not an independent implementation of the
+native averaging algorithm. Initial probe evidence and corrected presentation
+comparison are retained separately; omitted range reapplication is not a valid
+pixel comparison.
+
+The rendering workflow intentionally retains the requested scene and physical
+Blank state. An all-deleted visible scope rejects with no meaningful PNG rather
+than manufacturing a zero-stress plot. Existing visibility-transition limits
+still apply (20,000 changed/complement explicit IDs), independently of the
+one-million-entity readback limit. Shell physical-fringe runtime verification,
+other builds and headless modes remain outstanding.
+
+Combined acceptance passed 17 recorded checks under visible maximized 4.13.4:
+`native-validity-acceptance-ea4083ae005947babc82efee5e11edde` in the dated task
+directory. The first render preserves one manually blanked present element
+(5,049 visible); explicitly showing that element restores the 5,050-element
+physical scope. The replay output is the reference for the zero-pixel-difference
+test. Source-family fingerprints were unchanged and the owned GUI was closed.
+The final fitted image was visually reviewed. Local unit/integration suite:
+480 passed; this count does not imply native certification for every tool.
+
 ## Remaining integration
 
-This change does not add physical masking to `render_gui_field` or animation,
-and does not certify numerical equivalence between native layer averaging and
-reader stored integration points. The release gate for complete validity and
-visual/numeric agreement remains partial. See [public fixtures](PUBLIC_TEST_CORPUS.md)
-for the expanded regression inputs.
+Physical-fringe animations now reject explicitly until per-frame visibility is
+replayed and verified; one static Blank table cannot represent changing deletion
+states. Ordinary previously validated raw-field animations retain their scope.
+Native layer averaging and reader stored integration points are not implicitly
+equated. The release validity gate remains partial. See
+[public fixtures](PUBLIC_TEST_CORPUS.md) for the expanded regression inputs.
