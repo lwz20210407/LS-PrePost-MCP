@@ -347,6 +347,18 @@ class Sessions:
                             target = directory / "initial.k"
                         if target is not None:
                             save_checkpoint_context(target, ident, reply.get("data"), self.directory(ident))
+                        if model is None and action != 'gui_new' and (export or safe_beams):
+                            from .resident_models import remember_exports
+
+                            identities = {}
+                            before_export = directory/'beam-export-before.json'
+                            if safe_beams and before_export.is_file():
+                                identities['beam'] = remember_exports(data, [directory/'beam-connectivity.k'],
+                                    json.loads(before_export.read_text(encoding='utf8')), ident, self.directory(ident))
+                            if export:
+                                identities['keyword'] = remember_exports(data, [directory/'model.k'],
+                                    reply.get('data'), ident, self.directory(ident))
+                            result['native_export_identity'] = identities
                     except Exception as exc:
                         result.update(status="failed", error={"message": str(exc)})
                 data.update(
@@ -682,6 +694,8 @@ class SessionTools:
                     model_generation=uuid.uuid4().hex,
                     reset_recovery_source=None, reset_rollback_checkpoint=None,
                     last_verified_source=None,
+                    last_list_source=None,
+                    native_export_aliases=[],
                     selection_buffers={},
                     entity_visibility_last=None,
                     managed_fringe=None,
@@ -702,6 +716,12 @@ class SessionTools:
         from .resident_models import activate
 
         return activate(self, session_id, source_path)
+
+    def unload_gui_model(self, session_id: str, source_path: str, activate_source_path: str) -> dict:
+        """Unload one managed resident source, explicitly choosing a different managed survivor. Saves keyword memory before removal, uses uniquely verified native display number, checks exactly one entry removed, and reselects the survivor by refreshed row. Retains removed keyword checkpoint; never deletes source files. Rejects uncertainty/recording/unmanaged or ambiguous models. Does not restore arbitrary viewport/selection or all models after a crash."""
+        from .resident_models import unload
+
+        return unload(self, session_id, source_path, activate_source_path)
 
     def gui_session_action(self, session_id: str, action: str, parameters: dict) -> dict:
         """Execute an existing typed native operation against the same in-memory model; no unrestricted script or shell. Failed mutations mark state uncertain."""

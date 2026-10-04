@@ -69,7 +69,8 @@ def checkpoint_expected_empty(path, session_id):
 def reset_baseline(directory, rollback_checkpoint):
     path = str(Path(directory) / 'initial.k')
     return dict(source=None, staged_model=path, reset_recovery_source=path,
-                reset_rollback_checkpoint=rollback_checkpoint)
+                reset_rollback_checkpoint=rollback_checkpoint, native_export_aliases=[],
+                last_verified_source=None, last_list_source=None)
 
 
 def restart_source(meta):

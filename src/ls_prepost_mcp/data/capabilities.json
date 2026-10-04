@@ -1671,6 +1671,19 @@
       ],
       "scope": "Activate a unique managed resident keyword/d3plot by staged source or owned file-verified checkpoint alias. Native select uses refreshed row position; keyword memory saved before/after; source/type/list checked; managed selection/field caches invalidated. No reopen/unload. Active recordings reject; no all-model scene/crash or old-version/headless certification.",
       "validation": "Independent synthetic A/B edits retained across switches; changed source paths after save resolved; result->keyword->result using official general d3plot; old buffer/unmanaged input/recording rejection; originals unchanged."
+    },
+    {
+      "id": "automation.unload_gui_model",
+      "tool": "unload_gui_model",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible maximized GUI"
+      ],
+      "scope": "Unload one known resident model with an explicit distinct managed survivor. Saves keyword memory during preparation, verifies unique native display number, exactly one removed list entry and survivor reactivation. Retains removed keyword checkpoint; no source files deleted. Recording/uncertainty/ambiguous ownership reject. General replace/attach, full scene/crash recovery, old versions and headless remain separate.",
+      "validation": "Synthetic A/B/C edits plus official general d3plot: inactive A then sparse-number B unload, checkpoint reopen with edited node, active restored A unload, result unload, survivor C edit retained, input family SHA-256 unchanged. Relative beam export replaced by absolute path; native export aliases require pre-export source and file-bound identity."
     }
   ],
   "native_reference_builds": [

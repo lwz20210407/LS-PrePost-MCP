@@ -149,4 +149,6 @@
 
 随后P0受管激活增量：`activate_gui_model` 已通过两个独立keyword编辑保持与官方d3plot往返的4.13.4可见验收，含原生保存路径变化、前后检查点和缓存失效；该明确范围的activate已落地。完整replace/attach/unload、任意手工状态和多模型场景/崩溃恢复未完成；见GUI_WORKFLOWS，25/36继续保持。
 
+P0受管卸载增量：`unload_gui_model` 对活动/非活动keyword及官方general结果已通过可见验收，含稀疏显示编号、明确保留模型、检查点重开及编辑保持。该限定unload已落地；梁检查临时导出路径副作用同步修复。replace/attach、多模型录制与完整场景恢复继续保留缺口，25/36不变。
+
 2026-10-04增量与优先级修正：标准壳/实体物理删除过滤、限定云图/动画、节点/Part/Segment集合与SPC/压力/无反射边界、壳拓扑选择已有原生证据，以[COVERAGE](COVERAGE.md)及各专页为准；上表保留的早期缺口描述不代表这些增量仍未实现。[定向节点替换](NODE_REPLACEMENT.md)新增原生连接更新、限定引用修复和回放重开。用户再次指出覆盖偏少、偏局部；按[交付计划的六域扩展顺序](DELIVERY_PLAN.md)推进，下一批转到Post/XYPlot多曲线，再扩常用载荷/规定运动等通用Entity能力。36项首版验收不取代总体75项backlog。

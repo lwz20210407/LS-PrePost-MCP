@@ -2,10 +2,13 @@ import pytest
 
 from ls_prepost_mcp.checkpoint_context import save_checkpoint_context
 from ls_prepost_mcp.resident_models import (
+    list_identities,
     matching_resident_row,
     matching_row,
     owned_target,
+    remember_exports,
     remember_model,
+    removal_number,
     source_candidates,
     verify_context,
 )
@@ -90,3 +93,44 @@ def test_reset_undo_checkpoint_is_not_identity_of_new_empty_model():
     native = dict(model_directory="F:/old", counts=dict(nodes=8, elements=1, states=1))
     with pytest.raises(ValueError, match="match"):
         verify_context(context, native, "owned-session")
+
+
+@pytest.mark.parametrize("value", [None, 0, -1, True, "3"])
+def test_unload_requires_actual_positive_display_number(value):
+    row = dict(row_index=2, display_number=value)
+    with pytest.raises(ValueError, match="unique positive"):
+        removal_number([row], row)
+
+
+def test_unload_number_is_not_row_and_duplicates_reject():
+    row = dict(row_index=2, display_number=7)
+    assert removal_number([row], row) == 7
+    with pytest.raises(ValueError, match="unique positive"):
+        removal_number([row, dict(row_index=4, display_number=7)], row)
+
+
+def test_list_comparison_ignores_row_shift_but_detects_other_model_changes():
+    a = dict(row_index=2, display_label="7-A", path="F:/a.k")
+    shifted = dict(a, row_index=1)
+    assert list_identities([a], {}, "s") == list_identities([shifted], {}, "s")
+    assert list_identities([a], {}, "s") != list_identities([dict(a, path="F:/b.k")], {}, "s")
+
+
+def test_auxiliary_export_identity_is_bound_without_replacing_recovery_checkpoint(tmp_path):
+    original = tmp_path / "input" / "model.k"
+    original.parent.mkdir()
+    original.write_text("*KEYWORD\n*END\n")
+    output = tmp_path / "read" / "beam-connectivity.k"
+    output.parent.mkdir()
+    output.write_text("*KEYWORD\n*END\n")
+    meta = dict(staged_model=str(original), model_kind="keyword", last_checkpoint=str(original))
+    native = dict(model_directory=str(original), counts=dict(nodes=0, elements=0, states=0))
+    result = remember_exports(meta, [output], native, "s", tmp_path)
+    assert result["registered"] and meta["last_checkpoint"] == str(original)
+    assert verify_context(meta, dict(native, model_directory=str(output)), "s")["empty_model_verified"]
+    remember_exports(meta, [output], native, "s", tmp_path)
+    assert meta["native_export_aliases"] == [str(output)]
+    bad = dict(native, model_directory=str(tmp_path / "unrelated" / "model.k"))
+    other = dict(staged_model=str(original), model_kind="keyword")
+    assert not remember_exports(other, [output], bad, "s", tmp_path)["registered"]
+    assert "native_export_aliases" not in other
