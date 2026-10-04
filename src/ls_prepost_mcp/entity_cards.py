@@ -7,7 +7,10 @@ from collections import Counter
 from .deck_backend import api
 
 DOFS = ("dofx", "dofy", "dofz", "dofrx", "dofry", "dofrz")
-CAPTURE = ("*SET_NODE", "*SET_PART", "*SET_SEGMENT", "*BOUNDARY_SPC", "*BOUNDARY_PRESCRIBED_MOTION", "*DEFINE_COORDINATE")
+SET_KEYWORDS = {"*SET_NODE_LIST": "node", "*SET_PART_LIST": "part", "*SET_SHELL_LIST": "shell",
+                "*SET_SOLID": "solid", "*SET_BEAM": "beam"}
+CAPTURE = ("*SET_NODE", "*SET_PART", "*SET_SEGMENT", "*SET_SHELL", "*SET_SOLID", "*SET_BEAM",
+           "*BOUNDARY_SPC", "*BOUNDARY_PRESCRIBED_MOTION", "*DEFINE_COORDINATE")
 
 
 def native_blocks(path, capture_prefixes=CAPTURE):
@@ -62,14 +65,40 @@ def list_set(name, lines):
     sid = int(header[0])
     if sid <= 0:
         raise ValueError("Nonpositive set ID")
-    attrs = [float(v) if v else 0.0 for v in header[1:5]]
+    kind = SET_KEYWORDS[name.removesuffix("_TITLE")]
+    width = {"node": 7, "part": 6, "shell": 5, "solid": 3, "beam": 1}[kind]
+    if any(header[width:]):
+        raise ValueError("Unsupported list-set header fields")
+    attrs = [float(v) if v else 0.0 for v in header[1:5]] if kind in ("node", "part", "shell") else []
     if not all(math.isfinite(v) for v in attrs):
         raise ValueError("Nonfinite set attributes")
     members = _members([int(v) for line in lines[start+1:] for v in fields(line) if v])
-    kind = "node" if name.startswith("*SET_NODE") else "part"
     return dict(entity_type=kind, set_id=sid, title=lines[1].strip() if titled else "",
-                member_ids=members, attributes=attrs, solver=header[5] or "MECH",
-                its=(header[6] or "1") if kind == "node" else None)
+                member_ids=members, attributes=attrs,
+                solver=(header[5] or "MECH") if kind in ("node", "part") else ((header[1] or "MECH") if kind == "solid" else None),
+                its=(header[6] or "1") if kind == "node" else ((header[2] or "0") if kind == "solid" else None))
+
+
+def element_set_fragment(kind, sid, title, members):
+    """Emit the documented short-format lists; SOLID's SDK class only has k1..k8.
+
+    Use a bounded fragment, never a full-deck rewriter. These layouts deliberately
+    differ: SHELL has DA1..4, SOLID has SOLVER/ITS, BEAM has SID only.
+    """
+    keyword = {"shell": "*SET_SHELL_LIST_TITLE", "solid": "*SET_SOLID_TITLE", "beam": "*SET_BEAM_TITLE"}[kind]
+    if type(sid) is not int or not 0 < sid < 10**10 or any(type(uid) is not int or not 0 < uid < 10**10 for uid in members):
+        raise ValueError("Short-format set IDs must be positive integers fitting ten columns")
+    header = f"{sid:10d}"
+    attrs, solver, its = [], None, None
+    if kind == "shell":
+        header += ''.join(f'{0.0:10.1f}' for _ in range(4))
+        attrs = [0.0] * 4
+    elif kind == "solid":
+        header += f'{"MECH":>10}'  # Leave version-dependent ITS at its default.
+        solver, its = "MECH", "0"
+    rows = [''.join(f'{uid:10d}' for uid in members[i:i+8]) for i in range(0, len(members), 8)]
+    text = '\n'.join(['*KEYWORD', keyword, title, header, *rows, '*END', ''])
+    return text, dict(attributes=attrs, solver=solver, its=its)
 
 
 def spc_rows(name, lines):
@@ -152,7 +181,7 @@ def inspect_cards(path):
                 raise ValueError("Duplicate segment set IDs")
             result["sets"][key] = record
             continue
-        if name in ("*SET_NODE_LIST", "*SET_NODE_LIST_TITLE", "*SET_PART_LIST", "*SET_PART_LIST_TITLE"):
+        if name.removesuffix("_TITLE") in SET_KEYWORDS:
             record = list_set(name, lines)
             key = (record["entity_type"], record["set_id"])
             if key in result["sets"]:

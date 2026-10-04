@@ -36,6 +36,18 @@
 
 ## 本批实现接口
 
+### 2026-10-05：Shell / Solid / Beam 显式集合
+
+在已有 `create_gui_entity_set` / `inspect_gui_entity_sets` 中增加 `entity_type=shell|solid|beam`。仍可用显式用户ID或同会话、同模型代次、同实体域的选择结果；不会把节点ID或一个笼统的element选区当作特定单元域。
+
+布局按R16 Volume I的SET章节核对：Shell为SID+DA1–DA4；Solid为SID+SOLVER及版本相关ITS（新建MECH，ITS留默认0）；Beam只有SID。新建片段采用每行8个成员的10列定宽格式，原生导出再独立解析；本机PyDYNA `SetSolid` 的固定k1–k8接口不能作为任意长列表的正确性依据，因此这里使用受控目标片段，不全量重写原模型。
+
+4.13.4可见GUI合成验收：每类12个稀疏单元ID，同SID=41的节点/Shell/Solid/Beam集合共存；保留隐藏实体状态及完整网格。随后录制回放把三类成员改为各自末3个、SID改为42，选择结果依赖自动传到集合创建；保存重开后成员和其余原生卡片一致。分页、错域ID、同域SID碰撞、错类型选区、重开后的旧选区均有验证。27步通过，源文件未变；全套590项测试通过。
+
+可复现入口：`tools/run_element_set_acceptance.py --workspace <本地测试目录> --executable <LS-PrePost路径>`。该验收只创建并关闭自己拥有的会话。
+
+边界：新增三类当前支持create/query，不开放 `replace_members`；集合成员变化会影响载荷、接触、截面等消费者，必须补引用影响分析。Generate/General/Add/Collect/Column、Discrete/Seatbelt/ThickShell、Include和求解器物理验证未由本批认证。每次最多20000成员，不是全模型网格上限。
+
 - `create_gui_entity_set`：`entity_type=node|part`，`mode=create|replace_members`。从显式实体ID或同会话 `selection_job` 创建 `SET_NODE_LIST` / `SET_PART_LIST`；新建拒绝ID冲突，替换要求已有集合，保留DA、solver、ITS属性。成员最多20000，不是整个模型大小上限。只允许明确支持的列表集合；同域其他集合变体未解析时拒绝操作。
 - `inspect_gui_entity_sets`：从原生临时导出读取集合名称、属性、数量及分页成员；不改受管检查点归属。未知集合变体显式报告，不能作为空集合。
 - `create_gui_spc`：`node_set_id`或`node_ids`二选一；六个显式0/1自由度按X/Y/Z/RX/RY/RZ排列，坐标系0为全局。SPC_SET使用给定约束ID；多个单节点约束按节点ID排序，从给定ID开始连续分配，每个节点一张原生SPC_NODE_ID卡，返回对应关系并检查全部ID冲突。原生4.13导入一张多行SPC_NODE_ID时只保留了第一条，因此不能使用这种格式批量建约束。

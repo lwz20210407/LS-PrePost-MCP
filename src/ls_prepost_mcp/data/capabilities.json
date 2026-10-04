@@ -1515,12 +1515,14 @@
       "status": "native_tested",
       "sources": [
         "official-2026r1-guide",
-        "library-pydyna"
+        "library-pydyna",
+        "keyword-r16-element-sets"
       ],
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Native controlled fragment import of node/part LIST sets from IDs or owned current-model selection jobs; create/replace members, preserve DA/solver/ITS, collision/conflict rejection, exact native saved cards and streamed mesh/scene checks. 4.13.4 mixed standard elements, parameterized replay and reopen passed. At most20000 members, ASCII names, standalone decks; no arbitrary set variants/Include/full-panel certification."
+      "scope": "Native controlled fragment import of node/part LIST sets from IDs or owned current-model selection jobs; create/replace members, preserve DA/solver/ITS, collision/conflict rejection, exact native saved cards and streamed mesh/scene checks. 4.13.4 mixed standard elements, parameterized replay and reopen passed. At most20000 members, ASCII names, standalone decks; no arbitrary set variants/Include/full-panel certification.",
+      "element_list_scope": "Shell/Solid/Beam explicit-list create/query; separate native layouts and typed user-ID checks.27-step visible4.13.4,12 sparse members/domain,scene preservation,per-domain SID namespace,rejections,recorded changed-member/SID replay and native reopen passed. Element-list replace_members,Generate/General/Collect,Discrete/Seatbelt/ThickShell and solver physics remain outside this acceptance."
     },
     {
       "id": "gui_entities.inspect_gui_entity_sets",
@@ -1528,12 +1530,14 @@
       "status": "native_tested",
       "sources": [
         "official-2026r1-guide",
-        "library-pydyna"
+        "library-pydyna",
+        "keyword-r16-element-sets"
       ],
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Native full keyword export with node/part LIST inventory and paged member IDs; typed card parser handles fixed10-column/CSV lists without dropping members. Display/mesh/state checked. Full-export I/O cost; unsupported variants reported, not expanded. Also native Segment inventory and paged directed connectivity, including triangle padding and two-node edges, passed."
+      "scope": "Native full keyword export with node/part LIST inventory and paged member IDs; typed card parser handles fixed10-column/CSV lists without dropping members. Display/mesh/state checked. Full-export I/O cost; unsupported variants reported, not expanded. Also native Segment inventory and paged directed connectivity, including triangle padding and two-node edges, passed.",
+      "element_list_scope": "Shell/Solid/Beam explicit-list create/query; separate native layouts and typed user-ID checks.27-step visible4.13.4,12 sparse members/domain,scene preservation,per-domain SID namespace,rejections,recorded changed-member/SID replay and native reopen passed. Element-list replace_members,Generate/General/Collect,Discrete/Seatbelt/ThickShell and solver physics remain outside this acceptance."
     },
     {
       "id": "gui_entities.create_gui_spc",

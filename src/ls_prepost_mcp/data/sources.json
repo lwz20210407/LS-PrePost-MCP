@@ -1502,5 +1502,14 @@
     "integration": "bounded_implementation_native_tested",
     "summary": "Reviewed LE05 pages14-24 and WI05 native macro block/parameter examples. Supports evidence for native block names, literal parameter defaults, ampersand references and node/element/part pick annotations. Independently authored synthetic macro executed in4.13.4; Shift+Fn, toolbar installation and interactive pause/resume remain pending.",
     "scope": "Selected pages and examples only; not complete course or version compatibility certification"
+  },
+  {
+    "id": "keyword-r16-element-sets",
+    "title": "LS-DYNA R16 explicit Beam/Shell/Solid set definitions",
+    "url": "https://lsdyna.ansys.com/wp-content/uploads/2026/08/LS-DYNA_Manual_Vol_I_R16.pdf",
+    "summary": "Read PDF pages3765,3825,3834-3835 locally: domain-specific headers, eight IDs per row, repeated member rows, Solid SOLVER and ITS default0. Used with actual4.13.4 create/query/replay/reopen checks.",
+    "license_status": "Proprietary manual, references only; no redistribution",
+    "integration": "selected_semantics_native_tested",
+    "scope": "Explicit list sets only; no Generate/General/Collect or full-manual certification"
   }
 ]

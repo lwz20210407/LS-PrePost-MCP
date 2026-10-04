@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "baseline_id": "R1-20261003-36",
-  "updated_at": "2026-10-04T18:19:17.019701+00:00",
+  "updated_at": "2026-10-04T18:37:11.740836+00:00",
   "verified_commit": "5dc5197db75b960da6cf5b68c71e927d7c12f1e8",
   "frozen_gate_count": 36,
   "scope": "范围：Windows LS-PrePost 4.13.4 可见 GUI 的首个实用版本；按36项等权验收门槛计算，不是整个软件功能覆盖率或剩余工时。",
   "outside_scope": "后续总体路线仍保留：常用菜单扩展、接触与Include工程化、7模板完整工况、4.8/4.10及两种无GUI、后排CAD与高级模块。未纳入本期36项，不能据本进度称全部完成。",
-  "current_task": "已推送加载误报防护7345fcd；新增原生macro文件导入/数值绑定、bound.mac/cfile输出，在4.13.4同GUI中101→103选区读回和网格保持通过，574项测试通过。下一步原生快捷键/交互生命周期与选择+Entity；完整模型替换仍待补，B0-03保持partial，25/36不是软件覆盖率。",
+  "current_task": "仓库保持Private，需用户明确决定才恢复公开。Shell/Solid/Beam显式集合扩展完成27步4.13.4可见GUI创建/查询/换参回放/保存重开，590项测试通过；同步资料/Skill。下一步BySet选择与引用影响、常用载荷，交错推进Post。模型完整替换仍待补，B0-03保持partial。",
   "groups": [
     {
       "id": "B0",

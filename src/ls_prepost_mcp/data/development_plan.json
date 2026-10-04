@@ -22,7 +22,8 @@
         "guide-common-blank",
         "keyword-r11-boundaries",
         "keyword-r16-boundaries",
-        "official-binary-database-mdlopt2"
+        "official-binary-database-mdlopt2",
+        "keyword-r16-element-sets"
       ],
       "review_status": "selected_sections_reviewed",
       "conversion_status": "partial",
@@ -1394,7 +1395,7 @@
       "status": "in_progress",
       "milestone": "R1",
       "evidence": "docs/ENTITY_CREATION.md",
-      "progress": "Six first-release Entity Creation gates now have bounded native4.13.4 evidence: node/part LIST, global SPC, conforming Segment faces/edges, pressure curves/named IDs/units/sign metadata,3D nonreflecting and modern/legacy2D routes. Includes replay, collision/overlap/formulation/order rejection and reopen. Broader panel variants, other LSPP builds, solver physics and Include workflows remain separate work."
+      "progress": "Six first-release Entity Creation gates now have bounded native4.13.4 evidence: node/part LIST, global SPC, conforming Segment faces/edges, pressure curves/named IDs/units/sign metadata,3D nonreflecting and modern/legacy2D routes. Includes replay, collision/overlap/formulation/order rejection and reopen. Broader panel variants, other LSPP builds, solver physics and Include workflows remain separate work. Shell/Solid/Beam explicit-list create/query now extend the existing selection-driven tools.27-step visible4.13.4 synthetic acceptance includes12 sparse members/domain,domain-specific headers and same-SID coexistence,hidden-scene preservation,wrong/stale selection rejection,changed-member/SID recording replay and native reopen. Element-set replacement/consumer impact,other set variants and discrete/seatbelt/thick-shell remain pending."
     }
   ],
   "knowledge_tools": [

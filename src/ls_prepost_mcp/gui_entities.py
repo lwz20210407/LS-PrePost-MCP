@@ -7,7 +7,14 @@ from pydantic import StrictInt
 
 from .config import command_path
 from .deck_backend import api
-from .entity_cards import DOFS, check_spc_conflicts, inspect_cards, set_members, verify_cards
+from .entity_cards import (
+    DOFS,
+    check_spc_conflicts,
+    element_set_fragment,
+    inspect_cards,
+    set_members,
+    verify_cards,
+)
 from .gui_mesh import verify_mesh_digest
 from .gui_selection import mesh_signature, part_visibility
 from .jobs import atomic_json, check_artifact
@@ -52,13 +59,16 @@ class GuiEntityTools:
     def create_gui_entity_set(self, session_id: str, entity_type: str, set_id: StrictInt, title: str,
                               entity_ids: list[StrictInt] | None = None, selection_job: str | None = None,
                               mode: str = "create") -> dict:
-        """Create or replace_members of a native NODE_LIST/PART_LIST set from explicit user IDs or a successful same-session selection job (one source only). Reject stale models/empty members; create rejects SID collisions, replace_members requires an existing supported set and preserves DA/solver/ITS attributes while updating title/membership. Import a generated fragment in the visible keyword session; verify saved cards, full mesh/state/display and unchanged unrelated cards. Max20000 members; no arbitrary set variants, Include editing or full panel coverage. Workflow result dependencies preserve selection-to-set replay."""
+        """Create native node/part/shell/solid/beam explicit-list sets from user IDs or a successful same-domain/session selection job (one source only). Reject stale models, empty/wrong-domain members and same-domain SID collisions. replace_members currently supports node/part only, preserving DA/solver/ITS; element-set replacement needs consumer impact analysis. Import a bounded keyword fragment in the visible GUI; verify cards, full mesh/state/display and unrelated cards. Max20000 members; no Generate/General/Add/Collect, Include, discrete/seatbelt or complete panel certification. Recorded result dependencies preserve selection-to-set replay."""
         from .service import integer
 
-        if entity_type not in ("node", "part"):
-            raise ValueError("Entity set type must be node or part")
+        if entity_type not in ("node", "part", "shell", "solid", "beam"):
+            raise ValueError("Entity set type must be node, part, shell, solid or beam")
         if mode not in ("create", "replace_members"):
             raise ValueError("Set mode must be create or replace_members")
+        element_set = entity_type in ("shell", "solid", "beam")
+        if element_set and mode != "create":
+            raise ValueError("Element-set replacement requires consumer impact analysis; currently create/query only")
         integer(set_id, "set_id")
         title = entity_title(title)
         if (entity_ids is None) == (selection_job is None):
@@ -71,11 +81,15 @@ class GuiEntityTools:
             ids(entity_ids, "entity_ids", 20000)
             members = sorted(entity_ids)
         Deck, kw = api()
-        card = (kw.SetNodeList if entity_type == "node" else kw.SetPartList)(sid=set_id)
-        setattr(card, "nodes" if entity_type == "node" else "parts", members)
-        card.title = title
-        fragment = Deck()
-        fragment.append(card)
+        if element_set:
+            fragment_text, attributes = element_set_fragment(entity_type, set_id, title, members)
+        else:
+            card = (kw.SetNodeList if entity_type == "node" else kw.SetPartList)(sid=set_id)
+            setattr(card, "nodes" if entity_type == "node" else "parts", members)
+            card.title = title
+            fragment = Deck()
+            fragment.append(card)
+            attributes = dict(attributes=[0.0] * 4, solver="MECH", its="1" if entity_type == "node" else None)
         baseline = {}
 
         def precheck(state):
@@ -111,11 +125,14 @@ class GuiEntityTools:
 
         def commands(state, directory):
             path = directory / "entity-set.k"
-            fragment.export_file(str(path))
+            if element_set:
+                path.write_text(fragment_text, encoding="ascii")
+            else:
+                fragment.export_file(str(path))
             return ["import keyword " + command_path(path)]
 
         expected = dict(entity_type=entity_type, set_id=set_id, title=title, member_ids=sorted(members),
-                        attributes=[0.0] * 4, solver="MECH", its="1" if entity_type == "node" else None)
+                        **attributes)
         def postcheck(_, path, validation):
             audit = verify_cards(baseline, inspect_cards(path), new_set=expected)
             affected = [s for s in baseline["spcs"] if entity_type == "node" and s["target_type"] == "node_set" and s["target_id"] == set_id]
@@ -130,11 +147,11 @@ class GuiEntityTools:
 
     def inspect_gui_entity_sets(self, session_id: str, entity_type: str,
                                 set_id: StrictInt | None = None, offset: StrictInt = 0, limit: StrictInt = 1000) -> dict:
-        """Query native-export node/part LIST or segment sets with titles/counts; optional SID returns paged member user IDs or oriented segment node tuples. Uses a temporary full native export and scene verification without changing dirty/checkpoint ownership. Other set variants are reported unresolved, not expanded or silently treated as empty."""
+        """Query native-export node/part/shell/solid/beam explicit-list or segment sets with titles/counts and domain-specific attributes; optional SID returns paged user IDs or oriented segment tuples. Temporary native export and scene checks preserve dirty/checkpoint ownership. Other variants are reported unresolved, never silently treated as empty or expanded."""
         from .service import integer
 
-        if entity_type not in ("node", "part", "segment"):
-            raise ValueError("Set type must be node, part or segment")
+        if entity_type not in ("node", "part", "segment", "shell", "solid", "beam"):
+            raise ValueError("Set type must be node, part, shell, solid, beam or segment")
         integer(offset, "offset", 0)
         integer(limit, "limit", 1, 5000)
         if set_id is not None:
