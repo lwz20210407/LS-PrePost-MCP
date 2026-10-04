@@ -3,6 +3,7 @@
 import csv
 import json
 import math
+from contextlib import nullcontext
 
 from .config import command_path, scl_command_path
 from .field_contracts import FieldSpec, ResultSelection, SamplingSpec
@@ -184,7 +185,7 @@ def field_range(values, requested):
 
 def render_field(
     service, session_id, entity_type, field, state, units, integration_point, part_ids, color_range, averaging="minmax",
-    validity_policy="raw"
+    validity_policy="raw", *, _locked=False, _journal=True
 ):
     validity_scope(validity_policy)
     if validity_policy == "alive" and entity_type not in ("solid", "shell"):
@@ -205,7 +206,7 @@ def render_field(
     if color_range is not None:
         field_range([0], color_range)
     manager = service._session_manager()
-    with manager.lock(session_id):
+    with nullcontext() if _locked else manager.lock(session_id):
         meta = service._visible_mesh_session(session_id, manager, allow_results=True)
         if meta["model_kind"] != "d3plot":
             raise ValueError("Field rendering requires a result session")
@@ -488,5 +489,6 @@ def render_field(
             manifest["native_diagnostics"] = diagnostics()
         manifest["finished_at"] = now()
         atomic_json(directory / "job.json", manifest)
-        manager.journal(session_id, dict(action="render_gui_field", parameters=parameters, result=manifest))
+        if _journal:
+            manager.journal(session_id, dict(action="render_gui_field", parameters=parameters, result=manifest))
         return manifest

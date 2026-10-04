@@ -57,4 +57,6 @@ Drivers: `tools/run_gui_fringe_acceptance.py` for native field/replay/movie chec
 
 ## Solid point regression (2026-10-04)
 
+Physical-field animation has a separate [native PNG + FFmpeg sequence contract](FIELD_MOVIES.md), with per-state deletion checks and explicit encoder provenance. It does not replace the native Movie-command interface.
+
 The public mixed solid/shell fixture showed native SCL returning the point-1 tensor for a point-8 request despite positive full-integration status. Shared sampling validation now rejects native solid selectors2..8 before field or image dispatch. The earlier header guard was necessary but insufficient; it did not verify actual point selection. Default/point1 and shell selections retain their separate scope. See [evidence and remaining adapter work](RESULT_VALIDITY.md).

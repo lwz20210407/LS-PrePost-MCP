@@ -115,9 +115,11 @@ The final fitted image was visually reviewed. Local unit/integration suite:
 
 ## Remaining integration
 
-Physical-fringe animations now reject explicitly until per-frame visibility is
-replayed and verified; one static Blank table cannot represent changing deletion
-states. Ordinary previously validated raw-field animations retain their scope.
+The original native Movie-command interface still rejects physical-fringe
+animations. The explicit [per-state field animation](FIELD_MOVIES.md) route now
+renders each verified physical scope in LS-PrePost and encodes its PNGs using
+FFmpeg; it has solid4.13.4 frame-count, deletion and parameter-replay evidence.
+Ordinary previously validated raw-field native movies retain their scope.
 Native layer averaging and reader stored integration points are not implicitly
 equated. The release validity gate remains partial. See
 [public fixtures](PUBLIC_TEST_CORPUS.md) for the expanded regression inputs.

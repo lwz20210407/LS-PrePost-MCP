@@ -14,6 +14,13 @@ from .scene_state import require_movie_field_coverage
 
 
 class GuiMediaTools:
+    def export_gui_field_animation(self, session_id: str, states: list[StrictInt], color_range: list[StrictFloat],
+                                   fps: StrictInt = 10, width: StrictInt = 1280, height: StrictInt = 720) -> dict:
+        """Render every requested state in LS-PrePost from the current verified alive solid/shell fringe, then explicitly encode native PNGs with FFmpeg H264. Fixed color bounds required; unchanged camera/field/averaging. Frame scope is ALL alive entities in selected parts, ignoring manual Blank during export; original Blank/state/fringe restored afterwards. Not the native Movie command. Uniform FPS; saved physical times retained without resampling. Record a render_gui_field step before this context-dependent operation for replay."""
+        from .gui_field_movie import export_field_movie
+
+        return export_field_movie(self, session_id, states, color_range, fps, width, height)
+
     def render_gui_field(
         self,
         session_id: str,
@@ -27,7 +34,7 @@ class GuiMediaTools:
         averaging: str = "minmax",
         validity_policy: str = "raw",
     ) -> dict:
-        """Render native field CSV/PNG with default MinMax averaging; preserve model/title captions. CSV is raw entity values, not averaged pixels. validity_policy=alive explicitly adds a LASSO MDLOPT2 mask for solid/shell, verifies native deleted-element hiding and exact CSV population; missing masks fail. Default raw retains legacy display scope. Scene/physical Blank retained; physical-mask movie replay is not yet supported. No inferred units/frame/history meaning."""
+        """Render native field CSV/PNG with default MinMax averaging; preserve model/title captions. CSV is raw entity values, not averaged pixels. validity_policy=alive explicitly adds a LASSO MDLOPT2 mask for solid/shell, verifies native deleted-element hiding and exact CSV population; missing masks fail. Default raw retains legacy display scope. Scene/physical Blank retained; use export_gui_field_animation for explicit native PNG/FFmpeg per-state movies. No inferred units/frame/history meaning."""
         from .gui_fringe import render_field
 
         return render_field(

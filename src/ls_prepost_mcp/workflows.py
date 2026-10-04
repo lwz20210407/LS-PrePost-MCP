@@ -24,6 +24,7 @@ GUI_ACTIONS = {
     "render_gui_field",
     "export_gui_curve_plot",
     "export_gui_animation",
+    "export_gui_field_animation",
     "check_gui_keywords",
     "inspect_gui_menu",
     "check_gui_shell_quality",

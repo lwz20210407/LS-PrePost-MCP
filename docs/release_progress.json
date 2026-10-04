@@ -2,11 +2,11 @@
   "schema_version": 1,
   "baseline_id": "R1-20261003-36",
   "updated_at": "2026-10-04T18:31:35+08:00",
-  "verified_commit": "5ca05661e3c21489cfcb04be90fe7ecac561445d",
+  "verified_commit": "40330210800a6b3984637ce7b6b4748e54c1d281",
   "frozen_gate_count": 36,
   "scope": "范围：Windows LS-PrePost 4.13.4 可见 GUI 的首个实用版本；按36项等权验收门槛计算，不是整个软件功能覆盖率或剩余工时。",
   "outside_scope": "后续总体路线仍保留：常用菜单扩展、接触与Include工程化、7模板完整工况、4.8/4.10及两种无GUI、后排CAD与高级模块。未纳入本期36项，不能据本进度称全部完成。",
-  "current_task": "静态云图已接入物理删除过滤：原生显隐、CSV成员、有效范围和回放通过；固定显示设置下删除单元缓冲值扰动不改变PNG。正在收口联合验收。逐帧动画及其他单元类型仍待完成。",
+  "current_task": "逐状态物理云图动画已跑通：LS-PrePost原生帧+FFmpeg编码，三状态删除数量、显隐恢复及改为两状态的参数化回放通过。壳单元实机删除案例、更多变量/层与恢复联合验收继续推进。",
   "groups": [
     {
       "id": "B0",
@@ -216,10 +216,11 @@
       "title": "失效/侵蚀有效性与极值统计",
       "state": "partial",
       "work_item": "T04",
-      "note": "Solid4.13.4 native fields and static PNG/CSV use verified physical deletion; empty extrema/Blank/replay/retained range passed. Shell runtime and per-frame animation masks remain.",
+      "note": "Solid4.13.4字段、静态PNG/CSV和逐状态PNG/FFmpeg动画已验证物理删除；手工显隐恢复、参数回放通过。壳/其他单元域的原生删除案例仍待补足。",
       "evidence": [
         "docs/RESULT_CONTRACTS.md",
-        "docs/RESULT_VALIDITY.md"
+        "docs/RESULT_VALIDITY.md",
+        "docs/FIELD_MOVIES.md"
       ]
     },
     {

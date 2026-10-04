@@ -1586,6 +1586,21 @@
       ],
       "verification": "LASSO2.0.4 public solid MDLOPT2 mask; sparse/rigid-layout synthetic negatives; normalized NPZ checked after save. Not a native GUI operation or other-domain runtime certification.",
       "scope": "Explicit saved element deletion only; max1m state/entity pairs; missing masks/adaptive epochs reject; see docs/RESULT_VALIDITY.md"
+    },
+    {
+      "id": "media.physical_field_movie",
+      "tool": "export_gui_field_animation",
+      "status": "native_tested",
+      "sources": [
+        "official-scl-rev11",
+        "library-lasso",
+        "official-binary-database-mdlopt2"
+      ],
+      "tested_profiles": [
+        "4.13"
+      ],
+      "verification": "Visible4.13.4 public solid native PNG states1/8/16 with5664/5405/5050 retained entities; FFmpeg5FPS640x4803frames/full decode; four-step recording replay with2states; state/manual Blank/fringe restoration and source identities checked. See docs/FIELD_MOVIES.md.",
+      "scope": "Requires current verified alive solid/shell fringe and explicit fixed bounds. ALL alive entities in selected parts per frame; uniform FPS, no physical-time resampling. Explicit FFmpeg encoder, not native Movie command. Shell runtime/other builds/headless/all-deleted frames remain unverified or rejected."
     }
   ],
   "native_reference_builds": [
