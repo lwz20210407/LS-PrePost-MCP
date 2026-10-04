@@ -105,6 +105,7 @@ SERVICE_TOOLS = (
     "inspect_gui_session",
     "list_gui_sessions",
     "open_in_gui_session",
+    "activate_gui_model",
     "gui_session_action",
     "checkpoint_gui_session",
     "restore_gui_checkpoint",

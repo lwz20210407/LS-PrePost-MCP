@@ -670,7 +670,10 @@ class SessionTools:
             result = manager.dispatch(session_id, "inspect_model", {}, model=staged, file_type=file_type,
                                       **({"expected_empty": True} if expected_empty else {}))
             if result["status"] == "succeeded":
+                from .resident_models import remember_model
+
                 data = manager.read(session_id)
+                remember_model(data)
                 data.update(
                     model_kind=file_type,
                     dirty=False,
@@ -678,12 +681,14 @@ class SessionTools:
                     staged_model=str(staged),
                     model_generation=uuid.uuid4().hex,
                     reset_recovery_source=None, reset_rollback_checkpoint=None,
+                    last_verified_source=None,
                     selection_buffers={},
                     entity_visibility_last=None,
                     managed_fringe=None,
                     fringe_storage={},
                     last_checkpoint=str(staged) if file_type == "keyword" else None,
                 )
+                remember_model(data)
                 manager.save(session_id, data)
             manager.journal(
                 session_id,
@@ -691,6 +696,12 @@ class SessionTools:
                      **({"expected_empty": True} if expected_empty else {})), result=result),
             )
             return result
+
+    def activate_gui_model(self, session_id: str, source_path: str) -> dict:
+        """Activate an existing successfully opened resident source by its exact native path from inspect_gui_session(include_models=True). Saves outgoing/incoming keyword checkpoints, verifies source and unchanged model list, invalidates managed selection/field caches. No reopen/unload or desktop fallback. Rejects ambiguous/unmanaged sources, uncertain sessions and active recordings; full multi-model scene/crash recovery remains separate."""
+        from .resident_models import activate
+
+        return activate(self, session_id, source_path)
 
     def gui_session_action(self, session_id: str, action: str, parameters: dict) -> dict:
         """Execute an existing typed native operation against the same in-memory model; no unrestricted script or shell. Failed mutations mark state uncertain."""

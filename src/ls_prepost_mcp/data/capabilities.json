@@ -1658,6 +1658,19 @@
       ],
       "verification": "Windows4.13.4 visible maximized:26 recorded checks on original Tri3/Quad4 and Hex8 fixtures; native replacement, supported Node/Segment/SPC repair, constraint-ID preservation, topology change, parameter replay, source unchanged, native reopen and pre-edit collapse/conflict/unsupported-reference rejection.",
       "scope": "Directed existing-node replacement; native Replace + targeted fresh-copy reference patch + native reopen. Complete snapshot limit20000; requires pinned PyDYNA. Include/parameter/other element families and known unsupported direct-node references reject. Part flags preserved, selection cleared, full scene/large model/solver/other versions not certified. docs/NODE_REPLACEMENT.md"
+    },
+    {
+      "id": "automation.activate_gui_model",
+      "tool": "activate_gui_model",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible maximized GUI"
+      ],
+      "scope": "Activate a unique managed resident keyword/d3plot by staged source or owned file-verified checkpoint alias. Native select uses refreshed row position; keyword memory saved before/after; source/type/list checked; managed selection/field caches invalidated. No reopen/unload. Active recordings reject; no all-model scene/crash or old-version/headless certification.",
+      "validation": "Independent synthetic A/B edits retained across switches; changed source paths after save resolved; result->keyword->result using official general d3plot; old buffer/unmanaged input/recording rejection; originals unchanged."
     }
   ],
   "native_reference_builds": [
