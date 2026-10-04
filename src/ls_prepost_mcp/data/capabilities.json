@@ -359,8 +359,10 @@
         "official-scl-rev11"
       ],
       "tested_profiles": [
-        "4.13"
-      ]
+        "4.13.4 Windows visible GUI (MATSUM/new session route)",
+        "4.13 historical batch NODOUT/GLSTAT scope"
+      ],
+      "scope": "Single-file native SCLBinout:NODOUT components,GLSTAT energies,MATSUM energy/eroded energy/mass/momentum/rigid-body velocity. Explicit session_id reuses current GUI; workflow session routes here.11 MATSUM fields*101states at stored ID1500 match LASSO exactly in official fixture;missing ID/absent hourglass reject. ID1501 energy-overlay explicit-dependency replay passed. Same-GUI GLSTAT101/NODOUT1001 point checks passed. Source units/model correspondence not inferred;no MPP fragments or universal branch/build coverage."
     },
     {
       "id": "results.native_acceptance",

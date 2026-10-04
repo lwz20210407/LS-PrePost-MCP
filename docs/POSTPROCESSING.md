@@ -4,17 +4,29 @@
 
 ## 原生工作流
 
-优先用 `extract_native_fields`、`extract_native_stress`、`extract_native_ascii_curve` 和 `extract_native_binout_curve`。这些工具实际启动 LS-PrePost，使用 SCL/DataCenter、SCLBinout 或 ASCII/XYPlot。输入先复制到独立任务目录；软件打开副本。
+优先用 `extract_native_fields`、`extract_native_stress`、`extract_native_ascii_curve` 和 `extract_native_binout_curve`。这些工具使用真实 LS-PrePost 的 SCL/DataCenter、SCLBinout 或 ASCII/XYPlot；已接入会话的路线可复用当前实例，其余使用独立原生作业。文件输入先复制到独立任务目录；软件打开副本。
 
 | 工具 | 当前范围 | 选择与限制 |
 |---|---|---|
 | `extract_native_fields` | 节点位移、速度、加速度；单元应力、应变、等效塑性应变、主应力等白名单字段 | 显式用户 ID、1-based 状态；层/积分点按实体合同验证。原生实体积分点2–8已因取值错误而阻断；壳层和读取器存储轴不可混称。字段是否保存取决于数据库 |
 | `extract_native_stress` | 六分量、原生 Mises，以及主应力、三轴度、Lode 派生量 | 原生 SCL 取值；Python 计算张量不变量，并与原生 Mises 对照；不做空间平均 |
 | `extract_native_ascii_curve` | GLSTAT、NODOUT、MATSUM、SPCFORC、SECFORC、RBDOUT 的单曲线接口 | 使用原生对话框分量编号；实机验证范围见能力记录；RCFORC 主从面选择尚未开放 |
-| `extract_native_binout_curve` | NODOUT 位移/速度/加速度/坐标分量；GLSTAT 能量 | 当前仅完整单文件；不支持 MPP 分片集 |
+| `extract_native_binout_curve` | NODOUT 位移/速度/加速度/坐标分量；GLSTAT 能量；MATSUM 能量、侵蚀能量、质量、动量、刚体速度 | 完整单文件；显式session_id复用当前GUI，否则批处理；不支持MPP分片集 |
 | `native_postprocess_case` | 多字段全时程、极值与实体 ID、代表点历程、ASCII 曲线、应力云图 | 当前验收配置 4.13；图像单独走已验证 Python 桥；每类实体取首/中/末三个记录，极值扫描全域；不是逐单元完整场导出 |
 
 批处理驱动 `tools/run_native_acceptance.py` 接受显式私有 inventory JSON、输出目录、安装路径和单位标签。逐组运行，清除本轮创建的输入副本，保留结果及失败日志。不要把私有 inventory、原始文件、CSV、截图和报告上传到公开仓库。
+
+### 当前GUI的Binout与MATSUM（2026-10-05）
+
+`extract_native_binout_curve(..., session_id=...)` 在同一受管GUI里执行有限SCLBinout读取，不重开模型、不另启后台实例。工作流传入会话时采用这条路线。文件为独立的显式数据源，数据库ID不自动与屏幕上的模型Part/Material对应；返回来源指纹、分支、quantity、存储ID、行数和声明单位。单位不推断、不转换。
+
+MATSUM映射：`internal_energy`、`kinetic_energy`、`eroded_internal_energy`、`eroded_kinetic_energy`、`mass`、`hourglass_energy`、`momentum_x/y/z`、`rigid_body_velocity_x/y/z`。读取前核对数据库ID列表；缺ID、未输出量、少于2点、非有限值或非递增时间轴均失败，不生成猜测的零曲线。侵蚀能量是独立的数据库量，不默认加入或扣除其它能量，也不由此宣告能量平衡。
+
+本机Windows4.13.4的 `SCLBinoutOpen` 实测拒绝斜杠风格的绝对文件名；生成脚本使用正确转义的Windows反斜杠路径。SCL打开/数组读取失败会关闭句柄并释放已分配数组。GUI读取核对模型目录、计数、状态、部件显示标志和选择数量，并保持dirty、模型代次与受管检查点；这不是完整几何、相机或选择ID逐项恢复认证。
+
+原生验收：官方单文件案例中ID1500的11类已输出MATSUM量，每类101时刻，与独立LASSO读取逐点比较，实测最大绝对差0；未输出沙漏能及不存在ID正确失败。录制显式工作流“内能/动能提取→原生双曲线PNG”，换ID1501回放后使用新CSV，数值再次一致。另对同GUI的GLSTAT内能101点与NODOUT位移1001点交叉检查通过。共631项代码测试通过。驱动：`tools/run_gui_binout_acceptance.py`，需要显式公开或本地允许的输入路径；不包含求解器数据。
+
+录制复用应在工作流中用 `$artifact` / `$result` 明确绑定提取产物（包括additional_curves中的路径）。任意直接调用中的相同文件路径不自动推断成依赖；否则换ID回放可能继续读旧CSV。更多分支、分片、跨ID求和/比值及各版本仍要单独验收。
 
 `succeeded` 表示约定的导出/一致性检查通过。它不表示全部求解量已保存、物理模型正确或所有 LS-PrePost 功能都受支持。支持该参数的字段/应力工具中，兼容默认 `validity_policy=raw` 保留原始实体，显式 `alive` 才使用已验证的标准壳/实体物理删除过滤；参见[逐状态有效性](RESULT_VALIDITY.md)。不能把一条工具的过滤能力外推给所有后处理入口。
 

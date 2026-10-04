@@ -4,6 +4,8 @@
 
 后续代码增量：现有 `export_gui_curve_plot` 已扩展原生多曲线叠图、明确图例、独立X网格/不同点数、逐曲线数值导出与换源回放；4.13.4三曲线合成验收及PNG目视核对通过，见[NATIVE_MEDIA](NATIVE_MEDIA.md#native-multi-curve-overlays-2026-10-05)。下表是较早截图时点，不应继续把基本叠图列为完全未实现；任意曲线运算、样式、分页/多窗口管理和全部数据库仍待补。
 
+Binout后续增量：`extract_native_binout_curve` 已增加MATSUM映射与显式当前GUI执行路径；11类量的101时刻原生/独立读取器核对、缺量/缺ID拒绝、双曲线输出及换ID回放通过。下表“原生工具拒绝MATSUM”属于旧基线；部件求和、完整分支目录和其它数据库仍未由本批覆盖。详见[后处理范围](POSTPROCESSING.md)。
+
 ## 证据与边界
 
 - Windows LS-PrePost 2026 R1 **4.13.4 / 17Dec2025**，可见主窗口最大化。曲线窗口曾最大化；打开原生 Print 对话框时窗口恢复大小，单独记录，不冒称全程最大化。

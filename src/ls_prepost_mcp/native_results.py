@@ -37,7 +37,7 @@ def stage(settings, source, directory, family=False):
     return sources, before
 
 
-def finish_native(settings, jobs, action, parameters, source, build, parse, family=False, channel=None):
+def finish_native(settings, jobs, action, parameters, source, build, parse, family=False, channel=None, executor=None):
     if not isinstance(parameters.get("units"), str) or not parameters["units"].strip():
         raise ValueError("An explicit unit-system label is required")
     directory, manifest = jobs.create(action, parameters)
@@ -47,11 +47,14 @@ def finish_native(settings, jobs, action, parameters, source, build, parse, fami
         sources, before = stage(settings, source, directory, family)
         manifest["inputs"] = before
         build(directory)
-        process = execute(settings.native_executable(), directory / "commands.cfile", directory,
-                          timeout=settings.timeout, graphics=False)
-        manifest["process"] = process
-        if process["returncode"] != 0 or process["timed_out"]:
-            raise RuntimeError("Native result export failed or timed out")
+        if executor is not None:
+            executor(directory, manifest)
+        else:
+            process = execute(settings.native_executable(), directory / "commands.cfile", directory,
+                              timeout=settings.timeout, graphics=False)
+            manifest["process"] = process
+            if process["returncode"] != 0 or process["timed_out"]:
+                raise RuntimeError("Native result export failed or timed out")
         data, artifacts = parse(directory)
         if [fingerprint(p) for p in sources] != before:
             raise ValueError("Original inputs changed during native export")
@@ -220,42 +223,60 @@ def native_ascii(settings, jobs, source, database, component, entity_id, units):
                          dict(database=database, component=component, entity_id=entity_id, units=units), source, build, parse)
 
 
-def native_binout(settings, jobs, source, branch, quantity, entity_id, units):
+def native_binout(settings, jobs, source, branch, quantity, entity_id, units, executor=None):
     nodal = {q + '_' + axis.lower(): q.upper() + '_' + axis for q in ('displacement', 'velocity', 'acceleration', 'coordinate') for axis in ('X', 'Y', 'Z')}
     global_fields = {'kinetic_energy': 'KINETIC_ENERGY', 'internal_energy': 'INTERNAL_ENERGY',
                      'total_energy': 'TOTAL_ENERGY', 'external_work': 'EXTERNAL_WORK',
                      'hourglass_energy': 'HOURGLASS_ENERGY'}
-    if branch not in ('nodout', 'glstat') or quantity not in (nodal if branch == 'nodout' else global_fields):
-        raise ValueError('Supported native binout branches: nodout components and glstat energies')
-    if branch == 'nodout':
+    matsum = {q:q.upper() for q in ('internal_energy', 'kinetic_energy', 'eroded_internal_energy',
+              'eroded_kinetic_energy', 'mass', 'hourglass_energy', 'momentum_x', 'momentum_y', 'momentum_z')}
+    matsum.update({'rigid_body_velocity_'+axis.lower():'RBVELOCITY_'+axis for axis in ('X','Y','Z')})
+    fields = {'nodout':nodal, 'glstat':global_fields, 'matsum':matsum}
+    if branch not in fields or quantity not in fields[branch]:
+        raise ValueError('Supported native binout branches: nodout components, glstat energies and matsum scalars')
+    if branch in ('nodout', 'matsum'):
         ids([entity_id], 'entity_id')
     elif entity_id is not None:
         raise ValueError('GLSTAT has no entity ID')
     enum = 'BINOUT_' + branch.upper()
-    quantity_enum = enum + '_' + (nodal if branch == 'nodout' else global_fields)[quantity]
+    quantity_enum = enum + '_' + fields[branch][quantity]
     def build(directory):
         script = ('/*LS-SCRIPT*/\ndefine:\nvoid main(void){\nchar *h;\nBINOUT_Parameter p;\nInt n,ok,i,ni,found;\n'
                   'Int *uids=NULL;\nFloat *t=NULL;\nFloat *v=NULL;\nFILE *fp;\n'
-                  'SCLBinoutInit(&p);\np.id=%d;\nh=SCLBinoutOpen("input_data");\n' % (entity_id or 0))
-        if branch == 'nodout':
-            script += ('ok=SCLBinoutReadInt(h,BINOUT_NODOUT_NUM_ID,&ni,&p);\nif(ok==0 || ni<=0)return;\n'
-                       'uids=malloc(ni*sizeof(Int));\nok=SCLBinoutReadIntArray(h,BINOUT_NODOUT_IDS,&uids,&p);\n'
-                       'if(ok==0)return;\nfound=0;\nfor(i=0;i<ni;i=i+1)if(uids[i]==p.id)found=1;\n'
-                       'free(uids);\nif(found==0)return;\n')
-        script += ('ok=SCLBinoutReadInt(h,%s_NUM_TIMESTEP,&n,&p);\nif(ok==0 || n<=0 || n>1000000)return;\n'
+                  'SCLBinoutInit(&p);\np.id=%d;\nh=SCLBinoutOpen(%s);\nif(h==NULL)return;\n' %
+                  (entity_id or 0, json.dumps(str(directory/'input_data'))))
+        if branch in ('nodout', 'matsum'):
+            script += ('ok=SCLBinoutReadInt(h,%s_NUM_ID,&ni,&p);\nif(ok==0 || ni<=0 || ni>10000000){SCLBinoutClose(h);return;}\n'
+                       'uids=malloc(ni*sizeof(Int));\nok=SCLBinoutReadIntArray(h,%s_IDS,&uids,&p);\n'
+                       'if(ok==0){free(uids);SCLBinoutClose(h);return;}\nfound=0;\nfor(i=0;i<ni;i=i+1)if(uids[i]==p.id)found=1;\n'
+                       'free(uids);\nif(found==0){SCLBinoutClose(h);return;}\n') % (enum,enum)
+        script += ('ok=SCLBinoutReadInt(h,%s_NUM_TIMESTEP,&n,&p);\nif(ok==0 || n<=0 || n>1000000){SCLBinoutClose(h);return;}\n'
                    't=malloc(n*sizeof(Float));\nv=malloc(n*sizeof(Float));\n'
-                   'ok=SCLBinoutReadFloatArray(h,%s_X,&t,&p);\nif(ok==0)return;\n'
-                   'ok=SCLBinoutReadFloatArray(h,%s,&v,&p);\nif(ok==0)return;\n'
-                   'fp=fopen("native.csv","w");\nfprintf(fp,"time,value\\n");\n'
+                   'ok=SCLBinoutReadFloatArray(h,%s_X,&t,&p);\nif(ok==0){free(t);free(v);SCLBinoutClose(h);return;}\n'
+                   'ok=SCLBinoutReadFloatArray(h,%s,&v,&p);\nif(ok==0){free(t);free(v);SCLBinoutClose(h);return;}\n'
+                   'fp=fopen(%s,"w");\nif(fp==NULL){free(t);free(v);SCLBinoutClose(h);return;}\nfprintf(fp,"time,value\\n");\n'
                    'for(i=0;i<n;i=i+1)fprintf(fp,"%%.17g,%%.17g\\n",t[i],v[i]);\n'
-                   'fclose(fp);\nSCLBinoutClose(h);\nfree(t);\nfree(v);\n}\nmain();\n') % (enum, enum, quantity_enum)
+                   'fclose(fp);\nSCLBinoutClose(h);\nfree(t);\nfree(v);\n}\nmain();\n') % (
+                       enum, enum, quantity_enum, json.dumps((directory/'native.csv').as_posix()))
         (directory/'binout.scl').write_text(script, encoding='ascii')
         (directory/'commands.cfile').write_text('new\nrunscript binout.scl\nexit\n', encoding='ascii')
     def parse(directory):
+        import math
+
+        if not (directory/'native.csv').exists():
+            raise ValueError('Native Binout did not produce the requested curve; verify branch, stored ID, quantity and runtime log')
         with (directory/'native.csv').open(newline='') as f:
-            rows = list(csv.DictReader(f))
-        artifact = write_csv(directory/'curve.csv', ['time','value'], ([r['time'],r['value']] for r in rows))
+            reader=csv.DictReader(f)
+            if reader.fieldnames != ['time','value']:
+                raise ValueError('Invalid native Binout curve columns')
+            rows = [[float(r['time']),float(r['value'])] for r in reader]
+        if len(rows)<2 or any(not math.isfinite(v) for row in rows for v in row) or any(rows[i][0]<=rows[i-1][0] for i in range(1,len(rows))):
+            raise ValueError('Native Binout requires at least2 finite samples and a strictly increasing time axis')
+        artifact = write_csv(directory/'curve.csv', ['time','value'], rows)
         return {'backend':'lsprepost','native_channel':'scl_binout','branch':branch,'quantity':quantity,
-                'entity_id':entity_id,'row_count':len(rows),'requires_python':False}, [artifact]
+                'entity_id':entity_id,'row_count':len(rows),'requires_python':executor is not None,
+                'entity_scope':'stored Binout branch ID; no implicit association with the displayed model',
+                'units':units,'units_inferred':False}, [artifact]
     return finish_native(settings,jobs,'extract_native_binout_curve',
-                         dict(branch=branch,quantity=quantity,entity_id=entity_id,units=units),source,build,parse,channel='scl_binout')
+                         dict(branch=branch,quantity=quantity,entity_id=entity_id,units=units),source,build,parse,
+                         channel='scl_binout',executor=executor)

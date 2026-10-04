@@ -60,10 +60,19 @@ class PostTools:
                               element_ids=element_ids, units="dimensionless"), sources, work)
 
     def extract_native_binout_curve(self, path: str, branch: str, quantity: str, units: str,
-                                    entity_id: int | None = None) -> dict:
-        """Read nodout components or glstat energy through LS-PrePost SCLBinout, opening a staged copy. Single-file binout only."""
+                                    entity_id: int | None = None, session_id: str | None = None) -> dict:
+        """Read nodout components, glstat energies or matsum energy/eroded-energy/mass/momentum/rigid-body-velocity through native SCLBinout and a staged single file. NODOUT/MATSUM require a stored branch entity_id. Explicit session_id uses the current owned visible GUI, with no reopen/extra process; otherwise retain batch route. Units are declarations; no implicit association with displayed model or physical sum/energy-balance inference."""
         from .native_results import native_binout
-        return native_binout(self.settings, self.jobs, self._binout_source(path), branch, quantity, entity_id, units)
+        executor = None
+        if session_id is not None:
+            from .gui_binout import binout_executor
+
+            executor = binout_executor(self, session_id)
+        result = native_binout(self.settings, self.jobs, self._binout_source(path), branch, quantity, entity_id, units, executor)
+        if session_id is not None:
+            self._session_manager().journal(session_id, dict(action='extract_native_binout_curve',
+                parameters=dict(path=path,branch=branch,quantity=quantity,entity_id=entity_id,units=units),result=result))
+        return result
 
     def native_postprocess_case(self, path: str, units: str) -> dict:
         """Native 4.13 acceptance workflow: all saved states, three sample entities/type, stress invariants, ASCII curves and PNG. Stages then removes source copies; preserves evidence."""
