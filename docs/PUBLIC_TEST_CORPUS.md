@@ -72,8 +72,114 @@ The upstream **root d3plot is mesh/control data only**, not a complete solved
 state family. Use the binout for the database-panel audit; do not use this root
 file to claim animation or d3plot time-history completeness. Native4.13.4 opening,
 UI inspection, curve extraction and numerical cross-checks of this new fixture
-remain pending. Local data/manifest are retained under the dated task's
+remain separate acceptance work. On2026-10-05, the visible4.13.4 Binout panel loaded
+the file and exposed all five branches; GLSTAT/MATSUM/NCFORC master/slave/NODOUT/
+ELOUT-shell panels were captured. No extracted numeric curve is certified by this
+UI inventory. Local data/manifest are retained under the dated task's
 `ui-audit/public-history-corpus/saudbinayed-binout`; binaries are not committed.
+
+## Official expansion and actual loading checks (2026-10-05)
+
+Ten additional fixture groups were acquired locally: six Ansys groups (about
+31.6 MB of original payloads) plus four educational keyword cases from Ansys's
+official mirror of the DYNA examples. Raw data, pages, archives and logs remain
+outside Git; fixed-commit URLs, archive members, sizes and SHA256 are in the
+local `ui-audit/official-corpus` manifests.
+
+| Source / fixture | Actual acquisition | New native4.13.4 inventory check |
+| --- | --- | --- |
+| [Ansys general d3plot](https://github.com/ansys/example-data/tree/c0bdfaf25b0dd0ca1bc2e952b48e408c6223b8a7/result_files/d3plot) | d3plot+01+02 and actunits |1065nodes,548elements,22states; node page and native viewport PNG |
+| Ansys beam result family; exact pinned paths in local manifest | d3plot+01+02 and actunits |1940nodes,2056elements,12states; includes1512solids and544beams per independent inventory |
+| [Official composite/SPH bird example](https://composites.dpf.docs.pyansys.com/version/stable/examples/gallery_examples/016_lsdyna_bird_strike.html) | input.k, MatML.xml, d3plot+01+02 | Result inventory2957nodes,3005elements,3states and native PNG; keyword transition **not accepted**, see below |
+| [Official Binout examples](https://dpf.docs.pyansys.com/version/0.16/examples/14-lsdyna/00-lsdyna_operators.html) | Separate binout_glstat and binout_matsum | Native checks pending; LASSO inventory below |
+| [Thermal flow](https://lsdyna.ansys.com/thermal-flow/) | ZIP withi.k+mesh.k | Input only, native check pending; no solved data supplied |
+| [Uncoupled welding](https://lsdyna.ansys.com/uncoupled-d3plot/) | ZIP with3keyword files | Input only, native check pending; required thermalstep.d3plot absent |
+| [Lobatto shell](https://lsdyna.ansys.com/shell-2-d44/) | ZIP/fullk |93nodes,60elements,1state; native open/page/view |
+| [Solid hourglass](https://lsdyna.ansys.com/solid-d66/) | ZIP/fullk |529nodes,322elements,1state; native open/page/view |
+| [Contact III](https://lsdyna.ansys.com/contact-iii/) | ZIP/fullk |46nodes,29elements,1state; native open/page/view |
+| [Prescribed motion](https://lsdyna.ansys.com/presrcibed/) | ZIP/fullk |1437nodes,1313elements,1state; native open/page/view |
+
+The three result inventories and four keyword loads are **seven opening/viewport
+smoke checks, not seven full preprocessing/postprocessing workflows**. Source
+hashes remained unchanged. The keyword-only checks used a separate owned
+maximized GUI, reviewed per-load native logs and closed only that owned process.
+The original menu-audit instance was preserved. No solver was run.
+
+Read-only LASSO inventory confirms `binout_glstat` contains `glstat` and `rwforc`;
+GLSTAT has251times. `binout_matsum` has12branches: `abstat`, `deforc`, `elout`,
+`glstat`, `jntforc`, `matsum`, `nodout`, `rbdout`, `rcforc`, `sbtout`, `secforc`,
+`sleout`. Sampling frequencies differ by branch; never zip these histories by
+row number or treat the two named files as one MPP family.
+
+Two important failures were retained:
+
+1. Opening the bird keyword after its result produced native `Prog Error`,
+   while the API reported success with the previous3-state inventory. Independent
+   review rejects that keyword test and marks the owned session uncertain.
+2. LASSO warned of shell-variable-count mismatch and failed to reshape the
+   composite plastic-strain tensor. Matching node/state counts do not certify
+   those result arrays. See [audit findings](UI_AUDIT_POST_GAPS.md).
+
+The six Ansys groups' Git assets retain upstreamMIT licensing; website input
+headers can impose non-commercial-copy conditions. Official mirrors are public
+educational downloads, not automaticallyMIT. Keep original notices and do not
+redistribute these datasets in this repository.
+
+Local evidence: `official-corpus/ansys/manifest.json`,
+`official-corpus/dynaexamples-official-mirror/manifest.json`, and dated task
+subdirectories `nv-7f4f588e` (including independent-review.json) and
+`nk-10fb52dc`. The first long-path failure remains separately preserved.
+
+## Broader official input and LS-PrePost tutorial corpus
+
+The next acquisition adds20 distinct official input entry points in17 unique
+ZIP archives (21,649,316 bytes downloaded;79keyword texts). Shared implicit
+packages were downloaded once. Cases include planar/revolute/screw joints,
+extra-node rigid bodies, CNRB, shell-solid coupling, spot/butt welds, gravity,
+discrete springs, prescribed motion, Node/Part/Shell/Segment sets, thermal
+contact, coupled thermal models, moving rigid walls, implicit/restart and
+parameter/Include structures. Original notices and complete package directories
+are preserved; scanned direct Includes resolve, but restart/dump/thermal result
+dependencies are not thereby certified. Three package `dynain.lsda` files are
+explicitly dummy/fake placeholders and **excluded from solved result counts**.
+Exact official pages, hashes and suggested entry points are in the local
+`official-corpus/ansys-expansion` manifest and capability-map.csv.
+
+Nine official LS-PrePost tutorial ZIPs were also acquired: Element Editing,
+ElGen, Curves/Surfaces, Block Mesher, Force–Displacement, Post Tools,
+Occupant Injury, XYPlot and Animation. These contain12files:5keyword decks,
+2IGES files,2ASCII histories,2CRV files and1old binary result. NODOUT/RCFORC
+and bothCRV have121times; NODOUT's translation/rotation blocks must not be
+counted as242states. Contact2 in the tutorial RCFORC explicitly has undefined
+resultants, not valid zero forces. The old animation binary passed ZIP CRC
+but failed LASSO decoding; native compatibility remains unverified. The official
+SCL archive returned403 and was not counted as acquired.
+
+An additional [official GENEX sample](https://lsdyna.ansys.com/download-more-examples/)
+provides `sample_glstat`, `sample_nodout`, `sample_rwforc` and `sample_d3hsp`
+from one case. This is one new ASCII case, not four. The original tar.gz passed
+CRC and members were hashed; native extraction remains pending.
+
+These inputs support the ongoing menu/handbook gap audit and later functional
+tests. Acquisition does not change release gates. None of these original
+datasets, legal texts or manual pages is committed to the repository.
+
+## Community result samples
+
+Three additional author-maintained sources were downloaded (48,224,169 payload
+bytes;55original/extracted files checked twice bySHA256). Their local
+`official-corpus/community-results` manifests record exact revisions, URLs,
+license texts and reader/static evidence. No upstream program was executed.
+
+| Source | Actual data | Acceptance role |
+| --- | --- | --- |
+| [Renumics mesh2vec HAT](https://github.com/Renumics/mesh2vec/tree/e06485562862453511074b1fa428e4a426b556bd/data/hat), MIT | Submitted d3plot family, binout, keyword;18446nodes,9768solids,6400shells,3states from LASSO inventory | Normal native-verification candidate; ELOUT/solid andELOUTDET/shell have16times.20shell stress slots require verifiedIP/layer meaning |
+| [node997 dyna_pladebuk](https://github.com/node997/dyna_pladebuk), MIT; exact revision in manifest | BB d3plot family, binout, Include inputs, ASCII/diagnostic logs | **Failed/truncated run**: error termination,2result states, several histories initial-only; reader tensor warning. Use for failure detection, not normal thermal certification |
+| [Author's RHHSP dataset](https://zenodo.org/records/21476569), CC-BY-4.0 |8configurations,30CSV tables plus2nativeCurveplot files mislabeled.csv | Format sniffing/time alignment/data-quality tests. Some energy/TiedArea columns are extreme; do not certify all fields |
+
+These samples are locally acquired and inspected; native workflows remain
+pending. Nineteen repository candidates were checked and duplicated Ansys/LASSO
+payloads were excluded. This is not an exhaustive survey of all online datasets.
 
 ## Additional verified sources awaiting acquisition
 
@@ -84,7 +190,9 @@ educational input downloads. Candidate cases are
 [tied/automatic contact](https://www.dynaexamples.com/introduction/intro-by-k.-weimar/contact/contact-iii),
 and [prescribed motion/loading](https://www.dynaexamples.com/introduction/examples-manual/load/presrcibed).
 Their pages were verified, but direct acquisition timed out in this session;
-do not report those four decks as downloaded. Public access is not a blanket
+do not report those original-site downloads as successful. The four cases were
+subsequently acquired from official Ansys mirror pages, as recorded below.
+Public access is not a blanket
 redistribution license. Educational parameters are not physical reference truth.
 
 [GMU CCSA vehicle models](https://www.ccsa.gmu.edu/models/) are candidates for

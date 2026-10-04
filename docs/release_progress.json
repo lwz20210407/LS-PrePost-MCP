@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "baseline_id": "R1-20261003-36",
-  "updated_at": "2026-10-04T22:58:04+08:00",
+  "updated_at": "2026-10-04T17:17:00.371138+00:00",
   "verified_commit": "5dc5197db75b960da6cf5b68c71e927d7c12f1e8",
   "frozen_gate_count": 36,
   "scope": "范围：Windows LS-PrePost 4.13.4 可见 GUI 的首个实用版本；按36项等权验收门槛计算，不是整个软件功能覆盖率或剩余工时。",
   "outside_scope": "后续总体路线仍保留：常用菜单扩展、接触与Include工程化、7模板完整工况、4.8/4.10及两种无GUI、后排CAD与高级模块。未纳入本期36项，不能据本进度称全部完成。",
-  "current_task": "按用户要求先做全界面截图与资料/代码交叉审计，再新增功能。已有顶部菜单、主要Element/Entity和部分Post及底栏记录，审计未完成；最新屏幕为Windows锁屏，等待解锁，继续离线整理。",
+  "current_task": "按用户要求同时扩充官方/社区测试案例和继续界面/手册/代码缺口审计。已新增多数据库、教程、关节/约束等样例并做部分原生加载核对；Follow/Trace/Output/Vector/ASCII继续取证。官方复材结果切到keyword出现误报旧模型成功，B0-03退回partial，25/36仅是限定首版门槛，非总体覆盖率。",
   "groups": [
     {
       "id": "B0",
@@ -60,11 +60,12 @@
       "id": "B0-03",
       "group": "B0",
       "title": "执行结果、质量门槛及失败停止",
-      "state": "passed",
+      "state": "partial",
       "work_item": "T02",
-      "note": "包括原生坏网格门槛与参数化阈值",
+      "note": "既有坏网格门槛保留；新增官方复材案例出现原生open报错却返回旧模型成功，发布前须修复并回归",
       "evidence": [
-        "docs/WORKFLOW_GATES.md"
+        "docs/WORKFLOW_GATES.md",
+        "docs/UI_AUDIT_POST_GAPS.md"
       ]
     },
     {
