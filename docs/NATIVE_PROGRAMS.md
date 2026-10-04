@@ -1,5 +1,7 @@
 # 原始 command、cfile、SCL、Python 与宏
 
+**宏范围澄清（2026-10-05）**：当前 `create_native_macro/run_native_macro` 保存和执行的是本仓库 `macro.json` 数值源码模板，使用 `{{name}}`；不是 LS-PrePost 原生 `.mac` / `*macro begin/end`、`parameter` / `&参数`、`(n/e/p)` 拾取参数及 GUI 宏工具栏/Shift+Fn 的完整适配。原生宏列为独立待补能力，见[当前执行目标](DELIVERY_PLAN.md)。脚本能执行、工具名含native或已有录制，都不能替代该项验收。
+
 这些是仓库正式 MCP/CLI 工具，不依赖开发人员临时运行测试脚本。已有有类型前后处理工具仍是常见任务的首选；以下入口用于用户明确要求执行的原生程序。
 
 ## 正式入口
