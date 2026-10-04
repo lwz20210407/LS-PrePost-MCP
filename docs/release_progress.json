@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "baseline_id": "R1-20261003-36",
-  "updated_at": "2026-10-04T16:54:25+08:00",
+  "updated_at": "2026-10-04T18:05:56+08:00",
   "verified_commit": "e3410e775993e1706872fc7e8c8284a251853417",
   "frozen_gate_count": 36,
   "scope": "范围：Windows LS-PrePost 4.13.4 可见 GUI 的首个实用版本；按36项等权验收门槛计算，不是整个软件功能覆盖率或剩余工时。",
   "outside_scope": "后续总体路线仍保留：常用菜单扩展、接触与Include工程化、7模板完整工况、4.8/4.10及两种无GUI、后排CAD与高级模块。未纳入本期36项，不能据本进度称全部完成。",
-  "current_task": "Entity Creation六项限定流程已通过原生验收；压力与三条无反射建卡路线完成，继续转向后处理有效实体/侵蚀过滤与发布联合验收。",
+  "current_task": "Native solid physical-deletion exports, Blank independence, empty extrema and recording/replay passed; broader field/layer/media integration remains. Public fixtures expanded with native loading evidence.",
   "groups": [
     {
       "id": "B0",
@@ -214,11 +214,12 @@
       "id": "B2-05",
       "group": "B2",
       "title": "失效/侵蚀有效性与极值统计",
-      "state": "pending",
+      "state": "partial",
       "work_item": "T04",
-      "note": "不可拿 Blank 或部件显示状态冒充物理失效",
+      "note": "Solid4.13.4 native values + explicit reader MDLOPT2 mask passed; all-deleted/Blank/replay verified. Other domains and image/movie integration remain.",
       "evidence": [
-        "docs/RESULT_CONTRACTS.md"
+        "docs/RESULT_CONTRACTS.md",
+        "docs/RESULT_VALIDITY.md"
       ]
     },
     {

@@ -1484,5 +1484,14 @@
     "license_status": "Proprietary Ansys manual; references only, no redistribution",
     "integration": "selected_semantics_adopted",
     "scope": "R16 keyword references; not full manual/software coverage"
+  },
+  {
+    "id": "official-binary-database-mdlopt2",
+    "title": "LS-DYNA binary database description: MDLOPT2",
+    "url": "https://lsdyna.ansys.com/wp-content/uploads/2026/08/ls-dyna_database_Jan2018.pdf",
+    "summary": "Printed page44: MDLOPT2 element material codes, zero deleted; separate MDLOPT1 nodal visibility. Adaptive families require separate mesh epochs.",
+    "license_status": "Official reference; document not redistributed",
+    "integration": "contract_implemented",
+    "scope": "Physical deletion masks; not GUI Blank or arbitrary material damage"
   }
 ]

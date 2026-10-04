@@ -15,10 +15,50 @@ from .post_backend import (
     selected_database,
     write_csv,
 )
+from .result_validity import (
+    ScalarStatistics,
+    mask_from_database,
+    mask_name,
+    reject_adaptive_family,
+    validity_scope,
+)
 from .stress import CONVENTIONS, NULLABLE, stress_metrics
 
 
 class PostTools:
+    def inspect_result_validity(self, path: str, element_type: str, states: list[StrictInt],
+                                element_ids: list[StrictInt] | None = None) -> dict:
+        """Inspect recorded MDLOPT2 element presence/deletion using LASSO2.0.4. Positive material codes mean present; zero means deleted. Return per-state counts plus an ID/state-aligned Boolean NPZ artifact, not GUI Blank. Missing masks/adaptivity/unsupported domains reject. This does not classify material failure, rigidity or missing field records."""
+        import numpy as np
+
+        from .result_validity import load_physical_validity
+
+        mask_name(element_type)
+        ids(states, "states", 1000)
+        if element_ids is not None:
+            ids(element_ids, "element_ids")
+        sources = self._result_family(path)
+        def work(directory):
+            mask = load_physical_validity(sources[0], states, element_type)
+            requested = element_ids if element_ids is not None else mask.user_ids.tolist()
+            if len(requested)*len(states) > 1000000:
+                raise ValueError("Validity export exceeds one million state/entity pairs; narrow the request")
+            indexes = mask.indices(requested)
+            state_rows = [mask.state_rows[s] for s in states]
+            data = dict(entity_ids=np.asarray(requested, dtype=np.int64), states=np.asarray(states, dtype=np.int64),
+                        times=mask.times[state_rows], alive=mask.mask[np.ix_(state_rows, indexes)])
+            output = directory / "physical-validity.npz"
+            np.savez_compressed(output, **data)
+            with np.load(output, allow_pickle=False) as saved:
+                if any(not np.array_equal(saved[k], v) for k, v in data.items()):
+                    raise ValueError("Saved physical-validity arrays changed")
+            artifact = dict(**fingerprint(output), kind="npz", validated=True,
+                            format="physical_element_validity_v1", shape=list(data["alive"].shape),
+                            id_kind="user", states_base=1, normalized_alive_value=True)
+            return mask.describe(requested, states), [artifact]
+        return self._post_job("inspect_result_validity", dict(element_type=element_type, states=states,
+                              element_ids=element_ids, units="dimensionless"), sources, work)
+
     def extract_native_binout_curve(self, path: str, branch: str, quantity: str, units: str,
                                     entity_id: int | None = None) -> dict:
         """Read nodout components or glstat energy through LS-PrePost SCLBinout, opening a staged copy. Single-file binout only."""
@@ -33,20 +73,23 @@ class PostTools:
         return run_case(self.settings, self.jobs, self.settings.input_path(path), units)
 
     def extract_native_fields(self, path: str, entity_type: str, entity_ids: list[StrictInt],
-                               states: list[StrictInt], fields: list[str], integration_point: str, units: str) -> dict:
-        """Use LS-PrePost SCL to export native stress/strain/plastic-strain or nodal components. Opens staged copies only; states/user IDs are explicit."""
+                               states: list[StrictInt], fields: list[str], integration_point: str, units: str,
+                               validity_policy: str = "raw") -> dict:
+        """Export native SCL fields. raw preserves stored rows; alive explicitly adds a LASSO physical-deletion mask, rejects missing/ambiguous masks and excludes deleted rows before statistics. Values remain LS-PrePost-derived, not reader-derived. Staged copies, explicit states/user IDs; no GUI Blank substitution."""
         from .native_results import native_fields
         return native_fields(self.settings, self.jobs, self.settings.input_path(path), entity_type,
-                             entity_ids, states, fields, integration_point, units)
+                             entity_ids, states, fields, integration_point, units, validity_policy=validity_policy)
 
     def extract_native_stress(self, path: str, element_type: str, element_ids: list[StrictInt],
-                               states: list[StrictInt], integration_point: str, units: str) -> dict:
-        """LS-PrePost SCL six-component stresses and native Mises crosscheck, then derive triaxiality and both Lode conventions. Opens staged copies only."""
+                               states: list[StrictInt], integration_point: str, units: str,
+                               validity_policy: str = "raw") -> dict:
+        """Native SCL tensors/Mises then derived invariants. validity_policy=alive uses an explicitly reported LASSO physical mask to exclude deleted entities before tensor math/statistics; raw retains legacy stored population. Missing mask is not treated as all alive. Not GUI visibility filtering."""
         from .native_results import STRESS_KEYS, native_fields
         if element_type == "node":
             raise ValueError("Stress requires element results")
         return native_fields(self.settings, self.jobs, self.settings.input_path(path), element_type,
-                             element_ids, states, STRESS_KEYS + ["von_mises"], integration_point, units, derived=True)
+                             element_ids, states, STRESS_KEYS + ["von_mises"], integration_point, units, derived=True,
+                             validity_policy=validity_policy)
 
     def extract_native_ascii_curve(self, path: str, database: str, component: int, units: str,
                                    entity_id: int | None = None) -> dict:
@@ -115,8 +158,8 @@ class PostTools:
 
     def extract_d3plot_field(self, path: str, field: str, states: list[StrictInt], units: str,
                              entity_ids: list[StrictInt] | None = None,
-                             component_indices: list[StrictInt] | None = None) -> dict:
-        """Export any supported stored node/element/part/global scalar slice. Explicit 1-based trailing indices select component, layer or history slot; no averaging."""
+                             component_indices: list[StrictInt] | None = None, validity_policy: str = "raw") -> dict:
+        """Export a stored scalar slice. raw retains stored population; alive requires element MDLOPT2 deletion data and removes zero-coded entities before CSV/extrema. Positive material codes mean present, not only1. Explicit stored component/layer indices; no averaging or GUI visibility interpretation."""
         import numpy as np
         domain = field_domain(field)
         ids(states, "states", 10000)
@@ -132,14 +175,18 @@ class PostTools:
         spec = FieldSpec('lasso', (field,), units,
                          ResultSelection(domain, entity_ids if entity_ids is not None else [], states),
                          SamplingSpec.stored(indices), 'as_stored', 'none',
-                         'stored field population; no explicit alive/deletion filtering',
+                         validity_scope(validity_policy),
                          ('state_coordinates_minus_reference_nodes',) if field == 'node_displacement' else ())
         states = list(spec.selection.states)
         entity_ids = list(spec.selection.entity_ids) if domain != 'global' else None
         indices = list(spec.sampling.value)
         sources = self._result_family(path)
         def work(directory):
-            db, mapping = selected_database(sources[0], states, [field])
+            requested_fields = [field] + ([mask_name(domain)] if validity_policy == "alive" else [])
+            if validity_policy == "alive":
+                reject_adaptive_family(sources[0])
+            db, mapping = selected_database(sources[0], states, requested_fields)
+            mask = mask_from_database(db, mapping, domain) if validity_policy == "alive" else None
             values = np.asarray(db.arrays[field])
             if field == "node_displacement":
                 from .results import lasso_vectors
@@ -152,24 +199,37 @@ class PostTools:
             requested = entity_ids or [0]
             if domain != "global" and any(v not in lookup for v in requested):
                 raise ValueError("User entity ID absent from this result field (possibly rigid/no result)")
+            validity = mask.describe(requested, states) if mask else None
+            stats = ScalarStatistics(["value"])
             def rows():
                 for state in states:
                     for uid in requested:
+                        if mask is not None and not mask.alive(state, uid):
+                            continue
                         prefix = (mapping[state],) if domain == "global" else (mapping[state], lookup[uid])
-                        yield [state, float(db.arrays["timesteps"][mapping[state]]), uid,
-                               float(values[prefix + tuple(i-1 for i in indices)])]
-            artifact = write_csv(directory / "field.csv", ["state", "time", "entity_id", "value"], rows())
+                        value = float(values[prefix + tuple(i-1 for i in indices)])
+                        stats.add(dict(state=state, entity_id=uid, value=value))
+                        yield [state, float(db.arrays["timesteps"][mapping[state]]), uid, value]
+            artifact = write_csv(directory / "field.csv", ["state", "time", "entity_id", "value"], rows(), allow_empty=mask is not None)
+            if validity:
+                if artifact["row_count"] != sum(r["alive_count"] for r in validity["states"]):
+                    raise ValueError("Retained result rows do not match physical-mask counts")
+                atomic_json(directory / "physical-validity.json", validity)
             return {"backend": "lasso", "field": field, "domain": domain, "state_index_base": 1,
                     "component_indices": indices, "stored_axis_sizes": list(trailing), "averaging": "none",
                     "frame": "as_stored", "history_meaning": "consult material manual; raw stored slot only",
-                    "row_count": artifact["row_count"], "field_spec": spec.describe()}, [artifact]
+                    "row_count": artifact["row_count"], "field_spec": spec.describe(),
+                    "validity_policy": validity_policy, "validity": validity, "statistics": stats.output,
+                    "physical_deletion_filter_applied": mask is not None,
+                    "empty_reason": "all_requested_entities_deleted" if mask is not None and not artifact["row_count"] else None}, [artifact]
         return self._post_job("extract_d3plot_field", {"field": field, "states": states, "units": units,
-                              "entity_ids": entity_ids, "component_indices": indices, "field_spec": spec.describe()}, sources, work)
+                              "entity_ids": entity_ids, "component_indices": indices, "field_spec": spec.describe(),
+                              "validity_policy": validity_policy}, sources, work)
 
     def extract_d3plot_stress(self, path: str, element_type: str, element_ids: list[StrictInt],
                               states: list[StrictInt], integration_point: StrictInt, units: str,
-                              relative_tolerance: float = 1e-12) -> dict:
-        """Export shell/solid/tshell six stresses, principals, Mises, triaxiality and Lode metrics at one explicit stored integration point. No averaging/rotation."""
+                              relative_tolerance: float = 1e-12, validity_policy: str = "raw") -> dict:
+        """Export stored tensors/invariants at an explicit integration point. alive excludes physically deleted records before tensor math/statistics using ID-aligned MDLOPT2 material codes; missing masks fail. raw retains legacy population. No averaging/rotation or GUI visibility mask."""
         import numpy as np
         if element_type not in ("shell", "solid", "tshell"):
             raise ValueError("Stress tensor extraction supports shell, solid and tshell")
@@ -184,10 +244,14 @@ class PostTools:
                          ResultSelection(element_type, element_ids, states),
                          SamplingSpec.stored([integration_point], stress=True),
                          'as_stored; no coordinate transformation', 'none',
-                         'stored stress records; no explicit alive/deletion filtering')
+                         validity_scope(validity_policy))
         element_ids, states = list(spec.selection.entity_ids), list(spec.selection.states)
         def work(directory):
-            db, mapping = selected_database(sources[0], states, [field])
+            requested_fields = [field] + ([mask_name(element_type)] if validity_policy == "alive" else [])
+            if validity_policy == "alive":
+                reject_adaptive_family(sources[0])
+            db, mapping = selected_database(sources[0], states, requested_fields)
+            mask = mask_from_database(db, mapping, element_type) if validity_policy == "alive" else None
             values = np.asarray(db.arrays[field])
             if values.ndim != 4 or values.shape[-1] != 6 or integration_point > values.shape[2]:
                 raise ValueError("Invalid stress tensor layout or integration point")
@@ -196,22 +260,36 @@ class PostTools:
                 raise ValueError("Element has no stress record (absent or rigid)")
             names = list(stress_metrics([0]*6))
             undefined = 0
+            validity = mask.describe(element_ids, states) if mask else None
+            stats = ScalarStatistics(names)
             def rows():
                 nonlocal undefined
                 for state in states:
                     for uid in element_ids:
+                        if mask is not None and not mask.alive(state, uid):
+                            continue
                         metrics = stress_metrics(values[mapping[state], lookup[uid], integration_point-1], relative_tolerance)
                         undefined += not metrics["deviatoric_defined"]
+                        stats.add(dict(state=state, entity_id=uid, **metrics))
                         yield [state, float(db.arrays["timesteps"][mapping[state]]), uid, integration_point,
                                *[metrics[n] for n in names]]
-            artifact = write_csv(directory / "stress.csv", ["state", "time", "element_id", "integration_point", *names], rows(), NULLABLE)
+            artifact = write_csv(directory / "stress.csv", ["state", "time", "element_id", "integration_point", *names], rows(), NULLABLE,
+                                 allow_empty=mask is not None)
+            if validity:
+                if artifact["row_count"] != sum(r["alive_count"] for r in validity["states"]):
+                    raise ValueError("Retained stress rows do not match physical-mask counts")
+                atomic_json(directory / "physical-validity.json", validity)
             return {"backend": "lasso", "conventions": CONVENTIONS, "frame": "as_stored; invariants require consistent orthonormal tensor frame",
                     "integration_point": integration_point, "stored_integration_points": int(values.shape[2]),
                     "averaging": "none", "undefined_ratio_rows": undefined, "relative_tolerance": relative_tolerance,
-                    "deletion_policy": "stored stresses retained; inspect element_is_alive separately",
+                    "deletion_policy": validity_scope(validity_policy), "validity_policy": validity_policy,
+                    "validity": validity, "statistics": stats.output,
+                    "physical_deletion_filter_applied": mask is not None,
+                    "empty_reason": "all_requested_entities_deleted" if mask is not None and not artifact["row_count"] else None,
                     "row_count": artifact["row_count"], "field_spec": spec.describe()}, [artifact]
         return self._post_job("extract_d3plot_stress", {"element_type": element_type, "element_ids": element_ids,
-                              "states": states, "integration_point": integration_point, "units": units, "field_spec": spec.describe()}, sources, work)
+                              "states": states, "integration_point": integration_point, "units": units, "field_spec": spec.describe(),
+                              "validity_policy": validity_policy}, sources, work)
 
     def inspect_binout_variable(self, path: str, branch: str, variable: str) -> dict:
         """Inspect a nested binout variable's shape, time alignment and ID sample before extraction; single-file input."""

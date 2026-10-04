@@ -8,6 +8,7 @@ from .config import scl_command_path
 from .field_contracts import ELEMENT_SCALARS, FieldSpec, ResultSelection, SamplingSpec
 from .jobs import atomic_json, fingerprint, now
 from .post_backend import ids, write_csv
+from .result_validity import load_physical_validity, reject_adaptive_family, scalar_statistics, validity_scope
 from .runner import execute
 from .stress import CONVENTIONS, NULLABLE, native_mises_matches, stress_metrics
 
@@ -92,7 +93,10 @@ def field_script(domain, entity_ids, states, fields, ipt, output_path="native.cs
             + ",".join(fields) + '\\n");\n' + "\n".join(body) + '\nfclose(fp);\n' + frees + '\nfree(times);\n}\nmain();\n')
 
 
-def native_fields(settings, jobs, source, domain, entity_ids, states, fields, integration_point, units, derived=False, executor=None):
+def native_fields(settings, jobs, source, domain, entity_ids, states, fields, integration_point, units, derived=False, executor=None,
+                  validity_policy="raw"):
+    if validity_policy == "alive" and source is not None:
+        reject_adaptive_family(source)
     if domain not in ("shell", "solid", "tshell", "node"):
         raise ValueError("Native fields support node, shell, solid and tshell")
     ids(entity_ids, "entity_ids", 1000)
@@ -108,15 +112,24 @@ def native_fields(settings, jobs, source, domain, entity_ids, states, fields, in
                      ResultSelection(domain, entity_ids, states), sampling,
                      'native DataCenter component frame; no coordinate transformation',
                      'native field/layer definition; no additional averaging',
-                     'native field population; no explicit alive/deletion filtering')
+                     validity_scope(validity_policy))
     entity_ids, states, fields = list(spec.selection.entity_ids), list(spec.selection.states), list(spec.fields)
     params = dict(domain=domain, entity_ids=entity_ids, states=states, fields=fields,
-                  integration_point=integration_point, units=units, field_spec=spec.describe())
-    def build(directory, in_memory=False):
+                  integration_point=integration_point, units=units, field_spec=spec.describe(), validity_policy=validity_policy)
+    validity = {}
+    def build(directory, in_memory=False, validity_source=None):
+        if validity_policy == "alive":
+            mask_path = validity_source if in_memory else directory / "d3plot"
+            if mask_path is None:
+                raise ValueError("A verified staged result source is required for physical validity")
+            validity["mask"] = load_physical_validity(mask_path, states, domain)
+            validity["report"] = validity["mask"].describe(entity_ids, states)
+            atomic_json(directory / "physical-validity.json", validity["report"])
         output = directory / "native.csv" if in_memory else "native.csv"
         (directory / "extract.scl").write_text(field_script(domain, entity_ids, states, fields, ipt, output), encoding="utf8")
         commands = ('runscript ' + scl_command_path(directory / "extract.scl") + '\n') if in_memory else 'new\nopenc d3plot "d3plot"\nrunscript extract.scl\nexit\n'
         (directory / "commands.cfile").write_text(commands, encoding="utf8")
+        return validity.get("report")
     def parse(directory):
         with (directory / "native.csv").open(newline="", encoding="utf8") as f:
             if f.readline().startswith('ERROR_SOLID_POINT_UNAVAILABLE'):
@@ -125,16 +138,29 @@ def native_fields(settings, jobs, source, domain, entity_ids, states, fields, in
             rows = list(csv.DictReader(f))
         expected = {(s, uid) for s in states for uid in entity_ids}
         actual = [(int(r["state"]), int(r["entity_id"])) for r in rows]
-        if set(actual) != expected or len(actual) != len(expected):
+        mask = validity.get("mask")
+        needed = expected if mask is None else {(s, uid) for s, uid in expected if mask.alive(s, uid)}
+        if not set(actual) <= expected or len(actual) != len(set(actual)) or not needed <= set(actual):
             raise ValueError("Native output did not contain exactly the requested state/user-ID matrix")
+        raw_count = len(rows)
+        if mask is not None:
+            for row in rows:
+                mask.check_time(int(row["state"]), float(row["time"]))
+            rows = [r for r in rows if mask.alive(int(r["state"]), int(r["entity_id"]))]
         artifact = write_csv(directory / "results.csv", ["state", "time", "entity_id", *fields],
-                             ([r[k] for k in ["state", "time", "entity_id", *fields]] for r in rows))
+                             ([r[k] for k in ["state", "time", "entity_id", *fields]] for r in rows), allow_empty=mask is not None)
         data = {"backend": "lsprepost", "native_channel": "scl", "requires_python": False,
                 "row_count": len(rows), "fields": fields, "integration_point": integration_point,
                 "frame": "native DataCenter component frame; no coordinate transformation",
                 "selection": "SCLGetUserId; native layer selection; no additional averaging",
                 "read_only": "LS-PrePost opened staged copies only"}
         data['field_spec'] = spec.describe()
+        data.update(validity_policy=validity_policy, validity=validity.get("report"),
+                    physical_deletion_filter_applied=mask is not None,
+                    unfiltered_native_row_count=raw_count, requested_row_count=len(expected),
+                    excluded_deleted_count=len(expected)-len(needed) if mask is not None else None,
+                    empty_reason="all_requested_entities_deleted" if not rows and mask is not None else None,
+                    statistics=scalar_statistics(rows, fields))
         artifacts = [artifact]
         if derived:
             metric_rows = []
@@ -147,9 +173,11 @@ def native_fields(settings, jobs, source, domain, entity_ids, states, fields, in
                     raise ValueError("Six-component Mises disagrees with native von_mises; check layer/frame semantics")
                 errors.append(abs(metrics["von_mises"]-native_mises))
                 metric_rows.append([row["state"], row["time"], row["entity_id"], *[metrics[k] for k in names]])
-            artifacts.append(write_csv(directory / "stress.csv", ["state", "time", "entity_id", *names], metric_rows, NULLABLE))
+            artifacts.append(write_csv(directory / "stress.csv", ["state", "time", "entity_id", *names], metric_rows, NULLABLE,
+                                       allow_empty=mask is not None))
             data.update(conventions=CONVENTIONS, derived_backend="Python invariant mathematics on native SCL stresses",
-                        native_mises_max_absolute_error=max(errors))
+                        native_mises_max_absolute_error=max(errors) if errors else None,
+                        derived_statistics=scalar_statistics((dict(zip(["state", "time", "entity_id", *names], row)) for row in metric_rows), names))
         return data, artifacts
     if executor is not None:
         return executor("extract_native_stress" if derived else "extract_native_fields", params, build, parse)

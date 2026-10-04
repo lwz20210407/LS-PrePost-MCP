@@ -12,7 +12,7 @@ The product is general LS-PrePost automation. Impact, material tests, structural
 ## Postprocessing: source, scope, quantity, extraction, output
 
 1. Resolve keyword/result family, native build/backend, user IDs, physical times/states, units, layer/integration point, coordinate frame and desired display averaging.
-2. Distinguish visible entities from physical alive/deleted entities. Where validity is unavailable, disclose the limitation rather than claim erosion-filtered extrema.
+2. Distinguish visible entities from physical alive/deleted entities. For alive-only element extrema use `inspect_result_validity` and explicit `validity_policy="alive"` on supported exporters; native SCL values plus a LASSO mask have separate provenance. Where validity is unavailable, disclose the limitation rather than claim erosion-filtered extrema. Cloud-plot physical-mask integration has separate incomplete scope.
 3. Extract native fields/histories and validate completeness and numeric contracts. Apply unit conversion, relative displacement, force–displacement/stress–strain and energy checks only with defined geometry, signs and terms.
 4. Cloud plots preserve the model title and native result name: no automatic unit/layer/entity/average suffixes. Default display averaging is `minmax`; `nodal`/`none` require explicit requests. Raw entity CSV is not a table of averaged display samples. Keep interpretation metadata in JSON.
 5. Export validated curves/PNG/movie with explicit ranges and timelines. Do not automatically filter curves or declare a model invalid using generic 5%/2% energy ratios. Report checks and missing terms separately from execution success.

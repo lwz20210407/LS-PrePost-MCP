@@ -54,6 +54,7 @@ WORKFLOW_ACTIONS = (
     NATIVE_ACTIONS
     | GUI_ACTIONS
     | {
+        "inspect_result_validity",
         "probe_dpf_runtime",
         "inspect_dpf_results",
         "export_dpf_result",

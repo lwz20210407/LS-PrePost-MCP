@@ -53,7 +53,7 @@ def result_ids(arrays, domain, count):
     return values
 
 
-def write_csv(path, header, rows, nullable=()):
+def write_csv(path, header, rows, nullable=(), allow_empty=False):
     count = 0
     with path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -70,7 +70,7 @@ def write_csv(path, header, rows, nullable=()):
             count += 1
             if count > 1000000:
                 raise ValueError("Export exceeds one million rows")
-    if count == 0:
+    if count == 0 and not allow_empty:
         raise ValueError("Empty result export")
     # Validate the saved representation as well as the computed data.
     with path.open(newline="", encoding="utf-8") as f:

@@ -417,6 +417,10 @@ def run(request_path, response_path):
                 data["current_state"] = int(get("current_state"))
             except Exception:
                 data["current_state"] = None
+            try:
+                data["model_directory"] = str(get("model_directory"))
+            except Exception:
+                data["model_directory"] = None
             return data
 
         def check_state(state):

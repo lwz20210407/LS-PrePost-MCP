@@ -1,16 +1,21 @@
 """Execute the shared validated SCL field exporter in an owned visible result session."""
 
 import inspect
+import math
+from pathlib import Path
 
 from .config import scl_command_path
-from .gui_mesh import check_same_nodes, check_same_parts, mesh_index
+from .gui_mesh import check_same_nodes, check_same_parts, mesh_index, verify_mesh_digest
 from .gui_selection import available_ids, part_visibility
 from .jobs import atomic_json, now
 from .native_results import STRESS_KEYS, native_fields
 from .programs import native_errors
+from .result_validity import reject_adaptive_family
 
 
 def verify_context(before, after):
+    if "mesh_digest" in before or "mesh_digest" in after:
+        verify_mesh_digest(before, after)
     old_nodes, old_elements = mesh_index(before)
     new_nodes, new_elements = mesh_index(after)
     check_same_nodes(old_nodes, new_nodes)
@@ -23,6 +28,8 @@ def verify_context(before, after):
         raise ValueError("Field export changed or could not verify the selection")
     if part_visibility(before) != part_visibility(after):
         raise ValueError("Field export changed part visibility")
+    if before.get("visibility_binary") is not None and before["visibility_binary"] != after.get("visibility_binary"):
+        raise ValueError("Field export changed entity display-active flags")
 
 
 def run_fields(service, session_id, action, parameters):
@@ -57,10 +64,12 @@ def run_fields(service, session_id, action, parameters):
             )
             atomic_json(directory / "job.json", manifest)
             try:
-                baseline = manager.dispatch(session_id, "gui_mesh_state", {})
+                snapshot = dict(entity_type=params["domain"], entity_ids=params["entity_ids"], visibility_readback=True)
+                baseline = manager.dispatch(session_id, "gui_mesh_digest", snapshot)
                 if baseline["status"] != "succeeded":
                     raise RuntimeError("Cannot establish the native field-export baseline")
                 before = baseline["data"]
+                manifest["baseline_request_directory"] = baseline.get("job_directory")
                 atomic_json(directory / "before.json", before)
                 part_visibility(before)
                 if not set(params["entity_ids"]) <= available_ids(before, params["domain"]):
@@ -70,13 +79,25 @@ def run_fields(service, session_id, action, parameters):
                 original_state = before["current_state"]
                 if type(original_state) is not int or not 1 <= original_state <= before["counts"]["states"]:
                     raise ValueError("No verified native current state")
-                build(directory, in_memory=True)
+                source = meta.get("staged_model")
+                if args["validity_policy"] == "alive":
+                    if meta.get("source"):
+                        reject_adaptive_family(meta["source"])
+                    native_directory = before.get("model_directory")
+                    if not source or not native_directory or Path(native_directory).resolve() != Path(source).resolve().parent:
+                        raise ValueError("Native model directory does not match the staged mask source; reopen the owned result model")
+                validity = build(directory, in_memory=True, validity_source=source)
+                if validity:
+                    for row in validity["states"]:
+                        if (len(before["state_times"]) < row["state"] or
+                                not math.isclose(before["state_times"][row["state"]-1], row["time"], rel_tol=2e-7, abs_tol=0)):
+                            raise ValueError("Native and mask state inventories disagree")
                 log = manager.directory(session_id) / "lspost.msg"
                 offset = log.stat().st_size if log.exists() else 0
                 result = manager.dispatch(
                     session_id,
-                    "gui_mesh_state",
-                    {},
+                    "gui_mesh_digest",
+                    snapshot,
                     native_commands=[
                         "anim stop",
                         "runscript " + scl_command_path(directory / "extract.scl"),
@@ -133,4 +154,5 @@ def run_fields(service, session_id, action, parameters):
         args["units"],
         derived=derived,
         executor=execute,
+        validity_policy=args["validity_policy"],
     )

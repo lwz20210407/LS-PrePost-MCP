@@ -21,7 +21,8 @@
         "guide-common-ident",
         "guide-common-blank",
         "keyword-r11-boundaries",
-        "keyword-r16-boundaries"
+        "keyword-r16-boundaries",
+        "official-binary-database-mdlopt2"
       ],
       "review_status": "selected_sections_reviewed",
       "conversion_status": "partial",
@@ -535,7 +536,8 @@
         "native_postprocess_case",
         "probe_dpf_runtime",
         "inspect_dpf_results",
-        "export_dpf_result"
+        "export_dpf_result",
+        "inspect_result_validity"
       ],
       "status": "partial",
       "contract_doc": "docs/ARCHITECTURE.md"
@@ -1192,7 +1194,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Backend-aware request/provenance contracts distinguish native layer/default/index selectors from stored reader axes; metadata tracks actual reference subtraction. Tests cover request, SCL export and reader parsing. History semantics/frames/averaging/variable matrices remain. DPF gallery adopted into optional local adapter and shared FieldSpec. Branch time IDs, label spaces, local beam extrema and binary erosion contracts have synthetic tests; no Server runtime acceptance. Shared pre/post geometry measurement now has native reference/state XYZ/distance and keyword angle/circle checks; global model context, labels and F-key controls have an explicit common coverage audit.",
+      "progress": "Backend-aware request/provenance contracts distinguish native layer/default/index selectors from stored reader axes; metadata tracks actual reference subtraction. Tests cover request, SCL export and reader parsing. History semantics/frames/averaging/variable matrices remain. DPF gallery adopted into optional local adapter and shared FieldSpec. Branch time IDs, label spaces, local beam extrema and binary erosion contracts have synthetic tests; no Server runtime acceptance. Shared pre/post geometry measurement now has native reference/state XYZ/distance and keyword angle/circle checks; global model context, labels and F-key controls have an explicit common coverage audit. Explicit physical deletion masks now filter native/reader scalar and stress exports before extrema. Visible4.13.4 solid deletion/Blank independence/all-deleted/recording replay and native maximum spot-check passed; other domains and fringe/movie integration remain.",
       "evidence": "docs/RESULT_CONTRACTS.md"
     },
     {
