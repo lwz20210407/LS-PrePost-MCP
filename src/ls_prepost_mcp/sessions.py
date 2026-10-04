@@ -10,6 +10,7 @@ import time
 import uuid
 from pathlib import Path
 
+from .checkpoint_context import checkpoint_expected_empty, save_checkpoint_context
 from .config import command_path, scl_command_path
 from .jobs import atomic_json, check_artifact, fingerprint, now
 from .model_context import verify_load_reply
@@ -336,6 +337,9 @@ class Sessions:
                         result["artifacts"] = [
                             check_artifact(directory / name, kind) for name, kind in artifacts
                         ]
+                        target = directory / "model.k" if export else model if file_type == "keyword" else None
+                        if target is not None:
+                            save_checkpoint_context(target, ident, reply.get("data"), self.directory(ident))
                     except Exception as exc:
                         result.update(status="failed", error={"message": str(exc)})
                 data.update(
@@ -449,6 +453,9 @@ class SessionTools:
                     if contract["export"] and mode != "requires_host_validation" and not contract.get("was_uncertain"):
                         if not any(Path(a["path"]).name == "model.k" and a.get("validated") for a in artifacts):
                             raise ValueError("Checkpoint recovery lacks a validated model.k artifact")
+                        save_checkpoint_context(directory / "model.k", session_id, reply.get("data"), manager.directory(session_id))
+                    elif request.get("model") and request.get("file_type") == "keyword" and mode == "model_replaced":
+                        save_checkpoint_context(request["model"], session_id, reply.get("data"), manager.directory(session_id))
             except Exception as exc:
                 meta.update(state="uncertain" if meta["process_alive"] else "exited", last_error=str(exc))
                 manager.save(session_id, meta)
@@ -576,11 +583,15 @@ class SessionTools:
                             recovery_scope="Existing replacement returned without reopening, duplicating or replaying anything; inspect/recover it if uncertain")
             source = ((old.get("last_checkpoint") or old.get("staged_model"))
                       if old["model_kind"] == "keyword" else old.get("staged_model"))
+            validated_source = self.settings.input_path(source) if source else None
+            expected_empty = (checkpoint_expected_empty(validated_source, session_id)
+                              if source and old["model_kind"] == "keyword" else False)
             new = self.start_gui_session()
             old.update(restarted_as=new["session_id"], restart_status="restoring")
             manager.save(session_id, old)
             try:
-                opened = self.open_in_gui_session(new["session_id"], source, old["model_kind"]) if source else None
+                opened = self.open_in_gui_session(new["session_id"], source, old["model_kind"],
+                    **({"expected_empty": True} if expected_empty else {})) if source else None
                 if opened and opened["status"] != "succeeded":
                     old["restart_status"] = "failed"
                     manager.save(session_id, old)

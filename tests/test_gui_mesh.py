@@ -74,6 +74,7 @@ def test_restart_restores_opened_input_when_no_explicit_checkpoint(tmp_path, mon
     from ls_prepost_mcp.service import Service
 
     s = Service(Settings(tmp_path))
+    (tmp_path / "staged.k").write_text("*KEYWORD\n*END\n")
 
     class Manager:
         def lock(self, sid):
