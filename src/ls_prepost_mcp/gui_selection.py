@@ -120,7 +120,7 @@ def verify_selection(before, after, expected, kind):
 class GuiSelectionTools:
     def _select_gui(
         self, session_id, action, arguments, kind, choose, suffix=None, on_verified=None, part_selection=None,
-        snapshot_parameters=None,
+        snapshot_parameters=None, prepare_snapshot=None, source_verification=None,
     ):
         expected = set()
         strategy = {}
@@ -128,6 +128,8 @@ class GuiSelectionTools:
 
         def precheck(state):
             part_visibility(state)
+            if prepare_snapshot is not None and state.get("query_selected_ids") is None:
+                raise ValueError("Start a new GUI session for resolved set-selection registry queries; refusing whole-scope fallback")
             topology = (state.get("native_selection_plan") or {}).get("strategy") == "topology"
             if snapshot_parameters and snapshot_parameters.get("topology_query") and not topology:
                 raise ValueError("Start a new GUI session for the topology-query bridge")
@@ -198,11 +200,13 @@ class GuiSelectionTools:
                 **verify_selection(a, b, expected, kind),
                 command_strategy=strategy["name"],
                 selection_scope=arguments.get("scope", "all"),
+                **(source_verification or {}),
             ),
             precheck,
             on_verified=on_verified,
             transaction_kind="selection",
             snapshot_parameters=dict(snapshot_parameters or {}, visibility_readback=True),
+            **({"prepare_snapshot": prepare_snapshot} if prepare_snapshot is not None else {}),
         )
 
     def select_gui_shell_topology(self, session_id: str, seed_ids: list[StrictInt], mode: str = "propagate",
@@ -237,14 +241,24 @@ class GuiSelectionTools:
         part_ids: list[int] | None = None,
         invert: bool = False,
         scope: str = "all",
+        set_ids: list[int] | None = None,
     ) -> dict:
-        """Select keyword/d3plot entities with streamed geometry and exact ID verification, preserving part/entity display-active flags/state. all includes hidden parts/orphan nodes; active_parts uses displayed-part connectivity, including shared nodes. Inversion is within scope. No filter means whole scope; [] clears. Native whole/part bulk plans allow up to1000000 selected entities only when all elements are display-active; hidden entities require exact-ID fallback within20000 selected IDs. No global model-size cap, alive/deletion mask or screen/deformed picking."""
+        """Select keyword/d3plot entities with streamed geometry/exact ID checks and preserved display/state. Choose entity_ids, part_ids or set_ids. set_ids unions current same-domain explicit-list node/part/shell/solid/beam sets in a keyword model, using an isolated native export under the selection lock; at most20000 union members, unknown variants reject. all includes hidden parts/orphans; active_parts intersects displayed-part connectivity; invert is within that scope. No filter means whole scope; entity_ids=[] clears. Whole/part bulk plans can exceed20000 within existing1m readback bounds. No physical alive mask, arbitrary set expansion or screen/deformed picking."""
         from .post_backend import ids
 
         if entity_type not in ("node", "shell", "solid", "beam", "element", "part"):
             raise ValueError("Unsupported entity selection type")
-        if entity_ids is not None and part_ids is not None:
-            raise ValueError("Choose explicit IDs or a part filter")
+        if sum(v is not None for v in (entity_ids, part_ids, set_ids)) > 1:
+            raise ValueError("Choose explicit IDs, a part filter or set_ids")
+        source_verification = {}
+        prepare_snapshot = None
+        if set_ids is not None:
+            from .set_selection import prepare_set_selection
+
+            ids(set_ids, "set_ids", 1000)
+            if entity_type == "element":
+                raise ValueError("set_ids requires an explicit node/part/shell/solid/beam domain")
+            prepare_snapshot = prepare_set_selection(entity_type, set_ids, source_verification)
         if entity_ids is not None and not isinstance(entity_ids, list):
             raise ValueError("entity_ids must be a list")
         if part_ids is not None and not isinstance(part_ids, list):
@@ -282,13 +296,15 @@ class GuiSelectionTools:
             session_id,
             "select_gui_entities",
             dict(
-                entity_type=entity_type, entity_ids=entity_ids, part_ids=part_ids, invert=invert, scope=scope
+                entity_type=entity_type, entity_ids=entity_ids, part_ids=part_ids, invert=invert, scope=scope,
+                **({"set_ids": set_ids} if set_ids is not None else {}),
             ),
             entity_type,
             choose,
             part_selection=part_ids if not invert else None,
             snapshot_parameters=dict(entity_type=entity_type, registry_query=dict(
                 entity_ids=entity_ids, part_ids=part_ids, invert=invert, scope=scope)),
+            prepare_snapshot=prepare_snapshot, source_verification=source_verification,
         )
 
     def combine_gui_selections(

@@ -327,6 +327,7 @@ class GuiMeshTools:
         transaction_kind="edit",
         snapshot_parameters=None,
         finalize_native=None,
+        prepare_snapshot=None,
     ):
         if transaction_kind not in ("edit", "selection", "inspection"):
             raise ValueError("Unsupported GUI transaction kind")
@@ -341,6 +342,12 @@ class GuiMeshTools:
             original_meta = self._visible_mesh_session(
                 session_id, manager, allow_results=transaction_kind == "selection"
             )
+            if prepare_snapshot is not None:
+                # Resolve model-owned sources under the same request lock used by
+                # selection. No interleaving MCP model/set mutation is permitted.
+                preparation = prepare_snapshot(manager, session_id, snapshot_parameters)
+                if preparation is not None:
+                    return preparation
             baseline = manager.dispatch(
                 session_id, snapshot_action, snapshot_parameters, artifacts=artifacts, export=mutates_model
             )

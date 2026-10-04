@@ -48,6 +48,16 @@
 
 边界：新增三类当前支持create/query，不开放 `replace_members`；集合成员变化会影响载荷、接触、截面等消费者，必须补引用影响分析。Generate/General/Add/Collect/Column、Discrete/Seatbelt/ThickShell、Include和求解器物理验证未由本批认证。每次最多20000成员，不是全模型网格上限。
 
+### 按已有集合选择，并传给Entity消费者
+
+`select_gui_entities` 新增 `set_ids`，与 `entity_ids`、`part_ids` 三选一；指定node/part/shell/solid/beam域。多个集合取成员并集，再应用现有 `scope` 和 `invert`。集合SID不等于实体ID；不使用含义不确定的通用element域。`set_ids`非空，已有空列表集可以产生空选区；未识别变体不会默默展开。
+
+解析与选择共用一个会话请求锁：先从当前keyword模型临时原生导出集合，再查询当前实体登记、执行选择并核对准确ID、完整网格和显示状态。证据包含集合编号、各集合成员数、去重并集数及导出来源指纹。额外原生全模导出有I/O成本，但不会将它登记为新的受管检查点或清除dirty标志；这不是无导出的快速数据库API。
+
+4.13.4可见GUI已验证五类列表集、跨集并集、Part域反选、隐藏单元仍按all作用域选择、缺集合拒绝，以及BySet→新节点集→SPC的换集合回放。修改源集合成员后重新选择得到新成员；保存重开后源集合与消费者集合成员分别正确。`tools/run_set_selection_acceptance.py`提供完整复现流程，源文件保持。
+
+仅认证当前keyword显式列表集；不隐式关联d3plot与keyword，不认证Generate/General/Collect或Segment面选择。union最多20000成员（非全模大小限制）。录制保留集合编号，回放重新解析成员；旧桥缺少登记查询读回时拒绝，不退化成全选。
+
 - `create_gui_entity_set`：`entity_type=node|part`，`mode=create|replace_members`。从显式实体ID或同会话 `selection_job` 创建 `SET_NODE_LIST` / `SET_PART_LIST`；新建拒绝ID冲突，替换要求已有集合，保留DA、solver、ITS属性。成员最多20000，不是整个模型大小上限。只允许明确支持的列表集合；同域其他集合变体未解析时拒绝操作。
 - `inspect_gui_entity_sets`：从原生临时导出读取集合名称、属性、数量及分页成员；不改受管检查点归属。未知集合变体显式报告，不能作为空集合。
 - `create_gui_spc`：`node_set_id`或`node_ids`二选一；六个显式0/1自由度按X/Y/Z/RX/RY/RZ排列，坐标系0为全局。SPC_SET使用给定约束ID；多个单节点约束按节点ID排序，从给定ID开始连续分配，每个节点一张原生SPC_NODE_ID卡，返回对应关系并检查全部ID冲突。原生4.13导入一张多行SPC_NODE_ID时只保留了第一条，因此不能使用这种格式批量建约束。
