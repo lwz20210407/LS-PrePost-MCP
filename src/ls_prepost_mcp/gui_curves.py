@@ -67,17 +67,26 @@ def native_plot_values(expected):
 
 
 def verify_xy_readback(path, expected):
+    return verify_curve_readback(path, [expected])[0]
+
+
+def verify_curve_readback(path, expected_curves):
     lines = [line.strip() for line in path.read_text(encoding="utf8").splitlines() if line.strip()]
-    if (
-        not lines
-        or not re.fullmatch(r"\d+", lines[0])
-        or int(lines[0]) != len(expected)
-        or len(lines) != len(expected) + 1
-    ):
+    offset, reports = 0, []
+    for expected in expected_curves:
+        if (offset >= len(lines) or not re.fullmatch(r"\d+", lines[offset])
+                or int(lines[offset]) != len(expected) or offset + len(expected) >= len(lines)):
+            raise ValueError("Native XY round-trip sample/curve count mismatch")
+        rows = lines[offset+1:offset+1+len(expected)]
+        values = np.asarray([[float(x.replace("D", "E")) for x in line.split()] for line in rows], dtype=float)
+        reports.append(verify_xy_values(values, expected))
+        offset += len(expected) + 1
+    if offset != len(lines):
         raise ValueError("Native XY round-trip sample/curve count mismatch")
-    values = np.asarray(
-        [[float(x.replace("D", "E")) for x in line.split()] for line in lines[1:]], dtype=float
-    )
+    return reports
+
+
+def verify_xy_values(values, expected):
     quantized = native_plot_values(expected)
     if (
         values.shape != expected.shape
@@ -95,6 +104,34 @@ def verify_xy_readback(path, expected):
     )
 
 
+def curve_sources(service, path, x_column, y_column, x_unit, y_unit, curve_label, additional_curves):
+    if additional_curves is not None and (not isinstance(additional_curves, list) or len(additional_curves) > 9):
+        raise ValueError("Provide at most9 additional curves (10 total)")
+    if additional_curves and curve_label is None:
+        raise ValueError("Provide curve_label for the first curve in an overlay")
+    records = [dict(path=path, x_column=x_column, y_column=y_column, label='Curve 1' if curve_label is None else curve_label,
+                    x_unit=x_unit, y_unit=y_unit), *(additional_curves or [])]
+    prepared, labels, total = [], set(), 0
+    for record in records:
+        if not isinstance(record, dict) or set(record) != {'path','x_column','y_column','label','x_unit','y_unit'}:
+            raise ValueError("Each additional curve requires path,x_column,y_column,label,x_unit,y_unit")
+        if record['x_unit'] != x_unit or record['y_unit'] != y_unit:
+            raise ValueError("Overlay curves must declare identical axis units; convert explicitly first")
+        label = plot_text(record['label'], 'curve label', 40)
+        if label in labels:
+            raise ValueError("Curve labels must be unique within an overlay")
+        labels.add(label)
+        source = service.settings.input_path(record['path'])
+        identity = fingerprint(source)
+        values = read_xy_csv(source, record['x_column'], record['y_column'])
+        quantized = native_plot_values(values)
+        total += len(values)
+        if total > 500000:
+            raise ValueError("Overlay exceeds500000 total sample budget")
+        prepared.append(dict(spec=record, source=source, identity=identity, values=values, quantized=quantized))
+    return prepared
+
+
 def plot_windows(transport):
     return {
         int(match[1])
@@ -105,7 +142,8 @@ def plot_windows(transport):
     }
 
 
-def export_curve_plot(service, session_id, path, x_column, y_column, title, x_label, y_label, x_unit, y_unit):
+def export_curve_plot(service, session_id, path, x_column, y_column, title, x_label, y_label, x_unit, y_unit,
+                      curve_label=None, additional_curves=None):
     for name, value, maximum in [
         ("title", title, 80),
         ("x_label", x_label, 30),
@@ -114,10 +152,8 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
         ("y_unit", y_unit, 12),
     ]:
         plot_text(value, name, maximum)
-    source = service.settings.input_path(path)
-    identity = fingerprint(source)
-    values = read_xy_csv(source, x_column, y_column)
-    quantized = native_plot_values(values)
+    curves = curve_sources(service, path, x_column, y_column, x_unit, y_unit, curve_label, additional_curves)
+    quantized = curves[0]['quantized']
     parameters = dict(
         path=path,
         x_column=x_column,
@@ -128,6 +164,10 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
         x_unit=x_unit,
         y_unit=y_unit,
     )
+    if curve_label is not None:
+        parameters['curve_label'] = curve_label
+    if additional_curves is not None:
+        parameters['additional_curves'] = additional_curves
     manager = service._session_manager()
     with manager.lock(session_id):
         meta = service._visible_mesh_session(session_id, manager, allow_results=True)
@@ -147,17 +187,19 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
             session_id=session_id,
             job_directory=str(directory),
             backend="lsprepost-native-xyplot",
-            inputs=[identity],
+            inputs=[curve['identity'] for curve in curves],
             process=meta["process"],
         )
         xy = directory / ("curve_" + manifest["job_id"] + ".txt")
         xy.write_text(
-            str(len(values)) + "\n" + "".join(f"{x:.17g},{y:.17g}\n" for x, y in values), encoding="ascii"
+            ''.join(str(len(curve['values'])) + "\n" + "".join(f"{x:.17g},{y:.17g}\n" for x, y in curve['values'])
+                    for curve in curves), encoding="ascii"
         )
         log = manager.directory(session_id) / "lspost.msg"
         offset = log.stat().st_size if log.exists() else 0
         try:
-            create = ["open xydata " + command_path(xy), "newplot", f'show "{xy.name}~1" 0']
+            reference = xy.name + ('~1' if len(curves) == 1 else '')
+            create = ["open xydata " + command_path(xy), "newplot", f'show "{reference}" 0']
             created = manager.dispatch(session_id, "inspect_model", {}, native_commands=create)
             manifest["create_request"] = {k: v for k, v in created.items() if k != "data"}
             if created["status"] != "succeeded":
@@ -172,7 +214,9 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
                 prefix + f'title "{title}"',
                 prefix + f'xtitle "{x_label} ({x_unit})"',
                 prefix + f'ytitle "{y_label} ({y_unit})"',
-                prefix + "legend off",
+                prefix + ("legend on" if len(curves) > 1 or curve_label is not None else "legend off"),
+                *([prefix + f'curvelegend {i+1}/1 "{curve["spec"]["label"]}"' for i, curve in enumerate(curves)]
+                  if len(curves) > 1 or curve_label is not None else []),
                 "print png "
                 + command_path(directory / "plot.png")
                 + f' nogamma enlisted "PlotWindow-{plot_id}"',
@@ -189,11 +233,12 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
             (directory / "native-plot.log").write_text(text, encoding="utf8")
             if native_errors(text):
                 raise ValueError("Native plot diagnostics reported errors")
-            numeric = verify_xy_readback(directory / "native.xy", values)
+            numeric_curves = verify_curve_readback(directory / "native.xy", [curve['values'] for curve in curves])
+            numeric = numeric_curves[0]
             for key in ("counts", "part_ids", "current_state"):
                 if finished["data"][key] != before["data"][key]:
                     raise ValueError("Plot export changed the native model inventory/state")
-            if fingerprint(source) != identity:
+            if any(fingerprint(curve['source']) != curve['identity'] for curve in curves):
                 raise ValueError("Source CSV changed during native plot export")
             png = check_artifact(directory / "plot.png", "png")
             csv_artifact = write_csv(directory / "plotted.csv", ["x", "y"], quantized)
@@ -207,12 +252,19 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
                     declared_units=dict(x=x_unit, y=y_unit),
                     title=title,
                     labels=dict(x=f"{x_label} ({x_unit})", y=f"{y_label} ({y_unit})"),
-                    plot_scope="one_curve_from_explicit_CSV_columns",
+                    plot_scope="one_curve_from_explicit_CSV_columns" if len(curves) == 1 else "multiple_curves_explicit_CSV_columns",
+                    curve_count=len(curves),
+                    curves=[dict(number=i+1, label=curve['spec']['label'], source=curve['identity'],
+                                 columns=dict(x=curve['spec']['x_column'], y=curve['spec']['y_column']),
+                                 numeric_verification=numeric_curves[i]) for i, curve in enumerate(curves)],
+                    resampled=False,
                     source_units_inferred=False,
                     model_inventory_and_state_preserved=True,
                     existing_plot_ids=sorted(old_windows),
                 ),
             )
+            for i, curve in enumerate(curves[1:], 2):
+                manifest['artifacts'].append(write_csv(directory/f'plotted-{i}.csv', ['x','y'], curve['quantized']))
         except Exception as exc:
             manifest.update(status="failed", error=dict(type=type(exc).__name__, message=str(exc)))
         manifest["finished_at"] = now()

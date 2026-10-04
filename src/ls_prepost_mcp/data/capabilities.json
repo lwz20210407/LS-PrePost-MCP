@@ -1418,7 +1418,7 @@
       "tested_profiles": [
         "4.13"
       ],
-      "scope": "One explicit CSV XY-column pair -> new native XYPlot -> labeled PNG and native numeric readback. Short ASCII labels, declared units, float32 storage disclosed; original engineering CSV preserved. 100000-sample/32-window bound. Synthetic stress-strain parameter recording replay and old-plot data preservation tested; no implicit extraction, overlays or full XYPlot UI coverage."
+      "scope": "Explicit CSV XY columns -> one new native XYPlot/PNG plus per-curve float32 numeric readback. Single-curve API retained; optional additional_curves support overlays,unique ASCII legend labels and identical declared axis units. No conversion/sort/resampling; different lengths/X grids and hysteresis preserved.100000 samples/curve,500000 aggregate,10 curves,32-window resource bounds. Visible4.13.4 synthetic3-curve4/3/5-point overlay and nested-source replay4/5/5 passed; prior plot data,model inventory/state and input files preserved. No implicit solver extraction,arbitrary styling or full XYPlot management certification."
     },
     {
       "id": "presentation.named_native_fringe",

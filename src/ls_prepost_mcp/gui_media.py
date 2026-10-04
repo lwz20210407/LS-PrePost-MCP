@@ -53,12 +53,15 @@ class GuiMediaTools:
         y_label: str,
         x_unit: str,
         y_unit: str,
+        curve_label: str | None = None,
+        additional_curves: list[dict] | None = None,
     ) -> dict:
-        """Render two explicit CSV columns as one new native XYPlot and export PNG plus verified XY data. Preserve row order (including hysteresis), model inventory/current state and existing plot windows. Units are declared, not converted or inferred; short ASCII labels only. Numeric native round-trip and nonblank PNG are required. No implicit solver extraction or existing-plot overwrite."""
+        """Render explicit CSV columns in a new native XYPlot, PNG and numerically verified XY data. Optionally overlay1..9 additional curves {path,x_column,y_column,label,x_unit,y_unit}; then curve_label is required for the first curve. Axis-unit labels must match exactly, no conversion/resampling. Curves may have different lengths/X grids and preserve row order/hysteresis. Bounds100000 samples/curve,500000 total,ASCII labels. Preserve native model inventory/state and existing plot windows. No implicit solver extraction or existing-plot overwrite."""
         from .gui_curves import export_curve_plot
 
         return export_curve_plot(
-            self, session_id, path, x_column, y_column, title, x_label, y_label, x_unit, y_unit
+            self, session_id, path, x_column, y_column, title, x_label, y_label, x_unit, y_unit,
+            curve_label, additional_curves
         )
 
     def export_gui_animation(
