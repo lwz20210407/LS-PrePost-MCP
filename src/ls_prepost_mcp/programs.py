@@ -12,6 +12,14 @@ from pathlib import Path
 
 from .jobs import atomic_json, check_artifact, fingerprint, now
 from .native_results import stage
+from .program_bundle import (
+    capture_dependencies,
+    checked_dependencies,
+    identity,
+    python_wrapper,
+    validate_script_references,
+    write_dependencies,
+)
 from .runner import execute
 
 LANGUAGES = {"command": "cfile", "cfile": "cfile", "scl": "scl", "python": "py"}
@@ -32,6 +40,16 @@ RESERVED = {
     "job.json",
     "input_data",
     "d3plot",
+    "contract.json",
+    "macro.json",
+    "cwd.py",
+    "gui-python.py",
+    "before.json",
+    "after.json",
+    "commands.json",
+    "native.log",
+    "stdout.log",
+    "stderr.log",
 }
 
 
@@ -75,6 +93,7 @@ def output_contract(outputs):
             or name.endswith(".")
             or re.fullmatch(r"(?i)(con|prn|aux|nul|com[1-9]|lpt[1-9])", name.split(".")[0])
             or name.lower() in RESERVED
+            or name.lower().startswith("lspost.")
             or name.lower() in names
         ):
             raise ValueError("Output must be a unique, non-reserved job-local filename")
@@ -130,8 +149,9 @@ class ProgramTools:
         parameters: dict | None = None,
         outputs: list[dict] | None = None,
         expected_counts: dict | None = None,
+        dependencies: list[dict] | None = None,
     ) -> dict:
-        """Prepare user-directed command/cfile/SCL/application-Python source, numeric substitutions and output contracts without execution. Returns exact rendered source and its SHA256 for execution."""
+        """Prepare explicit command/cfile/SCL/application-Python source plus declared dependency files {path,name}, preserving relative folders without execution. Returns rendered entry source and an execution SHA256 (whole bundle when dependencies exist). Literal native child-script references/cycles are checked; Python imports are not inferred."""
         if language not in LANGUAGES or (code is None) == (path is None):
             raise ValueError("Choose command/cfile/scl/python and exactly one of code/path")
         source = self.settings.input_path(path) if path else None
@@ -151,18 +171,24 @@ class ProgramTools:
         params = numeric_parameters(parameters or {})
         rendered = render(code, params)
         outputs, counts = output_contract(outputs), count_contract(expected_counts)
+        captured = capture_dependencies(self.settings, dependencies, outputs)
+        graph = validate_script_references(rendered.encode("utf8"), language, captured)
         directory, manifest = self.jobs.create(
             "prepare_native_program", dict(language=language, parameters=params)
         )
         program = directory / ("program." + LANGUAGES[language])
         program.write_text(rendered, encoding="utf8")
+        write_dependencies(directory, captured)
         contract = dict(
             language=language,
             program=program.name,
-            sha256=hashlib.sha256(program.read_bytes()).hexdigest(),
+            source_sha256=hashlib.sha256(program.read_bytes()).hexdigest(),
+            dependencies=[item for item, _ in captured],
+            script_references=graph,
             outputs=outputs,
             expected_counts=counts,
         )
+        contract["sha256"] = identity(program.read_bytes(), contract)
         atomic_json(directory / "contract.json", contract)
         manifest.update(
             status="prepared",
@@ -184,8 +210,9 @@ class ProgramTools:
         model: str | None = None,
         file_type: str = "keyword",
         graphics: bool = False,
+        session_id: str | None = None,
     ) -> dict:
-        """Execute the exact prepared native program in an isolated LS-PrePost process, staging model input. Requires matching source SHA256. No declared output/count contract means completed_unverified, never a validated success."""
+        """Execute a verified prepared source/dependency bundle. Without session_id, use an isolated native process and optional staged model; with session_id, use the current owned GUI and omit model. GUI scripts must retain its model context; keyword baseline is checkpointed, raw effects invalidate cached selections/fringes. Requires the prepared execution SHA256. No declared output/count contract means completed_unverified."""
         prepared = self.jobs.get(prepared_job_id)
         if prepared["action"] != "prepare_native_program":
             raise ValueError("Expected a prepared native program")
@@ -196,9 +223,17 @@ class ProgramTools:
             raise ValueError("Invalid program contract")
         program = prepared_dir / contract["program"]
         content = program.read_bytes()
-        if hashlib.sha256(content).hexdigest() != expected_sha256 or contract["sha256"] != expected_sha256:
+        if identity(content, contract) != expected_sha256 or contract["sha256"] != expected_sha256:
             raise ValueError("Source changed since preparation; inspect and prepare again")
         outputs, counts = output_contract(contract["outputs"]), count_contract(contract["expected_counts"])
+        captured = checked_dependencies(prepared_dir, contract)
+        validate_script_references(content, language, captured)
+        if session_id is not None:
+            if model is not None:
+                raise ValueError("GUI programs use the current model; open it separately and omit model")
+            from .gui_programs import execute_prepared
+
+            return execute_prepared(self, session_id, prepared_job_id, expected_sha256, contract, content, captured)
         if file_type not in ("keyword", "d3plot"):
             raise ValueError("Unsupported input type")
         source = self.settings.input_path(model) if model else None
@@ -226,6 +261,7 @@ class ProgramTools:
             )
             manifest["inputs"] = before
             (directory / contract["program"]).write_bytes(content)
+            write_dependencies(directory, captured)
             atomic_json(directory / "contract.json", contract)
             commands = ["new"]
             if source:
@@ -237,15 +273,7 @@ class ProgramTools:
             elif language == "scl":
                 commands.append("runscript program.scl")
             else:
-                wrapper = (
-                    "import os,json,runpy,traceback\n"
-                    "os.chdir(" + repr(str(directory)) + ")\n"
-                    "reply={'ok':False}\ntry:\n"
-                    "    runpy.run_path('program.py',run_name='__main__')\n"
-                    "    reply['ok']=True\nexcept BaseException as e:\n"
-                    "    reply.update(error=type(e).__name__+': '+str(e),traceback=traceback.format_exc())\n"
-                    "json.dump(reply,open('python-result.json','w'))\n"
-                )
+                wrapper = python_wrapper(directory, [item["name"] for item, _ in captured])
                 (directory / "bootstrap.py").write_text(wrapper, encoding="utf8")
                 commands.append("runpython bootstrap.py")
             (directory / "complete.scl").write_text(
@@ -294,11 +322,14 @@ class ProgramTools:
                 artifacts.append(check_artifact(output, item["kind"]))
             if [fingerprint(p) for p in sources] != before:
                 raise RuntimeError("Original input changed during execution")
+            checked_dependencies(directory, contract)
             manifest.update(
                 status="succeeded" if outputs or counts else "completed_unverified",
                 artifacts=artifacts,
                 data=dict(
                     counts=actual,
+                    dependency_count=len(captured),
+                    bundle_sha256=expected_sha256,
                     declared_contract_verified=bool(outputs or counts),
                     scope="Completion plus declared file/count checks only; no proof of every command or physical validity",
                 ),
@@ -379,8 +410,9 @@ class ProgramTools:
         defaults: dict,
         outputs: list[dict] | None = None,
         expected_counts: dict | None = None,
+        dependencies: list[dict] | None = None,
     ) -> dict:
-        """Save a reusable command/cfile/SCL/Python macro with numeric {{name}} parameters and explicit outputs. Does not execute or install global LS-PrePost macros."""
+        """Save a command/cfile/SCL/Python macro with numeric {{name}} entry parameters, explicit outputs and frozen dependency assets. Does not execute or install global LS-PrePost menu/shortcut macros."""
         if not isinstance(name, str) or not name.strip() or len(name) > 120 or language not in LANGUAGES:
             raise ValueError("Invalid macro name/language")
         if (
@@ -402,6 +434,9 @@ class ProgramTools:
             expected_counts=count_contract(expected_counts),
         )
         directory, manifest = self.jobs.create("create_native_macro", dict(name=name, language=language))
+        captured = capture_dependencies(self.settings, dependencies, definition["outputs"])
+        write_dependencies(directory / "assets", captured)
+        definition["dependencies"] = [item for item, _ in captured]
         atomic_json(directory / "macro.json", definition)
         manifest.update(
             status="succeeded",
@@ -419,8 +454,9 @@ class ProgramTools:
         model: str | None = None,
         file_type: str = "keyword",
         graphics: bool = False,
+        session_id: str | None = None,
     ) -> dict:
-        """Instantiate and run an explicitly selected native macro in an isolated LS-PrePost process. Retains macro identity, rendered program and full native evidence."""
+        """Instantiate a selected macro with its frozen assets and numeric entry parameters; use an isolated native process or an explicit current GUI session_id. Retains macro/bundle identities and native evidence. GUI recordings retain the macro parameter call rather than expanding its internal execution steps."""
         source = self.settings.input_path(path)
         macro = json.loads(source.read_text(encoding="utf8"))
         if macro.get("schema_version") != 1 or macro.get("kind") != "native_macro":
@@ -428,16 +464,30 @@ class ProgramTools:
         parameters = numeric_parameters(parameters or {})
         if set(parameters) - macro["defaults"].keys():
             raise ValueError("Unknown macro parameters")
+        checked_dependencies(source.parent / "assets", macro)
         prepared = self.prepare_native_program(
             macro["language"],
             code=macro["code"],
             parameters={**macro["defaults"], **parameters},
             outputs=macro["outputs"],
             expected_counts=macro["expected_counts"],
+            dependencies=[dict(path=str(source.parent / "assets" / item["name"]), name=item["name"])
+                          for item in macro.get("dependencies", [])],
         )
-        result = self.execute_native_program(
-            prepared["job_id"], prepared["data"]["sha256"], model, file_type, graphics
-        )
+        if session_id is not None:
+            if model is not None:
+                raise ValueError("GUI macros use the current model; omit model")
+            from .gui_programs import execute_prepared
+
+            folder = self.jobs.root / prepared["job_id"]
+            contract = json.loads((folder / "contract.json").read_text(encoding="utf8"))
+            result = execute_prepared(self, session_id, prepared["job_id"], prepared["data"]["sha256"], contract,
+                (folder / contract["program"]).read_bytes(), checked_dependencies(folder, contract),
+                journal_action="run_native_macro", journal_parameters=dict(path=path, parameters=parameters))
+        else:
+            result = self.execute_native_program(
+                prepared["job_id"], prepared["data"]["sha256"], model, file_type, graphics
+            )
         result["macro_source"] = fingerprint(source)
         atomic_json(Path(result["job_directory"]) / "job.json", result)
         return result

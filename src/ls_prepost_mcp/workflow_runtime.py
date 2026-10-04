@@ -67,6 +67,8 @@ def operation_route(service, action, session_id):
 
     if action not in WORKFLOW_ACTIONS:
         raise ValueError("Unsupported workflow action")
+    if session_id and action in {"execute_native_program", "run_native_macro"}:
+        return OperationRoute(action, action, "session", ("session_id",))
     aliases = {
         "new_model": "reset_gui_session",
         "open_model": "open_in_gui_session",

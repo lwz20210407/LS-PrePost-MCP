@@ -53,7 +53,7 @@ import DataCenter as dc
 json.dump({"nodes": int(dc.get_data("num_nodes"))}, open("nodes.json", "w"))
 ```
 
-用 `outputs=[{"name":"nodes.json","kind":"json"}]` 检查实际输出。本版为单文件程序；额外模块、复杂 include 和任意外部依赖应先明确配置，不能假定被自动暂存。
+用 `outputs=[{"name":"nodes.json","kind":"json"}]` 检查实际输出。现支持显式声明的多文件依赖包与当前 GUI 执行，详见 [PROGRAM_BUNDLES.md](PROGRAM_BUNDLES.md)。不会自动扫描任意 Python 导入或 SCL include，也不会自动暂存整个工作区；全局原生宏菜单和快捷键管理仍未完成。
 
 ## 实机矩阵（合成数据）
 

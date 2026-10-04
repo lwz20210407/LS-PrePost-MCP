@@ -989,7 +989,8 @@
       "tested_profiles": [
         "4.13.4 Windows"
       ],
-      "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits"
+      "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits",
+      "bundle_scope": "Explicit dependency snapshot/hashes/relative layout; native child-script references/cycles checked. Visible4.13.4 nested cfiles, SCL data, Python module refresh and frozen macro parameter replay verified. No general include/import inference, global macro-menu/shortcut certification or old/headless bundle certification. docs/PROGRAM_BUNDLES.md"
     },
     {
       "id": "programs.execute_native_program",
@@ -1002,7 +1003,8 @@
       "tested_profiles": [
         "4.13.4 Windows"
       ],
-      "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits"
+      "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits",
+      "bundle_scope": "Explicit dependency snapshot/hashes/relative layout; native child-script references/cycles checked. Visible4.13.4 nested cfiles, SCL data, Python module refresh and frozen macro parameter replay verified. No general include/import inference, global macro-menu/shortcut certification or old/headless bundle certification. docs/PROGRAM_BUNDLES.md"
     },
     {
       "id": "programs.execute_gui_command",
@@ -1028,7 +1030,8 @@
       "tested_profiles": [
         "4.13.4 Windows"
       ],
-      "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits"
+      "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits",
+      "bundle_scope": "Explicit dependency snapshot/hashes/relative layout; native child-script references/cycles checked. Visible4.13.4 nested cfiles, SCL data, Python module refresh and frozen macro parameter replay verified. No general include/import inference, global macro-menu/shortcut certification or old/headless bundle certification. docs/PROGRAM_BUNDLES.md"
     },
     {
       "id": "programs.run_native_macro",
@@ -1041,7 +1044,8 @@
       "tested_profiles": [
         "4.13.4 Windows"
       ],
-      "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits"
+      "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits",
+      "bundle_scope": "Explicit dependency snapshot/hashes/relative layout; native child-script references/cycles checked. Visible4.13.4 nested cfiles, SCL data, Python module refresh and frozen macro parameter replay verified. No general include/import inference, global macro-menu/shortcut certification or old/headless bundle certification. docs/PROGRAM_BUNDLES.md"
     },
     {
       "id": "gui_mesh.inspect_gui_mesh",
