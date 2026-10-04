@@ -17,6 +17,14 @@ New successful keyword opens/exports retain an owned `.lspp-context.json` sideca
 
 Visible4.13.4 controlled-exit acceptance: save a material-only zero-entity checkpoint, create an unsaved8-node/1-solid mesh, terminate only the owned idle test process, and recover the zero-entity file/material. Repeated restart returns the same child. Save node201 in that child, terminate it, then restart the child: node201 and its coordinates return. Restarting the old parent after its child exited is rejected, preventing restoration of an older checkpoint. Original input remains unchanged. Driver: `tools/run_checkpoint_context_acceptance.py`. This verifies two controlled idle-process exits; crashes during execution and full selection/view/model-list restoration remain separate.
 
+## Reset: undo file versus current restart source
+
+`reset_gui_session(save_checkpoint=True)` now saves keyword cards even when there is no mesh. The prior `last_checkpoint` remains the default explicit undo target; a separate `reset_recovery_source` points to the verified new empty keyword. Restart uses this new baseline while the staged model and rollback pointer still match the reset. A newer checkpoint or another model load supersedes it. Unsaved raw edits do not make restart silently load the pre-reset model. Late reset completion establishes the same source separation, and the pre-reset checkpoint is persisted before submitting reset so a timeout cannot discard it.
+
+`restore_gui_checkpoint(expected_empty=None)` auto-detects the empty expectation only for the same trusted checkpoint, with matching owner/hash. Explicit True/False remain available; an explicit other file does not borrow the trusted file's expectation. Restoring the old checkpoint clears the reset markers. Recording also retains the requested save_checkpoint option.
+
+Visible4.13.4 acceptance: reset a96-node model, close/restart and obtain0nodes; import another material into a material-only model, reset and explicitly restore both material blocks; reset again, save node301, close/restart and recover301. Source files remain unchanged. Driver: `tools/run_reset_recovery_acceptance.py`. This verifies active-model recovery, not unloading every resident model or in-flight GUI crash handling.
+
 ## Late replies
 
 `recover_gui_session` reads the saved request/contract and matching `complete.json`.

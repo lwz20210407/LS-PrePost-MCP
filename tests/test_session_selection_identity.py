@@ -35,7 +35,10 @@ def fixture(tmp_path, monkeypatch):
             return Path(path)
 
         def dispatch(self, *args, **kwargs):
-            return dict(status="succeeded", data=dict(counts=dict(nodes=1)))
+            directory = tmp_path / "request"
+            directory.mkdir(exist_ok=True)
+            return dict(status="succeeded", job_directory=str(directory),
+                        data=dict(counts=dict(nodes=0 if args[1] == "gui_new" else 1, elements=0)))
 
         def journal(self, *args):
             pass

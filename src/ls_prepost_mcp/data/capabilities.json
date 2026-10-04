@@ -696,7 +696,8 @@
       "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
-      ]
+      ],
+      "reset_recovery_scope": "Visible4.13.4 reset distinguishes prior explicit-undo checkpoint from new active empty restart baseline. Zero-node material cards are saved; late-reset source setup covered; new save/open supersedes baseline. Native96-node reset/restart->0,two-material undo and later node301 recovery passed. Default trusted restore uses file-bound empty expectation;not full resident-model unload or in-flight crash certification."
     },
     {
       "id": "automation.recover_gui_session",
@@ -718,7 +719,8 @@
       "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
-      ]
+      ],
+      "reset_recovery_scope": "Visible4.13.4 reset distinguishes prior explicit-undo checkpoint from new active empty restart baseline. Zero-node material cards are saved; late-reset source setup covered; new save/open supersedes baseline. Native96-node reset/restart->0,two-material undo and later node301 recovery passed. Default trusted restore uses file-bound empty expectation;not full resident-model unload or in-flight crash certification."
     },
     {
       "id": "automation.close_gui_session",
@@ -1171,7 +1173,8 @@
       ],
       "scope": "Exited process checkpoint recovery; no uncertain operation replay",
       "recovery_scope": "Visible4.13.4 actual late completion, uncertain command/host validation separation, checkpoint preservation, exact owned-process termination/restart and replacement reuse verified. Saved model/source only; arbitrary GUI state and full workflow continuation remain. docs/SESSION_RECOVERY.md",
-      "checkpoint_context_scope": "File-bound native keyword inventory sidecars validate owner/hash and determine zero-entity expectation before replacement launch.4.13.4 two controlled idle owned-process exits verified:material-only checkpoint restored,unsaved8-node/1-solid mesh excluded,repeat restart reuses child,newer nonempty child checkpoint retained. No in-flight crash/full scene/all-model lifecycle certification;legacy missing-sidecar keeps nonempty rule."
+      "checkpoint_context_scope": "File-bound native keyword inventory sidecars validate owner/hash and determine zero-entity expectation before replacement launch.4.13.4 two controlled idle owned-process exits verified:material-only checkpoint restored,unsaved8-node/1-solid mesh excluded,repeat restart reuses child,newer nonempty child checkpoint retained. No in-flight crash/full scene/all-model lifecycle certification;legacy missing-sidecar keeps nonempty rule.",
+      "reset_recovery_scope": "Visible4.13.4 reset distinguishes prior explicit-undo checkpoint from new active empty restart baseline. Zero-node material cards are saved; late-reset source setup covered; new save/open supersedes baseline. Native96-node reset/restart->0,two-material undo and later node301 recovery passed. Default trusted restore uses file-bound empty expectation;not full resident-model unload or in-flight crash certification."
     },
     {
       "id": "gui_selection.check_gui_keywords",

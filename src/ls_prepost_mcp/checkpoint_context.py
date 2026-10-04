@@ -64,3 +64,19 @@ def checkpoint_expected_empty(path, session_id):
             raise ValueError("Zero-node checkpoint cannot contain elements")
         return True
     return False
+
+
+def reset_baseline(directory, rollback_checkpoint):
+    path = str(Path(directory) / 'initial.k')
+    return dict(source=None, staged_model=path, reset_recovery_source=path,
+                reset_rollback_checkpoint=rollback_checkpoint)
+
+
+def restart_source(meta):
+    if meta['model_kind'] != 'keyword':
+        return meta.get('staged_model')
+    reset = meta.get('reset_recovery_source')
+    if (reset and meta.get('staged_model') == reset
+            and meta.get('last_checkpoint') == meta.get('reset_rollback_checkpoint')):
+        return reset  # Preserve last_checkpoint as explicit undo, not current state.
+    return meta.get('last_checkpoint') or meta.get('staged_model')

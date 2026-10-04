@@ -10,7 +10,12 @@ import time
 import uuid
 from pathlib import Path
 
-from .checkpoint_context import checkpoint_expected_empty, save_checkpoint_context
+from .checkpoint_context import (
+    checkpoint_expected_empty,
+    reset_baseline,
+    restart_source,
+    save_checkpoint_context,
+)
 from .config import command_path, scl_command_path
 from .jobs import atomic_json, check_artifact, fingerprint, now
 from .model_context import verify_load_reply
@@ -338,6 +343,8 @@ class Sessions:
                             check_artifact(directory / name, kind) for name, kind in artifacts
                         ]
                         target = directory / "model.k" if export else model if file_type == "keyword" else None
+                        if action == "gui_new":
+                            target = directory / "initial.k"
                         if target is not None:
                             save_checkpoint_context(target, ident, reply.get("data"), self.directory(ident))
                     except Exception as exc:
@@ -456,6 +463,8 @@ class SessionTools:
                         save_checkpoint_context(directory / "model.k", session_id, reply.get("data"), manager.directory(session_id))
                     elif request.get("model") and request.get("file_type") == "keyword" and mode == "model_replaced":
                         save_checkpoint_context(request["model"], session_id, reply.get("data"), manager.directory(session_id))
+                    elif request["action"] == "gui_new" and mode == "model_replaced":
+                        save_checkpoint_context(directory / "initial.k", session_id, reply.get("data"), manager.directory(session_id))
             except Exception as exc:
                 meta.update(state="uncertain" if meta["process_alive"] else "exited", last_error=str(exc))
                 manager.save(session_id, meta)
@@ -493,6 +502,7 @@ class SessionTools:
                             source=opened_model,
                             last_checkpoint=opened_model if request["file_type"] == "keyword" else None,
                             model_generation=uuid.uuid4().hex,
+                            reset_recovery_source=None, reset_rollback_checkpoint=None,
                             selection_buffers={}, entity_visibility_last=None, managed_fringe=None, fringe_storage={})
                 inputs = Path(opened_model).parent / "inputs.json"
                 if inputs.is_file():
@@ -500,7 +510,8 @@ class SessionTools:
                     if identities:
                         meta["source"] = identities[0]["path"]
             elif request["action"] == "gui_new" and mode == "model_replaced":
-                meta.update(model_kind="keyword", source=None, staged_model=None, dirty=False,
+                meta.update(model_kind="keyword", dirty=False,
+                            **reset_baseline(directory, meta.get("last_checkpoint")),
                             model_generation=uuid.uuid4().hex, selection_buffers={}, entity_visibility_last=None,
                             managed_fringe=None, fringe_storage={})
             recovered = dict(session_id=session_id, request_id=request_id, status=("completed_unverified"
@@ -516,7 +527,9 @@ class SessionTools:
                         recovery_mode=mode, requires_host_validation=mode == "requires_host_validation")
 
     def reset_gui_session(self, session_id: str, save_checkpoint: bool = True) -> dict:
-        """Start a new empty model in the same GUI, preserving a checkpoint of the prior keyword model by default."""
+        """Start a new active empty model; save prior keyword cards even with no mesh. Keep last_checkpoint for explicit undo, and a separate empty baseline for process restart until a newer model/checkpoint is established. Does not certify unloading other resident models."""
+        if type(save_checkpoint) is not bool:
+            raise ValueError("save_checkpoint must be a boolean")
         manager = self._session_manager()
         with manager.lock(session_id):
             meta = manager.read(session_id)
@@ -528,7 +541,6 @@ class SessionTools:
             if (
                 save_checkpoint
                 and meta["model_kind"] == "keyword"
-                and info["data"].get("counts", {}).get("nodes", 0) > 0
             ):
                 saved = manager.dispatch(
                     session_id, "export_keyword", {}, artifacts=(("model.k", "keyword"),), export=True
@@ -536,6 +548,9 @@ class SessionTools:
                 if saved["status"] != "succeeded":
                     return saved
                 meta["last_checkpoint"] = saved["artifacts"][0]["path"]
+                current = manager.read(session_id)
+                current.update(last_checkpoint=meta["last_checkpoint"], dirty=False)
+                manager.save(session_id, current)  # Retain rollback even if reset times out.
             result = manager.dispatch(session_id, "gui_new", {})
             if result["status"] == "succeeded":
                 updated = manager.read(session_id)
@@ -543,8 +558,7 @@ class SessionTools:
                     model_kind="keyword",
                     dirty=False,
                     last_checkpoint=meta.get("last_checkpoint"),
-                    source=None,
-                    staged_model=None,
+                    **reset_baseline(result["job_directory"], meta.get("last_checkpoint")),
                     model_generation=uuid.uuid4().hex,
                     selection_buffers={},
                     entity_visibility_last=None,
@@ -552,7 +566,10 @@ class SessionTools:
                     fringe_storage={},
                 )
                 manager.save(session_id, updated)
-            manager.journal(session_id, dict(action="new_model", parameters={}, result=result))
+                result["rollback_checkpoint"] = meta.get("last_checkpoint")
+                result["restart_baseline"] = updated["reset_recovery_source"]
+                atomic_json(Path(result["job_directory"]) / "operation.json", result)
+            manager.journal(session_id, dict(action="new_model", parameters=dict(save_checkpoint=save_checkpoint), result=result))
             return result
 
     def _session_manager(self):
@@ -581,8 +598,7 @@ class SessionTools:
                 return dict(status="succeeded" if old.get("restart_status") == "succeeded" and child["state"] == "ready" else "uncertain",
                             previous_session_id=session_id, session_id=replacement, reused=True,
                             recovery_scope="Existing replacement returned without reopening, duplicating or replaying anything; inspect/recover it if uncertain")
-            source = ((old.get("last_checkpoint") or old.get("staged_model"))
-                      if old["model_kind"] == "keyword" else old.get("staged_model"))
+            source = restart_source(old)
             validated_source = self.settings.input_path(source) if source else None
             expected_empty = (checkpoint_expected_empty(validated_source, session_id)
                               if source and old["model_kind"] == "keyword" else False)
@@ -633,6 +649,7 @@ class SessionTools:
                     source=str(self.settings.input_path(path)),
                     staged_model=str(staged),
                     model_generation=uuid.uuid4().hex,
+                    reset_recovery_source=None, reset_rollback_checkpoint=None,
                     selection_buffers={},
                     entity_visibility_last=None,
                     managed_fringe=None,
@@ -790,11 +807,19 @@ class SessionTools:
             raise ValueError("Reconcile/restore the uncertain operation before replacing the trusted checkpoint")
         return self.gui_session_action(session_id, "export_keyword", {})
 
-    def restore_gui_checkpoint(self, session_id: str, path: str | None = None, expected_empty: bool = False) -> dict:
-        """Reopen a saved checkpoint, leaving failure evidence intact. Set expected_empty=True only for an intentionally zero-node/element keyword checkpoint; source/log checks still apply. This verifies active context, not removal of every other model."""
-        path = path or self._session_manager().read(session_id).get("last_checkpoint")
+    def restore_gui_checkpoint(self, session_id: str, path: str | None = None, expected_empty: bool | None = None) -> dict:
+        """Reopen a checkpoint, preserving failure evidence. None auto-detects empty expectation only for this session's trusted checkpoint with matching file context. For an explicit other zero-entity source pass True. False enforces nonempty. Source/log checks apply; not all-model unloading."""
+        trusted = self._session_manager().read(session_id).get("last_checkpoint")
+        path = path or trusted
         if not path:
             raise ValueError("No checkpoint available")
+        if expected_empty is None:
+            source = self.settings.input_path(path)
+            trusted_path = Path(trusted).expanduser() if trusted else None
+            if trusted_path is not None and not trusted_path.is_absolute():
+                trusted_path = self.settings.workspace / trusted_path
+            same_checkpoint = trusted_path is not None and source == trusted_path.resolve()
+            expected_empty = checkpoint_expected_empty(source, session_id) if same_checkpoint else False
         return self.open_in_gui_session(session_id, path, discard=True, expected_empty=expected_empty)
 
     def close_gui_session(self, session_id: str, save_checkpoint: bool = True) -> dict:
