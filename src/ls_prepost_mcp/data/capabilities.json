@@ -681,7 +681,8 @@
       "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
-      ]
+      ],
+      "recovery_scope": "Visible4.13.4 actual late completion, uncertain command/host validation separation, checkpoint preservation, exact owned-process termination/restart and replacement reuse verified. Saved model/source only; arbitrary GUI state and full workflow continuation remain. docs/SESSION_RECOVERY.md"
     },
     {
       "id": "automation.restore_gui_checkpoint",
@@ -702,7 +703,8 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "recovery_scope": "Visible4.13.4 actual late completion, uncertain command/host validation separation, checkpoint preservation, exact owned-process termination/restart and replacement reuse verified. Saved model/source only; arbitrary GUI state and full workflow continuation remain. docs/SESSION_RECOVERY.md"
     },
     {
       "id": "automation.reset_gui_session",
@@ -1156,7 +1158,8 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Exited process checkpoint recovery; no uncertain operation replay"
+      "scope": "Exited process checkpoint recovery; no uncertain operation replay",
+      "recovery_scope": "Visible4.13.4 actual late completion, uncertain command/host validation separation, checkpoint preservation, exact owned-process termination/restart and replacement reuse verified. Saved model/source only; arbitrary GUI state and full workflow continuation remain. docs/SESSION_RECOVERY.md"
     },
     {
       "id": "gui_selection.check_gui_keywords",

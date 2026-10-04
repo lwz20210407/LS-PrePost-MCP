@@ -68,18 +68,26 @@ def test_native_partial_transform_checks_unselected_nodes():
 
 
 def test_restart_restores_opened_input_when_no_explicit_checkpoint(tmp_path, monkeypatch):
+    from contextlib import nullcontext
+
     from ls_prepost_mcp.config import Settings
     from ls_prepost_mcp.service import Service
 
     s = Service(Settings(tmp_path))
 
     class Manager:
+        def lock(self, sid):
+            return nullcontext()
+
+        def save(self, sid, data):
+            saved.append((sid, data["restarted_as"], data["restart_status"]))
+
         def read(self, sid):
             return dict(
                 process_alive=False, model_kind="keyword", last_checkpoint=None, staged_model="staged.k"
             )
 
-    calls = []
+    calls, saved = [], []
     monkeypatch.setattr(s, "_session_manager", Manager)
     monkeypatch.setattr(s, "start_gui_session", lambda: dict(session_id="new"))
     monkeypatch.setattr(s, "show_gui_session", lambda *args, **kwargs: None)
@@ -91,6 +99,7 @@ def test_restart_restores_opened_input_when_no_explicit_checkpoint(tmp_path, mon
     monkeypatch.setattr(s, "open_in_gui_session", opened)
     assert s.restart_gui_session("old")["status"] == "succeeded"
     assert calls == [("new", "staged.k", "keyword")]
+    assert saved == [("old", "new", "restoring"), ("old", "new", "succeeded")]
 
 
 def test_shell_normal_verification_checks_orientation_and_untouched_entities():

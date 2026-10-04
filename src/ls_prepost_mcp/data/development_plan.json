@@ -1282,7 +1282,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Mesh gate recording retained. Native node/history/relative-displacement and SCL stress recording replay verified. Explicit result/artifact links and workflow file/engineering steps preserved; changed selected IDs drive fresh native curves. General manual macro semantics, control flow and resumable uncertain jobs remain. Shared static preflight and operation routing now feed bounded independent parameter studies; all cases preflight before execution, failures stop later cases, child jobs and scalar CSV summaries retained. Synthetic engineering truth and two visible GUI mesh save/reopen cases passed. General branches and crash resume remain."
+      "progress": "Mesh gate recording retained. Native node/history/relative-displacement and SCL stress recording replay verified. Explicit result/artifact links and workflow file/engineering steps preserved; changed selected IDs drive fresh native curves. General manual macro semantics, control flow and resumable uncertain jobs remain. Shared static preflight and operation routing now feed bounded independent parameter studies; all cases preflight before execution, failures stop later cases, child jobs and scalar CSV summaries retained. Synthetic engineering truth and two visible GUI mesh save/reopen cases passed. General branches and crash resume remain. Late native completion no longer implies parent workflow/postcondition success. Recovery records preserve uncertainty/checkpoints; arbitrary workflow continuation remains unfinished."
     },
     {
       "id": "T10",
@@ -1307,7 +1307,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Reusable file-backend gate acceptance in CI and opt-in visible GUI gate/recording acceptance driver now exist; full three-workflow/scale/version coverage still pending. Reusable parameter-study acceptance covers engineering math and opt-in visible GUI baseline reset/edit/quality/save/reopen."
+      "progress": "Reusable file-backend gate acceptance in CI and opt-in visible GUI gate/recording acceptance driver now exist; full three-workflow/scale/version coverage still pending. Reusable parameter-study acceptance covers engineering math and opt-in visible GUI baseline reset/edit/quality/save/reopen. Visible4.13.4 fault injection verifies late completion without replay, uncertain host transaction checkpoint protection, explicit coordinate rollback, exact owned-process termination and saved-model restart, plus replacement reuse. Full GUI scene and long-uptime restoration remain."
     },
     {
       "id": "T11",

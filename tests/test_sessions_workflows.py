@@ -150,7 +150,120 @@ def test_timeout_blocks_redispatch_until_late_completion_recovered(tmp_path, mon
     )
     recovered = Service(manager.settings).recover_gui_session(sid)
     assert recovered["state"] == "ready" and recovered["active_request"] is None
+    assert recovered["dirty"] is True
+    assert recovered["recovery_mode"] == "validated_native_kernel"
     assert len(submitted) == 1
+
+
+@pytest.mark.parametrize("process_alive", [True, False])
+def test_late_command_readback_does_not_bypass_host_validation(tmp_path, monkeypatch, process_alive):
+    manager, sid, module = session_fixture(tmp_path, monkeypatch, "uncertain")
+    rid = "b" * 32
+    directory = manager.directory(sid) / "requests" / rid
+    directory.mkdir(parents=True)
+    meta = manager.read(sid)
+    meta.update(active_request=rid, last_checkpoint="trusted.k")
+    manager.save(sid, meta)
+    atomic_json(directory / "request.json", dict(job_id=rid, action="gui_mesh_digest", model=None,
+                                                native_commands=["nodeedit transform accept"]))
+    atomic_json(directory / "contract.json", dict(artifacts=[], export=False, was_uncertain=False))
+    atomic_json(directory / "complete.json", dict(job_id=rid, ok=True, data=dict(counts=dict(nodes=8))))
+    monkeypatch.setattr(module, "alive", lambda _: process_alive)
+    result = Service(manager.settings).recover_gui_session(sid)
+    assert result["state"] == ("uncertain" if process_alive else "exited")
+    assert result["dirty"] and result["active_request"] is None
+    assert result["requires_host_validation"] and result["last_checkpoint"] == "trusted.k"
+    assert json.loads((directory / "recovery.json").read_text())["status"] == "completed_unverified"
+    with pytest.raises(ValueError, match="trusted checkpoint"):
+        Service(manager.settings).checkpoint_gui_session(sid)
+    with pytest.raises(ValueError, match="trusted checkpoint"):
+        Service(manager.settings).gui_session_action(sid, "export_keyword", {})
+    with pytest.raises(ValueError, match="trusted checkpoint"):
+        Service(manager.settings).reset_gui_session(sid)
+
+
+def test_late_reopen_clears_previous_model_checkpoint_and_caches(tmp_path, monkeypatch):
+    manager, sid, _ = session_fixture(tmp_path, monkeypatch, "uncertain")
+    rid = "b" * 32
+    directory = manager.directory(sid) / "requests" / rid
+    directory.mkdir(parents=True)
+    model = manager.directory(sid) / "inputs" / "d3plot"
+    model.parent.mkdir()
+    model.touch()
+    atomic_json(model.parent / "inputs.json", [dict(path="original-result/d3plot")])
+    meta = manager.read(sid)
+    meta.update(active_request=rid, last_checkpoint="old.k", source="old-original.k", selection_buffers={"1":{}})
+    manager.save(sid, meta)
+    atomic_json(directory / "request.json", dict(job_id=rid, action="inspect_model", model=str(model),
+                                                native_commands=[], file_type="d3plot"))
+    atomic_json(directory / "contract.json", dict(artifacts=[], export=False, was_uncertain=True))
+    atomic_json(directory / "complete.json", dict(job_id=rid, ok=True, data=dict(counts={})))
+    result = Service(manager.settings).recover_gui_session(sid)
+    assert result["state"] == "ready" and result["model_kind"] == "d3plot"
+    assert result["source"] == "original-result/d3plot" and result["last_checkpoint"] is None
+    assert not result["selection_buffers"] and result["model_generation"]
+
+
+def test_late_invalid_artifact_keeps_pending_request_and_checkpoint(tmp_path, monkeypatch):
+    manager, sid, _ = session_fixture(tmp_path, monkeypatch)
+    rid = "b" * 32
+    directory = manager.directory(sid) / "requests" / rid
+    directory.mkdir(parents=True)
+    meta = manager.read(sid)
+    meta.update(active_request=rid, last_checkpoint="trusted.k")
+    manager.save(sid, meta)
+    atomic_json(directory / "request.json", dict(job_id=rid, action="export_keyword", model=None, native_commands=[]))
+    atomic_json(directory / "contract.json", dict(artifacts=[["model.k","keyword"]], export=True, was_uncertain=False))
+    atomic_json(directory / "complete.json", dict(job_id=rid, ok=True, data={}))
+    (directory / "model.k").write_text("corrupt output")
+    with pytest.raises(ValueError, match="keyword"):
+        Service(manager.settings).recover_gui_session(sid)
+    result = manager.read(sid)
+    assert result["state"] == "uncertain" and result["active_request"] == rid
+    assert result["last_checkpoint"] == "trusted.k"
+
+
+@pytest.mark.parametrize("phase,state,expected", [("succeeded","ready","succeeded"),
+    ("restoring","ready","uncertain"), ("succeeded","uncertain","uncertain")])
+def test_restart_reuses_known_live_replacement_without_launching(tmp_path, monkeypatch, phase, state, expected):
+    manager, sid, module = session_fixture(tmp_path, monkeypatch)
+    child = "b" * 32
+    manager.directory(child).mkdir()
+    old = manager.read(sid)
+    old.update(restarted_as=child, restart_status=phase)
+    manager.save(sid, old)
+    manager.save(child, dict(session_id=child, process=dict(pid=456), state=state, model_kind="keyword", dirty=False))
+    monkeypatch.setattr(module, "alive", lambda p: p["pid"] == 456)
+    service = Service(manager.settings)
+    monkeypatch.setattr(service, "start_gui_session", lambda: pytest.fail("Duplicate replacement GUI"))
+    result = service.restart_gui_session(sid)
+    assert result["session_id"] == child and result["reused"] and result["status"] == expected
+
+
+@pytest.mark.parametrize("invalid", ["response_id", "request_id", "missing_success_flag"])
+def test_mismatched_late_reply_is_not_a_completion(tmp_path, monkeypatch, invalid):
+    manager, sid, _ = session_fixture(tmp_path, monkeypatch)
+    rid = "b" * 32
+    directory = manager.directory(sid) / "requests" / rid
+    directory.mkdir(parents=True)
+    meta = manager.read(sid)
+    meta.update(active_request=rid)
+    manager.save(sid, meta)
+    request = dict(job_id=rid, action="inspect_model", model=None, native_commands=[])
+    reply = dict(job_id=rid, ok=True, data={})
+    if invalid == "response_id":
+        reply["job_id"] = "c"*32
+    elif invalid == "request_id":
+        request["job_id"] = "c"*32
+    else:
+        reply.pop("ok")
+    atomic_json(directory / "request.json", request)
+    atomic_json(directory / "contract.json", dict(artifacts=[], export=False, was_uncertain=False))
+    atomic_json(directory / "complete.json", reply)
+    with pytest.raises((ValueError, RuntimeError)):
+        Service(manager.settings).recover_gui_session(sid)
+    current = manager.read(sid)
+    assert current["state"] == "uncertain" and current["active_request"] == rid
 
 
 def test_session_identity_and_directory_boundaries(tmp_path, monkeypatch):

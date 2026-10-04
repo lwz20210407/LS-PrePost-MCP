@@ -49,6 +49,27 @@ MUTATIONS = {
 # Batch-native validation does not certify the persistent GUI execution path.
 GUI_BATCH_ACTIONS = {"rotate_mesh_nodes", "translate_mesh_nodes"}
 
+# These kernels validate their own result before publishing the correlated
+# completion. Native-command + readback requests still need their host-side
+# transaction checks and cannot become ready merely because readback finished.
+RECOVERABLE_KERNEL_MUTATIONS = {"create_plate", "create_box", "create_sphere", "rotate_nodes",
+                                "translate_nodes", "move_elements_to_part", "extrude_shell"}
+RECOVERABLE_READS = {"inspect_model", "list_nodes", "list_parts", "connectivity", "gui_mesh_digest",
+                     "gui_mesh_state", "gui_mesh_page", "gui_measure", "measure_parts", "probe",
+                     "scl_probe", "extract_nodal", "extract_node_history", "render_snapshot", "export_keyword"}
+
+
+def recovery_mode(request):
+    if request.get("native_commands"):
+        return "requires_host_validation"
+    if request.get("model") or request["action"] == "gui_new":
+        return "model_replaced"
+    if request["action"] in RECOVERABLE_KERNEL_MUTATIONS:
+        return "validated_native_kernel"
+    if request["action"] in RECOVERABLE_READS:
+        return "native_read"
+    return "requires_host_validation"
+
 
 def process_identity(pid):
     import psutil
@@ -381,54 +402,100 @@ class SessionTools:
         return [manager.read(p.parent.name) for p in sorted(manager.root.glob("*/session.json"))]
 
     def recover_gui_session(self, session_id: str) -> dict:
-        """Reconcile a late completed request after a timeout/server restart without replaying it. Pending native work remains uncertain."""
+        """Reconcile correlated late completion without replay. Only self-validated kernels/reads or explicit reopen can restore readiness; native-command transactions retain uncertainty until restored/revalidated. Parent workflow gates are never implicitly passed."""
         manager = self._session_manager()
         with manager.lock(session_id):
             meta = manager.read(session_id)
             request_id = meta.get("active_request")
             if not request_id:
                 return meta
+            if not re.fullmatch(r"[a-f0-9]{32}", request_id):
+                raise ValueError("Invalid pending request identity")
             directory = manager.directory(session_id) / "requests" / request_id
             complete = directory / "complete.json"
             if not complete.exists():
                 return dict(**meta, recovery="No correlated completion yet; nothing replayed")
-            reply = json.loads(complete.read_text(encoding="utf8"))
-            if reply.get("job_id") != request_id:
-                raise RuntimeError("Late response identity mismatch")
-            contract = json.loads((directory / "contract.json").read_text(encoding="utf8"))
+            try:
+                reply = json.loads(complete.read_text(encoding="utf8"))
+                if reply.get("job_id") != request_id:
+                    raise RuntimeError("Late response identity mismatch")
+                if type(reply.get("ok")) is not bool:
+                    raise ValueError("Late response success flag is not Boolean")
+                contract = json.loads((directory / "contract.json").read_text(encoding="utf8"))
+                request = json.loads((directory / "request.json").read_text(encoding="utf8"))
+                if request.get("job_id") != request_id:
+                    raise RuntimeError("Saved request identity mismatch")
+                mode = recovery_mode(request)
+                artifacts = []
+                if reply.get("ok"):
+                    for name, kind in contract["artifacts"]:
+                        path = (directory / name).resolve()
+                        if not path.is_relative_to(directory.resolve()):
+                            raise ValueError("Recovery artifact escapes the owned request")
+                        artifacts.append(check_artifact(path, kind))
+                    if contract["export"] and mode != "requires_host_validation" and not contract.get("was_uncertain"):
+                        if not any(Path(a["path"]).name == "model.k" and a.get("validated") for a in artifacts):
+                            raise ValueError("Checkpoint recovery lacks a validated model.k artifact")
+            except Exception as exc:
+                meta.update(state="uncertain" if meta["process_alive"] else "exited", last_error=str(exc))
+                manager.save(session_id, meta)
+                raise
             if not reply.get("ok"):
-                meta.update(state="uncertain", active_request=None)
+                meta.update(state="uncertain" if meta["process_alive"] else "exited", active_request=None)
+                if meta["model_kind"] == "keyword" and mode != "native_read":
+                    meta["dirty"] = True
                 manager.save(session_id, meta)
                 return dict(
                     **meta,
                     recovery="Native action failed; restore a checkpoint",
                     native_error=reply.get("error"),
                 )
-            artifacts = [check_artifact(directory / name, kind) for name, kind in contract["artifacts"]]
-            request = json.loads((directory / "request.json").read_text(encoding="utf8"))
             opened_model = request.get("model")
             state = (
                 "uncertain"
-                if contract.get("was_uncertain")
-                and not opened_model
-                and request["action"] != "gui_new"
+                if mode == "requires_host_validation" or (contract.get("was_uncertain") and mode != "model_replaced")
                 else "ready"
             )
+            if not meta["process_alive"]:
+                state = "closed" if meta.get("closed_at") else "exited"
             meta.update(state=state, active_request=None)
-            if contract["export"]:
+            if meta["model_kind"] == "keyword" and (mode in ("validated_native_kernel", "requires_host_validation")
+                    or (contract.get("was_uncertain") and mode != "model_replaced")):
+                meta["dirty"] = True
+            if contract["export"] and mode != "requires_host_validation" and not contract.get("was_uncertain"):
                 meta.update(last_checkpoint=str(directory / "model.k"), dirty=False)
             if opened_model:
                 meta.update(model_kind=request["file_type"], staged_model=opened_model, dirty=False,
+                            source=opened_model,
+                            last_checkpoint=opened_model if request["file_type"] == "keyword" else None,
                             model_generation=uuid.uuid4().hex,
                             selection_buffers={}, entity_visibility_last=None, managed_fringe=None, fringe_storage={})
+                inputs = Path(opened_model).parent / "inputs.json"
+                if inputs.is_file():
+                    identities = json.loads(inputs.read_text(encoding="utf8"))
+                    if identities:
+                        meta["source"] = identities[0]["path"]
+            elif request["action"] == "gui_new" and mode == "model_replaced":
+                meta.update(model_kind="keyword", source=None, staged_model=None, dirty=False,
+                            model_generation=uuid.uuid4().hex, selection_buffers={}, entity_visibility_last=None,
+                            managed_fringe=None, fringe_storage={})
+            recovered = dict(session_id=session_id, request_id=request_id, status=("completed_unverified"
+                             if mode == "requires_host_validation" else "succeeded"), data=reply.get("data"),
+                             artifacts=artifacts, recovery_mode=mode, replayed=False,
+                             scope="Native request/artifact reconciliation only; parent workflow/postcondition checks are not replayed")
+            atomic_json(directory / "recovery.json", recovered)
+            meta["last_recovery"] = str(directory / "recovery.json")
             manager.save(session_id, meta)
-            return dict(**meta, recovery="Late completion reconciled; no replay", artifacts=artifacts)
+            return dict(**meta, recovery="Late completion reconciled; no replay", artifacts=artifacts,
+                        recovery_mode=mode, requires_host_validation=mode == "requires_host_validation")
 
     def reset_gui_session(self, session_id: str, save_checkpoint: bool = True) -> dict:
         """Start a new empty model in the same GUI, preserving a checkpoint of the prior keyword model by default."""
         manager = self._session_manager()
         with manager.lock(session_id):
             meta = manager.read(session_id)
+            if save_checkpoint and (meta["state"] != "ready" or meta.get("active_request")):
+                raise ValueError("Reconcile/restore the uncertain operation before replacing the trusted checkpoint")
             info = manager.dispatch(session_id, "inspect_model", {})
             if info["status"] != "succeeded":
                 return info
@@ -475,36 +542,41 @@ class SessionTools:
 
     def restart_gui_session(self, session_id: str) -> dict:
         """Recover an exited owned session into a new visible process using its last checkpoint or staged result source; never replay uncertain commands or terminate a live process."""
-        old = self._session_manager().read(session_id)
-        if old["process_alive"]:
-            raise ValueError(
-                "The original GUI process is still alive; inspect/recover it instead of duplicating it"
-            )
-        source = (
-            (old.get("last_checkpoint") or old.get("staged_model"))
-            if old["model_kind"] == "keyword"
-            else old.get("staged_model")
-        )
-        new = self.start_gui_session()
-        if source:
-            opened = self.open_in_gui_session(new["session_id"], source, old["model_kind"])
-            if opened["status"] != "succeeded":
-                return dict(
-                    status="failed",
-                    previous_session_id=session_id,
-                    session_id=new["session_id"],
-                    restoration=opened,
-                )
-        else:
-            opened = None
-        self.show_gui_session(new["session_id"], maximize=True)
-        return dict(
-            status="succeeded",
-            previous_session_id=session_id,
-            session_id=new["session_id"],
-            restoration=opened,
-            recovery_scope="Saved model/source only; unsaved manual changes and uncertain commands are not replayed",
-        )
+        manager = self._session_manager()
+        with manager.lock(session_id):
+            old = manager.read(session_id)
+            if old["process_alive"]:
+                raise ValueError("The original GUI process is still alive; inspect/recover it instead of duplicating it")
+            replacement = old.get("restarted_as")
+            if replacement:
+                child = manager.read(replacement)
+                if not child["process_alive"]:
+                    raise ValueError("Replacement session already exists but has exited; restart that session to retain its latest checkpoint: " + replacement)
+                return dict(status="succeeded" if old.get("restart_status") == "succeeded" and child["state"] == "ready" else "uncertain",
+                            previous_session_id=session_id, session_id=replacement, reused=True,
+                            recovery_scope="Existing replacement returned without reopening, duplicating or replaying anything; inspect/recover it if uncertain")
+            source = ((old.get("last_checkpoint") or old.get("staged_model"))
+                      if old["model_kind"] == "keyword" else old.get("staged_model"))
+            new = self.start_gui_session()
+            old.update(restarted_as=new["session_id"], restart_status="restoring")
+            manager.save(session_id, old)
+            try:
+                opened = self.open_in_gui_session(new["session_id"], source, old["model_kind"]) if source else None
+                if opened and opened["status"] != "succeeded":
+                    old["restart_status"] = "failed"
+                    manager.save(session_id, old)
+                    return dict(status="failed", previous_session_id=session_id, session_id=new["session_id"], restoration=opened)
+                self.show_gui_session(new["session_id"], maximize=True)
+            except Exception as exc:
+                old.update(restart_status="failed", restart_error=str(exc))
+                manager.save(session_id, old)
+                return dict(status="failed", previous_session_id=session_id, session_id=new["session_id"],
+                            error=dict(type=type(exc).__name__, message=str(exc)))
+            old["restart_status"] = "succeeded"
+            manager.save(session_id, old)
+            return dict(status="succeeded", previous_session_id=session_id, session_id=new["session_id"],
+                        restoration=opened, reused=False,
+                        recovery_scope="Saved model/source only; unsaved manual changes and uncertain commands are not replayed")
 
     def open_in_gui_session(
         self, session_id: str, path: str, file_type: str = "keyword", discard: bool = False
@@ -564,6 +636,8 @@ class SessionTools:
             meta = manager.read(session_id)
             if meta["state"] == "uncertain" and action in MUTATIONS:
                 raise ValueError("Restore/reopen a checkpoint before more mutations")
+            if meta["state"] != "ready" and action == "export_keyword":
+                raise ValueError("Reconcile/restore the uncertain operation before replacing the trusted checkpoint")
             if meta["model_kind"] != "keyword" and action in MUTATIONS:
                 raise ValueError("Mesh edits require a keyword session")
             service = Service(self.settings)
@@ -674,8 +748,11 @@ class SessionTools:
 
     def checkpoint_gui_session(self, session_id: str) -> dict:
         """Save current keyword model to a fresh owned checkpoint and return the file identity."""
-        if self._session_manager().read(session_id)["model_kind"] != "keyword":
+        meta = self._session_manager().read(session_id)
+        if meta["model_kind"] != "keyword":
             raise ValueError("Keyword checkpoint requires a keyword session")
+        if meta["state"] != "ready" or meta.get("active_request"):
+            raise ValueError("Reconcile/restore the uncertain operation before replacing the trusted checkpoint")
         return self.gui_session_action(session_id, "export_keyword", {})
 
     def restore_gui_checkpoint(self, session_id: str, path: str | None = None) -> dict:
