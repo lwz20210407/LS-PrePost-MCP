@@ -3,6 +3,14 @@
 Recovery never resubmits the timed-out command. Native completion, host-side
 transaction verification and workflow quality gates are different events.
 
+## Zero-entity keyword baselines
+
+Keyword recordings now save a native checkpoint even when nodes/elements are zero. An empty mesh can still contain materials or controls; reopening its saved file preserves those cards. The recorded `initial_expected_empty` boolean survives parameterization and requires an actual keyword initial_model during static preflight.
+
+`open_in_gui_session` and explicit `restore_gui_checkpoint` accept `expected_empty=True` for this declared zero-node/zero-element case. Source identity, native log errors, integral counts and the no-multistate-keyword guard still apply. Default opens continue to reject unexpected zero-node loads. The same contract is checked for late replies. Start a new GUI session for the updated embedded bridge.
+
+Visible4.13.4 acceptance: a material-only baseline, create nodes101/103, add an unrecorded node999, then replay with nodes201/205. The active model contains only the replay nodes, while the material card and original file remain unchanged. Existing engineering curve recording/replay was rerun successfully (20→10MPa after area change, previous plot data preserved). This is active-model restoration, not proof that every resident model was unloaded. Old recordings without a saved baseline are not automatically repaired; record a new baseline for reproducible modeling. Automatic crash restart of a zero-entity checkpoint still needs separate expectation propagation/acceptance.
+
 ## Late replies
 
 `recover_gui_session` reads the saved request/contract and matching `complete.json`.

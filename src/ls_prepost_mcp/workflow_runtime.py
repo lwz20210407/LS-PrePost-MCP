@@ -171,6 +171,9 @@ def compile_workflow(service, workflow, parameters=None, session_id=None):
             raise ValueError("This recording requires a persistent GUI session")
         if workflow.get("initial_model") and not session_id:
             raise ValueError("A recorded initial model requires a persistent GUI session")
+        empty = workflow.get("initial_expected_empty", False)
+        if type(empty) is not bool or empty and (not workflow.get("initial_model") or workflow.get("initial_file_type", "keyword") != "keyword"):
+            raise ValueError("initial_expected_empty requires a keyword initial_model and a boolean value")
     except (ValueError, TypeError) as exc:
         error(exc)
         return report

@@ -370,7 +370,8 @@ class WorkflowTools:
             if initial and session_id:
                 failure_phase = "initial_model"
                 opened = self.open_in_gui_session(
-                    session_id, initial, workflow.get("initial_file_type", "keyword")
+                    session_id, initial, workflow.get("initial_file_type", "keyword"),
+                    **({"expected_empty": True} if workflow.get("initial_expected_empty") else {}),
                 )
                 if opened["status"] != "succeeded":
                     raise RuntimeError("Cannot restore recording initial model")
@@ -475,6 +476,7 @@ class WorkflowTools:
         if meta.get("recording"):
             raise ValueError("Recording is already active")
         initial = None
+        initial_expected_empty = False
         initial_type = meta["model_kind"]
         if initial_type == "d3plot":
             initial = meta.get("staged_model")
@@ -482,11 +484,19 @@ class WorkflowTools:
             info = self.gui_session_action(session_id, "inspect_model", {})
             if info["status"] != "succeeded":
                 return info
-            if info["status"] == "succeeded" and info.get("data", {}).get("counts", {}).get("nodes", 0) > 0:
-                snapshot = self.checkpoint_gui_session(session_id)
-                if snapshot["status"] != "succeeded":
-                    return snapshot
-                initial = snapshot["artifacts"][0]["path"]
+            counts = info.get("data", {}).get("counts", {})
+            if any(type(counts.get(k)) is not int or counts[k] < 0 for k in ("nodes", "elements")):
+                raise ValueError("Recording requires verified node/element baseline counts")
+            if counts["nodes"] == 0 and counts["elements"] != 0:
+                raise ValueError("Zero-node baseline unexpectedly contains elements")
+            initial_expected_empty = counts["nodes"] == 0
+            snapshot = self.checkpoint_gui_session(session_id)
+            if snapshot["status"] != "succeeded":
+                return snapshot
+            saved_counts = snapshot.get("data", {}).get("counts", {})
+            if any(saved_counts.get(k) != counts[k] for k in ("nodes", "elements")):
+                raise ValueError("Model changed while capturing the recording baseline")
+            initial = snapshot["artifacts"][0]["path"]
         root = manager.directory(session_id)
         native = root / "lspost.cfile"
         journal = root / "journal.jsonl"
@@ -497,6 +507,7 @@ class WorkflowTools:
                 started_at=now(),
                 initial_model=initial,
                 initial_file_type=initial_type,
+                initial_expected_empty=initial_expected_empty,
                 native_offset=native.stat().st_size if native.exists() else None,
                 journal_offset=journal.stat().st_size if journal.exists() else 0,
             )
@@ -591,6 +602,7 @@ class WorkflowTools:
                 steps=steps,
                 initial_model=record["initial_model"],
                 initial_file_type=record.get("initial_file_type", "keyword"),
+                initial_expected_empty=record.get("initial_expected_empty", False),
                 requires_gui_session=True,
                 recording_scope="managed_GUI_operations_and_typed_workflow_steps; manual GUI edits retained only in raw cfile",
             )
@@ -652,6 +664,7 @@ class WorkflowTools:
         for key in (
             "initial_model",
             "initial_file_type",
+            "initial_expected_empty",
             "requires_gui_session",
             "recording_scope",
             "unrecognized_commands",

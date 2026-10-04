@@ -447,7 +447,7 @@ def run(request_path, response_path):
                 lp.execute_command(opener + " " + kind + ' "' + load_name + '"')
             finally:
                 os.chdir(job_directory)
-            if int(dc.get_data("num_nodes")) <= 0:
+            if int(dc.get_data("num_nodes")) <= 0 and request.get("expected_empty") is not True:
                 raise ValueError("Input did not load a nonempty finite-element model")
 
         def get(key, **kw):

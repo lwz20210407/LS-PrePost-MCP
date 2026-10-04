@@ -221,6 +221,7 @@ class Sessions:
         artifacts=(),
         export=False,
         native_commands=(),
+        expected_empty=False,
     ):
         if native_commands and model is not None:
             raise ValueError("Open the model before submitting in-memory native commands")
@@ -258,6 +259,7 @@ class Sessions:
             absolute_keyword_path=True,
             native_commands=list(native_commands),
             safe_beam_connectivity=safe_beams,
+            expected_empty=expected_empty,
         )
         atomic_json(directory / "request.json", request)
         contract = dict(artifacts=list(artifacts), export=export, was_uncertain=was_uncertain)
@@ -596,9 +598,12 @@ class SessionTools:
                         recovery_scope="Saved model/source only; unsaved manual changes and uncertain commands are not replayed")
 
     def open_in_gui_session(
-        self, session_id: str, path: str, file_type: str = "keyword", discard: bool = False
+        self, session_id: str, path: str, file_type: str = "keyword", discard: bool = False,
+        expected_empty: bool = False,
     ) -> dict:
-        """Open a staged copy in the existing GUI. Dirty managed models require an explicit discard or prior checkpoint."""
+        """Open a staged copy and verify active source. Dirty models require discard or checkpoint. expected_empty=True explicitly requires a keyword source yielding zero nodes AND elements, e.g. a saved material-only/empty recording baseline; it does not disable identity/log checks or prove other models unloaded."""
+        if type(expected_empty) is not bool or expected_empty and file_type != "keyword":
+            raise ValueError("expected_empty must be boolean and applies only to keyword models")
         manager = self._session_manager()
         with manager.lock(session_id):
             data = manager.read(session_id)
@@ -607,7 +612,8 @@ class SessionTools:
                     "Checkpoint the current model before replacement, or explicitly set discard=true"
                 )
             staged = manager.stage_input(session_id, path, file_type)
-            result = manager.dispatch(session_id, "inspect_model", {}, model=staged, file_type=file_type)
+            result = manager.dispatch(session_id, "inspect_model", {}, model=staged, file_type=file_type,
+                                      **({"expected_empty": True} if expected_empty else {}))
             if result["status"] == "succeeded":
                 data = manager.read(session_id)
                 data.update(
@@ -625,7 +631,8 @@ class SessionTools:
                 manager.save(session_id, data)
             manager.journal(
                 session_id,
-                dict(action="open", parameters=dict(path=path, file_type=file_type), result=result),
+                dict(action="open", parameters=dict(path=path, file_type=file_type,
+                     **({"expected_empty": True} if expected_empty else {})), result=result),
             )
             return result
 
@@ -772,12 +779,12 @@ class SessionTools:
             raise ValueError("Reconcile/restore the uncertain operation before replacing the trusted checkpoint")
         return self.gui_session_action(session_id, "export_keyword", {})
 
-    def restore_gui_checkpoint(self, session_id: str, path: str | None = None) -> dict:
-        """Explicitly replace current in-memory state with a saved checkpoint, leaving the failed operation evidence intact."""
+    def restore_gui_checkpoint(self, session_id: str, path: str | None = None, expected_empty: bool = False) -> dict:
+        """Reopen a saved checkpoint, leaving failure evidence intact. Set expected_empty=True only for an intentionally zero-node/element keyword checkpoint; source/log checks still apply. This verifies active context, not removal of every other model."""
         path = path or self._session_manager().read(session_id).get("last_checkpoint")
         if not path:
             raise ValueError("No checkpoint available")
-        return self.open_in_gui_session(session_id, path, discard=True)
+        return self.open_in_gui_session(session_id, path, discard=True, expected_empty=expected_empty)
 
     def close_gui_session(self, session_id: str, save_checkpoint: bool = True) -> dict:
         """Close only the owned process. Save a final keyword checkpoint by default; never terminate unrelated GUI instances."""

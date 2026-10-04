@@ -941,7 +941,8 @@
       "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
-      ]
+      ],
+      "zero_entity_baseline_scope": "Native zero-node/element keyword checkpoint plus explicit initial_expected_empty recorded/preserved/replayed.4.13.4 material-only source,changed node IDs and distractor removal in active model passed;old curve-recording regression passed. Not all-model unloading,legacy recording migration or automatic empty-checkpoint crash restart certification."
     },
     {
       "id": "automation.stop_session_recording",
@@ -954,7 +955,8 @@
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ],
-      "dependency_scope": "Typed workflows preserve explicit result/artifact links and include file/engineering steps; reparameterized selected IDs drove fresh native curves and subtraction in visible 4.13.4. No equal-value inference or arbitrary manual/file-call capture; unresolved dependencies require review."
+      "dependency_scope": "Typed workflows preserve explicit result/artifact links and include file/engineering steps; reparameterized selected IDs drove fresh native curves and subtraction in visible 4.13.4. No equal-value inference or arbitrary manual/file-call capture; unresolved dependencies require review.",
+      "zero_entity_baseline_scope": "Native zero-node/element keyword checkpoint plus explicit initial_expected_empty recorded/preserved/replayed.4.13.4 material-only source,changed node IDs and distractor removal in active model passed;old curve-recording regression passed. Not all-model unloading,legacy recording migration or automatic empty-checkpoint crash restart certification."
     },
     {
       "id": "automation.parameterize_workflow",
@@ -966,7 +968,8 @@
       "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
-      ]
+      ],
+      "zero_entity_baseline_scope": "Native zero-node/element keyword checkpoint plus explicit initial_expected_empty recorded/preserved/replayed.4.13.4 material-only source,changed node IDs and distractor removal in active model passed;old curve-recording regression passed. Not all-model unloading,legacy recording migration or automatic empty-checkpoint crash restart certification."
     },
     {
       "id": "automation.import_command_recording",

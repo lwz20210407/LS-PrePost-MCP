@@ -26,6 +26,10 @@ def verify_loaded_model(request, data):
     reported filename to its parent: that would accept a different input.
     """
     reset = request.get("action") == "gui_new"
+    explicit_empty = request.get("expected_empty", False)
+    if type(explicit_empty) is not bool or explicit_empty and request.get("file_type", "keyword") != "keyword":
+        raise ValueError("Invalid expected-empty keyword contract")
+    expect_empty = reset or explicit_empty
     expected = request.get("model")
     if not expected and not reset:
         return None
@@ -42,9 +46,9 @@ def verify_loaded_model(request, data):
     if not isinstance(counts, dict):
         raise ValueError("Native model counters are missing")
     nodes = counts.get("nodes")
-    if type(nodes) is not int or nodes < 0 or (not reset and nodes == 0):
+    if type(nodes) is not int or nodes < 0 or (not expect_empty and nodes == 0):
         raise ValueError("Native load did not verify a nonempty node inventory")
-    if reset and (nodes != 0 or type(counts.get("elements")) is not int or counts["elements"] != 0):
+    if expect_empty and (nodes != 0 or type(counts.get("elements")) is not int or counts["elements"] != 0):
         raise ValueError("Native reset did not verify an empty model")
     states = counts.get("states")
     if type(states) is not int or states < 0:
@@ -52,7 +56,7 @@ def verify_loaded_model(request, data):
     if (reset or request.get("file_type", "keyword") == "keyword") and states > 1:
         raise ValueError("Requested keyword model still has a multi-state result context")
     return dict(expected_source=expected, observed_model_directory=observed,
-                active_source_verified=True, empty_model_verified=reset,
+                active_source_verified=True, empty_model_verified=expect_empty,
                 scope="Active source path and required counters only; not exclusive model-list or physical validity certification")
 
 
