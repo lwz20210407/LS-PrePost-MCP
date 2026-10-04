@@ -326,6 +326,7 @@ class GuiMeshTools:
         on_verified=None,
         transaction_kind="edit",
         snapshot_parameters=None,
+        finalize_native=None,
     ):
         if transaction_kind not in ("edit", "selection", "inspection"):
             raise ValueError("Unsupported GUI transaction kind")
@@ -369,11 +370,17 @@ class GuiMeshTools:
                     artifacts=artifacts,
                     export=mutates_model,
                 )
+                if result["status"] == "succeeded" and finalize_native is not None:
+                    result = finalize_native(before, result)
             except Exception as exc:
                 meta = manager.read(session_id)
                 meta.update(
                     state="uncertain", dirty=True if mutates_model else original_meta.get("dirty", False)
                 )
+                if mutates_model:
+                    # A multi-stage edit may reopen a repaired deck, which clears
+                    # session caches/checkpoints before host verification finishes.
+                    meta["last_checkpoint"] = checkpoint
                 manager.save(session_id, meta)
                 result = dict(
                     session_id=session_id,
@@ -423,8 +430,10 @@ class GuiMeshTools:
                         meta["state"] = "uncertain"
                         # Unexpected external/model changes cannot be excluded.
                         meta["dirty"] = True
+                        if mutates_model:
+                            meta["last_checkpoint"] = checkpoint
             result.update(
-                execution_mode="visible_gui_native_cfile",
+                execution_mode=result.get("execution_mode", "visible_gui_native_cfile"),
                 baseline_checkpoint=checkpoint,
                 transaction_kind=transaction_kind,
                 checkpoint_created=mutates_model,
@@ -473,6 +482,13 @@ class GuiMeshTools:
             lambda a, b: verify_merge(a, b, tolerance),
             lambda state: check_no_collapse(*mesh_index(state), tolerance),
         )
+
+    def replace_gui_node(self, session_id: str, source_node_id: StrictInt, target_node_id: StrictInt,
+                         units: str) -> dict:
+        """Replace a source node by an existing target through native elemedit, preserving target coordinates. Verify every node/element/part in the bounded snapshot; reject collapse/inversion and overlapping SPCs. Repair supported Node/Segment sets and SPC references in a fresh native-export copy, then natively reopen and verify. Explicit mixed backend, not a promise that native Replace updates references. Standalone standard shell/solid models; legacy20k snapshot bound, unresolved reference-sensitive variants/TC-RC attributes reject. Other keyword references and solver physics are not fully certified."""
+        from .node_replacement import replace_node
+
+        return replace_node(self, session_id, source_node_id, target_node_id, units)
 
     def reverse_gui_shell_normals(
         self, session_id: str, units: str, shell_ids: list[int] | None = None

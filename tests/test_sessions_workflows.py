@@ -155,6 +155,34 @@ def test_timeout_blocks_redispatch_until_late_completion_recovered(tmp_path, mon
     assert len(submitted) == 1
 
 
+def test_gui_export_uses_absolute_native_path_despite_open_folder_drift(tmp_path, monkeypatch):
+    import ast
+
+    manager, sid, module = session_fixture(tmp_path, monkeypatch)
+
+    class Transport:
+        def __init__(self, pid):
+            pass
+
+        def preflight(self):
+            pass
+
+        def submit(self, command):
+            request = next((manager.directory(sid) / "requests").iterdir())
+            tree = ast.parse((request / "dispatch.py").read_text(encoding="utf8"))
+            saves = [ast.literal_eval(node.args[0]) for node in ast.walk(tree)
+                     if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                     and node.func.attr == "execute_command"]
+            assert saves == ['save keyword "' + str(request / "model.k") + '"']
+            assert (request / "model.k").is_absolute()
+            (request / "model.k").write_text("*KEYWORD\n*END\n")
+            atomic_json(request / "complete.json", dict(job_id=request.name, ok=True, data={}))
+
+    monkeypatch.setattr(module, "WindowsCommandTransport", Transport)
+    result = manager.dispatch(sid, "export_keyword", {}, artifacts=(("model.k", "keyword"),), export=True)
+    assert result["status"] == "succeeded"
+
+
 @pytest.mark.parametrize("process_alive", [True, False])
 def test_late_command_readback_does_not_bypass_host_validation(tmp_path, monkeypatch, process_alive):
     manager, sid, module = session_fixture(tmp_path, monkeypatch, "uncertain")

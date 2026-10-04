@@ -424,7 +424,8 @@
         "create_gui_nodes",
         "create_gui_elements",
         "measure_parts",
-        "set_gui_node_coordinates"
+        "set_gui_node_coordinates",
+        "replace_gui_node"
       ],
       "status": "partial",
       "contract_doc": "docs/ARCHITECTURE.md"
@@ -1170,7 +1171,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Bounded absolute node coordinates/axis alignment, full XYZ/multiple translation groups and part-flag preservation passed visible 4.13.4. Edit -> native quality -> save/reopen, parameter recording/replay and failed-quality checkpoint recovery verified. Broader Node/Element editing remains. Native Hex8 Model Checking now covers six recorded criteria, explicit zero-failure evidence, hidden-part preservation and gate/recorded-threshold rejection on synthetic positive/negative cases. Optional failed-solid user IDs now drive localization with disjoint-set/count checks and recorded threshold rebinding; model replacement invalidates old selection identities. Native visible-shell topology selection now distinguishes shared-node rings from shared-edge local unoriented-angle propagation. Exact graph/ID/display verification and Segment+pressure parameter replay/reopen passed on4.13.4. Basic connection editing remains; native replacement commands have probes only."
+      "progress": "Bounded absolute node coordinates/axis alignment, full XYZ/multiple translation groups and part-flag preservation passed visible 4.13.4. Edit -> native quality -> save/reopen, parameter recording/replay and failed-quality checkpoint recovery verified. Broader Node/Element editing remains. Native Hex8 Model Checking now covers six recorded criteria, explicit zero-failure evidence, hidden-part preservation and gate/recorded-threshold rejection on synthetic positive/negative cases. Optional failed-solid user IDs now drive localization with disjoint-set/count checks and recorded threshold rebinding; model replacement invalidates old selection identities. Native visible-shell topology selection now distinguishes shared-node rings from shared-edge local unoriented-angle propagation. Exact graph/ID/display verification and Segment+pressure parameter replay/reopen passed on4.13.4. Directed native node replacement with supported Node LIST/Segment/SPC reference repair, fresh-copy native reopen and changed-target parameter replay passed26 recorded checks on visible4.13.4 Tri3/Quad4/Hex8. Collapse/conflict/unsupported references reject before mutation. Full-snapshot20000 bound remains; general connection edits and reference families are not complete."
     },
     {
       "id": "T06",

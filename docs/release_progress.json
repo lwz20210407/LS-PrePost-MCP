@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "baseline_id": "R1-20261003-36",
-  "updated_at": "2026-10-04T20:49:08+08:00",
-  "verified_commit": "699453fae22e7e731af8271c9cc06b83e1bdd216",
+  "updated_at": "2026-10-04T21:50:17+08:00",
+  "verified_commit": "3ca2e3b099041241df974cf08889b115e57916ff",
   "frozen_gate_count": 36,
   "scope": "范围：Windows LS-PrePost 4.13.4 可见 GUI 的首个实用版本；按36项等权验收门槛计算，不是整个软件功能覆盖率或剩余工时。",
   "outside_scope": "后续总体路线仍保留：常用菜单扩展、接触与Include工程化、7模板完整工况、4.8/4.10及两种无GUI、后排CAD与高级模块。未纳入本期36项，不能据本进度称全部完成。",
-  "current_task": "原生拓扑选择已完成：节点邻接环、共享边特征角传播、显隐边界和反向法向验证；选择→Segment→压力→改角度回放→保存重开通过。连接编辑与大模型合并/重编号继续推进。",
+  "current_task": "定向节点替换、Node/Segment/SPC引用修复、参数回放及原生重开通过；转向Post/XYPlot多曲线输出与通用Entity载荷扩展。首版门槛不代表全软件覆盖。",
   "groups": [
     {
       "id": "B0",
@@ -138,12 +138,13 @@
       "id": "B1-04",
       "group": "B1",
       "title": "基本拓扑传播选择和连接编辑",
-      "state": "partial",
+      "state": "passed",
       "work_item": "T05",
-      "note": "4.13.4可见Tri3/Quad4邻接/传播选择及Segment压力闭环已通过；基本连接编辑仍待实现。",
+      "note": "4.13.4可见Tri3/Quad4邻接/传播与Segment压力闭环；定向节点替换及Node/Segment/SPC引用修复、Hex8连接更新、参数回放、退化/冲突拒绝和原生重开通过。连接编辑仍为20000完整快照范围；非通用引用/所有编辑认证。",
       "evidence": [
         "docs/BACKLOG_REVIEW_2026-10-01.md",
-        "docs/TOPOLOGY_SELECTION.md"
+        "docs/TOPOLOGY_SELECTION.md",
+        "docs/NODE_REPLACEMENT.md"
       ]
     },
     {
@@ -321,7 +322,7 @@
       "title": "逻辑、协议与CI回归",
       "state": "passed",
       "work_item": "T10",
-      "note": "b40b5fa本地444项测试通过；先前CI通过，当前提交CI单独核验。",
+      "note": "本批532项本地测试通过；上一提交3ca2e3b的CI通过，当前提交CI独立核验。测试数不是功能覆盖率。",
       "evidence": [
         "docs/VERIFICATION.md"
       ]
@@ -445,5 +446,6 @@
       "total": 30,
       "reason": "Initial inventory; Entity Creation gates omitted"
     }
-  ]
+  ],
+  "verification_increment": "Node replacement increment on this baseline:532 local tests,26 native4.13.4 recorded checks; current-commit hosted CI tracked separately."
 }

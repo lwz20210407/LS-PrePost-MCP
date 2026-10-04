@@ -10,7 +10,7 @@ import time
 import uuid
 from pathlib import Path
 
-from .config import command_path
+from .config import command_path, scl_command_path
 from .jobs import atomic_json, check_artifact, fingerprint, now
 from .native_config import isolate_preferences
 from .native_connectivity import beam_connectivity_prelude
@@ -282,7 +282,7 @@ class Sessions:
             code += (
                 "import json,LsPrePost as lp\n"
                 "if json.load(open(" + repr(str(response)) + ")) .get('ok'):\n"
-                "    lp.execute_command('save keyword \"model.k\"')\n"
+                "    lp.execute_command(" + repr("save keyword " + scl_command_path(directory / "model.k")) + ")\n"
             )
         code += "os.replace(" + repr(str(response)) + "," + repr(str(directory / "complete.json")) + ")\n"
         bootstrap = directory / "dispatch.py"

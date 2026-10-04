@@ -1628,6 +1628,19 @@
       ],
       "verification": "Visible4.13.4 original Tri3/Quad4 node-ring adjacency, shared-edge local unoriented-angle propagation, hidden part/Blank blockers, hidden-seed rejection, reversed normals, Segment/pressure recorded angle replay and keyword reopen passed.",
       "scope": "Keyword visible shells only; 1m reference/selection resource budget is not a large-scope runtime certificate. Leaves propagation/adaptive/3dsurf off. No result/adaptive/high-order/general nonmanifold certification. docs/TOPOLOGY_SELECTION.md"
+    },
+    {
+      "id": "mesh.node_replacement",
+      "tool": "replace_gui_node",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide"
+      ],
+      "tested_profiles": [
+        "4.13"
+      ],
+      "verification": "Windows4.13.4 visible maximized:26 recorded checks on original Tri3/Quad4 and Hex8 fixtures; native replacement, supported Node/Segment/SPC repair, constraint-ID preservation, topology change, parameter replay, source unchanged, native reopen and pre-edit collapse/conflict/unsupported-reference rejection.",
+      "scope": "Directed existing-node replacement; native Replace + targeted fresh-copy reference patch + native reopen. Complete snapshot limit20000; requires pinned PyDYNA. Include/parameter/other element families and known unsupported direct-node references reject. Part flags preserved, selection cleared, full scene/large model/solver/other versions not certified. docs/NODE_REPLACEMENT.md"
     }
   ],
   "native_reference_builds": [
