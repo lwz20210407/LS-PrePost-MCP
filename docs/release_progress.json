@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "baseline_id": "R1-20261003-36",
-  "updated_at": "2026-10-04T20:00:09+08:00",
-  "verified_commit": "d6ce9cd2a68b7ef9a296bbc4071dd929d37d6572",
+  "updated_at": "2026-10-04T20:49:08+08:00",
+  "verified_commit": "699453fae22e7e731af8271c9cc06b83e1bdd216",
   "frozen_gate_count": 36,
   "scope": "范围：Windows LS-PrePost 4.13.4 可见 GUI 的首个实用版本；按36项等权验收门槛计算，不是整个软件功能覆盖率或剩余工时。",
   "outside_scope": "后续总体路线仍保留：常用菜单扩展、接触与Include工程化、7模板完整工况、4.8/4.10及两种无GUI、后排CAD与高级模块。未纳入本期36项，不能据本进度称全部完成。",
-  "current_task": "多文件程序包与GUI执行已跑通：嵌套cfile、SCL配套数据、Python模块刷新、冻结依赖宏和数值参数回放通过；全局宏菜单/快捷键管理和任意依赖解析仍待扩展。",
+  "current_task": "原生拓扑选择已完成：节点邻接环、共享边特征角传播、显隐边界和反向法向验证；选择→Segment→压力→改角度回放→保存重开通过。连接编辑与大模型合并/重编号继续推进。",
   "groups": [
     {
       "id": "B0",
@@ -138,11 +138,12 @@
       "id": "B1-04",
       "group": "B1",
       "title": "基本拓扑传播选择和连接编辑",
-      "state": "pending",
+      "state": "partial",
       "work_item": "T05",
-      "note": "邻接/传播/常用连接修改需明确原生命令与正反例",
+      "note": "4.13.4可见Tri3/Quad4邻接/传播选择及Segment压力闭环已通过；基本连接编辑仍待实现。",
       "evidence": [
-        "docs/BACKLOG_REVIEW_2026-10-01.md"
+        "docs/BACKLOG_REVIEW_2026-10-01.md",
+        "docs/TOPOLOGY_SELECTION.md"
       ]
     },
     {

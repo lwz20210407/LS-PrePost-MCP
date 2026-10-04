@@ -1614,6 +1614,20 @@
       "verification": "Visible4.13.4 public solid native PNG states1/8/16 with5664/5405/5050 retained entities; FFmpeg5FPS640x4803frames/full decode; four-step recording replay with2states; state/manual Blank/fringe restoration and source identities checked. See docs/FIELD_MOVIES.md.",
       "scope": "Requires current verified alive solid/shell fringe and explicit fixed bounds. ALL alive entities in selected parts per frame; uniform FPS, no physical-time resampling. Explicit FFmpeg encoder, not native Movie command. Shell has an explicitly synthetic known-truth native case; other builds/headless remain unverified and all-deleted frames reject.",
       "shell_validity_evidence": "Visible4.13.4 original constructed shell d3plot (not solver output): sparse IDs, three points/states,9 raw->6 retained stress rows, high deleted stress excluded, counts3/2/1, empty subset/empty render rejection, native PNG and explicit FFmpeg movie. tools/run_shell_validity_acceptance.py; other builds/adaptive/SPH/beam/tshell not certified."
+    },
+    {
+      "id": "selection.shell_topology",
+      "tool": "select_gui_shell_topology",
+      "status": "native_tested",
+      "sources": [
+        "official-2026r1-guide",
+        "guide-selection"
+      ],
+      "tested_profiles": [
+        "4.13"
+      ],
+      "verification": "Visible4.13.4 original Tri3/Quad4 node-ring adjacency, shared-edge local unoriented-angle propagation, hidden part/Blank blockers, hidden-seed rejection, reversed normals, Segment/pressure recorded angle replay and keyword reopen passed.",
+      "scope": "Keyword visible shells only; 1m reference/selection resource budget is not a large-scope runtime certificate. Leaves propagation/adaptive/3dsurf off. No result/adaptive/high-order/general nonmanifold certification. docs/TOPOLOGY_SELECTION.md"
     }
   ],
   "native_reference_builds": [

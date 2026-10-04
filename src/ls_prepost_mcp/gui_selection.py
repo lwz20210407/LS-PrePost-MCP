@@ -5,6 +5,7 @@ import json
 import math
 
 import numpy as np
+from pydantic import StrictFloat, StrictInt
 
 from .field_contracts import EntitySelection
 from .gui_mesh import (
@@ -127,6 +128,13 @@ class GuiSelectionTools:
 
         def precheck(state):
             part_visibility(state)
+            topology = (state.get("native_selection_plan") or {}).get("strategy") == "topology"
+            if snapshot_parameters and snapshot_parameters.get("topology_query") and not topology:
+                raise ValueError("Start a new GUI session for the topology-query bridge")
+            if topology and state.get("model_kind") != "keyword":
+                raise ValueError("Topology selection currently requires a keyword model; deformed-result propagation is not verified")
+            if topology and state.get("topology_error"):
+                raise ValueError(state["topology_error"])
             if "mesh_digest" in state and state.get("visibility_binary") is None:
                 raise ValueError("Restart the GUI session to enable selection display-state verification")
             available = available_ids(state, kind)
@@ -135,24 +143,33 @@ class GuiSelectionTools:
             if not expected <= available or len(expected) > state.get("selection_limit", 20000):
                 raise ValueError("Selection is outside the current entity registry or verification bound")
             visibility = state.get("visibility_binary")
-            if visibility and visibility.get("active_count", 0) < visibility["count"] and len(expected) > 20000:
+            if visibility and visibility.get("active_count", 0) < visibility["count"] and len(expected) > 20000 and not topology:
                 raise ValueError("Hidden entities require exact-ID selection (20,000 selected-ID budget); narrow the scope or explicitly show entities first")
 
         def commands(state, directory):
             # pall also clears per-element Blank flags. Reveal only hidden parts;
             # +m/-m retains those flags, as checked by native mixed-domain tests.
-            result = ["+m " + pid for pid, active in part_visibility(state).items() if not active]
-            result += ["genselect clear", "genselect target " + target]
             plan = state.get("native_selection_plan")
+            topology = plan and plan.get("strategy") == "topology"
+            result = [] if topology else ["+m " + pid for pid, active in part_visibility(state).items() if not active]
+            result += ["genselect clear", "genselect target " + target]
             visibility = state.get("visibility_binary")
-            if visibility and visibility.get("active_count", 0) < visibility["count"]:
+            if visibility and visibility.get("active_count", 0) < visibility["count"] and not topology:
                 # Whole/by-part native selection omits Blank members in 4.13.
                 # Explicit IDs preserve the declared registered-entity semantics.
                 plan = None
             if plan:
                 if plan["target"] != target:
                     raise ValueError("Native bulk-selection plan targets the wrong domain")
-                if plan["strategy"] == "whole":
+                if topology:
+                    result += ["genselect propagate off", "genselect propagate adaptive off", "genselect 3dsurf off"]
+                    if plan["mode"] == "propagate":
+                        result += ["genselect propagate featang " + repr(plan["feature_angle"]), "genselect propagate on"]
+                    result += ["genselect shell add shell %d" % uid for uid in plan["seed_ids"]]
+                    if plan["mode"] == "adjacent":
+                        result += ["genselect adjacent"] * plan["rings"]
+                    result.append("genselect propagate off")
+                elif plan["strategy"] == "whole":
                     result.append("genselect whole")
                 else:
                     result += ["genselect %s add part %d" % (target, pid) for pid in plan["part_ids"]]
@@ -187,6 +204,30 @@ class GuiSelectionTools:
             transaction_kind="selection",
             snapshot_parameters=dict(snapshot_parameters or {}, visibility_readback=True),
         )
+
+    def select_gui_shell_topology(self, session_id: str, seed_ids: list[StrictInt], mode: str = "propagate",
+                                  feature_angle: StrictFloat | None = None, rings: StrictInt | None = None,
+                                  scope: str = "visible") -> dict:
+        """Native visible keyword-shell topology selection: adjacent grows shared-node rings; propagate follows shared edges with local unoriented normal-angle threshold. Independent graph checks exact IDs and preserves geometry/part/Blank/state. Tri3/Quad4; visible shells only, up to1m scope/selection. Reversed normals do not block smooth propagation. Deformed-result/adaptive propagation is unverified. Leaves propagation/adaptive/3dsurf off and the requested angle setting."""
+        from .post_backend import ids
+
+        ids(seed_ids, "seed_ids", 1000)
+        if scope != "visible":
+            raise ValueError("Topology selection currently supports the visible shell scope")
+        if mode not in ("adjacent", "propagate"):
+            raise ValueError("Topology mode is adjacent or propagate")
+        if mode == "propagate" and rings is not None or mode == "adjacent" and feature_angle is not None:
+            raise ValueError("feature_angle applies only to propagate; rings applies only to adjacent")
+        resolved_rings = 1 if rings is None else rings
+        angle = 30. if feature_angle is None else feature_angle
+        if type(resolved_rings) is not int or not 1 <= resolved_rings <= 100:
+            raise ValueError("Topology mode is adjacent/propagate; rings must be1..100")
+        if type(angle) not in (int, float) or not math.isfinite(angle) or not 0 < angle <= 180:
+            raise ValueError("Feature angle must be in (0,180] degrees")
+        query = dict(seed_ids=list(seed_ids), mode=mode, rings=resolved_rings, feature_angle=float(angle))
+        arguments = dict(seed_ids=list(seed_ids), mode=mode, rings=rings, feature_angle=feature_angle, scope=scope)
+        return self._select_gui(session_id, "select_gui_shell_topology", arguments, "shell",
+                                lambda state: set(), snapshot_parameters=dict(entity_type="shell", topology_query=query))
 
     def select_gui_entities(
         self,

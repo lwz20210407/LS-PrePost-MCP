@@ -45,10 +45,13 @@ class BeamSafeDataCenter:
         if set(self.beams) != expected:
             raise ValueError("Incomplete/unsupported native keyword beam connectivity; standard ELEMENT_BEAM only")
 
-    def get_data(self, key, **kwargs):
-        if key == "element_connectivity" and kwargs.get("type") == self.Type.BEAM:
+    def get_data(self, key, *args, **kwargs):
+        kind = kwargs.get("type", args[0] if args else None)
+        if key == "element_connectivity" and kind == self.Type.BEAM:
+            if len(args) > 1 or "id" not in kwargs:
+                raise ValueError("Safe beam connectivity requires an explicit id keyword")
             return self.beams[kwargs["id"]]
-        return self.original.get_data(key, **kwargs)
+        return self.original.get_data(key, *args, **kwargs)
 
 
 def shell_orientation_cycle(connectivity):
@@ -65,6 +68,50 @@ def orientation_digest_update(digest, uid, cycle):
     digest.update(struct.pack("!" + "q" * len(cycle), *cycle))
 
 
+def topology_shell_ids(connectivity, coordinates, seeds, mode, rings, angle):
+    """Independent visible-shell graph reference for native adjacent/propagate."""
+    if not set(seeds) <= set(connectivity):
+        raise ValueError("Topology seeds must be registered visible standard shells")
+    members, faces, normals = {}, {}, {}
+    for eid, raw in connectivity.items():
+        cycle = shell_orientation_cycle(raw)
+        faces[eid] = cycle
+        keys = cycle if mode == "adjacent" else [tuple(sorted((cycle[i], cycle[(i+1) % len(cycle)]))) for i in range(len(cycle))]
+        for key in keys:
+            members.setdefault(key, []).append(eid)
+    def normal(eid):
+        if eid not in normals:
+            p = [coordinates[uid] for uid in faces[eid]]
+            a = [p[1][i]-p[0][i] for i in range(3)] if len(p) == 3 else [p[2][i]-p[0][i] for i in range(3)]
+            b = [p[2][i]-p[0][i] for i in range(3)] if len(p) == 3 else [p[3][i]-p[1][i] for i in range(3)]
+            n = [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]]
+            length = math.hypot(*n)
+            if not math.isfinite(length) or length == 0:
+                raise ValueError("Degenerate shell has no feature-angle normal")
+            normals[eid] = [v/length for v in n]
+        return normals[eid]
+    selected, frontier = set(seeds), set(seeds)
+    iteration = 0
+    while frontier and (mode == "propagate" or iteration < rings):
+        next_frontier = set()
+        for eid in frontier:
+            cycle = faces[eid]
+            keys = cycle if mode == "adjacent" else [tuple(sorted((cycle[i], cycle[(i+1) % len(cycle)]))) for i in range(len(cycle))]
+            for key in keys:
+                for other in members[key]:
+                    if other in selected:
+                        continue
+                    if mode == "propagate":
+                        cosine = min(1., max(0., abs(sum(a*b for a,b in zip(normal(eid), normal(other))))))
+                        if math.degrees(math.acos(cosine)) > angle + 1e-7:
+                            continue
+                    next_frontier.add(other)
+        selected.update(next_frontier)
+        frontier = next_frontier
+        iteration += 1
+    return sorted(selected)
+
+
 def scoped_mesh_state(dc, lp, parameters, output_directory=None):
     """Stream complete native geometry fingerprints, materialize only requested nodes.
 
@@ -77,6 +124,11 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
     query = parameters.get("selection_query")
     registry_query = parameters.get("registry_query")
     normal_scope = parameters.get("normal_scope")
+    topology = parameters.get("topology_query")
+    topology_faces = {}
+    topology_error = None
+    if topology is not None and (query or registry_query or normal_scope or wanted_nodes or wanted_ids or domain != "shell"):
+        raise ValueError("Topology query requires an independent shell scope")
     normal_ids = None
     if normal_scope is not None:
         if query or registry_query or wanted_nodes or wanted_ids or not isinstance(normal_scope, dict):
@@ -236,6 +288,10 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
                                          uid, display_active))
                 if len(visibility_buffer) >= 40960:
                     flush_visibility()
+            if topology is not None and label == "shell" and lp.check_if_element_is_active_u(uid, kind):
+                if len(topology_faces) >= 1000000:
+                    raise ValueError("Topology reference exceeds one million visible shells")
+                topology_faces[uid] = conn
             if registry_query:
                 needs_unique = domain not in ("node", "part") or (domain == "node" and
                     (requested_parts is not None or registry_query["scope"] == "active_parts"))
@@ -271,6 +327,25 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
     if any(n > 1 for n in occurrences.values()):
         raise ValueError("Requested element IDs are ambiguous across native domains")
     native_plan, selection_limit = None, 20000
+    if topology is not None:
+        needed = {uid for conn in topology_faces.values() for uid in conn if uid}
+        array = get("node_ids")
+        positions = {int(array[i]):i for i in range(len(array)) if int(array[i]) in needed}
+        if set(positions) != needed:
+            raise ValueError("Shell topology references missing nodes")
+        coordinates = {uid:[] for uid in needed}
+        for key in ("node_x", "node_y", "node_z"):
+            array = get(key, type=dc.Type.NODE)
+            for uid, index in positions.items():
+                coordinates[uid].append(float(array[index]))
+        try:
+            matched = topology_shell_ids(topology_faces, coordinates, topology["seed_ids"], topology["mode"],
+                                         topology["rings"], topology["feature_angle"])
+        except ValueError as exc:
+            topology_error = str(exc)
+            matched = []
+        native_plan = dict(strategy="topology", target="shell", **topology)
+        selection_limit = 1000000
     if registry_query:
         if domain == "node" and (not filter_ids <= domain_ids or not active_ids <= domain_ids):
             raise ValueError("Part connectivity refers to an unregistered node")
@@ -306,7 +381,7 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
         if len(selected_set) > selection_limit:
             raise ValueError("Selected set exceeds the command/readback budget for this operation; this is not a global model-size limit")
         matched = sorted(selected_set)
-    if not query and not registry_query:
+    if not query and not registry_query and topology is None:
         if len(matched) != len(set(matched)) or (set(matched) != wanted_ids and parameters.get("allow_missing_entity_ids") is not True):
             raise ValueError("Requested IDs are absent or duplicated in the native entity registry")
     selection_count = int(get("num_selection"))
@@ -322,8 +397,9 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
         registry_probe=parameters.get("allow_missing_entity_ids") is True,
         missing_entity_ids=sorted(wanted_ids - set(matched)),
         selection_types=None, registry_matches=matched,
-        query_selected_ids=matched if query or registry_query else None,
+        query_selected_ids=matched if query or registry_query or topology is not None else None,
         native_selection_plan=native_plan, selection_limit=selection_limit,
+        topology_error=topology_error,
         affected_element_count=affected_count, affected_element_sample=affected,
         mesh_digest={key: value.hexdigest() for key, value in hashes.items()},
         digest_contract="native_registry_order_sha256_v1",

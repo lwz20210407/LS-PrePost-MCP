@@ -34,3 +34,21 @@ def test_fixed_width_native_beam_export_and_missing_count(tmp_path):
     (tmp_path/"beam-count.json").write_text("0")
     with pytest.raises(ValueError, match="count"):
         BeamSafeDataCenter(native, tmp_path)
+
+
+def test_proxy_preserves_positional_node_type_without_exposing_beam_getter(tmp_path):
+    calls = []
+    def get(key, *args, **kwargs):
+        if key == "element_connectivity":
+            raise AssertionError("Unsafe native beam getter called")
+        calls.append((key, args, kwargs))
+        return [201] if key == "element_ids" else [1.,2.]
+    native = SimpleNamespace(get_data=get, Type=SimpleNamespace(BEAM=1, NODE=0))
+    (tmp_path/"beam-count.json").write_text("1")
+    (tmp_path/"beam-connectivity.k").write_text("*ELEMENT_BEAM\n201,3,9,10,0\n")
+    proxy = BeamSafeDataCenter(native, tmp_path)
+    assert proxy.get_data("node_x", 0, ist=2) == [1.,2.]
+    assert calls[-1] == ("node_x", (0,), {"ist":2})
+    assert proxy.get_data("element_connectivity", 1, id=201) == [9,10]
+    with pytest.raises(ValueError, match="explicit id"):
+        proxy.get_data("element_connectivity", 1, 201)

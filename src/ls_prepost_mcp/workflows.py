@@ -22,6 +22,7 @@ GUI_ACTIONS = {
     "set_gui_entity_visibility",
     "measure_gui_geometry",
     "render_gui_field",
+    "select_gui_shell_topology",
     "export_gui_curve_plot",
     "export_gui_animation",
     "export_gui_field_animation",

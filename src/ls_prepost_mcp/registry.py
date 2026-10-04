@@ -14,6 +14,7 @@ SERVICE_TOOLS = (
     "inspect_dpf_results",
     "export_dpf_result",
     "render_gui_field",
+    "select_gui_shell_topology",
     "export_gui_curve_plot",
     "export_gui_animation",
     "export_gui_field_animation",
