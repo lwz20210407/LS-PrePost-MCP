@@ -51,7 +51,8 @@
         "research-53",
         "research-54",
         "research-55",
-        "official-movie-tutorial"
+        "official-movie-tutorial",
+        "local-advanced-2020r1-native-macros"
       ],
       "review_status": "selected_workflows_reviewed",
       "conversion_status": "partial",
@@ -1284,7 +1285,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Mesh gate recording retained. Native node/history/relative-displacement and SCL stress recording replay verified. Explicit result/artifact links and workflow file/engineering steps preserved; changed selected IDs drive fresh native curves. General manual macro semantics, control flow and resumable uncertain jobs remain. Shared static preflight and operation routing now feed bounded independent parameter studies; all cases preflight before execution, failures stop later cases, child jobs and scalar CSV summaries retained. Synthetic engineering truth and two visible GUI mesh save/reopen cases passed. General branches and crash resume remain. Late native completion no longer implies parent workflow/postcondition success. Recovery records preserve uncertainty/checkpoints; arbitrary workflow continuation remains unfinished. Explicit immutable native dependency bundles and current-GUI execution reuse existing program/macro tools;4.13.4 nested cfile/SCL data/Python cache/frozen-asset numeric macro replay passed. General dependency inference and native global macro menus remain."
+      "progress": "Mesh gate recording retained. Native node/history/relative-displacement and SCL stress recording replay verified. Explicit result/artifact links and workflow file/engineering steps preserved; changed selected IDs drive fresh native curves. General manual macro semantics, control flow and resumable uncertain jobs remain. Shared static preflight and operation routing now feed bounded independent parameter studies; all cases preflight before execution, failures stop later cases, child jobs and scalar CSV summaries retained. Synthetic engineering truth and two visible GUI mesh save/reopen cases passed. General branches and crash resume remain. Late native completion no longer implies parent workflow/postcondition success. Recovery records preserve uncertainty/checkpoints; arbitrary workflow continuation remains unfinished. Explicit immutable native dependency bundles and current-GUI execution reuse existing program/macro tools;4.13.4 nested cfile/SCL data/Python cache/frozen-asset numeric macro replay passed. General dependency inference and native global macro menus remain. Native *macro block import/numeric & parameter binding now reuses prepare_native_program; original text, bound native macro and reviewed cfile retained. Two changed node-ID bindings verified in the same visible4.13.4 synthetic model, with selection and mesh readback. Native interactive picking/shortcut/toolbar/pause lifecycle remains pending."
     },
     {
       "id": "T10",

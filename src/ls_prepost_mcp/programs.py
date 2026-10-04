@@ -42,6 +42,8 @@ RESERVED = {
     "d3plot",
     "contract.json",
     "macro.json",
+    "source.mac",
+    "bound.mac",
     "cwd.py",
     "gui-python.py",
     "before.json",
@@ -150,10 +152,13 @@ class ProgramTools:
         outputs: list[dict] | None = None,
         expected_counts: dict | None = None,
         dependencies: list[dict] | None = None,
+        macro_name: str | None = None,
     ) -> dict:
-        """Prepare explicit command/cfile/SCL/application-Python source plus declared dependency files {path,name}, preserving relative folders without execution. Returns rendered entry source and an execution SHA256 (whole bundle when dependencies exist). Literal native child-script references/cycles are checked; Python imports are not inferred."""
-        if language not in LANGUAGES or (code is None) == (path is None):
-            raise ValueError("Choose command/cfile/scl/python and exactly one of code/path")
+        """Prepare command/cfile/SCL/application-Python or native macro source without execution. language=macro binds one *macro block (macro_name required for multiple blocks), literal numeric parameter defaults and &name/(n/e/p) user IDs into an explicit cfile; retains source.mac and native-editable bound.mac. Interactive/unresolved picks are rejected. Dependencies {path,name} are frozen. Returns reviewed rendered source and execution SHA256; no global macro installation."""
+        if language not in {*LANGUAGES, "macro"} or (code is None) == (path is None):
+            raise ValueError("Choose command/cfile/scl/python/macro and exactly one of code/path")
+        if language != "macro" and macro_name is not None:
+            raise ValueError("macro_name only applies to native macro source")
         source = self.settings.input_path(path) if path else None
         if source:
             if source.stat().st_size > 1024 * 1024:
@@ -169,7 +174,14 @@ class ProgramTools:
         if language == "command" and len(code.strip().splitlines()) != 1:
             raise ValueError("Use cfile for multiple command lines")
         params = numeric_parameters(parameters or {})
-        rendered = render(code, params)
+        native_macro = None
+        if language == "macro":
+            from .native_macros import compile_macro
+
+            rendered, bound_macro, native_macro = compile_macro(code, params, macro_name)
+            language = "cfile"
+        else:
+            rendered = render(code, params)
         outputs, counts = output_contract(outputs), count_contract(expected_counts)
         captured = capture_dependencies(self.settings, dependencies, outputs)
         graph = validate_script_references(rendered.encode("utf8"), language, captured)
@@ -178,6 +190,10 @@ class ProgramTools:
         )
         program = directory / ("program." + LANGUAGES[language])
         program.write_text(rendered, encoding="utf8")
+        if native_macro is not None:
+            (directory / "source.mac").write_text(code, encoding="utf8")
+            (directory / "bound.mac").write_text(bound_macro, encoding="utf8")
+            native_macro["source_text_sha256"] = hashlib.sha256(code.encode("utf8")).hexdigest()
         write_dependencies(directory, captured)
         contract = dict(
             language=language,
@@ -189,6 +205,8 @@ class ProgramTools:
             expected_counts=counts,
         )
         contract["sha256"] = identity(program.read_bytes(), contract)
+        if native_macro is not None:
+            contract["native_macro"] = native_macro
         atomic_json(directory / "contract.json", contract)
         manifest.update(
             status="prepared",
@@ -200,6 +218,8 @@ class ProgramTools:
         )
         if source:
             manifest["source"] = fingerprint(source)
+        if native_macro is not None:
+            manifest["artifacts"].extend(check_artifact(directory / name, "text") for name in ("source.mac", "bound.mac"))
         atomic_json(directory / "job.json", manifest)
         return manifest
 

@@ -1493,5 +1493,14 @@
     "license_status": "Official reference; document not redistributed",
     "integration": "contract_implemented",
     "scope": "Physical deletion masks; not GUI Blank or arbitrary material damage"
+  },
+  {
+    "id": "local-advanced-2020r1-native-macros",
+    "title": "LS-PrePost Advanced 2020R1 LE05/WI05 native macro references",
+    "url": "local://training/2020r1/LE05-WI05",
+    "license_status": "User-provided proprietary training reference; PDFs and example source not redistributed",
+    "integration": "bounded_implementation_native_tested",
+    "summary": "Reviewed LE05 pages14-24 and WI05 native macro block/parameter examples. Supports evidence for native block names, literal parameter defaults, ampersand references and node/element/part pick annotations. Independently authored synthetic macro executed in4.13.4; Shift+Fn, toolbar installation and interactive pause/resume remain pending.",
+    "scope": "Selected pages and examples only; not complete course or version compatibility certification"
   }
 ]

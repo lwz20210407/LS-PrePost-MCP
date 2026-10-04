@@ -1,0 +1,7 @@
+$ Use an existing node user ID in the explicitly chosen model.
+*macro begin Select_Node
+parameter N1 101
+genselect clear
+genselect target node
+genselect node add node &N1(n)
+*macro end

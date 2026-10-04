@@ -984,13 +984,15 @@
       "status": "native_tested",
       "sources": [
         "official-command-interface",
-        "official-scl-rev11"
+        "official-scl-rev11",
+        "local-advanced-2020r1-native-macros"
       ],
       "tested_profiles": [
         "4.13.4 Windows"
       ],
       "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits",
-      "bundle_scope": "Explicit dependency snapshot/hashes/relative layout; native child-script references/cycles checked. Visible4.13.4 nested cfiles, SCL data, Python module refresh and frozen macro parameter replay verified. No general include/import inference, global macro-menu/shortcut certification or old/headless bundle certification. docs/PROGRAM_BUNDLES.md"
+      "bundle_scope": "Explicit dependency snapshot/hashes/relative layout; native child-script references/cycles checked. Visible4.13.4 nested cfiles, SCL data, Python module refresh and frozen macro parameter replay verified. No general include/import inference, global macro-menu/shortcut certification or old/headless bundle certification. docs/PROGRAM_BUNDLES.md",
+      "native_macro_scope": "language=macro: selected *macro block, literal numeric defaults, &name/&{name} and n/e/p positive-user-ID bindings compile to cfile; preserves source.mac and bound.mac. Same-GUI4.13.4 node101->103 selection/geometry/source hash checks passed. No general expressions, interactive picking, pauses, native menu/shortcut installation or old/headless certification."
     },
     {
       "id": "programs.execute_native_program",
