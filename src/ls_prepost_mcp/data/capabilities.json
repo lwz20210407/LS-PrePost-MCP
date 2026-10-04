@@ -151,7 +151,8 @@
       "verification": "SCL six stresses checked against native Mises; explicit selection and tensor definitions; private result data excluded",
       "gui_scope": "gui_session_action or GUI workflow uses current staged d3plot without path/reopen/new process. Visible 4.13.4 solid six-stress/Mises and native strain/plastic-strain exports verified; state/geometry/selection/part flags preserved. Shared parser/contracts. GUI completion uses embedded Python; streaming geometry/visibility digest plus selected-ID snapshot; per-request limits remain, no new shell/tshell certification.",
       "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/RESULT_VALIDITY.md.",
-      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/RESULT_VALIDITY.md. No silent reader fallback."
+      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/RESULT_VALIDITY.md. No silent reader fallback.",
+      "shell_validity_evidence": "Visible4.13.4 original constructed shell d3plot (not solver output): sparse IDs, three points/states,9 raw->6 retained stress rows, high deleted stress excluded, counts3/2/1, empty subset/empty render rejection, native PNG and explicit FFmpeg movie. tools/run_shell_validity_acceptance.py; other builds/adaptive/SPH/beam/tshell not certified."
     },
     {
       "id": "results.fragments",
@@ -336,7 +337,8 @@
       ],
       "gui_scope": "gui_session_action or GUI workflow uses current staged d3plot without path/reopen/new process. Visible 4.13.4 solid six-stress/Mises and native strain/plastic-strain exports verified; state/geometry/selection/part flags preserved. Shared parser/contracts. GUI completion uses embedded Python; streaming geometry/visibility digest plus selected-ID snapshot; per-request limits remain, no new shell/tshell certification.",
       "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/RESULT_VALIDITY.md.",
-      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/RESULT_VALIDITY.md. No silent reader fallback."
+      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/RESULT_VALIDITY.md. No silent reader fallback.",
+      "shell_validity_evidence": "Visible4.13.4 original constructed shell d3plot (not solver output): sparse IDs, three points/states,9 raw->6 retained stress rows, high deleted stress excluded, counts3/2/1, empty subset/empty render rejection, native PNG and explicit FFmpeg movie. tools/run_shell_validity_acceptance.py; other builds/adaptive/SPH/beam/tshell not certified."
     },
     {
       "id": "results.native_ascii",
@@ -1314,7 +1316,8 @@
       "scope": "ResultSelection/SamplingSpec/FieldSpec metadata in native SCL and LASSO field/stress paths. No native-layer/reader-slot equivalence, dimension inference or arbitrary history meaning. Request/export/parser tests only; no added native numerical certification.",
       "gui_scope": "gui_session_action or GUI workflow uses current staged d3plot without path/reopen/new process. Visible 4.13.4 solid six-stress/Mises and native strain/plastic-strain exports verified; state/geometry/selection/part flags preserved. Shared parser/contracts. GUI completion uses embedded Python; streaming geometry/visibility digest plus selected-ID snapshot; per-request limits remain, no new shell/tshell certification.",
       "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/RESULT_VALIDITY.md.",
-      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/RESULT_VALIDITY.md. No silent reader fallback."
+      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/RESULT_VALIDITY.md. No silent reader fallback.",
+      "shell_validity_evidence": "Visible4.13.4 original constructed shell d3plot (not solver output): sparse IDs, three points/states,9 raw->6 retained stress rows, high deleted stress excluded, counts3/2/1, empty subset/empty render rejection, native PNG and explicit FFmpeg movie. tools/run_shell_validity_acceptance.py; other builds/adaptive/SPH/beam/tshell not certified."
     },
     {
       "id": "gui.transaction_scopes",
@@ -1422,7 +1425,8 @@
       ],
       "scope": "Visible4.13.4 named native field raw CSV/custom source buffer and PNG; explicit state/layer/units. Plain native result captions, model title preserved, default MinMax display averaging with explicit nodal/none. Raw entity samples stay unaveraged. Native solid Mises/pressure/mean stress and node magnitude crosschecks, fixed-range replay and managed-field movie passed; over300000-solid field-only path tested. New MinMax/None combo readback and three-frame MP4 passed. LASSO header prerequisites only. Shell/tshell nontrivial layers, rigid/deleted validity and frames remain unverified.",
       "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/RESULT_VALIDITY.md. No silent reader fallback.",
-      "validity_scope": "Explicit raw/alive. Static4.13.4 solid SCL values + LASSO physical deletion mask: native flags/CSV population/retained extrema/recording replay checked. Fixed-presentation excluded-buffer pixel invariance passed. Shell implementation pending native verification; no physical-mask movie, node/tshell mask, old-build certification. Existing visibility budgets apply."
+      "validity_scope": "Explicit raw/alive. Static4.13.4 solid SCL values + LASSO physical deletion mask: native flags/CSV population/retained extrema/recording replay checked. Fixed-presentation excluded-buffer pixel invariance passed. Shell native verification uses an original known-truth synthetic binary; use the separate explicit PNG/FFmpeg method for physical movies; no node/tshell mask or old-build certification. Existing visibility budgets apply.",
+      "shell_validity_evidence": "Visible4.13.4 original constructed shell d3plot (not solver output): sparse IDs, three points/states,9 raw->6 retained stress rows, high deleted stress excluded, counts3/2/1, empty subset/empty render rejection, native PNG and explicit FFmpeg movie. tools/run_shell_validity_acceptance.py; other builds/adaptive/SPH/beam/tshell not certified."
     },
     {
       "id": "dpf.probe_dpf_runtime",
@@ -1584,8 +1588,9 @@
         "official-binary-database-mdlopt2",
         "library-lasso"
       ],
-      "verification": "LASSO2.0.4 public solid MDLOPT2 mask; sparse/rigid-layout synthetic negatives; normalized NPZ checked after save. Not a native GUI operation or other-domain runtime certification.",
-      "scope": "Explicit saved element deletion only; max1m state/entity pairs; missing masks/adaptive epochs reject; see docs/RESULT_VALIDITY.md"
+      "verification": "LASSO2.0.4 public solid MDLOPT2 mask and original synthetic shell mask; sparse/rigid-layout synthetic negatives; normalized NPZ checked after save. This tool reads physical tables, not GUI Blank; no beam/tshell/adaptive/SPH runtime certification.",
+      "scope": "Explicit saved element deletion only; max1m state/entity pairs; missing masks/adaptive epochs reject; see docs/RESULT_VALIDITY.md",
+      "shell_validity_evidence": "Visible4.13.4 original constructed shell d3plot (not solver output): sparse IDs, three points/states,9 raw->6 retained stress rows, high deleted stress excluded, counts3/2/1, empty subset/empty render rejection, native PNG and explicit FFmpeg movie. tools/run_shell_validity_acceptance.py; other builds/adaptive/SPH/beam/tshell not certified."
     },
     {
       "id": "media.physical_field_movie",
@@ -1600,7 +1605,8 @@
         "4.13"
       ],
       "verification": "Visible4.13.4 public solid native PNG states1/8/16 with5664/5405/5050 retained entities; FFmpeg5FPS640x4803frames/full decode; four-step recording replay with2states; state/manual Blank/fringe restoration and source identities checked. See docs/FIELD_MOVIES.md.",
-      "scope": "Requires current verified alive solid/shell fringe and explicit fixed bounds. ALL alive entities in selected parts per frame; uniform FPS, no physical-time resampling. Explicit FFmpeg encoder, not native Movie command. Shell runtime/other builds/headless/all-deleted frames remain unverified or rejected."
+      "scope": "Requires current verified alive solid/shell fringe and explicit fixed bounds. ALL alive entities in selected parts per frame; uniform FPS, no physical-time resampling. Explicit FFmpeg encoder, not native Movie command. Shell has an explicitly synthetic known-truth native case; other builds/headless remain unverified and all-deleted frames reject.",
+      "shell_validity_evidence": "Visible4.13.4 original constructed shell d3plot (not solver output): sparse IDs, three points/states,9 raw->6 retained stress rows, high deleted stress excluded, counts3/2/1, empty subset/empty render rejection, native PNG and explicit FFmpeg movie. tools/run_shell_validity_acceptance.py; other builds/adaptive/SPH/beam/tshell not certified."
     }
   ],
   "native_reference_builds": [

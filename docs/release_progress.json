@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "baseline_id": "R1-20261003-36",
-  "updated_at": "2026-10-04T18:31:35+08:00",
-  "verified_commit": "40330210800a6b3984637ce7b6b4748e54c1d281",
+  "updated_at": "2026-10-04T19:03:06+08:00",
+  "verified_commit": "a71a46065ebcfbeddc9825d6def78e75ead3677b",
   "frozen_gate_count": 36,
   "scope": "范围：Windows LS-PrePost 4.13.4 可见 GUI 的首个实用版本；按36项等权验收门槛计算，不是整个软件功能覆盖率或剩余工时。",
   "outside_scope": "后续总体路线仍保留：常用菜单扩展、接触与Include工程化、7模板完整工况、4.8/4.10及两种无GUI、后排CAD与高级模块。未纳入本期36项，不能据本进度称全部完成。",
-  "current_task": "逐状态物理云图动画已跑通：LS-PrePost原生帧+FFmpeg编码，三状态删除数量、显隐恢复及改为两状态的参数化回放通过。壳单元实机删除案例、更多变量/层与恢复联合验收继续推进。",
+  "current_task": "标准壳/实体的逐状态删除过滤、有效极值、静态云图和帧序列动画已完成原生验收：实体用公开求解结果，壳用明确标注的合成真值文件。转向剩余常用变量/层、网格规模和恢复联合验收。",
   "groups": [
     {
       "id": "B0",
@@ -214,9 +214,9 @@
       "id": "B2-05",
       "group": "B2",
       "title": "失效/侵蚀有效性与极值统计",
-      "state": "partial",
+      "state": "passed",
       "work_item": "T04",
-      "note": "Solid4.13.4字段、静态PNG/CSV和逐状态PNG/FFmpeg动画已验证物理删除；手工显隐恢复、参数回放通过。壳/其他单元域的原生删除案例仍待补足。",
+      "note": "4.13.4标准shell/solid MDLOPT2通过：公开实体结果+原创建壳真值文件；稀疏ID、删除极值、空结果、PNG/MP4、显隐恢复/回放。SPH/自定义损伤/自适应和旧版不据此认证。",
       "evidence": [
         "docs/RESULT_CONTRACTS.md",
         "docs/RESULT_VALIDITY.md",

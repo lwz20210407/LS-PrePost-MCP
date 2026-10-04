@@ -68,6 +68,9 @@ family using `tools/run_physical_movie_acceptance.py`:
   dated task directory. Synthetic tests cover bad requests, encoder failure and
   restoring state/Blank/fringe after a failed native frame.
 
-Shell implementation, other versions and headless execution still need their
-own native animation acceptance. All-deleted frames currently fail explicitly
-rather than creating a misleading zero-stress picture.
+An additional native shell test uses an original constructed binary fixture,
+not solver output: three shells with deletion counts produce frame populations
+3/2/1 and known layer-2 extrema. See [shell evidence](RESULT_VALIDITY.md).
+Other versions and headless execution still need their own native acceptance.
+All-deleted frames currently fail explicitly rather than creating a misleading
+zero-stress picture.

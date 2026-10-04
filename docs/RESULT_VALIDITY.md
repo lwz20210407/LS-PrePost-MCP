@@ -40,6 +40,34 @@ matched their six stored stress components at the last state for the sampled
 element; this is bounded evidence, not all-shell/material/frame certification.
 Local probe: `native-point-probe-4d852c99f6ae4ffe8a42f2aa85b4b62c`.
 
+## Known-truth shell deletion acceptance
+
+`tools/synthetic_shell_result.py` constructs an original three-shell binary
+fixture with sparse node/element/part IDs, three stored layers and three states.
+It is **not solver output** and makes no material-failure or physical-validation
+claim. The LASSO writer is used only to prepare test input in a fresh directory;
+all subsequent native checks run in real visible maximized LS-PrePost 4.13.4.
+The generated binary is read back and compared array-for-array before use.
+
+`tools/run_shell_validity_acceptance.py` passed the combined workflow:
+
+- Raw native tensors retain nine state/entity rows; physical filtering retains
+  six, with exact state/user-ID membership and the known layer-2 stresses.
+- Present shell counts are3/2/1. Deleting the high-stress shell reduces the
+  retained maximum from2000Pa to60Pa, within native floating-point tolerance.
+- A requested all-deleted subset returns an empty CSV/null extrema. Rendering
+  a part containing only deleted shells fails instead of producing a zero plot.
+- Static PNG/CSV and the per-state native PNG/FFmpeg movie agree on counts3/2/1.
+  The generated input fingerprint is unchanged and the owned GUI is closed.
+
+Evidence: `shell-validity-5b10f11303034e8fb0336e07582fcf64` in the dated task
+directory. This complements the public solid solver-result case and the public
+mixed shell/solid integration-point comparison; those evidence types are not
+interchangeable. Standard shell/solid MDLOPT2 deletion now meets the bounded
+first-release gate; SPH, adaptive mesh epochs, arbitrary damage variables,
+beam/tshell runtime coverage, old builds and headless execution remain outside
+that native acceptance.
+
 Physical deletion, display Blank, rigid material and variable availability are
 separate properties. A present entity with no stress record is not assigned
 zero stress. Unsupported/missing variables still fail. A request containing only
@@ -101,8 +129,9 @@ The rendering workflow intentionally retains the requested scene and physical
 Blank state. An all-deleted visible scope rejects with no meaningful PNG rather
 than manufacturing a zero-stress plot. Existing visibility-transition limits
 still apply (20,000 changed/complement explicit IDs), independently of the
-one-million-entity readback limit. Shell physical-fringe runtime verification,
-other builds and headless modes remain outstanding.
+one-million-entity readback limit. Shell physical-fringe runtime verification
+uses the explicitly constructed fixture above; other builds and headless modes
+remain outstanding.
 
 Combined acceptance passed 17 recorded checks under visible maximized 4.13.4:
 `native-validity-acceptance-ea4083ae005947babc82efee5e11edde` in the dated task
@@ -121,5 +150,5 @@ renders each verified physical scope in LS-PrePost and encodes its PNGs using
 FFmpeg; it has solid4.13.4 frame-count, deletion and parameter-replay evidence.
 Ordinary previously validated raw-field native movies retain their scope.
 Native layer averaging and reader stored integration points are not implicitly
-equated. The release validity gate remains partial. See
+equated. The release validity gate is passed for its standard shell/solid scope. See
 [public fixtures](PUBLIC_TEST_CORPUS.md) for the expanded regression inputs.

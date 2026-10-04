@@ -1139,7 +1139,7 @@
       ],
       "status": "in_progress",
       "milestone": "R1",
-      "progress": "Shared EntitySelection, keyword/d3plot selection, native bulk part selection and part-visibility preservation verified. Selected IDs drive native node histories/SCL stress fields and dependency-preserving replay. Alive/deleted masks, deformed coordinates, per-element visibility and wider fringe/field bindings remain."
+      "progress": "Shared EntitySelection, keyword/d3plot selection, native bulk part selection and part-visibility preservation verified. Selected IDs drive native node histories/SCL stress fields and dependency-preserving replay. Alive/deleted masks, deformed coordinates, per-element visibility and wider fringe/field bindings remain. R1 shell/solid physical-deletion gate passed on visible4.13.4: public solid solver results and an original known-truth synthetic shell binary; fields/extrema/static frames/explicit PNG-FFmpeg sequence, null/empty handling and sparse ID alignment. No claim of solver/material failure physics; broader selection/domain work remains."
     },
     {
       "id": "T05",
