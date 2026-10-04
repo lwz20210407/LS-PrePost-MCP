@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "baseline_id": "R1-20261003-36",
-  "updated_at": "2026-10-04T16:00:32+08:00",
-  "verified_commit": "3bbb0d577f79345cf19de3bf655ee61f2c0650ce",
+  "updated_at": "2026-10-04T16:54:25+08:00",
+  "verified_commit": "e3410e775993e1706872fc7e8c8284a251853417",
   "frozen_gate_count": 36,
   "scope": "范围：Windows LS-PrePost 4.13.4 可见 GUI 的首个实用版本；按36项等权验收门槛计算，不是整个软件功能覆盖率或剩余工时。",
   "outside_scope": "后续总体路线仍保留：常用菜单扩展、接触与Include工程化、7模板完整工况、4.8/4.10及两种无GUI、后排CAD与高级模块。未纳入本期36项，不能据本进度称全部完成。",
-  "current_task": "三维/二维Segment集、法向过滤、选区参数回放和原生重开已通过；继续开发压力和无反射边界，已核对R11/R16手册与R14版本差异。",
+  "current_task": "Entity Creation六项限定流程已通过原生验收；压力与三条无反射建卡路线完成，继续转向后处理有效实体/侵蚀过滤与发布联合验收。",
   "groups": [
     {
       "id": "B0",
@@ -412,22 +412,22 @@
       "id": "EC05",
       "group": "EC",
       "title": "Segment压力载荷",
-      "state": "pending",
+      "state": "passed",
       "work_item": "T12-ENTITY",
-      "note": "先组合原生选择、创建、引用核对与保存重开；详见ENTITY_CREATION.md",
+      "note": "4.13.4压力曲线/命名载荷、方向与单位记录、倍率回放、冲突拒绝、3D/2D保存重开通过；非求解响应验证",
       "evidence": [
-        "docs/ENTITY_CREATION.md"
+        "docs/BOUNDARY_CONDITIONS.md"
       ]
     },
     {
       "id": "EC06",
       "group": "EC",
       "title": "二维/三维无反射边界",
-      "state": "pending",
+      "state": "passed",
       "work_item": "T12-ENTITY",
-      "note": "先组合原生选择、创建、引用核对与保存重开；详见ENTITY_CREATION.md",
+      "note": "4.13.4三维、R14+二维负SID、R11..13二维有序节点对路线：外边界/公式/方向/冲突/原生重开通过；未执行波吸收求解",
       "evidence": [
-        "docs/ENTITY_CREATION.md"
+        "docs/BOUNDARY_CONDITIONS.md"
       ]
     }
   ],
