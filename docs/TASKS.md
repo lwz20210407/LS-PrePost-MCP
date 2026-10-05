@@ -715,7 +715,11 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 ### I07 raw-preserving 关键字引擎
 
-里程碑：M2-M3
+里程碑：M3
+
+负责人：claude
+
+集成约束：Claude 在 claude/keyword-engine 并行开发（本地提交 a1fb96c）；M0–M2 不实现 I07、不在 src/ls_prepost_mcp/domain/model/ 创建文件；M3 合并。
 
 - 按块解析、Include / INCLUDE_PATH / PARAMETER 树、定点写回、字节级往返测试
 - 字段宽度取自关键字定义，不硬编码

@@ -48,8 +48,12 @@ def generate(catalog, registry):
                 task_lines += ["缺口：", ""] + [f"- {a}" for a in t["gaps"]] + [""]
     task_lines += ["## 基础设施", ""]
     for t in catalog["infrastructure"]:
+        ownership = ["负责人：" + t["owner"], ""] if t.get("owner") else []
+        integration = ["集成约束：" + t["integration"], ""] if t.get("integration") else []
         task_lines += (
             [f"### {t['id']} {t['title']}", "", f"里程碑：{t['milestone']}", ""]
+            + ownership
+            + integration
             + [f"- {a}" for a in t["acceptance"]]
             + [""]
         )

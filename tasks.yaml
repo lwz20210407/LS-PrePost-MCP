@@ -94,7 +94,7 @@ milestones:
   - id: M2
     name: 后处理任务包
     tasks: [Q01, Q02, Q03, Q04, Q05, Q06, Q07, Q08, Q09, Q12, G01, G04]
-    infrastructure: [I07, I09]
+    infrastructure: [I09]
     exit:
       - 本里程碑任务全部 done
       - L3 后处理 8 题至少 7 题成功
@@ -873,7 +873,9 @@ infrastructure:
 
   - id: I07
     title: raw-preserving 关键字引擎
-    milestone: M2-M3
+    owner: claude
+    integration: "Claude 在 claude/keyword-engine 并行开发（本地提交 a1fb96c）；M0–M2 不实现 I07、不在 src/ls_prepost_mcp/domain/model/ 创建文件；M3 合并。"
+    milestone: M3
     acceptance:
       - 按块解析、Include / INCLUDE_PATH / PARAMETER 树、定点写回、字节级往返测试
       - 字段宽度取自关键字定义，不硬编码
