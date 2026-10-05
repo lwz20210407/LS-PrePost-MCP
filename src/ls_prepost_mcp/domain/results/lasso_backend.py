@@ -67,7 +67,10 @@ def _texts(values: object) -> list[str]:
 
 
 def overview(path: str | Path) -> dict:
-    """Q01: states, times, variables, parts, element counts with deletions, sibling files."""
+    """Q01: states, times, variables, parts, element counts with deletions, sibling files
+    (binout shards with the shards holding each database / branch)."""
+    from . import mpp_shards
+
     arrays = _arrays(path)
     times = np.asarray(arrays.get("timesteps", arrays.get("global_timesteps", [])), dtype=float)
     elements = {}
@@ -86,17 +89,16 @@ def overview(path: str | Path) -> dict:
     parts = [int(p) for p in _part_ids(arrays)]
     titles = _texts(arrays["part_titles"]) if "part_titles" in arrays else []
     folder = Path(path).parent
-    binout = sorted(p.name for p in folder.glob("binout*"))
-    databases = []
-    if binout:
-        _, Binout, _ = _lasso()
-        databases = sorted(str(name) for name in Binout(str(folder / "binout*")).read())
+    binout = {"shards": [], "entries": {}, "split": {}}
+    if any(mpp_shards.SHARD.match(p.name) for p in folder.iterdir()):
+        binout = mpp_shards.catalog(folder)
     return {"backend": backend(), "states": int(times.size),
             "time_range": [float(times[0]), float(times[-1])] if times.size else None,
             "times": times.tolist() if times.size <= 2000 else None, "variables": sorted(arrays),
             "elements": elements, "parts": [{"id": p, "title": titles[i] if i < len(titles) else None}
                                             for i, p in enumerate(parts)],
-            "binout_files": binout, "binout_databases": databases,
+            "binout_files": binout["shards"], "binout_databases": sorted({k.split("/")[0] for k in binout["entries"]}),
+            "binout_entries": binout["entries"], "binout_split": binout["split"],
             "ascii_files": sorted(p.name for p in folder.iterdir() if p.name in ASCII)}
 
 
@@ -202,20 +204,13 @@ def field(path: str | Path, family: str, quantity: str, state: int = -1, mask: s
             "mask": mask, "extrema": inv.extrema(values[state_index], ids, selection), "note": note}
 
 
-def binout_curves(path: str | Path, database: str, component: str) -> dict:
-    """Q06: one component of a binout database by name (time plus one column per stored ID)."""
-    _, Binout, _ = _lasso()
-    reader = Binout(str(path))
-    if database not in reader.read():
-        raise ResultsError(f"binout has no {database!r}; available: {sorted(reader.read())}")
-    names = reader.read(database)
-    if component not in names:
-        raise ResultsError(f"{database} has no {component!r}; available: {sorted(names)}")
-    values = np.asarray(reader.read(database, component), dtype=float)
-    ids = np.asarray(reader.read(database, "ids")).reshape(-1).tolist() if "ids" in names else None
-    return {"backend": backend(), "database": database, "component": component,
-            "time": np.asarray(reader.read(database, "time"), dtype=float).tolist(),
-            "ids": ids, "values": values.tolist()}
+def binout_curves(path: str | Path, database: str, component: str, branch: str | None = None,
+                  shard: str | None = None) -> dict:
+    """Q06: one component of a binout database (or branch) by name, over all MPP shards beside
+    ``path``; see :mod:`mpp_shards` for the merge rules (time plus one column per stored ID)."""
+    from . import mpp_shards
+
+    return mpp_shards.read(path, database, component, branch, shard)
 
 
 __all__ = ["ASCII", "FAMILIES", "ResultsError", "backend", "binout_curves", "field", "history", "overview"]
