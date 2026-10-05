@@ -23,6 +23,7 @@ class BatchJob:
     graphics: bool = False
     operation: str = "native_batch"
     verify: Callable[[dict], JobResult] | None = None
+    macro_file: Path | None = None
 
     def __post_init__(self):
         check_timeout(self.timeout)
@@ -32,6 +33,10 @@ class BatchJob:
             object.__setattr__(self, name, Path(getattr(self, name)).resolve())
         if not self.cfile.is_relative_to(self.directory):
             raise ValueError("Command file must belong to the job directory")
+        if self.macro_file is not None:
+            object.__setattr__(self, "macro_file", Path(self.macro_file).resolve())
+            if not self.macro_file.is_relative_to(self.directory) or not self.macro_file.is_file():
+                raise ValueError("Native macro file must exist inside the job directory")
 
 
 @dataclass(frozen=True)
