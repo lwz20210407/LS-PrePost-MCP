@@ -59,8 +59,8 @@
 
 ## 可复用配方与验证
 
-- [可见 GUI 检查后保存](../examples/workflows/visible_gui_quality_gate.json)：原生壳质量→Keyword Check→检查点。需用户给定单位与质量阈值；原生门槛与受管回放已按下面的限定合成流程验证。
-- [能量筛查后输出指定能量之和](../examples/workflows/energy_screening_gate.json)：检查定义行、未定义比例、超限、HG 是否提供，再组合已提供的 KE/IE/HG。这不是完整能量守恒或准静态认证。
+- [可见 GUI 检查后保存](../../../examples/workflows/visible_gui_quality_gate.json)：原生壳质量→Keyword Check→检查点。需用户给定单位与质量阈值；原生门槛与受管回放已按下面的限定合成流程验证。
+- [能量筛查后输出指定能量之和](../../../examples/workflows/energy_screening_gate.json)：检查定义行、未定义比例、超限、HG 是否提供，再组合已提供的 KE/IE/HG。这不是完整能量守恒或准静态认证。
 
 可复现的文件后端验收：
 
