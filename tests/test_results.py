@@ -5,6 +5,7 @@ from ls_prepost_mcp.results import lasso_vectors
 
 
 def test_lasso_state_coordinates_are_not_displacements():
+    pytest.importorskip("lasso.dyna")
     arrays = {"node_coordinates": np.array([[100., 200., 300.]]),
               "node_displacement": np.array([[[100., 200., 300.]], [[103., 204., 300.]]]),
               "node_velocity": np.array([[[1., 2., 3.]], [[4., 5., 6.]]])}
@@ -13,11 +14,13 @@ def test_lasso_state_coordinates_are_not_displacements():
 
 
 def test_lasso_rejects_misaligned_reference():
+    pytest.importorskip("lasso.dyna")
     with pytest.raises(ValueError, match="align"):
         lasso_vectors({"node_coordinates": np.zeros((2, 3)), "node_displacement": np.zeros((2, 3, 3))}, "displacement")
 
 
 def test_binout_literal_brackets_do_not_escape_to_another_directory(tmp_path, monkeypatch):
+    pytest.importorskip("lasso.dyna")
     import glob
     from types import SimpleNamespace
 

@@ -112,7 +112,10 @@ class PreTools:
         """Check supported standalone deck IDs/references with PyDYNA; not mesh-quality, physical or solver validation."""
         from .model_deck import validate_references
 
-        return validate_references(self.settings.input_path(model))
+        report = validate_references(self.settings.input_path(model))
+        # Preserve legacy top-level fields while exposing the workflow contract.
+        # A completed check can succeed even when its engineering verdict fails.
+        return {**report, "status": "succeeded", "data": report}
 
     def create_node_set_by_box(
         self, model: str, set_id: int, bounds: list[float], units: str, tolerance: float = 1e-8

@@ -13,6 +13,7 @@ def index(tmp_path, text):
 
 
 def test_union_deduplicates_members_not_set_domains_and_keeps_empty_set(tmp_path):
+    pytest.importorskip("ansys.dyna.core")
     data = index(
         tmp_path,
         "*SET_NODE_LIST\n1\n10,20\n*SET_NODE_LIST\n2\n20,30\n*SET_NODE_LIST\n3\n*SET_PART_LIST\n1\n999",
@@ -28,6 +29,7 @@ def test_union_deduplicates_members_not_set_domains_and_keeps_empty_set(tmp_path
 
 
 def test_unknown_same_domain_variant_is_not_silently_expanded(tmp_path):
+    pytest.importorskip("ansys.dyna.core")
     data = index(tmp_path, "*SET_NODE_LIST_GENERATE\n1\n10,100")
     with pytest.raises(ValueError, match="Unsupported"):
         union_members(data, "node", [1])
@@ -50,6 +52,7 @@ def test_invalid_set_selection_rejects_before_native_calls(tmp_path, kwargs):
 
 
 def test_resolver_uses_fresh_export_and_preserves_predicate_scope(tmp_path, monkeypatch):
+    pytest.importorskip("ansys.dyna.core")
     import ls_prepost_mcp.set_selection as module
 
     path = tmp_path / "model.k"
