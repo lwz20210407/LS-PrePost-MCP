@@ -15,7 +15,7 @@ from pathlib import Path
 
 import numpy as np
 
-from . import contact, controls, geometry, lists, loads, mesh, quality, renumber, sets
+from . import contact, contacts, controls, geometry, lists, loads, materials, mesh, quality, renumber, sets
 from .deck import Change, KeywordDeck
 from .fields import FieldError
 from .includes import identity
@@ -148,13 +148,32 @@ def _create_set(deck: KeywordDeck, edit: dict) -> Change:
 
 MESH_OPS = {"transform_nodes", "copy_elements", "renumber", "merge_duplicate_nodes", "delete_elements",
             "reverse_elements", "unify_shell_normals"}
-SUMMARY_OPS = MESH_OPS | {"add_boundary", "set_control"}
+PROPERTY_OPS = {"add_material": "material", "add_eos": "eos", "add_section": "section", "add_hourglass": "hourglass"}
+SUMMARY_OPS = MESH_OPS | set(PROPERTY_OPS) | {"add_boundary", "set_control", "add_part", "set_part", "add_contact"}
 
 
 def _setup_op(deck: KeywordDeck, edit: dict) -> dict:
     """P05 boundary conditions / loads (``units`` must be declared) and P10 control recipes."""
     if edit["op"] == "set_control":
         return {"cards": controls.apply_recipe(deck, edit["recipe"], dict(edit.get("params") or {}))}
+    if edit["op"] == "add_part":
+        fields = {k: edit[k] for k in ("title", "secid", "mid", "eosid", "hgid", "tmid", "pid") if k in edit}
+        return materials.add_part(deck, **fields, file=_file(deck, edit.get("file")))
+    if edit["op"] == "set_part":
+        return materials.set_part(deck, edit["pid"], **{k: edit[k] for k in materials.PART_REFS if k in edit})
+    if edit["op"] == "add_contact":
+        return contacts.add_contact(deck, edit["recipe"], edit["a"], edit.get("b"), params=edit.get("params"),
+                                    cid=edit.get("cid"), title=edit.get("title"), file=_file(deck, edit.get("file")))
+    if edit["op"] in PROPERTY_OPS:
+        if not edit.get("units"):
+            raise FieldError("Declare the unit system of the values (units); nothing is converted")
+        family = PROPERTY_OPS[edit["op"]]
+        ident = {"material": "mid", "eos": "eosid", "section": "secid", "hourglass": "hgid"}[family]
+        extra = {ident: edit.get(ident), "title": edit.get("title"), "file": _file(deck, edit.get("file"))}
+        params = dict(edit.get("params") or {})
+        result = (materials.add_hourglass(deck, params, **extra) if family == "hourglass"
+                  else materials.KINDS[family](deck, edit["recipe"], params, **extra))
+        return {"units": edit["units"], **result}
     if not edit.get("units"):
         raise FieldError("Declare the unit system of the values (units); nothing is converted")
     kind = edit["kind"]
@@ -274,7 +293,11 @@ def edit_deck(path: str, edits: list[dict], *, output_dir: str | None = None, in
     matrix), copy_elements, renumber (mapping or first/last/start), merge_duplicate_nodes,
     delete_elements, reverse_elements, unify_shell_normals; targets by ``ids`` or ``select``.
     Setup ops: add_boundary (P05; ``kind`` from loads.KINDS, ``units`` required) and set_control
-    (P10; ``recipe`` from controls.RECIPES or ascii, ``params``).
+    (P10; ``recipe`` from controls.RECIPES or ascii, ``params``). Property ops (P03, ``units``
+    required): add_material / add_eos / add_section (``recipe``, ``params``), add_hourglass
+    (``params``); add_part (title, secid, mid, eosid?, hgid?, tmid?) and set_part (pid + fields).
+    Contacts (P06): add_contact (``recipe`` from contacts.RECIPES, sides ``a``/``b``, ``params``
+    with fs, ``cid``/``title``).
     """
     if output_dir and in_place:
         raise ValueError("Choose output_dir or in_place, not both")

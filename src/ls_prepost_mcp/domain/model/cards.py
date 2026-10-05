@@ -5,10 +5,11 @@ import math
 import warnings
 from typing import TYPE_CHECKING
 
-from .blocks import Block, SourceFile
-from .fields import FieldError
+from .blocks import Block, SourceFile, make_blocks
+from .fields import FieldError, write_text
 from .layouts import Unsupported
 from .schema import _pydyna_class
+from .schema import layout as block_layout
 
 if TYPE_CHECKING:
     from .deck import KeywordDeck
@@ -38,7 +39,22 @@ def card_text(keyword: str, fields: dict[str, object], options: list[str] | None
                 raise FieldError(f"{keyword} has no field {name!r}")
             setattr(card, key, value)
         text = card.write()
-    return "\n".join(line.rstrip() for line in text.splitlines()) + "\n"
+    return _blank_unset("\n".join(line.rstrip() for line in text.splitlines()) + "\n", fields)
+
+
+def _blank_unset(text: str, fields: dict[str, object]) -> str:
+    """Blank every numeric cell the caller did not set, so LS-DYNA applies its own defaults.
+
+    PyDYNA writes its static defaults, but some LS-DYNA defaults depend on other fields: on
+    *HOURGLASS, QB and QW default to QM (R17 Vol I), and PyDYNA's written 0.1 would override a
+    given QM. A blank field is read as the default (R11 Vol I, General Card Format).
+    """
+    block = make_blocks(text, "\n")[0]
+    given = {name.lower() for name in fields}
+    for info in block_layout(block, {}).fields:
+        if info.name not in given and info.kind != "str":
+            block.lines[info.slot.line] = write_text(block.lines[info.slot.line], info.slot, "")
+    return "".join(line.rstrip() + "\n" for line in block.lines)
 
 
 def _same(read: object, wanted: object) -> bool:
