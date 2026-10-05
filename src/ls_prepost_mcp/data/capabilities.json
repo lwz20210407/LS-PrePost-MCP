@@ -150,8 +150,8 @@
       ],
       "verification": "SCL six stresses checked against native Mises; explicit selection and tensor definitions; private result data excluded",
       "gui_scope": "gui_session_action or GUI workflow uses current staged d3plot without path/reopen/new process. Visible 4.13.4 solid six-stress/Mises and native strain/plastic-strain exports verified; state/geometry/selection/part flags preserved. Shared parser/contracts. GUI completion uses embedded Python; streaming geometry/visibility digest plus selected-ID snapshot; per-request limits remain, no new shell/tshell certification.",
-      "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/RESULT_VALIDITY.md.",
-      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/RESULT_VALIDITY.md. No silent reader fallback.",
+      "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/archive/2026-10/RESULT_VALIDITY.md.",
+      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/archive/2026-10/RESULT_VALIDITY.md. No silent reader fallback.",
       "shell_validity_evidence": "Visible4.13.4 original constructed shell d3plot (not solver output): sparse IDs, three points/states,9 raw->6 retained stress rows, high deleted stress excluded, counts3/2/1, empty subset/empty render rejection, native PNG and explicit FFmpeg movie. tools/run_shell_validity_acceptance.py; other builds/adaptive/SPH/beam/tshell not certified."
     },
     {
@@ -178,7 +178,7 @@
       "tested_profiles": [
         "4.13.4 Windows"
       ],
-      "scope": "Owned GUI, checkpoints, finite command requests; see docs/WORKFLOWS_v0.3.md"
+      "scope": "Owned GUI, checkpoints, finite command requests; see docs/archive/2026-10/WORKFLOWS_v0.3.md"
     },
     {
       "id": "solver.run",
@@ -336,8 +336,8 @@
         "4.13"
       ],
       "gui_scope": "gui_session_action or GUI workflow uses current staged d3plot without path/reopen/new process. Visible 4.13.4 solid six-stress/Mises and native strain/plastic-strain exports verified; state/geometry/selection/part flags preserved. Shared parser/contracts. GUI completion uses embedded Python; streaming geometry/visibility digest plus selected-ID snapshot; per-request limits remain, no new shell/tshell certification.",
-      "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/RESULT_VALIDITY.md.",
-      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/RESULT_VALIDITY.md. No silent reader fallback.",
+      "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/archive/2026-10/RESULT_VALIDITY.md.",
+      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/archive/2026-10/RESULT_VALIDITY.md. No silent reader fallback.",
       "shell_validity_evidence": "Visible4.13.4 original constructed shell d3plot (not solver output): sparse IDs, three points/states,9 raw->6 retained stress rows, high deleted stress excluded, counts3/2/1, empty subset/empty render rejection, native PNG and explicit FFmpeg movie. tools/run_shell_validity_acceptance.py; other builds/adaptive/SPH/beam/tshell not certified."
     },
     {
@@ -398,7 +398,7 @@
       "sources": [
         "library-lasso"
       ],
-      "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/RESULT_VALIDITY.md."
+      "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/archive/2026-10/RESULT_VALIDITY.md."
     },
     {
       "id": "results.reader_stress",
@@ -407,7 +407,7 @@
       "sources": [
         "library-lasso"
       ],
-      "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/RESULT_VALIDITY.md."
+      "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/archive/2026-10/RESULT_VALIDITY.md."
     },
     {
       "id": "results.binout_variable",
@@ -488,7 +488,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ]
@@ -500,7 +500,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md"
     },
     {
       "id": "automation.run_on_version",
@@ -509,7 +509,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md"
     },
     {
       "id": "automation.probe_environment",
@@ -518,7 +518,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md"
     },
     {
       "id": "automation.probe_scl",
@@ -527,7 +527,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md"
     },
     {
       "id": "automation.get_element_connectivity",
@@ -536,7 +536,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md"
     },
     {
       "id": "automation.export_keyword",
@@ -545,7 +545,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md"
     },
     {
       "id": "automation.measure_parts",
@@ -554,7 +554,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md"
     },
     {
       "id": "automation.read_job",
@@ -563,7 +563,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md"
     },
     {
       "id": "automation.list_jobs",
@@ -572,7 +572,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md"
     },
     {
       "id": "automation.inspect_binout",
@@ -581,7 +581,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md"
     },
     {
       "id": "automation.inspect_d3plot_database",
@@ -590,7 +590,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md"
     },
     {
       "id": "automation.inspect_lsreader",
@@ -599,7 +599,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md"
     },
     {
       "id": "automation.create_solid_sphere",
@@ -608,7 +608,7 @@
       "sources": [
         "local-custom-01"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ]
@@ -620,7 +620,7 @@
       "sources": [
         "local-custom-02"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ]
@@ -645,7 +645,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ]
@@ -657,7 +657,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ]
@@ -669,7 +669,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ]
@@ -681,11 +681,11 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ],
-      "recovery_scope": "Visible4.13.4 actual late completion, uncertain command/host validation separation, checkpoint preservation, exact owned-process termination/restart and replacement reuse verified. Saved model/source only; arbitrary GUI state and full workflow continuation remain. docs/SESSION_RECOVERY.md"
+      "recovery_scope": "Visible4.13.4 actual late completion, uncertain command/host validation separation, checkpoint preservation, exact owned-process termination/restart and replacement reuse verified. Saved model/source only; arbitrary GUI state and full workflow continuation remain. docs/archive/2026-10/SESSION_RECOVERY.md"
     },
     {
       "id": "automation.restore_gui_checkpoint",
@@ -694,7 +694,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ],
@@ -707,8 +707,8 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
-      "recovery_scope": "Visible4.13.4 actual late completion, uncertain command/host validation separation, checkpoint preservation, exact owned-process termination/restart and replacement reuse verified. Saved model/source only; arbitrary GUI state and full workflow continuation remain. docs/SESSION_RECOVERY.md"
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
+      "recovery_scope": "Visible4.13.4 actual late completion, uncertain command/host validation separation, checkpoint preservation, exact owned-process termination/restart and replacement reuse verified. Saved model/source only; arbitrary GUI state and full workflow continuation remain. docs/archive/2026-10/SESSION_RECOVERY.md"
     },
     {
       "id": "automation.reset_gui_session",
@@ -717,7 +717,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ],
@@ -730,7 +730,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md"
     },
     {
       "id": "automation.set_gui_display",
@@ -739,7 +739,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Standard view/display options plus native absolute zoom_scale/pan_xy and ordered incremental X/Y/Z view rotations. Visible4.13.4 synthetic keyword and representative d3plot checks cover pixel-exact absolute-setting repetition, inverse-rotation raster tolerance, geometry/state/part preservation and changed-zoom managed replay. Last rotation increment remains. Numeric camera matrices, managed bookmarks, arbitrary pivots and selected-only fit are not certified. See docs/GUI_CAMERA.md.",
+      "scope": "Standard view/display options plus native absolute zoom_scale/pan_xy and ordered incremental X/Y/Z view rotations. Visible4.13.4 synthetic keyword and representative d3plot checks cover pixel-exact absolute-setting repetition, inverse-rotation raster tolerance, geometry/state/part preservation and changed-zoom managed replay. Last rotation increment remains. Numeric camera matrices, managed bookmarks, arbitrary pivots and selected-only fit are not certified. See docs/archive/2026-10/GUI_CAMERA.md.",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ]
@@ -751,7 +751,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ]
@@ -772,7 +772,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ],
@@ -785,7 +785,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ],
@@ -798,7 +798,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ],
@@ -823,7 +823,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ],
@@ -836,7 +836,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ],
@@ -849,7 +849,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ],
@@ -862,7 +862,7 @@
       "sources": [
         "tutorial-crossplot"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ]
@@ -874,7 +874,7 @@
       "sources": [
         "tutorial-crossplot"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "unit_scope": "Optional per-source time/value units converted before alignment. Legacy calls explicitly mark shared units as assumed/unverified."
     },
     {
@@ -884,7 +884,7 @@
       "sources": [
         "tutorial-crossplot"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md"
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md"
     },
     {
       "id": "automation.native_tensile_postprocess",
@@ -893,7 +893,7 @@
       "sources": [
         "tutorial-crossplot"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ]
@@ -905,7 +905,7 @@
       "sources": [
         "tutorial-crossplot"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ]
@@ -917,7 +917,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ]
@@ -929,7 +929,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ]
@@ -941,7 +941,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ],
@@ -954,7 +954,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ],
@@ -968,7 +968,7 @@
       "sources": [
         "official-2026r1-guide"
       ],
-      "scope": "Bounded workflow; backend and validation limits in docs/WORKFLOWS_v0.3.md",
+      "scope": "Bounded workflow; backend and validation limits in docs/archive/2026-10/WORKFLOWS_v0.3.md",
       "tested_profiles": [
         "4.13.4 Windows; operation-specific backend"
       ],
@@ -998,8 +998,8 @@
       "tested_profiles": [
         "4.13.4 Windows"
       ],
-      "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits",
-      "bundle_scope": "Explicit dependency snapshot/hashes/relative layout; native child-script references/cycles checked. Visible4.13.4 nested cfiles, SCL data, Python module refresh and frozen macro parameter replay verified. No general include/import inference, global macro-menu/shortcut certification or old/headless bundle certification. docs/PROGRAM_BUNDLES.md",
+      "scope": "Exact source preparation/native execution or macro replay; see docs/archive/2026-10/NATIVE_PROGRAMS.md for per-language version matrix and verification limits",
+      "bundle_scope": "Explicit dependency snapshot/hashes/relative layout; native child-script references/cycles checked. Visible4.13.4 nested cfiles, SCL data, Python module refresh and frozen macro parameter replay verified. No general include/import inference, global macro-menu/shortcut certification or old/headless bundle certification. docs/archive/2026-10/PROGRAM_BUNDLES.md",
       "native_macro_scope": "language=macro: selected *macro block, literal numeric defaults, &name/&{name} and n/e/p positive-user-ID bindings compile to cfile; preserves source.mac and bound.mac. Same-GUI4.13.4 node101->103 selection/geometry/source hash checks passed. No general expressions, interactive picking, pauses, native menu/shortcut installation or old/headless certification."
     },
     {
@@ -1013,8 +1013,8 @@
       "tested_profiles": [
         "4.13.4 Windows"
       ],
-      "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits",
-      "bundle_scope": "Explicit dependency snapshot/hashes/relative layout; native child-script references/cycles checked. Visible4.13.4 nested cfiles, SCL data, Python module refresh and frozen macro parameter replay verified. No general include/import inference, global macro-menu/shortcut certification or old/headless bundle certification. docs/PROGRAM_BUNDLES.md"
+      "scope": "Exact source preparation/native execution or macro replay; see docs/archive/2026-10/NATIVE_PROGRAMS.md for per-language version matrix and verification limits",
+      "bundle_scope": "Explicit dependency snapshot/hashes/relative layout; native child-script references/cycles checked. Visible4.13.4 nested cfiles, SCL data, Python module refresh and frozen macro parameter replay verified. No general include/import inference, global macro-menu/shortcut certification or old/headless bundle certification. docs/archive/2026-10/PROGRAM_BUNDLES.md"
     },
     {
       "id": "programs.execute_gui_command",
@@ -1027,7 +1027,7 @@
       "tested_profiles": [
         "4.13.4 Windows"
       ],
-      "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits"
+      "scope": "Exact source preparation/native execution or macro replay; see docs/archive/2026-10/NATIVE_PROGRAMS.md for per-language version matrix and verification limits"
     },
     {
       "id": "programs.create_native_macro",
@@ -1040,8 +1040,8 @@
       "tested_profiles": [
         "4.13.4 Windows"
       ],
-      "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits",
-      "bundle_scope": "Explicit dependency snapshot/hashes/relative layout; native child-script references/cycles checked. Visible4.13.4 nested cfiles, SCL data, Python module refresh and frozen macro parameter replay verified. No general include/import inference, global macro-menu/shortcut certification or old/headless bundle certification. docs/PROGRAM_BUNDLES.md"
+      "scope": "Exact source preparation/native execution or macro replay; see docs/archive/2026-10/NATIVE_PROGRAMS.md for per-language version matrix and verification limits",
+      "bundle_scope": "Explicit dependency snapshot/hashes/relative layout; native child-script references/cycles checked. Visible4.13.4 nested cfiles, SCL data, Python module refresh and frozen macro parameter replay verified. No general include/import inference, global macro-menu/shortcut certification or old/headless bundle certification. docs/archive/2026-10/PROGRAM_BUNDLES.md"
     },
     {
       "id": "programs.run_native_macro",
@@ -1054,8 +1054,8 @@
       "tested_profiles": [
         "4.13.4 Windows"
       ],
-      "scope": "Exact source preparation/native execution or macro replay; see docs/NATIVE_PROGRAMS.md for per-language version matrix and verification limits",
-      "bundle_scope": "Explicit dependency snapshot/hashes/relative layout; native child-script references/cycles checked. Visible4.13.4 nested cfiles, SCL data, Python module refresh and frozen macro parameter replay verified. No general include/import inference, global macro-menu/shortcut certification or old/headless bundle certification. docs/PROGRAM_BUNDLES.md"
+      "scope": "Exact source preparation/native execution or macro replay; see docs/archive/2026-10/NATIVE_PROGRAMS.md for per-language version matrix and verification limits",
+      "bundle_scope": "Explicit dependency snapshot/hashes/relative layout; native child-script references/cycles checked. Visible4.13.4 nested cfiles, SCL data, Python module refresh and frozen macro parameter replay verified. No general include/import inference, global macro-menu/shortcut certification or old/headless bundle certification. docs/archive/2026-10/PROGRAM_BUNDLES.md"
     },
     {
       "id": "gui_mesh.inspect_gui_mesh",
@@ -1068,7 +1068,7 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Native keyword/result reference mesh. Legacy full snapshot retains20000 bound; explicit entity_type pages materialize only requested coordinates/connectivity with limit1..5000. Private solid-only model over300000elements passed first/middle/last node+solid pages in keyword and d3plot. No cross-call atomicity or large-model edit certification; see docs/MODEL_SCALE.md."
+      "scope": "Native keyword/result reference mesh. Legacy full snapshot retains20000 bound; explicit entity_type pages materialize only requested coordinates/connectivity with limit1..5000. Private solid-only model over300000elements passed first/middle/last node+solid pages in keyword and d3plot. No cross-call atomicity or large-model edit certification; see docs/archive/2026-10/MODEL_SCALE.md."
     },
     {
       "id": "gui_mesh.inspect_gui_mesh_quality",
@@ -1173,7 +1173,7 @@
         "4.13.4 Windows visible GUI"
       ],
       "scope": "Exited process checkpoint recovery; no uncertain operation replay",
-      "recovery_scope": "Visible4.13.4 actual late completion, uncertain command/host validation separation, checkpoint preservation, exact owned-process termination/restart and replacement reuse verified. Saved model/source only; arbitrary GUI state and full workflow continuation remain. docs/SESSION_RECOVERY.md",
+      "recovery_scope": "Visible4.13.4 actual late completion, uncertain command/host validation separation, checkpoint preservation, exact owned-process termination/restart and replacement reuse verified. Saved model/source only; arbitrary GUI state and full workflow continuation remain. docs/archive/2026-10/SESSION_RECOVERY.md",
       "checkpoint_context_scope": "File-bound native keyword inventory sidecars validate owner/hash and determine zero-entity expectation before replacement launch.4.13.4 two controlled idle owned-process exits verified:material-only checkpoint restored,unsaved8-node/1-solid mesh excluded,repeat restart reuses child,newer nonempty child checkpoint retained. No in-flight crash/full scene/all-model lifecycle certification;legacy missing-sidecar keeps nonempty rule.",
       "reset_recovery_scope": "Visible4.13.4 reset distinguishes prior explicit-undo checkpoint from new active empty restart baseline. Zero-node material cards are saved; late-reset source setup covered; new save/open supersedes baseline. Native96-node reset/restart->0,two-material undo and later node301 recovery passed. Default trusted restore uses file-bound empty expectation;not full resident-model unload or in-flight crash certification."
     },
@@ -1335,8 +1335,8 @@
       ],
       "scope": "ResultSelection/SamplingSpec/FieldSpec metadata in native SCL and LASSO field/stress paths. No native-layer/reader-slot equivalence, dimension inference or arbitrary history meaning. Request/export/parser tests only; no added native numerical certification.",
       "gui_scope": "gui_session_action or GUI workflow uses current staged d3plot without path/reopen/new process. Visible 4.13.4 solid six-stress/Mises and native strain/plastic-strain exports verified; state/geometry/selection/part flags preserved. Shared parser/contracts. GUI completion uses embedded Python; streaming geometry/visibility digest plus selected-ID snapshot; per-request limits remain, no new shell/tshell certification.",
-      "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/RESULT_VALIDITY.md.",
-      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/RESULT_VALIDITY.md. No silent reader fallback.",
+      "validity_scope": "Explicit raw/alive; LASSO MDLOPT2 positive material code=present,0=deleted. Native values remain SCL; 4.13.4 solid deletion/blank/all-deleted/replay/maximum spot verification. Other domains, media and old-build validity not certified. See docs/archive/2026-10/RESULT_VALIDITY.md.",
+      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/archive/2026-10/RESULT_VALIDITY.md. No silent reader fallback.",
       "shell_validity_evidence": "Visible4.13.4 original constructed shell d3plot (not solver output): sparse IDs, three points/states,9 raw->6 retained stress rows, high deleted stress excluded, counts3/2/1, empty subset/empty render rejection, native PNG and explicit FFmpeg movie. tools/run_shell_validity_acceptance.py; other builds/adaptive/SPH/beam/tshell not certified."
     },
     {
@@ -1444,7 +1444,7 @@
         "4.13"
       ],
       "scope": "Visible4.13.4 named native field raw CSV/custom source buffer and PNG; explicit state/layer/units. Plain native result captions, model title preserved, default MinMax display averaging with explicit nodal/none. Raw entity samples stay unaveraged. Native solid Mises/pressure/mean stress and node magnitude crosschecks, fixed-range replay and managed-field movie passed; over300000-solid field-only path tested. New MinMax/None combo readback and three-frame MP4 passed. LASSO header prerequisites only. Shell/tshell nontrivial layers, rigid/deleted validity and frames remain unverified.",
-      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/RESULT_VALIDITY.md. No silent reader fallback.",
+      "native_point_scope": "Native solid2..8 reject before dispatch after visible4.13.4 returned point1 for point8. Native default/point1 and shell selectors remain; see docs/archive/2026-10/RESULT_VALIDITY.md. No silent reader fallback.",
       "validity_scope": "Explicit raw/alive. Static4.13.4 solid SCL values + LASSO physical deletion mask: native flags/CSV population/retained extrema/recording replay checked. Fixed-presentation excluded-buffer pixel invariance passed. Shell native verification uses an original known-truth synthetic binary; use the separate explicit PNG/FFmpeg method for physical movies; no node/tshell mask or old-build certification. Existing visibility budgets apply.",
       "shell_validity_evidence": "Visible4.13.4 original constructed shell d3plot (not solver output): sparse IDs, three points/states,9 raw->6 retained stress rows, high deleted stress excluded, counts3/2/1, empty subset/empty render rejection, native PNG and explicit FFmpeg movie. tools/run_shell_validity_acceptance.py; other builds/adaptive/SPH/beam/tshell not certified."
     },
@@ -1461,7 +1461,7 @@
         "official-dpf-licensing"
       ],
       "tested_profiles": [],
-      "scope": "Optional local in-process Entry DPF adapter; client0.16.1 diagnostic and synthetic field/protocol tests only. Server absent: real reader, operator licensing/version and numerical comparisons NOT certified. Explicit labels/time IDs/units; no native LS-PrePost substitution. See docs/DPF_INTEGRATION.md."
+      "scope": "Optional local in-process Entry DPF adapter; client0.16.1 diagnostic and synthetic field/protocol tests only. Server absent: real reader, operator licensing/version and numerical comparisons NOT certified. Explicit labels/time IDs/units; no native LS-PrePost substitution. See docs/archive/2026-10/DPF_INTEGRATION.md."
     },
     {
       "id": "dpf.inspect_dpf_results",
@@ -1476,7 +1476,7 @@
         "official-dpf-licensing"
       ],
       "tested_profiles": [],
-      "scope": "Optional local in-process Entry DPF adapter; client0.16.1 diagnostic and synthetic field/protocol tests only. Server absent: real reader, operator licensing/version and numerical comparisons NOT certified. Explicit labels/time IDs/units; no native LS-PrePost substitution. See docs/DPF_INTEGRATION.md."
+      "scope": "Optional local in-process Entry DPF adapter; client0.16.1 diagnostic and synthetic field/protocol tests only. Server absent: real reader, operator licensing/version and numerical comparisons NOT certified. Explicit labels/time IDs/units; no native LS-PrePost substitution. See docs/archive/2026-10/DPF_INTEGRATION.md."
     },
     {
       "id": "dpf.export_dpf_result",
@@ -1491,7 +1491,7 @@
         "official-dpf-licensing"
       ],
       "tested_profiles": [],
-      "scope": "Optional local in-process Entry DPF adapter; client0.16.1 diagnostic and synthetic field/protocol tests only. Server absent: real reader, operator licensing/version and numerical comparisons NOT certified. Explicit labels/time IDs/units; no native LS-PrePost substitution. See docs/DPF_INTEGRATION.md."
+      "scope": "Optional local in-process Entry DPF adapter; client0.16.1 diagnostic and synthetic field/protocol tests only. Server absent: real reader, operator licensing/version and numerical comparisons NOT certified. Explicit labels/time IDs/units; no native LS-PrePost substitution. See docs/archive/2026-10/DPF_INTEGRATION.md."
     },
     {
       "id": "common.measure_gui_geometry",
@@ -1518,7 +1518,7 @@
       "tested_profiles": [
         "4.13.4 Windows maximized visible GUI"
       ],
-      "scope": "Standard shell/solid/beam/element hide/show/isolate/reverse/owned restore; exact binary display-flag and geometry/state/part checks. Native 49-operation synthetic/mixed/private-result workflow, stale-restore rejection and managed replay passed. Protocol4 uses native keyword beam endpoints after array-binding heap faults; full export cost on beam-containing structural reads. Node glyphs/special entities/physical erosion remain open. One-million readback and 20000 explicit transition guards are not size certification. See docs/GUI_VISIBILITY.md."
+      "scope": "Standard shell/solid/beam/element hide/show/isolate/reverse/owned restore; exact binary display-flag and geometry/state/part checks. Native 49-operation synthetic/mixed/private-result workflow, stale-restore rejection and managed replay passed. Protocol4 uses native keyword beam endpoints after array-binding heap faults; full export cost on beam-containing structural reads. Node glyphs/special entities/physical erosion remain open. One-million readback and 20000 explicit transition guards are not size certification. See docs/archive/2026-10/GUI_VISIBILITY.md."
     },
     {
       "id": "gui_entities.create_gui_entity_set",
@@ -1614,7 +1614,7 @@
         "library-lasso"
       ],
       "verification": "LASSO2.0.4 public solid MDLOPT2 mask and original synthetic shell mask; sparse/rigid-layout synthetic negatives; normalized NPZ checked after save. This tool reads physical tables, not GUI Blank; no beam/tshell/adaptive/SPH runtime certification.",
-      "scope": "Explicit saved element deletion only; max1m state/entity pairs; missing masks/adaptive epochs reject; see docs/RESULT_VALIDITY.md",
+      "scope": "Explicit saved element deletion only; max1m state/entity pairs; missing masks/adaptive epochs reject; see docs/archive/2026-10/RESULT_VALIDITY.md",
       "shell_validity_evidence": "Visible4.13.4 original constructed shell d3plot (not solver output): sparse IDs, three points/states,9 raw->6 retained stress rows, high deleted stress excluded, counts3/2/1, empty subset/empty render rejection, native PNG and explicit FFmpeg movie. tools/run_shell_validity_acceptance.py; other builds/adaptive/SPH/beam/tshell not certified."
     },
     {
@@ -1629,7 +1629,7 @@
       "tested_profiles": [
         "4.13"
       ],
-      "verification": "Visible4.13.4 public solid native PNG states1/8/16 with5664/5405/5050 retained entities; FFmpeg5FPS640x4803frames/full decode; four-step recording replay with2states; state/manual Blank/fringe restoration and source identities checked. See docs/FIELD_MOVIES.md.",
+      "verification": "Visible4.13.4 public solid native PNG states1/8/16 with5664/5405/5050 retained entities; FFmpeg5FPS640x4803frames/full decode; four-step recording replay with2states; state/manual Blank/fringe restoration and source identities checked. See docs/archive/2026-10/FIELD_MOVIES.md.",
       "scope": "Requires current verified alive solid/shell fringe and explicit fixed bounds. ALL alive entities in selected parts per frame; uniform FPS, no physical-time resampling. Explicit FFmpeg encoder, not native Movie command. Shell has an explicitly synthetic known-truth native case; other builds/headless remain unverified and all-deleted frames reject.",
       "shell_validity_evidence": "Visible4.13.4 original constructed shell d3plot (not solver output): sparse IDs, three points/states,9 raw->6 retained stress rows, high deleted stress excluded, counts3/2/1, empty subset/empty render rejection, native PNG and explicit FFmpeg movie. tools/run_shell_validity_acceptance.py; other builds/adaptive/SPH/beam/tshell not certified."
     },
@@ -1645,7 +1645,7 @@
         "4.13"
       ],
       "verification": "Visible4.13.4 original Tri3/Quad4 node-ring adjacency, shared-edge local unoriented-angle propagation, hidden part/Blank blockers, hidden-seed rejection, reversed normals, Segment/pressure recorded angle replay and keyword reopen passed.",
-      "scope": "Keyword visible shells only; 1m reference/selection resource budget is not a large-scope runtime certificate. Leaves propagation/adaptive/3dsurf off. No result/adaptive/high-order/general nonmanifold certification. docs/TOPOLOGY_SELECTION.md"
+      "scope": "Keyword visible shells only; 1m reference/selection resource budget is not a large-scope runtime certificate. Leaves propagation/adaptive/3dsurf off. No result/adaptive/high-order/general nonmanifold certification. docs/archive/2026-10/TOPOLOGY_SELECTION.md"
     },
     {
       "id": "mesh.node_replacement",
@@ -1658,7 +1658,7 @@
         "4.13"
       ],
       "verification": "Windows4.13.4 visible maximized:26 recorded checks on original Tri3/Quad4 and Hex8 fixtures; native replacement, supported Node/Segment/SPC repair, constraint-ID preservation, topology change, parameter replay, source unchanged, native reopen and pre-edit collapse/conflict/unsupported-reference rejection.",
-      "scope": "Directed existing-node replacement; native Replace + targeted fresh-copy reference patch + native reopen. Complete snapshot limit20000; requires pinned PyDYNA. Include/parameter/other element families and known unsupported direct-node references reject. Part flags preserved, selection cleared, full scene/large model/solver/other versions not certified. docs/NODE_REPLACEMENT.md"
+      "scope": "Directed existing-node replacement; native Replace + targeted fresh-copy reference patch + native reopen. Complete snapshot limit20000; requires pinned PyDYNA. Include/parameter/other element families and known unsupported direct-node references reject. Part flags preserved, selection cleared, full scene/large model/solver/other versions not certified. docs/archive/2026-10/NODE_REPLACEMENT.md"
     },
     {
       "id": "automation.activate_gui_model",
@@ -1731,7 +1731,7 @@
         "4.13.4 Windows visible maximized GUI"
       ],
       "scope": "Global nodal force/moment x/y/z/rx/ry/rz; explicit units, per_node SET linkage or total_equal frozen POINT distribution, selection dependencies, curve creation/reuse, overlap review and intentional superposition. Mesh/display/cards preserved; explicit fresh-process reopen. No follower/local/rigid/load-ID variant or solver certification.",
-      "validation": "tools/run_nodal_load_acceptance.py synthetic mixed shell/solid/beam full workflow passed, including parameter replay with changed node count and load curve; real native numeric/card checks. Full official Example11 beam+mass load/reopen regression and mass-only selection/set/load/parameter replay/reopen passed. docs/MASS_PRESERVATION.md",
+      "validation": "tools/run_nodal_load_acceptance.py synthetic mixed shell/solid/beam full workflow passed, including parameter replay with changed node count and load curve; real native numeric/card checks. Full official Example11 beam+mass load/reopen regression and mass-only selection/set/load/parameter replay/reopen passed. docs/archive/2026-10/MASS_PRESERVATION.md",
       "known_limitations": "Standard ELEMENT_MASS supported for structural preservation; mass glyph display, inertia/other auxiliary families, follower/local/rigid loads remain unverified. Full display proof is null when auxiliary glyph flags are unavailable."
     }
   ],
@@ -1741,5 +1741,5 @@
     "4.13.0.1",
     "4.13.4 Windows GUI (v0.3 scoped validation)"
   ],
-  "coverage_note": "See docs/COVERAGE.md and docs/PYDYNA_INTEGRATION.md. Catalog entries and source reading are not complete functional coverage."
+  "coverage_note": "See docs/archive/2026-10/COVERAGE.md and docs/archive/2026-10/PYDYNA_INTEGRATION.md. Catalog entries and source reading are not complete functional coverage."
 }

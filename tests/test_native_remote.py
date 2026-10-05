@@ -47,3 +47,6 @@ def test_remote_probe_evidence_and_window(remote_evidence, target, pytestconfig,
     output = pytestconfig._native_root / (identity(target) + ".json")
     output.write_text(json.dumps(result, indent=2), encoding="utf8")
     request.node.user_properties.append(("native_evidence", str(output)))
+    request.node.user_properties.append(("native_scope", "evidence_only"))
+    request.node.user_properties.append(("native_lane_statuses", result["native_lane_statuses"]))
+    pytest.xfail("Evidence-only validation; " + "; ".join(k + "=" + v for k, v in result["native_lane_statuses"].items()))

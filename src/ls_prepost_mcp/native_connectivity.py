@@ -1,7 +1,7 @@
 """Native keyword beam-connectivity readback avoids a reproduced array-binding heap fault."""
 from pathlib import Path
 
-from .config import scl_command_path
+from .native import commands as nc
 
 
 def beam_connectivity_prelude(directory: Path) -> str:
@@ -18,7 +18,7 @@ def beam_connectivity_prelude(directory: Path) -> str:
         '        source=dict(model_directory=str(dc.get_data("model_directory")), counts=dict(nodes=int(dc.get_data("num_nodes")), elements=int(dc.get_data("num_elements")), states=int(dc.get_data("num_states"))))\n'
         '    except Exception:\n        source=None\n'
         '    with open("beam-export-before.json","w") as stream: json.dump(source,stream)\n'
-        'if count or mass_count:\n    lp.execute_command(' + repr('save keyword ' + scl_command_path(directory/'beam-connectivity.k')) + ')\n'
+        'if count or mass_count:\n    lp.execute_command(' + repr(nc.save_keyword(directory/'beam-connectivity.k', style="native")) + ')\n'
         'with open("beam-count.json","w") as stream: json.dump(count,stream)\n'
         'with open("mass-count.json","w") as stream: json.dump(mass_count,stream)\n'
     )

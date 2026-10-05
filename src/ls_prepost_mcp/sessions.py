@@ -17,7 +17,6 @@ from .checkpoint_context import (
     restart_source,
     save_checkpoint_context,
 )
-from .config import command_path, scl_command_path
 from .engine import SessionEngine, SessionJob
 from .engine.environment import native_environment
 from .engine.queue_transport import QueueTransport
@@ -129,7 +128,7 @@ class Sessions:
         (directory / "initial.k").write_text("*KEYWORD\n*TITLE\nMCP session model\n*END\n", encoding="ascii")
         bootstrap.write_text(
             "import os,json,builtins,LsPrePost as lp\nos.chdir(" + repr(str(directory)) + ")\n"
-            "lp.execute_command(" + repr("open keyword " + command_path(directory / "initial.k")) + ")\n"
+            "lp.execute_command(" + repr(nc.open_model(directory / "initial.k")) + ")\n"
             "builtins._lspp_mcp_session=" + repr(ident) + "\n"
             'json.dump({"session_id":'
             + repr(ident)
@@ -147,7 +146,7 @@ class Sessions:
         cfile = directory / "initialize.cfile"
         # A fresh process needs no `new`: some GUI builds treat it as Restart
         # and block the startup command file behind a confirmation dialog.
-        cfile.write_text("runpython " + command_path(bootstrap) + ("\nexit\n" if transport == "queue" else "\n"), encoding="utf8")
+        nc.write_cfile(cfile, [nc.run_script(bootstrap)] + (["exit"] if transport == "queue" else []))
         env, configuration = native_environment(exe, directory)
         with (directory / "process.log").open("wb") as log:
             process = subprocess.Popen(
@@ -288,7 +287,7 @@ class Sessions:
             code += (
                 "import json,LsPrePost as lp\n"
                 "if json.load(open(" + repr(str(response)) + ")) .get('ok'):\n"
-                "    lp.execute_command(" + repr("save keyword " + scl_command_path(directory / "model.k")) + ")\n"
+                "    lp.execute_command(" + repr(nc.save_keyword(directory / "model.k", style="native")) + ")\n"
             )
         code += "os.replace(" + repr(str(response)) + "," + repr(str(directory / "complete.json")) + ")\n"
         bootstrap = directory / "dispatch.py"
@@ -300,11 +299,8 @@ class Sessions:
         if safe_beams:
             script = directory/"beam-connectivity.py"
             script.write_text(beam_connectivity_prelude(directory), encoding="utf8")
-            commands.append("runpython "+command_path(script))
-        command_file.write_text(
-            "\n".join(commands + ["runpython " + command_path(bootstrap)]) + "\n",
-            encoding="utf8",
-        )
+            commands.append(nc.run_script(script))
+        nc.write_cfile(command_file, commands + [nc.run_script(bootstrap)])
         if queued:
             atomic_json(directory / "queue-job.json", dict(job_id=directory.name,
                 commands=list(native_commands), python=([str(script)] if safe_beams else []) + [str(bootstrap)]))
@@ -353,7 +349,7 @@ class Sessions:
 
         outcome = SessionEngine().run(SessionJob(
             operation=action, directory=directory, timeout=self.settings.timeout,
-            submit=lambda: transport.submit(directory.name if queued else "openc command " + command_path(command_file) + " nodialog"),
+            submit=lambda: transport.submit(directory.name if queued else nc.run_script(command_file, "cfile")),
             is_alive=lambda: alive(data["process"]), verify=verify,
             log=self.directory(ident) / "lspost.msg"))
         atomic_json(directory / "engine-result.json", outcome.model_dump(mode="json"))
@@ -841,12 +837,12 @@ class SessionTools:
             if not alive(data["process"]):
                 raise RuntimeError("Owned process changed")
             close_script = manager.directory(session_id) / ("close-" + uuid.uuid4().hex + ".cfile")
-            close_script.write_text("exit\n", encoding="ascii")
+            nc.write_cfile(close_script, ["exit"])
             if data.get("engine_transport") == "queue":
                 (manager.directory(session_id) / "STOP").write_text("close\n", encoding="ascii")
             else:
                 WindowsCommandTransport(data["process"]["pid"]).submit(
-                    "openc command " + command_path(close_script) + " nodialog"
+                    nc.run_script(close_script, "cfile")
                 )
             deadline = time.monotonic() + min(30, self.settings.timeout)
             while time.monotonic() < deadline and alive(data["process"]):
