@@ -217,3 +217,33 @@ def test_legacy_set_keywords_and_multi_line_title(tmp_path: Path) -> None:
     assert deck.get(deck.blocks("*TITLE")[0], "title").value == "first line"
     block = deck.blocks("*SET_PART")[0]
     assert deck.get(block, "sid").value == 4 and deck.members(block) == [1, 2]
+
+
+@pytest.mark.parametrize("text", [
+    # each line is its own segment; PyDYNA pairs lines as card 1 + optional N6-N8 card
+    "*LOAD_SEGMENT\n         1    40.000                3001      3002      3003      3004\n"
+    "         1    40.000                3002      3005      3006      3003\n",
+    # PyDYNA has no _ID option for this class: the JID line would be read as N1-N6
+    "*CONSTRAINED_JOINT_REVOLUTE_ID\n         5\n   7700192   7700200   7700189   7700202         0         0\n",
+    # PyDYNA puts the WID card first even without _ID
+    "*CONSTRAINED_GENERALIZED_WELD_SPOT\n         4         0         0       0.0         0         0\n"
+    "1.00000E20       0.0       0.0       0.0       0.0       0.0\n",
+    "*CONSTRAINED_SPOTWELD\n       101       102       0.0       0.0       0.0       0.0       0.0       0.0\n"
+    "       103       104       0.0       0.0       0.0       0.0       0.0       0.0\n",
+])
+def test_misaligned_pydyna_cards_are_refused(tmp_path: Path, text: str) -> None:
+    pytest.importorskip("ansys.dyna.core")
+    deck = _deck(tmp_path, text)
+    with pytest.raises(Unsupported):
+        deck.layout(next(b for b in deck.iter_blocks() if b.name))
+
+
+def test_stray_text_policy() -> None:
+    from ls_prepost_mcp.domain.model.fields import stray_text
+    eight = [(10 * i, 10) for i in range(7)]  # a 7-field card read from an 8-field line
+    assert stray_text("1,2,1e-08,0,0,0,0,0\n", eight) is None  # zero trailing field: tolerated
+    assert stray_text("1,2,1e-08,0,0,0,0,5\n", eight) == "5"
+    assert stray_text(f"{1:>10}{2:>10}" + " " * 50 + f"{0:>10}\n", eight) is None
+    assert stray_text(f"{4:>10}{0:>10}{0:>10}\n", [(0, 10)]) == "0 0"  # ID card: nothing tolerated
+    assert stray_text(f"{1:>10}{'':>10}{2:>10}\n", [(0, 10), (20, 10), (30, 10)]) is None  # blank gap
+    assert stray_text(f"{1:>10}  7{'':>7}{3:>10}\n", [(0, 10), (20, 10), (30, 10)]) == "7"

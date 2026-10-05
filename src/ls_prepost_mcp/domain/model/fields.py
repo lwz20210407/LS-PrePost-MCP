@@ -153,3 +153,41 @@ def format_value(value: object, width: int, kind: str = "auto") -> tuple[str, bo
         if len(candidate) <= width:
             return candidate, float(candidate) == number
     raise FieldError(f"{number} cannot be represented in {width} characters")
+
+
+def _zero(token: str) -> bool:
+    try:
+        return parse_number(token) in (None, 0)
+    except FieldError:
+        return False
+
+
+def stray_text(line: str, spans: list[tuple[int, int]], long: bool = False) -> str | None:
+    """Text of ``line`` outside the fields that suggests cards matched to the wrong lines.
+
+    Fixed format: non-blank characters within the card width (80, long 160) that no span
+    covers; comma format: non-empty tokens beyond the fields. Extra trailing fields that are
+    zero or blank are tolerated on cards with three or more fields (PyDYNA lacks some newer
+    trailing fields, e.g. CID_RCF of contact card C); ID cards with one or two fields tolerate
+    nothing, because a misplaced ID card is exactly what this check has to catch.
+    """
+    text = body(line)
+    tolerant = len(spans) >= 3
+    if is_free_format(line):
+        extra = [token.strip() for token in text.split(",")[len(spans):] if token.strip()]
+        if not extra or (tolerant and all(_zero(token) for token in extra)):
+            return None
+        return ",".join(extra)
+    limit = 160 if long else 80
+    end = min(max((offset + width for offset, width in spans), default=0), limit)
+    covered = [False] * limit
+    for offset, width in spans:
+        for position in range(offset, min(offset + width, limit)):
+            covered[position] = True
+    inside = "".join(ch for position, ch in enumerate(text[:end]) if not covered[position] and not ch.isspace())
+    if inside:
+        return inside
+    trailing = text[end:limit].split()
+    if not trailing or (tolerant and all(_zero(token) for token in trailing)):
+        return None
+    return " ".join(trailing)

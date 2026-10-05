@@ -31,6 +31,7 @@ from .fields import (
     long_spans,
     parse_number,
     read_text,
+    stray_text,
     write_text,
 )
 from .layouts import Column, FieldInfo, Layout, RowMap, Unsupported
@@ -251,15 +252,16 @@ def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
     """Fields of one card instance (``chunk`` = its data lines), self-checked against PyDYNA."""
     indices = [0] + [i for i, _ in chunk]
 
-    def build(keyword: object) -> tuple[list[FieldInfo], list[str], list[tuple[object, int]]]:
+    def build(keyword: object) -> tuple[list[FieldInfo], list[str], list[tuple[object, int]], list]:
         cards = _ordered_cards(keyword)
         if len(chunk) > len(cards):
             raise _ExtraLines(len(chunk), len(cards))
-        infos, sources = [], []
+        infos, sources, coverage = [], [], []
         for (card_name, card), (index, line) in zip(cards, chunk):
             if isinstance(card, _SeriesLine):
                 series = card.series
                 width = 20 if long else int(series._element_width)
+                coverage.append((card_name, index, [(j * width, width) for j in range(card.count)]))
                 kind = _kind(series._type)
                 for j in range(card.count):
                     slot = _slot(line, index, j * width, width, j)
@@ -270,6 +272,8 @@ def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
             spans = long_spans([s.width for s in schemas]) if long else [(s.offset, s.width) for s in schemas]
             # A card holding one text field (title/heading) is never comma separated: commas are text.
             title_card = len(schemas) == 1 and _kind(schemas[0].type) == "str"
+            if not title_card:  # one text field: commas and any column are part of the text
+                coverage.append((card_name, index, list(spans)))
             seen: dict[str, int] = {}
             for token, (schema, (offset, width)) in enumerate(zip(schemas, spans)):
                 name = schema.name.lower()
@@ -281,13 +285,18 @@ def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
                 slot = FieldSlot(index, offset, width) if title_card else _slot(line, index, offset, width, token)
                 infos.append(FieldInfo(name, _kind(schema.type), slot, card_name, schema.default))
                 sources.append((card, token))
-        return infos, [name for name, _ in cards[len(chunk):]], sources
+        return infos, [name for name, _ in cards[len(chunk):]], sources, coverage
 
-    first, _, _ = build(_load(cls, _substituted_text(block, indices, lookup, None, long)))
+    first, _, _, _ = build(_load(cls, _substituted_text(block, indices, lookup, None, long)))
     slots: dict[int, list[FieldSlot]] = {}
     for info in first:
         slots.setdefault(info.slot.line, []).append(info.slot)
-    infos, missing, sources = build(_load(cls, _substituted_text(block, indices, lookup, slots, long)))
+    infos, missing, sources, coverage = build(_load(cls, _substituted_text(block, indices, lookup, slots, long)))
+    for card_name, index, spans in coverage:
+        stray = stray_text(block.lines[index], spans, long)
+        if stray:
+            raise Unsupported(f"Text outside the fields of {card_name} on line {index} ({stray[:40]!r}): "
+                              "the PyDYNA cards do not match this block")
     for info, (card, position) in zip(infos, sources):
         if type(card).__name__ == "SeriesCard":
             expected = card[position] if position < len(card) else None
@@ -300,10 +309,23 @@ def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
     return infos, missing
 
 
+def _check_options(block: Block, cls: type, base: str, long: bool) -> None:
+    """Every keyword-name token after the PyDYNA class name must be an option PyDYNA knows."""
+    suffix = [token for token in block.name[len(base):].split("_") if token]
+    if not suffix:
+        return
+    probe = _load(cls, pydyna_title(block, long))
+    known = {token for option in getattr(probe, "_active_options", set()) for token in str(option).split("_")}
+    unknown = [token for token in suffix if token not in known]
+    if unknown:
+        raise Unsupported(f"PyDYNA {base} has no option {'_'.join(unknown)}; its cards would be misplaced")
+
+
 def _pydyna_layout(block: Block, lookup: Mapping[str, object], long: bool = False) -> Layout:
     cls, base = _pydyna_class(block.name)
     if _TABLE_CARDS & {type(card).__name__ for card in cls()._cards}:
         return tables.table_layout(block, cls, base, long=long, title=pydyna_title(block, long))
+    _check_options(block, cls, base, long)
     data = [(i, line) for i, line in block.data()]
     while data and is_blank(data[-1][1]):
         data.pop()

@@ -12,7 +12,7 @@ import math
 import warnings
 
 from .blocks import Block
-from .fields import FieldError, FieldSlot, is_free_format, long_spans, parse_number, read_text
+from .fields import FieldError, FieldSlot, is_free_format, long_spans, parse_number, read_text, stray_text
 from .layouts import Column, FieldInfo, Layout, RowMap, Unsupported
 from .text import is_blank
 
@@ -182,8 +182,13 @@ def _self_check(block: Block, keyword_class: type, position: int, head: list, ke
                 fields: list[FieldInfo], title: str) -> None:
     picks = keys[:SAMPLE] + [k for k in keys[max(len(keys) - SAMPLE, SAMPLE):]]
     lines = [i for i, _ in head]
+    long = any(c.width == 20 for columns in rows.template for c in columns)
     for key in picks:
         lines.extend(rows.line_indices(key))
+        for columns, index in zip(rows.template, rows.line_indices(key)):
+            stray = stray_text(block.lines[index], [(c.offset, c.width) for c in columns], long)
+            if stray:
+                raise Unsupported(f"{block.name}: text outside the row fields on line {index} ({stray[:40]!r})")
     keyword = keyword_class()
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
