@@ -279,6 +279,20 @@ class KeywordDeck:
             raise FieldError("Curve points failed verification after writing")
         return self._record_lines(block, f"points -> {len(pairs)}", removed, added)
 
+    def apply_lines(self, block: Block, edits: dict[int, str], description: str) -> Change:
+        """Replace whole lines of ``block`` (index -> text with its line ending) as one change.
+
+        For bulk table edits; the change record keeps the first five old and new lines.
+        """
+        if not edits:
+            raise FieldError("No lines to change")
+        order = sorted(edits)
+        before = [block.lines[i] for i in order[:5]]
+        for index in order:
+            block.lines[index] = edits[index]
+        return self._record_lines(block, f"{description} ({len(edits)} lines)", before,
+                                  [block.lines[i] for i in order[:5]])
+
     def _record_lines(self, block: Block, description: str, removed: list[str], added: list[str]) -> Change:
         self._layouts.clear()
         block.file.modified = True
