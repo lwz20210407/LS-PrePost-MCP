@@ -31,7 +31,7 @@ def inspect_database(settings, jobs, source: Path) -> dict:
         commands.write_text('new\nopenc d3plot "d3plot"\nrunscript inventory.scl\nexit\n', encoding="ascii")
         process = execute(settings.native_executable(), commands, directory, timeout=settings.timeout, graphics=False)
         manifest["process"] = process
-        if process["returncode"] != 0 or process["timed_out"]:
+        if process.get("engine_status") == "failed" or process["returncode"] != 0 or process["timed_out"]:
             raise RuntimeError("Native SCL inventory process failed")
         nodes, elements, states = [int(x) for x in (directory / "counts.txt").read_text().split()]
         if min(nodes, elements, states) <= 0:

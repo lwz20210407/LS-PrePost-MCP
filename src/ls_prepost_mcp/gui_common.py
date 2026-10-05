@@ -9,12 +9,12 @@ import numpy as np
 from pydantic import StrictInt
 
 from .config import command_path
+from .core.native_log import native_errors, read_delta
 from .gui_controls import wait_for_gui_state
 from .gui_mesh import ReadOnlyScopeMismatch, verify_mesh_digest
 from .gui_selection import part_visibility
 from .jobs import atomic_json, check_artifact
 from .post_backend import ids
-from .programs import native_errors
 
 COUNTS = {"distance": 2, "height": 2, "angle3": 3, "angle4": 4, "circle3": 3}
 
@@ -140,9 +140,7 @@ class GuiCommonTools:
                     if (part_visibility(baseline["data"]) != part_visibility(after["data"]) or
                             baseline["data"]["current_state"] != after["data"]["current_state"]):
                         raise ReadOnlyScopeMismatch("Measurement changed native state/part visibility")
-                    with log.open("rb") as stream:
-                        stream.seek(offset)
-                        text = stream.read().decode("utf8", errors="replace")
+                    text = read_delta(log, offset, existed=True)
                     (directory/"native.log").write_text(text, encoding="utf8")
                     if native_errors(text):
                         raise ValueError("Native measurement reported command errors")

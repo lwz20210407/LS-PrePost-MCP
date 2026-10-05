@@ -123,7 +123,7 @@ def run_case(settings, jobs, source: Path, units: str):
         result = execute(settings.native_executable(), directory / "commands.cfile", directory,
                          timeout=settings.timeout, graphics=False)
         manifest["process"] = result
-        if result["returncode"] != 0 or result["timed_out"]:
+        if result.get("engine_status") == "failed" or result["returncode"] != 0 or result["timed_out"]:
             raise RuntimeError("Native batch process failed/timed out")
         nodes, solids, shells, states = map(int, (directory / "inventory.txt").read_text().split())
         manifest["counts"] = dict(nodes=nodes, solids=solids, shells=shells, states=states)

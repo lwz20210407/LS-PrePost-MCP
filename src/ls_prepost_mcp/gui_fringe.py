@@ -6,6 +6,7 @@ import math
 from contextlib import nullcontext
 
 from .config import command_path, scl_command_path
+from .core.native_log import native_errors, read_delta
 from .field_contracts import FieldSpec, ResultSelection, SamplingSpec
 from .fringe_presentation import averaging_command, result_name
 from .gui_controls import wait_for_gui_state
@@ -13,7 +14,6 @@ from .gui_curves import plot_text
 from .jobs import atomic_json, check_artifact, now
 from .native_results import ELEMENT_FIELDS, NODE_FIELDS
 from .post_backend import ids, write_csv
-from .programs import native_errors
 from .result_availability import validate_field_availability
 from .result_validity import validity_scope
 from .scene_state import fringe_coverage
@@ -258,9 +258,7 @@ def render_field(
         def diagnostics():
             if not log.exists():
                 return []
-            with log.open("rb") as stream:
-                stream.seek(offset)
-                content = stream.read().decode("utf8", errors="replace")
+            content = read_delta(log, offset, existed=True)
             (directory / "native.log").write_text(content, encoding="utf8")
             return native_errors(content)
 
@@ -407,9 +405,7 @@ def render_field(
                 or captured["data"]["counts"] != before["counts"]
             ):
                 raise ValueError("Native capture model/state mismatch")
-            with log.open("rb") as stream:
-                stream.seek(offset)
-                text = stream.read().decode("utf8", errors="replace")
+            text = read_delta(log, offset, existed=True)
             (directory / "native.log").write_text(text, encoding="utf8")
             if native_errors(text):
                 raise ValueError("Native field diagnostics reported errors")

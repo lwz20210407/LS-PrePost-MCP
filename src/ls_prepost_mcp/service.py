@@ -10,6 +10,7 @@ from pydantic import StrictInt
 
 from .config import Settings, command_path
 from .dpf_tools import DpfTools
+from .engine.context import NativeContext
 from .engineering import EngineeringTools
 from .fringe_presentation import averaging_command
 from .gui_boundaries import GuiBoundaryTools
@@ -67,10 +68,17 @@ class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools
     def __init__(self, settings: Settings):
         self.settings = settings
         self.jobs = Jobs(settings.workspace)
+        self._native_context = NativeContext()
 
     def _native(self, action: str, parameters: dict, model: str | None = None,
                 file_type: str = "keyword", graphics: bool = False,
                 artifacts: tuple[tuple[str, str], ...] = (), export: bool = False) -> dict:
+        executor = self._native_context.executor
+        if executor is not None:
+            if model is not None:
+                raise ValueError("Session operations cannot load a batch input")
+            return executor(action=action, parameters=parameters, file_type=file_type,
+                            artifacts=artifacts, export=export)
         exe = self.settings.native_executable()
         if file_type not in ("keyword", "d3plot"):
             raise ValueError("file_type must be keyword or d3plot")
@@ -121,7 +129,7 @@ class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools
         try:
             process = execute(exe, cfile, directory, timeout=self.settings.timeout, graphics=graphics)
             manifest["process"] = process
-            if process["timed_out"] or process["returncode"] != 0:
+            if process.get("engine_status") == "failed" or process["timed_out"] or process["returncode"] != 0:
                 raise RuntimeError(f"LS-PrePost process failed: returncode={process['returncode']}, timeout={process['timed_out']}")
             reply_path = directory / "response.json"
             if action == "scl_probe":

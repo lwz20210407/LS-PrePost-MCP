@@ -10,6 +10,7 @@ import math
 import re
 from pathlib import Path
 
+from .core.native_log import native_errors, read_delta
 from .jobs import atomic_json, check_artifact, fingerprint, now
 from .native_results import stage
 from .program_bundle import (
@@ -24,10 +25,6 @@ from .runner import execute
 
 LANGUAGES = {"command": "cfile", "cfile": "cfile", "scl": "scl", "python": "py"}
 PLACEHOLDER = re.compile(r"\{\{([A-Za-z][A-Za-z0-9_]*)\}\}")
-NATIVE_ERROR = re.compile(
-    r"^\s*(?:\*+\s*)?(?:invalid(?:\s+[A-Za-z][\w-]*){0,3}\s+command\b|error while compiling\b|error occurred in parsing script\b|syntax error\b|runtime error\b)",
-    re.IGNORECASE,
-)
 RESERVED = {
     "program.cfile",
     "program.scl",
@@ -66,10 +63,6 @@ def numeric_parameters(values):
         ):
             raise ValueError("Macro parameters must be finite named numbers, not code or paths")
     return values
-
-
-def native_errors(text):
-    return [line.strip() for line in text.splitlines() if NATIVE_ERROR.search(line)][:30]
 
 
 def render(code, parameters):
@@ -310,7 +303,7 @@ class ProgramTools:
             atomic_json(directory / "job.json", manifest)
             process = execute(exe, command_file, directory, timeout=self.settings.timeout, graphics=graphics)
             manifest["process"] = process
-            if process["timed_out"] or process["returncode"] != 0:
+            if process.get("engine_status") == "failed" or process["timed_out"] or process["returncode"] != 0:
                 raise RuntimeError("Native program process failed or timed out")
             diagnostics = []
             for log in (directory / "lspost.msg", directory / "stdout.log", directory / "stderr.log"):
@@ -394,9 +387,7 @@ class ProgramTools:
             if meta.get("managed_fringe") is not None:
                 meta["managed_fringe"]["status"] = "changed_by_raw_command"
             if log.exists():
-                with log.open("rb") as stream:
-                    stream.seek(offset)
-                    diagnostics = native_errors(stream.read().decode("utf8", errors="replace"))
+                diagnostics = native_errors(read_delta(log, offset, existed=True))
                 if diagnostics:
                     result.update(
                         status="failed",

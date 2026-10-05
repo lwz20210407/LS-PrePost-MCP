@@ -20,7 +20,7 @@ def context_directory(value):
 
 def execute_prepared(service, sid, prepared_id, expected_hash, contract, content, dependencies,
                      *, journal_action="execute_native_program", journal_parameters=None):
-    from .programs import native_errors
+    from .core.native_log import native_errors, read_delta
 
     manager = service._session_manager()
     if identity(content, contract) != expected_hash:
@@ -76,9 +76,7 @@ def execute_prepared(service, sid, prepared_id, expected_hash, contract, content
                 raise ValueError("Program replaced the current model context; use dedicated open/reset tools")
             diagnostics = []
             if log.exists():
-                with log.open("rb") as stream:
-                    stream.seek(offset)
-                    text = stream.read().decode("utf8", errors="replace")
+                text = read_delta(log, offset, existed=True)
                 (directory / "native.log").write_text(text, encoding="utf8")
                 diagnostics = native_errors(text)
             if diagnostics:

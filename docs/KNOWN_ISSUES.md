@@ -373,6 +373,13 @@
 - 规避：先要求独立载入回执与预期节点数一致，再查实际菜单/面板；超时不重复点击，以本次关联回执与新产物验证结果。
 - 来源与证据：[ADR 0001](decisions/0001-session-transport.md)、[更新后的 macro/session/unlocked 三项记录](decisions/0001-experiment-evidence.json)。产品级迁移留给 M1。
 
+## KI-048 4.10 队列会话的模型目录读回
+
+- 现象：I01 的主线程队列会话打开独立 keyword 后，读到 8 节点、3 单元，但 DataCenter model_directory 仍为会话根目录，与已暂存输入目录不一致；来源校验明确失败。
+- 版本：本机 4.10；同一队列流程在 4.13 通过打开、连续读取、保存重开和关闭。
+- 处理：保留失败和来源身份校验，4.10 当前验收五个批处理调用方子集；版本能力与替代来源读回由 I03 处理。
+- 证据：[I01 原生回归](../tests/test_engine_native.py)、[来源检查](../src/ls_prepost_mcp/model_context.py)。原始回执与日志仅存本地。
+
 ## 能力范围原文索引
 
 以下是 M0 冻结能力文件的全部 scope/limitation 字段，按原文去重。它们同时包含已验证范围和未验证项，不全是原生缺陷。版本、规避和证据保留原文；原文未注明者不补造。来源文件：[capabilities.json](../src/ls_prepost_mcp/data/capabilities.json)。

@@ -35,6 +35,7 @@ packages = ["src/ls_prepost_mcp"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src", "."]
+markers = ["native: opt-in execution against an installed LS-PrePost"]
 
 [tool.ruff]
 target-version = "py311"

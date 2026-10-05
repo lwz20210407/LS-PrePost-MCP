@@ -4,6 +4,7 @@ import contextlib
 import json
 import os
 import re
+import secrets
 import shutil
 import subprocess
 import time
@@ -17,10 +18,13 @@ from .checkpoint_context import (
     save_checkpoint_context,
 )
 from .config import command_path, scl_command_path
+from .engine import SessionEngine, SessionJob
+from .engine.environment import native_environment
+from .engine.queue_transport import QueueTransport
 from .jobs import atomic_json, check_artifact, fingerprint, now
 from .model_context import verify_load_reply
-from .native_config import isolate_preferences
 from .native_connectivity import beam_connectivity_prelude
+from .outcomes import normalize_outcome
 from .windows_transport import WindowsCommandTransport
 
 NATIVE_ACTIONS = {
@@ -135,15 +139,17 @@ class Sessions:
         finally:
             path.unlink()
 
-    def start(self):
-        WindowsCommandTransport(0).require_interactive_desktop()
+    def start(self, *, transport="win32"):
+        if transport not in ("win32", "queue"):
+            raise ValueError("Session transport must be win32 or queue")
+        if transport == "win32":
+            WindowsCommandTransport(0).require_interactive_desktop()
         if os.name != "nt":
             raise RuntimeError("Persistent GUI sessions currently support Windows")
         exe = self.settings.native_executable()
         ident = uuid.uuid4().hex
         directory = self.directory(ident)
         directory.mkdir(parents=True)
-        (directory / "tmp").mkdir()
         shutil.copyfile(Path(__file__).with_name("embedded.py"), directory / "bridge.py")
         bootstrap = directory / "initialize.py"
         ready = directory / "ready.json"
@@ -159,15 +165,20 @@ class Sessions:
             + ',"w"))\n',
             encoding="utf8",
         )
+        if transport == "queue":
+            shutil.copyfile(Path(__file__).parent / "engine" / "embedded_queue.py", directory / "queue-bridge.py")
+            code = bootstrap.read_text(encoding="utf8")
+            code = code[:code.index('json.dump(')]
+            code += "import runpy\nrunpy.run_path(" + repr(str(directory / "queue-bridge.py")) + ")[\"run\"](" + repr(str(directory)) + "," + repr(ident) + "," + repr(secrets.token_hex(32)) + ")\n"
+            bootstrap.write_text(code, encoding="utf8")
         cfile = directory / "initialize.cfile"
         # A fresh process needs no `new`: some GUI builds treat it as Restart
         # and block the startup command file behind a confirmation dialog.
-        cfile.write_text("runpython " + command_path(bootstrap) + "\n", encoding="utf8")
-        env, configuration = isolate_preferences(exe, directory)
-        env.update(TEMP=str(directory / "tmp"), TMP=str(directory / "tmp"))
+        cfile.write_text("runpython " + command_path(bootstrap) + ("\nexit\n" if transport == "queue" else "\n"), encoding="utf8")
+        env, configuration = native_environment(exe, directory)
         with (directory / "process.log").open("wb") as log:
             process = subprocess.Popen(
-                [str(exe), "c=" + str(cfile), "w=1200x800"],
+                [str(exe), "c=" + str(cfile), "-nographics" if transport == "queue" else "w=1200x800"],
                 cwd=directory,
                 env=env,
                 stdin=subprocess.DEVNULL,
@@ -186,7 +197,9 @@ class Sessions:
             dirty=False,
             model_kind="keyword",
             last_checkpoint=None,
-            transport="owned-process Windows command entry + finite embedded Python",
+            transport=("loopback receiver + native main-thread queue" if transport == "queue"
+                       else "owned-process Windows command entry + finite embedded Python"),
+            engine_transport=transport,
             bridge_protocol=4,
             model_generation=uuid.uuid4().hex,
             recording=None,
@@ -197,10 +210,13 @@ class Sessions:
         while time.monotonic() < deadline:
             if ready.exists():
                 response = json.loads(ready.read_text())
-                if response != {"session_id": ident, "pid": process.pid}:
+                if response.get("session_id") != ident or response.get("pid") != process.pid:
                     raise RuntimeError("Native bootstrap identity mismatch")
                 try:
-                    WindowsCommandTransport(process.pid).command_window()
+                    if transport == "queue":
+                        QueueTransport(response, self.settings.timeout).preflight()
+                    else:
+                        WindowsCommandTransport(process.pid).command_window()
                 except RuntimeError as exc:
                     data["last_error"] = str(exc)
                 else:
@@ -250,7 +266,14 @@ class Sessions:
             raise ValueError("Open the model before requesting native beam-aware structural readback")
         if safe_beams and data.get("bridge_protocol", 1) < 4:
             raise RuntimeError("Start a new GUI session for the native-keyword beam connectivity bridge")
-        transport = WindowsCommandTransport(data["process"]["pid"])
+        queued = data.get("engine_transport") == "queue"
+        if queued:
+            ready = json.loads((self.directory(ident) / "ready.json").read_text(encoding="utf8"))
+            if ready.get("session_id") != ident or ready.get("pid") != data["process"]["pid"]:
+                raise RuntimeError("Session listener identity mismatch")
+            transport = QueueTransport(ready, self.settings.timeout)
+        else:
+            transport = WindowsCommandTransport(data["process"]["pid"])
         transport.preflight()
         was_uncertain = data["state"] == "uncertain"
         directory = self.directory(ident) / "requests" / uuid.uuid4().hex
@@ -309,75 +332,76 @@ class Sessions:
             "\n".join(commands + ["runpython " + command_path(bootstrap)]) + "\n",
             encoding="utf8",
         )
+        if queued:
+            atomic_json(directory / "queue-job.json", dict(job_id=directory.name,
+                commands=list(native_commands), python=([str(script)] if safe_beams else []) + [str(bootstrap)]))
         data.update(state="busy", active_request=directory.name)
         self.save(ident, data)
-        try:
-            transport.submit(
-                "openc command " + command_path(command_file) + " nodialog"
+        def verify(reply):
+            result = dict(
+                session_id=ident,
+                request_id=directory.name,
+                job_directory=str(directory),
+                status="succeeded" if reply.get("ok") else "failed",
+                data=reply.get("data"),
+                error=reply.get("error"),
+                artifacts=[],
             )
-        except Exception as exc:
-            data.update(state="uncertain", last_error=str(exc))
-            self.save(ident, data)
-            raise
-        deadline = time.monotonic() + self.settings.timeout
-        while time.monotonic() < deadline:
-            if (directory / "complete.json").exists():
-                reply = json.loads((directory / "complete.json").read_text(encoding="utf8"))
-                if reply.get("job_id") != directory.name:
-                    raise RuntimeError("Native response correlation mismatch")
-                result = dict(
-                    session_id=ident,
-                    request_id=directory.name,
-                    job_directory=str(directory),
-                    status="succeeded" if reply.get("ok") else "failed",
-                    data=reply.get("data"),
-                    error=reply.get("error"),
-                    artifacts=[],
-                )
-                if reply.get("ok"):
-                    try:
-                        context = verify_load_reply(request, reply, directory, contract)
-                        if context is not None:
-                            result["model_context"] = context
-                        result["artifacts"] = [
-                            check_artifact(directory / name, kind) for name, kind in artifacts
-                        ]
-                        target = directory / "model.k" if export else model if file_type == "keyword" else None
-                        if action == "gui_new":
-                            target = directory / "initial.k"
-                        if target is not None:
-                            save_checkpoint_context(target, ident, reply.get("data"), self.directory(ident))
-                        if model is None and action != 'gui_new' and (export or safe_beams):
-                            from .resident_models import remember_exports
+            if reply.get("ok"):
+                try:
+                    context = verify_load_reply(request, reply, directory, contract)
+                    if context is not None:
+                        result["model_context"] = context
+                    result["artifacts"] = [
+                        check_artifact(directory / name, kind) for name, kind in artifacts
+                    ]
+                    target = directory / "model.k" if export else model if file_type == "keyword" else None
+                    if action == "gui_new":
+                        target = directory / "initial.k"
+                    if target is not None:
+                        save_checkpoint_context(target, ident, reply.get("data"), self.directory(ident))
+                    if model is None and action != 'gui_new' and (export or safe_beams):
+                        from .resident_models import remember_exports
 
-                            identities = {}
-                            before_export = directory/'beam-export-before.json'
-                            if safe_beams and before_export.is_file():
-                                identities['beam'] = remember_exports(data, [directory/'beam-connectivity.k'],
-                                    json.loads(before_export.read_text(encoding='utf8')), ident, self.directory(ident))
-                            if export:
-                                identities['keyword'] = remember_exports(data, [directory/'model.k'],
-                                    reply.get('data'), ident, self.directory(ident))
-                            result['native_export_identity'] = identities
-                    except Exception as exc:
-                        result.update(status="failed", error={"message": str(exc)})
-                data.update(
-                    state="ready"
-                    if result["status"] == "succeeded" and (not was_uncertain or model or action == "gui_new")
-                    else "uncertain",
-                    active_request=None,
-                )
-                self.save(ident, data)
-                atomic_json(directory / "operation.json", result)
-                return result
-            if not alive(data["process"]):
-                data.update(state="uncertain", last_error="Owned LS-PrePost exited before correlated completion; do not replay")
-                self.save(ident, data)
-                raise RuntimeError("Owned LS-PrePost exited before completion; inspect native logs before recovery")
-            time.sleep(0.05)
-        data.update(state="uncertain", last_error="No completion received; do not blindly replay mutation")
+                        identities = {}
+                        before_export = directory/'beam-export-before.json'
+                        if safe_beams and before_export.is_file():
+                            identities['beam'] = remember_exports(data, [directory/'beam-connectivity.k'],
+                                json.loads(before_export.read_text(encoding='utf8')), ident, self.directory(ident))
+                        if export:
+                            identities['keyword'] = remember_exports(data, [directory/'model.k'],
+                                reply.get('data'), ident, self.directory(ident))
+                        result['native_export_identity'] = identities
+                except Exception as exc:
+                    result.update(status="failed", error={"message": str(exc)})
+            outcome = normalize_outcome(action, result)
+            return outcome.model_copy(update={"job_id": directory.name, "backend": "lsprepost",
+                                              "comparison_data": result})
+
+        outcome = SessionEngine().run(SessionJob(
+            operation=action, directory=directory, timeout=self.settings.timeout,
+            submit=lambda: transport.submit(directory.name if queued else "openc command " + command_path(command_file) + " nodialog"),
+            is_alive=lambda: alive(data["process"]), verify=verify,
+            log=self.directory(ident) / "lspost.msg"))
+        atomic_json(directory / "engine-result.json", outcome.model_dump(mode="json"))
+        if outcome.comparison_data is None:
+            message = (outcome.error or {}).get("message", "Session execution unverified")
+            data.update(state="uncertain", last_error=message)
+            self.save(ident, data)
+            if (outcome.error or {}).get("type") == "TimeoutError":
+                raise TimeoutError(message)
+            raise RuntimeError(message)
+        result = outcome.comparison_data
+        result["status"] = outcome.status
+        if outcome.error is not None:
+            result["error"] = outcome.error
+        data.update(
+            state="ready" if result["status"] == "succeeded" and (not was_uncertain or model or action == "gui_new") else "uncertain",
+            active_request=None,
+        )
         self.save(ident, data)
-        raise TimeoutError("Native operation outcome uncertain; inspect session or restore checkpoint")
+        atomic_json(directory / "operation.json", result)
+        return result
 
     def stage_input(self, ident, path, file_type):
         source = self.settings.input_path(path)
@@ -733,8 +757,6 @@ class SessionTools:
         """Execute an existing typed native operation against the same in-memory model; no unrestricted script or shell. Failed mutations mark state uncertain."""
         import inspect
 
-        from .service import Service
-
         if action not in NATIVE_ACTIONS:
             raise ValueError("Unsupported persistent action")
         if not isinstance(parameters, dict) or "model" in parameters or "d3plot" in parameters:
@@ -744,10 +766,10 @@ class SessionTools:
 
             return run_fields(self, session_id, action, parameters)
         manager = self._session_manager()
-        if action in GUI_BATCH_ACTIONS and manager.read(session_id).get("bridge_protocol", 1) >= 3:
-            routed = {"translate_mesh_nodes": "translate_gui_nodes", "rotate_mesh_nodes": "rotate_gui_nodes"}[
-                action
-            ]
+        if action in GUI_BATCH_ACTIONS:
+            if manager.read(session_id).get("bridge_protocol", 1) < 3:
+                raise ValueError("Start a new GUI session for in-process mesh transforms")
+            routed = {"translate_mesh_nodes": "translate_gui_nodes", "rotate_mesh_nodes": "rotate_gui_nodes"}[action]
             return getattr(self, routed)(session_id=session_id, **parameters)
         with manager.lock(session_id):
             meta = manager.read(session_id)
@@ -757,83 +779,27 @@ class SessionTools:
                 raise ValueError("Reconcile/restore the uncertain operation before replacing the trusted checkpoint")
             if meta["model_kind"] != "keyword" and action in MUTATIONS:
                 raise ValueError("Mesh edits require a keyword session")
-            service = Service(self.settings)
-            captured = {}
+            operation = {}
 
-            def capture(
-                native_action, p, model=None, file_type="keyword", graphics=False, artifacts=(), export=False
-            ):
-                captured.update(
-                    action=native_action,
-                    parameters=p,
-                    file_type=file_type,
-                    artifacts=artifacts,
-                    export=export,
-                )
-                return captured
+            def execute_in_session(**request):
+                if operation:
+                    raise RuntimeError("A typed session action must produce exactly one request")
+                operation.update(request)
+                return manager.dispatch(session_id, **request)
 
-            service._native = capture
             supplied = dict(parameters)
-            sig = inspect.signature(getattr(service, action))
+            sig = inspect.signature(getattr(self, action))
             if "model" in sig.parameters:
                 supplied["model"] = None
             if "d3plot" in sig.parameters:
                 supplied["d3plot"] = None
             if "file_type" in sig.parameters:
                 supplied["file_type"] = meta["model_kind"]
-            getattr(service, action)(**supplied)
-            if not captured:
+            with self._native_context.using(execute_in_session):
+                result = getattr(self, action)(**supplied)
+            if not operation:
                 raise RuntimeError("Action did not produce a native request")
-            if action in GUI_BATCH_ACTIONS:
-                # Some GUI builds record selection/transform commands but do not
-                # change coordinates. Use the independently checked native route;
-                # preserve the same visible GUI and disclose the extra process.
-                saved = manager.dispatch(
-                    session_id, "export_keyword", {}, artifacts=(("model.k", "keyword"),), export=True
-                )
-                if saved["status"] != "succeeded":
-                    return saved
-                checkpoint = saved["artifacts"][0]["path"]
-                meta = manager.read(session_id)
-                meta.update(last_checkpoint=checkpoint, dirty=False)
-                manager.save(session_id, meta)
-                batch = getattr(Service(self.settings), action)(model=checkpoint, **parameters)
-                if batch["status"] != "succeeded":
-                    result = dict(
-                        batch,
-                        session_id=session_id,
-                        execution_mode="native_checkpoint_batch_reopen",
-                        gui_model_replaced=False,
-                    )
-                else:
-                    output = batch["artifacts"][0]["path"]
-                    staged = manager.stage_input(session_id, output, "keyword")
-                    result = manager.dispatch(session_id, "inspect_model", {}, model=staged)
-                    result.update(
-                        execution_mode="native_checkpoint_batch_reopen",
-                        native_job_id=batch["job_id"],
-                        native_verification=batch.get("data"),
-                        artifacts=batch["artifacts"],
-                        gui_model_replaced=result["status"] == "succeeded",
-                    )
-                    if result["status"] == "succeeded":
-                        meta = manager.read(session_id)
-                        meta.update(
-                            last_checkpoint=output,
-                            staged_model=str(staged),
-                            source=output,
-                            model_generation=uuid.uuid4().hex,
-                            dirty=False,
-                            selection_buffers={},
-                            entity_visibility_last=None,
-                            managed_fringe=None,
-                            fringe_storage={},
-                        )
-                        manager.save(session_id, meta)
-                manager.journal(session_id, dict(action=action, parameters=parameters, result=result))
-                return result
-            result = manager.dispatch(session_id, **captured)
-            if captured["action"] in ("extract_nodal", "node_history") and result["status"] == "succeeded":
+            if operation["action"] in ("extract_nodal", "node_history") and result["status"] == "succeeded":
                 from .gui_controls import wait_for_gui_state
 
                 requested = result["data"].get("original_state")
@@ -857,7 +823,7 @@ class SessionTools:
             data = manager.read(session_id)
             if action in MUTATIONS:
                 data["dirty"] = True
-            if captured["export"] and result["status"] == "succeeded":
+            if operation["export"] and result["status"] == "succeeded":
                 data.update(last_checkpoint=result["artifacts"][0]["path"], dirty=False)
             manager.save(session_id, data)
             manager.journal(session_id, dict(action=action, parameters=parameters, result=result))
@@ -903,9 +869,12 @@ class SessionTools:
                 raise RuntimeError("Owned process changed")
             close_script = manager.directory(session_id) / ("close-" + uuid.uuid4().hex + ".cfile")
             close_script.write_text("exit\n", encoding="ascii")
-            WindowsCommandTransport(data["process"]["pid"]).submit(
-                "openc command " + command_path(close_script) + " nodialog"
-            )
+            if data.get("engine_transport") == "queue":
+                (manager.directory(session_id) / "STOP").write_text("close\n", encoding="ascii")
+            else:
+                WindowsCommandTransport(data["process"]["pid"]).submit(
+                    "openc command " + command_path(close_script) + " nodialog"
+                )
             deadline = time.monotonic() + min(30, self.settings.timeout)
             while time.monotonic() < deadline and alive(data["process"]):
                 time.sleep(0.1)

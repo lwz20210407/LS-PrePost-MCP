@@ -53,7 +53,7 @@ def finish_native(settings, jobs, action, parameters, source, build, parse, fami
             process = execute(settings.native_executable(), directory / "commands.cfile", directory,
                               timeout=settings.timeout, graphics=False)
             manifest["process"] = process
-            if process["returncode"] != 0 or process["timed_out"]:
+            if process.get("engine_status") == "failed" or process["returncode"] != 0 or process["timed_out"]:
                 raise RuntimeError("Native result export failed or timed out")
         data, artifacts = parse(directory)
         if [fingerprint(p) for p in sources] != before:

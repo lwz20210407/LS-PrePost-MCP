@@ -4,6 +4,8 @@ import ntpath
 import posixpath
 import re
 
+from .core.native_log import read_delta
+
 
 def canonical_native_path(value):
     if not isinstance(value, str) or not value or any(c in value for c in "\x00\r\n"):
@@ -73,23 +75,9 @@ def load_diagnostics(directory, contract):
         return []
     log = directory.parent.parent / "lspost.msg"
     offset = info.get("offset")
-    if type(offset) is not int or offset < 0:
-        raise ValueError("Invalid native load log offset")
-    if not log.exists():
-        if info.get("existed"):
-            raise ValueError("Native load log disappeared during the request")
-        return []
-    if log.stat().st_size < offset:
-        raise ValueError("Native load log was truncated during the request")
-    diagnostics = []
-    with log.open("rb") as stream, (directory / "model-load.log").open("w", encoding="utf8") as saved:
-        stream.seek(offset)
-        for raw in stream:
-            line = raw.decode("utf8", errors="replace")
-            saved.write(line)
-            if len(diagnostics) < 30 and LOAD_ERROR.search(line):
-                diagnostics.append(line.strip())
-    return diagnostics
+    text = read_delta(log, offset, existed=bool(info.get("existed")))
+    (directory / "model-load.log").write_text(text, encoding="utf8")
+    return [line.strip() for line in text.splitlines() if LOAD_ERROR.search(line)][:30]
 
 
 def verify_load_reply(request, reply, directory, contract):

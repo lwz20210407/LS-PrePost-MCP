@@ -335,49 +335,17 @@ def test_quality_rejects_empty_and_invalid_repetition():
     assert not quality(nodes, [dict(type="shell", id=1, nodes=[1, 2, 1, 3])])["valid_within_scope"]
 
 
-@pytest.mark.parametrize("batch_ok", [True, False])
-def test_gui_transform_uses_native_checkpoint_then_reopen(tmp_path, monkeypatch, batch_ok):
-    from contextlib import nullcontext
-
-    calls = []
-    meta = dict(state="ready", model_kind="keyword", dirty=False)
-
+@pytest.mark.parametrize("action", ["rotate_mesh_nodes", "translate_mesh_nodes"])
+def test_old_gui_transform_rejects_without_checkpoint_or_batch(tmp_path, monkeypatch, action):
     class Manager:
-        def lock(self, sid):
-            return nullcontext()
-
         def read(self, sid):
-            return dict(meta)
+            return dict(state="ready", model_kind="keyword", bridge_protocol=2)
 
-        def save(self, sid, data):
-            meta.update(data)
+        def dispatch(self, *args, **kwargs):
+            pytest.fail("Old session must not export or dispatch")
 
-        def dispatch(self, sid, action, params, **kw):
-            calls.append(action)
-            return dict(status="succeeded", artifacts=[dict(path=str(tmp_path / "checkpoint.k"))])
-
-        def stage_input(self, sid, path, kind):
-            return Path(path)
-
-        def journal(self, sid, data):
-            pass
-
-    def native(self, action, p, model=None, **kw):
-        assert model == str(tmp_path / "checkpoint.k")
-        calls.append("batch_" + action)
-        return dict(
-            status="succeeded" if batch_ok else "failed",
-            job_id="batch",
-            data={},
-            artifacts=[dict(path=str(tmp_path / "output.k"))],
-        )
-
-    monkeypatch.setattr(Service, "_native", native)
     s = Service(Settings(tmp_path))
     monkeypatch.setattr(s, "_session_manager", Manager)
-    r = s.gui_session_action(
-        "a" * 32, "rotate_mesh_nodes", dict(node_ids=[1], axis="z", angle=90, center=[0, 0, 0], units="mm")
-    )
-    assert r["execution_mode"] == "native_checkpoint_batch_reopen"
-    assert calls == ["export_keyword", "batch_rotate_nodes"] + (["inspect_model"] if batch_ok else [])
-    assert r["gui_model_replaced"] == batch_ok
+    monkeypatch.setattr(s, "_native", lambda *a, **kw: pytest.fail("Must not start batch"))
+    with pytest.raises(ValueError, match="new GUI session"):
+        s.gui_session_action("a" * 32, action, {})

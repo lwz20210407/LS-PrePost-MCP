@@ -7,11 +7,11 @@ from pathlib import Path
 from pydantic import StrictInt
 
 from .config import command_path
+from .core.native_log import native_errors, read_delta
 from .gui_mesh import verify_mesh_digest
 from .gui_selection import part_visibility
 from .jobs import atomic_json, check_artifact
 from .post_backend import ids
-from .programs import native_errors
 
 CODES = {"shell": 10, "solid": 11, "beam": 12, "element": 19}
 
@@ -206,9 +206,7 @@ class GuiVisibilityTools:
                     manager.save(session_id, current)
             else:
                 try:
-                    with log.open("rb") as stream:
-                        stream.seek(offset)
-                        text = stream.read().decode("utf8", errors="replace")
+                    text = read_delta(log, offset, existed=True)
                     (directory/"native.log").write_text(text, encoding="utf8")
                     if native_errors(text):
                         raise ValueError("Native Blank reported command errors")

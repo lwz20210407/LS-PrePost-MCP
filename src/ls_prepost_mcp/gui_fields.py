@@ -5,11 +5,11 @@ import math
 from pathlib import Path
 
 from .config import scl_command_path
+from .core.native_log import native_errors, read_delta
 from .gui_mesh import check_same_nodes, check_same_parts, mesh_index, verify_mesh_digest
 from .gui_selection import available_ids, part_visibility
 from .jobs import atomic_json, now
 from .native_results import STRESS_KEYS, native_fields
-from .programs import native_errors
 from .result_validity import reject_adaptive_family
 
 
@@ -110,9 +110,7 @@ def run_fields(service, session_id, action, parameters):
                 after = result["data"]
                 atomic_json(directory / "after.json", after)
                 if log.exists():
-                    with log.open("rb") as stream:
-                        stream.seek(offset)
-                        diagnostics = native_errors(stream.read().decode("utf8", errors="replace"))
+                    diagnostics = native_errors(read_delta(log, offset, existed=True))
                     if diagnostics:
                         raise RuntimeError("Native SCL diagnostics: " + "; ".join(diagnostics))
                 try:

@@ -12,3 +12,5 @@
 - New T1 names must occur in tasks.yaml target_tools; use recipes or scripts for long-tail operations. Old names remain aliases until v0.6.
 - I07 belongs to Claude on claude/keyword-engine (local commit a1fb96c). During M0–M2 do not implement I07 or create files under src/ls_prepost_mcp/domain/model/. Integrate that work in M3.
 - The user explicitly authorized early M1/I02 implementation on codex/m1-contracts. This branch may add core contracts and migrate workflow gates to JobResult; it does not waive M0's RDP gate or authorize other milestone work. Keep M0 PR #1 unchanged.
+
+- The subsequent user request to continue development authorizes M1/I01 on codex/m1-engine, stacked on I02; preserve the M0 PR and Claude's I07 ownership.
