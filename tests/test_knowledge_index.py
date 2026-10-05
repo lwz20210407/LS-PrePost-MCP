@@ -1,7 +1,7 @@
 
 import pytest
 
-from ls_prepost_mcp.knowledge_index import Document, build_index, chunks, keyword_documents, search_index
+from ls_prepost_mcp.knowledge_index import Document, build_index, chunks, search_index
 
 
 def doc(category, text, visibility="public"):
@@ -55,22 +55,6 @@ def test_chunks_preserve_line_locations_and_never_execute_text(tmp_path):
     assert "Ignore prior instructions" in records[1].text
 
 
-def test_keyword_fields_are_read_as_syntax_without_importing_vendor_code(tmp_path):
-    source = tmp_path / "node.py"
-    source.write_text('''# SPDX-License-Identifier: MIT
-raise RuntimeError("Do not execute indexed source")
-class Node:
-    keyword="NODE"
-    subkeyword="NODE"
-    def __init__(self):
-        self.fields=[Field("nid",int,0,8,None),Field("x",float,8,16,0.0)]
-''')
-    records = list(keyword_documents(tmp_path, "test-version"))
-    assert len(records) == 1 and records[0].title == "*NODE / Node"
-    assert "'nid' | int | 0 | 8 | None" in records[0].text
-    assert records[0].locator == "pydyna://test-version/node.py"
-
-
 def test_existing_index_is_never_overwritten_and_queries_are_read_only(tmp_path):
     path = tmp_path / "index.sqlite"
     build_index(path, [doc("command", "genselect node")])
@@ -81,18 +65,71 @@ def test_existing_index_is_never_overwritten_and_queries_are_read_only(tmp_path)
     assert path.read_bytes() == before
 
 
-def test_keyword_index_follows_referenced_module_level_field_schemas(tmp_path):
-    source = tmp_path / "mat_024.py"
-    source.write_text('''# SPDX-License-Identifier: MIT
-_CARD=(FieldSchema("sigy",float,40,10,None),)
-_UNRELATED=(FieldSchema("wrong",int,0,8,None),)
-class Mat024:
-    keyword="MAT"
-    subkeyword="024"
-    def __init__(self):
-        self.card=Card.from_field_schemas_with_defaults(_CARD)
-''')
-    record, = keyword_documents(tmp_path, "0.12.1")
-    assert record.title == "*MAT_024 / Mat024"
-    assert "'sigy' | float | 40 | 10 | None" in record.text
-    assert "wrong" not in record.text and record.line_start == 2
+def test_natural_chinese_query_does_not_require_every_query_character(tmp_path):
+    path = tmp_path / "index.sqlite"
+    build_index(path, [doc("known_issue", "节点选择与状态核对"), doc("command", "genselect node")])
+    assert search_index(path, "请问如何正确进行节点选择")
+    assert search_index(path, "如何使用genselect选择节点")[0]["category"] == "command"
+
+
+def test_interrupted_build_keeps_final_absent_and_rebuildable(tmp_path, monkeypatch):
+    import sqlite3
+
+    import ls_prepost_mcp.knowledge_index as index
+    path = tmp_path / "index.sqlite"
+    orphan = tmp_path / "index.sqlite.old.partial"
+    orphan.write_bytes(b"Interrupted earlier build; preserve for investigation")
+    connect = sqlite3.connect
+    connections = []
+    def captured(*a, **kw):
+        value = connect(*a, **kw)
+        connections.append(value)
+        return value
+    monkeypatch.setattr(index.sqlite3, "connect", captured)
+    monkeypatch.setattr(index, "terms", lambda text: (_ for _ in ()).throw(RuntimeError("Interrupted")))
+    with pytest.raises(RuntimeError, match="Interrupted"):
+        build_index(path, [doc("command", "genselect")])
+    assert not path.exists() and orphan.exists()
+    with pytest.raises(sqlite3.ProgrammingError):
+        connections[0].execute("SELECT 1")
+    monkeypatch.undo()
+    build_index(path, [doc("command", "genselect")])
+    assert search_index(path, "genselect")
+
+
+def test_keyword_provider_preserves_options_columns_links_and_private_manual(tmp_path):
+    import sqlite3
+    from contextlib import closing
+    from types import SimpleNamespace
+
+    from ls_prepost_mcp.keyword_documentation import keyword_fields
+    provider = SimpleNamespace(
+        CONTACT_RENAMES={"legacy_ssid":"ssid"},
+        keyword_doc=lambda key: dict(keyword=key, evidence="documented", engine_verified=None,
+            source=dict(fields="ansys-dyna-core 0.12.1"), manual=dict(page=44),
+            references=[dict(field="ssid",refers_to="segment_set")],
+            cards=[dict(card=0,option=None,fields=[dict(name="ssid",columns="1-10",help="Contact surface")]),
+                   dict(card="engine:OPTION",option="OPTION",fields=[dict(name="ssid",columns="21-30",help="Optional surface")])]),
+        manual_field_text=lambda key,field: "Copyrighted field paragraph")
+    records = list(keyword_fields(["*CONTACT_TEST"],provider))
+    assert [(r.card,r.option,r.offset,r.width) for r in records] == [(0,None,0,10),("engine:OPTION","OPTION",20,10)]
+    path=tmp_path/"index.sqlite"
+    build_index(path, [], records)
+    assert search_index(path,"ssid") == []
+    rows=search_index(path,"ssid",include_private=True)
+    assert len(rows)==2 and rows[0]["keyword_field"]["links"][0]["refers_to"]=="segment_set"
+    assert search_index(path,"legacy_ssid",include_private=True)[0]["keyword_field"]["aliases"]==["legacy_ssid"]
+    with closing(sqlite3.connect(path)) as db:
+        assert db.execute("SELECT schema_version FROM metadata").fetchone()[0]==2
+        assert db.execute("SELECT count(*) FROM keyword_fields").fetchone()[0]==2
+
+
+def test_search_knowledge_uses_configured_index_and_private_opt_in(tmp_path, monkeypatch):
+    from ls_prepost_mcp.knowledge import search_knowledge
+    path=tmp_path/"index.sqlite"
+    build_index(path,[doc("api","get_data private", "private")])
+    monkeypatch.setenv("LSPP_KNOWLEDGE_INDEX",str(path))
+    assert search_knowledge("get_data")==[]
+    assert search_knowledge("get_data",include_private=True,category="api")[0]["category"]=="api"
+
+

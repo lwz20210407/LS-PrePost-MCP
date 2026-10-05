@@ -8,7 +8,6 @@ from pathlib import Path
 import numpy as np
 from pydantic import StrictInt
 
-from .config import command_path
 from .core.native_log import native_errors, read_delta
 from .core.validation import unit_label
 from .gui_controls import wait_for_gui_state
@@ -155,7 +154,7 @@ class GuiCommonTools:
                                     verification="Native numeric query plus independent coordinate geometry; complete reference mesh preserved")
                     if capture:
                         image = manager.dispatch(session_id, "inspect_model", {}, native_commands=[
-                            "print png "+command_path(directory/"measurement.png")+' opaque enlisted "OGL1x1"'])
+                            nc.print_png(directory/"measurement.png")])
                         if image["status"] != "succeeded":
                             raise ValueError("Native measurement image failed")
                         result["artifacts"].append(check_artifact(directory/"measurement.png", "png"))

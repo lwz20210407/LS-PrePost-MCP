@@ -5,7 +5,6 @@ import json
 import math
 from contextlib import nullcontext
 
-from .config import command_path, scl_command_path
 from .core.native_log import native_errors, read_delta
 from .field_contracts import FieldSpec, ResultSelection, SamplingSpec
 from .fringe_presentation import averaging_command, result_name
@@ -267,7 +266,7 @@ def render_field(
             context = directory / "context.scl"
             context.write_text(context_script(before["part_ids"], directory / "parts.csv"), encoding="utf8")
             info = manager.dispatch(
-                session_id, "inspect_model", {}, native_commands=["runscript " + scl_command_path(context)]
+                session_id, "inspect_model", {}, native_commands=[nc.run_script(context, "scl")]
             )
             if info["status"] != "succeeded":
                 raise ValueError("Cannot inspect native part domains")
@@ -371,7 +370,7 @@ def render_field(
                 session_id,
                 "inspect_model",
                 {},
-                native_commands=[nc.selection('clear'), "runscript " + scl_command_path(script)],
+                native_commands=[nc.selection('clear'), nc.run_script(script, "scl")],
             )
             manifest["native_request"] = {k: v for k, v in applied.items() if k != "data"}
             if applied["status"] != "succeeded" or applied["data"]["current_state"] != state:
@@ -396,7 +395,7 @@ def render_field(
                 nc.fringe_bounds(bounds[0], bounds[1]),
                 "showlegend 1",
                 "timestamp 1",
-                "print png " + command_path(directory / "fringe.png") + ' opaque enlisted "OGL1x1"',
+                nc.print_png(directory / "fringe.png"),
             ]
             captured = manager.dispatch(session_id, "inspect_model", {}, native_commands=commands)
             atomic_json(directory / "render-commands.json", commands)
