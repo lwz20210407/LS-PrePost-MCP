@@ -57,7 +57,8 @@ class ParameterDef:
 
 def evaluate(expression: str, lookup: Mapping[str, float]) -> float:
     """Evaluate an LS-DYNA style arithmetic expression; names are case-insensitive."""
-    source = _FORTRAN_D.sub("e", expression.strip()).replace("^", "**")
+    # Names may be written bare (thick*2) or as references (&thick*2) inside expressions.
+    source = _FORTRAN_D.sub("e", expression.strip()).replace("^", "**").replace("&", "")
     try:
         tree = ast.parse(source, mode="eval")
     except SyntaxError as error:

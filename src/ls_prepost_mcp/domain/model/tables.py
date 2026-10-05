@@ -57,7 +57,9 @@ def _same(text: str, expected: object, kind: str, default: object) -> bool:
         value = parse_number(stripped)
     except FieldError:
         return False
-    if value is None or _is_missing(expected):
+    if _is_missing(expected):
+        return value == 0  # PyDYNA reads 0 in optional ID/link columns as "not set"
+    if value is None:
         return False
     return math.isclose(float(value), float(expected), rel_tol=1e-9, abs_tol=1e-30)
 

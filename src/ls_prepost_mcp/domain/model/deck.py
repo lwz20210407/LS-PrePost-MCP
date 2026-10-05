@@ -263,7 +263,7 @@ class KeywordDeck:
         """``(a, o)`` points of a ``*DEFINE_CURVE`` block."""
         if not lists.is_curve(block.name):
             raise Unsupported(f"{block.name} is not *DEFINE_CURVE")
-        return lists.points(block)
+        return lists.points(block, self.lookup(block))
 
     def set_points(self, block: Block, pairs: list[tuple[float, float]]) -> Change:
         """Replace all curve points (20-character fields); header and title are kept."""
@@ -271,7 +271,7 @@ class KeywordDeck:
             raise Unsupported(f"{block.name} is not *DEFINE_CURVE")
         saved = list(block.lines)
         removed, added = lists.write_points(block, [(float(a), float(o)) for a, o in pairs])
-        read = lists.points(block)
+        read = lists.points(block, self.lookup(block))
         if len(read) != len(pairs) or any(not (math.isclose(a, x, rel_tol=1e-6, abs_tol=1e-30) and
                                                math.isclose(o, y, rel_tol=1e-6, abs_tol=1e-30))
                                           for (a, o), (x, y) in zip(read, pairs)):

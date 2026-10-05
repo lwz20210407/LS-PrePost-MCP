@@ -212,7 +212,9 @@ def _same(text: str, expected: object, kind: str, default: object, lookup: Mappi
         value = (-1 if ref[0] else 1) * float(lookup[ref[1].lower()]) if ref else parse_number(stripped)
     except (KeyError, TypeError, FieldError):
         return False
-    if expected is None or value is None:
+    if expected is None:
+        return value == 0  # PyDYNA reads 0 in optional ID/link fields (e.g. LCID) as "not set"
+    if value is None:
         return False
     return math.isclose(float(value), float(expected), rel_tol=1e-9, abs_tol=1e-30)
 
@@ -231,30 +233,36 @@ def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
     """Fields of one card instance (``chunk`` = its data lines), self-checked against PyDYNA."""
     indices = [0] + [i for i, _ in chunk]
 
-    def build(keyword: object) -> tuple[list[FieldInfo], list[str], dict[str, object]]:
+    def build(keyword: object) -> tuple[list[FieldInfo], list[str], list[tuple[object, int]]]:
         cards = _ordered_cards(keyword)
         if len(chunk) > len(cards):
             raise _ExtraLines(len(chunk), len(cards))
-        infos = []
+        infos, sources = [], []
         for (card_name, card), (index, line) in zip(cards, chunk):
             schemas = card._schema.fields
             spans = long_spans([s.width for s in schemas]) if long else [(s.offset, s.width) for s in schemas]
+            # A card holding one text field (title/heading) is never comma separated: commas are text.
+            title_card = len(schemas) == 1 and _kind(schemas[0].type) == "str"
+            seen: dict[str, int] = {}
             for token, (schema, (offset, width)) in enumerate(zip(schemas, spans)):
-                if schema.name.lower().startswith("unused"):
+                name = schema.name.lower()
+                if name.startswith("unused"):
                     continue  # ignored by LS-DYNA; PyDYNA does not keep its text
-                infos.append(FieldInfo(schema.name.lower(), _kind(schema.type),
-                                       _slot(line, index, offset, width, token), card_name, schema.default))
-        return infos, [name for name, _ in cards[len(chunk):]], dict(cards)
+                seen[name] = seen.get(name, 0) + 1
+                if seen[name] > 1:
+                    name = f"{name}_{seen[name]}"  # PyDYNA repeats some names (x/y/z curve IDs)
+                slot = FieldSlot(index, offset, width) if title_card else _slot(line, index, offset, width, token)
+                infos.append(FieldInfo(name, _kind(schema.type), slot, card_name, schema.default))
+                sources.append((card, token))
+        return infos, [name for name, _ in cards[len(chunk):]], sources
 
     first, _, _ = build(_load(cls, _substituted_text(block, indices, lookup, None, long)))
     slots: dict[int, list[FieldSlot]] = {}
     for info in first:
         slots.setdefault(info.slot.line, []).append(info.slot)
-    infos, missing, cards = build(_load(cls, _substituted_text(block, indices, lookup, slots, long)))
-    for info in infos:
-        card = cards[info.card]
-        index = card._schema.name_to_index.get(info.name)
-        expected = card._values[index] if index is not None else None
+    infos, missing, sources = build(_load(cls, _substituted_text(block, indices, lookup, slots, long)))
+    for info, (card, position) in zip(infos, sources):
+        expected = card._values[position] if position < len(card._values) else None
         text = read_text(block.lines[info.slot.line], info.slot)
         if not _same(text, expected, info.kind, info.default, lookup):
             raise Unsupported(f"Layout self-check failed for {info.name!r} on line {info.slot.line} "

@@ -160,3 +160,35 @@ def test_non_ascii_titles_follow_file_encoding(tmp_path: Path, encoding: str) ->
     deck.save_as(out)
     expected = text.replace("\u94a2\u677f", "\u94dd\u5408\u91d1\u9776\u677f").encode(encoding)
     assert (out / "main.k").read_bytes() == expected
+
+
+def test_title_with_commas_is_one_text_field(tmp_path: Path) -> None:
+    pytest.importorskip("ansys.dyna.core")
+    deck = _deck(tmp_path, "*DEFINE_BOX_TITLE\n"
+                           "screws (>ODB:9,  >SHELL_2,\n"
+                           "  22012051 1140.6196 1149.2186 -299.5927  299.5903   11.5000   21.5468\n")
+    block = deck.blocks("*DEFINE_BOX")[0]
+    assert deck.get(block, "title").value == "screws (>ODB:9,  >SHELL_2,"
+    assert deck.get(block, "xmx").value == pytest.approx(1149.2186)
+
+
+def test_zero_link_field_matches_pydyna_unset(tmp_path: Path) -> None:
+    pytest.importorskip("ansys.dyna.core")
+    deck = _deck(tmp_path, "*MAT_ADD_THERMAL_EXPANSION\n      2001         0   2.3E-05\n")
+    block = deck.blocks("*MAT_ADD_THERMAL_EXPANSION")[0]
+    assert deck.get(block, "lcid").value == 0 and deck.get(block, "mult").value == pytest.approx(2.3e-5)
+    assert {"lcid", "lcid_2", "lcid_3"} <= {f.name for f in deck.layout(block).fields}
+
+
+def test_ampersand_names_in_expressions_and_curve_points(tmp_path: Path) -> None:
+    deck = _deck(tmp_path, "*PARAMETER\n"
+                           "R tEnd        0.002\n"
+                           "*PARAMETER_EXPRESSION\n"
+                           "R tHalf    &tEnd/2\n"
+                           "*DEFINE_CURVE\n"
+                           "         1\n"
+                           "                 0.0                 0.0\n"
+                           "              &tHalf                 1.0\n"
+                           "               &tEnd                 0.0\n")
+    assert [r.definition.value for r in deck.parameters] == [0.002, 0.001]
+    assert deck.points(deck.blocks("*DEFINE_CURVE")[0]) == [(0.0, 0.0), (0.001, 1.0), (0.002, 0.0)]

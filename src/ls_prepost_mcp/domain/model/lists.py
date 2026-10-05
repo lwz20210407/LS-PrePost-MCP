@@ -107,14 +107,24 @@ def members(block: Block, long: bool = False) -> list[int]:
     return result
 
 
-def points(block: Block) -> list[tuple[float, float]]:
-    """Curve points ``(a, o)`` in file order."""
+def _point_value(text: str, lookup: dict | None) -> float | int | None:
+    stripped = text.strip()
+    if "&" in stripped:
+        value = (lookup or {}).get(stripped.lstrip("-&").lower())
+        if not isinstance(value, (int, float)):
+            raise FieldError(f"Undefined parameter in curve point {stripped!r}")
+        return -value if stripped.startswith("-") else value
+    return parse_number(text)
+
+
+def points(block: Block, lookup: dict | None = None) -> list[tuple[float, float]]:
+    """Curve points ``(a, o)`` in file order; ``&name`` values are resolved with ``lookup``."""
     _, _, lines = split(block)
     result = []
     for index in lines:
         line = block.lines[index]
         a, o = (_values(line, 20, 2) + ["", ""])[:2]
-        a_value, o_value = parse_number(a), parse_number(o)
+        a_value, o_value = _point_value(a, lookup), _point_value(o, lookup)
         if a_value is None and o_value is None:
             continue
         result.append((float(a_value or 0.0), float(o_value or 0.0)))
