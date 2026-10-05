@@ -8,6 +8,7 @@ SERVICE_TOOLS = (
     "create_gui_entity_set",
     "inspect_gui_entity_sets",
     "create_gui_spc",
+    "create_gui_prescribed_motion",
     "set_gui_entity_visibility",
     "measure_gui_geometry",
     "probe_dpf_runtime",

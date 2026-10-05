@@ -9,6 +9,7 @@ from .config import command_path
 from .deck_backend import api
 from .entity_cards import (
     DOFS,
+    check_motion_conflicts,
     check_spc_conflicts,
     element_set_fragment,
     inspect_cards,
@@ -118,10 +119,18 @@ class GuiEntityTools:
                 if entity_type == "node":
                     card.its = old["its"]
                 expected.update(attributes=old["attributes"], solver=old["solver"], its=old["its"])
+                hypothetical=dict(baseline,sets=dict(baseline['sets']))
+                hypothetical['sets'][(entity_type,set_id)]=dict(old,member_ids=members)
+                if entity_type=='node' and any(n.startswith(('*BOUNDARY_SPC','*BOUNDARY_PRESCRIBED_MOTION')) for n,_ in baseline['unresolved']):
+                    raise ValueError('Cannot replace node-set members with unresolved SPC/motion consumers')
                 for i, spc in enumerate(baseline["spcs"]):
                     if entity_type == "node" and spc["target_type"] == "node_set" and spc["target_id"] == set_id:
-                        peers = dict(baseline, spcs=baseline["spcs"][:i] + baseline["spcs"][i+1:])
+                        peers = dict(hypothetical, spcs=baseline["spcs"][:i] + baseline["spcs"][i+1:])
                         check_spc_conflicts(peers, members, spc["coordinate_system"], spc["dofs"], spc["constraint_id"])
+                for i,motion in enumerate(baseline.get('motions',[])):
+                    if entity_type=='node' and motion['target_type']=='node_set' and motion['target_id']==set_id:
+                        peers=dict(hypothetical,motions=baseline['motions'][:i]+baseline['motions'][i+1:])
+                        check_motion_conflicts(peers,members,motion['dof'])
 
         def commands(state, directory):
             path = directory / "entity-set.k"
@@ -136,7 +145,9 @@ class GuiEntityTools:
         def postcheck(_, path, validation):
             audit = verify_cards(baseline, inspect_cards(path), new_set=expected)
             affected = [s for s in baseline["spcs"] if entity_type == "node" and s["target_type"] == "node_set" and s["target_id"] == set_id]
-            validation.update(expected, member_count=len(members), mode=mode, referencing_spc_constraints=affected)
+            affected_motions=[m for m in baseline.get('motions',[]) if entity_type=='node' and m['target_type']=='node_set' and m['target_id']==set_id]
+            validation.update(expected, member_count=len(members), mode=mode, referencing_spc_constraints=affected,
+                              referencing_prescribed_motions=affected_motions)
             return audit
 
         return self._gui_mesh_edit(session_id, "create_gui_entity_set",

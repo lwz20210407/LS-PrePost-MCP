@@ -1511,5 +1511,35 @@
     "license_status": "Proprietary manual, references only; no redistribution",
     "integration": "selected_semantics_native_tested",
     "scope": "Explicit list sets only; no Generate/General/Collect or full-manual certification"
+  },
+  {
+    "id": "keyword-r16-prescribed-motion",
+    "title": "R16 prescribed motion and NODE TC/RC semantics",
+    "url": "https://lsdyna.ansys.com/wp-content/uploads/2026/08/LS-DYNA_Manual_Vol_I_R16.pdf",
+    "summary": "Selected PDF749-760 and3485-3487: repeated motion grouping IDs, DOF/VAD, BIRTH time shift, zero DEATH default and ordinal NODE TC/RC. NODE/SET global subset implemented and checked natively.",
+    "integration": "selected_semantics_native_tested",
+    "license_status": "Reference only; manual not redistributed",
+    "scope": "No full-manual/rigid/vector/solver certification"
+  },
+  {
+    "id": "official-motion-shell-example",
+    "title": "Official generalized angular shell motion example",
+    "url": "https://lsdyna.ansys.com/generalized/",
+    "related_urls": [
+      "https://lsdyna.ansys.com/shell/"
+    ],
+    "summary": "Existing plain NODE motions, inline constraints and curves;6nodes/2shells. Added Y motion and fresh-process reopen verified. Same-session replacement/export has a retained native failure, including unmodified input.",
+    "integration": "bounded_native_preprocessing_with_known_lifecycle_failure",
+    "license_status": "Reference/downloaded local fixture only",
+    "scope": "See docs/NATIVE_KNOWN_ISSUES.md"
+  },
+  {
+    "id": "official-linear-partial-import",
+    "title": "Official legacy linear constraint plate as negative import fixture",
+    "url": "https://lsdyna.ansys.com/linear/",
+    "summary": "Installed4.13.4 reports invalid CONSTRAINED_LINEAR and skips data despite81nodes/64shells. Must reject partial load; not positive preservation evidence.",
+    "integration": "native_negative_fixture",
+    "license_status": "Reference/downloaded local fixture only",
+    "scope": "No claim that all solver versions reject the original keyword"
   }
 ]

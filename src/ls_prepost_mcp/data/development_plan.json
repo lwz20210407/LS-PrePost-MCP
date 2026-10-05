@@ -23,7 +23,10 @@
         "keyword-r11-boundaries",
         "keyword-r16-boundaries",
         "official-binary-database-mdlopt2",
-        "keyword-r16-element-sets"
+        "keyword-r16-element-sets",
+        "keyword-r16-prescribed-motion",
+        "official-motion-shell-example",
+        "official-linear-partial-import"
       ],
       "review_status": "selected_sections_reviewed",
       "conversion_status": "partial",
@@ -449,23 +452,24 @@
         "D06"
       ],
       "current_tools": [
-        "inspect_keyword_deck",
+        "compose_keyword_deck",
         "create_elastic_material",
-        "update_elastic_material",
+        "create_gui_entity_set",
+        "create_gui_nonreflecting_boundary",
+        "create_gui_prescribed_motion",
+        "create_gui_segment_pressure",
+        "create_gui_segment_set",
+        "create_gui_spc",
         "create_node_set_by_box",
         "create_tensile_shell_plate",
-        "list_pydyna_keywords",
         "describe_pydyna_keyword",
-        "compose_keyword_deck",
-        "update_keyword_fields",
-        "update_keyword_table_row",
-        "renumber_gui_entities",
-        "create_gui_entity_set",
         "inspect_gui_entity_sets",
-        "create_gui_spc",
-        "create_gui_segment_set",
-        "create_gui_segment_pressure",
-        "create_gui_nonreflecting_boundary"
+        "inspect_keyword_deck",
+        "list_pydyna_keywords",
+        "renumber_gui_entities",
+        "update_elastic_material",
+        "update_keyword_fields",
+        "update_keyword_table_row"
       ],
       "status": "partial",
       "contract_doc": "docs/ARCHITECTURE.md"
@@ -1398,7 +1402,7 @@
       "status": "in_progress",
       "milestone": "R1",
       "evidence": "docs/ENTITY_CREATION.md",
-      "progress": "Six first-release Entity Creation gates now have bounded native4.13.4 evidence: node/part LIST, global SPC, conforming Segment faces/edges, pressure curves/named IDs/units/sign metadata,3D nonreflecting and modern/legacy2D routes. Includes replay, collision/overlap/formulation/order rejection and reopen. Broader panel variants, other LSPP builds, solver physics and Include workflows remain separate work. Shell/Solid/Beam explicit-list create/query now extend the existing selection-driven tools.27-step visible4.13.4 synthetic acceptance includes12 sparse members/domain,domain-specific headers and same-SID coexistence,hidden-scene preservation,wrong/stale selection rejection,changed-member/SID recording replay and native reopen. Element-set replacement/consumer impact,other set variants and discrete/seatbelt/thick-shell remain pending. Explicit-list BySet selection now reuses select_gui_entities(set_ids), resolving fresh native-export members under the selection request lock.30-step4.13.4 BySet->Node set->SPC changed-set replay/reopen and dirty/checkpoint preservation passed; arbitrary set variants and result associations remain pending."
+      "progress": "Six first-release Entity Creation gates now have bounded native4.13.4 evidence: node/part LIST, global SPC, conforming Segment faces/edges, pressure curves/named IDs/units/sign metadata,3D nonreflecting and modern/legacy2D routes. Includes replay, collision/overlap/formulation/order rejection and reopen. Broader panel variants, other LSPP builds, solver physics and Include workflows remain separate work. Shell/Solid/Beam explicit-list create/query now extend the existing selection-driven tools.27-step visible4.13.4 synthetic acceptance includes12 sparse members/domain,domain-specific headers and same-SID coexistence,hidden-scene preservation,wrong/stale selection rejection,changed-member/SID recording replay and native reopen. Element-set replacement/consumer impact,other set variants and discrete/seatbelt/thick-shell remain pending. Explicit-list BySet selection now reuses select_gui_entities(set_ids), resolving fresh native-export members under the selection request lock.30-step4.13.4 BySet->Node set->SPC changed-set replay/reopen and dirty/checkpoint preservation passed; arbitrary set variants and result associations remain pending. Global NODE/SET prescribed motions now support six axes, three motion types, new/reused curves, shared grouping IDs with explicit append, selection dependencies and amplitude/member replay. SPC/motion/NODE TC-RC and changed-set conflicts checked. Synthetic33-step/recovery and public angular-shell fresh-process8-case native acceptance passed; public same-session replacement/export still fails independently. Rigid/vector/local/CNRB, other set variants and solver validation remain."
     }
   ],
   "knowledge_tools": [

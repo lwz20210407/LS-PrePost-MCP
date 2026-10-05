@@ -153,4 +153,6 @@ P0受管卸载增量：`unload_gui_model` 对活动/非活动keyword及官方gen
 
 P0显式替换增量：`replace_gui_model` 已通过keyword/result四种组合、显式空模型、未预期空模型失败保护与检查点恢复；官方鸟撞原始误报及原生门槛重新回归。仅恢复B0-03，台账26/36；关联keyword/result、多模型录制和完整场景恢复仍待开发，详见MODEL_REPLACEMENT。
 
+P1 Entity增量：节点/节点集规定运动、共享ID分组、曲线与选择回放、SPC/TC/RC及集合变更冲突已接入；详见PRESCRIBED_MOTION。公开旧例跳读错误纳入加载拒绝；官方双壳的原位替换退出仍未解决，列入B4-05，不以新进程重开替代其验收。
+
 2026-10-04增量与优先级修正：标准壳/实体物理删除过滤、限定云图/动画、节点/Part/Segment集合与SPC/压力/无反射边界、壳拓扑选择已有原生证据，以[COVERAGE](COVERAGE.md)及各专页为准；上表保留的早期缺口描述不代表这些增量仍未实现。[定向节点替换](NODE_REPLACEMENT.md)新增原生连接更新、限定引用修复和回放重开。用户再次指出覆盖偏少、偏局部；按[交付计划的六域扩展顺序](DELIVERY_PLAN.md)推进，下一批转到Post/XYPlot多曲线，再扩常用载荷/规定运动等通用Entity能力。36项首版验收不取代总体75项backlog。

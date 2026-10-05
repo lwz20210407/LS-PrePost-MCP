@@ -93,7 +93,11 @@ def fixture(tmp_path, monkeypatch, *, old_context=False, new_error=False, delay=
                 return
             with log.open("a") as stream:
                 stream.write(
-                    "Invalid entity ID! ** Prog Error:\n" if new_error else "Finished reading model\n"
+                    new_error
+                    if isinstance(new_error, str)
+                    else "Invalid entity ID! ** Prog Error:\n"
+                    if new_error
+                    else "Finished reading model\n"
                 )
             observed = str(tmp_path / "old") if old_context else request["model"]
             atomic_json(
@@ -173,6 +177,49 @@ def test_log_truncation_is_not_silently_treated_as_a_clean_open(tmp_path, monkey
     (request.parent.parent / "lspost.msg").write_text("short")
     with pytest.raises(ValueError, match="truncated"):
         load_diagnostics(request, dict(model_load_log=dict(existed=True, offset=100)))
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "Error - Invalid Keyword - *CONSTRAINED_LINEAR",
+        "Error occurs in file model.k line # 74",
+        "  Dummy read data until next keyword",
+    ],
+)
+def test_partial_keyword_read_is_not_accepted_from_matching_geometry(tmp_path, monkeypatch, message):
+    service, manager, sid, source = fixture(tmp_path, monkeypatch, new_error=message + "\n")
+    result = service.open_in_gui_session(sid, str(source))
+    assert result["status"] == "failed" and message.strip() in result["error"]["message"]
+    assert result["data"]["counts"]["nodes"] == 2957
+    meta = manager.read(sid)
+    assert (
+        meta["state"] == "uncertain"
+        and meta["source"] == "old-d3plot"
+        and meta["model_generation"] == "old-generation"
+    )
+
+
+def test_late_partial_keyword_error_does_not_advance_source(tmp_path, monkeypatch):
+    service, manager, sid, source = fixture(tmp_path, monkeypatch, delay=True)
+    with pytest.raises(TimeoutError):
+        service.open_in_gui_session(sid, str(source))
+    meta = manager.read(sid)
+    directory = manager.directory(sid) / "requests" / meta["active_request"]
+    request = json.loads((directory / "request.json").read_text())
+    with (manager.directory(sid) / "lspost.msg").open("a") as stream:
+        stream.write("Error - Invalid Keyword - *CONSTRAINED_LINEAR\n")
+    atomic_json(
+        directory / "complete.json",
+        dict(
+            job_id=directory.name,
+            ok=True,
+            data=dict(model_directory=request["model"], counts=dict(nodes=81, elements=64, states=1)),
+        ),
+    )
+    recovered = service.recover_gui_session(sid)
+    assert recovered["state"] == "uncertain" and recovered["source"] == "old-d3plot"
+    assert json.loads((directory / "recovery.json").read_text())["status"] == "failed"
 
 
 @pytest.mark.parametrize("explicit", [False, True])

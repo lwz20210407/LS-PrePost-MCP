@@ -5,7 +5,7 @@ from collections import Counter
 
 import numpy as np
 
-from .entity_cards import fields, list_set, native_blocks
+from .entity_cards import fields, list_set, motion_rows, native_blocks
 
 PREFIXES = ("*DEFINE_CURVE", "*DEFINE_TABLE", "*DEFINE_FUNCTION", "*LOAD_SEGMENT_SET", "*BOUNDARY_NON_REFLECTING")
 
@@ -31,14 +31,21 @@ def curve_record(name, lines):
                 offa=number(row[4]), offo=number(row[5]), dattyp=int(row[6] or 0), lcint=int(row[7] or 0), points=points)
 
 
-def inspect_boundary_cards(path, include_ordered_node_sets=False):
+def inspect_boundary_cards(path, include_ordered_node_sets=False, include_motions=False):
     prefixes = PREFIXES + (("*SET_NODE",) if include_ordered_node_sets else ())
-    result = dict(curves={}, loads=[], nonreflecting=[], ordered_node_sets={}, namespace_ids=set(), unresolved=[], other=Counter())
+    if include_motions:
+        prefixes+=('*BOUNDARY_PRESCRIBED_MOTION',)
+    result = dict(curves={}, loads=[], motions=[], nonreflecting=[], ordered_node_sets={}, namespace_ids=set(), unresolved=[], other=Counter())
     for name, digest, lines in native_blocks(path, prefixes):
         if name in ("*KEYWORD", "*END"):
             continue
         if not name.startswith(prefixes):
             result["other"][(name, digest)] += 1
+        elif name.startswith('*BOUNDARY_PRESCRIBED_MOTION'):
+            try:
+                result['motions'].extend(motion_rows(name,lines))
+            except NotImplementedError:
+                result['unresolved'].append((name,digest))
         elif name in ("*SET_NODE_LIST", "*SET_NODE_LIST_TITLE"):
             record = list_set(name, lines)
             start = 3 if name.endswith("_TITLE") else 2
@@ -93,7 +100,7 @@ def inspect_boundary_cards(path, include_ordered_node_sets=False):
     return result
 
 
-def verify_boundary_delta(before, after, curve=None, load=None, nonreflecting=None, new_node_sets=None):
+def verify_boundary_delta(before, after, curve=None, load=None, nonreflecting=None, new_node_sets=None, motions=None):
     if before["other"] != after["other"] or Counter(before["unresolved"]) != Counter(after["unresolved"]):
         raise ValueError("Boundary creation changed an unrelated native keyword")
     expected_curves = dict(before["curves"])
@@ -127,7 +134,16 @@ def verify_boundary_delta(before, after, curve=None, load=None, nonreflecting=No
             return Counter(tuple(sorted(row.items())) for row in rows)
         if canonical(expected) != canonical(after[key]):
             raise ValueError("Native " + key + " differ from requested references/parameters")
+    actual_motions=[]
+    for motion in motions or []:
+        matches=[m for m in after.get('motions',[]) if all(m[k]==motion[k] for k in ('target_type','target_id','motion_id','title','dof','vad','curve_id','vector_id'))]
+        if len(matches)!=1 or any(not math.isclose(matches[0][k],motion[k],rel_tol=2e-6,abs_tol=0) for k in ('scale','birth','death')):
+            raise ValueError('Native prescribed-motion references/values differ from request')
+        actual_motions.append(matches[0])
+    if Counter(tuple(sorted(m.items())) for m in before.get('motions',[])+actual_motions) != Counter(tuple(sorted(m.items())) for m in after.get('motions',[])):
+        raise ValueError('Unexpected prescribed-motion changes')
     return dict(native_card_references_verified=True, unrelated_native_cards_preserved=True,
                 curve_maximum_absolute_error=max_error, curve_relative_tolerance=2e-6,
                 actual_load=actual_load,
+                actual_motions=actual_motions,
                 solver_validated=False)

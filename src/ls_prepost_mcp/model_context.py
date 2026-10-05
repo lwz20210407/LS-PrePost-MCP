@@ -61,7 +61,7 @@ def verify_loaded_model(request, data):
 
 
 LOAD_ERROR = re.compile(
-    r"(?:\*+\s*Prog Error\b|^\s*Invalid entity ID!|^\s*(?:\*+\s*)?(?:error reading\b|cannot open\b|failed to read\b))",
+    r"(?:\*+\s*Prog Error\b|^\s*Invalid entity ID!|^\s*(?:\*+\s*)?(?:error reading\b|cannot open\b|failed to read\b|error\s*[-:]\s*invalid\s+keyword\b|error\s+occurs\s+in\s+file\b|dummy\s+read\s+data\s+until\s+next\s+keyword\b))",
     re.IGNORECASE,
 )
 

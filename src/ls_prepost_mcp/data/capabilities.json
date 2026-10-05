@@ -1561,7 +1561,8 @@
       "tested_profiles": [
         "4.13.4 Windows visible GUI"
       ],
-      "scope": "Native SPC_SET and per-node SPC_NODE_ID with explicit six binary DOFs; node-list constraint IDs allocated consecutively in sorted node order and returned. IDs, coordinates, targets and supported SPC overlap checked. Global coordinate native create/replay/save/reopen passed. Nonzero coordinate references have code checks but not native certification; no rigid/material/solver validity claim, no prescribed motion/pressure/nonreflecting support."
+      "scope": "Native SPC_SET and per-node SPC_NODE_ID with explicit six binary DOFs; node-list constraint IDs allocated consecutively in sorted node order and returned. IDs, coordinates, targets and supported SPC overlap checked. Global coordinate native create/replay/save/reopen passed. Nonzero coordinate references have code checks but not native certification; no rigid/material/solver validity claim, no prescribed motion/pressure/nonreflecting support.",
+      "conflict_scope": "Parsed global prescribed motions and ordinal NODE TC/RC now participate in conflicts, in addition to existing SPC checks. No complete material/rigid/CNRB compatibility certification."
     },
     {
       "id": "gui_entities.create_gui_segment_set",
@@ -1698,7 +1699,23 @@
         "4.13.4 Windows visible maximized GUI"
       ],
       "scope": "Explicit same-process keyword/result replacement: saved keyword memory, verified new input before old removal, result-mode keyword staging and cleanup, remaining-model identity checks. Four kind combinations, explicit empty and unexpected-empty rejection, independent edited keeper and checkpoint recovery passed. No association, multi-model recordings, full scene/crash recovery, old-version or headless certification.",
-      "validation": "tools/run_model_replacement_acceptance.py:18-case matrix with official general/beam results. tools/run_stale_model_regression.py:public bird 2957nodes/3005elements/1keyword state, stale-result failure rejected and explicit replacement verified. Raw input families unchanged."
+      "validation": "tools/run_model_replacement_acceptance.py:18-case matrix with official general/beam results. tools/run_stale_model_regression.py:public bird 2957nodes/3005elements/1keyword state, stale-result failure rejected and explicit replacement verified. Raw input families unchanged.",
+      "known_limitations": "NATIVE-REPLACE-001: official generalized angular shell exits on export after same-session replacement, including unchanged original. Fresh owned-process reopen passes; general long-session stability not certified."
+    },
+    {
+      "id": "model.create_gui_prescribed_motion",
+      "tool": "create_gui_prescribed_motion",
+      "status": "native_tested",
+      "sources": [
+        "keyword-r16-prescribed-motion",
+        "official-motion-shell-example",
+        "library-pydyna"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible maximized GUI"
+      ],
+      "scope": "Global NODE_ID/SET_ID motion; x/y/z/rx/ry/rz, displacement/velocity/acceleration, declared units/radians, new/reused time curves, explicit shared-group append, node selection dependencies and parameter replay. SPC/motion/inline NODE TC-RC and node-set-change checks. No rigid/local/vector/adaptive/solver or general lifecycle certification.",
+      "validation": "Synthetic33-step workflow with16motion rows including partial-import rejection/restart recovery; official6node/2shell8-case fresh-process acceptance. Same-session public replacement remains failed separately."
     }
   ],
   "native_reference_builds": [

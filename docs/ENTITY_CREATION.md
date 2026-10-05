@@ -36,6 +36,8 @@
 
 ## 本批实现接口
 
+新增[规定运动完整流程](PRESCRIBED_MOTION.md)：节点/节点集、六个全局轴向的位移/速度/加速度、共享分组ID、新建/复用曲线、选择依赖回放、SPC与NODE TC/RC冲突及集合变更检查已有4.13.4限定原生证据。原位模型替换的公开案例失败单列在[已知问题](NATIVE_KNOWN_ISSUES.md)，不计作通过。
+
 ### 2026-10-05：Shell / Solid / Beam 显式集合
 
 在已有 `create_gui_entity_set` / `inspect_gui_entity_sets` 中增加 `entity_type=shell|solid|beam`。仍可用显式用户ID或同会话、同模型代次、同实体域的选择结果；不会把节点ID或一个笼统的element选区当作特定单元域。

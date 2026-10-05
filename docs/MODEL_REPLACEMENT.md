@@ -2,6 +2,8 @@
 
 归属 runtime / T03 / A01-A02，支持 WF-MESH、WF-POST、WF-AUTO 的模型身份基础；当前替换工具本身尚未进入多模型录制。验收范围为 Windows LS-PrePost 4.13.4 可见最大化 GUI。
 
+新增实测限制：官方角运动双壳原例在原位替换后的导出中出现原生退出，详见[NATIVE-REPLACE-001](NATIVE_KNOWN_ISSUES.md)。本页限定成功矩阵不构成任意模型或长会话稳定性认证。
+
 ## 工具与边界
 
 `replace_gui_model(session_id, path, file_type="keyword", expected_empty=False)` 替换当前受管模型，保持同一进程和其他已载入模型。首次载入仍用 `open_in_gui_session`；需要明确替换时使用本工具，不把普通打开、关键字关联和替换混为一谈。参数 `expected_empty=True` 只适用于明确预期零节点/零单元的keyword文件，仍核对来源、状态、日志和模型列表。

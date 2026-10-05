@@ -7,10 +7,41 @@ from collections import Counter
 from .deck_backend import api
 
 DOFS = ("dofx", "dofy", "dofz", "dofrx", "dofry", "dofrz")
+MOTION_DOF_INDEX = {1:0, 2:1, 3:2, 5:3, 6:4, 7:5}
 SET_KEYWORDS = {"*SET_NODE_LIST": "node", "*SET_PART_LIST": "part", "*SET_SHELL_LIST": "shell",
                 "*SET_SOLID": "solid", "*SET_BEAM": "beam"}
 CAPTURE = ("*SET_NODE", "*SET_PART", "*SET_SEGMENT", "*SET_SHELL", "*SET_SOLID", "*SET_BEAM",
            "*BOUNDARY_SPC", "*BOUNDARY_PRESCRIBED_MOTION", "*DEFINE_COORDINATE")
+
+
+def node_constraint_masks(path):
+    """Stream native standard NODE TC/RC flags; ordinal codes are not bit masks."""
+    masks=(0,1,2,4,3,6,5,7)
+    result={}
+    active=False
+    with path.open(encoding='utf-8-sig',errors='strict') as stream:
+        for raw in stream:
+            line=raw.rstrip()
+            if not line.strip() or line.lstrip().startswith('$'):
+                continue
+            if line.startswith('*'):
+                name=line.split(',')[0].split()[0].upper()
+                if name=='*KEYWORD_LONG':
+                    raise ValueError('Node constraint inspection currently requires standard native NODE field widths')
+                active=name=='*NODE'
+                continue
+            if not active:
+                continue
+            if ',' in line:
+                row=[v.strip() for v in line.split(',')]+['']*6
+                nid,tc,rc=int(row[0]),int(row[4] or 0),int(row[5] or 0)
+            else:
+                nid,tc,rc=int(line[:8]),int(line[56:64].strip() or 0),int(line[64:72].strip() or 0)
+            if tc not in range(8) or rc not in range(8):
+                raise ValueError('Unknown NODE translational/rotational constraint flag')
+            if tc or rc:
+                result[nid]=masks[tc] | (masks[rc]<<3)
+    return result
 
 
 def native_blocks(path, capture_prefixes=CAPTURE):
@@ -163,9 +194,52 @@ def segment_set(name, lines):
                 segments=sorted(records, key=lambda r: r["node_ids"]))
 
 
+def motion_rows(name, lines):
+    """Read NODE/SET global prescribed motions, including repeated ID groups."""
+    kind={'*BOUNDARY_PRESCRIBED_MOTION_NODE':'node','*BOUNDARY_PRESCRIBED_MOTION_SET':'node_set'}.get(name.removesuffix('_ID'))
+    if kind is None:
+        raise NotImplementedError('Unsupported prescribed-motion target variant')
+    named=name.endswith('_ID')
+    data=lines[1:]
+    if not data:
+        raise ValueError('Incomplete prescribed-motion ID/data pair')
+    records=[]
+    i=0
+    while i<len(data):
+        uid,title=None,''
+        if named:
+            if i+1>=len(data):
+                raise ValueError('Incomplete prescribed-motion ID/data pair')
+            head=data[i][:10].strip()
+            if head and head.lstrip('+').isdigit():
+                uid,title=int(head),data[i][10:].strip()
+            else:
+                header=data[i].split(',',1)
+                uid=int(header[0])
+                title=header[1].strip() if len(header)>1 else ''
+        row=fields(data[i+1 if named else i])
+        if len(row)>8 and any(row[8:]):
+            raise ValueError('Unsupported prescribed-motion row width')
+        row=row[:8]+['']*(8-len(row))
+        nid,dof,vad,lcid,vid=[int(row[j] or 0) for j in (0,1,2,3,5)]
+        if nid<=0 or lcid<=0:
+            raise ValueError('Prescribed motion requires positive target/curve IDs')
+        if dof not in MOTION_DOF_INDEX or vad not in (0,1,2) or vid!=0:
+            raise NotImplementedError('Vector/local/advanced prescribed-motion semantics require separate support')
+        numbers=[float(row[j].replace('D','E').replace('d','e')) if row[j] else default
+                 for j,default in ((4,1.),(6,1e28),(7,0.))]
+        if not all(math.isfinite(v) for v in numbers):
+            raise ValueError('Nonfinite prescribed-motion value')
+        sf,death,birth=numbers
+        records.append(dict(target_type=kind,target_id=nid,dof=dof,vad=vad,curve_id=lcid,scale=sf,
+                            vector_id=vid,death=death or 1e28,birth=birth,motion_id=uid,title=title))
+        i+=2 if named else 1
+    return records
+
+
 def inspect_cards(path):
     Deck, _ = api()
-    result = dict(sets={}, spcs=[], coordinates={0}, unresolved=[], other=Counter())
+    result = dict(sets={}, spcs=[], motions=[], nodal_dofs=node_constraint_masks(path), coordinates={0}, unresolved=[], other=Counter())
     for name, digest, lines in native_blocks(path):
         if name.startswith(("*INCLUDE", "*PARAMETER")):
             raise ValueError("Entity editing currently requires a standalone resolved native deck")
@@ -190,6 +264,12 @@ def inspect_cards(path):
             continue
         if name in ("*BOUNDARY_SPC_NODE", "*BOUNDARY_SPC_NODE_ID", "*BOUNDARY_SPC_SET", "*BOUNDARY_SPC_SET_ID"):
             result["spcs"].extend(spc_rows(name, lines))
+            continue
+        if name.startswith('*BOUNDARY_PRESCRIBED_MOTION'):
+            try:
+                result['motions'].extend(motion_rows(name,lines))
+            except NotImplementedError:
+                result['unresolved'].append((name,digest))
             continue
         deck = Deck()
         deck.loads("*KEYWORD\n" + "\n".join(lines) + "\n*END\n")
@@ -221,6 +301,11 @@ def check_spc_conflicts(index, members, coordinate_system, dofs, constraint_id):
     if coordinate_system not in index["coordinates"]:
         raise ValueError("Unknown coordinate system ID")
     wanted = set(members)
+    requested=sum(int(flag)<<i for i,flag in enumerate(dofs))
+    for nid in wanted:
+        fixed=index.get('nodal_dofs',{}).get(nid,0)
+        if fixed and (coordinate_system!=0 or fixed & requested):
+            raise ValueError('SPC overlaps existing NODE TC/RC constraints')
     for spc in index["spcs"]:
         if constraint_id is not None and spc["constraint_id"] == constraint_id:
             raise ValueError("Constraint ID already exists")
@@ -229,6 +314,26 @@ def check_spc_conflicts(index, members, coordinate_system, dofs, constraint_id):
         if old & wanted and (spc["coordinate_system"] != coordinate_system or
                              any(a and b for a, b in zip(dofs, spc["dofs"]))):
             raise ValueError("Existing SPC overlaps requested constrained nodes/DOFs or uses another coordinate system")
+    for motion in index.get('motions',[]):
+        old=({motion['target_id']} if motion['target_type']=='node' else set(set_members(index,'node',motion['target_id'])))
+        if old & wanted and (coordinate_system!=0 or dofs[MOTION_DOF_INDEX[motion['dof']]]):
+            raise ValueError('SPC overlaps an existing prescribed motion on constrained nodes/DOFs')
+
+
+def check_motion_conflicts(index, members, dof):
+    if any(name.startswith(('*BOUNDARY_SPC','*BOUNDARY_PRESCRIBED_MOTION')) for name,_ in index['unresolved']):
+        raise ValueError('Existing SPC/motion variant is unresolved; cannot verify motion conflicts')
+    wanted=set(members)
+    if any(index.get('nodal_dofs',{}).get(nid,0) & (1<<MOTION_DOF_INDEX[dof]) for nid in wanted):
+        raise ValueError('Prescribed motion overlaps existing NODE TC/RC constraints')
+    for spc in index['spcs']:
+        old=({spc['target_id']} if spc['target_type']=='node' else set(set_members(index,'node',spc['target_id'])))
+        if old & wanted and (spc['coordinate_system']!=0 or spc['dofs'][MOTION_DOF_INDEX[dof]]):
+            raise ValueError('Prescribed motion overlaps existing SPC nodes/DOFs or a non-global coordinate constraint')
+    for motion in index.get('motions',[]):
+        old=({motion['target_id']} if motion['target_type']=='node' else set(set_members(index,'node',motion['target_id'])))
+        if old & wanted and motion['dof']==dof:
+            raise ValueError('Prescribed motion overlaps existing prescribed nodes/DOF; time-window composition is not certified')
 
 
 def verify_cards(before, after, new_set=None, new_spcs=None):
@@ -248,5 +353,7 @@ def verify_cards(before, after, new_set=None, new_spcs=None):
                         s["constraint_id"], s["title"]) for s in items)
     if canonical(before["spcs"] + (new_spcs or [])) != canonical(after["spcs"]):
         raise ValueError("Native SPC rows/references differ from expected constraints")
+    if Counter(tuple(sorted(m.items())) for m in before.get('motions',[])) != Counter(tuple(sorted(m.items())) for m in after.get('motions',[])):
+        raise ValueError('Native entity operation changed existing prescribed motions')
     return dict(unrelated_native_cards_preserved=True, entity_references_verified=True,
                 scope="Native exported cards, supported list sets/SPC and mesh identity; not solver/physics certification")
