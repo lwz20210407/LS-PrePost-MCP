@@ -233,6 +233,41 @@ def exterior_segments(deck: KeywordDeck, parts: list[int] | None = None, directi
     return faces[keep]
 
 
+def check_segment_normals(deck: KeywordDeck, block: object, direction: list[float] | None = None,
+                          angle: float = 30.0, samples: int = 20, seed: int = 0) -> dict:
+    """Independent check of a written segment set (tasks.yaml P04): sampled segments, read back.
+
+    Each sampled segment's right-hand-rule normal must point away from the solid element whose
+    face it is and, when ``direction`` is given, lie within ``angle`` degrees of it.
+    """
+    rows = list(deck.layout(block).rows)
+    picks = np.random.default_rng(seed).choice(len(rows), size=min(samples, len(rows)), replace=False)
+    node_ids, xyz = nodes(deck)
+    lookup = _index(node_ids)
+    _, _, conn = elements(deck, "*ELEMENT_SOLID", 8)
+    unit = None if direction is None else np.asarray(direction, dtype=float) / np.linalg.norm(direction)
+    failures, worst, outward = [], 0.0, 0
+    for row in (rows[int(i)] for i in picks):
+        face = [int(deck.get(block, f"n{i}", row=row).value or 0) for i in range(1, 5)]
+        p = xyz[lookup[np.asarray(face)]]
+        normal = np.cross(p[2] - p[0], p[3] - p[1]) if face[2] != face[3] else np.cross(p[1] - p[0], p[2] - p[0])
+        normal /= np.linalg.norm(normal)
+        owners = np.flatnonzero(np.isin(conn, list(set(face))).sum(axis=1) >= len(set(face)))
+        good = bool(owners.size)
+        if owners.size:
+            centroid = xyz[lookup[conn[owners[0]]]].mean(axis=0)
+            good = float(normal @ (p.mean(axis=0) - centroid)) > 0
+        outward += good
+        if unit is not None:
+            between = float(np.degrees(np.arccos(np.clip(normal @ unit, -1.0, 1.0))))
+            worst = max(worst, between)
+            good = good and between <= angle + 1e-9
+        if not good:
+            failures.append(row)
+    return {"sampled": len(picks), "of": len(rows), "outward": outward,
+            "max_angle_deg": round(worst, 3) if unit is not None else None, "failures": failures}
+
+
 def select_nodes(deck: KeywordDeck, *, box: list[float] | None = None, sphere: list[float] | None = None,
                  plane: dict | None = None, parts: list[int] | None = None) -> np.ndarray:
     """Node IDs satisfying every given criterion (intersection)."""

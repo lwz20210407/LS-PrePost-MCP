@@ -65,10 +65,14 @@ def inspect_deck(path: str, include_paths: tuple[str, ...] = (), include_mesh: b
     """Overview of a deck without modifying anything."""
     deck = KeywordDeck.load(path, include_paths)
     parts, sections, materials, sets, curves, contacts = [], [], [], [], [], []
+    elements: dict[str, int] = {}  # element count per *ELEMENT_ keyword (tasks.yaml P01)
     for block in deck.iter_blocks():
         base = lists.base_name(block.name)[0]
         try:
-            if base == "*PART":
+            if base.startswith("*ELEMENT_"):
+                rows = deck.layout(block).rows
+                elements[block.name] = elements.get(block.name, 0) + sum(1 for _ in rows)
+            elif base == "*PART":
                 for pid in deck.layout(block).rows:
                     parts.append({**_site(block), "pid": pid,
                                   **_safe(deck, block, pid, ("heading", "secid", "mid", "eosid", "hgid"))})
@@ -97,7 +101,7 @@ def inspect_deck(path: str, include_paths: tuple[str, ...] = (), include_mesh: b
                         "raw": r.definition.raw, "expression": r.definition.expression,
                         "local": r.definition.local, "error": r.definition.error, **_site(r.block)}
                        for r in deck.parameters],
-        "parts": parts, "sections": sections, "materials": materials, "sets": sets,
+        "parts": parts, "sections": sections, "materials": materials, "sets": sets, "elements": elements,
         "curves": curves, "contacts": contacts,
         "references": {**report.summary(), "dangling": report.dangling()[:200],
                        "duplicates": report.duplicates()[:200], "unused": report.unused(),
@@ -156,6 +160,14 @@ def _create_set(deck: KeywordDeck, edit: dict) -> Change:
                                   file=_file(deck, edit.get("file")))
     change = deck.changes[-1]
     change.description = f"created {blocks[0].name} sid={sid} with {len(items)} items"
+    if kind == "segment" and "ids" not in edit:
+        select = dict(edit.get("select") or {})
+        check = geometry.check_segment_normals(deck, blocks[0], select.get("direction"), select.get("angle", 30.0))
+        if check["failures"]:
+            deck.delete(blocks[0], force=True)
+            raise FieldError(f"Segment normal check failed on rows {check['failures'][:10]} of the new set")
+        change.description += (f"; normals checked on {check['sampled']} sampled segments: all outward"
+                               + (f", within {check['max_angle_deg']} deg" if select.get("direction") else ""))
     return change
 
 

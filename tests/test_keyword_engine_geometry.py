@@ -5,7 +5,13 @@ import numpy as np
 import pytest
 
 from ls_prepost_mcp.domain.model import KeywordDeck
-from ls_prepost_mcp.domain.model.geometry import exterior_segments, nodes, select_elements, select_nodes
+from ls_prepost_mcp.domain.model.geometry import (
+    check_segment_normals,
+    exterior_segments,
+    nodes,
+    select_elements,
+    select_nodes,
+)
 from ls_prepost_mcp.domain.model.operations import edit_deck, inspect_deck
 
 pytest.importorskip("ansys.dyna.core")
@@ -92,10 +98,23 @@ def test_create_sets_through_edit_deck(tmp_path: Path) -> None:
     result = edit_deck(str(tmp_path / "in" / "main.k"), edits, output_dir=str(tmp_path / "out"))
     assert result["status"] == "succeeded", result
     assert [c["description"] for c in result["changes"]] == [
-        "created *SET_SEGMENT_TITLE sid=1 with 2 items", "created *SET_NODE_LIST sid=1 with 4 items",
+        "created *SET_SEGMENT_TITLE sid=1 with 2 items; normals checked on 2 sampled segments: all outward, "
+        "within 0.0 deg", "created *SET_NODE_LIST sid=1 with 4 items",
         "created *SET_NODE_LIST sid=2 with 2 items", "created *SET_PART_LIST sid=50 with 2 items"]
     info = inspect_deck(str(tmp_path / "out" / "main.k"), include_mesh=True)
+    assert info["elements"] == {"*ELEMENT_SOLID": 2}  # P01: element count per element keyword
     assert {d["kind"] for d in info["references"]["dangling"]} <= {"section", "material"}  # base deck lacks them
     empty = edit_deck(str(tmp_path / "in" / "main.k"),
                       [{"op": "create_set", "kind": "node", "select": {"sphere": [9, 9, 9, 0.1]}}])
     assert empty["status"] == "failed" and "empty" in empty["error"]
+
+
+def test_segment_normal_check_flags_inward_faces(tmp_path: Path) -> None:
+    """P04: sampled segments read back; bottom face 1-2-5-4 points into element 1, 1-4-5-2 points out."""
+    from ls_prepost_mcp.domain.model.sets import create_set
+    deck = _deck(tmp_path, _two_hex())
+    _, inward = create_set(deck, "segment", [[1, 2, 5, 4]])
+    _, outward = create_set(deck, "segment", [[1, 4, 5, 2]])
+    assert check_segment_normals(deck, inward[0], [0, 0, -1])["failures"] == [1]
+    good = check_segment_normals(deck, outward[0], [0, 0, -1])
+    assert good["failures"] == [] and good["outward"] == 1 and good["max_angle_deg"] == 0.0
