@@ -17,6 +17,7 @@ from .blocks import Block
 from .fields import FieldError, parse_number, read_text
 from .layouts import Layout, RowMap, Unsupported
 from .parameters import field_expression, resolve_field
+from .schema import recognized
 
 if TYPE_CHECKING:
     from .deck import KeywordDeck
@@ -35,6 +36,7 @@ DEFINITIONS: list[tuple[str, str, str]] = [
     ("*SET_SOLID", "sid", "solid_set"), ("*SET_BEAM", "sid", "beam_set"), ("*SET_SEGMENT", "sid", "segment_set"),
     ("*NODE", "nid", "node"), ("*ELEMENT_SHELL", "eid", "shell"), ("*ELEMENT_SOLID", "eid", "solid"),
     ("*ELEMENT_BEAM", "eid", "beam"),
+    ("*ELEMENT_TSHELL", "eid", "tshell"), ("*SET_TSHELL", "sid", "tshell_set"),  # thick shells: own ID space
 ]
 NOT_DEFINITIONS = ("*MAT_ADD_",)  # *MAT_ADD_EROSION etc. refer to an existing material
 _NODES8 = tuple((f"n{i}", "node") for i in range(1, 9))
@@ -60,11 +62,15 @@ REFERENCES: list[tuple[str, tuple[tuple[str, str], ...]]] = [
     ("*LOAD_BODY_", (("lcid", "curve"),)),
     ("*INITIAL_VELOCITY", (("nsid", "node_set"),)), ("*INITIAL_VELOCITY_NODE", (("nid", "node"),)),
     ("*CONSTRAINED_NODAL_RIGID_BODY", (("nsid", "node_set"),)),
-    ("*DATABASE_HISTORY_NODE", tuple((f"id{i}", "node") for i in range(1, 9))),
+    # *DATABASE_HISTORY_OPTION, R17 Vol I 16-115: SHELL_SET holds shell sets; TSHELL, TSHELL_ID and
+    # TSHELL_SET thick shells (PyDYNA links TSHELL_ID to shells). NODE/NODE_SET/SOLID/BEAM: PyDYNA links.
+    ("*DATABASE_HISTORY_SHELL_SET", tuple((f"id{i}", "shell_set") for i in range(1, 9))),
+    ("*DATABASE_HISTORY_TSHELL", tuple((f"id{i}", "tshell") for i in range(1, 9))),
+    ("*DATABASE_HISTORY_TSHELL_SET", tuple((f"id{i}", "tshell_set") for i in range(1, 9))),
 ]
 LIST_MEMBERS = {"*SET_NODE_LIST": "node", "*SET_PART_LIST": "part", "*SET_SHELL_LIST": "shell",
                 "*SET_NODE": "node", "*SET_PART": "part", "*SET_SHELL": "shell", "*SET_BEAM": "beam",
-                "*SET_SOLID": "solid", "*SET_SOLID_LIST": "solid", "*SET_BEAM_LIST": "beam",
+                "*SET_SOLID": "solid", "*SET_SOLID_LIST": "solid", "*SET_BEAM_LIST": "beam", "*SET_TSHELL_LIST": "tshell",
                 "*SET_NODE_ADD": "node_set", "*SET_PART_ADD": "part_set", "*SET_SHELL_ADD": "shell_set",
                 "*SET_SOLID_ADD": "solid_set", "*SET_BEAM_ADD": "beam_set", "*SET_SEGMENT_ADD": "segment_set"}
 # LS-DYNA contact surface type codes -> referenced kind (5 = all, no reference).
@@ -202,7 +208,11 @@ def _plans(deck: KeywordDeck, include_mesh: bool, report: ReferenceReport) -> li
         coded = coded_rules(base)
         members = LIST_MEMBERS.get(base)
         mesh = (definition and definition[1] in MESH_KINDS) or base.startswith("*ELEMENT_")
-        if not (definition or refs or coded or members) or (mesh and not include_mesh):
+        if mesh and not include_mesh:
+            continue
+        if not (definition or refs or coded or members):
+            if not recognized(block.name):  # unknown keyword: its references cannot be known
+                report.unchecked[block.name] += 1
             continue
         try:
             layout = deck.layout(block)

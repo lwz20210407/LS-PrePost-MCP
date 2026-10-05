@@ -189,3 +189,44 @@ def test_contact_title_form_and_coded_groups(tmp_path: Path) -> None:
     assert deck.get(contact, "surfa").value == 5 and deck.get(contact, "cid").value == 77
     assert deck.get(group, "sid", row=1).value == 5 and deck.get(group, "sid", row=2).value == 2
     assert deck.get(section, "id").value == 5
+
+
+# --- found by the 538-deck edit-then-solve regression (LS-DYNA R11 reported undefined IDs) ---
+
+def test_history_node_set_ids_are_node_sets(tmp_path: Path) -> None:
+    deck = _deck(tmp_path, _model("*DATABASE_HISTORY_NODE_SET\n         1\n"))
+    renumber(deck, "node", {1: 101})
+    assert deck.get(deck.blocks("*DATABASE_HISTORY_NODE_SET")[0], "id1").value == 1
+    assert deck.references().dangling_count == 0
+
+
+@pytest.mark.parametrize("extra", [
+    "*CONSTRAINED_LINEAR\n         2\n         1         1\n         9         1\n",  # legacy *_LINEAR_GLOBAL
+    "*BOUNDARY_PRESCRIBED_MOTION_NODES\n         1         1         0         1       1.0\n",  # legacy plural
+])
+def test_unknown_keywords_block_renumbering(tmp_path: Path, extra: str) -> None:
+    curve = "*DEFINE_CURVE\n         1\n                 0.0                 0.0\n                 1.0                 1.0\n"
+    deck = _deck(tmp_path, _model(extra + curve))
+    name = extra.split("\n", 1)[0]
+    assert deck.references().unchecked[name] == 1
+    for kind in ("node", "curve"):  # the R11 failure was curve renumbering (LCID of the plural form)
+        with pytest.raises(FieldError, match="cannot be read"):
+            renumber(deck, kind, {1: 101})
+    assert deck.changes == []
+
+
+def test_unreadable_block_with_unruled_curve_field_blocks_curve_renumbering(tmp_path: Path) -> None:
+    segments = "".join("         1         2         3         4\n         7       1.0       1.0       1.0       1.0\n"
+                       for _ in range(2))
+    curve = "*DEFINE_CURVE\n         7\n                 0.0                 0.0\n                 1.0                 1.0\n"
+    deck = _deck(tmp_path, _model("*BOUNDARY_FLUX_SEGMENT\n" + segments + curve))
+    with pytest.raises(FieldError, match="BOUNDARY_FLUX_SEGMENT x1 cannot be read"):
+        renumber(deck, "curve", {7: 70})
+    renumber(deck, "part", {1: 5})  # LCID cannot be a part ID: unaffected
+
+
+def test_thick_shell_history_is_not_a_shell_reference(tmp_path: Path) -> None:
+    deck = _deck(tmp_path, _model("*DATABASE_HISTORY_TSHELL_ID\n         1tshell one\n"
+                                  "*DATABASE_HISTORY_SHELL_SET\n         4\n"))
+    report = deck.references()
+    assert report.referenced["tshell"] == {1} and report.referenced["shell_set"] == {4}

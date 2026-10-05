@@ -110,7 +110,9 @@ def parse_number(text: str) -> float | int | None:
     try:
         return float(normalized)
     except ValueError as error:
-        raise FieldError(f"Not a number: {stripped!r}") from error
+        hint = ("; it contains a TAB inside a fixed-width field, which LS-DYNA R11 rejects (Error 10246, "
+                "'illegal TAB character')" if "\t" in stripped else "")
+        raise FieldError(f"Not a number: {stripped!r}{hint}") from error
 
 
 def _compact(text: str) -> str:

@@ -20,13 +20,14 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from . import lists, references
+from . import links, lists, references
 from .fields import FieldError, FieldSlot, format_value, is_free_format, read_text, write_text
 from .geometry import _where, elements, nodes
 from .layouts import RowMap, Unsupported
 from .parameters import field_expression
 from .quality import coincident_nodes
 from .references import DEFINITIONS, MESH_KINDS, ReferenceReport, _ident, _rule, coded_pairs
+from .schema import recognized
 
 if TYPE_CHECKING:
     from .blocks import Block
@@ -36,13 +37,25 @@ ELEMENT_KINDS = {"*ELEMENT_SHELL": "shell", "*ELEMENT_SOLID": "solid", "*ELEMENT
 
 
 def _may_refer(name: str, kind: str) -> bool:
-    """Whether an unreadable block could hold IDs of ``kind`` (conservative)."""
+    """Whether an unreadable block could hold IDs of ``kind`` (conservative).
+
+    An unknown keyword may hold anything. Otherwise a rule that points at ``kind`` is enough, and
+    so is an ID-like field of the keyword's class that no rule covers: the block cannot be read,
+    so its values cannot be checked (edit-then-solve regression: *BOUNDARY_FLUX_SEGMENT LCID,
+    *FREQUENCY_DOMAIN_ACOUSTIC_FEM PID). Unruled ``lc..`` fields are taken as curves only.
+    """
     base = lists.base_name(name)[0]
-    if base.startswith(("*SET_", "*CONTACT_")):
+    if base.startswith(("*SET_", "*CONTACT_")) or not recognized(name):
         return True
     definition = _rule(base, DEFINITIONS)
-    return bool((definition and definition[1] == kind)
-                or any(target == kind for _, target in references._references(name, base, True)))
+    pairs = references._references(name, base, True)
+    if (definition and definition[1] == kind) or any(target == kind for _, target in pairs):
+        return True
+    covered = {field for field, _ in pairs} | {rule[0] for rule in references.coded_rules(base)} | SELF_IDS
+    if definition:
+        covered.add(definition[0])
+    unruled = [field for field in links.field_names(name) if field not in covered and ID_LIKE.search(field)]
+    return any(kind == "curve" or not field.startswith("lc") for field in unruled)
 
 
 # ID-like names: ..id / ..sid (with a numeric suffix such as id1 or lcid_2), lc.. curves, n1..n8 nodes

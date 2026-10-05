@@ -7,6 +7,7 @@ checked for dangling IDs and rewritten when IDs are renumbered.
 """
 from __future__ import annotations
 
+import inspect
 from functools import lru_cache
 
 from .layouts import Unsupported
@@ -34,4 +35,20 @@ def link_fields(name: str) -> tuple[tuple[str, str], ...]:
     return tuple((field, LINK_KINDS[link.name]) for field, link in fields.items() if link.name in LINK_KINDS)
 
 
-__all__ = ["LINK_KINDS", "link_fields"]
+_NOT_FIELDS = {"cards", "deck", "format", "included_from", "option_specs", "options", "parameter_set",
+               "user_comment"}
+
+
+@lru_cache(maxsize=None)
+def field_names(name: str) -> tuple[str, ...]:
+    """Field names of the PyDYNA class for ``name`` (empty if unknown); no block needs to be read."""
+    try:
+        cls, _ = _pydyna_class(name)
+    except Unsupported:
+        return ()
+    return tuple(member for member, value in inspect.getmembers(cls)
+                 if isinstance(value, property) and not member.startswith("_") and not member.endswith("_link")
+                 and member not in _NOT_FIELDS)
+
+
+__all__ = ["LINK_KINDS", "field_names", "link_fields"]

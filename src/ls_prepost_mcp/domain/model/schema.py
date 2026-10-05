@@ -14,6 +14,7 @@ positional editing.
 """
 from __future__ import annotations
 
+import functools
 import logging
 import math
 import re
@@ -88,6 +89,25 @@ def _part_layout(block: Block, long: bool = False) -> Layout:
             raise Unsupported(f"*PART card line {c_index} has no integer PID")
         rows[pid] = (h_index, c_index)
     return Layout(block.name, rows=RowMap(block, template, ["heading", "card1"], rows), key="pid", source="builtin")
+
+
+BUILTIN_KEYWORDS = frozenset({"*KEYWORD", "*END", "*TITLE", "*COMMENT", "*NODE", "*PART", "*LOAD_SEGMENT"})
+
+
+@functools.lru_cache(maxsize=None)
+def recognized(name: str) -> bool:
+    """Whether the engine knows keyword ``name`` (builtin layout or a PyDYNA class).
+
+    Unknown keywords cannot be scanned for references, so callers treat them as unchecked.
+    """
+    if (name in BUILTIN_KEYWORDS or name.startswith(("*PARAMETER", "*INCLUDE")) or umat.is_umat(name)
+            or lists.is_define_table(name) or lists.is_list_set(name) or lists.is_curve(name)):
+        return True
+    try:
+        _pydyna_class(name)
+    except Unsupported:
+        return False
+    return True
 
 
 def _pydyna_class(name: str) -> tuple[type, str]:
@@ -533,7 +553,7 @@ def block_format(block: Block, deck_format: str = "standard") -> str:
     return {"-": "standard", "+": "long", "%": "i10"}.get(flag, deck_format)
 
 
-__all__ = ["FieldInfo", "Layout", "Unsupported", "block_format", "layout", "pydyna_title", "warm_up"]
+__all__ = ["FieldInfo", "Layout", "Unsupported", "block_format", "layout", "pydyna_title", "recognized", "warm_up"]
 
 
 def warm_up(background: bool = True) -> threading.Thread | None:

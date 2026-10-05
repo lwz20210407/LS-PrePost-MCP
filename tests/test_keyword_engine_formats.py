@@ -352,3 +352,10 @@ def test_material_title_with_comma_is_kept_whole(tmp_path: Path) -> None:
     block = deck.blocks("*MAT_ELASTIC_TITLE")[0]
     assert deck.get(block, "title").value == "AA6022-T43 with Gosh hardening, t=1.00mm"
     assert deck.get(block, "e").value == 70000.0
+
+
+def test_tab_inside_a_numeric_field_is_named() -> None:
+    from ls_prepost_mcp.domain.model import FieldError
+    with pytest.raises(FieldError, match="TAB inside a fixed-width field"):
+        parse_number("0.000\t135.27")
+    assert parse_number("\t      0.002") == 0.002  # a TAB acting as a blank reads like LS-DYNA R11 does
