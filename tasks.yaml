@@ -876,6 +876,14 @@ infrastructure:
   - id: I04
     title: 原生回归框架 pytest -m native
     milestone: M1
+    status: partial
+    evidence:
+      - tools/native_regression.py
+      - tests/test_native_acceptance.py
+      - tests/test_native_regression.py
+    gaps:
+      - 当前 55 个 tools/run_* 入口已全部收编为 57 个 pytest 用例（保留原生/文件及 batch/GUI 变体）；CLI 参数发现已逐一验证。
+      - 已通过三个文件验收和 program_acceptance 的真实批处理验收；全量 GUI 与外部语料回归尚待参数配置和集中验收，未计为完成。
     acceptance:
       - 52 个 tools/run_* 收编为带 marker 的 pytest，共享 fixture
       - 一条命令生成 Markdown 报告；私有语料通过环境变量启用

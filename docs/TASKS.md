@@ -708,6 +708,10 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 里程碑：M1
 
+状态：partial；验证：待记录
+
+证据：[tools/native_regression.py](../tools/native_regression.py), [tests/test_native_acceptance.py](../tests/test_native_acceptance.py), [tests/test_native_regression.py](../tests/test_native_regression.py)
+
 - 52 个 tools/run_* 收编为带 marker 的 pytest，共享 fixture
 - 一条命令生成 Markdown 报告；私有语料通过环境变量启用
 

@@ -59,3 +59,27 @@ tools/gen_docs.py 生成 TASKS、TOOLS、README 能力表和 COMPATIBILITY 的�
 capabilities.json 与 development_plan.json 目前仍被运行时路由读取，M0 原样冻结，禁止手改。M1 将职责拆开：任务由 tasks.yaml 定义，运行时操作元数据由 registry 生成。旧 release_progress.json 与 progress_dashboard.py 已归档停用；不得继续将其当成验收分母。
 
 原生错误与规避集中维护在 [KNOWN_ISSUES](KNOWN_ISSUES.md)。不得隐式修改安装配置、UAC、全局快捷键或覆盖用户源模型。
+## I04 统一验收入口
+
+`tests/test_native_acceptance.py` 自动收集当前全部 55 个 tools/run_* 脚本，保留原脚本的工程正反例断言。program_acceptance 的 batch/GUI 和 parameter_study 的 file/GUI 分开，得到 57 个用例。普通 pytest 只收集并跳过它们。先运行 `pytest tests/test_native_acceptance.py --collect-only -q` 查看用例 ID。
+
+在确认的 GUI 时间窗和完整输入配置下，一条命令运行并生成 `<新建的外部目录>/report.md`、report.json 和各用例的 verified.json：
+
+```shell
+uv run pytest -m native --run-native --native-strict --native-gui --native-executable "<LSPP路径>" --native-fixture "<M0原创语料目录>" --native-inputs "<本地输入配置.json>" --native-output "<新建的外部目录>"
+```
+
+`--native-gui` 表示已有用户确认的可见桌面时间窗；省略时相关用例跳过，strict 模式则失败。输入不足也同样区分 skip/failed，报告不会把它们算为通过。输出目录必须在仓库外且尚不存在；运行器设置独立临时目录，并只清理本轮记录、进程身份仍匹配的会话。超时终止本轮脚本及已确认身份的子进程，保留日志与失败证据。
+
+`LSPP_EXECUTABLE`、`LSPP_ENGINE_FIXTURE` 可替代路径选项；`LSPP_NATIVE_INPUTS` 指向仓库外 JSON，以完整用例 ID 为键，值为 CLI 参数对象。公开输入可写 `{"source":{"corpus":"solid_d3plot"},"part":1}`，通过现有登记和 LSPP_CORPUS_DIR 解析；part、states、bounds 必须按实际语料核对。私有输入在该本地 JSON 中显式提供路径，仓库的 corpus 清单仍只登记私有 ID。运行器不猜私有路径、不下载、不向仓库复制语料。
+
+运行器掌管 workspace/executable/output 和会缩减验收或保留进程的开关，输入配置不能覆盖这些选项。每例必须正常退出并产生新的非空验收报告，报告带 status 时必须 succeeded；native inventory 的每个子结果都须成功。负例结果保留，由原验收脚本的明确断言核对。已验证报告附带源脚本和证据 SHA256。
+
+无 GUI 的三项工程/工作流验收也走同一入口，CI 使用：
+
+```shell
+uv run pytest tests/test_native_acceptance.py -m native -k "engineering_unit or workflow_gate or parameter_study_acceptance.file" --run-native --native-strict --native-output "<新建的外部目录>"
+```
+
+I04 在全量原生用例完成前保持 partial。M0 尚未确认归属的 13 个 UU 远程格另行保留，不能用本框架的默认桌面结果替代。
+

@@ -16,9 +16,9 @@ pytestmark = pytest.mark.native
 
 
 @pytest.fixture
-def native_case(tmp_path):
-    executable = os.environ.get("LSPP_ENGINE_EXECUTABLE")
-    fixture = os.environ.get("LSPP_ENGINE_FIXTURE")
+def native_case(tmp_path, pytestconfig):
+    executable = pytestconfig.getoption("--native-executable") or os.environ.get("LSPP_ENGINE_EXECUTABLE")
+    fixture = pytestconfig.getoption("--native-fixture")
     if not executable or not fixture:
         pytest.skip("Set LSPP_ENGINE_EXECUTABLE and LSPP_ENGINE_FIXTURE for I01 native regression")
     source = Path(fixture)
