@@ -26,7 +26,7 @@ def freeze_sequence(value):
     return value
 
 
-Ids = Annotated[tuple[Identifier, ...], BeforeValidator(freeze_sequence)]
+Ids = Annotated[tuple[Identifier, ...], BeforeValidator(freeze_sequence), Field(min_length=1)]
 Vector3 = Annotated[tuple[Number, Number, Number], BeforeValidator(freeze_sequence)]
 Texts = Annotated[tuple[Text, ...], BeforeValidator(freeze_sequence)]
 
@@ -96,6 +96,10 @@ class IdSelection(Contract):
         if len(set(self.ids)) != len(self.ids):
             raise ValueError("Selection IDs must be unique")
         return self
+
+
+class NoSelection(Contract):
+    kind: Literal["none"] = "none"
 
 
 class PartSelection(IdSelection):
@@ -168,6 +172,7 @@ class BooleanSelection(Contract):
 SelectionPredicate = Annotated[
     Union[
         AllSelection,
+        NoSelection,
         IdSelection,
         PartSelection,
         SetSelection,
@@ -291,7 +296,8 @@ class CurveSpec(Contract):
     source: ModelRef
     database: Text
     entity_type: Domain
-    entity_ids: Ids = ()
+    # Global curves have no entity axis; curve_identity validates this exception.
+    entity_ids: Annotated[tuple[Identifier, ...], BeforeValidator(freeze_sequence)] = ()
     component: Text
     units: Text
     time_units: Text
@@ -357,6 +363,10 @@ class JobResult(Contract):
     def result_consistency(self):
         if self.status == "succeeded" and self.error is not None:
             raise ValueError("Succeeded results cannot carry an execution error")
+        if self.status == "failed" and not self.error:
+            raise ValueError("Failed results require an error")
+        if self.status == "partial" and (not (self.error or self.warnings) or not (self.artifacts or self.data)):
+            raise ValueError("Partial results require an error or warnings and at least one artifact or data item")
         if len({check.name for check in self.checks}) != len(self.checks):
             raise ValueError("Check names must be unique")
         return self
@@ -369,8 +379,10 @@ class JobResult(Contract):
     def check_status(self):
         if not self.checks:
             return "not_reported"
-        states = {check.status for check in self.checks}
-        for state in ("failed", "invalid", "missing", "not_applicable"):
+        states = {check.status for check in self.checks} - {"not_applicable"}
+        if not states:
+            return "not_applicable"
+        for state in ("failed", "invalid", "missing"):
             if state in states:
                 return state
         return "passed"

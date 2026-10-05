@@ -673,9 +673,9 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 里程碑：M1
 
-状态：done；验证：L2
+状态：partial；验证：L1
 
-证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py)
+证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py), [docs/decisions/evidence/i01/report.md](../docs/decisions/evidence/i01/report.md)
 
 - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
 - 删除 gui_session_action 中运行时替换 _native 的做法
@@ -704,6 +704,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 里程碑：M1
 
+- 补测从 M0 转入的 13 个 UU 远程格（4.13/4.10 的 runc 五通道共 10 格，以及两版本 nographics 原生宏和 4.13 会话原生宏共 3 格），记录执行、PNG、MP4 结果与用户确认的断开时间窗
 - 52 个 tools/run_* 收编为带 marker 的 pytest，共享 fixture
 - 一条命令生成 Markdown 报告；私有语料通过环境变量启用
 
@@ -750,6 +751,10 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 里程碑：M0
 
+状态：done；验证：L2
+
+证据：[docs/decisions/0001-session-transport.md](../docs/decisions/0001-session-transport.md), [docs/decisions/0001-experiment-evidence.json](../docs/decisions/0001-experiment-evidence.json), [tools/experiments/run_remote_probe.py](../tools/experiments/run_remote_probe.py)
+
 - E1-E5 实验记录（见评审方案 4.4）
 - 通道矩阵：5 个通道 × (runc= / c= -nographics / session) × 是否可渲染 × 锁屏下是否可用
 - ADR：会话传输方式的决定
@@ -759,6 +764,6 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 里程碑：M0
 
 - tests/corpus/manifest.yaml 仅登记公开语料 ID 与相对统一根目录的路径；来源 URL、许可、SHA256、特征从外部 public-keyword/manifest.json 和 public-results/manifest.json 读取，覆盖任务由本文件 corpus 引用关联
-- LSPP_CORPUS_DIR 指向同时包含 public-keyword 与 public-results 的统一根目录；不复制、下载或提交语料内容，私有 fangzhen/deployed_wings 仅登记 ID
+- LSPP_CORPUS_DIR 指向包含 public-keyword、public-results、local-book 的统一根目录；local-book 作为受限语料只登记 ID 和相对路径，内容及派生数据不提交、不公开；私有 fangzhen/deployed_wings 仍仅登记 ID
 - 必备语料：include_contact（含 Include 与接触的 keyword）、shell_d3plot、solid_d3plot、binout_forces（含 RCFORC/SECFORC）、mpp_binout、large_private
 - 找不到公开语料的项明确标为缺口
