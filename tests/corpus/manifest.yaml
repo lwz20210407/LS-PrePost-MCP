@@ -1,0 +1,146 @@
+schema_version: 1
+corpora:
+- id: include_contact
+  source: synthetic:original-inline-keyword
+  license: MIT; original synthetic test input, no solver validation
+  status: available
+  tasks:
+  - P01
+  - P02
+  - P04
+  - P06
+  - P11
+  - I07
+  files:
+  - path: main.k
+    sha256: 5cbac2ce149ef1d53384c36e9516da0e0da83f07ee23f35da122b701a838d60e
+    content: '*KEYWORD
+
+      *INCLUDE_PATH
+
+      parts
+
+      *INCLUDE
+
+      mesh.k
+
+      *CONTACT_AUTOMATIC_SINGLE_SURFACE
+
+      1,0,2,0
+
+      0.2,0.2
+
+      *END
+
+      '
+  - path: parts/mesh.k
+    sha256: 11990c1435fdbedf8fce58f52af7a8946985950d4b8f4e473424929343aad3a7
+    content: '*KEYWORD
+
+      *NODE
+
+      1,0,0,0
+
+      2,1,0,0
+
+      3,1,1,0
+
+      4,0,1,0
+
+      *ELEMENT_SHELL
+
+      1,1,1,2,3,4
+
+      *PART
+
+      Synthetic plate
+
+      1,1,1
+
+      *SECTION_SHELL
+
+      1,2
+
+      0.1
+
+      *MAT_ELASTIC
+
+      1,7.8e-9,210000,0.3
+
+      *END
+
+      '
+  evidence: Native reopen and contact validity pending L2; not an engineering solution.
+- id: shell_d3plot
+  source: synthetic:tools/synthetic_shell_result.py
+  license: MIT; original known-truth binary generated with LASSO 2.0.4
+  status: available
+  tasks:
+  - Q01
+  - Q02
+  - Q03
+  - Q04
+  - Q09
+  generator: synthetic_shell_result
+  files:
+  - path: d3plot
+    sha256: 08e29edab83a10901589cf5e20714bed8a019cc69a7b93e6cba08d5c231d58c1
+  evidence: tests/test_synthetic_shell_result.py; explicitly synthetic, not solver
+    output
+- id: solid_d3plot
+  source: https://github.com/Renumics/mesh2vec/tree/e06485562862453511074b1fa428e4a426b556bd/data/hat
+  license: MIT; Copyright(c)2023 Renumics; original LICENSE retained; no asset-specific
+    exception found in source tree
+  status: available
+  tasks:
+  - Q01
+  - Q02
+  - Q03
+  - Q04
+  - Q05
+  - G01
+  - G04
+  files:
+  - path: LICENSE
+    url: https://raw.githubusercontent.com/Renumics/mesh2vec/e06485562862453511074b1fa428e4a426b556bd/LICENSE
+    sha256: 61c5bd9b691896d4d1c0df74048397c651e4705ee5296253d48a6c723b0caabe
+  - path: HAT.d3plot
+    url: https://raw.githubusercontent.com/Renumics/mesh2vec/e06485562862453511074b1fa428e4a426b556bd/data/hat/HAT.d3plot
+    sha256: 217d8048d5f873e886e951fabdacddccb2a4542d9ea5c46cb247f26ac50d3364
+  - path: HAT.d3plot01
+    url: https://raw.githubusercontent.com/Renumics/mesh2vec/e06485562862453511074b1fa428e4a426b556bd/data/hat/HAT.d3plot01
+    sha256: d78299f95fa4c0b297e9ee43f1d5c408aaffca8c56a2b80c93252da0cc8a06f0
+  evidence: Pinned source and local SHA256 checked; existing reader inventory reports
+    9768 solids. L2 field crosscheck pending.
+- id: binout_forces
+  source: null
+  sha256: null
+  license: unresolved
+  status: gap
+  tasks:
+  - Q06
+  - Q12
+  files: []
+  gap: 'Inspected existing permitted binout: elout/glstat/matsum/ncforc/nodout only;
+    no complete RCFORC + SECFORC fixture verified.'
+- id: mpp_binout
+  source: null
+  sha256: null
+  license: unresolved
+  status: gap
+  tasks:
+  - Q06
+  files: []
+  gap: No verified multi-shard MPP family with matching serial reference acquired.
+- id: large_private
+  source: env:LSPP_PRIVATE_CORPUS
+  sha256: null
+  license: Private, user-authorized local use only; no redistribution
+  status: external
+  tasks:
+  - P01
+  - P08
+  - G03
+  files: []
+  gap: Private identity is computed locally at use; no private path or input hash
+    is committed.
