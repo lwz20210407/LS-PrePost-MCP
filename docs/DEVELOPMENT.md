@@ -94,3 +94,11 @@ I04 在全量原生用例完成前保持 partial。用户已把 M0 剩余 13 个
 I08 的运行时注册表为 `src/ls_prepost_mcp/data/operations.json`；新增或迁移操作更新此处，再运行 gen_docs.py。兼容名称和 canonical operation_id 均需通过同一签名/路由验证。CI 执行 `uv run lint-imports --no-cache`；本地也使用 no-cache，避免在仓库生成缓存。
 
 import-linter 固定 2.6：2.7–2.9 的 rich>=14.2.0 与已验证 LASSO2.0.4 的 rich==13.* 冲突，保留数值后端锁定，选择可共存版本。约束使用官方的 protected/forbidden 合同（https://import-linter.readthedocs.io/en/v2.6/contract_types.html）。I02 的六个合同字段未改变。
+
+## I05 本地知识索引
+
+`tools/build_knowledge_index.py --output <新索引.sqlite>` 索引仓库命令表、已知问题、安装说明和已有工作流参考。可用 `--pydyna-root <keyword_classes目录> --pydyna-version <版本>` 加入 MIT 关键字字段定义；索引器只读 AST，不导入或执行批量生成类，保留字段名/类型/偏移/宽度/默认值及来源行号。
+
+API、厂商用户指南和课程文本通过 `--external-sources <仓库外JSON>` 加入。该文件为对象列表，每项含 id/category/path/license，可附 version；外部文件固定为 private，不允许在配置中改为 public。类别为 command/api/keyword/user_guide/recipe/known_issue。私有文本、索引及其派生数据必须放在仓库外，不进入 Git。
+
+查询接口为 knowledge_index.search_index：category 可筛选，include_private 默认 False。每条命中带来源、版本、行号、内容 SHA256、可见性和 reference_unverified 状态；参考文本不执行，也不证明本机原生兼容。索引只创建新文件、查询只读，禁止覆盖已有索引。A08 的 recipe.yaml 加入后可重建索引；现有 JSON 工作流明确标为 legacy_workflow_template。

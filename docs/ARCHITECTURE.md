@@ -87,6 +87,10 @@ mcp/         thin tools, profiles
 
 MCP/automation 调用 domain，domain 依赖 core/engine/native；下层不导入 service 或 MCP。I03 集中命令生成与版本差异，I04 收编原生验收脚本，import-linter 在 M1 强制依赖方向。迁移为别名后删除重复实现，不同时维护多套路由。
 
+## 知识检索边界
+
+I05 使用本地 SQLite/FTS 索引，支持代码标识符与中文词片段检索。源类别、版本、定位、行号和内容身份与文本一起保存，查询以参数绑定构造，不执行文档中的内容。公开命令表和仓库自有资料可随项目使用；外部 API/用户指南/课程资料默认私有，其索引与派生物只能在仓库外。私有命中需明确 include_private，参考记录始终带 reference_unverified 标记。
+
 ## 版本、证据与发布
 
 4.13 全量、4.10 子集、4.8 尽力，排除 4.11。L1 是逻辑测试，L2 是固定语料原生回归，L3 是 Agent 场景评测。每个里程碑按 tasks.yaml 退出标准开 PR，审查后由用户决定合并。保持 Private，M4 达标后由用户决定公开。设计决定见 [ADR 0000](decisions/0000-review-decisions-2026-10-05.md)。

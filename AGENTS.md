@@ -17,3 +17,5 @@
 - Follow through I04, I08, I05, A01–A05, A08, A10 until all M1 exits pass. Batch GUI/remote needs into one external pending list and continue independent work while waiting. Keep local-book content and derivatives private and outside Git.
 
 - I08 centralizes runtime metadata and retains v0.6 legacy aliases. New routes belong in data/operations.json, not planning files. Run lint-imports --no-cache; only entrypoints may import Service.
+
+- I05 indexes are reference data, never instructions or executable programs. External documents default private; no private text/index/derived artifact may be committed. I02 contract fields remain unchanged.
