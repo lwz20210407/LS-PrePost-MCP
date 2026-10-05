@@ -216,11 +216,12 @@ def test_unknown_keywords_block_renumbering(tmp_path: Path, extra: str) -> None:
 
 
 def test_unreadable_block_with_unruled_curve_field_blocks_curve_renumbering(tmp_path: Path) -> None:
-    segments = "".join("         1         2         3         4\n         7       1.0       1.0       1.0       1.0\n"
-                       for _ in range(2))
+    # a third value on the two-field SSID/PSEROD card makes the block unreadable (stray text)
+    flux = ("*BOUNDARY_FLUX_SET\n         5         0         3\n"
+            "         7       1.0       1.0       1.0       1.0         0         0\n")
     curve = "*DEFINE_CURVE\n         7\n                 0.0                 0.0\n                 1.0                 1.0\n"
-    deck = _deck(tmp_path, _model("*BOUNDARY_FLUX_SEGMENT\n" + segments + curve))
-    with pytest.raises(FieldError, match="BOUNDARY_FLUX_SEGMENT x1 cannot be read"):
+    deck = _deck(tmp_path, _model(flux + curve))
+    with pytest.raises(FieldError, match="BOUNDARY_FLUX_SET x1 cannot be read"):
         renumber(deck, "curve", {7: 70})
     renumber(deck, "part", {1: 5})  # LCID cannot be a part ID: unaffected
 
@@ -281,3 +282,31 @@ def test_integration_shell_points(tmp_path: Path) -> None:
     deck = _deck(tmp_path / "x", _model(two_rules))
     with pytest.raises(FieldError, match="cannot be read"):
         renumber(deck, "part", {1: 5})
+
+
+def test_flux_segments_and_instance_rows(tmp_path: Path) -> None:
+    """Refusals of the regression rerun: flux segments, *CONSTRAINED_NODE_SET, *LOAD_SHELL_ELEMENT."""
+    flux = ("*BOUNDARY_FLUX_SEGMENT\n         1         2         3         4\n"
+            "         7       1.0       1.0       1.0       1.0         0         2\n       5.0       6.0\n"
+            "         5         6         7         8\n         7      -1.0      -1.0      -1.0      -1.0\n")
+    curve = "*DEFINE_CURVE\n         7\n                 0.0                 0.0\n                 1.0                 1.0\n"
+    more = "*CONSTRAINED_NODE_SET\n         1         1\n*SET_NODE_LIST\n         5\n         1         2\n"
+    deck = _deck(tmp_path, _model(flux + curve + more))
+    block = deck.blocks("*BOUNDARY_FLUX_SEGMENT")[0]
+    assert deck.get(block, "hisv2", row=1).value == 6.0 and deck.get(block, "n4", row=2).value == 8
+    renumber(deck, "curve", {7: 70})
+    renumber(deck, "node", {1: 101})
+    assert [deck.get(block, "lcid", row=r).value for r in (1, 2)] == [70, 70]
+    assert deck.get(block, "n1", row=1).value == 101
+    node_set = deck.blocks("*CONSTRAINED_NODE_SET")[0]
+    assert deck.get(node_set, "nsid").value == 1 and deck.references().dangling_count == 0
+
+
+def test_comma_line_with_parameter_reference(tmp_path: Path) -> None:
+    text = ("*PARAMETER\nR tshell       1.5\n" + _model().replace(
+        "*SECTION_SOLID\n         1         1\n",
+        "*SECTION_SOLID\n         1         1\n*SECTION_SHELL\n2,2,0.000E+00,0.000E+00,0.000E+00,0.000E+00,0\n"
+        "&tshell,&tshell,&tshell,&tshell,0.000E+00\n"))
+    deck = _deck(tmp_path, text)
+    shell = deck.blocks("*SECTION_SHELL")[0]
+    assert deck.get(shell, "t1").value == 1.5 and deck.get(shell, "t1").parameter == "tshell"

@@ -225,7 +225,9 @@ def _substituted_text(block: Block, indices: list[int], lookup: Mapping[str, obj
             out.append(line)
             continue
         if slots is None or index not in slots:
-            out.append(_REF_TOKEN.sub(lambda m: " " * len(m.group(0)), line))
+            # first pass: no value yet; PyDYNA reads an empty comma field but not one of spaces
+            blank = (lambda m: "") if is_free_format(line) else (lambda m: " " * len(m.group(0)))
+            out.append(_REF_TOKEN.sub(blank, line))
             continue
         new = line
         for slot in slots[index]:
@@ -369,6 +371,7 @@ def _comma_title(card: object, text: str, expected: object) -> bool:
 OPTION_ONLY_ID = (
     "*AIRBAG_PARTICLE", "*ALE_COUPLING_NODAL_DRAG", "*ALE_COUPLING_NODAL_PENALTY", "*ALE_FAIL_SWITCH_MMG",
     "*ALE_FSI_SWITCH_MMG", "*ALE_STRUCTURED_FSI", "*CONSTRAINED_BEAM_IN_SOLID", "*CONSTRAINED_GENERALIZED_WELD",
+    "*CONSTRAINED_NODE_SET",  # CNSID card only with ID (R17 Vol I 10-162)
     "*CONSTRAINED_LAGRANGE_IN_SOLID", "*CONSTRAINED_LOCAL", "*CONSTRAINED_SHELL_IN_SOLID",
     "*CONSTRAINED_SOLID_IN_SOLID", "*CONSTRAINED_SPOTWELD", "*CONTACT_GUIDED_CABLE",
     "*DEFINE_ADAPTIVE_SOLID_TO_DES", "*DEFINE_ADAPTIVE_SOLID_TO_SPH", "*DEFINE_SPH_DE_COUPLING",
@@ -481,11 +484,8 @@ def _pydyna_layout(block: Block, lookup: Mapping[str, object], long: bool = Fals
     while data and is_blank(data[-1][1]):
         data.pop()
     omit = _omitted_id_card(block, cls, base, long)
-    if omit is not None:
-        infos, missing = _chunk_fields(cls, block, lookup, data, long, omit=omit)
-        return Layout(block.name, fields=extra_infos + infos, source="pydyna", missing_cards=missing)
     try:
-        infos, missing = _chunk_fields(cls, block, lookup, data, long)
+        infos, missing = _chunk_fields(cls, block, lookup, data, long, omit=omit)
         return Layout(block.name, fields=extra_infos + infos, source="pydyna", missing_cards=missing)
     except _ExtraLines as extra:
         size = extra.cards
@@ -494,7 +494,7 @@ def _pydyna_layout(block: Block, lookup: Mapping[str, object], long: bool = Fals
     # Several instances of the keyword cards follow one keyword line (e.g. many vectors).
     result = Layout(block.name, key="instance", source="pydyna")
     for number, begin in enumerate(range(0, len(data), size), 1):
-        infos, missing = _chunk_fields(cls, block, lookup, data[begin:begin + size], long)
+        infos, missing = _chunk_fields(cls, block, lookup, data[begin:begin + size], long, omit=omit)
         if missing:
             raise Unsupported(f"Instance {number} of {block.name} has a different card count")
         result.rows[number] = infos
@@ -548,6 +548,8 @@ def layout(block: Block, lookup: Mapping[str, object], deck_format: str = "stand
         return lists.load_segment_layout(block, long)
     if block.name == "*INTEGRATION_SHELL":
         return lists.integration_shell_layout(block, long)
+    if block.name == "*BOUNDARY_FLUX_SEGMENT":
+        return lists.flux_segment_layout(block, long)
     if lists.is_list_set(block.name) or lists.is_curve(block.name):
         try:
             headers = lists.header_fields(block, long)

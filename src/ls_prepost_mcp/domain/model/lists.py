@@ -209,6 +209,44 @@ def integration_shell_layout(block: Block, long: bool = False) -> Layout:
                   source="builtin-integration")
 
 
+FLUX_NODES = [Column(f"n{i}", "int", 10 * (i - 1), 10) for i in range(1, 5)]
+FLUX_DATA = [Column("lcid", "int", 0, 10)] + [Column(f"mlc{i}", "float", 10 * i, 10) for i in range(1, 5)] + [
+    Column("loc", "int", 50, 10), Column("nhisv", "int", 60, 10)]
+
+
+def flux_segment_layout(block: Block, long: bool = False) -> Layout:
+    """``*BOUNDARY_FLUX_SEGMENT`` (R17 Vol I 5-46): per segment N1-N4, then LCID MLC1-MLC4 LOC NHISV,
+    then ceil(NHISV/8) history-variable cards; segments are rows keyed 1, 2, ..."""
+    if long:
+        raise Unsupported("Long-format *BOUNDARY_FLUX_SEGMENT is not supported for named fields")
+    lines = [index for index, line in block.data() if not is_blank(line)]
+    rows: dict[int, tuple[int, ...]] = {}
+    position, deepest = 0, 0
+    while position < len(lines):
+        if position + 2 > len(lines):
+            raise Unsupported("*BOUNDARY_FLUX_SEGMENT: the LCID card of the last segment is missing")
+        for index, columns in zip(lines[position:position + 2], (FLUX_NODES, FLUX_DATA)):
+            stray = stray_text(block.lines[index], [(c.offset, c.width) for c in columns], tolerant=False)
+            if stray:
+                raise Unsupported(f"*BOUNDARY_FLUX_SEGMENT: text outside the fields on line {index} ({stray[:40]!r})")
+        nhisv = (_values(block.lines[lines[position + 1]], 10, 7) + [""] * 7)[6]
+        try:
+            count = int(parse_number(nhisv) or 0)
+        except (FieldError, ValueError) as error:
+            raise Unsupported(f"*BOUNDARY_FLUX_SEGMENT: NHISV must be a number ({error})") from error
+        extra = -(-count // 8)
+        if position + 2 + extra > len(lines):
+            raise Unsupported("*BOUNDARY_FLUX_SEGMENT: history-variable cards are missing")
+        rows[len(rows) + 1] = tuple(lines[position:position + 2 + extra])
+        deepest = max(deepest, extra)
+        position += 2 + extra
+    history = [[Column(f"hisv{8 * card + i}", "float", 10 * (i - 1), 10) for i in range(1, 9)]
+               for card in range(deepest)]
+    return Layout(block.name, rows=RowMap(block, [FLUX_NODES, FLUX_DATA] + history,
+                                          ["segment", "flux"] + ["history"] * deepest, rows), key="row",
+                  source="builtin-flux-segments")
+
+
 SEGMENT_ROW = [Column("lcid", "int", 0, 10), Column("sf", "float", 10, 10, 1.0), Column("at", "float", 20, 10, 0.0)] + [
     Column(f"n{i}", "int", 20 + 10 * i, 10) for i in range(1, 6)]
 SEGMENT_MID = [Column(f"n{i}", "int", 10 * (i - 6), 10) for i in range(6, 9)]
