@@ -10,6 +10,7 @@ from pydantic import StrictInt
 
 from .config import command_path
 from .core.native_log import native_errors, read_delta
+from .core.validation import unit_label
 from .gui_controls import wait_for_gui_state
 from .gui_mesh import ReadOnlyScopeMismatch, verify_mesh_digest
 from .gui_selection import part_visibility
@@ -76,7 +77,6 @@ class GuiCommonTools:
     def measure_gui_geometry(self, session_id: str, measurement: str, node_ids: list[StrictInt], units: str,
                              axis: str = "z", state: StrictInt | None = None, capture: bool = False) -> dict:
         """Native common pre/post coordinate/distance/axis-height/3-node or 4-node angle/3-node circle query. Keyword uses reference geometry; d3plot requires explicit state and uses native state coordinates. Global axes0 and scale1 requested; numeric output is independently checked. Native measurement/Identify overlays remain; optional PNG. Targets the active managed model. Projected angle values are not interpreted; full F4/F5 panels remain broader."""
-        from .service import unit_label
 
         unit_label(units)
         if measurement not in {*COUNTS, "coordinates"} or axis not in "xyz" or len(axis) != 1:

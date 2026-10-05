@@ -69,7 +69,7 @@ def read_native_xy(path):
     return rows
 
 
-def run_case(settings, jobs, source: Path, units: str):
+def run_case(settings, jobs, source: Path, units: str, *, renderer=None):
     directory, manifest = jobs.create("native_postprocess_case", {"source": str(source), "units": units})
     manifest.update(backend="lsprepost", executable=fingerprint(settings.native_executable()), checks=[])
     created_copies = []
@@ -177,8 +177,9 @@ def run_case(settings, jobs, source: Path, units: str):
         try:
             # Native graphics has a different startup/cwd behavior. Use the
             # verified Python bridge in a separate owned job while staging lives.
-            from .service import Service
-            image_job = Service(settings).render_snapshot(str(directory/'d3plot'), 'd3plot', state=states, fringe_code=9)
+            if renderer is None:
+                raise ValueError("A native renderer callback is required")
+            image_job = renderer(str(directory/'d3plot'), 'd3plot', state=states, fringe_code=9)
             manifest['image_job_id'] = image_job['job_id']
             if image_job['status'] != 'succeeded':
                 raise ValueError(str(image_job.get('error')))

@@ -57,6 +57,12 @@ I02 的六个 pydantic 合同已在 [core/contracts.py](../src/ls_prepost_mcp/co
 
 `native/versions.py` 是版本能力判断入口：4.13 主力、4.10 回归子集、4.8 尽力、4.11 排除。4.10 队列来源身份限制在进程启动前拒绝；未知安装也不能默认使用已验证队列能力。路径或配置版本仅是提示，能力报告明确标为未完成运行时验证，成功仍需实际回执与产物检查。旧 Python 向量 ABI 以及 LASSO/DPF 依赖版本的既有拒绝策略集中维护，不放宽数值验证要求。
 
+## 运行时注册与兼容别名
+
+`data/operations.json` 是运行时操作元数据，包含稳定内部 operation_id 所需的域/名称、上下文路由、工作流可用性及兼容期。`operation_registry.py` 派生 MCP 名称、会话路由与工作流白名单；旧名作为同一类型化函数的兼容别名保留到 v0.6，compact 接口同时接受稳定 operation_id。目标 T1/配方归属是迁移元数据，不据此声称尚未实现的任务已完成。
+
+运行时不再读取 development_plan.json 或 tasks.yaml；TOOLS 与 tool_migration_map.yaml 由实际 registry 生成并在 CI 核对。共用参数检查已移到 core/validation.py，Service 保留旧导出；原生批处理的渲染阶段显式接收回调，不向上构造 Service。import-linter 禁止下层导入编排层、禁止 core 依赖 engine/native，并限制只有 CLI/server 可直接导入 Service。没有忽略规则绕过这些约束。
+
 ## 前处理
 
 I07 由 Claude 在 `claude/keyword-engine` 并行开发，M3 合并；M0–M2 不在本分支实现 I07，也不创建 `src/ls_prepost_mcp/domain/model/` 下的文件。归属与集成约束以 tasks.yaml 为准。

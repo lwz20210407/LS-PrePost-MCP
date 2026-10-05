@@ -90,3 +90,7 @@ I04 在全量原生用例完成前保持 partial。用户已把 M0 剩余 13 个
 捕获后必须由用户确认实际断开区间，将本地确认文件改为 confirmed，含 operator_confirmed=true、disconnected_from/disconnected_until 两个 Unix 时间戳。随后用同一 pytest 入口传 `--remote-evidence <原捕获目录>` 和确认文件，在新的 native-output 目录验证。未确认区间不会判为通过；记录/每阶段产物哈希变化也会失败。
 
 这些用例核验的是实验记录及远程条件，原生各 lane 的 succeeded/failed 原样保留在报告，不能把“记录已验证”解释成不支持的 runc/宏路线已成功。每阶段保留自己的回执、模型和媒体，后续阶段不能用同名文件覆盖前一阶段证据。
+
+I08 的运行时注册表为 `src/ls_prepost_mcp/data/operations.json`；新增或迁移操作更新此处，再运行 gen_docs.py。兼容名称和 canonical operation_id 均需通过同一签名/路由验证。CI 执行 `uv run lint-imports --no-cache`；本地也使用 no-cache，避免在仓库生成缓存。
+
+import-linter 固定 2.6：2.7–2.9 的 rich>=14.2.0 与已验证 LASSO2.0.4 的 rich==13.* 冲突，保留数值后端锁定，选择可共存版本。约束使用官方的 protected/forbidden 合同（https://import-linter.readthedocs.io/en/v2.6/contract_types.html）。I02 的六个合同字段未改变。

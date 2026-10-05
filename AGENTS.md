@@ -15,3 +15,5 @@
 - UU remote is the actual confirmed remote environment. The user moved thirteen remaining runc/macro UU cells to I04; M0 is 8/8. Keep them unverified until the remote evidence and operator window are validated.
 
 - Follow through I04, I08, I05, A01–A05, A08, A10 until all M1 exits pass. Batch GUI/remote needs into one external pending list and continue independent work while waiting. Keep local-book content and derivatives private and outside Git.
+
+- I08 centralizes runtime metadata and retains v0.6 legacy aliases. New routes belong in data/operations.json, not planning files. Run lint-imports --no-cache; only entrypoints may import Service.

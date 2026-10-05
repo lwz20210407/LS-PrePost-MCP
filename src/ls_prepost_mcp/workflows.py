@@ -8,92 +8,13 @@ from pathlib import Path
 
 from .core.contracts import JobResult
 from .jobs import atomic_json, check_artifact, now
+from .operation_registry import GUI_ACTIONS as GUI_ACTIONS
+from .operation_registry import NATIVE_ACTIONS as NATIVE_ACTIONS
+from .operation_registry import WORKFLOW_ACTIONS
 from .outcomes import describe_outcome, normalize_outcome, result_value
-from .sessions import NATIVE_ACTIONS, alive, process_identity
+from .sessions import alive, process_identity
 from .workflow_checks import POLICIES, evaluate_gate, validate_checks
 from .workflow_runtime import compile_workflow, operation_route
-
-GUI_ACTIONS = {
-    "create_gui_segment_pressure",
-    "create_gui_nonreflecting_boundary",
-    "create_gui_segment_set",
-    "create_gui_entity_set",
-    "inspect_gui_entity_sets",
-    "create_gui_spc",
-    "create_gui_prescribed_motion",
-    "create_gui_nodal_load",
-    "set_gui_entity_visibility",
-    "measure_gui_geometry",
-    "render_gui_field",
-    "select_gui_shell_topology",
-    "replace_gui_node",
-    "export_gui_curve_plot",
-    "export_gui_animation",
-    "export_gui_field_animation",
-    "check_gui_keywords",
-    "inspect_gui_menu",
-    "check_gui_shell_quality",
-    "check_gui_solid_quality",
-    "combine_gui_selections",
-    "save_gui_selection_buffer",
-    "load_gui_selection_buffer",
-    "select_gui_nodes_by_plane",
-    "select_gui_entities",
-    "select_gui_nodes_by_box",
-    "select_gui_nodes_by_sphere",
-    "renumber_gui_entities",
-    "set_gui_display",
-    "set_gui_part_visibility",
-    "control_gui_animation",
-    "execute_gui_command",
-    "inspect_gui_mesh",
-    "merge_gui_duplicate_nodes",
-    "reverse_gui_shell_normals",
-    "translate_gui_nodes",
-    "set_gui_node_coordinates",
-    "rotate_gui_nodes",
-    "create_gui_nodes",
-    "create_gui_elements",
-    "inspect_gui_mesh_quality",
-}
-WORKFLOW_ACTIONS = (
-    NATIVE_ACTIONS
-    | GUI_ACTIONS
-    | {
-        "inspect_result_validity",
-        "probe_dpf_runtime",
-        "inspect_dpf_results",
-        "export_dpf_result",
-        "inspect_mesh_quality",
-        "transform_mesh_deck",
-        "merge_duplicate_mesh_nodes",
-        "validate_model_references",
-        "create_node_set_by_box",
-        "create_tensile_shell_plate",
-        "compose_keyword_deck",
-        "update_keyword_fields",
-        "update_keyword_table_row",
-        "instantiate_installed_template",
-        "extract_native_ascii_curve",
-        "extract_native_binout_curve",
-        "extract_native_stress",
-        "extract_native_fields",
-        "build_tensile_curves",
-        "combine_history_curves",
-        "convert_history_units",
-        "assess_energy_balance",
-        "native_energy_postprocess",
-        "native_tensile_postprocess",
-        "prepare_native_program",
-        "execute_native_program",
-        "create_native_macro",
-        "run_native_macro",
-        "process_curve",
-        "open_model",
-        "checkpoint",
-        "new_model",
-    }
-)
 
 
 def validate_steps(steps):

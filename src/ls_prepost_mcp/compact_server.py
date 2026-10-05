@@ -1,17 +1,15 @@
 """Opt-in small MCP surface with on-demand schemas and unchanged typed operations."""
 
 import inspect
-import json
-from pathlib import Path
 from typing import Any, Literal, get_type_hints
 
 from pydantic import ConfigDict, StrictInt, create_model
 
 from . import knowledge
-from .registry import SERVICE_TOOLS
+from .operation_registry import KNOWLEDGE_TOOLS, SERVICE_TOOLS, domain_for, resolve_operation
 from .workflow_runtime import operation_route
 
-KNOWLEDGE = ("search_knowledge", "list_capabilities", "search_commands", "search_workflows")
+KNOWLEDGE = KNOWLEDGE_TOOLS
 
 
 class CompactTools:
@@ -19,9 +17,8 @@ class CompactTools:
         self.service = service
         self.functions = {name: getattr(service, name) for name in SERVICE_TOOLS}
         self.functions.update({name: getattr(knowledge, name) for name in KNOWLEDGE})
-        plan = json.loads((Path(__file__).with_name("data")/"development_plan.json").read_text(encoding="utf8"))
-        self.domains = {name: module["id"] for module in plan["modules"] for name in module["current_tools"]}
-        self.domains.update({name: "knowledge" for name in KNOWLEDGE})
+        self.domains = {name: domain_for(name) for name in self.functions}
+
 
     def lspp_find_operations(self, query: str = "", domain: str | None = None,
                              offset: StrictInt = 0, limit: StrictInt = 20) -> dict:
@@ -34,16 +31,20 @@ class CompactTools:
         terms = query.lower().split()
         rows = []
         for name, function in self.functions.items():
+            record = resolve_operation(name)
             group = self.domains.get(name, "unassigned")
             description = inspect.getdoc(function) or ""
             if (domain is None or group == domain) and all(t in (name+" "+description).lower() for t in terms):
-                rows.append(dict(name=name, domain=group, summary=description.split(". ")[0][:220]))
+                rows.append(dict(name=name, operation_id=record.operation_id, domain=group,
+                                 legacy_until=record.legacy_until, migration_target=record.target,
+                                 summary=description.split(". ")[0][:220]))
         rows.sort(key=lambda item: (item["domain"], item["name"]))
         return dict(operations=rows[offset:offset+limit], total=len(rows), domains=domains,
                     next_offset=offset+limit if offset+limit < len(rows) else None,
                     note="Use list_capabilities to check actual native/size/version scope")
 
     def _resolve(self, operation, execution, session_id):
+        operation = resolve_operation(operation).name
         if operation not in self.functions:
             raise ValueError("Unknown registered operation")
         if execution not in ("direct", "gui"):

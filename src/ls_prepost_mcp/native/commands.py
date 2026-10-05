@@ -98,3 +98,7 @@ def fringe_bounds(low, high):
     if any(type(v) not in (int, float) or not math.isfinite(v) for v in (low, high)) or low >= high:
         raise ValueError("Fringe bounds must be ordered finite numbers")
     return "range userdef {:.17g} {:.17g};".format(low, high)
+
+
+VIEWS = {"isometric": "isometric x", "top": "top", "bottom": "bottom", "front": "front",
+         "back": "back", "left": "left", "right": "right"}

@@ -6,6 +6,7 @@ import numpy as np
 from pydantic import StrictFloat, StrictInt
 
 from .config import command_path
+from .core.validation import integer, numbers, unit_label
 from .deck_backend import api
 from .entity_cards import inspect_cards, verify_cards
 from .gui_entities import entity_title, selection_source, stable_scene
@@ -22,7 +23,6 @@ class GuiSegmentTools:
                                cosine_min: StrictFloat = 0.99, reverse: bool = False,
                                max_warpage_degrees: StrictFloat = 15.0) -> dict:
         """Create a native SET_SEGMENT from solid_exterior (conforming Hex8/Tet4), shell_faces (Tri3/Quad4), or shell_boundary_2d (XY Tri3/Quad4 boundary edges). One explicit element-ID list or same-session selection_job of matching solid/shell domain. Exterior ownership is checked against the entire matching mesh domain, not just selected cells; no disconnected/nonconforming geometric intersections. Orient solids/2D edges outward, shells by connectivity; filter those normals by optional direction/cosine, then reverse if requested. Verify native saved ordered connectivity, attributes, full mesh/state/display and other cards. Max20000 selected elements and generated segments, ASCII names, standalone native short-format export; only creation, not solver boundary applicability certification."""
-        from .service import integer, numbers, unit_label
 
         integer(set_id, "set_id")
         title = entity_title(title)

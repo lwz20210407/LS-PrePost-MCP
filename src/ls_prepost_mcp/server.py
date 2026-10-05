@@ -3,9 +3,10 @@ import os
 
 from mcp.server.fastmcp import FastMCP
 
+from . import knowledge
 from .compact_server import CompactTools
 from .config import Settings
-from .knowledge import list_capabilities, search_commands, search_knowledge, search_workflows
+from .operation_registry import KNOWLEDGE_TOOLS, bind_alias
 from .registry import SERVICE_TOOLS
 from .service import Service
 
@@ -22,11 +23,9 @@ def build_server(settings: Settings | None = None, tool_profile: str | None = No
             server.tool(name=name)(getattr(compact, name))
         return server
     for name in SERVICE_TOOLS:
-        server.tool(name=name)(getattr(service, name))
-    server.tool()(search_knowledge)
-    server.tool()(list_capabilities)
-    server.tool()(search_commands)
-    server.tool()(search_workflows)
+        server.tool(name=name)(bind_alias(getattr(service, name), name))
+    for name in KNOWLEDGE_TOOLS:
+        server.tool(name=name)(bind_alias(getattr(knowledge, name), name))
     return server
 
 
