@@ -21,6 +21,7 @@ def run(cell, executable, lane, run_dir):
     if lane == "png":
         tail += 'isometric\nac\nprint png "' + str(directory / "image.png") + '" opaque enlisted "OGL1x1"\n'
     if lane == "mp4":
+        tail += 'openc d3plot "' + str(directory.parent / "fixture/d3plot") + '"\n'
         tail += (
             'anim stop\nanim first 1\nanim last 3\nanim incr 1\nmovie MP4/H264 640x480 "'
             + str(directory / "movie")
@@ -30,10 +31,8 @@ def run(cell, executable, lane, run_dir):
     macro = run_dir / "probe.mac"
     macro.write_text(source.replace("*macro end", tail + "*macro end"), encoding="utf8")
     start = run_dir / "start.cfile"
-    commands = 'openc d3plot "' + str(directory.parent / "fixture/d3plot") + '"\n'
-    if cell["mode"] == "session":
-        commands += "winmacro\n"
-    else:
+    commands = 'open keyword "' + str(directory.parent / "fixture/input.k") + '"\n'
+    if cell["mode"] != "session":
         commands += "exit\n"
     start.write_text(commands, encoding="utf8")
     env, preferences = isolate_preferences(executable, run_dir)
@@ -57,6 +56,17 @@ def run(cell, executable, lane, run_dir):
             if cell["mode"] == "session":
                 transport = WindowsCommandTransport(process.pid)
                 deadline = time.monotonic() + 30
+                while True:
+                    try:
+                        menu = transport.inspect_menu()
+                        if any(item["path"] == ["Misc.", "Launch Macro Interface"] for item in menu):
+                            break
+                    except RuntimeError:
+                        pass
+                    if process.poll() is not None or time.monotonic() > deadline:
+                        raise RuntimeError("Experimental macro process did not expose the recorded menu")
+                    time.sleep(0.1)
+                transport.open_menu_item(["Misc.", "Launch Macro Interface"])
                 while True:
                     try:
                         handle = transport._panel_control("Macro", 10609, class_name="ListBox")

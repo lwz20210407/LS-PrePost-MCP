@@ -1,10 +1,22 @@
 """I10: offline guards against calling stale artifacts an experiment pass."""
 
+import struct
 import time
 
 import pytest
 
-from tools.experiments.run_matrix import check_outputs
+from tools.experiments.run_matrix import check_outputs, session_flags_state
+
+
+@pytest.mark.parametrize(
+    "state,flags,expected",
+    [(0, 0, "locked"), (0, 1, "unlocked"), (4, 0, "rdp_disconnected"), (0, 0xFFFFFFFF, "unknown")],
+)
+def test_wts_lock_flags_are_not_inferred_from_input_desktop(state, flags, expected):
+    data = struct.pack("<5I", 1, 0, 7, state, flags)
+    assert session_flags_state(data, 7) == expected
+    assert session_flags_state(data, 8) == "unknown"
+    assert session_flags_state(data[:19], 7) == "unknown"
 
 
 def test_old_receipt_is_not_a_fresh_native_result(tmp_path):

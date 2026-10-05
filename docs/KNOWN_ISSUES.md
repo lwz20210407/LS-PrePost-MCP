@@ -337,6 +337,20 @@
 - 规避：0 占位不计入集合，真实缺失的非零节点仍报错。
 - 来源文档与证据：[GUI_WORKFLOWS 原生网格验收记录](archive/2026-10/GUI_WORKFLOWS.md)。
 
+## KI-043 M0 原生执行与会话实验
+
+- 现象：4.13 runc= 的数据操作通过，图形请求出现原生退出；4.10 的同一 runc= 程序未通过。c= -nographics 可生成 PNG，但两版本的 640×480 MP4 请求读回 640×476。
+- 版本：4.13.4（17Dec2025）及本机 4.10 安装；仅本次原创语料。
+- 规避：按模式/版本/配方登记结果；使用独立尺寸、帧数与完整解码检查，不把文件存在当通过。M0 不修改运行引擎。
+- 来源与证据：[ADR 0001](decisions/0001-session-transport.md)、[50 格原始记录的去路径摘要和 SHA256](decisions/0001-experiment-evidence.json)。远程断开尚未测。
+
+## KI-044 锁屏状态不能由输入桌面名推断
+
+- 现象：实际锁屏期间 OpenInputDesktop 可读到 Default，旧实验探针误报已解锁。
+- 版本：本次 Windows x64 会话；不是对全部 Windows 构建的推断。
+- 规避：实验使用 WTS 会话的 SessionFlags，区分连接状态与锁定状态；未知值不当成功。产品 WindowsCommandTransport 的相应检查留给 M1/I01/I03。
+- 来源与证据：[ADR 0001](decisions/0001-session-transport.md)、[探针回归](../tests/test_m0_experiments.py)、[Microsoft SessionFlags 定义](https://learn.microsoft.com/en-us/windows/win32/api/wtsapi32/ns-wtsapi32-wtsinfoex_level1_w)。v6 的状态中断结果被排除，v7 完整重跑。
+
 ## 待复核的外部评审观察
 
 以下两条来自已采纳评审；当前仓库未检出对应可复现脚本或原始日志，不扩大证据等级。

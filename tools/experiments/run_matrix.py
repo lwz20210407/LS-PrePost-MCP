@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import shutil
+import struct
 import subprocess
 import sys
 import time
@@ -19,6 +20,18 @@ from ls_prepost_mcp.programs import native_errors  # noqa: E402
 from ls_prepost_mcp.service import Service  # noqa: E402
 
 
+def session_flags_state(buffer, session_id):
+    """Windows x64 WTSINFOEXW Level1 prefix; never infer lock from desktop name."""
+    if len(buffer) < 20 or struct.unpack_from("<I", buffer)[0] != 1:
+        return "unknown"
+    current_id, connection, flags = struct.unpack_from("<III", buffer, 8)
+    if current_id != session_id:
+        return "unknown"
+    if connection == 4:
+        return "rdp_disconnected"
+    return {0: "locked", 1: "unlocked"}.get(flags, "unknown")
+
+
 def desktop_state():
     if os.name != "nt":
         return "unsupported"
@@ -26,7 +39,6 @@ def desktop_state():
 
     wts = ctypes.WinDLL("wtsapi32")
     kernel = ctypes.WinDLL("kernel32")
-    user = ctypes.WinDLL("user32")
     sid = wintypes.DWORD()
     kernel.ProcessIdToSessionId(os.getpid(), ctypes.byref(sid))
     data = ctypes.c_void_p()
@@ -39,32 +51,16 @@ def desktop_state():
         ctypes.POINTER(wintypes.DWORD),
     ]
     wts.WTSFreeMemory.argtypes = [ctypes.c_void_p]
-    if wts.WTSQuerySessionInformationW(None, sid.value, 8, ctypes.byref(data), ctypes.byref(size)):
+    # WTSINFOEXW's union is aligned to 8 bytes on this Windows x64 target.
+    # https://learn.microsoft.com/windows/win32/api/wtsapi32/ns-wtsapi32-wtsinfoex_level1_w
+    if ctypes.sizeof(ctypes.c_void_p) != 8:
+        return "unsupported"
+    if wts.WTSQuerySessionInformationW(None, sid.value, 25, ctypes.byref(data), ctypes.byref(size)):
         try:
-            if ctypes.cast(data, ctypes.POINTER(ctypes.c_int))[0] == 4:
-                return "rdp_disconnected"
+            return session_flags_state(ctypes.string_at(data, min(size.value, 20)), sid.value)
         finally:
             wts.WTSFreeMemory(data)
-    user.OpenInputDesktop.restype = wintypes.HANDLE
-    user.CloseDesktop.argtypes = [wintypes.HANDLE]
-    handle = user.OpenInputDesktop(0, False, 1)
-    if not handle:
-        return "locked"
-    try:
-        name = ctypes.create_unicode_buffer(256)
-        needed = wintypes.DWORD()
-        user.GetUserObjectInformationW.argtypes = [
-            wintypes.HANDLE,
-            ctypes.c_int,
-            ctypes.c_void_p,
-            wintypes.DWORD,
-            ctypes.POINTER(wintypes.DWORD),
-        ]
-        if user.GetUserObjectInformationW(handle, 2, name, ctypes.sizeof(name), ctypes.byref(needed)):
-            return "unlocked" if name.value.lower() == "default" else "locked"
-        return "unknown"
-    finally:
-        user.CloseDesktop(handle)
+    return "unknown"
 
 
 def check_outputs(cell, lane, started):
@@ -159,11 +155,7 @@ def run(args):
     if any(c["mode"] == "session" for c in selected):
         workspace = args.directory / ("session-" + args.desktop)
         service = Service(Settings(workspace, args.executable, (args.directory,), timeout=60))
-        session = service.start_gui_session()
-        sid = session["session_id"]
-        result = service.open_in_gui_session(sid, str(args.directory / "fixture/d3plot"), file_type="d3plot")
-        if result.get("status") != "succeeded":
-            raise ValueError("Experimental session could not load fixture")
+        sid = service.start_gui_session()["session_id"]
     try:
         deadline = time.monotonic() + 300
         print("Ready; waiting for actual desktop state: " + args.desktop, flush=True)
@@ -191,6 +183,8 @@ def run(args):
 
                         item["native_macro"] = run_macro_probe(cell, args.executable, lane, run_dir)
                     elif cell["mode"] == "session":
+                        if sid is None:
+                            sid = service.start_gui_session()["session_id"]
                         result = service._session_manager().dispatch(
                             sid,
                             "inspect_model",
@@ -245,6 +239,10 @@ def run(args):
                     item["status"] = "succeeded"
                 except Exception as exc:
                     item["error"] = str(exc)
+                finally:
+                    if service and sid and args.desktop == "unlocked":
+                        service.close_gui_session(sid, save_checkpoint=False)
+                        sid = None
                 item["desktop_after"] = desktop_state()
                 item["elapsed_seconds"] = (time.time_ns() - started) / 1e9
                 evidence["lanes"][lane] = item

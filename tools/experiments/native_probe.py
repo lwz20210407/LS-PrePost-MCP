@@ -63,6 +63,7 @@ def run(config_path):
                     if payload != dict(request_id=request_id, index=i):
                         raise ValueError("Socket queue request identity mismatch")
                 observed.append(check_command(i))
+                time.sleep(config.get("pacing_seconds", 0))
                 if i % 25 == 0:
                     write("progress.json", dict(completed=len(observed), elapsed=time.time() - started))
             lp.execute_command('print png "' + str(root / "probe.png") + '" opaque enlisted "OGL1x1"')

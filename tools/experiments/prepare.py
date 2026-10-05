@@ -12,6 +12,11 @@ def prepare(root, result):
     root.mkdir(parents=True, exist_ok=False)
     fixture = root / "fixture"
     fixture.mkdir()
+    keyword = "*KEYWORD\n*NODE\n"
+    for nid, (x, y) in zip((11, 13, 17, 23, 31, 47, 61, 79), ((x, y) for y in (0, 1) for x in (0, 1, 2, 3))):
+        keyword += f"{nid},{x},{y},0\n"
+    keyword += "*ELEMENT_SHELL\n101,7,11,13,47,31\n305,7,13,17,61,47\n9001,42,17,23,79,61\n*PART\nA\n7,1,1\n*PART\nB\n42,1,1\n*SECTION_SHELL\n1,2\n0.1\n*MAT_ELASTIC\n1,7.8e-9,210000,0.3\n*END\n"
+    (fixture / "input.k").write_text(keyword, encoding="ascii")
     # Require the complete original synthetic three-state family.
     for path in result.parent.glob(result.name + "*"):
         if path.is_file():
@@ -59,7 +64,7 @@ def prepare(root, result):
                         python='runpython "' + str(directory / "program.py") + '"',
                         macro=None,
                     )[language]
-                    start = "" if mode == "session" else 'openc d3plot "' + str(fixture / result.name) + '"\n'
+                    start = 'open keyword "' + str(fixture / "input.k") + '"\n'
                     cell.update(request_id=rid, directory=str(directory), expected_nodes=8)
                     if language == "macro":
                         cell["execution"] = "unverified_native_launcher"
@@ -73,7 +78,9 @@ def prepare(root, result):
                             png='isometric\nac\nprint png "'
                             + str(directory / "image.png")
                             + '" opaque enlisted "OGL1x1"\n',
-                            mp4='anim stop\nanim first 1\nanim last 3\nanim incr 1\nmovie MP4/H264 640x480 "'
+                            mp4='openc d3plot "'
+                            + str(fixture / result.name)
+                            + '"\nanim stop\nanim first 1\nanim last 3\nanim incr 1\nmovie MP4/H264 640x480 "'
                             + str(directory / "movie")
                             + '" 5\n',
                         ).items():
@@ -86,7 +93,9 @@ def prepare(root, result):
         directory.mkdir()
         (directory / "requests").mkdir()
         rid = uuid.uuid4().hex
-        config = dict(experiment=mode, directory=str(directory), request_id=rid, timeout=180)
+        config = dict(
+            experiment=mode, directory=str(directory), request_id=rid, timeout=180, pacing_seconds=0.025
+        )
         (directory / "config.json").write_text(json.dumps(config), encoding="utf8")
         shutil.copy2(Path(__file__).with_name("native_probe.py"), directory / "native_probe.py")
         (directory / "bootstrap.py").write_text(
