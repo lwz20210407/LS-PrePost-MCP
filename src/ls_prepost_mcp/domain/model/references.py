@@ -12,7 +12,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from . import lists
+from . import links, lists
 from .blocks import Block
 from .fields import FieldError, parse_number, read_text
 from .layouts import Layout, RowMap, Unsupported
@@ -23,10 +23,14 @@ if TYPE_CHECKING:
 
 # (keyword prefix, id field, kind). Longest matching prefix wins.
 DEFINITIONS: list[tuple[str, str, str]] = [
-    ("*PART", "pid", "part"), ("*SECTION_", "secid", "section"), ("*MAT_", "mid", "material"),
+    ("*PART", "pid", "part"), ("*CESE_PART", "pid", "part"),  # CESE meshes refer to CESE parts
+    ("*SECTION_", "secid", "section"), ("*MAT_", "mid", "material"),
     ("*MAT_THERMAL_", "tmid", "thermal_material"), ("*EOS_", "eosid", "eos"), ("*HOURGLASS", "hgid", "hourglass"),
     ("*DEFINE_CURVE", "lcid", "curve"), ("*DEFINE_TABLE", "tbid", "curve"),
+    ("*DEFINE_FUNCTION", "fid", "curve"),  # LS-DYNA accepts a function ID where a curve ID is expected
     ("*DEFINE_COORDINATE_", "cid", "coordinate"), ("*DEFINE_VECTOR", "vid", "vector"),
+    ("*DEFINE_BOX", "boxid", "box"), ("*DEFINE_TRANSFORMATION", "tranid", "transformation"),
+    ("*SET_DISCRETE", "sid", "discrete_set"),
     ("*SET_NODE", "sid", "node_set"), ("*SET_PART", "sid", "part_set"), ("*SET_SHELL", "sid", "shell_set"),
     ("*SET_SOLID", "sid", "solid_set"), ("*SET_BEAM", "sid", "beam_set"), ("*SET_SEGMENT", "sid", "segment_set"),
     ("*NODE", "nid", "node"), ("*ELEMENT_SHELL", "eid", "shell"), ("*ELEMENT_SOLID", "eid", "solid"),
@@ -84,10 +88,18 @@ class ReferenceReport:
     dangling_count: int = 0
     tracked: dict[tuple[str, int], list[Site]] = field(default_factory=lambda: defaultdict(list))
     unchecked: dict[str, int] = field(default_factory=lambda: defaultdict(int))
+    # Kinds with a definition block that could not be read: their missing IDs are not proof of an error.
+    unverified_kinds: set[str] = field(default_factory=set)
+    unverified_sites: list[tuple[str, int, Site]] = field(default_factory=list)
+    unverified_count: int = 0
 
     def dangling(self) -> list[dict]:
         """Dangling references (locations capped at ``MAX_SITES``; see ``dangling_count``)."""
         return [{"kind": kind, "id": ident, **vars(site)} for kind, ident, site in self.dangling_sites]
+
+    def unverified(self) -> list[dict]:
+        """References to IDs that may be defined in a block that could not be read."""
+        return [{"kind": kind, "id": ident, **vars(site)} for kind, ident, site in self.unverified_sites]
 
     def duplicates(self) -> list[dict]:
         return [{"kind": kind, "id": ident, "sites": [vars(s) for s in sites]}
@@ -99,6 +111,7 @@ class ReferenceReport:
     def summary(self) -> dict:
         return {"defined": {k: len(v) for k, v in self.defined.items() if v},
                 "dangling": self.dangling_count, "duplicates": len(self.duplicates()),
+                "unverified_dangling": self.unverified_count, "unverified_kinds": sorted(self.unverified_kinds),
                 "unchecked_blocks": dict(self.unchecked)}
 
 
@@ -128,7 +141,8 @@ def _ident(text: str, lookup: dict) -> int | None:
                 value = parse_number(text)
             except FieldError:
                 return None
-    return int(value) if isinstance(value, (int, float)) and float(value).is_integer() and value > 0 else None
+    # LS-DYNA IDs have at most 10 digits; larger values are data read through misaligned cards.
+    return int(value) if isinstance(value, (int, float)) and float(value).is_integer() and 0 < value < 10**10 else None
 
 
 @dataclass
@@ -146,7 +160,7 @@ def _plans(deck: KeywordDeck, include_mesh: bool, report: ReferenceReport) -> li
     for block in deck.iter_blocks():
         base = lists.base_name(block.name)[0]
         definition = None if base.startswith(NOT_DEFINITIONS) else _rule(base, DEFINITIONS)
-        refs = _rule(base, REFERENCES)
+        refs = _references(block.name, base, include_mesh)
         contact = base.startswith("*CONTACT_")
         members = LIST_MEMBERS.get(base)
         mesh = (definition and definition[1] in MESH_KINDS) or base.startswith("*ELEMENT_")
@@ -156,12 +170,39 @@ def _plans(deck: KeywordDeck, include_mesh: bool, report: ReferenceReport) -> li
             layout = deck.layout(block)
         except (Unsupported, FieldError):
             report.unchecked[block.name] += 1
+            if definition:
+                report.unverified_kinds.add(definition[1])
             continue
         if members and not include_mesh and members in MESH_KINDS:
             members = None
         plans.append(_Plan(block, layout, tuple(definition) if definition else None,
-                           list(refs[0]) if refs else [], contact, members))
+                           _expand(refs, layout), contact, members))
     return plans
+
+
+def _references(name: str, base: str, include_mesh: bool) -> list[tuple[str, str]]:
+    """Hand rules first, then PyDYNA link fields; mesh targets only when the mesh is scanned."""
+    hand = _rule(base, REFERENCES)
+    pairs = list(hand[0]) if hand else []
+    named = {field for field, _ in pairs}
+    pairs += [(field, kind) for field, kind in links.link_fields(name) if field not in named]
+    return [(field, kind) for field, kind in pairs if include_mesh or kind not in MESH_KINDS]
+
+
+def _expand(pairs: list[tuple[str, str]], layout: Layout) -> list[tuple[str, str]]:
+    """Add layout fields that repeat a linked name with a suffix (``lcid_2``)."""
+    if not pairs:
+        return []
+    names = {info.name for info in layout.fields}
+    if isinstance(layout.rows, RowMap):
+        names |= {column.name for columns in layout.rows.template for column in columns}
+    else:
+        names |= {info.name for infos in layout.rows.values() for info in infos}
+    kinds = dict(pairs)
+    extra = [(name, kinds[name.rsplit("_", 1)[0]]) for name in sorted(names)
+             if "_" in name and name.rsplit("_", 1)[1].isdigit() and name.rsplit("_", 1)[0] in kinds
+             and name not in kinds]
+    return list(pairs) + extra
 
 
 def _site(plan: _Plan, line_index: int, name: str, row: int | None) -> Site:
@@ -188,7 +229,11 @@ def _refer(report: ReferenceReport, kind: str, ident: int, site: object, track: 
     dangling = ident not in report.defined.get(kind, ())
     if dangling or (kind, ident) in track:
         made = site() if callable(site) else site
-        if dangling:
+        if dangling and kind in report.unverified_kinds:
+            report.unverified_count += 1
+            if len(report.unverified_sites) < MAX_SITES:
+                report.unverified_sites.append((kind, ident, made))
+        elif dangling:
             report.dangling_count += 1
             if len(report.dangling_sites) < MAX_SITES:
                 report.dangling_sites.append((kind, ident, made))
@@ -261,7 +306,7 @@ def collect(deck: KeywordDeck, include_mesh: bool = True, track: set[tuple[str, 
                 report.unchecked[plan.block.name] += 1
                 members = []
             for ident in members:
-                _refer(report, plan.members, ident, _site(plan, 0, "members", None), track)
+                _refer(report, plan.members, ident, lambda: _site(plan, 0, "members", None), track)
     return report
 
 

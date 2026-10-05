@@ -236,8 +236,12 @@ def check_deck(path: str, include_paths: tuple[str, ...] = (), thresholds: dict 
     duplicates = report.duplicates()
     if duplicates:
         errors.append({"kind": "duplicate_ids", "count": len(duplicates), "sample": duplicates[:50]})
-    result = {"references": {**report.summary(), "unused": report.unused()}, "warnings": deck.warnings,
-              "read_only": True, "mesh_checked": include_mesh}
+    warnings = list(deck.warnings)
+    if report.unverified_count:
+        warnings.append(f"{report.unverified_count} references to {', '.join(sorted(report.unverified_kinds))} IDs "
+                        "could not be verified because a defining block was not read")
+    result = {"references": {**report.summary(), "unused": report.unused(), "unverified": report.unverified()[:50]},
+              "warnings": warnings, "read_only": True, "mesh_checked": include_mesh}
     unchecked = [f"References not read: {name} x{count}" for name, count in report.unchecked.items()]
     if include_mesh:
         checked = quality.check_quality(deck, thresholds, coincident_tol)

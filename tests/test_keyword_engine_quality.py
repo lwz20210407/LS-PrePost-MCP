@@ -166,3 +166,18 @@ def test_duplicate_element_ids_keep_their_ids(tmp_path: Path) -> None:
     text = _cube((1, 2, 3, 4, 5, 6, 7, 8)).split("*ELEMENT_SOLID")[0] + "*ELEMENT_SOLID\n" + line + line
     report = check_quality(_deck(tmp_path, text), thresholds={"aspect_ratio": 0.5})
     assert report["solids"]["hexahedra"]["aspect_ratio"]["failing_ids"] == [7, 7]
+
+
+def test_cese_parts_and_unverified_references(tmp_path: Path) -> None:
+    cube = _cube((1, 2, 3, 4, 5, 6, 7, 8)).replace(f"{1:>8}{1:>8}", f"{1:>8}{5:>8}", 1)
+    deck = _deck(tmp_path, "*CESE_PART\n         5         1         1\n" + cube)
+    report = deck.references()
+    assert report.dangling_count == 0 and 5 in report.defined["part"]
+    (tmp_path / "u").mkdir()
+    text = ("*KEYWORD\n*PART\nplate\n         1         1         9\n*SECTION_SOLID\n         1         1\n"
+            "*MAT_ELASTIC_UNKNOWNOPTION\n         9    7.8e-9  210000.0       0.3\n*END\n")
+    (tmp_path / "u" / "main.k").write_bytes(text.encode("ascii"))
+    result = check_deck(str(tmp_path / "u" / "main.k"), include_mesh=False)
+    assert "dangling_references" not in {e["kind"] for e in result["errors"]}
+    assert result["references"]["unverified_dangling"] == 1 and not result["complete"]
+    assert any("could not be verified" in w for w in result["warnings"])
