@@ -4,10 +4,9 @@ import json
 import uuid
 from pathlib import Path
 
-from .config import command_path, scl_command_path
 from .jobs import atomic_json, check_artifact, now
 from .model_context import LOAD_ERROR, verify_loaded_model
-from .native.commands import bind_output_paths
+from .native import commands as nc
 from .program_bundle import checked_dependencies, identity, python_wrapper, write_dependencies
 
 
@@ -57,20 +56,20 @@ def execute_prepared(service, sid, prepared_id, expected_hash, contract, content
         atomic_json(directory / "before.json", before["data"])
         cwd = directory / "cwd.py"
         cwd.write_text("import os\nos.chdir(" + repr(str(directory)) + ")\n", encoding="utf8")
-        commands = ["runpython " + command_path(cwd)]
+        commands = [nc.run_script(cwd)]
         if contract["language"] in ("command", "cfile"):
-            execution_source = "\n".join(bind_output_paths(line, [o["name"] for o in contract["outputs"]], str(directory))
+            execution_source = "\n".join(nc.bind_output_paths(line, [o["name"] for o in contract["outputs"]], str(directory))
                                          for line in content.decode("utf8").splitlines()) + "\n"
             executed = directory / "execution.cfile"
-            executed.write_text(execution_source, encoding="utf8")
+            nc.write_cfile(executed, execution_source)
             result["executed_source"] = execution_source
-            commands.append("openc command " + command_path(executed) + " nodialog")
+            commands.append(nc.run_script(executed, "cfile"))
         elif contract["language"] == "scl":
-            commands.append("runscript " + scl_command_path(directory / contract["program"]))
+            commands.append(nc.run_script(directory / contract["program"], "scl"))
         else:
             wrapper = directory / "gui-python.py"
             wrapper.write_text(python_wrapper(directory, [item["name"] for item, _ in dependencies], contract.get("python_parameters")), encoding="utf8")
-            commands.append("runpython " + command_path(wrapper))
+            commands.append(nc.run_script(wrapper))
         atomic_json(directory / "commands.json", commands)
         log = manager.directory(sid) / "lspost.msg"
         offset = log.stat().st_size if log.exists() else 0

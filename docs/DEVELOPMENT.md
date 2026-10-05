@@ -40,7 +40,7 @@ tools/gen_docs.py 生成 TASKS、TOOLS、README 能力表和 COMPATIBILITY 的�
 - L2：固定语料与真实 LSPP 的正反例、保存重开、数值与图像核对。M1/I04 将现有 tools/run_* 迁入 pytest -m native；M0 尚不把该命令列为现成能力。
 - L3：M2–M4 的 Agent 自然语言场景评测，退出标准见 tasks.yaml。
 
-原生记录必须含具体构建、输入 SHA256、精确源程序、请求关联、日志和独立产物检查。失败和未知状态保留证据，不自动重放不确定的修改。需要 GUI 的验证集中在用户确认的时间窗，实验脚本见 tools/experiments；锁屏与 RDP 断开由用户操作。
+原生记录必须含具体构建、输入 SHA256、精确源程序、请求关联、日志和独立产物检查。失败和未知状态保留证据，不自动重放不确定的修改。需要 GUI 的验证集中在用户确认的时间窗，实验脚本见 tools/experiments；锁屏与实际远程控制软件的断开由用户操作。本机使用 UU，断开时间窗由用户确认并单独记录，不要求配置 RDP。
 
 ## 数据与知识
 
@@ -91,14 +91,24 @@ I04 在全量原生用例完成前保持 partial。用户已把 M0 剩余 13 个
 
 这些用例核验的是实验记录及远程条件，原生各 lane 的 succeeded/failed 原样保留在报告，不能把“记录已验证”解释成不支持的 runc/宏路线已成功。每阶段保留自己的回执、模型和媒体，后续阶段不能用同名文件覆盖前一阶段证据。
 
+远程证据用例在 pytest 中标为 xfail，在 report.md/JSON 中标为 evidence_only，并逐项显示
+execution / PNG / MP4 状态。普通 pytest 即使设置安装路径环境变量也不会启动原生 fixture，
+必须明确传 --run-native；显式路径选项优先于 LSPP_ENGINE_EXECUTABLE，再其次为 LSPP_EXECUTABLE。
+[已有验收的历史附件](decisions/evidence/i04/report.md) 不替代未完成的 GUI/UU 回归。
+
+
+I11 的 local-book 在 corpus 清单的 restricted_sources 中仅登记 ID 与相对路径；默认 catalog 校验不展开书籍内容。书籍文件、索引、图像、数值结果及其他派生数据始终只保留本机仓库外，不提交、不公开。
+
 I08 的运行时注册表为 `src/ls_prepost_mcp/data/operations.json`；新增或迁移操作更新此处，再运行 gen_docs.py。兼容名称和 canonical operation_id 均需通过同一签名/路由验证。CI 执行 `uv run lint-imports --no-cache`；本地也使用 no-cache，避免在仓库生成缓存。
 
 import-linter 固定 2.6：2.7–2.9 的 rich>=14.2.0 与已验证 LASSO2.0.4 的 rich==13.* 冲突，保留数值后端锁定，选择可共存版本。约束使用官方的 protected/forbidden 合同（https://import-linter.readthedocs.io/en/v2.6/contract_types.html）。I02 的六个合同字段未改变。
 
 ## I05 本地知识索引
 
-`tools/build_knowledge_index.py --output <新索引.sqlite>` 索引仓库命令表、已知问题、安装说明和已有工作流参考。可用 `--pydyna-root <keyword_classes目录> --pydyna-version <版本>` 加入 MIT 关键字字段定义；索引器只读 AST，不导入或执行批量生成类，保留字段名/类型/偏移/宽度/默认值及来源行号。
+`tools/build_knowledge_index.py --output <新索引.sqlite>` 索引仓库命令表、已知问题、安装说明和已有工作流参考。关键字字段调用 Claude 的 `domain/model/keyword_docs`，不再自写 PyDYNA AST 解析。M3 合入前可明确传 `--keyword-provider-root <Claude工作副本>`，仅在隔离子进程中读取该实现；可重复传 `--keyword '*PART'` 选择关键字。未指定关键字时由 provider 的目录提供范围。M3 合入后可直接调用包内 provider。
 
 API、厂商用户指南和课程文本通过 `--external-sources <仓库外JSON>` 加入。该文件为对象列表，每项含 id/category/path/license，可附 version；外部文件固定为 private，不允许在配置中改为 public。类别为 command/api/keyword/user_guide/recipe/known_issue。私有文本、索引及其派生数据必须放在仓库外，不进入 Git。
 
-查询接口为 knowledge_index.search_index：category 可筛选，include_private 默认 False。每条命中带来源、版本、行号、内容 SHA256、可见性和 reference_unverified 状态；参考文本不执行，也不证明本机原生兼容。索引只创建新文件、查询只读，禁止覆盖已有索引。A08 的 recipe.yaml 加入后可重建索引；现有 JSON 工作流明确标为 legacy_workflow_template。
+设置 `LSPP_KNOWLEDGE_INDEX` 后，现有 `search_knowledge` 工具直接查询该索引；category 可筛选，include_private 默认 False。未配置时保留旧来源目录搜索；不会悄悄把私有内容加进结果。字段数据单独存储于 schema_version=2 的 keyword_fields 表，保留 entity_key/option/card/field/offset/width/help/links/manual_ref/solver_status/license，并保存 provider 的字段别名。手册内容只由 provider 从 LSPP_MANUAL_INDEX 读取，含手册内容的字段强制 private。
+
+连接用 closing 显式关闭。构建写入唯一的 .partial 文件，事务提交并关闭后原子发布到尚不存在的最终路径；中断残留不会挡住重建，既有完整索引不覆盖。schema_version=1 的旧索引需另选路径重建。中文查询采用二字词候选匹配，不把所有单字/二字词用 AND 相连；混合代码查询优先用代码标识符定位。每条命中保留来源、版本和 reference_unverified；provider 的本机求解验证说明单独标注其归属。A08 的 recipe.yaml 加入后可重建，旧 JSON 工作流仍标为 legacy_workflow_template。

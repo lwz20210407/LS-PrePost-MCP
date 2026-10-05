@@ -5,8 +5,60 @@ They validate syntax; the caller still verifies native selection/field results.
 """
 
 import math
+import os
+import re
 
 TARGETS = frozenset(("node", "element", "shell", "solid", "beam", "tshell", "part"))
+CFILE_ENCODING = "utf-8"
+
+
+def quoted_path(path, style="posix"):
+    if not isinstance(path, (str, os.PathLike)):
+        raise ValueError("Native path must be text or path-like")
+    value = os.fspath(path)
+    if not isinstance(value, str) or not value.strip() or any(ord(c) < 32 or c in '\";' for c in value):
+        raise ValueError("Native path contains unsupported quotes, separators or control characters")
+    choice(style, ("posix", "native"), "path style")
+    return '"' + (value.replace("\\", "/") if style == "posix" else value) + '"'
+
+
+def open_model(path, kind="keyword", openc=False, style="posix"):
+    choice(kind, ("keyword", "d3plot"), "model kind")
+    if type(openc) is not bool:
+        raise ValueError("openc must be Boolean")
+    return ("openc " if openc else "open ") + kind + " " + quoted_path(path, style)
+
+
+def print_png(path, mode="opaque", window="OGL1x1", style="posix"):
+    choice(mode, ("opaque", "nogamma"), "PNG mode")
+    if not isinstance(window, str) or not re.fullmatch(r"(?:OGL\d+x\d+|PlotWindow-\d+)", window):
+        raise ValueError("Unsupported native print window")
+    return "print png " + quoted_path(path, style) + ' ' + mode + ' enlisted "' + window + '"'
+
+
+def movie(path, width, height, fps, style="native"):
+    integer(width, "movie width", 1, 8192)
+    integer(height, "movie height", 1, 8192)
+    integer(fps, "movie fps", 1, 240)
+    return "movie MP4/H264 {}x{} {} {}".format(width, height, quoted_path(path, style), fps)
+
+
+def run_script(path, language="python", style=None):
+    choice(language, ("python", "scl", "cfile"), "script language")
+    style = ("native" if language == "scl" else "posix") if style is None else style
+    if language == "cfile":
+        return "openc command " + quoted_path(path, style) + " nodialog"
+    return ("runpython " if language == "python" else "runscript ") + quoted_path(path, style)
+
+
+def save_keyword(path, style="posix"):
+    return "save keyword " + quoted_path(path, style)
+
+
+def write_cfile(path, commands):
+    text = commands if isinstance(commands, str) else "\n".join(commands) + "\n"
+    with open(path, "w", encoding=CFILE_ENCODING, newline="\n") as stream:
+        stream.write(text)
 
 
 def integer(value, name, minimum=1, maximum=2000000000):
@@ -106,8 +158,6 @@ VIEWS = {"isometric": "isometric x", "top": "top", "bottom": "bottom", "front": 
 
 def bind_output_paths(command, names, directory):
     """Bind exact declared filename tokens; preserve all other command bytes."""
-    import re
-
     names = set(names)
     def replace(match):
         token = match.group(0)
@@ -117,5 +167,5 @@ def bind_output_paths(command, names, directory):
         if any(char in name for char in '/\\\r\n"') or name in (".", ".."):
             raise ValueError("Declared output must be a plain filename")
         separator = "\\" if "\\" in directory else "/"
-        return '"' + directory.rstrip("/\\") + separator + name + '"'
+        return quoted_path(directory.rstrip("/\\") + separator + name, style="native")
     return re.sub(r'"[^"\r\n]*"|[^\s"]+', replace, command)

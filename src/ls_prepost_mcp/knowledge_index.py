@@ -1,13 +1,17 @@
 """I05 source-attributed local reference index. Indexed text is never executable."""
 
-import ast
 import csv
 import hashlib
 import json
+import os
 import re
 import sqlite3
+import uuid
+from contextlib import closing
 from dataclasses import asdict, dataclass
 from pathlib import Path
+
+from .keyword_documentation import KeywordField
 
 CATEGORIES = frozenset(("command", "api", "keyword", "user_guide", "recipe", "known_issue"))
 PUBLIC_LICENSES = frozenset(("MIT", "Apache-2.0", "BSD-3-Clause", "CC0-1.0"))
@@ -95,76 +99,62 @@ def repository_documents(root=REPOSITORY):
         yield from chunks(path, source_id=relative, category="recipe", license="MIT", visibility="public", locator="repo://" + relative)
 
 
-def keyword_documents(package_root, version):
-    """Read PyDYNA's MIT field declarations, without importing thousands of classes."""
-    root = Path(package_root).resolve(strict=True)
-    for path in sorted(root.rglob("*.py")):
-        source = path.read_text(encoding="utf8")
-        if "SPDX-License-Identifier: MIT" not in source:
-            continue
-        tree = ast.parse(source)
-        constants = {target.id: node for node in tree.body if isinstance(node, ast.Assign)
-                     for target in node.targets if isinstance(target, ast.Name)}
-        for cls in (node for node in tree.body if isinstance(node, ast.ClassDef)):
-            names = {}
-            for node in cls.body:
-                if isinstance(node, ast.Assign) and isinstance(node.value, ast.Constant):
-                    names.update({t.id: node.value.value for t in node.targets if isinstance(t, ast.Name)})
-            if not isinstance(names.get("keyword"), str):
-                continue
-            keyword = names["keyword"]
-            subkeyword = names.get("subkeyword")
-            if subkeyword and subkeyword != keyword:
-                keyword += "_" + subkeyword
-            fields = []
-            definitions, visited = [cls], set()
-            for definition in definitions:
-                for node in ast.walk(definition):
-                    if isinstance(node, ast.Name) and node.id in constants and node.id not in visited:
-                        visited.add(node.id)
-                        definitions.append(constants[node.id])
-            for node in (child for definition in definitions for child in ast.walk(definition)):
-                if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in ("Field", "FieldSchema"):
-                    if node.args and isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str):
-                        values = [ast.unparse(arg) for arg in node.args[:5]]
-                        fields.append("field " + " | ".join(values) + " (name, type, offset, width, default)")
-            if fields:
-                locator = "pydyna://" + version + "/" + path.relative_to(root).as_posix()
-                text = "*" + keyword + "\n" + (ast.get_docstring(cls) or "") + "\n" + "\n".join(dict.fromkeys(fields))
-                yield Document("pydyna:" + cls.name, "keyword", "*" + keyword + " / " + cls.name,
-                               text, locator, "MIT", "public", version,
-                               min(item.lineno for item in definitions), max(item.end_lineno for item in definitions))
-
-
-def build_index(destination, documents):
-    """Create a new index; never overwrite an earlier evidence/index file."""
+def build_index(destination, documents, fields=()):
+    """Publish a complete index atomically; interrupted partials cannot block rebuilds."""
     path = Path(destination).resolve()
     rows = list(documents)
+    field_map = {}
+    for field in fields:
+        if not isinstance(field, KeywordField):
+            raise ValueError("Keyword fields must come from the keyword_docs adapter")
+        locator = "keyword_docs://" + field.entity_key + "/" + str(field.card) + "/" + str(field.option) + "/" + field.field
+        if locator in field_map and field_map[locator] != field:
+            raise ValueError("Provider returned conflicting field identities")
+        text = field.help + "\n" + json.dumps(dict(aliases=field.aliases, links=field.links, manual_ref=field.manual_ref), ensure_ascii=False)
+        row = Document("keyword_docs:" + field.entity_key, "keyword", field.entity_key + " " + field.field,
+                       text, locator, field.license, field.visibility, field.version)
+        rows.append(row)
+        field_map[locator] = field
     if not rows or any(not isinstance(row, Document) for row in rows):
         raise ValueError("Cannot build an empty knowledge index")
     if any(row.visibility == "private" for row in rows) and path.is_relative_to(REPOSITORY):
         raise ValueError("Private text and derived indexes must remain outside the repository")
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("xb"):
-        pass
-    with sqlite3.connect(path) as db:
-        db.execute("CREATE TABLE documents (id TEXT PRIMARY KEY, source_id TEXT, category TEXT, title TEXT, text TEXT, locator TEXT, license TEXT, visibility TEXT, version TEXT, line_start INTEGER, line_end INTEGER, sha256 TEXT)")
-        db.execute("CREATE VIRTUAL TABLE search_terms USING fts5(id UNINDEXED, terms)")
-        db.execute("CREATE TABLE metadata (schema_version INTEGER)")
-        db.execute("INSERT INTO metadata VALUES (1)")
-        seen = set()
-        for row in rows:
-            data = asdict(row)
-            identity = json.dumps(data, sort_keys=True, ensure_ascii=False)
-            ident = hashlib.sha256(identity.encode()).hexdigest()
-            if ident in seen:
-                continue
-            seen.add(ident)
-            digest = hashlib.sha256(row.text.encode()).hexdigest()
-            db.execute("INSERT INTO documents VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (ident, *data.values(), digest))
-            db.execute("INSERT INTO search_terms VALUES (?,?)", (ident, " ".join(terms(row.title + " " + row.text))))
-        counts = dict(db.execute("SELECT category, count(*) FROM documents GROUP BY category"))
-    return dict(documents=len(seen), categories=counts, private=any(row.visibility == "private" for row in rows))
+    if path.exists():
+        raise FileExistsError(path)
+    partial = path.with_name(path.name + "." + uuid.uuid4().hex + ".partial")
+    try:
+        with partial.open("xb"):
+            pass
+        with closing(sqlite3.connect(partial)) as db, db:
+            db.execute("CREATE TABLE documents (id TEXT PRIMARY KEY, source_id TEXT, category TEXT, title TEXT, text TEXT, locator TEXT, license TEXT, visibility TEXT, version TEXT, line_start INTEGER, line_end INTEGER, sha256 TEXT)")
+            db.execute("CREATE VIRTUAL TABLE search_terms USING fts5(id UNINDEXED, terms)")
+            db.execute("CREATE TABLE keyword_fields (document_id TEXT PRIMARY KEY, entity_key TEXT, option TEXT, card TEXT, field TEXT, offset INTEGER, width INTEGER, help TEXT, links TEXT, manual_ref TEXT, solver_status TEXT, license TEXT, aliases TEXT)")
+            db.execute("CREATE TABLE metadata (schema_version INTEGER)")
+            db.execute("INSERT INTO metadata VALUES (2)")
+            seen = set()
+            for row in rows:
+                data = asdict(row)
+                identity = json.dumps(data, sort_keys=True, ensure_ascii=False)
+                ident = hashlib.sha256(identity.encode()).hexdigest()
+                if ident in seen:
+                    continue
+                seen.add(ident)
+                digest = hashlib.sha256(row.text.encode()).hexdigest()
+                db.execute("INSERT INTO documents VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (ident, *data.values(), digest))
+                db.execute("INSERT INTO search_terms VALUES (?,?)", (ident, " ".join(terms(row.title + " " + row.text))))
+                field = field_map.get(row.locator)
+                if field:
+                    db.execute("INSERT INTO keyword_fields VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                               (ident, field.entity_key, field.option, json.dumps(field.card), field.field, field.offset, field.width,
+                                field.help, json.dumps(field.links), json.dumps(field.manual_ref), json.dumps(field.solver_status), field.license, json.dumps(field.aliases)))
+            counts = dict(db.execute("SELECT category, count(*) FROM documents GROUP BY category"))
+        # Atomic no-overwrite publication also handles two concurrent builders.
+        os.link(partial, path)
+    finally:
+        partial.unlink(missing_ok=True)  # Only this invocation's UUID-named partial.
+    return dict(schema_version=2, documents=len(seen), keyword_fields=len(field_map), categories=counts,
+                private=any(row.visibility == "private" for row in rows))
 
 
 def search_index(path, query, *, category=None, limit=10, include_private=False):
@@ -177,11 +167,14 @@ def search_index(path, query, *, category=None, limit=10, include_private=False)
     query_terms = terms(query)
     if not query_terms:
         return []
-    expression = " AND ".join('"' + value.replace('"', '""') + '"' for value in query_terms)
+    latin = [value for value in query_terms if not value.startswith("zh_")]
+    chinese = [value for value in query_terms if value.startswith("zh_") and len(value) == 5]
+    selected = latin or chinese or query_terms
+    expression = (" AND " if latin else " OR ").join('"' + value.replace('"', '""') + '"' for value in selected)
     uri = Path(path).resolve(strict=True).as_uri() + "?mode=ro"
-    with sqlite3.connect(uri, uri=True) as db:
+    with closing(sqlite3.connect(uri, uri=True)) as db:
         db.row_factory = sqlite3.Row
-        if db.execute("SELECT schema_version FROM metadata").fetchone()[0] != 1:
+        if db.execute("SELECT schema_version FROM metadata").fetchone()[0] != 2:
             raise ValueError("Unsupported knowledge index schema")
         sql = "SELECT documents.*, bm25(search_terms) AS rank FROM search_terms JOIN documents ON documents.id=search_terms.id WHERE search_terms MATCH ?"
         params = [expression]
@@ -192,6 +185,7 @@ def search_index(path, query, *, category=None, limit=10, include_private=False)
             sql += " AND visibility='public'"
         sql += " ORDER BY rank, documents.id LIMIT ?"
         rows = db.execute(sql, [*params, limit]).fetchall()
+        fields = {row["id"]: db.execute("SELECT * FROM keyword_fields WHERE document_id=?", (row["id"],)).fetchone() for row in rows}
     results = []
     for row in rows:
         data = dict(row)
@@ -200,5 +194,13 @@ def search_index(path, query, *, category=None, limit=10, include_private=False)
         begin = max(0, position - 100) if position >= 0 else 0
         data["snippet"] = text[begin:begin + 600]
         data.update(status="reference_unverified", executable=False, private=data["visibility"] == "private")
+        if fields[data["id"]] is not None:
+            data.pop("line_start")
+            data.pop("line_end")  # Structured provider fields have card/columns, not invented source lines.
+            field = dict(fields[data["id"]])
+            field.pop("document_id")
+            for key in ("card", "links", "manual_ref", "solver_status", "aliases"):
+                field[key] = json.loads(field[key])
+            data["keyword_field"] = field
         results.append(data)
     return results

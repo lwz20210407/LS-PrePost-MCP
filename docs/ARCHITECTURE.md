@@ -30,6 +30,10 @@ Command、cfile、SCL、应用内 Python、原生宏是五个一等通道，统�
 
 ## 合同与领域操作
 
+I01 经审阅改为 partial/L1：历史批处理和队列六例不覆盖公开 Win32 传输。
+缺配置拒绝、对外诊断透传和其余 GUI 修改路径统一仍是 tasks.yaml 中的明确缺口。
+[历史原生报告](decisions/evidence/i01/report.md) 保留已执行范围，不作为 I01 全部完成依据。
+
 `core/contracts.py` 使用 pydantic 定义：
 
 | 对象 | 语义 |
@@ -43,17 +47,37 @@ Command、cfile、SCL、应用内 Python、原生宏是五个一等通道，统�
 
 工作流门槛只读 JobResult，执行完成与工程检查通过分别表达。API 使用用户 ID 和 1-based 状态；单位由调用者声明，阈值由调用者给定。保留结果数学与独立逻辑测试。
 
-I02 的六个 pydantic 合同已在 [core/contracts.py](../src/ls_prepost_mcp/core/contracts.py) 实现，core 仅依赖标准库与 pydantic。选择条件、采样和过滤参数使用判别联合；字符串/布尔值不会转成实体 ID，空 ID 选择保持为空，参考/变形坐标及 1-based 状态分别校验。ModelRef 的 Include 条目只是文件身份和父子关系元数据，I07 负责解析与编辑。
+I02 的六个 pydantic 合同已在 [core/contracts.py](../src/ls_prepost_mcp/core/contracts.py) 实现，core 仅依赖标准库与 pydantic。选择条件、采样和过滤参数使用判别联合；字符串/布尔值不会转成实体 ID，显式 ID 列表不能为空，空选择使用 `kind="none"`，参考/变形坐标及 1-based 状态分别校验。ModelRef 的 Include 条目只是文件身份和父子关系元数据，I07 负责解析与编辑。
 
 旧操作返回值在 outcomes.normalize_outcome 中一次转换为 JobResult；prepared 只在明确的准备动作上对应 succeeded + preparation 阶段，未知状态转为 unverified。workflow_checks.evaluate_gate 仅接收并重新校验 JobResult，执行状态和自动质量结论不再从原字典判断。comparison_data 仅用于兼容旧工作流中用户指定的 JSON 路径断言；旧步骤结果、门槛报告和 outcomes.json 投影保留。类型化结果带 `contract: JobResult/v1` 标识，JSON 持久化或录制后仍按同一合同恢复，保留检查结论与准备阶段。
 
 合同实例构建不访问文件、不执行原生动作；产物真实身份、数值正确性和后端/版本能力仍由运行器及检查器验证。缺少 SHA256 的旧产物不会被升级为完整身份已验证。领域工具输入的逐项迁移继续按所属任务执行。
+
+### FieldSpec 迁移约定（I02 → M2）
+
+`core.contracts.FieldSpec` 是新的领域请求：量、分量、Selector、时间选择及采样均显式输入。
+仍在使用的 `field_contracts.FieldSpec` 是旧结果请求/出处描述，包含已展开的 fields、
+ResultSelection、SamplingSpec 和 transformations。两者没有类型或语义等价关系，不能
+仅改 import 或直接把旧字典传入新类。当前 I02 不宣称这七个旧调用方已迁移。
+
+M2 按所属结果任务迁移：先解析 Selector 为用户 ID 和 1-based 状态，再由后端适配器
+映射 quantity/components 到旧字段名称。native layer/积分点与 reader stored point 不
+自动互换；DPF location、transformations 等新合同尚未覆盖的语义须显式保留或拒绝。
+迁移时需补采样、坐标系、平均和失效语义的等价回归；完成前使用完整模块名区分二者。
+
+JobResult 的 failed 必须带非空 error；partial 必须说明 error/warnings，且有 data 或
+artifact。检查聚合忽略 not_applicable；只有全体均不适用时才返回 not_applicable。
 
 ## 原生命令与版本能力
 
 `native/commands.py` 集中生成选择、传播、缓冲区、动画、状态、云图和色标范围命令。构建器拒绝布尔/字符串 ID、越界槽位与可注入命令的参数；节点/单元使用真实用户 ID，状态从 1 开始，原生缓冲区从 0 开始。命令文本和分号格式由黄金输出测试固定，实际选择、状态与图像另外走原生回归。录制器保留命令解析语法，不承担命令生成。
 
 宿主与应用内 bridge 使用同一份构建器。批处理和会话在自有目录暂存 bridge.py、native_commands.py、native_versions.py；支持模块仅依赖标准库，保持 Python 3.6 语法兼容，按自身文件路径加载，不依赖应用内 Python 安装宿主 MCP 包。
+
+路径命令通过 quoted_path、open_model、print_png、movie、run_script、save_keyword 构建；
+生成的 cfile 使用同一个 UTF-8/LF 写入入口。保留 POSIX 与原生 Windows 两种经调用方明确
+指定的路径形式，统一字符校验。黄金测试覆盖空格、中文以及分号/引号拒绝；它不替代
+原生工作目录兼容性验证。KI-049 和 GUI/Movie 的未测部分使 I03 继续保持 partial。
 
 `native/versions.py` 是版本能力判断入口：4.13 主力、4.10 回归子集、4.8 尽力、4.11 排除。4.10 队列来源身份限制在进程启动前拒绝；未知安装也不能默认使用已验证队列能力。路径或配置版本仅是提示，能力报告明确标为未完成运行时验证，成功仍需实际回执与产物检查。旧 Python 向量 ABI 以及 LASSO/DPF 依赖版本的既有拒绝策略集中维护，不放宽数值验证要求。
 
@@ -90,6 +114,11 @@ MCP/automation 调用 domain，domain 依赖 core/engine/native；下层不导�
 ## 知识检索边界
 
 I05 使用本地 SQLite/FTS 索引，支持代码标识符与中文词片段检索。源类别、版本、定位、行号和内容身份与文本一起保存，查询以参数绑定构造，不执行文档中的内容。公开命令表和仓库自有资料可随项目使用；外部 API/用户指南/课程资料默认私有，其索引与派生物只能在仓库外。私有命中需明确 include_private，参考记录始终带 reference_unverified 标记。
+
+schema_version=2 用独立 keyword_fields 表保存字段粒度数据，来源为 Claude 的 keyword_docs；
+I05 不再维护自己的 PyDYNA AST 解析。search_knowledge 通过 LSPP_KNOWLEDGE_INDEX 接入索引，
+包内 provider 集成仍随 M3 完成，因此 I05 保持 partial。连接显式关闭，未完成索引只写
+唯一临时文件，完整事务提交后原子发布；不会因旧半成品阻止重建。
 
 ## 版本、证据与发布
 
