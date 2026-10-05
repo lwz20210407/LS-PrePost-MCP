@@ -40,7 +40,7 @@ tools/gen_docs.py 生成 TASKS、TOOLS、README 能力表和 COMPATIBILITY 的�
 - L2：固定语料与真实 LSPP 的正反例、保存重开、数值与图像核对。M1/I04 将现有 tools/run_* 迁入 pytest -m native；M0 尚不把该命令列为现成能力。
 - L3：M2–M4 的 Agent 自然语言场景评测，退出标准见 tasks.yaml。
 
-原生记录必须含具体构建、输入 SHA256、精确源程序、请求关联、日志和独立产物检查。失败和未知状态保留证据，不自动重放不确定的修改。需要 GUI 的验证集中在用户确认的时间窗，实验脚本见 tools/experiments；锁屏与 RDP 断开由用户操作。
+原生记录必须含具体构建、输入 SHA256、精确源程序、请求关联、日志和独立产物检查。失败和未知状态保留证据，不自动重放不确定的修改。需要 GUI 的验证集中在用户确认的时间窗，实验脚本见 tools/experiments；锁屏与实际远程控制软件的断开由用户操作。本机使用 UU，断开时间窗由用户确认并单独记录，不要求配置 RDP。
 
 ## 数据与知识
 
@@ -90,3 +90,11 @@ I04 在全量原生用例完成前保持 partial。用户已把 M0 剩余 13 个
 捕获后必须由用户确认实际断开区间，将本地确认文件改为 confirmed，含 operator_confirmed=true、disconnected_from/disconnected_until 两个 Unix 时间戳。随后用同一 pytest 入口传 `--remote-evidence <原捕获目录>` 和确认文件，在新的 native-output 目录验证。未确认区间不会判为通过；记录/每阶段产物哈希变化也会失败。
 
 这些用例核验的是实验记录及远程条件，原生各 lane 的 succeeded/failed 原样保留在报告，不能把“记录已验证”解释成不支持的 runc/宏路线已成功。每阶段保留自己的回执、模型和媒体，后续阶段不能用同名文件覆盖前一阶段证据。
+
+远程证据用例在 pytest 中标为 xfail，在 report.md/JSON 中标为 evidence_only，并逐项显示
+execution / PNG / MP4 状态。普通 pytest 即使设置安装路径环境变量也不会启动原生 fixture，
+必须明确传 --run-native；显式路径选项优先于 LSPP_ENGINE_EXECUTABLE，再其次为 LSPP_EXECUTABLE。
+[已有验收的历史附件](decisions/evidence/i04/report.md) 不替代未完成的 GUI/UU 回归。
+
+
+I11 的 local-book 在 corpus 清单的 restricted_sources 中仅登记 ID 与相对路径；默认 catalog 校验不展开书籍内容。书籍文件、索引、图像、数值结果及其他派生数据始终只保留本机仓库外，不提交、不公开。

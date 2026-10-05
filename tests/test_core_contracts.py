@@ -42,7 +42,7 @@ def field_request():
 def test_six_contracts_have_json_schema_and_round_trip_without_losing_semantics():
     objects = [
         model(),
-        Selector(entity_type="node", predicate=dict(kind="ids", ids=[])),
+        Selector(entity_type="node", predicate=dict(kind="none")),
         FieldSpec(**field_request()),
         CurveSpec(
             source=model(),
@@ -59,7 +59,7 @@ def test_six_contracts_have_json_schema_and_round_trip_without_losing_semantics(
     for value in objects:
         assert type(value).model_validate_json(value.model_dump_json()) == value
         json.dumps(type(value).model_json_schema(), allow_nan=False)
-    assert objects[1].predicate.ids == ()  # empty selection is not "all"
+    assert objects[1].predicate.kind == "none"  # empty selection is explicit
     assert objects[2].at.indices == (1, 3)
     assert objects[2].sampling.layer == "outer"
 
@@ -215,6 +215,7 @@ def test_gate_uses_canonical_status_and_checks_not_legacy_envelope():
     job = JobResult(
         operation="check",
         status="failed",
+        error=dict(message="Native execution failed"),
         checks=[CheckResult(name="quality", status="passed")],
         comparison_data=dict(status="succeeded", verification=dict(passed_checks=True)),
     )
@@ -239,6 +240,33 @@ def test_gate_revalidates_mutated_data_and_model_copy_bypasses():
     bad = JobResult(operation="inspect", status="succeeded").model_copy(update=dict(status="running"))
     with pytest.raises(ValidationError):
         evaluate_gate(bad, [])
+
+
+@pytest.mark.parametrize("kind", ["ids", "parts", "sets"])
+def test_empty_id_selection_requires_explicit_none(kind):
+    predicate = dict(kind=kind, ids=[])
+    if kind == "sets":
+        predicate["set_type"] = "node"
+    with pytest.raises(ValidationError):
+        Selector(entity_type="node", predicate=predicate)
+
+
+@pytest.mark.parametrize("values", [dict(status="failed"), dict(status="failed", error={}),
+                                     dict(status="partial"), dict(status="partial", warnings=["incomplete"]),
+                                     dict(status="partial", data=dict(rows=3))])
+def test_incomplete_outcomes_must_explain_failure_and_partial_outputs(values):
+    with pytest.raises(ValidationError):
+        JobResult(operation="read", **values)
+
+
+def test_partial_with_outputs_and_not_applicable_check_aggregation():
+    assert JobResult(operation="read", status="partial", warnings=["one file missing"], data=dict(rows=3))
+    assert JobResult(operation="read", status="partial", error=dict(message="second file failed"),
+                     artifacts=[dict(path="first.csv",kind="csv")])
+    checks = [dict(name="a",status="passed"),dict(name="b",status="not_applicable")]
+    result = JobResult(operation="read",status="succeeded",checks=checks)
+    assert result.check_status == "passed" and evaluate_gate(result, [])["passed"]
+    assert JobResult(operation="read",status="succeeded",checks=checks[1:]).check_status == "not_applicable"
 
 
 def test_legacy_preparation_has_a_distinct_stage_without_a_fifth_status():

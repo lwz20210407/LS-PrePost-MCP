@@ -11,7 +11,12 @@
 - Vendor binaries, manuals, native logs, private paths/data and credentials stay out of Git. Use explicit job directories and obey parent workspace hygiene.
 - New T1 names must occur in tasks.yaml target_tools; use recipes or scripts for long-tail operations. Old names remain aliases until v0.6.
 - I07 belongs to Claude on claude/keyword-engine (local commit a1fb96c). During M0–M2 do not implement I07 or create files under src/ls_prepost_mcp/domain/model/. Integrate that work in M3.
-- The user authorized continuing M1: I02 contracts, I01 engines I03 command builders/version capabilities and I04 native regression. Keep each change reviewable on its own stacked branch; M0 evidence remains in its separate PR.
-- UU remote is the actual confirmed remote environment. The user moved thirteen remaining runc/macro UU cells to I04; M0 is 8/8. Keep them unverified until the remote evidence and operator window are validated.
 
-- Follow through I04, I08, I05, A01–A05, A08, A10 until all M1 exits pass. Batch GUI/remote needs into one external pending list and continue independent work while waiting. Keep local-book content and derivatives private and outside Git.
+- User-approved M0 closeout: 13 remaining UU remote cells move to I04; M0 is 8/8 and PR #1 becomes Ready for review, never merge it automatically.
+- Continue M1 in order I04, I08, I05, A01–A05, A08, A10 until all four exits hold. Use one branch/stacked PR per task; preserve I07 ownership and I02 contract compatibility for Claude.
+- Before a commit, run full-dependency pytest, Ruff and task/docs/migration validators and confirm baseline CI green; after pushing, require that commit's CI green before reporting the task verified. CI cannot evaluate an uncommitted tree.
+- local-book is restricted: register ID/relative path only; never publish its contents or derived data. Private inputs stay in external environment configuration.
+- Reports use at most six Chinese lines: 完成 / 证据 / 下一项 / 待用户. Continue independent work while awaiting one batched GUI/remote window.
+- I02 adds strict core contracts and migrates workflow gates; keep the I07 integration boundary.
+- I01 remains partial/L1 after review; historical batch/queue tests do not certify the public Win32 path.
+- I04 native execution requires explicit opt-in; remote evidence checks are not native passes.

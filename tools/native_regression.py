@@ -233,7 +233,7 @@ def pytest_addoption(parser):
     group.addoption("--run-native", action="store_true", help="Run migrated acceptance scripts")
     group.addoption("--native-gui", action="store_true", help="Use the operator-approved GUI time window")
     group.addoption("--native-output", help="Fresh external directory for all acceptance evidence and reports")
-    group.addoption("--native-executable", default=os.environ.get("LSPP_EXECUTABLE"))
+    group.addoption("--native-executable", default=os.environ.get("LSPP_ENGINE_EXECUTABLE") or os.environ.get("LSPP_EXECUTABLE"))
     group.addoption("--native-fixture", default=os.environ.get("LSPP_ENGINE_FIXTURE"), help="Original synthetic engine fixture directory")
     group.addoption("--native-inputs", default=os.environ.get("LSPP_NATIVE_INPUTS"), help="External JSON mapping case IDs to CLI inputs")
     group.addoption("--native-timeout", type=float, default=600)
@@ -305,8 +305,12 @@ def pytest_runtest_makereport(item, call):
     if report.when == "call" or report.failed or report.skipped:
         previous = rows.get(item.nodeid)
         if previous is None or previous["status"] != "failed":
-            rows[item.nodeid] = dict(status=report.outcome, reason=str(report.longrepr) if report.failed or report.skipped else "",
-                                    duration=report.duration, evidence=dict(report.user_properties).get("native_evidence"))
+            properties = dict(report.user_properties)
+            evidence_only = properties.get("native_scope") == "evidence_only" and (report.passed or getattr(report, "wasxfail", None))
+            status = "evidence_only" if evidence_only else report.outcome
+            rows[item.nodeid] = dict(status=status, reason=str(report.longrepr) if report.failed or report.skipped else "",
+                                    duration=report.duration, evidence=properties.get("native_evidence"),
+                                    native_lane_statuses=properties.get("native_lane_statuses"))
 
 
 def pytest_sessionfinish(session, exitstatus):
@@ -319,9 +323,11 @@ def pytest_sessionfinish(session, exitstatus):
             rows.setdefault(item.nodeid, dict(status="not_run", reason="Interrupted before result", duration=0))
     (root / "report.json").write_text(json.dumps(dict(exit_status=int(exitstatus), cases=rows), ensure_ascii=False, indent=2), encoding="utf8")
     lines = ["# LS-PrePost native regression", "", "Existing acceptance assertions, fresh reports and exact script hashes; skipped cases are not passes.",
-             "", "| Case | Result | Seconds | Evidence | Detail |", "|---|---|---:|---|---|"]
+             "", "| Case | Result | Seconds | Execution / PNG / MP4 | Evidence | Detail |", "|---|---|---:|---|---|---|"]
     for name, row in sorted(rows.items()):
         detail = row["reason"].replace("|", "\\|").replace("\n", "<br>")
         evidence = "[verified.json](<{}>)".format(row["evidence"]) if row.get("evidence") else ""
-        lines.append("| {} | {} | {:.2f} | {} | {} |".format(name, row["status"], row["duration"], evidence, detail))
+        lanes = row.get("native_lane_statuses") or {}
+        lane_text = " / ".join(lanes.get(key, "—") for key in ("execution", "png", "mp4"))
+        lines.append("| {} | {} | {:.2f} | {} | {} | {} |".format(name, row["status"], row["duration"], lane_text, evidence, detail))
     (root / "report.md").write_text("\n".join(lines) + "\n", encoding="utf8")
