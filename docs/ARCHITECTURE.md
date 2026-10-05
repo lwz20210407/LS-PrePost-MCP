@@ -31,7 +31,7 @@ Command、cfile、SCL、应用内 Python、原生宏是五个一等通道，统�
 ## 合同与领域操作
 
 I01 经审阅改为 partial/L1：历史批处理和队列六例不覆盖公开 Win32 传输。
-缺配置拒绝、对外诊断透传和其余 GUI 修改路径统一仍是 tasks.yaml 中的明确缺口。
+缺配置拒绝与对外诊断透传已补回归；公开 Win32 打开、读取、检查点保存重开及同 PID 复用已通过 4.13 原生测试，见[补测报告](decisions/evidence/i01-followup/report.md)。其余 GUI 修改路径统一仍是 tasks.yaml 中的明确缺口。
 [历史原生报告](decisions/evidence/i01/report.md) 保留已执行范围，不作为 I01 全部完成依据。
 
 `core/contracts.py` 使用 pydantic 定义：
