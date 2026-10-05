@@ -12,6 +12,7 @@ class SessionEngine:
     def run(self, job: SessionJob) -> JobResult:
         complete = job.directory / "complete.json"
         submitted = False
+        cursor = None
         try:
             if complete.exists():
                 raise ValueError("Refusing stale completion before submission")
@@ -48,7 +49,15 @@ class SessionEngine:
                     raise TimeoutError("Native operation outcome uncertain; inspect session or restore checkpoint")
                 time.sleep(0.05)
         except Exception as exc:
+            log_error = None
+            if cursor is not None and submitted:
+                try:
+                    (job.directory / "native-session.log").write_bytes(cursor.read_bytes())
+                    (job.directory / "native-session-log.json").write_text(
+                        json.dumps(dict(source=str(cursor.path), offset=cursor.offset)), encoding="utf8")
+                except (OSError, ValueError) as log_exc:
+                    log_error = str(log_exc)
             return JobResult(operation=job.operation, job_id=job.directory.name, backend="lsprepost",
                              status="unverified" if submitted else "failed",
-                             data=dict(submitted=submitted, replayed=False),
+                             data=dict(submitted=submitted, replayed=False, log_error=log_error),
                              error=dict(type=type(exc).__name__, message=str(exc)))

@@ -56,6 +56,7 @@ RESERVED = {
     "script-model.k",
     "native-echo.log",
     "script-result.json",
+    "execution.cfile",
 }
 
 
@@ -91,9 +92,9 @@ def output_contract(outputs):
         name = item["name"]
         if (
             not isinstance(name, str)
-            or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,100}", name)
-            or name.endswith(".")
-            or re.fullmatch(r"(?i)(con|prn|aux|nul|com[1-9]|lpt[1-9])", name.split(".")[0])
+            or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_. -]{0,100}", name)
+            or name.endswith((".", " "))
+            or re.fullmatch(r"(?i)(con|prn|aux|nul|com[1-9]|lpt[1-9])", name.split(".")[0].rstrip())
             or name.lower() in RESERVED
             or name.lower().startswith("lspost.")
             or name.lower() in names
@@ -233,6 +234,7 @@ class ProgramTools:
         session_id: str | None = None,
         capture_model: bool = False,
         inspect_selection: bool = False,
+        allow_owned_output_context: bool = False,
     ) -> dict:
         """Execute a verified prepared source/dependency bundle. Without session_id, use an isolated native process and optional staged model; with session_id, use the current owned GUI and omit model. GUI scripts must retain its model context; keyword baseline is checkpointed, raw effects invalidate cached selections/fringes. Requires the prepared execution SHA256. No declared output/count contract means completed_unverified."""
         prepared = self.jobs.get(prepared_job_id)
@@ -240,6 +242,8 @@ class ProgramTools:
             raise ValueError("Model capture requires an explicit keyword batch context")
         if type(inspect_selection) is not bool:
             raise ValueError("inspect_selection must be Boolean")
+        if type(allow_owned_output_context) is not bool:
+            raise ValueError("allow_owned_output_context must be Boolean")
         if prepared["action"] != "prepare_native_program":
             raise ValueError("Expected a prepared native program")
         prepared_dir = self.jobs.root / prepared_job_id
@@ -263,7 +267,8 @@ class ProgramTools:
                 raise ValueError("GUI programs use the current model; open it separately and omit model")
             from .gui_programs import execute_prepared
 
-            return execute_prepared(self, session_id, prepared_job_id, expected_sha256, contract, content, captured)
+            return execute_prepared(self, session_id, prepared_job_id, expected_sha256, contract, content, captured,
+                                    allow_owned_output_context=allow_owned_output_context)
         if file_type not in ("keyword", "d3plot"):
             raise ValueError("Unsupported input type")
         source = self.settings.input_path(model) if model else None

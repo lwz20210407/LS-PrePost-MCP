@@ -39,7 +39,7 @@
 | `describe_installed_template` | A08 | template_id*: string |
 | `describe_pydyna_keyword` | A10 | class_name*: string |
 | `execute_gui_command` | A01 | session_id*: string; command*: string; outputs: union/ref; expected_counts: union/ref; initial_node_ids: union/ref; capture_model: boolean |
-| `execute_native_program` | A01, A02, A03, A04 | prepared_job_id*: string; expected_sha256*: string; model: union/ref; file_type: string; graphics: boolean; session_id: union/ref; capture_model: boolean; inspect_selection: boolean |
+| `execute_native_program` | A01, A02, A03, A04 | prepared_job_id*: string; expected_sha256*: string; model: union/ref; file_type: string; graphics: boolean; session_id: union/ref; capture_model: boolean; inspect_selection: boolean; allow_owned_output_context: boolean |
 | `export_dpf_result` | Q03 | path*: string; file_type*: string; result*: string; units*: string; states: union/ref; entity_ids: union/ref; label_filter: union/ref; component: union/ref; actunits: union/ref |
 | `export_gui_animation` | Q09 | session_id*: string; last: union/ref; fps: integer; width: integer; height: integer; averaging: string |
 | `export_gui_curve_plot` | Q08 | session_id*: string; path*: string; x_column*: string; y_column*: string; title*: string; x_label*: string; y_label*: string; x_unit*: string; y_unit*: string; curve_label: union/ref; additional_curves: union/ref |
@@ -119,7 +119,7 @@
 | `rotate_mesh_nodes` | P08 | model*: string; node_ids*: array; axis*: string; angle*: number; center*: array; units*: string |
 | `run_native_macro` | A08 | path*: string; parameters: union/ref; model: union/ref; file_type: string; graphics: boolean; session_id: union/ref |
 | `run_on_version` | A01 | version*: string; action*: string; parameters*: object |
-| `run_script` | I08 | language*: string; code*: string; context: string; session_id: union/ref; model: union/ref; file_type: string; outputs: union/ref; expected_counts: union/ref; capture_model: boolean; initial_node_ids: union/ref |
+| `run_script` | I08 | language*: string; code*: string; context: string; session_id: union/ref; model: union/ref; file_type: string; outputs: union/ref; expected_counts: union/ref; capture_model: boolean; initial_node_ids: union/ref; parameters: union/ref |
 | `run_workflow` | A09 | path*: string; parameters: union/ref; session_id: union/ref |
 | `run_workflow_sweep` | A09 | path*: string; cases*: array; outputs: union/ref; session_id: union/ref |
 | `save_gui_selection_buffer` | G03 | session_id*: string; entity_type*: string; entity_ids*: array; slot*: integer |

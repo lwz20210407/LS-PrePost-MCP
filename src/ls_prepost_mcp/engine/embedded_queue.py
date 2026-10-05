@@ -101,3 +101,6 @@ def run(root, session_id, token):
         stopped.set()
         listener.close()
         receiver.join(timeout=3)
+    # A trailing exit in initialize.cfile is consumed by nested openc command
+    # and terminates the live session prematurely. Exit only after STOP.
+    lp.execute_command("exit")

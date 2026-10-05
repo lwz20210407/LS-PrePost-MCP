@@ -13,7 +13,7 @@ class ScriptOutput(Contract):
 
 
 class ScriptRequest(Contract):
-    language: Literal["command"]
+    language: Literal["command", "cfile"]
     code: Text
     context: Literal["batch", "session"] = "batch"
     session_id: str | None = None
@@ -23,6 +23,7 @@ class ScriptRequest(Contract):
     expected_counts: dict[str, StrictInt] = Field(default_factory=dict)
     capture_model: bool = False
     initial_node_ids: Ids | None = None
+    parameters: dict = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def execution_context(self):
@@ -32,7 +33,15 @@ class ScriptRequest(Contract):
             raise ValueError("Session context requires session_id and uses its current model")
         if self.initial_node_ids is not None and (len(self.initial_node_ids) > 10000 or len(set(self.initial_node_ids)) != len(self.initial_node_ids)):
             raise ValueError("Initial node selection requires at most 10000 unique user IDs")
-        if len(self.code.encode("utf8")) > 1024 * 1024 or any(c in self.code for c in "\r\n\x00;"):
+        if len(self.code.encode("utf8")) > 1024 * 1024 or "\x00" in self.code:
+            raise ValueError("Script requires nonempty source up to 1 MiB")
+        if self.language == "cfile":
+            if self.initial_node_ids is not None or self.capture_model:
+                raise ValueError("Cfile declares its own selection and output commands")
+            return self
+        if self.parameters:
+            raise ValueError("Parameter interpolation is available for cfile")
+        if any(c in self.code for c in "\r\n;"):
             raise ValueError("Command requires one nonempty native line")
         head = self.code.strip().split()[0].lower()
         if head in {"exit", "quit", "new", "system", "runpython", "runscript"}:
