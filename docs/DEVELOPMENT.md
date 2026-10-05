@@ -82,4 +82,3 @@ uv run pytest tests/test_native_acceptance.py -m native -k "engineering_unit or 
 ```
 
 I04 在全量原生用例完成前保持 partial。M0 尚未确认归属的 13 个 UU 远程格另行保留，不能用本框架的默认桌面结果替代。
-
