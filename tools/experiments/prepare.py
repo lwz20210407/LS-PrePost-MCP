@@ -70,7 +70,7 @@ def prepare(root, result):
                         commands = start + payload + '\nrunscript "' + str(directory / "receipt.scl") + '"\n'
                         for lane, tail in dict(
                             execution="",
-                            png='isometric\nauto fit\nprint png "'
+                            png='isometric\nac\nprint png "'
                             + str(directory / "image.png")
                             + '" opaque enlisted "OGL1x1"\n',
                             mp4='anim stop\nanim first 1\nanim last 3\nanim incr 1\nmovie MP4/H264 640x480 "'

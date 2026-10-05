@@ -1,6 +1,7 @@
 """I06: deterministic task/tool docs; --check never writes files."""
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -72,11 +73,12 @@ def generate(catalog, registry):
     for t in catalog["tasks"]:
         state = {"partial": "部分实现", "todo": "待实现", "done": "已验收"}[t["status"]]
         rows.append(f"| {labels[t['group']]} | {t['id']} {t['title']} | {state} | {t['release']} |")
-    policy = (
-        "## 目标版本策略（自动生成）\n\n"
-        + catalog["decisions"]["D3"]
-        + "\n\n此处是验收目标；以下历史证据保留其原始范围。"
-    )
+    policy_rows = ["## 目标版本策略（自动生成）", "", "| 版本 | D3 验收策略 |", "|---|---|"]
+    for clause in catalog["decisions"]["D3"].split("；"):
+        version = re.search(r"\d+\.\d+", clause)
+        if version:
+            policy_rows.append(f"| {version[0]} | {clause.strip().rstrip('。')} |")
+    policy = "\n".join(policy_rows) + "\n\n此表是验收目标；前文历史证据保留其原始范围。"
     return {
         ROOT / "docs/TASKS.md": "\n".join(task_lines).rstrip() + "\n",
         ROOT / "docs/TOOLS.md": "\n".join(tool_lines) + "\n",

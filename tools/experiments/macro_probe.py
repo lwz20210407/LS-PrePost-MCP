@@ -19,9 +19,7 @@ def run(cell, executable, lane, run_dir):
     source = (directory / "program.mac").read_text(encoding="utf8")
     tail = ""
     if lane == "png":
-        tail += (
-            'isometric\nauto fit\nprint png "' + str(directory / "image.png") + '" opaque enlisted "OGL1x1"\n'
-        )
+        tail += 'isometric\nac\nprint png "' + str(directory / "image.png") + '" opaque enlisted "OGL1x1"\n'
     if lane == "mp4":
         tail += (
             'anim stop\nanim first 1\nanim last 3\nanim incr 1\nmovie MP4/H264 640x480 "'
@@ -70,6 +68,12 @@ def run(cell, executable, lane, run_dir):
                 transport.require_interactive_desktop()
                 # User32 marshals these standard listbox messages cross-process.
                 result = transport.ctypes.c_size_t()
+                if not transport.u.SendMessageTimeoutW(
+                    handle, 0x018A, 0, 0, 2, 2000, transport.ctypes.byref(result)
+                ):
+                    raise RuntimeError("Cannot query native macro name length")
+                if not 0 < result.value < 256:
+                    raise ValueError("Native macro name exceeds bounded read buffer")
                 text = transport.ctypes.create_unicode_buffer(256)
                 pointer = transport.ctypes.cast(text, transport.ctypes.c_void_p).value
                 if not transport.u.SendMessageTimeoutW(
