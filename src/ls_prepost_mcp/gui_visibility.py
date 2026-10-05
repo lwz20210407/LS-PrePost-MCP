@@ -17,6 +17,8 @@ CODES = {"shell": 10, "solid": 11, "beam": 12, "element": 19}
 
 
 def flags(data, directory):
+    if data.get("auxiliary_elements"):
+        raise ValueError("Mass element display flags are not verified; refusing visibility mutation")
     metadata = data.get("visibility_binary")
     if metadata is None:
         raise ValueError("Start a new GUI session for the entity visibility bridge")

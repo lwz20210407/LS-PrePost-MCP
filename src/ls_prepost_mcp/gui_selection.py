@@ -112,8 +112,9 @@ def verify_selection(before, after, expected, kind):
         validity_scope="registered entities accepted by native selection; no explicit alive/deletion mask",
         selection_spec=EntitySelection(kind, sorted(expected)).describe(),
         part_visibility_preserved=True,
-        entity_display_active_preserved=visibility is not None,
-        display_check_scope="Current part configuration; display-active is not physical erosion",
+        entity_display_active_preserved=None if before.get("auxiliary_elements") else visibility is not None,
+        structural_display_active_preserved=visibility is not None,
+        display_check_scope="Current part configuration and registered shell/solid/beam flags; auxiliary mass glyph flags unverified; display-active is not physical erosion",
     )
 
 

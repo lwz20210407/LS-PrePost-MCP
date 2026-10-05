@@ -28,7 +28,7 @@ def snapshot(model, output_directory=None, **parameters):
         if key == "element_connectivity":
             return model["elements"][kw["type"]][kw["id"]]
         if key == "num_elements":
-            return sum(len(es) for es in model["elements"].values())
+            return sum(len(es) for es in model["elements"].values()) + len(model.get("masses", {}))
         if key == "validpart_ids":
             return list(model["parts"])
         if key == "elemofpart_ids":
@@ -40,11 +40,43 @@ def snapshot(model, output_directory=None, **parameters):
         raise AssertionError(key)
 
     dc = SimpleNamespace(get_data=get, Type=SimpleNamespace(NODE=0, SHELL=1, SOLID=2, BEAM=3))
+    dc.masses = model.get("masses", {})
     lp = SimpleNamespace(check_if_part_is_active_u=lambda pid: model["visible"][pid],
                          check_if_element_is_active_u=lambda uid, kind: list(model["elements"][kind]).index(uid) % 2 == 0)
     result = scoped_mesh_state(dc, lp, parameters, output_directory)
     result.update(counts=dict(nodes=len(model["nodes"]), elements=get("num_elements")), current_state=1)
     return result
+
+
+def test_mass_properties_join_full_digest_and_missing_nodes_reject(tmp_path):
+    model = native_model()
+    model['masses'] = {900:(22,2.5,0)}
+    before = snapshot(model, node_ids=[22], visibility_readback=True, output_directory=tmp_path)
+    assert before['auxiliary_elements']['mass_count']==1
+    assert before['visibility_binary']['count']==1  # Shell only, no fake mass flag.
+    assert {'type':'mass','id':900} in before['affected_element_sample']
+    for changed in ((11,2.5,0),(22,3.5,0),(22,2.5,7)):
+        model['masses'][900]=changed
+        with pytest.raises(ValueError, match='connectivity|part_membership'):
+            verify_mesh_digest(before,snapshot(model,node_ids=[22]))
+    model['masses'][900]=(999,2.5,0)
+    with pytest.raises(ValueError, match='unregistered node'):
+        snapshot(model)
+
+
+def test_mass_display_and_all_element_selection_are_not_falsely_certified(tmp_path):
+    from ls_prepost_mcp.gui_entities import stable_scene
+    from ls_prepost_mcp.gui_visibility import flags
+    model=native_model()
+    model['masses']={900:(22,2.5,0)}
+    state=snapshot(model,visibility_readback=True,output_directory=tmp_path)
+    proof=stable_scene(state,state)
+    assert proof['display_active_preserved'] is None
+    assert proof['structural_display_active_preserved']
+    with pytest.raises(ValueError,match='display flags'):
+        flags(state,tmp_path)
+    with pytest.raises(ValueError,match='all-element'):
+        snapshot(model,entity_type='element')
 
 
 def test_visibility_bridge_streams_multiple_binary_chunks_without_json_rows(tmp_path):

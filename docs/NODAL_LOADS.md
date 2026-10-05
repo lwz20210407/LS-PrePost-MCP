@@ -28,7 +28,7 @@
 录制会把selection_job转换为步骤结果引用；更换节点数量后回放total_equal会重新计算均分因子。未修改的原始输入保留。当前原生验收为Windows4.13.4；4.8/4.10、无GUI、求解器及任意Include/参数卡保持不因此通过。
 
 - `tools/run_nodal_load_acceptance.py`：合成混合网格，六轴、新建/复用曲线、逐节点/均分、选区→载荷录制和参数回放、重复加载显式叠加、受约束节点提示、集合变更语义、错误引用、原生保存和新进程重开。
-- `tools/run_public_nodal_load_acceptance.py`：官方Example11原文件副本。**尚未通过**：41节点/21单元中包含ELEMENT_MASS，共用网格摘要在修改前拒绝此单元族，未进入冲突检查。保留完整原例，不删除质量单元。后续须补辅助单元保真后完成既有SET冲突、曲线复用、叠加及重开；测试单位仅为显式API标签，不声称推断出历史例的完整单位制。
+- `tools/run_public_nodal_load_acceptance.py`：官方Example11原文件副本，41节点/21单元含ELEMENT_MASS。最初被共用摘要拒绝；增加[标准质量单元保真](MASS_PRESERVATION.md)后，同一完整原例已通过既有SET冲突、曲线复用、叠加及重开，不删除质量单元。测试单位仅为显式API标签，不声称推断出历史例的完整单位制。质量glyph显隐未验证。
 
 ## 依据
 

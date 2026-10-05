@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from ls_prepost_mcp.embedded import BeamSafeDataCenter
+from ls_prepost_mcp.embedded import BeamSafeDataCenter, read_native_masses
 from ls_prepost_mcp.native_connectivity import beam_connectivity_prelude
 
 
@@ -71,3 +71,38 @@ def test_beam_export_uses_absolute_path_to_preserve_native_model_file_identity(t
     exec(compile(beam_connectivity_prelude(directory), "beam-test", "exec"), {})
     assert commands == ['save keyword "' + str(directory / "beam-connectivity.k") + '"']
     assert json.loads((directory / "beam-count.json").read_text()) == 1
+
+
+def test_mass_only_model_exports_without_beams_and_binds_sdk_count(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    native = SimpleNamespace(
+        Type=SimpleNamespace(BEAM=1),
+        get_data=lambda key, **kw: [] if key == "element_ids" else 0 if key == "num_beam_elements" else 1,
+    )
+    commands = []
+    monkeypatch.setitem(sys.modules, "DataCenter", native)
+    monkeypatch.setitem(sys.modules, "LsPrePost", SimpleNamespace(execute_command=commands.append))
+    exec(compile(beam_connectivity_prelude(tmp_path), "mass-export", "exec"), {})
+    assert len(commands) == 1
+    (tmp_path / "beam-connectivity.k").write_text("*KEYWORD\n*ELEMENT_MASS\n23,12,25.9067,0\n*END\n")
+    proxy = BeamSafeDataCenter(native, tmp_path)
+    assert proxy.beams == {} and proxy.masses == {23: (12, 25.9067, 0)}
+    (tmp_path / "mass-count.json").write_text("2")
+    with pytest.raises(ValueError, match="changed"):
+        BeamSafeDataCenter(native, tmp_path)
+
+
+def test_mass_fixed_width_and_unsupported_or_malformed_records(tmp_path):
+    path = tmp_path / "mass.k"
+    path.write_text("*ELEMENT_MASS\n" + f"{23:8d}{12:8d}{25.9067:16g}{0:8d}\n")
+    assert read_native_masses(path, 1) == {23: (12, 25.9067, 0)}
+    for body in (
+        "*ELEMENT_MASS_PART\n1,2,3\n",
+        "*ELEMENT_MASS\n23,12,nan,0\n",
+        "*ELEMENT_MASS\n23,12,-1,0\n",
+        "*ELEMENT_MASS\n23,12,1,0,9\n",
+        "*ELEMENT_MASS\n23,12,1,0\n23,13,2,0\n",
+    ):
+        path.write_text(body)
+        with pytest.raises(ValueError):
+            read_native_masses(path, 1)

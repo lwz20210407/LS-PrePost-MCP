@@ -1731,8 +1731,8 @@
         "4.13.4 Windows visible maximized GUI"
       ],
       "scope": "Global nodal force/moment x/y/z/rx/ry/rz; explicit units, per_node SET linkage or total_equal frozen POINT distribution, selection dependencies, curve creation/reuse, overlap review and intentional superposition. Mesh/display/cards preserved; explicit fresh-process reopen. No follower/local/rigid/load-ID variant or solver certification.",
-      "validation": "tools/run_nodal_load_acceptance.py synthetic mixed shell/solid/beam full workflow passed, including parameter replay with changed node count and load curve; real native numeric/card checks.",
-      "known_limitations": "Official Example11 contains ELEMENT_MASS and is rejected by current shared mesh digest before edits. Not a passed public workflow; keep original model intact and extend auxiliary-element coverage."
+      "validation": "tools/run_nodal_load_acceptance.py synthetic mixed shell/solid/beam full workflow passed, including parameter replay with changed node count and load curve; real native numeric/card checks. Full official Example11 beam+mass load/reopen regression and mass-only selection/set/load/parameter replay/reopen passed. docs/MASS_PRESERVATION.md",
+      "known_limitations": "Standard ELEMENT_MASS supported for structural preservation; mass glyph display, inertia/other auxiliary families, follower/local/rigid loads remain unverified. Full display proof is null when auxiliary glyph flags are unavailable."
     }
   ],
   "native_reference_builds": [

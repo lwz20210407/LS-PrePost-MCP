@@ -35,7 +35,10 @@ def stable_scene(before, after):
     if (part_visibility(before) != part_visibility(after) or before["current_state"] != after["current_state"]
             or before.get("visibility_binary") is None or before["visibility_binary"] != after.get("visibility_binary")):
         raise ValueError("Entity operation changed part/element display-active flags or current state")
-    return dict(geometry_preserved=True, display_active_preserved=True, state_preserved=True,
+    return dict(geometry_preserved=True, display_active_preserved=None if before.get("auxiliary_elements") else True, state_preserved=True,
+                structural_display_active_preserved=True,
+                display_active_scope="Registered shell/solid/beam elements and parts; auxiliary mass glyph flags unverified" if before.get("auxiliary_elements") else "Registered elements and parts",
+                auxiliary_elements=after.get("auxiliary_elements"),
                 route="lsprepost_native_keyword_fragment_import", solver_validated=False)
 
 

@@ -1555,9 +1555,9 @@
     "id": "official-example11-nodal-force",
     "title": "Official Example11 concentrated load on a beam with attached mass",
     "url": "https://lsdyna.ansys.com/example-11/",
-    "summary": "Complete original downloaded locally. Opens41nodes/21elements, but ELEMENT_MASS is rejected by current shared mesh digest before load mutation. Retained gap fixture, not positive nodal-load acceptance.",
-    "integration": "native_unsupported_auxiliary_element_fixture",
+    "summary": "Original41-node/21-element beam plus ELEMENT_MASS initially failed shared mesh digest. Standard mass preservation now enables existing-load overlap review, curve reuse, load superposition and fresh-process native reopen on the unchanged full input.",
+    "integration": "bounded_native_nodal_load_and_mass_preservation",
     "license_status": "Local reference input only; no raw model redistributed",
-    "scope": "Extend auxiliary-element preservation before claiming this workflow passes"
+    "scope": "Standard mass node/value/part/count preservation; mass glyph display, inertia and other auxiliary families unverified. docs/MASS_PRESERVATION.md"
   }
 ]

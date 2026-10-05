@@ -10,6 +10,7 @@ from pathlib import Path
 
 from ls_prepost_mcp.boundary_cards import inspect_boundary_cards
 from ls_prepost_mcp.config import Settings
+from ls_prepost_mcp.embedded import read_native_masses
 from ls_prepost_mcp.jobs import atomic_json
 from ls_prepost_mcp.service import Service
 
@@ -38,6 +39,7 @@ def accept(workspace, executable, keyword):
         check("open-official", s.open_in_gui_session(sid, str(source)))
         saved = check("before", s.checkpoint_gui_session(sid))
         before = inspect_boundary_cards(Path(saved["artifacts"][0]["path"]), include_nodal_loads=True)
+        original_masses = read_native_masses(saved["artifacts"][0]["path"], 1)
         assert before["nodal_loads"] and 1 in before["curves"]
         try:
             result = s.create_gui_nodal_load(sid, "y", 1, "s", "N", "per_node", node_ids=[12])
@@ -61,6 +63,7 @@ def accept(workspace, executable, keyword):
         )
         saved = check("saved", s.checkpoint_gui_session(sid))
         expected = inspect_boundary_cards(Path(saved["artifacts"][0]["path"]), include_nodal_loads=True)
+        assert read_native_masses(saved["artifacts"][0]["path"], 1) == original_masses
         assert (
             expected["curves"] == before["curves"]
             and len(expected["nodal_loads"]) == len(before["nodal_loads"]) + 2
@@ -74,6 +77,7 @@ def accept(workspace, executable, keyword):
             inspect_boundary_cards(Path(saved["artifacts"][0]["path"]), include_nodal_loads=True) == expected
         )
         assert source.read_bytes() == original
+        assert read_native_masses(saved["artifacts"][0]["path"], 1) == original_masses
         atomic_json(
             root / "acceptance.json",
             dict(

@@ -14,6 +14,36 @@ import traceback
 from array import array as packed_array
 
 
+def read_native_masses(path, expected_count):
+    """Read standard ELEMENT_MASS without guessing undocumented SDK enum codes."""
+    masses, keyword = {}, None
+    with open(path, encoding="utf8", errors="strict") as stream:
+        for line in stream:
+            text = line.strip()
+            if not text or text.startswith("$"):
+                continue
+            if text.startswith("*"):
+                keyword = text.upper()
+                continue
+            if keyword != "*ELEMENT_MASS":
+                continue
+            fields = line.split(",") if "," in line else [line[:8], line[8:16], line[16:32], line[32:40]]
+            if len(fields) > 4 and any(v.strip() for v in fields[4:]) or "," not in line and line[40:].strip():
+                raise ValueError("Extended mass record is not supported")
+            fields += [""] * 4
+            uid, nid = int(fields[0]), int(fields[1])
+            mass = float(fields[2].replace("D", "E").replace("d", "e"))
+            pid = int(fields[3].strip() or 0)
+            if uid <= 0 or nid <= 0 or pid < 0 or not math.isfinite(mass) or mass < 0 or uid in masses:
+                raise ValueError("Invalid/duplicate native mass element")
+            masses[uid] = (nid, mass, pid)
+            if len(masses) > expected_count:
+                raise ValueError("Native mass registry count mismatch")
+    if len(masses) != expected_count:
+        raise ValueError("Incomplete native mass inventory; standard ELEMENT_MASS only")
+    return masses
+
+
 class BeamSafeDataCenter:
     """Read standard beam endpoints from a fresh native keyword export, not the faulty array binding."""
     def __init__(self, dc, directory):
@@ -21,6 +51,18 @@ class BeamSafeDataCenter:
         self.Type = dc.Type
         expected = {int(v) for v in dc.get_data("element_ids", type=dc.Type.BEAM)}
         self.beams = {}
+        self.masses = {}
+        mass_path = os.path.join(directory, "mass-count.json")
+        if os.path.isfile(mass_path):
+            with open(mass_path) as stream:
+                mass_count = json.load(stream)
+            if mass_count is not None:
+                if type(mass_count) is not int or not 0 <= mass_count <= 1000000:
+                    raise ValueError("Invalid native mass count")
+                if mass_count != int(dc.get_data("num_mass_elements")):
+                    raise ValueError("Native mass count changed since export")
+                if mass_count:
+                    self.masses = read_native_masses(os.path.join(directory, "beam-connectivity.k"), mass_count)
         with open(os.path.join(directory, "beam-count.json")) as stream:
             count = json.load(stream)
         if type(count) is not int or not 0 <= count <= 1000000 or count != len(expected):
@@ -156,6 +198,10 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
         "unselected_connectivity", "normal_current", "normal_reversed")}
     node_indices, rows, matched, occurrences = {}, {}, [], {}
     get = dc.get_data
+    masses = getattr(dc, "masses", {})
+    mass_nodes = {row[0] for row in masses.values()}
+    if masses and (domain == "element" or topology is not None or normal_scope is not None):
+        raise ValueError("Mass preservation supports node/part/typed structural inspection, not all-element selection or shell topology/normal editing")
     array = get("validpart_ids")
     parts = [int(array[i]) for i in range(len(array))]
     visibility, filter_elements, active_elements = {}, set(), set()
@@ -183,6 +229,7 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
     accum = packed_array("d", [0.0]) * count if query else None
     for i in range(count):
         uid = int(registry[i])
+        mass_nodes.discard(uid)
         if registry_query and domain == "node":
             domain_ids.add(uid)
         if query:
@@ -197,6 +244,8 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
             matched.append(uid)
     if set(rows) != wanted_nodes:
         raise ValueError("Unknown requested node IDs")
+    if mass_nodes:
+        raise ValueError("Native mass element references an unregistered node")
     for axis, key in enumerate(("node_x", "node_y", "node_z")):
         array = get(key, type=dc.Type.NODE)
         if len(array) != count:
@@ -319,8 +368,27 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
                 occurrences[uid] = occurrences.get(uid, 0) + 1
                 if domain in (label, "element"):
                     matched.append(uid)
-    if element_count != int(get("num_elements")):
+    if element_count + len(masses) != int(get("num_elements")):
         raise ValueError("Scoped verification does not cover this model's element types")
+    if masses:
+        hashes["connectivity"].update(b"mass" + struct.pack("!q", len(masses)))
+        for uid in sorted(masses):
+            nid, mass, pid = masses[uid]
+            hashes["connectivity"].update(struct.pack("!qqd", uid, nid, mass))
+            hashes["part_membership"].update(struct.pack("!qq", uid, pid))
+            if registry_query and domain == "node":
+                if uid in seen_elements:
+                    raise ValueError("Part-aware selection requires globally unique element IDs")
+                if uid in filter_elements:
+                    filter_ids.add(nid)
+                if uid in active_elements:
+                    active_ids.add(nid)
+                if uid in filter_elements and uid in active_elements:
+                    both_ids.add(nid)
+            if nid in wanted_nodes:
+                affected_count += 1
+                if len(affected) < 20:
+                    affected.append(dict(type="mass", id=uid))
     flush_visibility()
     if normal_scope is not None and (normal_count == 0 or normal_ids is not None and normal_count != len(normal_ids)):
         raise ValueError("No shells or unknown explicit shell IDs for normal reversal")
@@ -405,6 +473,9 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
         digest_contract="native_registry_order_sha256_v1",
         digest_node_ids=sorted(wanted_nodes),
         normal_scope=normal_scope, normal_count=normal_count,
+        auxiliary_elements=(dict(mass_count=len(masses), method="native_keyword_and_sdk_count",
+                                 properties="element ID, node ID, mass, part ID", display_verified=False)
+                            if masses else None),
         visibility_binary=(dict(format="native_display_active_v1", file="visibility.bin", record_format="!BqB",
                                count=element_count, active_count=display_active_count,
                                byte_count=element_count*10, sha256=visibility_hash.hexdigest())
