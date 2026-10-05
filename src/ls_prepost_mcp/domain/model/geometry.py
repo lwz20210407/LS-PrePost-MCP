@@ -36,6 +36,27 @@ def _number(text: str, lookup: dict) -> float:
     return 0.0 if value is None else float(value)
 
 
+def _fast_columns(block: object, rows: RowMap, names: list[str]) -> np.ndarray | None:
+    """Columns as floats parsed by numpy when the block is plain fixed format (no commas, no &).
+
+    Returns None when a cell needs the general parser (Fortran exponents, blanks, parameters).
+    """
+    if any("," in line or "&" in line for line in block.lines[1:]):
+        return None
+    spots = [rows.locate(name) for name in names]
+    if any(spot is None for spot in spots):
+        return None
+    indices = [idx for _, idx in rows.lines()]
+    columns = []
+    for position, offset, width, _ in spots:
+        texts = [block.lines[idx[position]][offset:offset + width] for idx in indices]
+        try:
+            columns.append(np.array(texts, dtype=float))
+        except ValueError:
+            return None
+    return np.stack(columns, axis=1) if columns else np.empty((len(indices), 0))
+
+
 def nodes(deck: KeywordDeck) -> tuple[np.ndarray, np.ndarray]:
     """``(ids, xyz)`` of every ``*NODE`` row in reading order."""
     ids: list[int] = []
@@ -45,6 +66,11 @@ def nodes(deck: KeywordDeck) -> tuple[np.ndarray, np.ndarray]:
         rows, lookup = layout.rows, deck.lookup(block)
         if not isinstance(rows, RowMap):
             raise Unsupported("*NODE without a row layout")
+        fast = _fast_columns(block, rows, ["x", "y", "z"])
+        if fast is not None:
+            ids.extend(rows)
+            coords.extend(map(tuple, fast))
+            continue
         spots = [rows.locate(axis) for axis in ("x", "y", "z")]
         for key, indices in rows.lines():
             ids.append(key)
@@ -64,6 +90,13 @@ def elements(deck: KeywordDeck, keyword: str, width: int) -> tuple[np.ndarray, n
         spots = [rows.locate(c) for c in columns] if isinstance(rows, RowMap) else []
         if not spots or any(s is None for s in spots):
             raise Unsupported(f"{keyword} rows are not available")
+        fast = _fast_columns(block, rows, columns)
+        if fast is not None:
+            values = fast.astype(np.int64)
+            eids.extend(rows)
+            pids.extend(values[:, 0].tolist())
+            conn.extend(values[:, 1:].tolist())
+            continue
         for key, indices in rows.lines():
             values = [int(_number(rows.cell(indices, s), lookup)) for s in spots]
             eids.append(key)
@@ -73,29 +106,39 @@ def elements(deck: KeywordDeck, keyword: str, width: int) -> tuple[np.ndarray, n
             np.asarray(conn, dtype=np.int64).reshape(-1, width))
 
 
+def _normalize(faces: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Collapsed quads of degenerate solids: first-appearance order, triangles padded (a b c c)."""
+    ordered = np.empty_like(faces)
+    keep = np.zeros(len(faces), dtype=bool)
+    for row, face in enumerate(faces):
+        unique = list(dict.fromkeys(face.tolist()))
+        keep[row] = len(unique) >= 3
+        ordered[row] = (unique + [unique[-1]] * 4)[:4]
+    return ordered[keep], keep
+
+
 def _faces(conn: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Non-degenerate faces ``[m, 4]`` (triangles as ``a b c c``) and the owning element index."""
     distinct = (np.diff(np.sort(conn, axis=1), axis=1) != 0).sum(axis=1) + 1
     tet = (distinct == 4) & (conn[:, 4:] == conn[:, [3]]).all(axis=1)
     if ((distinct == 4) & ~tet).any() or (distinct < 4).any():
         raise Unsupported("Unrecognized degenerate solid connectivity")
+    hexa = distinct == 8
     groups = []
-    for mask, table in ((~tet, HEX_FACES), (tet, TET_FACES)):
+    for mask, table, collapse in ((hexa, HEX_FACES, False), (tet, TET_FACES, False),
+                                  (~hexa & ~tet, HEX_FACES, True)):  # pyramids, pentahedra
         index = np.nonzero(mask)[0]
-        if index.size:
-            faces = conn[index][:, np.asarray(table)].reshape(-1, 4)
-            groups.append((faces, np.repeat(index, len(table))))
-    faces = np.concatenate([g[0] for g in groups])
-    owner = np.concatenate([g[1] for g in groups])
-    # Normalize collapsed quads: keep the first appearance order, pad triangles with the third node.
-    ordered = np.empty_like(faces)
-    sizes = np.empty(len(faces), dtype=np.int64)
-    for row, face in enumerate(faces):
-        unique = list(dict.fromkeys(face.tolist()))
-        sizes[row] = len(unique)
-        ordered[row] = (unique + [unique[-1]] * 4)[:4]
-    keep = sizes >= 3
-    return ordered[keep], owner[keep]
+        if not index.size:
+            continue
+        faces = conn[index][:, np.asarray(table)].reshape(-1, 4)
+        owner = np.repeat(index, len(table))
+        if collapse:
+            faces, keep = _normalize(faces)
+            owner = owner[keep]
+        groups.append((faces, owner))
+    if not groups:
+        return np.empty((0, 4), dtype=np.int64), np.empty(0, dtype=np.int64)
+    return np.concatenate([g[0] for g in groups]), np.concatenate([g[1] for g in groups])
 
 
 def _normals(xyz: np.ndarray, faces: np.ndarray, lookup: np.ndarray) -> np.ndarray:
@@ -170,3 +213,19 @@ def select_nodes(deck: KeywordDeck, *, box: list[float] | None = None, sphere: l
             used.update(np.unique(conn[np.isin(pids, np.asarray(parts))]).tolist())
         keep &= np.isin(ids, np.asarray(sorted(used), dtype=np.int64))
     return ids[keep]
+
+
+def select_elements(deck: KeywordDeck, keyword: str, *, parts: list[int] | None = None,
+                    box: list[float] | None = None) -> np.ndarray:
+    """Element IDs of ``*ELEMENT_SOLID`` / ``*ELEMENT_SHELL`` by part and/or centroid inside ``box``."""
+    width = 8 if keyword == "*ELEMENT_SOLID" else 4
+    eids, pids, conn = elements(deck, keyword, width)
+    keep = np.ones(eids.size, dtype=bool)
+    if parts is not None:
+        keep &= np.isin(pids, np.asarray(parts))
+    if box is not None and eids.size:
+        node_ids, xyz = nodes(deck)
+        lookup = _index(node_ids)
+        centroid = xyz[lookup[conn]].mean(axis=1)
+        keep &= ((centroid >= np.asarray(box[:3])) & (centroid <= np.asarray(box[3:]))).all(axis=1)
+    return eids[keep]

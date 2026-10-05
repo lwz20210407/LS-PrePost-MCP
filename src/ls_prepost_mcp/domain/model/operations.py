@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from pathlib import Path
 
-from . import lists
+from . import geometry, lists, sets
 from .deck import Change, KeywordDeck
 from .fields import FieldError
 from .includes import identity
@@ -121,6 +121,29 @@ def _file(deck: KeywordDeck, name: str | None) -> object:
     raise FieldError(f"{name!r} is not a file of this deck")
 
 
+def _create_set(deck: KeywordDeck, edit: dict) -> Change:
+    """``{"op": "create_set", "kind": ..., "ids": [...] | "select": {...}, "sid"?, "title"?, "file"?}``."""
+    kind = edit["kind"]
+    if "ids" in edit:
+        items = list(edit["ids"])
+    else:
+        select = dict(edit.get("select") or {})
+        if kind == "node":
+            items = geometry.select_nodes(deck, **select).tolist()
+        elif kind == "segment":
+            items = geometry.exterior_segments(deck, **select).tolist()
+        elif kind in ("shell", "solid"):
+            keyword = "*ELEMENT_SOLID" if kind == "solid" else "*ELEMENT_SHELL"
+            items = geometry.select_elements(deck, keyword, **select).tolist()
+        else:
+            raise FieldError(f"Give explicit ids for a {kind} set")
+    sid, blocks = sets.create_set(deck, kind, items, sid=edit.get("sid"), title=edit.get("title"),
+                                  file=_file(deck, edit.get("file")))
+    change = deck.changes[-1]
+    change.description = f"created {blocks[0].name} sid={sid} with {len(items)} items"
+    return change
+
+
 def _apply(deck: KeywordDeck, edit: dict) -> list[Change]:
     op = edit.get("op")
     if op == "set":
@@ -146,6 +169,8 @@ def _apply(deck: KeywordDeck, edit: dict) -> list[Change]:
         else:
             deck.insert(edit["text"], file=target, before=anchor_before, after=anchor_after)
         return deck.changes[before:]
+    if op == "create_set":
+        return [_create_set(deck, edit)]
     if op == "delete":
         block, _ = _target(deck, edit)
         return [deck.delete(block, force=bool(edit.get("force", False)))]
