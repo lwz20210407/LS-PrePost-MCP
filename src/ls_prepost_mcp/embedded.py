@@ -1070,13 +1070,32 @@ def run(request_path, response_path):
         elif action == "export_keyword":
             data = inventory()
         elif action == "raw_command":
-            lp.execute_command(p["command"])
+            initial = p.get("initial_node_ids")
+            if initial is not None:
+                if not set(initial).issubset(set(int(uid) for uid in sequence(get("node_ids")))):
+                    raise ValueError("Initial selection contains unknown node IDs")
+                lp.execute_command(nc.selection("clear"))
+                lp.execute_command(nc.selection_target("node"))
+                for uid in initial:
+                    lp.execute_command(nc.selection_add("node", uid))
+            actual_command = nc.bind_output_paths(p["command"], p.get("output_names", []), job_directory)
+            lp.execute_command(actual_command)
             os.chdir(job_directory)
             data = inventory()
             for key, expected in p["expected_counts"].items():
                 if data["counts"].get(key) != expected:
                     raise ValueError("Raw command count verification failed: " + key)
             data["command"] = p["command"]
+            data["executed_command"] = actual_command
+            data["part_visibility"] = ({str(int(pid)): bool(lp.check_if_part_is_active_u(int(pid))) for pid in data["part_ids"]}
+                                       if len(data["part_ids"]) <= 10000 else None)
+            count = int(get("num_selection"))
+            selected = [int(value) for value in sequence(get("selection_ids", type=0))] if 0 < count <= 10000 else [] if count == 0 else None
+            if selected is not None and len(selected) != count:
+                raise ValueError("Native selection readback is incomplete")
+            data["selection"] = dict(count=count, user_ids=selected)
+            if p.get("capture_model"):
+                lp.execute_command('save keyword "' + os.path.join(job_directory, "script-model.k") + '"')
             data["verification_scope"] = "Inventory and declared outputs only; raw command semantics are user-defined"
         elif action == "gui_measure":
             response["query_started"] = False

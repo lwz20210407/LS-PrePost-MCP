@@ -465,6 +465,10 @@ tools:
     target: run_script
     task_id: A01
     legacy_until: v0.6
+  run_script:
+    target: run_script
+    task_id: A01
+    legacy_until: null
   run_workflow:
     target: run_sweep
     task_id: A09

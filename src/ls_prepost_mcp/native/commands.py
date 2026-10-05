@@ -102,3 +102,20 @@ def fringe_bounds(low, high):
 
 VIEWS = {"isometric": "isometric x", "top": "top", "bottom": "bottom", "front": "front",
          "back": "back", "left": "left", "right": "right"}
+
+
+def bind_output_paths(command, names, directory):
+    """Bind exact declared filename tokens; preserve all other command bytes."""
+    import re
+
+    names = set(names)
+    def replace(match):
+        token = match.group(0)
+        name = token[1:-1] if token.startswith('"') else token
+        if name not in names:
+            return token
+        if any(char in name for char in '/\\\r\n"') or name in (".", ".."):
+            raise ValueError("Declared output must be a plain filename")
+        separator = "\\" if "\\" in directory else "/"
+        return '"' + directory.rstrip("/\\") + separator + name + '"'
+    return re.sub(r'"[^"\r\n]*"|[^\s"]+', replace, command)
