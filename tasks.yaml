@@ -748,8 +748,9 @@ tasks:
     layer: T1
     target_tools: [search_docs, keyword_fields, command_help]
     depends_on: [I05]
-    status: partial
+    status: done
     existing: [search_commands, search_knowledge, search_workflows, list_pydyna_keywords, describe_pydyna_keyword]
+    evidence: [src/ls_prepost_mcp/knowledge.py, tests/test_knowledge_tools.py, docs/decisions/evidence/a10/report.md]
     acceptance:
       - 可检索命令手册、Scripting API、关键字字段、用户指南章节、配方、KNOWN_ISSUES 六类
       - 每条结果带来源、版本、证据等级（文档记载 / 有源码实例 / 本机验证）
@@ -910,7 +911,7 @@ infrastructure:
     status: partial
     gaps:
       - keyword_docs 的包内直接对接随 Claude 的 I07 在 M3 集成；当前仅支持显式指定其只读工作副本做离线索引
-      - 完整关键字覆盖与 A10 的二十题检索评测尚未收口，当前实测为五类关键字的 158 个字段及六类来源检索
+      - 全量关键字覆盖尚未收口；当前实测为七个关键字标识的 195 个字段及六类来源检索，A10 固定二十题评测已完成
     verification_level: L1
     evidence:
       - src/ls_prepost_mcp/knowledge_index.py

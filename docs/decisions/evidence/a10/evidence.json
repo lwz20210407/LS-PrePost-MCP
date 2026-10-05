@@ -1,0 +1,756 @@
+{
+  "schema_version": 1,
+  "baseline": {
+    "queries": 20,
+    "hits_at_3": 18,
+    "results": [
+      {
+        "id": "C01",
+        "category": "command",
+        "query": "如何选择节点",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "206f8a5b369cfd50fdc5e0e104942e3d6cc4d7ed3b54106b0d759bb41780a074",
+            "source_id": "library-cfile-support",
+            "version": "catalog",
+            "evidence_level": "source_example"
+          }
+        ]
+      },
+      {
+        "id": "C02",
+        "category": "command",
+        "query": "保存关键字模型",
+        "hit_at_3": false,
+        "first_correct_rank": null,
+        "returned": []
+      },
+      {
+        "id": "C03",
+        "category": "command",
+        "query": "导出图片 PNG",
+        "hit_at_3": false,
+        "first_correct_rank": null,
+        "returned": []
+      },
+      {
+        "id": "C04",
+        "category": "command",
+        "query": "如何切换 state",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "4841f35689e5d71d97a9b358304a8c59040072d3f403d1c59f0097753f66797f",
+            "source_id": "library-cfile-support",
+            "version": "catalog",
+            "evidence_level": "source_example"
+          },
+          {
+            "id": "7009fcb1ec61bae0e4f0a33eb4600f71c86930c46096dd9bd0622df30502d4e9",
+            "source_id": "library-cfile-support",
+            "version": "catalog",
+            "evidence_level": "source_example"
+          },
+          {
+            "id": "6233dc2b52dc944ea42e241d77b01743fd0cad1dfb152c84c1bebf4f819ec111",
+            "source_id": "library-cfile-support",
+            "version": "catalog",
+            "evidence_level": "source_example"
+          }
+        ]
+      },
+      {
+        "id": "A05",
+        "category": "api",
+        "query": "SCLGetDataCenterInt 返回类型",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "b7bcd9bb0cf643aca44857c5465179e238f3c2e67d25c8761c603fccd2345455",
+            "source_id": "local-scripting-api",
+            "version": "2024 reference; runtime compatibility unverified",
+            "evidence_level": "documented"
+          }
+        ]
+      },
+      {
+        "id": "A06",
+        "category": "api",
+        "query": "get_data 如何取变量",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "302eda9dbd1d39c6bbf6f5cc67e337be16c78a40ce3a87b20ca17204d854a63f",
+            "source_id": "local-scripting-api",
+            "version": "2024 reference; runtime compatibility unverified",
+            "evidence_level": "documented"
+          },
+          {
+            "id": "b7bcd9bb0cf643aca44857c5465179e238f3c2e67d25c8761c603fccd2345455",
+            "source_id": "local-scripting-api",
+            "version": "2024 reference; runtime compatibility unverified",
+            "evidence_level": "documented"
+          }
+        ]
+      },
+      {
+        "id": "A07",
+        "category": "api",
+        "query": "SCLGetDataCenterFloatArray 数组接口",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "aab411fee2f451c043c43211e15e8f687136818dace525e8a6f8de57e04d2116",
+            "source_id": "local-scripting-api",
+            "version": "2024 reference; runtime compatibility unverified",
+            "evidence_level": "documented"
+          }
+        ]
+      },
+      {
+        "id": "A08",
+        "category": "api",
+        "query": "SCLCheckIfPartIsActiveU 显隐",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "90897ba844af13f4e887d6a9c9e1ab04fa3e079b1ea75ef72716ef32040185f5",
+            "source_id": "local-scripting-api",
+            "version": "2024 reference; runtime compatibility unverified",
+            "evidence_level": "documented"
+          }
+        ]
+      },
+      {
+        "id": "K09",
+        "category": "keyword",
+        "query": "*MAT_ELASTIC 弹性模量",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "e7bf610361ea3bd2f681cc90bc5848d61d5e7347ad81139735020edb0f2cf946",
+            "source_id": "keyword_docs:*MAT_ELASTIC",
+            "version": "ansys-dyna-core 0.12.1",
+            "evidence_level": "native_verified"
+          }
+        ]
+      },
+      {
+        "id": "K10",
+        "category": "keyword",
+        "query": "*MAT_ELASTIC 泊松比",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "a5a0102fb98f2dd85e50e4914c2a08a17e911065abe9a616422eb2d8cbdc84d3",
+            "source_id": "keyword_docs:*MAT_ELASTIC",
+            "version": "ansys-dyna-core 0.12.1",
+            "evidence_level": "native_verified"
+          }
+        ]
+      },
+      {
+        "id": "K11",
+        "category": "keyword",
+        "query": "*MAT_024 屈服应力",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "43b210bcedad603dfcb855a0f199e1fd644a3fcc9b574e099b4fec3c16dee719",
+            "source_id": "keyword_docs:*MAT_024",
+            "version": "ansys-dyna-core 0.12.1",
+            "evidence_level": "documented"
+          },
+          {
+            "id": "1270043e8bc73f99f0fc3b81404d76bda7560bbcbbcd8fb4a250ee45d959918a",
+            "source_id": "keyword_docs:*MAT_024",
+            "version": "ansys-dyna-core 0.12.1",
+            "evidence_level": "documented"
+          },
+          {
+            "id": "1882bc8ed418c033bf05e7905960721195e308c63673bf933853cce3b8d26815",
+            "source_id": "keyword_docs:*MAT_024",
+            "version": "ansys-dyna-core 0.12.1",
+            "evidence_level": "documented"
+          }
+        ]
+      },
+      {
+        "id": "K12",
+        "category": "keyword",
+        "query": "*PART 材料编号",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "af4c5267730ab3bc4c178791ace2a0b8c7199baf071361390ad400faced39431",
+            "source_id": "keyword_docs:*PART",
+            "version": "ansys-dyna-core 0.12.1",
+            "evidence_level": "native_verified"
+          }
+        ]
+      },
+      {
+        "id": "K13",
+        "category": "keyword",
+        "query": "*CONTACT_ERODING SFS 接触刚度",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "0335107611ef3d757d54bd30f4a9f4b9d8484906e6037f30603b341d354dc4c8",
+            "source_id": "keyword_docs:*CONTACT_ERODING_SURFACE_TO_SURFACE",
+            "version": "ansys-dyna-core 0.12.1",
+            "evidence_level": "native_verified"
+          }
+        ]
+      },
+      {
+        "id": "G14",
+        "category": "user_guide",
+        "query": "command file",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "a9dd222d5c2bf143163dec3835447e6edc62291d386baf8606adcbcd7b99e200",
+            "source_id": "local-user-guide",
+            "version": "local reference; build unverified",
+            "evidence_level": "documented"
+          },
+          {
+            "id": "22d3c2c210a2c320e554a260569dc8b994abf5269a8819b8fa0f826a7e0bb5c3",
+            "source_id": "local-user-guide",
+            "version": "local reference; build unverified",
+            "evidence_level": "documented"
+          },
+          {
+            "id": "442f92c88a6567191536a1889f2355c934f55ef71f8bd596cf03c6284a76833c",
+            "source_id": "local-user-guide",
+            "version": "local reference; build unverified",
+            "evidence_level": "documented"
+          }
+        ]
+      },
+      {
+        "id": "G15",
+        "category": "user_guide",
+        "query": "*INCLUDE",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "37fa4b831ec24d8ea54d18a8fee8e0a485701db2bb667db98a6d6c86fa26985e",
+            "source_id": "local-user-guide",
+            "version": "local reference; build unverified",
+            "evidence_level": "documented"
+          },
+          {
+            "id": "90c4e3f4f2e3f693cd9e42b626fcdf07bc37e442534584965d535fed5142be3c",
+            "source_id": "local-user-guide",
+            "version": "local reference; build unverified",
+            "evidence_level": "documented"
+          },
+          {
+            "id": "9ded054e4f0e90156db93a660eb15f3b60c11d2c92303e2276b12981b6ee2d93",
+            "source_id": "local-user-guide",
+            "version": "local reference; build unverified",
+            "evidence_level": "documented"
+          }
+        ]
+      },
+      {
+        "id": "R16",
+        "category": "recipe",
+        "query": "Block Mesher 盒体",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "09497b82a95a7aa1bfa8a9937ba7adc0b05bdf0cea7db32f54abc86f2afdebd7",
+            "source_id": "src/ls_prepost_mcp/native/recipes/box_mesh/recipe.yaml",
+            "version": "unspecified",
+            "evidence_level": "source_example"
+          }
+        ]
+      },
+      {
+        "id": "R17",
+        "category": "recipe",
+        "query": "节点平移配方",
+        "hit_at_3": true,
+        "first_correct_rank": 2,
+        "returned": [
+          {
+            "id": "d09f4e289c3b03cc577436e80e0d26238015527c679d121e7de5178d8070f52c",
+            "source_id": "examples/workflows/visible_gui_mesh_transform.json",
+            "version": "legacy_workflow_template",
+            "evidence_level": "source_example"
+          },
+          {
+            "id": "452248f2e1a63dec493c54c4083a07633b4a2d33427690fdaaa662bd4ebe29cf",
+            "source_id": "src/ls_prepost_mcp/native/recipes/translate_nodes/recipe.yaml",
+            "version": "unspecified",
+            "evidence_level": "source_example"
+          }
+        ]
+      },
+      {
+        "id": "R18",
+        "category": "recipe",
+        "query": "SCL 坐标 CSV",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "d577f69931f20317a408cee49b9bfa508200075ad9091a61a791ee6156e84ec2",
+            "source_id": "src/ls_prepost_mcp/native/recipes/node_coordinates/recipe.yaml",
+            "version": "unspecified",
+            "evidence_level": "source_example"
+          }
+        ]
+      },
+      {
+        "id": "I19",
+        "category": "known_issue",
+        "query": "连续 genselect add 是否覆盖",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "0938cab0398de9e2de4f0e0b3b62cb24deb8fe00cc2e650ad044850252cd959f",
+            "source_id": "docs/KNOWN_ISSUES.md",
+            "version": "unspecified",
+            "evidence_level": "documented"
+          }
+        ]
+      },
+      {
+        "id": "I20",
+        "category": "known_issue",
+        "query": "工作目录有中文和空格为什么打不开",
+        "hit_at_3": true,
+        "first_correct_rank": 2,
+        "returned": [
+          {
+            "id": "4beaf98ea732022c7e4cb4a420456967fc2d0f6977442595b4efd35f4a13efe2",
+            "source_id": "docs/KNOWN_ISSUES.md",
+            "version": "unspecified",
+            "evidence_level": "documented"
+          },
+          {
+            "id": "5cbe8304c2377e7ede0e343e4c3ff4daccb05a19bcad46af595829b9e76ad2ce",
+            "source_id": "docs/KNOWN_ISSUES.md",
+            "version": "unspecified",
+            "evidence_level": "documented"
+          },
+          {
+            "id": "861be0797c69724073d2464a6427ea2f85c1287e4819a3387cb0524457970c8b",
+            "source_id": "docs/KNOWN_ISSUES.md",
+            "version": "unspecified",
+            "evidence_level": "documented"
+          }
+        ]
+      }
+    ],
+    "scope": "Fixed source-location/field/text matching; not an Agent answer-faithfulness or native-execution evaluation",
+    "queries_sha256": "590951c725740f5212ee1c71fbdb92ae90e1c964f1b39b97c273dfee68427c6a"
+  },
+  "final": {
+    "queries": 20,
+    "hits_at_3": 20,
+    "results": [
+      {
+        "id": "C01",
+        "category": "command",
+        "query": "如何选择节点",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "206f8a5b369cfd50fdc5e0e104942e3d6cc4d7ed3b54106b0d759bb41780a074",
+            "source_id": "library-cfile-support",
+            "version": "catalog",
+            "evidence_level": "source_example"
+          }
+        ]
+      },
+      {
+        "id": "C02",
+        "category": "command",
+        "query": "保存关键字模型",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "d98fbf8f08c8e1827db182f77414eb47b25273fda014669334c443f6e7579397",
+            "source_id": "native-command-builders",
+            "version": "sha256:9642899ef1cb9bd6c84bc546af5fae22daeb2f7d0053af8a43f9f7eeb4d753ae",
+            "evidence_level": "source_example"
+          }
+        ]
+      },
+      {
+        "id": "C03",
+        "category": "command",
+        "query": "导出图片 PNG",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "de0edb8fcb96d179e4635a48457aff49c4ee7376d724498a0452a9f003a23d7d",
+            "source_id": "native-command-builders",
+            "version": "sha256:9642899ef1cb9bd6c84bc546af5fae22daeb2f7d0053af8a43f9f7eeb4d753ae",
+            "evidence_level": "source_example"
+          }
+        ]
+      },
+      {
+        "id": "C04",
+        "category": "command",
+        "query": "如何切换 state",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "4841f35689e5d71d97a9b358304a8c59040072d3f403d1c59f0097753f66797f",
+            "source_id": "library-cfile-support",
+            "version": "catalog",
+            "evidence_level": "source_example"
+          },
+          {
+            "id": "7009fcb1ec61bae0e4f0a33eb4600f71c86930c46096dd9bd0622df30502d4e9",
+            "source_id": "library-cfile-support",
+            "version": "catalog",
+            "evidence_level": "source_example"
+          },
+          {
+            "id": "6233dc2b52dc944ea42e241d77b01743fd0cad1dfb152c84c1bebf4f819ec111",
+            "source_id": "library-cfile-support",
+            "version": "catalog",
+            "evidence_level": "source_example"
+          }
+        ]
+      },
+      {
+        "id": "A05",
+        "category": "api",
+        "query": "SCLGetDataCenterInt 返回类型",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "b7bcd9bb0cf643aca44857c5465179e238f3c2e67d25c8761c603fccd2345455",
+            "source_id": "local-scripting-api",
+            "version": "2024 reference; runtime compatibility unverified",
+            "evidence_level": "documented"
+          }
+        ]
+      },
+      {
+        "id": "A06",
+        "category": "api",
+        "query": "get_data 如何取变量",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "302eda9dbd1d39c6bbf6f5cc67e337be16c78a40ce3a87b20ca17204d854a63f",
+            "source_id": "local-scripting-api",
+            "version": "2024 reference; runtime compatibility unverified",
+            "evidence_level": "documented"
+          },
+          {
+            "id": "b7bcd9bb0cf643aca44857c5465179e238f3c2e67d25c8761c603fccd2345455",
+            "source_id": "local-scripting-api",
+            "version": "2024 reference; runtime compatibility unverified",
+            "evidence_level": "documented"
+          }
+        ]
+      },
+      {
+        "id": "A07",
+        "category": "api",
+        "query": "SCLGetDataCenterFloatArray 数组接口",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "aab411fee2f451c043c43211e15e8f687136818dace525e8a6f8de57e04d2116",
+            "source_id": "local-scripting-api",
+            "version": "2024 reference; runtime compatibility unverified",
+            "evidence_level": "documented"
+          }
+        ]
+      },
+      {
+        "id": "A08",
+        "category": "api",
+        "query": "SCLCheckIfPartIsActiveU 显隐",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "90897ba844af13f4e887d6a9c9e1ab04fa3e079b1ea75ef72716ef32040185f5",
+            "source_id": "local-scripting-api",
+            "version": "2024 reference; runtime compatibility unverified",
+            "evidence_level": "documented"
+          }
+        ]
+      },
+      {
+        "id": "K09",
+        "category": "keyword",
+        "query": "*MAT_ELASTIC 弹性模量",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "e7bf610361ea3bd2f681cc90bc5848d61d5e7347ad81139735020edb0f2cf946",
+            "source_id": "keyword_docs:*MAT_ELASTIC",
+            "version": "ansys-dyna-core 0.12.1",
+            "evidence_level": "native_verified"
+          }
+        ]
+      },
+      {
+        "id": "K10",
+        "category": "keyword",
+        "query": "*MAT_ELASTIC 泊松比",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "a5a0102fb98f2dd85e50e4914c2a08a17e911065abe9a616422eb2d8cbdc84d3",
+            "source_id": "keyword_docs:*MAT_ELASTIC",
+            "version": "ansys-dyna-core 0.12.1",
+            "evidence_level": "native_verified"
+          }
+        ]
+      },
+      {
+        "id": "K11",
+        "category": "keyword",
+        "query": "*MAT_024 屈服应力",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "43b210bcedad603dfcb855a0f199e1fd644a3fcc9b574e099b4fec3c16dee719",
+            "source_id": "keyword_docs:*MAT_024",
+            "version": "ansys-dyna-core 0.12.1",
+            "evidence_level": "documented"
+          },
+          {
+            "id": "1270043e8bc73f99f0fc3b81404d76bda7560bbcbbcd8fb4a250ee45d959918a",
+            "source_id": "keyword_docs:*MAT_024",
+            "version": "ansys-dyna-core 0.12.1",
+            "evidence_level": "documented"
+          },
+          {
+            "id": "1882bc8ed418c033bf05e7905960721195e308c63673bf933853cce3b8d26815",
+            "source_id": "keyword_docs:*MAT_024",
+            "version": "ansys-dyna-core 0.12.1",
+            "evidence_level": "documented"
+          }
+        ]
+      },
+      {
+        "id": "K12",
+        "category": "keyword",
+        "query": "*PART 材料编号",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "af4c5267730ab3bc4c178791ace2a0b8c7199baf071361390ad400faced39431",
+            "source_id": "keyword_docs:*PART",
+            "version": "ansys-dyna-core 0.12.1",
+            "evidence_level": "native_verified"
+          }
+        ]
+      },
+      {
+        "id": "K13",
+        "category": "keyword",
+        "query": "*CONTACT_ERODING SFS 接触刚度",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "0335107611ef3d757d54bd30f4a9f4b9d8484906e6037f30603b341d354dc4c8",
+            "source_id": "keyword_docs:*CONTACT_ERODING_SURFACE_TO_SURFACE",
+            "version": "ansys-dyna-core 0.12.1",
+            "evidence_level": "native_verified"
+          }
+        ]
+      },
+      {
+        "id": "G14",
+        "category": "user_guide",
+        "query": "command file",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "a9dd222d5c2bf143163dec3835447e6edc62291d386baf8606adcbcd7b99e200",
+            "source_id": "local-user-guide",
+            "version": "local reference; build unverified",
+            "evidence_level": "documented"
+          },
+          {
+            "id": "22d3c2c210a2c320e554a260569dc8b994abf5269a8819b8fa0f826a7e0bb5c3",
+            "source_id": "local-user-guide",
+            "version": "local reference; build unverified",
+            "evidence_level": "documented"
+          },
+          {
+            "id": "442f92c88a6567191536a1889f2355c934f55ef71f8bd596cf03c6284a76833c",
+            "source_id": "local-user-guide",
+            "version": "local reference; build unverified",
+            "evidence_level": "documented"
+          }
+        ]
+      },
+      {
+        "id": "G15",
+        "category": "user_guide",
+        "query": "*INCLUDE",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "37fa4b831ec24d8ea54d18a8fee8e0a485701db2bb667db98a6d6c86fa26985e",
+            "source_id": "local-user-guide",
+            "version": "local reference; build unverified",
+            "evidence_level": "documented"
+          },
+          {
+            "id": "90c4e3f4f2e3f693cd9e42b626fcdf07bc37e442534584965d535fed5142be3c",
+            "source_id": "local-user-guide",
+            "version": "local reference; build unverified",
+            "evidence_level": "documented"
+          },
+          {
+            "id": "9ded054e4f0e90156db93a660eb15f3b60c11d2c92303e2276b12981b6ee2d93",
+            "source_id": "local-user-guide",
+            "version": "local reference; build unverified",
+            "evidence_level": "documented"
+          }
+        ]
+      },
+      {
+        "id": "R16",
+        "category": "recipe",
+        "query": "Block Mesher 盒体",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "09497b82a95a7aa1bfa8a9937ba7adc0b05bdf0cea7db32f54abc86f2afdebd7",
+            "source_id": "src/ls_prepost_mcp/native/recipes/box_mesh/recipe.yaml",
+            "version": "unspecified",
+            "evidence_level": "source_example"
+          }
+        ]
+      },
+      {
+        "id": "R17",
+        "category": "recipe",
+        "query": "节点平移配方",
+        "hit_at_3": true,
+        "first_correct_rank": 2,
+        "returned": [
+          {
+            "id": "d09f4e289c3b03cc577436e80e0d26238015527c679d121e7de5178d8070f52c",
+            "source_id": "examples/workflows/visible_gui_mesh_transform.json",
+            "version": "legacy_workflow_template",
+            "evidence_level": "source_example"
+          },
+          {
+            "id": "452248f2e1a63dec493c54c4083a07633b4a2d33427690fdaaa662bd4ebe29cf",
+            "source_id": "src/ls_prepost_mcp/native/recipes/translate_nodes/recipe.yaml",
+            "version": "unspecified",
+            "evidence_level": "source_example"
+          }
+        ]
+      },
+      {
+        "id": "R18",
+        "category": "recipe",
+        "query": "SCL 坐标 CSV",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "d577f69931f20317a408cee49b9bfa508200075ad9091a61a791ee6156e84ec2",
+            "source_id": "src/ls_prepost_mcp/native/recipes/node_coordinates/recipe.yaml",
+            "version": "unspecified",
+            "evidence_level": "source_example"
+          }
+        ]
+      },
+      {
+        "id": "I19",
+        "category": "known_issue",
+        "query": "连续 genselect add 是否覆盖",
+        "hit_at_3": true,
+        "first_correct_rank": 1,
+        "returned": [
+          {
+            "id": "0938cab0398de9e2de4f0e0b3b62cb24deb8fe00cc2e650ad044850252cd959f",
+            "source_id": "docs/KNOWN_ISSUES.md",
+            "version": "unspecified",
+            "evidence_level": "documented"
+          }
+        ]
+      },
+      {
+        "id": "I20",
+        "category": "known_issue",
+        "query": "工作目录有中文和空格为什么打不开",
+        "hit_at_3": true,
+        "first_correct_rank": 2,
+        "returned": [
+          {
+            "id": "4beaf98ea732022c7e4cb4a420456967fc2d0f6977442595b4efd35f4a13efe2",
+            "source_id": "docs/KNOWN_ISSUES.md",
+            "version": "unspecified",
+            "evidence_level": "documented"
+          },
+          {
+            "id": "5cbe8304c2377e7ede0e343e4c3ff4daccb05a19bcad46af595829b9e76ad2ce",
+            "source_id": "docs/KNOWN_ISSUES.md",
+            "version": "unspecified",
+            "evidence_level": "documented"
+          },
+          {
+            "id": "861be0797c69724073d2464a6427ea2f85c1287e4819a3387cb0524457970c8b",
+            "source_id": "docs/KNOWN_ISSUES.md",
+            "version": "unspecified",
+            "evidence_level": "documented"
+          }
+        ]
+      }
+    ],
+    "scope": "Fixed source-location/field/text matching; not an Agent answer-faithfulness or native-execution evaluation",
+    "queries_sha256": "590951c725740f5212ee1c71fbdb92ae90e1c964f1b39b97c273dfee68427c6a"
+  },
+  "index_scope": {
+    "schema_version": 2,
+    "documents": 1885,
+    "keyword_fields": 195,
+    "keyword_identifiers": 7
+  },
+  "privacy": "No source excerpts, manual paragraphs or absolute paths; indexes remain external"
+}

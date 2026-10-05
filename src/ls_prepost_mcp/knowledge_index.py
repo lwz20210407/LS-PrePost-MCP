@@ -86,6 +86,16 @@ def repository_documents(root=REPOSITORY):
             title = " ".join((row["Command"], row["Variant"])).strip()
             yield Document("library-cfile-support", "command", title, " ".join(row.values()),
                            "repo://src/ls_prepost_mcp/data/commands.tsv", "Apache-2.0", "public", "catalog", number, number)
+    from .native import commands as native_commands
+    revision = "sha256:" + hashlib.sha256(Path(native_commands.__file__).read_bytes()).hexdigest()
+    examples = (("save_keyword", native_commands.save_keyword("model.k"), "保存当前关键字模型"),
+                ("print_png", native_commands.print_png("image.png"), "导出 PNG 图片"),
+                ("open_model", native_commands.open_model("model.k"), "打开关键字模型"),
+                ("run_script", native_commands.run_script("program.scl","scl"), "执行 SCL 文件"))
+    for builder,example,description in examples:
+        yield Document("native-command-builders", "command", example, description + "\n" + example +
+                       "\nSource example only; consult recipe/version evidence before execution.",
+                       "repo://src/ls_prepost_mcp/native/commands.py#" + builder, "MIT", "public", revision)
     for relative, category in (("docs/KNOWN_ISSUES.md", "known_issue"), ("docs/INSTALL.md", "user_guide")):
         yield from chunks(root / relative, source_id=relative, category=category, license="MIT", visibility="public",
                           locator="repo://" + relative)
@@ -170,7 +180,7 @@ def search_index(path, query, *, category=None, limit=10, include_private=False)
     latin = [value for value in query_terms if not value.startswith("zh_")]
     chinese = [value for value in query_terms if value.startswith("zh_") and len(value) == 5]
     selected = latin or chinese or query_terms
-    expression = (" AND " if latin else " OR ").join('"' + value.replace('"', '""') + '"' for value in selected)
+    expression = (" AND " if latin else " OR ").join('"' + value.replace('"', '""') + '"' + ("*" if "_" in value and not value.startswith("zh_") else "") for value in selected)
     uri = Path(path).resolve(strict=True).as_uri() + "?mode=ro"
     with closing(sqlite3.connect(uri, uri=True)) as db:
         db.row_factory = sqlite3.Row
@@ -191,6 +201,11 @@ def search_index(path, query, *, category=None, limit=10, include_private=False)
         data = dict(row)
         text = data.pop("text")
         position = text.casefold().find(query.casefold())
+        if position < 0:
+            for token in sorted((value for value in query_terms if not value.startswith("zh_")),key=len,reverse=True):
+                position=text.casefold().find(token)
+                if position >= 0:
+                    break
         begin = max(0, position - 100) if position >= 0 else 0
         data["snippet"] = text[begin:begin + 600]
         data.update(status="reference_unverified", executable=False, private=data["visibility"] == "private")

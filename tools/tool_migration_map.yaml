@@ -45,6 +45,10 @@ tools:
     target: curve_ops
     task_id: Q07
     legacy_until: v0.6
+  command_help:
+    target: command_help
+    task_id: A10
+    legacy_until: null
   compose_keyword_deck:
     target: edit_keywords
     task_id: P02
@@ -311,6 +315,10 @@ tools:
     target: recipe
     task_id: P10
     legacy_until: v0.6
+  keyword_fields:
+    target: keyword_fields
+    task_id: A10
+    legacy_until: null
   list_capabilities:
     target: search_docs
     task_id: A10
@@ -493,6 +501,10 @@ tools:
     target: command_help
     task_id: A10
     legacy_until: v0.6
+  search_docs:
+    target: search_docs
+    task_id: A10
+    legacy_until: null
   search_knowledge:
     target: search_docs
     task_id: A10

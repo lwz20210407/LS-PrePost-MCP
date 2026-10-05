@@ -57,3 +57,51 @@ def search_workflows(query: str, limit: int = 10) -> list[dict]:
     tokens = query.casefold().split()
     ranked = [(sum(t in json.dumps(r, ensure_ascii=False).casefold() for t in tokens), r) for r in items]
     return [r for score, r in sorted(ranked, key=lambda p: p[0], reverse=True) if score][:limit]
+
+
+def search_docs(query: str, category: str | None = None, limit: int = 10, include_private: bool = False) -> list[dict]:
+    """Search command/API/keyword/guide/recipe/known-issue references in LSPP_KNOWLEDGE_INDEX; return source, version and scoped evidence level. Private text requires explicit opt-in."""
+    from .knowledge_index import search_index
+
+    configured=os.environ.get("LSPP_KNOWLEDGE_INDEX")
+    if not configured:
+        raise ValueError("Set LSPP_KNOWLEDGE_INDEX to an external schema-v2 reference index")
+    if not isinstance(query,str) or not query.strip():
+        raise ValueError("Provide a nonempty document query")
+    glossary={"选择节点":("genselect","target","node"),"保存关键字":("save","keyword"),
+              "导出图片":("print","png"),"弹性模量":("young","modulus"),"泊松比":("poisson",),
+              "屈服应力":("yield","stress"),"材料编号":("mid",),"接触刚度":("stiffness",),
+              "节点平移":("translate","nodes")}
+    added=[token for phrase,tokens in glossary.items() if phrase in query for token in tokens]
+    expanded=query+(" "+" ".join(added) if added else "")
+    results=search_index(configured,expanded,category=category,limit=limit,include_private=include_private)
+    for row in results:
+        row["query_expansion"]=added
+        row["evidence_level"]="source_example" if row["category"] in ("command","recipe") else "documented"
+        row["evidence_scope"]="Reference content; not an execution result"
+        proof=row.get("keyword_field",{}).get("solver_status",{})
+        if proof.get("evidence")=="verified":
+            row["evidence_level"]="native_verified"
+            row["evidence_scope"]="Provider-reported keyword/card solver acceptance, not verification of every field effect"
+            row["verification_attribution"]=proof.get("attribution")
+    return results
+
+
+def keyword_fields(keyword: str, field: str | None = None, limit: int = 20, include_private: bool = False) -> list[dict]:
+    """Find indexed provider fields with card/option/columns/help/references/manual provenance; keyword prefixes and recorded field aliases are supported."""
+    key=keyword.strip().upper()
+    if not key.startswith("*"):
+        key="*"+key
+    if not key[1:] or any(c not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-/" for c in key[1:]):
+        raise ValueError("Provide a keyword name or prefix")
+    if field is not None and (not field.strip() or not all(c.isalnum() or c=="_" for c in field)):
+        raise ValueError("Provide a field name")
+    results=search_docs(key+(" "+field if field else ""),category="keyword",limit=limit,include_private=include_private)
+    return [row for row in results if row.get("keyword_field",{}).get("entity_key","").startswith(key)
+            and (field is None or field.casefold() in [row["keyword_field"]["field"].casefold(),
+                                                      *[alias.casefold() for alias in row["keyword_field"].get("aliases",[])]])]
+
+
+def command_help(command: str, limit: int = 5) -> list[dict]:
+    """Retrieve attributed command syntax/examples; documentation alone does not certify a native version."""
+    return search_docs(command,category="command",limit=limit)

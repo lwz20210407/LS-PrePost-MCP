@@ -577,7 +577,7 @@
 
 ### A10 知识检索
 
-状态：partial；版本：v0.5；里程碑：M1；层：T1
+状态：done；版本：v0.5；里程碑：M1；层：T1
 
 LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS 字段是什么意思？
 
