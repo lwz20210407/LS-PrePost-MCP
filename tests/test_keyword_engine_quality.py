@@ -181,3 +181,19 @@ def test_cese_parts_and_unverified_references(tmp_path: Path) -> None:
     assert "dangling_references" not in {e["kind"] for e in result["errors"]}
     assert result["references"]["unverified_dangling"] == 1 and not result["complete"]
     assert any("could not be verified" in w for w in result["warnings"])
+
+
+def test_coincident_nodes_is_exact() -> None:
+    """Pairs straddling every cell border and non-adjacent pairs in one cell are found (brute force check)."""
+    tol = 1.0
+    straddle = coincident_nodes(np.array([1, 2]), np.array([[0.45, 0.0, 0.0], [1.05, 0.0, 0.0]]), tol)
+    assert [(a, b) for a, b, _ in straddle] == [(1, 2)]
+    cell = coincident_nodes(np.array([1, 2, 3]), np.array([[0.0, 0.0, 0.0], [0.9, 0.9, 0.9], [0.1, 0.1, 0.1]]), 0.5)
+    assert [(a, b) for a, b, _ in cell] == [(1, 3)]
+    rng = np.random.default_rng(7)
+    xyz = rng.uniform(-5.0, 5.0, size=(400, 3))
+    ids = np.arange(1, 401)
+    tol = 0.6
+    brute = {(int(ids[i]), int(ids[j])) for i in range(400) for j in range(i + 1, 400)
+             if np.linalg.norm(xyz[i] - xyz[j]) <= tol}
+    assert {(a, b) for a, b, _ in coincident_nodes(ids, xyz, tol)} == brute and brute

@@ -108,22 +108,72 @@ def _summary(eids: np.ndarray, metrics: dict[str, np.ndarray], thresholds: dict,
     return result
 
 
+# Offsets to the cell itself and to 13 of its 26 neighbours: every neighbouring pair once.
+_FORWARD = np.array([(dx, dy, dz) for dx in (-1, 0, 1) for dy in (-1, 0, 1) for dz in (-1, 0, 1)
+                     if (dx, dy, dz) >= (0, 0, 0)], dtype=np.int64)
+
+
+def _cell_hash(keys: np.ndarray) -> np.ndarray:
+    """splitmix64-style mix of the three cell indices (lookups still compare the keys exactly)."""
+    value = np.zeros(len(keys), dtype=np.uint64)
+    with np.errstate(over="ignore"):
+        for column in range(3):
+            value = (value ^ keys[:, column].astype(np.uint64)) + np.uint64(0x9E3779B97F4A7C15)
+            value = (value ^ (value >> np.uint64(30))) * np.uint64(0xBF58476D1CE4E5B9)
+            value = (value ^ (value >> np.uint64(27))) * np.uint64(0x94D049BB133111EB)
+            value ^= value >> np.uint64(31)
+    return value
+
+
+def _expand(lengths: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """``(owner, rank)`` for ``lengths[k]`` items per owner: owner index and position in its run."""
+    owner = np.repeat(np.arange(len(lengths)), lengths)
+    return owner, np.arange(int(lengths.sum())) - np.repeat(np.cumsum(lengths) - lengths, lengths)
+
+
 def coincident_nodes(ids: np.ndarray, xyz: np.ndarray, tolerance: float) -> list[tuple[int, int, float]]:
-    """Node pairs closer than ``tolerance`` (two shifted grids so cell borders are not missed)."""
-    pairs: dict[tuple[int, int], float] = {}
+    """All node pairs closer than ``tolerance`` (exact: cells of size ``tolerance``, 27 neighbours)."""
     if tolerance <= 0 or len(ids) < 2:
         return []
-    for shift in (0.0, 0.5):
-        keys = np.floor(xyz / tolerance + shift).astype(np.int64)
-        order = np.lexsort(keys.T[::-1])
-        same = np.all(keys[order][1:] == keys[order][:-1], axis=1)
-        for k in np.nonzero(same)[0]:
-            i, j = order[k], order[k + 1]
-            distance = float(np.linalg.norm(xyz[i] - xyz[j]))
-            if distance <= tolerance:
-                a, b = sorted((int(ids[i]), int(ids[j])))
-                pairs[(a, b)] = distance
-    return sorted((a, b, d) for (a, b), d in pairs.items())
+    keys = np.floor(np.asarray(xyz, dtype=float) / tolerance).astype(np.int64)
+    cells, inverse, counts = np.unique(keys, axis=0, return_inverse=True, return_counts=True)
+    inverse = inverse.ravel()
+    members = np.argsort(inverse, kind="stable")  # point indices grouped by cell
+    starts = np.concatenate([[0], np.cumsum(counts)[:-1]])
+    codes = _cell_hash(cells)
+    order = np.argsort(codes)
+    sorted_codes = codes[order]
+    found_a, found_b = [], []
+    for offset in _FORWARD:
+        target = cells + offset
+        hashes = _cell_hash(target)
+        low = np.searchsorted(sorted_codes, hashes, "left")
+        source, rank = _expand(np.searchsorted(sorted_codes, hashes, "right") - low)
+        candidate = order[low[source] + rank]  # every cell sharing the hash; exact match below
+        match = (cells[candidate] == target[source]).all(axis=1)
+        first, second = source[match], candidate[match]
+        sizes = counts[first] * counts[second]
+        if not sizes.size:
+            continue
+        pair, local = _expand(sizes)
+        width = counts[second][pair]
+        a = members[starts[first][pair] + local // width]
+        b = members[starts[second][pair] + local % width]
+        if not offset.any():
+            keep = a < b
+            a, b = a[keep], b[keep]
+        found_a.append(a)
+        found_b.append(b)
+    if not found_a:
+        return []
+    a, b = np.concatenate(found_a), np.concatenate(found_b)
+    distance = np.linalg.norm(xyz[a] - xyz[b], axis=1)
+    close = distance <= tolerance
+    pairs = {}
+    for i, j, d in zip(a[close], b[close], distance[close]):
+        low, high = sorted((int(ids[i]), int(ids[j])))
+        pairs[(low, high)] = float(d)
+    return sorted((low, high, d) for (low, high), d in pairs.items())
 
 
 def _defined(conn: np.ndarray, lookup: np.ndarray) -> np.ndarray:
