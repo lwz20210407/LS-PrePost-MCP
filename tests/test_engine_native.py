@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -111,3 +112,31 @@ def test_command_builders_native_id_buffer_state_and_fringe(native_case):
     proof = json.loads((Path(result["job_directory"]) / "selection-proof.json").read_text())
     assert proof == dict(selection_ids=[11, 79], count=2, state=3)
     assert all(a["validated"] for a in result["artifacts"])
+
+
+class NativeWorkingDirectoryError(AssertionError):
+    pass
+
+
+@pytest.mark.parametrize("workspace_name", ["ascii-workspace",
+    pytest.param("space folder", marks=pytest.mark.xfail(strict=True, raises=NativeWorkingDirectoryError, reason="KI-049 native working-directory preference truncates spaces")),
+    pytest.param("中文 空格", marks=pytest.mark.xfail(strict=True, raises=NativeWorkingDirectoryError, reason="KI-049 native working-directory preference cannot resolve this Unicode/spaced root"))])
+def test_path_builders_batch_unicode_and_spaces_save_png_reopen(native_case, workspace_name):
+    service, source = native_case
+    service = Service(replace(service.settings, workspace=service.settings.workspace / workspace_name))
+    service.settings.workspace.mkdir(parents=True)
+    local_source = service.settings.workspace / "模型 空格.k"
+    local_source.write_bytes((source / "input.k").read_bytes())
+    code = "\n".join(["top", nc.print_png("image.png"), nc.save_keyword("saved.k")])
+    prepared = service.prepare_native_program("cfile", code=code,
+        outputs=[dict(name="image.png",kind="png"),dict(name="saved.k",kind="keyword")],
+        expected_counts=dict(nodes=8,elements=3))
+    result = service.execute_native_program(prepared["job_id"], prepared["data"]["sha256"], model=str(local_source))
+    if workspace_name != "ascii-workspace" and result["status"] == "failed":
+        stderr = Path(result["job_directory"]) / "stderr.log"
+        if stderr.is_file() and "cannot open or does not exist" in stderr.read_text(encoding="utf8", errors="replace"):
+            raise NativeWorkingDirectoryError("KI-049: native working directory failed to resolve staged input_data")
+    assert result["status"] == "succeeded", result
+    saved = next(row["path"] for row in result["artifacts"] if row["kind"] == "keyword")
+    reopened = service.inspect_model(saved)
+    assert reopened["status"] == "succeeded" and reopened["data"]["counts"]["nodes"] == 8, reopened

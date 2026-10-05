@@ -74,6 +74,11 @@ artifact。检查聚合忽略 not_applicable；只有全体均不适用时才返
 
 宿主与应用内 bridge 使用同一份构建器。批处理和会话在自有目录暂存 bridge.py、native_commands.py、native_versions.py；支持模块仅依赖标准库，保持 Python 3.6 语法兼容，按自身文件路径加载，不依赖应用内 Python 安装宿主 MCP 包。
 
+路径命令通过 quoted_path、open_model、print_png、movie、run_script、save_keyword 构建；
+生成的 cfile 使用同一个 UTF-8/LF 写入入口。保留 POSIX 与原生 Windows 两种经调用方明确
+指定的路径形式，统一字符校验。黄金测试覆盖空格、中文以及分号/引号拒绝；它不替代
+原生工作目录兼容性验证。KI-049 和 GUI/Movie 的未测部分使 I03 继续保持 partial。
+
 `native/versions.py` 是版本能力判断入口：4.13 主力、4.10 回归子集、4.8 尽力、4.11 排除。4.10 队列来源身份限制在进程启动前拒绝；未知安装也不能默认使用已验证队列能力。路径或配置版本仅是提示，能力报告明确标为未完成运行时验证，成功仍需实际回执与产物检查。旧 Python 向量 ABI 以及 LASSO/DPF 依赖版本的既有拒绝策略集中维护，不放宽数值验证要求。
 
 ## 前处理

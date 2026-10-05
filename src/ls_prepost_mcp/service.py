@@ -8,7 +8,7 @@ from pathlib import Path
 
 from pydantic import StrictInt
 
-from .config import Settings, command_path
+from .config import Settings
 from .dpf_tools import DpfTools
 from .engine.context import NativeContext
 from .engineering import EngineeringTools
@@ -30,6 +30,7 @@ from .installation_assets import InstallationTools
 from .jobs import Jobs, atomic_json, check_artifact, fingerprint, now
 from .keyword_tools import KeywordTools
 from .mesh_tools import MeshTools
+from .native import commands as nc
 from .native.bundle import stage_bridge
 from .native.versions import profile, require_installation
 from .post_tools import PostTools
@@ -108,24 +109,23 @@ class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools
                              + repr(str(directory / "response.json")) + ")\n", encoding="utf-8")
         commands = ["new"]
         if source and action == "scl_probe":
-            opener = "openc" if file_type == "d3plot" else "open"
-            commands.append(f"{opener} {file_type} {command_path(source)}")
+            commands.append(nc.open_model(source, file_type, openc=file_type == "d3plot"))
         if action == "scl_probe":
             script = directory / "probe.scl"
             script.write_text('/*LS-SCRIPT*/\ndefine:\nvoid main(void)\n{\nInt n;\nFILE *fp;\n'
                               'n = SCLGetDataCenterInt("num_nodes");\n'
                               'fp = fopen("scl_nodes.txt", "w");\nfprintf(fp, "%d\\n", n);\n'
                               'fclose(fp);\n}\nmain();\n', encoding="ascii")
-            commands.append("runscript probe.scl")
+            commands.append(nc.run_script("probe.scl", "scl"))
         if action != "scl_probe":
-            commands.append("runpython " + command_path(bootstrap))
+            commands.append(nc.run_script(bootstrap))
         if export:
             # Some Windows builds prepend a temporary basename and cannot save
             # an absolute drive path. The bootstrap pins cwd to this owned job.
-            commands.append('save keyword "model.k"')
+            commands.append(nc.save_keyword("model.k"))
         commands.append("exit")
         cfile = directory / "commands.cfile"
-        cfile.write_text("\n".join(commands) + "\n", encoding="utf-8")
+        nc.write_cfile(cfile, commands)
         manifest.update(status="running", started_at=now(), execution_mode="graphics" if graphics else "nographics")
         atomic_json(directory / "job.json", manifest)
         try:

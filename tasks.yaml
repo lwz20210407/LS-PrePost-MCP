@@ -867,7 +867,7 @@ infrastructure:
     milestone: M1
     status: partial
     gaps:
-      - 带路径的命令待集中；统一 cfile 编码和路径特殊字符黄金测试后仍需原生核验
+      - 路径命令已集中并统一 UTF-8；含空格或中文工作目录的原生回归仍失败（KI-049），GUI/Movie 路径变更待集中窗口验证
     verification_level: L2
     evidence:
       - src/ls_prepost_mcp/native/commands.py

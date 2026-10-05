@@ -6,7 +6,6 @@ from pathlib import Path
 
 from pydantic import StrictInt
 
-from .config import command_path
 from .core.native_log import native_errors, read_delta
 from .gui_mesh import verify_mesh_digest
 from .gui_selection import part_visibility
@@ -215,7 +214,7 @@ class GuiVisibilityTools:
                     result["artifacts"].append(check_artifact(directory/"verification.json", "json"))
                     if capture:
                         image = manager.dispatch(session_id, "inspect_model", {}, native_commands=[
-                            "print png "+command_path(directory/"visibility.png")+' opaque enlisted "OGL1x1"'])
+                            nc.print_png(directory/"visibility.png")])
                         if image["status"] == "succeeded":
                             result["artifacts"].append(check_artifact(directory/"visibility.png", "png"))
                         else:

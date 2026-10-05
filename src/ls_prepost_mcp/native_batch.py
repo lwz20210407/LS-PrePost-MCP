@@ -5,6 +5,7 @@ import shutil
 from pathlib import Path
 
 from .jobs import atomic_json, check_artifact, fingerprint, now
+from .native import commands as nc
 from .native_results import STRESS_KEYS
 from .post_backend import write_csv
 from .runner import execute
@@ -88,7 +89,7 @@ def run_case(settings, jobs, source: Path, units: str):
             shutil.copyfile(p, target)
             created_copies.append(target)
         (directory / "extract.scl").write_text(batch_script(), encoding="ascii")
-        commands = ['new', 'openc d3plot "d3plot"', 'runscript extract.scl']
+        commands = ['new', nc.open_model("d3plot", "d3plot", openc=True), nc.run_script("extract.scl", "scl")]
         curves = []
         if (directory / "glstat").exists():
             for component in (1, 2):
@@ -119,7 +120,7 @@ def run_case(settings, jobs, source: Path, units: str):
                                  'xyplot 1 savefile xypair "%s.xy" 1 all' % name, 'deletewin 1']
                     curves.append(name)
         commands += ['exit']
-        (directory / "commands.cfile").write_text('\n'.join(commands)+'\n', encoding="ascii")
+        nc.write_cfile(directory / "commands.cfile", commands)
         result = execute(settings.native_executable(), directory / "commands.cfile", directory,
                          timeout=settings.timeout, graphics=False)
         manifest["process"] = result
