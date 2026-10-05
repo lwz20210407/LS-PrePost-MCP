@@ -9,7 +9,7 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import lists, persist, scope
+from . import lists, persist, references, scope
 from .blocks import Block, SourceFile, make_blocks
 from .fields import FieldError, FieldSlot, format_value, is_free_format, parse_number, read_text, write_text
 from .includes import Resolution, classify, file_names, identity, resolve
@@ -363,7 +363,14 @@ class KeywordDeck:
             self._rebuild()
         return new
 
-    def delete(self, block: Block) -> Change:
+    def references(self, include_mesh: bool = True) -> references.ReferenceReport:
+        """Defined IDs, references, dangling/duplicate/unused IDs across the whole deck."""
+        return references.collect(self, include_mesh)
+
+    def delete(self, block: Block, force: bool = False) -> Change:
+        """Remove a block; refuses when IDs it defines are still referenced (unless ``force``)."""
+        if not force:
+            references.check_delete(self, block)
         source = block.file
         line = block.line_number
         source.blocks.remove(block)

@@ -6,7 +6,8 @@ delete keyword blocks, and save so that untouched files and lines stay byte-iden
 from .blocks import Block, SourceFile
 from .deck import Change, FieldValue, IncludeRef, KeywordDeck
 from .fields import FieldError
+from .references import ReferencedError, ReferenceReport
 from .schema import Layout, Unsupported
 
-__all__ = ["Block", "Change", "FieldError", "FieldValue", "IncludeRef", "KeywordDeck", "Layout",
+__all__ = ["Block", "Change", "FieldError", "FieldValue", "IncludeRef", "KeywordDeck", "Layout", "ReferencedError", "ReferenceReport",
            "SourceFile", "Unsupported"]
