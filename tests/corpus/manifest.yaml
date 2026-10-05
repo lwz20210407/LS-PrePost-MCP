@@ -1,6 +1,4 @@
-# I11: references only. Files, licenses, source URLs and SHA256 stay in the external catalogs.
-# Paths are relative to LSPP_CORPUS_DIR, which points at the unified corpus root.
-# large_private is the legacy scenario ID for deployed_wings; private entries contain IDs only.
+# Reference-only corpus registry. Restricted book contents and derived data stay outside Git.
 schema_version: 2
 root_env: LSPP_CORPUS_DIR
 catalogs:
@@ -81,6 +79,8 @@ keyword_sources:
   path: public-keyword/ansys__pydyna
 - id: keyword.ansys__pyhps
   path: public-keyword/ansys__pyhps
+- id: keyword.ansyshelp-ansys-com__doc-assets
+  path: public-keyword/ansyshelp-ansys-com__doc-assets
 - id: keyword.antahiap__CAE-KG-01
   path: public-keyword/antahiap__CAE-KG-01
 - id: keyword.antahiap__nrg_simRank
@@ -121,12 +121,16 @@ keyword_sources:
   path: public-keyword/jfriedlein__Numerical_examples_in_LS-Dyna
 - id: keyword.jfriedlein__TRR285-LoadCaseChecker_LS-Dyna
   path: public-keyword/jfriedlein__TRR285-LoadCaseChecker_LS-Dyna
+- id: keyword.jishulink__lstc-cmmg-spg-mirror
+  path: public-keyword/jishulink__lstc-cmmg-spg-mirror
 - id: keyword.lergor11__Diplom
   path: public-keyword/lergor11__Diplom
 - id: keyword.loumalouomega__meshioplusplus
   path: public-keyword/loumalouomega__meshioplusplus
 - id: keyword.lsdyna-ansys-com
   path: public-keyword/lsdyna-ansys-com
+- id: keyword.lstc-ftp-wayback
+  path: public-keyword/lstc-ftp-wayback
 - id: keyword.luchete80__LSDynaReader
   path: public-keyword/luchete80__LSDynaReader
 - id: keyword.luchete80__WeldFormGUI
@@ -153,6 +157,8 @@ keyword_sources:
   path: public-keyword/osullivryan__vscode-lsdyna
 - id: keyword.paoloascia__PyDynasty
   path: public-keyword/paoloascia__PyDynasty
+- id: keyword.qd-cae__qd-cae-python
+  path: public-keyword/qd-cae__qd-cae-python
 - id: keyword.runtosolve__LSDYNA.jl
   path: public-keyword/runtosolve__LSDYNA.jl
 - id: keyword.samanseifi__LSDYNA-models
@@ -208,6 +214,8 @@ result_sets:
   path: public-results/PeterScal__Human-Safe-Wing_Wing-Lattice/LS-DYNA
 - id: result.PeterScal__Human-Safe-Wing_Wing-Lattice.LS-DYNA.D3plots
   path: public-results/PeterScal__Human-Safe-Wing_Wing-Lattice/LS-DYNA/D3plots
+- id: result.Renumics__mesh2vec.data.hat
+  path: public-results/Renumics__mesh2vec/data/hat
 - id: result.ansys__example-data.pydpf-composites.lsdyna_bird_strike
   path: public-results/ansys__example-data/pydpf-composites/lsdyna_bird_strike
 - id: result.ansys__example-data.result_files.binout
@@ -222,6 +230,8 @@ result_sets:
   path: public-results/ansys__pyansys-heart/tests/heart/assets/post/main
 - id: result.ansys__pyansys-heart.tests.heart.assets.post.zerop
   path: public-results/ansys__pyansys-heart/tests/heart/assets/post/zerop
+- id: result.ansyshelp-ansys-com__doc-assets.4_2_Post_Plot_curve
+  path: public-results/ansyshelp-ansys-com__doc-assets/4_2_Post_Plot_curve
 - id: result.chiaraf10__uqpy_test.dyna_test_2023_03_08_01_53_113621.run_0.InputFiles
   path: public-results/chiaraf10__uqpy_test/dyna_test_2023_03_08_01_53_113621/run_0/InputFiles
 - id: result.hu-shuhan__editOpeniGame.test.Format_Validation_Test.lsdyna.Bolt_B_Explicit
@@ -246,6 +256,8 @@ result_sets:
   path: public-results/kitware__vtk-testdata/Testing/Data/LSDyna/hemi.draw
 - id: result.kitware__vtk-testdata.Testing.Data.LSDyna.impact
   path: public-results/kitware__vtk-testdata/Testing/Data/LSDyna/impact
+- id: result.lsdyna-ansys-com__lsopt-genex.genex_example_and_tutorial
+  path: public-results/lsdyna-ansys-com__lsopt-genex/genex_example_and_tutorial
 - id: result.lsdyna-ansys-com__lspp-mini-tutorials.curves
   path: public-results/lsdyna-ansys-com__lspp-mini-tutorials/curves
 - id: result.lsdyna-ansys-com__lspp-mini-tutorials.d3plot
@@ -256,6 +268,12 @@ result_sets:
   path: public-results/mlp6__fem/tests
 - id: result.node997__dyna_pladebuk.Plade_300_150_4.BB
   path: public-results/node997__dyna_pladebuk/Plade_300_150_4/BB
+- id: result.open-lasso-python__lasso-python.test.test_data.d3plot_beamip
+  path: public-results/open-lasso-python__lasso-python/test/test_data/d3plot_beamip
+- id: result.open-lasso-python__lasso-python.test.test_data.d3plot_node_temperature
+  path: public-results/open-lasso-python__lasso-python/test/test_data/d3plot_node_temperature
+- id: result.open-lasso-python__lasso-python.test.test_data.d3plot_solid_int
+  path: public-results/open-lasso-python__lasso-python/test/test_data/d3plot_solid_int
 - id: result.open-lasso-python__lasso-python.test.test_data.femzip
   path: public-results/open-lasso-python__lasso-python/test/test_data/femzip
 - id: result.open-lasso-python__lasso-python.test.test_data.order_d3plot
@@ -268,6 +286,8 @@ result_sets:
   path: public-results/praveenvenky110395__LS-DYNA-Crimping-Simulation/results
 - id: result.qd-cae__qd-cae-python.qd.cae.dyna_cpp.dyna.binout.lsda
   path: public-results/qd-cae__qd-cae-python/qd/cae/dyna_cpp/dyna/binout/lsda
+- id: result.qd-cae__qd-cae-python.test
+  path: public-results/qd-cae__qd-cae-python/test
 - id: result.saudbinayed__binout.LS-DYNA-sample
   path: public-results/saudbinayed__binout/LS-DYNA-sample
 - id: result.turnerjennings__dynaFEHMtools.tests
@@ -284,7 +304,9 @@ result_sets:
   path: public-results/zenodo__7780499/2022_hello_world/Viano_1989/vivaplus/model/50F-seated
 regression_inputs:
 - id: include_contact
-  path: public-keyword/ansys__pydyna/tests/testfiles/run/case-keywords/projectile.k
+  path: public-keyword/lsdyna-ansys-com/2022_12__Bolt_A_Explicit/Bolt_A_Explicit/mainboltaexpl.k
+- id: include_contact_pair
+  path: public-keyword/lsdyna-ansys-com/2022_12__EM_example_emforming/i.k
 - id: shell_d3plot
   path: public-results/open-lasso-python__lasso-python/test/test_data/order_d3plot/d3plot
 - id: solid_d3plot
@@ -297,3 +319,24 @@ private_corpora:
 - id: fangzhen
 - id: deployed_wings
 - id: large_private
+restricted_sources:
+- id: local-book.catalog
+  path: local-book/manifest.json
+- id: local-book.abaqus-2022-source
+  path: local-book/abaqus-2022-source
+- id: local-book.ansys-lsdyna-civil-engineering
+  path: local-book/ansys-lsdyna-civil-engineering
+- id: local-book.bian-wb-lsdyna-blast
+  path: local-book/bian-wb-lsdyna-blast
+- id: local-book.fea-material-handbook-2nd
+  path: local-book/fea-material-handbook-2nd
+- id: local-book.lsdyna-examples-step-by-step
+  path: local-book/lsdyna-examples-step-by-step
+- id: local-book.lsdyna-for-beginners
+  path: local-book/lsdyna-for-beginners
+- id: local-book.lsdyna-for-engineers
+  path: local-book/lsdyna-for-engineers
+- id: local-book.lsdyna-modeling-analysis-optimization
+  path: local-book/lsdyna-modeling-analysis-optimization
+- id: local-book.truegrid-63250
+  path: local-book/truegrid-63250

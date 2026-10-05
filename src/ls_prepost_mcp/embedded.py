@@ -526,13 +526,12 @@ def run(request_path, response_path):
             os.chdir(os.path.dirname(source))
             try:
                 kind = request["file_type"]
-                opener = "openc" if kind == "d3plot" else "open"
                 load_name = (
                     source.replace("\\", "/")
                     if kind == "keyword" and request.get("absolute_keyword_path")
                     else os.path.basename(source)
                 )
-                lp.execute_command(opener + " " + kind + ' "' + load_name + '"')
+                lp.execute_command(nc.open_model(load_name, kind, openc=kind == "d3plot"))
             finally:
                 os.chdir(job_directory)
             if int(dc.get_data("num_nodes")) <= 0 and request.get("expected_empty") is not True:
@@ -990,7 +989,7 @@ def run(request_path, response_path):
             with open("initial.k", "w") as f:
                 f.write("*KEYWORD\n*TITLE\nMCP session model\n*END\n")
             lp.execute_command(
-                'open keyword "' + os.path.join(job_directory, "initial.k").replace("\\", "/") + '"'
+                nc.open_model(os.path.join(job_directory, "initial.k"))
             )
             data = inventory()
         elif action == "gui_display":
@@ -1002,7 +1001,7 @@ def run(request_path, response_path):
                 lp.execute_command(command)
             if p.get("capture"):
                 output = os.path.join(job_directory, "snapshot.png").replace("\\", "/")
-                lp.execute_command('print png "' + output + '" opaque enlisted "OGL1x1"')
+                lp.execute_command(nc.print_png(output))
             data = inventory()
             data["applied_commands"] = p["commands"]
         elif action == "gui_parts":
@@ -1058,7 +1057,7 @@ def run(request_path, response_path):
             lp.execute_command(p["view"])
             lp.execute_command("ac")
             output = os.path.join(job_directory, "snapshot.png").replace("\\", "/")
-            lp.execute_command('print png "' + output + '" opaque enlisted "OGL1x1"')
+            lp.execute_command(nc.print_png(output))
             data = {
                 "view": p["view"],
                 "state": p.get("state"),

@@ -80,3 +80,40 @@ def test_private_corpus_ids_do_not_resolve_from_a_guessed_path(tmp_path, monkeyp
     monkeypatch.setenv("LSPP_CORPUS_DIR", str(tmp_path))
     with pytest.raises(ValueError, match="private ID only"):
         resolve_value({"corpus": "fangzhen"})
+
+
+def test_engine_fixture_never_launches_from_environment_without_opt_in(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    from tests.test_engine_native import native_case
+    monkeypatch.setenv("LSPP_EXECUTABLE", "configured-native.exe")
+    monkeypatch.setenv("LSPP_ENGINE_EXECUTABLE", "configured-engine.exe")
+    config = SimpleNamespace(getoption=lambda name: False if name == "--run-native" else pytest.fail("Must check opt-in first"))
+    with pytest.raises(pytest.skip.Exception, match="--run-native"):
+        next(native_case.__wrapped__(tmp_path, config))
+
+
+def test_remote_report_keeps_failed_lanes_and_never_calls_evidence_passed(tmp_path):
+    import subprocess
+    import sys
+
+    from tools.native_regression import python_environment
+    source = tmp_path / "test_evidence.py"
+    source.write_text('''import pytest
+@pytest.mark.native
+def test_record(request):
+    request.node.user_properties.extend([("native_scope","evidence_only"),
+        ("native_lane_statuses",dict(execution="failed",png="failed",mp4="failed"))])
+    pytest.xfail("Only evidence identity was verified")
+''')
+    report = tmp_path / "report"
+    result = subprocess.run([sys.executable,"-m","pytest",str(source),"-p","tools.native_regression",
+                             "-c",str(ROOT/"pyproject.toml"),"--run-native","--native-output",str(report),
+                             "-o","cache_dir="+str(tmp_path/"cache"),"-q"],cwd=ROOT,
+                            env=python_environment(tmp_path),capture_output=True,text=True,timeout=30)
+    assert result.returncode == 0, result.stdout + result.stderr
+    data = json.loads((report/"report.json").read_text())
+    row = next(iter(data["cases"].values()))
+    assert row["status"] == "evidence_only" and set(row["native_lane_statuses"].values()) == {"failed"}
+    markdown = (report/"report.md").read_text(encoding="utf8")
+    assert "failed / failed / failed" in markdown and "| passed |" not in markdown

@@ -78,7 +78,7 @@ milestones:
       - docs 顶层不超过 12 份，其余 git mv 到 docs/archive/2026-10/；README 改为说明书结构
       - KNOWN_ISSUES.md 收齐全部原生坑，每条注明来源文档
       - uv run pytest 通过（不装可选依赖时相关测试 skip 而非 fail）；validate_model_references 合同 bug 修复并有回归测试
-      - E1-E5 实验与批处理通道矩阵有记录，会话传输决策写入 ADR
+      - E1-E5 实验与批处理通道矩阵有记录，会话传输决策写入 ADR；用户确认将剩余 13 个 UU 远程 runc/原生宏格转入 I04，不作为 M0 退出条件
       - tests/corpus/manifest.yaml 建立，全部现有工具（138 服务 + 4 知识）的迁移映射表完成
       - SKILL.md 改为"意图 → 工具"路由表（不超过 150 行），更新日志式内容移入 CHANGELOG
       - M0 不新增任何 MCP 工具或功能
@@ -830,13 +830,18 @@ infrastructure:
   - id: I01
     title: 执行引擎 Engine（BatchEngine 默认 + SessionEngine 可选）
     milestone: M1
-    status: done
-    verification_level: L2
+    status: partial
+    verification_level: L1
+    gaps:
+      - 公开 Win32 会话经 SessionEngine 后缺原生证据；renumber/quality 面板路径和五个批处理兼容字典仍待完整统一
+      - 缺少用户 lsppconf 时须明确拒绝，不能用只含星号的私有配置继续运行
+      - 诊断行触发失败时须透传 engine_error.message，并登记行为变化
     evidence:
       - src/ls_prepost_mcp/engine/batch.py
       - src/ls_prepost_mcp/engine/session.py
       - tests/test_engines.py
       - tests/test_engine_native.py
+      - docs/decisions/evidence/i01/report.md
     acceptance:
       - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
       - 删除 gui_session_action 中运行时替换 _native 的做法
@@ -860,12 +865,15 @@ infrastructure:
   - id: I03
     title: 命令构建器与版本能力表
     milestone: M1
-    status: done
+    status: partial
+    gaps:
+      - 路径命令已集中并统一 UTF-8；含空格或中文工作目录的原生回归仍失败（KI-049），GUI/Movie 路径变更待集中窗口验证
     verification_level: L2
     evidence:
       - src/ls_prepost_mcp/native/commands.py
       - src/ls_prepost_mcp/native/versions.py
       - tests/test_native_commands.py
+      - docs/decisions/evidence/i03/report.md
       - tests/test_engine_native.py
     compatibility_notes:
       - KI-048 的 4.10 队列来源读回限制保留；版本能力表在启动前拒绝该路线。4.10 六项批处理/命令回归通过，不外推为全部会话能力通过。
@@ -878,6 +886,7 @@ infrastructure:
     milestone: M1
     status: partial
     evidence:
+      - docs/decisions/evidence/i04/report.md
       - tools/native_regression.py
       - tests/test_native_acceptance.py
       - tests/test_native_regression.py
@@ -888,7 +897,7 @@ infrastructure:
       - 已通过三个文件验收和 program_acceptance 的真实批处理验收；57 组 CLI 参数及 15 组外部输入已配置，关键输入已做原生预检；全量 GUI 与 13 个 UU 格尚待集中验收，未计为完成。
     acceptance:
       - 补测从 M0 转入的 13 个 UU 远程格（4.13/4.10 的 runc 五通道共 10 格，以及两版本 nographics 原生宏和 4.13 会话原生宏共 3 格），记录执行、PNG、MP4 结果与用户确认的断开时间窗
-      - 52 个 tools/run_* 收编为带 marker 的 pytest，共享 fixture
+      - 55 个 tools/run_* 收编为 57 个带 marker 的 pytest 用例，共享 fixture
       - 一条命令生成 Markdown 报告；私有语料通过环境变量启用
 
   - id: I05
@@ -938,6 +947,14 @@ infrastructure:
   - id: I10
     title: 执行通道实验与决策
     milestone: M0
+    status: done
+    verification_level: L2
+    evidence:
+      - docs/decisions/0001-session-transport.md
+      - docs/decisions/0001-experiment-evidence.json
+      - tools/experiments/run_remote_probe.py
+    remote_test_environment: UU remote
+    remote_test_condition: 用户明确使用 UU；远程断开按 UU 实测与用户确认的时间窗记录，Windows RDP 保留为未验证环境，不作为本机 M0 前置条件。
     acceptance:
       - E1-E5 实验记录（见评审方案 4.4）
       - 通道矩阵：5 个通道 × (runc= / c= -nographics / session) × 是否可渲染 × 锁屏下是否可用
@@ -948,14 +965,23 @@ infrastructure:
     milestone: M0
     acceptance:
       - tests/corpus/manifest.yaml 仅登记公开语料 ID 与相对统一根目录的路径；来源 URL、许可、SHA256、特征从外部 public-keyword/manifest.json 和 public-results/manifest.json 读取，覆盖任务由本文件 corpus 引用关联
-      - LSPP_CORPUS_DIR 指向同时包含 public-keyword 与 public-results 的统一根目录；不复制、下载或提交语料内容，私有 fangzhen/deployed_wings 仅登记 ID
+      - LSPP_CORPUS_DIR 指向包含 public-keyword、public-results、local-book 的统一根目录；local-book 作为受限语料只登记 ID 和相对路径，内容及派生数据不提交、不公开；私有 fangzhen/deployed_wings 仍仅登记 ID
       - 必备语料：include_contact（含 Include 与接触的 keyword）、shell_d3plot、solid_d3plot、binout_forces（含 RCFORC/SECFORC）、mpp_binout、large_private
       - 找不到公开语料的项明确标为缺口
 
 change_log:
   - date: 2026-10-05
     change: 用户明确授权立即插队 M1/I02，在 codex/m1-contracts 独立分支实现合同与工作流门槛边界
-    reason: 不依赖 GUI 的底座先行；M0 PR 保持原范围，RDP 退出条件不变，I07 仍由 Claude 在 M3 集成
+    reason: 不依赖 GUI 的底座先行；当时 M0 PR 保持原范围；后续远程条件按下列用户决定更新，I07 仍由 Claude 在 M3 集成
+  - date: 2026-10-05
+    change: 用户决定 M0 以 8/8 收尾；剩余 13 个 UU 远程矩阵格转入 I04，PR #1 进入 Ready for review，合并由用户执行
+    reason: 保留已验证 UU 时间窗和全部失败证据，未测格不算通过；I04 承接完整原生回归
+  - date: 2026-10-05
+    change: I11 更新统一语料登记为 93 个 keyword 来源和 54 组结果，并登记 local-book 的受限 ID 与相对路径
+    reason: 只更新元数据；书籍内容、私有数据和派生数据始终留在仓库外
+  - date: 2026-10-05
+    change: 按用户实际环境将 I10/E5 远程断开验收具体化为 UU 远程，停止要求另行提供 RDP
+    reason: 用户再次明确使用 UU；保留 WTS Console 状态、运行时间和用户断开时间窗确认，结果不外推为 RDP
   - date: 2026-10-05
     change: I11 改用用户统一整理的外部语料目录，仓库只保存 ID/相对路径索引，私有语料只保存 ID
     reason: 用户补充统一语料位置与禁止复制、禁止提交数据的要求；元数据与哈希保留在外部 manifest.json

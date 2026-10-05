@@ -81,15 +81,63 @@ def test_command_rejects_ambiguous_or_injectable_arguments(builder, args):
 
 def test_command_grammar_is_not_reintroduced_in_domain_modules():
     root = Path(nc.__file__).parents[1]
-    pattern = re.compile(r"^(?:genselect |anim |fringe (?:$|\d)|pfringe$|range (?:avgfrng|reversesigns|userdef) )")
+    pattern = re.compile(r"^(?:genselect |anim |fringe (?:$|\d)|pfringe$|range (?:avgfrng|reversesigns|userdef) |open(?:c)? (?:keyword|d3plot|command) |print png |movie MP4/H264 |runpython |runscript |save keyword )")
     offenders = []
     for source in root.rglob("*.py"):
         if source == Path(nc.__file__) or source.name == "recording_compiler.py":
             continue  # The recorder parses grammar, it does not generate commands.
-        for node in ast.walk(ast.parse(source.read_text(encoding="utf8"))):
+        tree = ast.parse(source.read_text(encoding="utf8"))
+        parser_tokens = {id(arg) for call in ast.walk(tree) if isinstance(call, ast.Call)
+                         and isinstance(call.func, ast.Attribute) and call.func.attr in ("startswith", "endswith")
+                         for arg in call.args}
+        for node in ast.walk(tree):
             if isinstance(node, ast.Constant) and isinstance(node.value, str) and pattern.match(node.value):
-                offenders.append((source.name, node.lineno))
+                if id(node) not in parser_tokens:
+                    offenders.append((source.name, node.lineno))
     assert offenders == []
+
+
+@pytest.mark.parametrize("path", ["job with spaces/model.k", "目录/模型.k", r"C:\目录 空格\模型.k"])
+def test_path_builders_have_one_quoted_grammar(path, tmp_path):
+    quoted = '"' + path.replace("\\", "/") + '"'
+    assert nc.quoted_path(path) == quoted
+    assert nc.quoted_path(path, "native") == '"' + path + '"'
+    assert nc.open_model(path) == "open keyword " + quoted
+    assert nc.open_model(path, "d3plot", openc=True) == "openc d3plot " + quoted
+    assert nc.save_keyword(path) == "save keyword " + quoted
+    assert nc.print_png(path) == "print png " + quoted + ' opaque enlisted "OGL1x1"'
+    assert nc.movie(path, 640, 480, 5) == 'movie MP4/H264 640x480 "' + path + '" 5'
+    assert nc.run_script(path, "scl") == 'runscript "' + path + '"'
+    assert nc.run_script(path, "python") == "runpython " + quoted
+    assert nc.run_script(path, "cfile") == "openc command " + quoted + " nodialog"
+    target = tmp_path / "commands.cfile"
+    nc.write_cfile(target, [nc.open_model(path), "exit"])
+    assert target.read_bytes() == (nc.open_model(path)+"\nexit\n").encode("utf8")
+
+
+@pytest.mark.parametrize("path", ['semi;colon.k', 'a"quote.k', "a\nexit", "a\rname", "a\x00name", "a\tname"])
+def test_every_path_builder_rejects_ambiguous_characters(path):
+    calls = [lambda: nc.quoted_path(path), lambda: nc.open_model(path), lambda: nc.save_keyword(path),
+             lambda: nc.print_png(path), lambda: nc.movie(path,640,480,5),
+             lambda: nc.run_script(path,"scl"), lambda: nc.run_script(path,"python"), lambda: nc.run_script(path,"cfile")]
+    for call in calls:
+        with pytest.raises(ValueError):
+            call()
+
+
+def test_generated_cfile_writes_use_the_shared_encoding_writer():
+    root = Path(nc.__file__).parents[1]
+    offenders = []
+    for source in root.rglob("*.py"):
+        if source == Path(nc.__file__):
+            continue
+        for call in ast.walk(ast.parse(source.read_text(encoding="utf8"))):
+            if not isinstance(call, ast.Call) or not isinstance(call.func, ast.Attribute) or call.func.attr != "write_text":
+                continue
+            destination = ast.unparse(call.func.value)
+            if ".cfile" in destination or destination in {"cfile", "command_file", "close_script", "commands"}:
+                offenders.append((source.name, call.lineno))
+    assert not offenders
 
 
 def test_staged_bridge_loads_without_the_host_package(tmp_path):

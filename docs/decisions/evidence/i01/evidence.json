@@ -1,0 +1,887 @@
+{
+  "schema_version": 1,
+  "task": "I01",
+  "kind": "retrospective_attachment",
+  "provenance": "历史运行于 I01 提交 a5a6166，2026-10-05 UU 断开窗口；五个批处理调用方和 queue 会话六例，非公开 Win32 会话原生验证。",
+  "scope": "Existing local records; no new native run and no GUI/remote scope extension. Raw contents and absolute paths omitted.",
+  "pytest_logs": [
+    {
+      "name": "engine-native.log",
+      "sha256": "4f5f5bce4ff6fff9103fbe20965f240e7e68fc4da59e72f5de3e6c800e9c8e33",
+      "recorded_pytest_summary": [
+        "6 passed in 33.77s"
+      ]
+    }
+  ],
+  "records": [
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is0/jobs/7fd4440c2275439bb5e382d15178366e/bootstrap.py",
+      "size": 667,
+      "sha256": "88cf0aa416a39c4a66a3e14d9143f974ce5dadcdc67d70a8cf96a465a9e433b2"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is0/jobs/7fd4440c2275439bb5e382d15178366e/commands.cfile",
+      "size": 184,
+      "sha256": "2f89838f0eb0ac4e8d1a4e7a930865f547f9e7d3f1bf27e1e4ab40bd27ad1d33"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is0/jobs/7fd4440c2275439bb5e382d15178366e/job.json",
+      "size": 3767,
+      "sha256": "591aa6e461c594c73629d0b158b0589787ece120fbfa291e4dfb49925d8bbb67",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is0/jobs/7fd4440c2275439bb5e382d15178366e/lspost.cfile",
+      "size": 342,
+      "sha256": "9331b41d239c27f9c2148f5eba1f5fa2511dbc49009b11431cb4d8190865562d"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is0/jobs/7fd4440c2275439bb5e382d15178366e/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is0/jobs/7fd4440c2275439bb5e382d15178366e/request.json",
+      "size": 405,
+      "sha256": "cf1931aa8ca0459414403674df83d13fd9dce0f89cc66ae0274a1a3871b91490"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is0/jobs/7fd4440c2275439bb5e382d15178366e/response.json",
+      "size": 700,
+      "sha256": "5771746fe630b136724aea278ec7503bcc8533fbc77937d8d39d3a5093c8a8f0",
+      "recorded_ok": true,
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is0/jobs/7fd4440c2275439bb5e382d15178366e/stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is0/jobs/7fd4440c2275439bb5e382d15178366e/stdout.log",
+      "size": 850,
+      "sha256": "2e14b35815e24df187676dfd05a1bfa38b8d409ce919995b0c3787fb6c7e0a6a"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is1/jobs/3a82a089431a4a41b1810fe22ac312b5/commands.cfile",
+      "size": 59,
+      "sha256": "953d67f8df3c1e76bbc8a19e29c8fca923b860ee7d5696c6df1387f7eba4263a"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is1/jobs/3a82a089431a4a41b1810fe22ac312b5/inventory.scl",
+      "size": 280,
+      "sha256": "f32578a65da62c5d5e1c01e3fd82496c0c8aa2677bec1c931a377b192ff6b747"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is1/jobs/3a82a089431a4a41b1810fe22ac312b5/job.json",
+      "size": 3423,
+      "sha256": "90053724c4cc323c952d2183a1ead08bf9436cddf7fb50ac145983e2312656dd",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 3
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is1/jobs/3a82a089431a4a41b1810fe22ac312b5/lspost.cfile",
+      "size": 197,
+      "sha256": "1cc7e0275e1510a411372107a3e33b3e7f1ad978f43509b681d00ba555c50314"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is1/jobs/3a82a089431a4a41b1810fe22ac312b5/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is1/jobs/3a82a089431a4a41b1810fe22ac312b5/stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is1/jobs/3a82a089431a4a41b1810fe22ac312b5/stdout.log",
+      "size": 839,
+      "sha256": "2790870a4f745b2a83a01db1b8419d28e192a1cb9b08b75c6d3e8564f322ca37"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is2/jobs/fbf9dc66960449cbac1bc999c75dbc9c/commands.cfile",
+      "size": 57,
+      "sha256": "cd3556c6b385b21ff1de8c5a15633966b6908921ec0dc558013079327f1139b0"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is2/jobs/fbf9dc66960449cbac1bc999c75dbc9c/extract.scl",
+      "size": 1143,
+      "sha256": "7cd50dcf554a9b501febe9e9aedf1c140366f9ad7a100069eb86388c9731af99"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is2/jobs/fbf9dc66960449cbac1bc999c75dbc9c/job.json",
+      "size": 9016,
+      "sha256": "7ba3f6285c5e02be76deb1c882543c93d970f48117b015e7be5045ba7e33099b",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is2/jobs/fbf9dc66960449cbac1bc999c75dbc9c/lspost.cfile",
+      "size": 195,
+      "sha256": "61ca195fdf14087fc7d1d80f0cbaaf6589411f56f6dd533d9c48c2eef5658e53"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is2/jobs/fbf9dc66960449cbac1bc999c75dbc9c/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is2/jobs/fbf9dc66960449cbac1bc999c75dbc9c/stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is2/jobs/fbf9dc66960449cbac1bc999c75dbc9c/stdout.log",
+      "size": 839,
+      "sha256": "2790870a4f745b2a83a01db1b8419d28e192a1cb9b08b75c6d3e8564f322ca37"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is3/jobs/6c858e753cd04331a0660ea37930047e/commands.cfile",
+      "size": 57,
+      "sha256": "cd3556c6b385b21ff1de8c5a15633966b6908921ec0dc558013079327f1139b0"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is3/jobs/6c858e753cd04331a0660ea37930047e/extract.scl",
+      "size": 30382,
+      "sha256": "8ffc3c4cb7213374be88c3eb079cae80c5a65d220b7358c252fb356e79c73209"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is3/jobs/6c858e753cd04331a0660ea37930047e/job.json",
+      "size": 22965,
+      "sha256": "c647387077e248223788795847ead541a7085d62b47d09eaef6bb8cc093c25ac",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is3/jobs/6c858e753cd04331a0660ea37930047e/lspost.cfile",
+      "size": 195,
+      "sha256": "fd08ea80bed6f243933a6537f6cd9e2295281c2b85f7f7f04dd99630c4fb9ad0"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is3/jobs/6c858e753cd04331a0660ea37930047e/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is3/jobs/6c858e753cd04331a0660ea37930047e/stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is3/jobs/6c858e753cd04331a0660ea37930047e/stdout.log",
+      "size": 839,
+      "sha256": "2790870a4f745b2a83a01db1b8419d28e192a1cb9b08b75c6d3e8564f322ca37"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is3/jobs/e90345e6dfbe403e9350cdd203d6ac63/bootstrap.py",
+      "size": 667,
+      "sha256": "21f99b8453db8a69708d8bccfba9c90db0847839ed40903b8d8f440061e81f43"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is3/jobs/e90345e6dfbe403e9350cdd203d6ac63/commands.cfile",
+      "size": 184,
+      "sha256": "03cc6bf8b53f191301cc30873b40027da190856e955a0882e68f6c0af15e4404"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is3/jobs/e90345e6dfbe403e9350cdd203d6ac63/job.json",
+      "size": 3981,
+      "sha256": "7d0363c9564e475ba3b9efe53da9290ef2ac2f895521468cbf5a6c34077a4481",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is3/jobs/e90345e6dfbe403e9350cdd203d6ac63/lspost.cfile",
+      "size": 601,
+      "sha256": "b4f1a8618c9fc0b55b52bd44169635e6fc2ae08fdefa154eb5997422dbd38e08"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is3/jobs/e90345e6dfbe403e9350cdd203d6ac63/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is3/jobs/e90345e6dfbe403e9350cdd203d6ac63/request.json",
+      "size": 586,
+      "sha256": "7e3be01c320fcfbe2967547100612fc10fa9dfbace4e0433e1e03fddb91770a8"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is3/jobs/e90345e6dfbe403e9350cdd203d6ac63/response.json",
+      "size": 338,
+      "sha256": "d15818ba02a440ec23f89480e580c0f36e3cfe7f2a6676cfdc0f6d7be7bec2d5",
+      "recorded_ok": true
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is3/jobs/e90345e6dfbe403e9350cdd203d6ac63/stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is3/jobs/e90345e6dfbe403e9350cdd203d6ac63/stdout.log",
+      "size": 835,
+      "sha256": "50218ca02f09132434c4de41a255e29c0aec10b02ef517550eb2e0de7dd00f05"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is4/jobs/3dbd2f66bea441a2bd5eceab05c9fd20/contract.json",
+      "size": 373,
+      "sha256": "21bdefabcfa83e730813e093eb6a70f93237f8ca406bdc03b669aefdb89aab49"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is4/jobs/3dbd2f66bea441a2bd5eceab05c9fd20/job.json",
+      "size": 1467,
+      "sha256": "f7f7cd8a2ed022875540aa81b1e6681108e419b984374355acb64f1de3afbf63",
+      "recorded_status": "prepared"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is4/jobs/3dbd2f66bea441a2bd5eceab05c9fd20/program.cfile",
+      "size": 3,
+      "sha256": "28720365c5e7476a011e4f43ac003ee5f16247a263b9d623aa85ed311d73bf39"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is4/jobs/f5a511bb8f0642958cdebe5aa4861dca/commands.cfile",
+      "size": 67,
+      "sha256": "7e9a6e1abf4b628ef8564461e97d5cbe166ef4a52252d1ed150da457544aa343"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is4/jobs/f5a511bb8f0642958cdebe5aa4861dca/complete.scl",
+      "size": 269,
+      "sha256": "21552185f7d1406214d581b681f567323159d1d783ba2f74c58247b626267a2f"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is4/jobs/f5a511bb8f0642958cdebe5aa4861dca/contract.json",
+      "size": 373,
+      "sha256": "21bdefabcfa83e730813e093eb6a70f93237f8ca406bdc03b669aefdb89aab49"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is4/jobs/f5a511bb8f0642958cdebe5aa4861dca/job.json",
+      "size": 3672,
+      "sha256": "c23d4d170c661bbf2c1e6b8e059bdb69b8149377c316e2cc6a8827fc954eb634",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is4/jobs/f5a511bb8f0642958cdebe5aa4861dca/lspost.cfile",
+      "size": 201,
+      "sha256": "84c08453844073d6aede3f6ddad284f751457f19e85cda49266bb27e4fa8e336"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is4/jobs/f5a511bb8f0642958cdebe5aa4861dca/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is4/jobs/f5a511bb8f0642958cdebe5aa4861dca/program.cfile",
+      "size": 3,
+      "sha256": "28720365c5e7476a011e4f43ac003ee5f16247a263b9d623aa85ed311d73bf39"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is4/jobs/f5a511bb8f0642958cdebe5aa4861dca/stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_five_batch_callers_use_is4/jobs/f5a511bb8f0642958cdebe5aa4861dca/stdout.log",
+      "size": 868,
+      "sha256": "7d9267cc3eb0945fc4c398e7bdac2b97bfe630f5f087d60446ff87362a0c37ff"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/bridge.py",
+      "size": 64014,
+      "sha256": "a24997085eed3e5bbb2c830ca90338b808aa2156fe2136550fbaabc1907f5f12"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/close-15f2945d56be49bdb43ce9ce6c781f99.cfile",
+      "size": 6,
+      "sha256": "b06e3da67c54e6b7de7f67f80d4608e35da83eba008d30d864442d2b56e9fa1f"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/initialize.cfile",
+      "size": 184,
+      "sha256": "4d86546ced2c18de838dd5c4ac7e8156665bd8b50d94b9e256fa5ecb515366b9"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/initialize.py",
+      "size": 955,
+      "sha256": "9878d1d2222640667f6f4d48b8a60e77653036b8732a07303ce9e9cdee2d3174"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/inputs/0f4c3b10b5cd46268c77e581d48a779d/inputs.json",
+      "size": 250,
+      "sha256": "d80c40052490078de8ac65ce9ee8dbbb230d994bd2f9decffda02e9b3e46327e"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/inputs/0f4c3b10b5cd46268c77e581d48a779d/model.k.lspp-context.json",
+      "size": 641,
+      "sha256": "460cbe971688f08c215944c565c17d6b52afa6b5f81d05c5d64238f30c287350"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/inputs/b40e20560a2e4002bd3f8d1aebb0f4fb/inputs.json",
+      "size": 381,
+      "sha256": "3bae90deed1a3bfc79f7e9e59312cd8004078edc108a30c129a053342f94e953"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/inputs/b40e20560a2e4002bd3f8d1aebb0f4fb/model.k.lspp-context.json",
+      "size": 642,
+      "sha256": "7eb823e6ea69ce9a8ab036cc25a8fd53cf75baa1c3eeb028d27f8edae318e1bc"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/lspost.cfile",
+      "size": 1142,
+      "sha256": "918cfe582bc945930dc879c7db443174420c148d5fc734965a382995e0e9ed35"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/process.log",
+      "size": 1147,
+      "sha256": "1b093d1215d9a534429db8d30d19b4a67229f9e34f7b254096b481a7446d767a"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/queue-bridge.py",
+      "size": 4137,
+      "sha256": "5c496b78643f030c5bdf7ee099461e9d08cdcd9a045ae52361fb8ac51cac0b8b"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/ready.json",
+      "size": 156,
+      "sha256": "e08a3284f721a62e787bf204714471b0f0566a9a4c29980ac0b8fc842d245590"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/4c8d12b86cc04d3d89c567fefe5bf1a6/complete.json",
+      "size": 824,
+      "sha256": "3da6f419b2b58de60f5c10371657ddd4e72dd27e08b14b040b1231869bcda93e",
+      "recorded_ok": true,
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/4c8d12b86cc04d3d89c567fefe5bf1a6/contract.json",
+      "size": 141,
+      "sha256": "39bae1ddeb30014f20befb5efff1ce967ac11b0aea18ca22baa000f312b34f7c"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/4c8d12b86cc04d3d89c567fefe5bf1a6/dispatch.cfile",
+      "size": 218,
+      "sha256": "f8a9ba382e6e9c03ee2dab59075ec6e15da373938a1bf766c96e2f5ec7f4435d"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/4c8d12b86cc04d3d89c567fefe5bf1a6/dispatch.py",
+      "size": 1442,
+      "sha256": "6e1e6650579ce94ff9051079e4b80a01e6f13935617255fd6a0263a1f10a277a"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/4c8d12b86cc04d3d89c567fefe5bf1a6/engine-result.json",
+      "size": 3017,
+      "sha256": "2d0999feb9aa1ab1392e30a81864bd29f34867da64fdac1e2f03731808364ba3",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/4c8d12b86cc04d3d89c567fefe5bf1a6/model-load.log",
+      "size": 939,
+      "sha256": "dbac6bb91ee63f6752fd3247507f30ee3273dd3ba30e220f3512eb4cbd9e71a6"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/4c8d12b86cc04d3d89c567fefe5bf1a6/operation.json",
+      "size": 1863,
+      "sha256": "781470d857c7e43eddeec07a2537d397e156b949525ebe43dc8ed1f76bc031ce",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/4c8d12b86cc04d3d89c567fefe5bf1a6/queue-job.json",
+      "size": 315,
+      "sha256": "432e8a52e284df908a5651e4595a1fc18a94e18c550bf9bf0b25610dc06a6370"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/4c8d12b86cc04d3d89c567fefe5bf1a6/queue-started.json",
+      "size": 60,
+      "sha256": "b5b24e8487de4f146cb76e864fbf6c316663b21b70096110336528195142f873"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/4c8d12b86cc04d3d89c567fefe5bf1a6/request.json",
+      "size": 705,
+      "sha256": "7ea20c86f924a7b04b0684bff18c366fe4c14b76fe89887d5d2ecc074a55d99f"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/9b169ecdb3a54df68a82f06ec43ed6d1/complete.json",
+      "size": 824,
+      "sha256": "26339cf315bceedbef8fa8cdcaa401832d59ec5d83f82b616f00042f36738668",
+      "recorded_ok": true,
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/9b169ecdb3a54df68a82f06ec43ed6d1/contract.json",
+      "size": 70,
+      "sha256": "a7b51e4c45f4565f84fcae1fd018a5bb39f4d7a6288481dc293c4fa67dcc3eee"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/9b169ecdb3a54df68a82f06ec43ed6d1/dispatch.cfile",
+      "size": 218,
+      "sha256": "440b1864a3d74872833104a11ccf422c758e4a34eda075b01321805f72fd4696"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/9b169ecdb3a54df68a82f06ec43ed6d1/dispatch.py",
+      "size": 1442,
+      "sha256": "4bd35fb38602560072aee4bc1df5a46d7913429fb310192b4367010bf4b26da1"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/9b169ecdb3a54df68a82f06ec43ed6d1/engine-result.json",
+      "size": 2296,
+      "sha256": "083a2cbc93f008dceb49be1ba18c69b24982eeadfa876d9c4c168299ae0ab028",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/9b169ecdb3a54df68a82f06ec43ed6d1/operation.json",
+      "size": 1156,
+      "sha256": "d8dbcbbf4f7aa76a752ff9046c5b49604898dabc92d9f7a33b60ea074828e731",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/9b169ecdb3a54df68a82f06ec43ed6d1/queue-job.json",
+      "size": 315,
+      "sha256": "a57c1b3f611572cfbb16473cf77ef4a6bc4f91aecdcce0c25d78e201739cd8b9"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/9b169ecdb3a54df68a82f06ec43ed6d1/queue-started.json",
+      "size": 60,
+      "sha256": "5f39c76de90a5241ff0b8cecc6524480c81fb08aad2747e06ef15368e311f884"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/9b169ecdb3a54df68a82f06ec43ed6d1/request.json",
+      "size": 498,
+      "sha256": "329497c237496dd066fb64e20434059303b09a1d3d092611cf30969d180bec9c"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/aaee21b5ec1c47c698968914968ac5db/complete.json",
+      "size": 824,
+      "sha256": "8e73fd4aa4ec4b5ab75d4bbc07916bf70cf325cdea0ede95367a84c594ba3106",
+      "recorded_ok": true,
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/aaee21b5ec1c47c698968914968ac5db/contract.json",
+      "size": 141,
+      "sha256": "803d38e22318c0858b75e4c28271e28120bf5bf8bbed2fa9711f321d24cf7d5c"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/aaee21b5ec1c47c698968914968ac5db/dispatch.cfile",
+      "size": 218,
+      "sha256": "bc35c7011aed709b834e7faeed81f917a085d7b3ce35c68525fc4fe4138b101e"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/aaee21b5ec1c47c698968914968ac5db/dispatch.py",
+      "size": 1442,
+      "sha256": "9d3d78fe8386c8c31bca652115963a79de6d3877b9220c0df4a95cc2d44f19ec"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/aaee21b5ec1c47c698968914968ac5db/engine-result.json",
+      "size": 3017,
+      "sha256": "a046b657215a6f5be3c66612c7216266408171d58253c25a50c53b15c4dbbe59",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/aaee21b5ec1c47c698968914968ac5db/model-load.log",
+      "size": 939,
+      "sha256": "c5d8d1350737c1d1ad59e7c6c70e852d2eb10e018b305b608a152ead2c890b3c"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/aaee21b5ec1c47c698968914968ac5db/operation.json",
+      "size": 1863,
+      "sha256": "461cc9c1ca80a96ff92fa99937538c94e684fe135bb276e5fb921e2196a8422c",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/aaee21b5ec1c47c698968914968ac5db/queue-job.json",
+      "size": 315,
+      "sha256": "81e780c3a1210f91a24adb6066fd6a30846ecc5075b03a2624f33b107ed1030e"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/aaee21b5ec1c47c698968914968ac5db/queue-started.json",
+      "size": 60,
+      "sha256": "5bea655ef2facb7f8497f1513b6503e6ba0e17ed1d3437d58a7206ea07b8f0a9"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/aaee21b5ec1c47c698968914968ac5db/request.json",
+      "size": 705,
+      "sha256": "2a835e0c2555eb17b79d02d3e1ae33d6f8c4bfc44a6c635c6d7f2cbccc4b0e00"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/d53a1ab16e4c4b94b74f1095c55c7ba8/complete.json",
+      "size": 824,
+      "sha256": "58e8403fe3fa758b5904c303a205612ff156e325b6508f431713520f3bc50a1d",
+      "recorded_ok": true,
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/d53a1ab16e4c4b94b74f1095c55c7ba8/contract.json",
+      "size": 70,
+      "sha256": "a7b51e4c45f4565f84fcae1fd018a5bb39f4d7a6288481dc293c4fa67dcc3eee"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/d53a1ab16e4c4b94b74f1095c55c7ba8/dispatch.cfile",
+      "size": 218,
+      "sha256": "82b78951ab3d9fdf94104700b99aca313bac8887e36020131344e3bc96c4c6d9"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/d53a1ab16e4c4b94b74f1095c55c7ba8/dispatch.py",
+      "size": 1442,
+      "sha256": "da46ecff296544b429f6c2a8539fe927ed2545c3acfdd747859e3adc6f9e59e1"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/d53a1ab16e4c4b94b74f1095c55c7ba8/engine-result.json",
+      "size": 2296,
+      "sha256": "e43d242d3ac0e9e88d3a0787d6d6ecb94a4f1b13353fb11e58f1a45d4add7ce2",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/d53a1ab16e4c4b94b74f1095c55c7ba8/operation.json",
+      "size": 1156,
+      "sha256": "a26e2e2aee87f52d261afb6134903e507d0435e679b0db0063fcb6ecfcf4ee14",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/d53a1ab16e4c4b94b74f1095c55c7ba8/queue-job.json",
+      "size": 315,
+      "sha256": "79e574e97e10b70a4f3c1a5c761d1f7e529429bb8b703d5f08d3427f7a5ac05a"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/d53a1ab16e4c4b94b74f1095c55c7ba8/queue-started.json",
+      "size": 60,
+      "sha256": "3fccbc25ceda7c1ca0cec8aa2042a6af070d88913623a7bdb1283caf38f4ea09"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/d53a1ab16e4c4b94b74f1095c55c7ba8/request.json",
+      "size": 498,
+      "sha256": "244657b00a45d18ae0ecb01b3750545b7196c7f88448f94206cbd5f0e2314298"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/ddbecabea277483a9a57a8ad0210eefa/complete.json",
+      "size": 824,
+      "sha256": "9fc3383b1008ce6add1478555bfe064553c785216f92ad6501587c08c4940c21",
+      "recorded_ok": true,
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/ddbecabea277483a9a57a8ad0210eefa/contract.json",
+      "size": 70,
+      "sha256": "a7b51e4c45f4565f84fcae1fd018a5bb39f4d7a6288481dc293c4fa67dcc3eee"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/ddbecabea277483a9a57a8ad0210eefa/dispatch.cfile",
+      "size": 218,
+      "sha256": "ef5e2eeb6ec35acf2813a4e34968bd04096a39daa21aa48f689e265033172ac2"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/ddbecabea277483a9a57a8ad0210eefa/dispatch.py",
+      "size": 1442,
+      "sha256": "4b99f2d6574d0cf8afe5c81f73449469a91ae801dc0216cedf78ad406d3ef0f7"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/ddbecabea277483a9a57a8ad0210eefa/engine-result.json",
+      "size": 2296,
+      "sha256": "1c7d14cd1a1ffff4bfa324f557a2aaa86027a3e34b11286fc534605bfa78dfab",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/ddbecabea277483a9a57a8ad0210eefa/operation.json",
+      "size": 1156,
+      "sha256": "7bc9c4e6cb1726dbac587b00611e682ef24e86830746281568fa12274ae03820",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/ddbecabea277483a9a57a8ad0210eefa/queue-job.json",
+      "size": 315,
+      "sha256": "dbafa855c05f0236f40581a8c9934000662e6a91f0775140c0862061b8f206df"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/ddbecabea277483a9a57a8ad0210eefa/queue-started.json",
+      "size": 60,
+      "sha256": "096ea91576d639dbfb632d9e9db5c3432c5dd35e4e0efcf985b27144432a1107"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/ddbecabea277483a9a57a8ad0210eefa/request.json",
+      "size": 498,
+      "sha256": "266589d01429a85aa917294ccb60035332998f788c59844294c6adfc0c443e48"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/f9c681782bcf42788c506af248ece642/complete.json",
+      "size": 824,
+      "sha256": "7164c30790964c03153c3ee4c23eb44d956da12669dc72967282eb468ae33860",
+      "recorded_ok": true,
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/f9c681782bcf42788c506af248ece642/contract.json",
+      "size": 122,
+      "sha256": "e6e7a2635e2142f0cf184f370590ddf334d6ae28b52acd41b840185374f5ad4a"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/f9c681782bcf42788c506af248ece642/dispatch.cfile",
+      "size": 218,
+      "sha256": "89cd7fb89c817b1d90a72a318190a5cdc69ea1ab274fd0c7154e62f4e3471459"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/f9c681782bcf42788c506af248ece642/dispatch.py",
+      "size": 1978,
+      "sha256": "b8c652913ec466134481d07186b334a253cd43592c2a497bce50bbf28fbbc1f6"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/f9c681782bcf42788c506af248ece642/engine-result.json",
+      "size": 4634,
+      "sha256": "171cee9f22037aa76a35fab9aadeb15f8ecd48330cc76d5606062f6e24b553fe",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/f9c681782bcf42788c506af248ece642/model.k.lspp-context.json",
+      "size": 644,
+      "sha256": "25b67eb0a87c090f4adb886681115c45c6a6b3652f52993d65003b29e0ff82d8"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/f9c681782bcf42788c506af248ece642/operation.json",
+      "size": 2923,
+      "sha256": "541514bda8f05005868b87b3d3a55bea18df49eae014bc08ff7393355789ca9b",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/f9c681782bcf42788c506af248ece642/queue-job.json",
+      "size": 315,
+      "sha256": "6ce9ae8e3868657a6da2b64a90d4f5cfe313d5e1060f674faf623c39620ed471"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/f9c681782bcf42788c506af248ece642/queue-started.json",
+      "size": 60,
+      "sha256": "3c1fc8db6b8405e1ca380d2703c8e6fce3b8acd24321b714be9e7c95431d10ca"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/requests/f9c681782bcf42788c506af248ece642/request.json",
+      "size": 499,
+      "sha256": "89735577341a58d1058c8342bcb9e809d487bc81a1f20c8eeef35a5f69822aee"
+    },
+    {
+      "source_set": "engine-native",
+      "relative_path": "test_queue_session_reuses_pid_0/sessions/485f0680dc4d4271af78b9c27f076ae5/session.json",
+      "size": 5080,
+      "sha256": "9059aff0f9d428fced81e4a270e25b7540817bc5e9af1da5f3347d3da5ac77ca"
+    }
+  ]
+}
