@@ -400,6 +400,8 @@ def layout(block: Block, lookup: Mapping[str, object], deck_format: str = "stand
         return umat.umat_layout(block, lookup, long)
     if lists.is_define_table(block.name):
         return lists.define_table_layout(block, long)
+    if block.name == "*LOAD_SEGMENT":
+        return lists.load_segment_layout(block, long)
     if lists.is_list_set(block.name) or lists.is_curve(block.name):
         try:
             headers = lists.header_fields(block, long)

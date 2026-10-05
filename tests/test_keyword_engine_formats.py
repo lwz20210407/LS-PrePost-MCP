@@ -220,9 +220,6 @@ def test_legacy_set_keywords_and_multi_line_title(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("text", [
-    # each line is its own segment; PyDYNA pairs lines as card 1 + optional N6-N8 card
-    "*LOAD_SEGMENT\n         1    40.000                3001      3002      3003      3004\n"
-    "         1    40.000                3002      3005      3006      3003\n",
     # PyDYNA has no _ID option for this class: the JID line would be read as N1-N6
     "*CONSTRAINED_JOINT_REVOLUTE_ID\n         5\n   7700192   7700200   7700189   7700202         0         0\n",
     # PyDYNA puts the WID card first even without _ID
@@ -278,3 +275,21 @@ def test_spotweld_id_uses_the_leading_wid_card(tmp_path: Path) -> None:
                            "       101       102       0.0       0.0       0.0       0.0       0.0       0.0\n")
     block = deck.blocks("*CONSTRAINED_SPOTWELD_ID")[0]
     assert deck.get(block, "wid").value == 77 and deck.get(block, "n2").value == 102
+
+
+def test_load_segment_rows_follow_the_manual(tmp_path: Path) -> None:
+    """Several segments under one keyword; the N6-N8 line only after a segment with N5 (R11 p. 28-64)."""
+    deck = _deck(tmp_path, "*LOAD_SEGMENT\n"
+                           "         1    40.000                3001      3002      3003      3004\n"
+                           "         1    40.000                3002      3005      3006      3003      3010\n"
+                           "      3011      3012      3013\n"
+                           "         2       1.0                3005      3007      3008      3006\n")
+    block = deck.blocks("*LOAD_SEGMENT")[0]
+    rows = deck.layout(block).rows
+    assert len(rows) == 3
+    assert deck.get(block, "n4", row=1).value == 3004 and deck.get(block, "sf", row=1).value == 40.0
+    assert deck.get(block, "n8", row=2).value == 3013 and deck.get(block, "lcid", row=3).value == 2
+    with pytest.raises(KeyError):
+        deck.get(block, "n6", row=1)  # no midside line for a 4-node segment
+    deck.set(block, "n1", 4001, row=3)
+    assert deck.get(block, "n1", row=3).value == 4001

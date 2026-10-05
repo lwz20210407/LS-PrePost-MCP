@@ -172,6 +172,40 @@ def define_table_layout(block: Block, long: bool = False) -> Layout:
                   source="builtin-table")
 
 
+SEGMENT_ROW = [Column("lcid", "int", 0, 10), Column("sf", "float", 10, 10, 1.0), Column("at", "float", 20, 10, 0.0)] + [
+    Column(f"n{i}", "int", 20 + 10 * i, 10) for i in range(1, 6)]
+SEGMENT_MID = [Column(f"n{i}", "int", 10 * (i - 6), 10) for i in range(6, 9)]
+
+
+def load_segment_layout(block: Block, long: bool = False) -> Layout:
+    """``*LOAD_SEGMENT``: one segment per row (LCID SF AT N1-N5), followed by an N6-N8 line only
+    when that segment's N5 is non-zero (LS-DYNA R11 manual p. 28-64). PyDYNA reads the N6-N8
+    card unconditionally and keeps one segment, so this layout is builtin."""
+    if long:
+        raise Unsupported("Long-format *LOAD_SEGMENT is not supported for named fields")
+    lines = [index for index, line in block.data() if not is_blank(line)]
+    rows: dict[int, tuple[int, ...]] = {}
+    position = 0
+    while position < len(lines):
+        first = block.lines[lines[position]]
+        stray = stray_text(first, [(c.offset, c.width) for c in SEGMENT_ROW], tolerant=False)
+        if stray:
+            raise Unsupported(f"*LOAD_SEGMENT: text outside the segment fields on line {lines[position]} ({stray[:40]!r})")
+        n5 = _values(first, 10, 8)[7].strip() if len(_values(first, 10, 8)) > 7 else ""
+        try:
+            has_mid = parse_number(n5) not in (None, 0)
+        except FieldError:
+            has_mid = True  # parameter reference: a node is given
+        count = 2 if has_mid else 1
+        if position + count > len(lines):
+            raise Unsupported("*LOAD_SEGMENT: the N6-N8 line of the last segment is missing")
+        rows[len(rows) + 1] = tuple(lines[position:position + count])
+        position += count
+    template = [SEGMENT_ROW, SEGMENT_MID]
+    return Layout(block.name, rows=RowMap(block, template, ["segment", "midside"], rows), key="row",
+                  source="builtin-segments")
+
+
 def _point_value(text: str, lookup: dict | None) -> float | int | None:
     if field_expression(text) is not None:
         value = resolve_field(text, lookup or {})
