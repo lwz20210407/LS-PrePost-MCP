@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 from .blocks import SourceFile
 from .includes import identity
-from .text import decode, split_lines
+from .text import split_lines
 
 if TYPE_CHECKING:
     from .deck import KeywordDeck
@@ -25,7 +25,7 @@ def diff(deck: KeywordDeck) -> str:
     """Unified diff of every modified file."""
     parts: list[str] = []
     for source in modified_files(deck):
-        parts.extend(difflib.unified_diff(split_lines(decode(source.original)), split_lines(source.text()),
+        parts.extend(difflib.unified_diff(split_lines(source.original_text()), split_lines(source.text()),
                                           fromfile=str(source.path), tofile=str(source.path) + " (edited)"))
     return "".join(parts)
 

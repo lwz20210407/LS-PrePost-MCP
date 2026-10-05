@@ -77,6 +77,7 @@ class SourceFile:
     _starts: list[int] = field(default_factory=list, repr=False, compare=False)
     _valid: int = field(default=-1, repr=False, compare=False)
     _newline: str = field(default="", repr=False, compare=False)
+    wide: str = ""  # "utf-16-le" / "utf-16-be" for UTF-16 files with a byte order mark
 
     def invalidate_line_numbers(self, block: Block | None = None) -> None:
         """Forget cached line numbers after ``block`` (or all) gained or lost lines.
@@ -111,7 +112,9 @@ class SourceFile:
     @classmethod
     def read(cls, path: Path) -> SourceFile:
         data = path.read_bytes()
-        source = cls(path=path, original=data, blocks=parse_blocks(decode(data)))
+        wide = _wide_codec(data, path)
+        text = data[2:].decode(wide) if wide else decode(data)
+        source = cls(path=path, original=data, blocks=parse_blocks(text), wide=wide)
         for block in source.blocks:
             block.file = source
         return source
@@ -124,10 +127,18 @@ class SourceFile:
         return "".join(block.text() for block in self.blocks)
 
     def data(self) -> bytes:
+        if self.wide:
+            return _BOMS[self.wide] + self.text().encode(self.wide)
         return encode(self.text())
+
+    def original_text(self) -> str:
+        """The original file as text (byte per character, or decoded UTF-16)."""
+        return self.original[2:].decode(self.wide) if self.wide else decode(self.original)
 
     def encoding(self) -> str | None:
         """Text encoding of the original bytes: ascii, utf-8 or gbk; None when unknown."""
+        if self.wide:
+            return None  # text is already decoded; only characters below 256 are accepted
         cached = getattr(self, "_encoding", "")
         if cached != "":
             return cached
@@ -163,8 +174,9 @@ class SourceFile:
     def newline(self) -> str:
         """Dominant line ending of the original file (used for inserted text)."""
         if not self._newline:
-            crlf = self.original.count(b"\r\n")
-            lf = self.original.count(b"\n") - crlf
+            source = self.original_text().encode("latin-1", "replace") if self.wide else self.original
+            crlf = source.count(b"\r\n")
+            lf = source.count(b"\n") - crlf
             self._newline = "\r\n" if crlf > lf else "\n"
         return self._newline
 
@@ -182,3 +194,27 @@ def make_blocks(text: str, newline: str) -> list[Block]:
     if any(b.name in ("*END", "*KEYWORD") for b in blocks):
         raise ValueError("Inserted text must not contain *KEYWORD or *END")
     return blocks
+
+
+_BOMS = {"utf-16-le": b"\xff\xfe", "utf-16-be": b"\xfe\xff"}
+
+
+def _wide_codec(data: bytes, path: Path) -> str:
+    """UTF-16 codec of a file with a byte order mark ("" for 8-bit files).
+
+    LS-DYNA reads 8-bit text, but editors save such files; they are kept in UTF-16 when the
+    text decodes and re-encodes to the same bytes and has no character above 255. Other files
+    with NUL bytes (UTF-16 without BOM, binaries) are refused instead of being read as empty.
+    """
+    for codec, bom in _BOMS.items():
+        if data.startswith(bom):
+            try:
+                text = data[2:].decode(codec)
+            except UnicodeDecodeError as error:
+                raise ValueError(f"{path}: invalid {codec} text") from error
+            if bom + text.encode(codec) != data or any(ord(ch) > 255 for ch in text):
+                raise ValueError(f"{path}: {codec} text that cannot be edited without changing bytes")
+            return codec
+    if b"\x00" in data[:65536]:
+        raise ValueError(f"{path}: contains NUL bytes; not an 8-bit text keyword file (UTF-16 without BOM or binary)")
+    return ""

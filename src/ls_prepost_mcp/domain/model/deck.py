@@ -73,6 +73,10 @@ class KeywordDeck:
         self.format = "standard"
         self._parents: dict[str, str] = {}
         self._walk(self.main, [identity(self.main.path)])
+        for source in {id(f): f for f in [self.main, *self.files.values()]}.values():
+            if source.wide:
+                self.warnings.append(f"{source.path} is {source.wide.upper()} text; LS-DYNA reads 8-bit text, "
+                                     "so convert it to ASCII/UTF-8 before running")
         self._evaluate_parameters()
 
     def _where(self, block: Block) -> str:

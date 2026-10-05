@@ -304,3 +304,23 @@ def test_joint_id_and_local_option_cards(tmp_path: Path) -> None:
     assert values == {"jid": 10, "heading": "hinge", "n1": 101, "n4": 202, "rps": 1.0, "raid": 5, "lst": 1}
     deck.set(block, "n2", 301)
     assert deck.get(block, "n2").value == 301 and deck.get(block, "jid").value == 10
+
+
+def test_utf16_files_are_read_edited_and_kept_in_utf16(tmp_path: Path) -> None:
+    text = "$ material card\r\n*MAT_ELASTIC\r\n         1    7.8e-9  210000.0       0.3\r\n*END\r\n"
+    data = b"\xff\xfe" + text.encode("utf-16-le")
+    (tmp_path / "m.k").write_bytes(data)
+    deck = KeywordDeck.load(tmp_path / "m.k")
+    block = deck.blocks("*MAT_ELASTIC")[0]
+    assert deck.get(block, "e").value == 210000.0 and any("UTF-16-LE" in w for w in deck.warnings)
+    assert deck.main.data() == data  # untouched: byte for byte
+    deck.set(block, "pr", 0.33)
+    deck.save_as(tmp_path / "out")
+    saved = (tmp_path / "out" / "m.k").read_bytes()
+    assert saved.startswith(b"\xff\xfe") and saved[2:].decode("utf-16-le") == text.replace("       0.3\r", "      0.33\r")
+
+
+def test_nul_bytes_are_refused(tmp_path: Path) -> None:
+    (tmp_path / "bin.k").write_bytes("*KEYWORD\n".encode("utf-16-le"))
+    with pytest.raises(ValueError, match="NUL bytes"):
+        KeywordDeck.load(tmp_path / "bin.k")
