@@ -153,12 +153,15 @@ def format_value(value: object, width: int, kind: str = "auto") -> tuple[str, bo
     for candidate in (shortest, _compact(shortest)):
         if len(candidate) <= width:
             return candidate, True
-    for precision in range(width, 0, -1):
-        candidate = _compact(f"{number:.{precision}g}")
-        if "." not in candidate and "e" not in candidate and len(candidate) < width:
+    # Rounded values keep a column for the sign whatever their sign, so v and -v get the same
+    # digits (otherwise a positive value keeps one digit more and mirror pairs come out unequal).
+    sign = "-" if number < 0 else ""
+    for precision in range(width - 1, 0, -1):
+        candidate = _compact(f"{abs(number):.{precision}g}")
+        if "." not in candidate and "e" not in candidate and len(candidate) < width - 1:
             candidate += "."
-        if len(candidate) <= width:
-            return candidate, float(candidate) == number
+        if len(candidate) <= width - 1:
+            return sign + candidate, float(sign + candidate) == number
     raise FieldError(f"{number} cannot be represented in {width} characters")
 
 

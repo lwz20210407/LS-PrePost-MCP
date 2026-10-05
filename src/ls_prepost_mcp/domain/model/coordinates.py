@@ -83,13 +83,22 @@ def coordinate_noise(deck: KeywordDeck, rel_tol: float = 1e-9, max_report: int =
 
 
 def _magnitude(largest: float, deviation: float, tol: float) -> float:
-    """Power of two whose grid step is >= 200 x the noise and >= 1e4 x the largest coordinate's ulp,
-    but never coarser than the detection tolerance (coordinates move by at most half a step)."""
+    """``1.5 * 2**k``: every x + D stays inside the one binade [2**k, 2**(k+1)), so positive and
+    negative coordinates are rounded on the same grid. (With D = 2**k, D - |x| falls in the binade
+    below, whose grid is twice as fine, and mirror pairs come out unequal.) The grid step 2**(k-52)
+    is >= 200 x the noise and >= 1e4 x the largest coordinate's ulp, but never coarser than the
+    detection tolerance (coordinates move by at most half a step)."""
     step = max(200.0 * deviation, 1e4 * math.ulp(largest or 1.0))
     exponent = math.ceil(math.log2(step))
     if 2.0 ** exponent > tol:
         exponent = math.floor(math.log2(tol))
-    return max(2.0 ** (exponent + 52), 2.0 ** math.ceil(math.log2(2 * (largest or 1.0))))  # ulp(2**k) = 2**(k-52)
+    k = max(exponent + 52, math.ceil(math.log2(2 * (largest or 1.0))) + 1)  # |x| <= 2**(k-2) < 2**(k-1)
+    return 1.5 * 2.0 ** k
+
+
+def _one_binade(shift: float, largest: float) -> bool:
+    """x + shift for |x| <= largest lies in one binade, i.e. on one uniform grid."""
+    return math.frexp(shift - largest)[1] == math.frexp(shift + largest)[1]
 
 
 def clean_coordinates(deck: KeywordDeck, axes: str | None = None, magnitude: float | None = None,
@@ -97,7 +106,8 @@ def clean_coordinates(deck: KeywordDeck, axes: str | None = None, magnitude: flo
     """Move the noisy axes by ``magnitude`` and back (x + D - D), writing only changed coordinates.
 
     ``axes`` defaults to the axes where :func:`coordinate_noise` finds noise; ``magnitude``
-    defaults to a power of two chosen from the detected deviation.
+    defaults to 1.5 x a power of two chosen from the detected deviation (see :func:`_magnitude`);
+    a given magnitude whose x + D range straddles a power of two is refused.
     """
     before = coordinate_noise(deck, rel_tol)
     axes = axes if axes is not None else "".join(before["noisy_axes"])
@@ -111,6 +121,11 @@ def clean_coordinates(deck: KeywordDeck, axes: str | None = None, magnitude: flo
     shift = float(magnitude) if magnitude else _magnitude(largest, deviation, before["tolerance"])
     if shift <= 2 * largest:
         raise FieldError(f"magnitude {shift:g} must be much larger than the largest coordinate {largest:g}")
+    if not _one_binade(shift, largest):
+        suggestion = 1.5 * 2.0 ** math.frexp(shift)[1]
+        raise FieldError(f"magnitude {shift:g} +/- {largest:g} straddles a power of two, so positive and negative "
+                         f"coordinates would be rounded on different grids (mirror pairs broken); use e.g. "
+                         f"{suggestion:g}")
     plans, changed, biggest = [], 0, 0.0
     for block in deck.blocks("*NODE"):
         keys, xyz = _node_block(deck, block)
