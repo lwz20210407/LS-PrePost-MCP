@@ -144,3 +144,26 @@ def test_copy_refusals(tmp_path: Path) -> None:
     with pytest.raises(FieldError, match="Part 7"):
         copy_elements(deck, "*ELEMENT_SOLID", [1], part_id=7)
     assert deck.changes == []
+
+
+def test_mesh_ops_in_an_atomic_edit_batch(tmp_path: Path) -> None:
+    from ls_prepost_mcp.domain.model.operations import edit_deck
+    text = ("*PART\nblock\n         1         1         1\n*SECTION_SOLID\n         1         1\n"
+            "*MAT_ELASTIC\n         1    7.8e-9  210000.0       0.3\n" + _cube_text())
+    (tmp_path / "main.k").write_bytes(text.encode("ascii"))
+    story = [
+        {"op": "transform_nodes", "select": {"parts": [1]}, "translate": [10.0, 0.0, 0.0]},
+        {"op": "transform_nodes", "select": {"parts": [1]}, "translate": [-10.0, 0.0, 0.0]},
+        {"op": "copy_elements", "keyword": "*ELEMENT_SOLID", "ids": [1], "reflect": {"normal": [1, 0, 0]}},
+        {"op": "merge_duplicate_nodes", "tolerance": 1e-6},
+        {"op": "renumber", "kind": "solid", "mapping": {"2": 200}},
+    ]
+    result = edit_deck(str(tmp_path / "main.k"), story, output_dir=str(tmp_path / "out"))
+    assert result["status"] == "succeeded" and result["written"] and result["new_dangling"] == []
+    assert [s["op"] for s in result["summaries"]][2:] == ["copy_elements", "merge_duplicate_nodes", "renumber"]
+    again = KeywordDeck.load(tmp_path / "out" / "main.k")
+    assert elements(again, "*ELEMENT_SOLID", 8)[0].tolist() == [1, 200] and check_quality(again)["ok"]
+    failed = edit_deck(str(tmp_path / "main.k"), story[:1] + [{"op": "renumber", "kind": "node", "mapping": {"1": 2}}],
+                       output_dir=str(tmp_path / "bad"))
+    assert failed["status"] == "failed" and failed["failed_edit"] == 1 and not failed["written"]
+    assert not (tmp_path / "bad").exists()

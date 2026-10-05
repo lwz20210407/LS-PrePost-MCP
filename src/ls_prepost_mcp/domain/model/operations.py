@@ -13,7 +13,9 @@ from __future__ import annotations
 from collections.abc import Iterable
 from pathlib import Path
 
-from . import geometry, lists, quality, sets
+import numpy as np
+
+from . import geometry, lists, mesh, quality, renumber, sets
 from .deck import Change, KeywordDeck
 from .fields import FieldError
 from .includes import identity
@@ -144,6 +146,74 @@ def _create_set(deck: KeywordDeck, edit: dict) -> Change:
     return change
 
 
+MESH_OPS = {"transform_nodes", "copy_elements", "renumber", "merge_duplicate_nodes", "delete_elements",
+            "reverse_elements", "unify_shell_normals"}
+
+
+def _ids(deck: KeywordDeck, edit: dict, kind: str) -> list[int]:
+    """Explicit ``ids`` or a geometric ``select`` (box, sphere, plane, parts)."""
+    if "ids" in edit:
+        return [int(i) for i in edit["ids"]]
+    select = dict(edit.get("select") or {})
+    if not select:
+        raise FieldError("Give ids or select")
+    if kind == "node":
+        return geometry.select_nodes(deck, **select).tolist()
+    return geometry.select_elements(deck, edit["keyword"], **select).tolist()
+
+
+def _affine(edit: dict) -> tuple[object, object]:
+    """``(matrix, offset)`` from ``translate``, ``rotate``, ``reflect`` or ``matrix``/``offset``."""
+    if "translate" in edit:
+        return None, edit["translate"]
+    if "rotate" in edit:
+        spec = edit["rotate"]
+        matrix = mesh.rotation_matrix(spec["axis"], float(spec["angle_deg"]))
+        center = np.asarray(spec.get("center", (0.0, 0.0, 0.0)), dtype=float)
+        return matrix, center - matrix @ center
+    if "reflect" in edit:
+        spec = edit["reflect"]
+        return mesh.reflection(spec["normal"], spec.get("point", (0.0, 0.0, 0.0)))
+    if "matrix" in edit:
+        return edit["matrix"], edit.get("offset")
+    raise FieldError("Give translate, rotate, reflect or matrix")
+
+
+def _mesh_op(deck: KeywordDeck, edit: dict) -> dict:
+    """P08 operations; each returns its own summary (changes are recorded by the deck)."""
+    op = edit["op"]
+    if op == "transform_nodes":
+        ids = _ids(deck, edit, "node")
+        if "reflect" in edit:
+            spec = edit["reflect"]
+            return mesh.reflect_nodes(deck, ids, spec["normal"], spec.get("point", (0.0, 0.0, 0.0)),
+                                      fix_orientation=bool(spec.get("fix_orientation", True)))
+        matrix, offset = _affine(edit)
+        return mesh.transform_nodes(deck, ids, matrix, offset)
+    if op == "copy_elements":
+        matrix, offset = _affine(edit) if any(k in edit for k in ("translate", "rotate", "reflect", "matrix")) \
+            else (None, None)
+        return mesh.copy_elements(deck, edit["keyword"], _ids(deck, edit, "element"), matrix=matrix,
+                                  offset=offset, part_id=edit.get("part_id"))
+    if op == "renumber":
+        if "mapping" in edit:
+            return renumber.renumber(deck, edit["kind"], {int(a): int(b) for a, b in edit["mapping"].items()})
+        return renumber.renumber_range(deck, edit["kind"], int(edit["first"]), int(edit["last"]), int(edit["start"]))
+    if op == "merge_duplicate_nodes":
+        ids = _ids(deck, edit, "node") if ("ids" in edit or "select" in edit) else None
+        return renumber.merge_duplicate_nodes(deck, float(edit["tolerance"]), ids)
+    if op == "delete_elements":
+        return renumber.delete_elements(deck, edit["keyword"], _ids(deck, edit, "element"),
+                                        delete_orphan_nodes=bool(edit.get("delete_orphan_nodes", False)))
+    if op == "reverse_elements":
+        return mesh.reverse_elements(deck, edit["keyword"], _ids(deck, edit, "element"))
+    if op == "unify_shell_normals":
+        ids = _ids(deck, {**edit, "keyword": "*ELEMENT_SHELL"}, "element") if ("ids" in edit or "select" in edit) \
+            else None
+        return mesh.unify_shell_normals(deck, ids, edit.get("direction"))
+    raise FieldError(f"Unknown mesh op {op!r}")
+
+
 def _apply(deck: KeywordDeck, edit: dict) -> list[Change]:
     op = edit.get("op")
     if op == "set":
@@ -184,15 +254,26 @@ def edit_deck(path: str, edits: list[dict], *, output_dir: str | None = None, in
 
     The batch fails (nothing written) when any edit fails or, unless ``allow_new_dangling``,
     when the edits create references to IDs that no longer exist.
+
+    Field ops: set, set_parameter, set_members, set_points, insert, delete, create_set.
+    Mesh ops (P08, summaries in ``summaries``): transform_nodes (translate / rotate / reflect /
+    matrix), copy_elements, renumber (mapping or first/last/start), merge_duplicate_nodes,
+    delete_elements, reverse_elements, unify_shell_normals; targets by ``ids`` or ``select``.
     """
     if output_dir and in_place:
         raise ValueError("Choose output_dir or in_place, not both")
     deck = KeywordDeck.load(path, include_paths)
+    check_mesh = check_mesh or any(edit.get("op") in MESH_OPS for edit in edits)
     dangling_before = {(d["kind"], d["id"]) for d in deck.references(check_mesh).dangling()}
-    applied = []
+    applied, summaries = [], []
     for number, edit in enumerate(edits):
         try:
-            changes = _apply(deck, edit)
+            if edit.get("op") in MESH_OPS:
+                before = len(deck.changes)
+                summaries.append({"edit": number, "op": edit["op"], **_mesh_op(deck, edit)})
+                changes = deck.changes[before:]
+            else:
+                changes = _apply(deck, edit)
         except (FieldError, Unsupported, KeyError, IndexError, ValueError) as error:
             return {"status": "failed", "failed_edit": number, "error": f"{type(error).__name__}: {error}",
                     "applied_before_failure": len(applied), "written": False}
@@ -201,7 +282,7 @@ def edit_deck(path: str, edits: list[dict], *, output_dir: str | None = None, in
     after = deck.references(check_mesh)
     new_dangling = [d for d in after.dangling() if (d["kind"], d["id"]) not in dangling_before]
     diff = deck.diff()
-    result = {"status": "succeeded", "changes": applied, "diff": diff[:MAX_DIFF],
+    result = {"status": "succeeded", "changes": applied, "summaries": summaries, "diff": diff[:MAX_DIFF],
               "diff_truncated": len(diff) > MAX_DIFF, "new_dangling": new_dangling[:200],
               "modified_files": [str(f.path) for f in deck.modified_files()], "warnings": deck.warnings,
               "written": False}
