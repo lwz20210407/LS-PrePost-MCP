@@ -5,7 +5,7 @@ from pathlib import Path
 
 from .jobs import atomic_json, fingerprint, now
 from .native import commands as nc
-from .runner import execute
+from .runner import execute, failure_message
 
 
 def inspect_database(settings, jobs, source: Path) -> dict:
@@ -33,7 +33,7 @@ def inspect_database(settings, jobs, source: Path) -> dict:
         process = execute(settings.native_executable(), commands, directory, timeout=settings.timeout, graphics=False)
         manifest["process"] = process
         if process.get("engine_status") == "failed" or process["returncode"] != 0 or process["timed_out"]:
-            raise RuntimeError("Native SCL inventory process failed")
+            raise RuntimeError(failure_message(process, "Native SCL inventory process failed"))
         nodes, elements, states = [int(x) for x in (directory / "counts.txt").read_text().split()]
         if min(nodes, elements, states) <= 0:
             raise ValueError("SCL inventory did not produce valid model counts")

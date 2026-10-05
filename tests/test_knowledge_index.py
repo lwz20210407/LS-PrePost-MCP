@@ -133,3 +133,23 @@ def test_search_knowledge_uses_configured_index_and_private_opt_in(tmp_path, mon
     assert search_knowledge("get_data",include_private=True,category="api")[0]["category"]=="api"
 
 
+@pytest.mark.parametrize("interface", ["keywords", "catalog", "legacy"])
+def test_keyword_enumeration_prefers_public_provider_interfaces(interface):
+    from types import SimpleNamespace
+
+    from ls_prepost_mcp.keyword_documentation import keyword_fields
+
+    requested = []
+    provider = SimpleNamespace(keyword_doc=lambda key: (requested.append(key) or dict(cards=[])))
+    if interface == "keywords":
+        provider.keywords = lambda: ["*PART"]
+        provider._catalog = lambda: pytest.fail("Public keywords() must take priority")
+    elif interface == "catalog":
+        provider.catalog = lambda: [dict(keyword="*PART")]
+        provider._catalog = lambda: pytest.fail("Public catalog() must take priority")
+    else:
+        provider._catalog = lambda: [("*PART", "pid", "Part ID")]
+    assert list(keyword_fields(provider=provider)) == []
+    assert requested == ["*PART"]
+
+
