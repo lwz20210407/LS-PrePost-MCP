@@ -19,7 +19,7 @@ import re
 import warnings
 from collections.abc import Mapping
 
-from . import lists, tables
+from . import lists, tables, umat
 from .blocks import Block
 from .fields import (
     FieldError,
@@ -307,6 +307,8 @@ def layout(block: Block, lookup: Mapping[str, object], deck_format: str = "stand
         return _part_layout(block, long)
     if block.name == "*TITLE":
         return _title_layout(block)
+    if umat.is_umat(block.name):
+        return umat.umat_layout(block, lookup, long)
     if lists.is_list_set(block.name) or lists.is_curve(block.name):
         try:
             headers = lists.header_fields(block, long)
