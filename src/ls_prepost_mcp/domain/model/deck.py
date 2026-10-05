@@ -293,8 +293,19 @@ class KeywordDeck:
         return self._record_lines(block, f"{description} ({len(edits)} lines)", before,
                                   [block.lines[i] for i in order[:5]])
 
+    def remove_lines(self, block: Block, indices: list[int], description: str) -> Change:
+        """Remove data lines of ``block`` (table rows); the keyword line always stays."""
+        drop = sorted(set(indices))
+        if not drop or drop[0] < 1:
+            raise FieldError("No removable lines given")
+        removed = [block.lines[i] for i in drop[:5]]
+        gone = set(drop)
+        block.lines[:] = [line for i, line in enumerate(block.lines) if i not in gone]
+        return self._record_lines(block, f"{description} ({len(drop)} lines removed)", removed, [])
+
     def _record_lines(self, block: Block, description: str, removed: list[str], added: list[str]) -> Change:
         self._layouts.clear()
+        block.file.invalidate_line_numbers(block)
         block.file.modified = True
         change = Change(block.file.path, block.name, block.line_number, description, "".join(removed), "".join(added))
         self.changes.append(change)
@@ -322,6 +333,7 @@ class KeywordDeck:
         for block in new:
             block.file = target
         target.blocks[position:position] = new
+        target.invalidate_line_numbers()
         for block in new:
             self._record(block, 0, f"inserted {block.name}", "", True)
         if any(b.name.startswith(_STRUCTURAL) for b in new):
@@ -346,6 +358,7 @@ class KeywordDeck:
         source = block.file
         line = block.line_number
         source.blocks.remove(block)
+        source.invalidate_line_numbers()
         self._layouts.clear()
         source.modified = True
         change = Change(source.path, block.name, line, f"deleted {block.name}", block.text(), "")
@@ -361,6 +374,7 @@ class KeywordDeck:
 
     def _record(self, block: Block, index: int, description: str, before: str, exact: bool) -> Change:
         self._layouts.clear()
+        block.file.invalidate_line_numbers(block)
         block.file.modified = True
         change = Change(block.file.path, block.name, block.line_number + index, description,
                         before, block.lines[index], exact)

@@ -42,12 +42,7 @@ class Block:
         """1-based line number of the first line of this block in its file."""
         if self.file is None:
             return 1
-        number = 1
-        for block in self.file.blocks:
-            if block is self:
-                return number
-            number += len(block.lines)
-        raise LookupError("Block is no longer part of its file")
+        return self.file.line_number_of(self)
 
 
 def parse_blocks(text: str) -> list[Block]:
@@ -78,6 +73,40 @@ class SourceFile:
     original: bytes
     blocks: list[Block]
     modified: bool = False
+    _index: dict[int, int] = field(default_factory=dict, repr=False, compare=False)
+    _starts: list[int] = field(default_factory=list, repr=False, compare=False)
+    _valid: int = field(default=-1, repr=False, compare=False)
+    _newline: str = field(default="", repr=False, compare=False)
+
+    def invalidate_line_numbers(self, block: Block | None = None) -> None:
+        """Forget cached line numbers after ``block`` (or all) gained or lost lines.
+
+        The first line of a block does not depend on its own length: only later blocks reset.
+        """
+        position = self._index.get(id(block)) if block is not None else None
+        if position is None or position >= len(self.blocks) or self.blocks[position] is not block:
+            self._index.clear()
+            self._valid = -1
+        else:
+            self._valid = min(self._valid, position)
+
+    def line_number_of(self, block: Block) -> int:
+        """1-based first line of ``block``; computed incrementally and cached."""
+        position = self._index.get(id(block))
+        if position is None or position >= len(self.blocks) or self.blocks[position] is not block:
+            self._index = {id(item): n for n, item in enumerate(self.blocks)}  # blocks inserted/removed
+            self._valid = -1
+            position = self._index.get(id(block))
+            if position is None:
+                raise LookupError("Block is no longer part of its file")
+        if position > self._valid:
+            if self._valid < 0:
+                self._starts, self._valid = [1], 0
+            del self._starts[self._valid + 1:]
+            for n in range(self._valid, position):
+                self._starts.append(self._starts[n] + len(self.blocks[n].lines))
+            self._valid = position
+        return self._starts[position]
 
     @classmethod
     def read(cls, path: Path) -> SourceFile:
@@ -133,10 +162,11 @@ class SourceFile:
 
     def newline(self) -> str:
         """Dominant line ending of the original file (used for inserted text)."""
-        text = decode(self.original)
-        crlf = text.count("\r\n")
-        lf = text.count("\n") - crlf
-        return "\r\n" if crlf > lf else "\n"
+        if not self._newline:
+            crlf = self.original.count(b"\r\n")
+            lf = self.original.count(b"\n") - crlf
+            self._newline = "\r\n" if crlf > lf else "\n"
+        return self._newline
 
     def keyword_blocks(self) -> list[Block]:
         return [b for b in self.blocks if b.kind == "keyword"]
