@@ -9,31 +9,20 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import lists, persist, references, scope
+from . import lists, persist, references, scope, tree
 from .blocks import Block, SourceFile, make_blocks
 from .fields import FieldError, FieldSlot, format_value, is_free_format, parse_number, read_text, write_text
-from .includes import Resolution, classify, file_names, identity, resolve
+from .includes import identity
 from .layouts import RowMap
 from .parameters import reference
 from .schema import FieldInfo, Layout, Unsupported, block_format
 from .schema import layout as block_layout
 from .scope import ParameterRecord
-from .text import deck_format, ending
+from .text import ending
+from .tree import IncludeRef
 
 logger = logging.getLogger(__name__)
 _STRUCTURAL = ("*INCLUDE", "*PARAMETER", "*KEYWORD")
-
-
-@dataclass
-class IncludeRef:
-    parent: SourceFile
-    block: Block
-    kind: str  # "file" | "path" | "opaque"
-    name: str
-    resolution: Resolution | None = None
-    child: SourceFile | None = None
-    cycle: bool = False
-    repeated: bool = False
 
 
 @dataclass
@@ -90,63 +79,12 @@ class KeywordDeck:
         return f"{block.file.path}:{block.line_number}" if block.file else "?"
 
     def _walk(self, source: SourceFile, stack: list[str]) -> None:
-        for block in source.keyword_blocks():
-            if block.name == "*KEYWORD" and source is self.main:
-                self.format = deck_format(block.keyword.extra if block.keyword else "")
-            kind = classify(block.name)
-            if kind is None:
-                continue
-            for name, _ in file_names(block.name, block.data()):
-                if kind == "path":
-                    directory = Path(name)
-                    self.search_dirs.append(directory if directory.is_absolute() else self.main_dir / directory)
-                    self.includes.append(IncludeRef(source, block, kind, name))
-                    continue
-                result = resolve(name, source.path.parent, self.main_dir, self.search_dirs)
-                ref = IncludeRef(source, block, kind, name, result)
-                self.includes.append(ref)
-                if result.ambiguous:
-                    self.warnings.append(f"Ambiguous include {name!r} at {self._where(block)}: {result.candidates}")
-                if result.path is None:
-                    self.warnings.append(f"Missing include {name!r} at {self._where(block)}")
-                    continue
-                if kind == "opaque":
-                    continue
-                key = identity(result.path)
-                if key in stack:
-                    ref.cycle = True
-                    self.warnings.append(f"Include cycle via {name!r} at {self._where(block)}")
-                    continue
-                child = self.files.get(key)
-                if child is not None and key in self._parents:
-                    ref.child, ref.repeated = child, True
-                    self.warnings.append(f"{name!r} is included more than once; LS-DYNA reads it each time")
-                    continue
-                if child is None:
-                    if len(self.files) >= self.max_files:
-                        raise ValueError(f"More than {self.max_files} include files")
-                    child = SourceFile.read(result.path)
-                    self.files[key] = child
-                ref.child = child
-                self._parents[key] = identity(source.path)
-                self._walk(child, stack + [key])
+        tree.walk(self, source, stack)
 
     def iter_blocks(self, source: SourceFile | None = None, _stack: list[str] | None = None) -> Iterator[Block]:
         """Keyword blocks in LS-DYNA reading order, include files expanded in place."""
         source = source or self.main
-        stack = _stack or [identity(source.path)]
-        by_block: dict[int, list[IncludeRef]] = {}
-        for ref in self.includes:
-            if ref.parent is source:
-                by_block.setdefault(id(ref.block), []).append(ref)
-        for block in source.keyword_blocks():
-            yield block
-            for ref in by_block.get(id(block), []):
-                if ref.child is None or ref.cycle or ref.kind != "file":
-                    continue
-                key = identity(ref.child.path)
-                if key not in stack:
-                    yield from self.iter_blocks(ref.child, stack + [key])
+        return tree.iter_blocks(self, source, _stack or [identity(source.path)])
 
     def blocks(self, pattern: str | None = None) -> list[Block]:
         """Blocks matching ``pattern``.
@@ -162,22 +100,7 @@ class KeywordDeck:
 
     def include_tree(self) -> dict:
         """Nested include structure with resolution rule and problems for each reference."""
-        def node(source: SourceFile, stack: list[str]) -> list[dict]:
-            entries = []
-            for ref in self.includes:
-                if ref.parent is not source:
-                    continue
-                res = ref.resolution
-                entry = {"name": ref.name, "kind": ref.kind, "keyword": ref.block.name, "line": ref.block.line_number,
-                         "path": str(ref.child.path) if ref.child else (str(res.path) if res and res.path else None),
-                         "rule": res.rule if res else None, "missing": bool(res and res.path is None),
-                         "ambiguous": bool(res and res.ambiguous), "cycle": ref.cycle, "repeated": ref.repeated}
-                if ref.child and not ref.cycle and not ref.repeated:
-                    key = identity(ref.child.path)
-                    entry["includes"] = node(ref.child, stack + [key])
-                entries.append(entry)
-            return entries
-        return {"path": str(self.main.path), "includes": node(self.main, [identity(self.main.path)])}
+        return tree.include_tree(self)
 
     def summary(self) -> dict:
         names = Counter(block.name for block in self.iter_blocks())
