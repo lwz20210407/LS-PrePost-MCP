@@ -61,7 +61,8 @@ def _may_refer(name: str, kind: str) -> bool:
 
 # ID-like names: ..id / ..sid (with a numeric suffix such as id1 or lcid_2), lc.. curves, n1..n8 nodes
 ID_LIKE = re.compile(r"(?:id|sid)_?\d*$|^lc|^n\d+$")
-SELF_IDS = {"wid", "jid", "coupid", "did", "jsid"}  # a keyword's own ID, not a reference
+# a keyword's own ID, not a reference (IRID: *INTEGRATION_* rule, referenced by a negative QR in *SECTION_*)
+SELF_IDS = {"wid", "jid", "coupid", "did", "jsid", "irid"}
 # ID-like names that are counts in some keywords: LCINT is a number of curve points in these, but a
 # flow curve ID in *AIRBAG (R17 Vol I: *CONTROL_SOLUTION, *DEFINE_CURVE, *AIRBAG_..._HYBRID).
 COUNTS = (("*CONTROL_SOLUTION", "lcint"), ("*DEFINE_CURVE", "lcint"), ("*DEFINE_TABLE", "lcint"))

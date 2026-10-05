@@ -172,6 +172,43 @@ def define_table_layout(block: Block, long: bool = False) -> Layout:
                   source="builtin-table")
 
 
+INTEGRATION_HEADER = (("irid", "int", None), ("nip", "int", 0), ("esop", "int", 0), ("failopt", "int", 0))
+INTEGRATION_POINT = [Column("s", "float", 0, 10), Column("wf", "float", 10, 10), Column("pid", "int", 20, 10)]
+
+
+def integration_shell_layout(block: Block, long: bool = False) -> Layout:
+    """``*INTEGRATION_SHELL`` (R17 Vol I 29-16): card 1 IRID NIP ESOP FAILOPT, then NIP point
+    cards S WF PID when ESOP = 0; points are rows keyed 1..NIP. One rule per block."""
+    if long:
+        raise Unsupported("Long-format *INTEGRATION_SHELL is not supported for named fields")
+    lines = [(index, line) for index, line in block.data()]
+    while lines and is_blank(lines[-1][1]):
+        lines.pop()
+    if not lines:
+        raise Unsupported("*INTEGRATION_SHELL has no card 1")
+    header, line = lines[0]
+    free = is_free_format(line)
+    fields = [FieldInfo(name, kind, FieldSlot(header, 10 * i, 10, i if free else None), "card1", default)
+              for i, (name, kind, default) in enumerate(INTEGRATION_HEADER)]
+    values = (_values(line, 10, 4) + ["", "", "", ""])[:4]
+    try:
+        nip, esop = parse_number(values[1]) or 0, parse_number(values[2]) or 0
+    except FieldError as error:
+        raise Unsupported(f"*INTEGRATION_SHELL: NIP/ESOP must be numbers ({error})") from error
+    points = lines[1:]
+    expected = nip if esop == 0 else 0
+    if not isinstance(nip, int) or len(points) != expected:
+        raise Unsupported(f"*INTEGRATION_SHELL: {len(points)} point lines for NIP={nip}, ESOP={esop} "
+                          "(several rules in one block are not supported)")
+    for index, text in points:
+        stray = stray_text(text, [(c.offset, c.width) for c in INTEGRATION_POINT], tolerant=False)
+        if stray:
+            raise Unsupported(f"*INTEGRATION_SHELL: text outside S/WF/PID on line {index} ({stray[:40]!r})")
+    rows = {number: (index,) for number, (index, _) in enumerate(points, 1)}
+    return Layout(block.name, fields=fields, rows=RowMap(block, [INTEGRATION_POINT], ["point"], rows), key="row",
+                  source="builtin-integration")
+
+
 SEGMENT_ROW = [Column("lcid", "int", 0, 10), Column("sf", "float", 10, 10, 1.0), Column("at", "float", 20, 10, 0.0)] + [
     Column(f"n{i}", "int", 20 + 10 * i, 10) for i in range(1, 6)]
 SEGMENT_MID = [Column(f"n{i}", "int", 10 * (i - 6), 10) for i in range(6, 9)]

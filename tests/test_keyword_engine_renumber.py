@@ -265,3 +265,19 @@ def test_counts_and_own_ids_do_not_block_renumbering(tmp_path: Path) -> None:
     deck = _deck(tmp_path, _model(extra))
     renumber(deck, "curve", {7: 70})  # LCINT=7 is a point count, not curve 7
     assert deck.get(deck.blocks("*CONTROL_SOLUTION")[0], "lcint").value == 7
+
+
+def test_integration_shell_points(tmp_path: Path) -> None:
+    rule = ("*INTEGRATION_SHELL\n         1         3         0         0\n"
+            "     -0.05       0.5         1\n       0.0       0.3         0\n      0.05       0.2         1\n")
+    deck = _deck(tmp_path, _model(rule))
+    block = deck.blocks("*INTEGRATION_SHELL")[0]
+    assert deck.get(block, "nip").value == 3 and deck.get(block, "wf", row=2).value == 0.3
+    renumber(deck, "part", {1: 5})
+    assert [deck.get(block, "pid", row=r).value for r in (1, 2, 3)] == [5, 0, 5]
+    assert deck.references().dangling_count == 0
+    (tmp_path / "x").mkdir()
+    two_rules = rule + "         2         1         0         0\n       0.0       1.0         0\n"
+    deck = _deck(tmp_path / "x", _model(two_rules))
+    with pytest.raises(FieldError, match="cannot be read"):
+        renumber(deck, "part", {1: 5})

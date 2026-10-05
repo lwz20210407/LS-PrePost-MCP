@@ -50,6 +50,7 @@ REFERENCES: list[tuple[str, tuple[tuple[str, str], ...]]] = [
     ("*MAT_ADD_", (("mid", "material"),)),
     ("*DEFINE_TABLE", (("lcid", "curve"),)),  # builtin rows: VALUE, LCID
     ("*LOAD_SEGMENT", (("lcid", "curve"),)),  # PyDYNA links only N1-N8 of the builtin segment rows
+    ("*INTEGRATION_SHELL", (("pid", "part"),)),  # optional part per integration point (R17 Vol I 29-17)
     ("*DATABASE_CROSS_SECTION_SET", (("ssid", "shell_set"),)),  # PyDYNA links NSID/HSID/BSID/DSID only
     ("*MAT_PIECEWISE_LINEAR_PLASTICITY", (("lcss", "curve"), ("lcsr", "curve"))),
     ("*BOUNDARY_SPC_SET", (("nsid", "node_set"),)), ("*BOUNDARY_SPC_NODE", (("nid", "node"),)),
