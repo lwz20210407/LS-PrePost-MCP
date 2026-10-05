@@ -388,6 +388,24 @@
 - 处理：集中路径构建器拒绝分号、引号和控制字符；cfile 统一 UTF-8。工作目录配置的上述限制单独保留为严格 xfail，不标成 native passed。
 - 证据：[路径原生回归](../tests/test_engine_native.py)；去路径报告随本 PR 附件保留，原始日志留在仓库外。GUI/Movie 路径仍待集中窗口。
 
+
+## KI-052 Windows 深层 job 的临时 JSON 文件超长
+
+- 现象：目标文件本身可写，但完整文件名后追加 32 位 UUID 的原子临时文件超过 Windows 路径限制；边界条件创建在写入模型身份旁车时失败。
+- 修复：`atomic_json` 在同一目录独占创建短临时文件，保留原子替换和 Windows 短暂共享锁重试；不再重复目标文件名。测试框架也缩短用例目录前缀。
+- 证据：[深层目录与原文件保留回归](../tests/test_atomic_json.py)。此次 GUI 窗口中边界条件创建用例修复后通过；原始失败记录保留在本地。
+
+## KI-050 缺少用户配置时拒绝启动
+
+- 现象：用仅含星号的私有 lsppconf 代替缺失的用户配置会丢失 Python home/首次运行设置，后台程序可能等待初始化。
+- 处理：I01 现在直接拒绝缺配置，提示先启动对应安装完成设置，或显式指定 LSPP_CONFIG_SOURCE；不再生成空白替代配置。
+- 证据：tests/test_engines.py 的缺配置拒绝与原配置不变回归；此检查在原生进程启动之前执行。
+
+## KI-051 退出码为零也可能有原生诊断失败
+
+- 行为：共享引擎检测到原生错误行即失败，即使 returncode=0。五个批处理调用方现在透传 engine_error.message，保留真实命令诊断，而非只报退出码和超时状态。
+- 证据：tests/test_engine_native.py 的无效命令原生负例，以及 tests/test_engines.py 的公开 Service 错误透传回归。
+
 ## 能力范围原文索引
 
 以下是 M0 冻结能力文件的全部 scope/limitation 字段，按原文去重。它们同时包含已验证范围和未验证项，不全是原生缺陷。版本、规避和证据保留原文；原文未注明者不补造。来源文件：[capabilities.json](../src/ls_prepost_mcp/data/capabilities.json)。
