@@ -40,24 +40,43 @@ def read_text(line: str, slot: FieldSlot) -> str:
     return text[slot.offset:slot.offset + slot.width]
 
 
+def _styled_cell(old: str, value: str, width: int, align: str) -> str:
+    """New cell text that follows the alignment of the old cell (blank cells use ``align``)."""
+    padded = old.ljust(width)
+    if not padded.strip():
+        return value.rjust(width) if align == "right" else value.ljust(width)
+    lead = len(padded) - len(padded.lstrip(" "))
+    if padded[-1] != " ":
+        return value.rjust(width)  # right-anchored, the usual LS-PrePost style
+    if lead and lead + len(value) <= width:
+        return (" " * lead + value).ljust(width)  # keep the original indentation
+    return value.ljust(width)
+
+
 def write_text(line: str, slot: FieldSlot, value: str, align: str = "right") -> str:
-    """Replace one field, leaving every other character and the line ending unchanged."""
+    """Replace one field, leaving every other character and the line ending unchanged.
+
+    The new value follows the alignment of the old one, so only the value itself changes.
+    """
     text, end = body(line), ending(line)
     if slot.token is not None:
         tokens = text.split(",")
         while len(tokens) <= slot.token:
             tokens.append("")
-        tokens[slot.token] = value
+        old = tokens[slot.token]
+        lead, trail = old[:len(old) - len(old.lstrip())], old[len(old.rstrip()):] if old.strip() else ""
+        tokens[slot.token] = lead + value + trail
         return ",".join(tokens) + end
     if len(value) > slot.width:
         raise FieldError(f"{value!r} does not fit in a {slot.width}-character field")
     if len(text) < slot.offset:
         text += " " * (slot.offset - len(text))
     right = text[slot.offset + slot.width:]
-    cell = value.rjust(slot.width) if align == "right" else value.ljust(slot.width)
+    ended_inside = len(body(line)) < slot.offset + slot.width
+    cell = _styled_cell(text[slot.offset:slot.offset + slot.width], value, slot.width, align)
     new = text[:slot.offset] + cell + right
-    if not right:
-        new = new.rstrip(" ") if align != "right" else new
+    if ended_inside and not right:
+        new = new.rstrip(" ")  # the old line ended inside this field: add no trailing padding
     return new + end
 
 

@@ -6,14 +6,16 @@ the file that defines it and in the files that file includes (its descendants).
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from .blocks import Block
+from .fields import FieldError, format_value, write_text
 from .includes import identity
 from .parameters import ParameterDef, evaluate_definition, parse_definitions
 
 if TYPE_CHECKING:
-    from .deck import KeywordDeck
+    from .deck import Change, KeywordDeck
 
 
 @dataclass
@@ -72,3 +74,44 @@ def evaluate(deck: KeywordDeck) -> Scopes:
         if record.definition.error:
             deck.warnings.append(f"Parameter {record.definition.name!r}: {record.definition.error}")
     return scopes
+
+
+def set_parameter(deck: KeywordDeck, name: str, value: object, file: str | None = None) -> Change:
+    """Change one ``*PARAMETER`` value (or ``*PARAMETER_EXPRESSION`` text) in place.
+
+    All parameters are re-evaluated afterwards, so dependent expressions follow. The edit
+    is reverted if the new definition does not evaluate.
+    """
+    key = name.lower()
+    wanted = identity(Path(file)) if file else None
+    records = [r for r in deck.parameters
+               if r.definition.key == key and (wanted is None or identity(r.block.file.path) == wanted)]
+    if not records:
+        raise KeyError(f"No parameter {name!r}")
+    if len(records) > 1:
+        places = [deck._where(r.block) for r in records]
+        raise FieldError(f"Parameter {name!r} is defined {len(records)} times ({places}); give file=")
+    definition, block = records[0].definition, records[0].block
+    slot = definition.value_slot
+    if slot is None:
+        raise FieldError(f"Parameter {name!r} has no editable value field")
+    exact = True
+    if definition.expression or definition.type == "character":
+        text, align = str(value).strip(), "left"
+        if slot.token is None and len(text) > slot.width:
+            raise FieldError(f"{text!r} does not fit in {slot.width} characters")
+    else:
+        width = slot.width if slot.token is None else 40
+        text, exact = format_value(value, width, "int" if definition.type == "integer" else "float")
+        align = "right"
+    before = block.lines[slot.line]
+    block.lines[slot.line] = write_text(before, slot, text, align)
+    change = deck._record(block, slot.line, f"parameter {definition.name}={text}", before, exact)
+    updated = [r.definition for r in deck.parameters if r.definition.key == key and r.block is block]
+    if not updated or updated[0].error:
+        block.lines[slot.line] = before
+        deck.changes.remove(change)
+        deck._rebuild()
+        problem = updated[0].error if updated else "definition disappeared"
+        raise FieldError(f"New value for {name!r} does not evaluate: {problem}")
+    return change

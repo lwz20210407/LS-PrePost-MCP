@@ -8,7 +8,7 @@ import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
-from .fields import FieldError, parse_number
+from .fields import FieldError, FieldSlot, parse_number
 from .text import body, is_blank
 
 TYPES = {"R": "real", "I": "integer", "C": "character"}
@@ -46,6 +46,7 @@ class ParameterDef:
     expression: bool
     local: bool
     data_line: int
+    value_slot: FieldSlot | None = None
     value: float | int | str | None = None
     error: str | None = None
 
@@ -123,14 +124,17 @@ def parse_definitions(keyword: str, data: list[tuple[int, str]]) -> tuple[list[P
             continue
         text = body(line)
         if expression:
-            prmr, raw = (text.split(",", 1) if "," in text else (text[:10], text[10:]))
-            pairs = [(prmr, raw)]
+            if "," in text:
+                prmr, raw = text.split(",", 1)
+                pairs = [(prmr, raw, FieldSlot(index, 0, 70, 1))]
+            else:
+                pairs = [(text[:10], text[10:], FieldSlot(index, 10, 70))]
         elif "," in text:
             tokens = [t.strip() for t in text.split(",")]
-            pairs = list(zip(tokens[0::2], tokens[1::2]))
+            pairs = [(tokens[k], tokens[k + 1], FieldSlot(index, 0, 10, k + 1)) for k in range(0, len(tokens) - 1, 2)]
         else:
-            pairs = [(text[i:i + 10], text[i + 10:i + 20]) for i in range(0, 80, 20)]
-        for prmr, raw in pairs:
+            pairs = [(text[i:i + 10], text[i + 10:i + 20], FieldSlot(index, i + 10, 10)) for i in range(0, 80, 20)]
+        for prmr, raw, slot in pairs:
             try:
                 split = _split_name(prmr)
             except FieldError as error:
@@ -139,8 +143,8 @@ def parse_definitions(keyword: str, data: list[tuple[int, str]]) -> tuple[list[P
             if split is None:
                 continue
             kind, name = split
-            result.append(ParameterDef(name=name, type=kind, raw=raw.strip(),
-                                       expression=expression, local=local, data_line=index))
+            result.append(ParameterDef(name=name, type=kind, raw=raw.strip(), expression=expression,
+                                       local=local, data_line=index, value_slot=slot))
     return result, problems
 
 

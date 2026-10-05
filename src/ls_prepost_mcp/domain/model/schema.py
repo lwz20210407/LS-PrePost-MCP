@@ -20,7 +20,7 @@ import warnings
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 
-from . import lists
+from . import lists, tables
 from .blocks import Block
 from .fields import FieldError, FieldSlot, format_value, is_free_format, parse_number, read_text, write_text
 from .parameters import reference
@@ -59,10 +59,13 @@ class Layout:
 
     def lookup(self, name: str, card: str | None = None, row: int | None = None) -> FieldInfo:
         name = name.lower()
-        pool = self.fields
-        if self.key is not None:
-            if row is None:
+        if row is None:
+            pool = self.fields
+            if self.key is not None and not any(f.name == name for f in pool):
                 raise KeyError(f"{self.keyword} holds rows; give row=<{self.key}>")
+        else:
+            if self.key is None:
+                raise KeyError(f"{self.keyword} has no rows")
             if row not in self.rows:
                 raise KeyError(f"No row with {self.key}={row} in {self.keyword}")
             pool = self.rows[row]
@@ -116,7 +119,7 @@ def _part_layout(block: Block) -> Layout:
     return layout
 
 
-def _pydyna_class(name: str) -> type:
+def _pydyna_class(name: str) -> tuple[type, str]:
     try:
         from ansys.dyna.core import keywords
         from ansys.dyna.core.keywords.keyword_classes.type_mapping import TypeMapping
@@ -126,7 +129,7 @@ def _pydyna_class(name: str) -> type:
     while tokens:
         type_name = TypeMapping.get("_".join(tokens))
         if type_name is not None:
-            return getattr(keywords, type_name)
+            return getattr(keywords, type_name), "_".join(tokens)
         tokens = tokens[:-1]
     raise Unsupported(f"PyDYNA has no definition for {name}")
 
@@ -282,10 +285,12 @@ def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
 
 
 def _pydyna_layout(block: Block, lookup: Mapping[str, object]) -> Layout:
-    cls = _pydyna_class(block.name)
-    table = _TABLE_CARDS & {type(card).__name__ for card in cls()._cards}
-    if table:  # decided before parsing: large element/table blocks are never parsed here
-        raise Unsupported(f"{block.name} is a table keyword ({', '.join(sorted(table))}); use positional editing")
+    cls, base = _pydyna_class(block.name)
+    if _TABLE_CARDS & {type(card).__name__ for card in cls()._cards}:
+        shape = tables.table_layout(block, cls, base, Unsupported)
+        return Layout(block.name, fields=[FieldInfo(*item) for item in shape["fields"]],
+                      rows={k: [FieldInfo(*item) for item in v] for k, v in shape["rows"].items()},
+                      key=shape["key"], source="pydyna-table")
     data = [(i, line) for i, line in block.data()]
     while data and is_blank(data[-1][1]):
         data.pop()

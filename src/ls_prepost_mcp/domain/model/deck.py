@@ -191,6 +191,10 @@ class KeywordDeck:
         """Parameter values visible to ``block`` (lower-case names)."""
         return {k: v for k, v in self._scopes.visible(identity(block.file.path)).items() if v is not None}
 
+    def set_parameter(self, name: str, value: object, file: str | None = None) -> Change:
+        """Change a ``*PARAMETER`` value or ``*PARAMETER_EXPRESSION`` text; dependents re-evaluate."""
+        return scope.set_parameter(self, name, value, file)
+
     # ------------------------------------------------------------------ fields
     def layout(self, block: Block) -> Layout:
         return block_layout(block, self.lookup(block), self.format)
@@ -235,7 +239,7 @@ class KeywordDeck:
             except Unsupported as error:
                 logger.debug("find skipped %s: %s", self._where(block), error)
                 continue
-            groups = lay.rows.items() if lay.key else [(None, lay.fields)]
+            groups = ([(None, lay.fields)] if lay.fields else []) + (list(lay.rows.items()) if lay.key else [])
             for row, infos in groups:
                 by_name = {info.name: info for info in infos}
                 if all(k.lower() in by_name and _equal(self._value(block, by_name[k.lower()]).value, v)
