@@ -118,9 +118,9 @@ class NativeWorkingDirectoryError(AssertionError):
     pass
 
 
-@pytest.mark.parametrize("workspace_name", ["ascii-workspace",
-    pytest.param("space folder", marks=pytest.mark.xfail(strict=True, raises=NativeWorkingDirectoryError, reason="KI-049 native working-directory preference truncates spaces")),
-    pytest.param("中文 空格", marks=pytest.mark.xfail(strict=True, raises=NativeWorkingDirectoryError, reason="KI-049 native working-directory preference cannot resolve this Unicode/spaced root"))])
+@pytest.mark.parametrize("workspace_name", ["ascii-workspace", "space folder",
+    pytest.param("中文 空格", marks=pytest.mark.xfail(strict=True, raises=NativeWorkingDirectoryError,
+        reason="KI-049: non-ASCII job roots remain unsupported; relative preferences are not safe on 4.13"))])
 def test_path_builders_batch_unicode_and_spaces_save_png_reopen(native_case, workspace_name):
     service, source = native_case
     service = Service(replace(service.settings, workspace=service.settings.workspace / workspace_name))

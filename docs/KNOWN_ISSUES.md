@@ -383,6 +383,8 @@
 
 ## KI-049 含空格/中文工作目录的原生配置解析
 
+- I01 后续修复：仅 ASCII 路径的两个工作目录配置字段改为 `.`，绝对日志路径不变；ASCII 空格目录的保存、PNG、重开已补测。
+- 非 ASCII job 目录仍为 gap：4.13 使用相对配置的完整链路出现 `0xC0000374` 退出错误，未启用该实验路径，也未因文件已生成而标通过。非 ASCII 源文件会暂存到安全名称，与 job 目录限制分别报告。
 - 现象：4.13.4 与 4.10.1 的 job 工作目录含空格或“中文 空格”时，原生未找到已暂存的 input_data，并报告 SCL parsing -2；进程仍可能返回 0。4.13 日志中的路径在空格前截断。
 - 已验证子集：ASCII 工作目录中，可暂存中文/空格源文件名并运行 PNG、keyword 保存和原生重开。
 - 处理：集中路径构建器拒绝分号、引号和控制字符；cfile 统一 UTF-8。工作目录配置的上述限制单独保留为严格 xfail，不标成 native passed。
@@ -405,6 +407,12 @@
 
 - 行为：共享引擎检测到原生错误行即失败，即使 returncode=0。五个批处理调用方现在透传 engine_error.message，保留真实命令诊断，而非只报退出码和超时状态。
 - 证据：tests/test_engine_native.py 的无效命令原生负例，以及 tests/test_engines.py 的公开 Service 错误透传回归。
+
+## I01：批处理输入路径暂存补修
+
+公开语料暴露了非 ASCII 源路径读取失败和 Include 相对目录丢失。独立 keyword 与 d3plot 文件族现在复用已有暂存器，使用 job 内的 ASCII 名称，并核对整个原文件族身份；已有普通 Include 的只读打开使用绝对根文件路径。Include 解析能力和编辑保存仍留 I07，不实现第二套关键字引擎。
+
+证据：[输入暂存回归](../tests/test_batch_input_staging.py)；原生报告随本修复附于 [I01 路径证据](decisions/evidence/i01-staging/report.md)。
 
 ## 能力范围原文索引
 
