@@ -42,7 +42,7 @@
       "work_item": "T01",
       "note": "局部 FieldSpec 已接入，完整 ModelRef 和单位传播未齐",
       "evidence": [
-        "docs/RESULT_CONTRACTS.md"
+        "docs/archive/2026-10/RESULT_CONTRACTS.md"
       ]
     },
     {
@@ -53,7 +53,7 @@
       "work_item": "T01",
       "note": "按需入口和原接口兼容；会话不自动切后台",
       "evidence": [
-        "docs/MCP_TOOL_PROFILES.md"
+        "docs/archive/2026-10/MCP_TOOL_PROFILES.md"
       ]
     },
     {
@@ -64,9 +64,9 @@
       "work_item": "T02",
       "note": "公开鸟撞原始误报回归：报错返回failed且来源/代际不推进；显式替换正确进入1状态keyword。壳质量/keyword/录制门槛失败阻断重新通过。范围仅执行与失败停止，关联和全场数组仍未认证。 补充无效关键字/跳读数据负例：即使网格数正确也失败，即时与迟到回执均不推进来源。",
       "evidence": [
-        "docs/WORKFLOW_GATES.md",
-        "docs/UI_AUDIT_POST_GAPS.md",
-        "docs/MODEL_REPLACEMENT.md"
+        "docs/archive/2026-10/WORKFLOW_GATES.md",
+        "docs/archive/2026-10/UI_AUDIT_POST_GAPS.md",
+        "docs/archive/2026-10/MODEL_REPLACEMENT.md"
       ]
     },
     {
@@ -77,7 +77,7 @@
       "work_item": "T03-TXN",
       "note": "4.13 动态菜单/命令控件与前置检查；非长期可靠性认证",
       "evidence": [
-        "docs/REVIEW_RESPONSE_2026-10-03.md"
+        "docs/archive/2026-10/REVIEW_RESPONSE_2026-10-03.md"
       ]
     },
     {
@@ -88,7 +88,7 @@
       "work_item": "T03",
       "note": "10万壳及30万以上实体限定操作；其他编辑仍有边界",
       "evidence": [
-        "docs/MODEL_SCALE.md"
+        "docs/archive/2026-10/MODEL_SCALE.md"
       ]
     },
     {
@@ -99,8 +99,8 @@
       "work_item": "T10",
       "note": "迟到回执分级、保留检查点、真实拥有进程崩溃重启及重复恢复不重复开窗通过；完整GUI状态和任意工作流续跑仍未齐。",
       "evidence": [
-        "docs/GUI_WORKFLOWS.md",
-        "docs/SESSION_RECOVERY.md"
+        "docs/archive/2026-10/GUI_WORKFLOWS.md",
+        "docs/archive/2026-10/SESSION_RECOVERY.md"
       ]
     },
     {
@@ -111,7 +111,7 @@
       "work_item": "T04",
       "note": "基础选择已原生验证；连续选择显隐回归本批加固",
       "evidence": [
-        "docs/MODEL_SCALE.md"
+        "docs/archive/2026-10/MODEL_SCALE.md"
       ]
     },
     {
@@ -122,7 +122,7 @@
       "work_item": "T05",
       "note": "全局变换与限定范围；自动统一法向另列",
       "evidence": [
-        "docs/MODEL_SCALE.md"
+        "docs/archive/2026-10/MODEL_SCALE.md"
       ]
     },
     {
@@ -133,7 +133,7 @@
       "work_item": "T03",
       "note": "小模型已有原生证据；范围与引用体系迁移未齐",
       "evidence": [
-        "docs/GUI_WORKFLOWS.md"
+        "docs/archive/2026-10/GUI_WORKFLOWS.md"
       ]
     },
     {
@@ -144,9 +144,9 @@
       "work_item": "T05",
       "note": "4.13.4可见Tri3/Quad4邻接/传播与Segment压力闭环；定向节点替换及Node/Segment/SPC引用修复、Hex8连接更新、参数回放、退化/冲突拒绝和原生重开通过。连接编辑仍为20000完整快照范围；非通用引用/所有编辑认证。",
       "evidence": [
-        "docs/BACKLOG_REVIEW_2026-10-01.md",
-        "docs/TOPOLOGY_SELECTION.md",
-        "docs/NODE_REPLACEMENT.md"
+        "docs/archive/2026-10/BACKLOG_REVIEW_2026-10-01.md",
+        "docs/archive/2026-10/TOPOLOGY_SELECTION.md",
+        "docs/archive/2026-10/NODE_REPLACEMENT.md"
       ]
     },
     {
@@ -157,7 +157,7 @@
       "work_item": "T05",
       "note": "壳/Hex8 限定指标与选区修改重开链通过",
       "evidence": [
-        "docs/GUI_WORKFLOWS.md"
+        "docs/archive/2026-10/GUI_WORKFLOWS.md"
       ]
     },
     {
@@ -168,7 +168,7 @@
       "work_item": "T02",
       "note": "错误门槛停止后续编辑，已有合成反例",
       "evidence": [
-        "docs/WORKFLOW_GATES.md"
+        "docs/archive/2026-10/WORKFLOW_GATES.md"
       ]
     },
     {
@@ -179,7 +179,7 @@
       "work_item": "T06",
       "note": "原生 Mises 对照；不代表全部单元/层/坐标系",
       "evidence": [
-        "docs/POSTPROCESSING.md"
+        "docs/archive/2026-10/POSTPROCESSING.md"
       ]
     },
     {
@@ -190,7 +190,7 @@
       "work_item": "T07",
       "note": "指定分量两点位移差；随动参考和区域平均待扩展",
       "evidence": [
-        "docs/GUI_WORKFLOWS.md"
+        "docs/archive/2026-10/GUI_WORKFLOWS.md"
       ]
     },
     {
@@ -201,7 +201,7 @@
       "work_item": "T08",
       "note": "显式单位/面积/标距、缺项拒绝；完整能量预算另列",
       "evidence": [
-        "docs/UNIT_CONTRACTS.md"
+        "docs/archive/2026-10/UNIT_CONTRACTS.md"
       ]
     },
     {
@@ -212,7 +212,7 @@
       "work_item": "T07",
       "note": "单曲线、限定场量和连续状态；默认MinMax平均、原生标题",
       "evidence": [
-        "docs/NATIVE_MEDIA.md"
+        "docs/archive/2026-10/NATIVE_MEDIA.md"
       ]
     },
     {
@@ -223,9 +223,9 @@
       "work_item": "T04",
       "note": "4.13.4标准shell/solid MDLOPT2通过：公开实体结果+原创建壳真值文件；稀疏ID、删除极值、空结果、PNG/MP4、显隐恢复/回放。SPH/自定义损伤/自适应和旧版不据此认证。",
       "evidence": [
-        "docs/RESULT_CONTRACTS.md",
-        "docs/RESULT_VALIDITY.md",
-        "docs/FIELD_MOVIES.md"
+        "docs/archive/2026-10/RESULT_CONTRACTS.md",
+        "docs/archive/2026-10/RESULT_VALIDITY.md",
+        "docs/archive/2026-10/FIELD_MOVIES.md"
       ]
     },
     {
@@ -236,7 +236,7 @@
       "work_item": "T06",
       "note": "已有子集，分片/层/更多分量需原生对照",
       "evidence": [
-        "docs/POSTPROCESSING.md"
+        "docs/archive/2026-10/POSTPROCESSING.md"
       ]
     },
     {
@@ -247,7 +247,7 @@
       "work_item": "T09",
       "note": "五路限定原生案例和产物合同；任意脚本不自动视为可靠",
       "evidence": [
-        "docs/NATIVE_PROGRAMS.md"
+        "docs/archive/2026-10/NATIVE_PROGRAMS.md"
       ]
     },
     {
@@ -258,7 +258,7 @@
       "work_item": "T09",
       "note": "两条业务流程与视图参数已有原生回放证据",
       "evidence": [
-        "docs/GUI_WORKFLOWS.md"
+        "docs/archive/2026-10/GUI_WORKFLOWS.md"
       ]
     },
     {
@@ -269,7 +269,7 @@
       "work_item": "T09",
       "note": "缺参数/错误依赖拒绝，输出随参数改变",
       "evidence": [
-        "docs/WORKFLOW_FRAMEWORK.md"
+        "docs/archive/2026-10/WORKFLOW_FRAMEWORK.md"
       ]
     },
     {
@@ -280,7 +280,7 @@
       "work_item": "T09",
       "note": "1–20组有界顺序工况；网格原生/工程曲线真值",
       "evidence": [
-        "docs/WORKFLOW_FRAMEWORK.md"
+        "docs/archive/2026-10/WORKFLOW_FRAMEWORK.md"
       ]
     },
     {
@@ -291,8 +291,8 @@
       "work_item": "T09",
       "note": "显式依赖包、嵌套cfile、GUI五类入口和数值宏回放已验证；任意导入/include解析及原生宏菜单/快捷键管理仍未齐。",
       "evidence": [
-        "docs/NATIVE_PROGRAMS.md",
-        "docs/PROGRAM_BUNDLES.md"
+        "docs/archive/2026-10/NATIVE_PROGRAMS.md",
+        "docs/archive/2026-10/PROGRAM_BUNDLES.md"
       ]
     },
     {
@@ -303,8 +303,8 @@
       "work_item": "T09",
       "note": "迟到回执分级、保留检查点、真实拥有进程崩溃重启及重复恢复不重复开窗通过；完整GUI状态和任意工作流续跑仍未齐。",
       "evidence": [
-        "docs/WORKFLOW_FRAMEWORK.md",
-        "docs/SESSION_RECOVERY.md"
+        "docs/archive/2026-10/WORKFLOW_FRAMEWORK.md",
+        "docs/archive/2026-10/SESSION_RECOVERY.md"
       ]
     },
     {
@@ -315,7 +315,7 @@
       "work_item": "T11",
       "note": "当前开发包构建、MCP/CLI入口；非新机器认证",
       "evidence": [
-        "docs/VERIFICATION.md"
+        "docs/archive/2026-10/VERIFICATION.md"
       ]
     },
     {
@@ -326,7 +326,7 @@
       "work_item": "T10",
       "note": "5dc5197本地532项测试及CI37207085736通过；测试数不是功能覆盖率。",
       "evidence": [
-        "docs/VERIFICATION.md"
+        "docs/archive/2026-10/VERIFICATION.md"
       ]
     },
     {
@@ -337,7 +337,7 @@
       "work_item": "T11",
       "note": "持续同步；最终支持范围冻结和完整一致性审校待做",
       "evidence": [
-        "docs/COVERAGE.md"
+        "docs/archive/2026-10/COVERAGE.md"
       ]
     },
     {
@@ -359,8 +359,8 @@
       "work_item": "T10",
       "note": "官方双壳卸载后导出退出仍未修复；GUI直接移除/原生cfile导出同样复现。新增导出完成门槛避免误报成功，故障检查点在明确的新GUI进程恢复并保留卡片。18项正常替换回归通过；通用长流程、多实例矩阵仍未完成。",
       "evidence": [
-        "docs/VERIFICATION.md",
-        "docs/NATIVE_KNOWN_ISSUES.md"
+        "docs/archive/2026-10/VERIFICATION.md",
+        "docs/archive/2026-10/NATIVE_KNOWN_ISSUES.md"
       ]
     },
     {
@@ -371,7 +371,7 @@
       "work_item": "T11",
       "note": "仍为0.4.0开发版，没有发布新稳定版",
       "evidence": [
-        "docs/DELIVERY_PLAN.md"
+        "docs/archive/2026-10/DELIVERY_PLAN.md"
       ]
     },
     {
@@ -382,7 +382,7 @@
       "work_item": "T12-ENTITY",
       "note": "4.13.4：选择→LIST节点/Part集新建、分页查询、成员替换、DA属性保留、保存重开；20000成员上限与ASCII名称，其他集合变体待扩展",
       "evidence": [
-        "docs/ENTITY_CREATION.md"
+        "docs/archive/2026-10/ENTITY_CREATION.md"
       ]
     },
     {
@@ -393,7 +393,7 @@
       "work_item": "T12-ENTITY",
       "note": "4.13.4 Hex8/Tet4外表面及Quad4壳面：方向/内面排除/选区回放/保存重开通过；非匹配和高阶拓扑不包含",
       "evidence": [
-        "docs/SEGMENT_SETS.md"
+        "docs/archive/2026-10/SEGMENT_SETS.md"
       ]
     },
     {
@@ -404,7 +404,7 @@
       "work_item": "T12-ENTITY",
       "note": "4.13.4 XY平面应变Quad4边界：六条有向边、排除内边、Blank保持及保存重开通过；不等于无反射条件已建立",
       "evidence": [
-        "docs/SEGMENT_SETS.md"
+        "docs/archive/2026-10/SEGMENT_SETS.md"
       ]
     },
     {
@@ -415,7 +415,7 @@
       "work_item": "T12-ENTITY",
       "note": "4.13.4：全局SPC_SET/NODE_ID、平动/转动卡片、节点-ID映射、冲突拒绝、参数化回放及保存重开；非零坐标与求解物理验证另列",
       "evidence": [
-        "docs/ENTITY_CREATION.md"
+        "docs/archive/2026-10/ENTITY_CREATION.md"
       ]
     },
     {
@@ -426,7 +426,7 @@
       "work_item": "T12-ENTITY",
       "note": "4.13.4压力曲线/命名载荷、方向与单位记录、倍率回放、冲突拒绝、3D/2D保存重开通过；非求解响应验证",
       "evidence": [
-        "docs/BOUNDARY_CONDITIONS.md"
+        "docs/archive/2026-10/BOUNDARY_CONDITIONS.md"
       ]
     },
     {
@@ -437,7 +437,7 @@
       "work_item": "T12-ENTITY",
       "note": "4.13.4三维、R14+二维负SID、R11..13二维有序节点对路线：外边界/公式/方向/冲突/原生重开通过；未执行波吸收求解",
       "evidence": [
-        "docs/BOUNDARY_CONDITIONS.md"
+        "docs/archive/2026-10/BOUNDARY_CONDITIONS.md"
       ]
     }
   ],
@@ -455,8 +455,8 @@
     "tool": "create_gui_nodal_load",
     "native_checks": 25,
     "tests_passed": 735,
-    "evidence": "docs/NODAL_LOADS.md",
+    "evidence": "docs/archive/2026-10/NODAL_LOADS.md",
     "remaining": "Mass glyph display/inertia/other auxiliary families; follower/local/rigid loads; no solver certification",
-    "mass_evidence": "docs/MASS_PRESERVATION.md"
+    "mass_evidence": "docs/archive/2026-10/MASS_PRESERVATION.md"
   }
 }

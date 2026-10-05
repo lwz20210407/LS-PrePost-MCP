@@ -304,7 +304,9 @@ result_sets:
   path: public-results/zenodo__7780499/2022_hello_world/Viano_1989/vivaplus/model/50F-seated
 regression_inputs:
 - id: include_contact
-  path: public-keyword/ansys__pydyna/tests/testfiles/run/case-keywords/projectile.k
+  path: public-keyword/lsdyna-ansys-com/2022_12__Bolt_A_Explicit/Bolt_A_Explicit/mainboltaexpl.k
+- id: include_contact_pair
+  path: public-keyword/lsdyna-ansys-com/2022_12__EM_example_emforming/i.k
 - id: shell_d3plot
   path: public-results/open-lasso-python__lasso-python/test/test_data/order_d3plot/d3plot
 - id: solid_d3plot
