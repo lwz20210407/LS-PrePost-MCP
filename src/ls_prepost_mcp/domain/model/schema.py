@@ -318,9 +318,47 @@ def _leading_id_card(keyword: object) -> bool:
     return bool(names) and names[0].endswith("id") and len(names) <= 2 and names[1:] in ([], ["title"], ["heading"])
 
 
-def _check_options(block: Block, cls: type, base: str, long: bool) -> None:
+# Option cards that LS-DYNA defines and PyDYNA lacks, placed around the PyDYNA cards.
+# (keyword prefix, option) -> (position, fields); positions: "first" or "after_card1".
+SYNTHETIC_OPTIONS = {
+    ("*CONSTRAINED_JOINT_", "ID"): ("first", (("jid", "int", 0, 10), ("heading", "str", 10, 70))),  # R11 p. 10-55
+    ("*CONSTRAINED_JOINT_", "LOCAL"): ("after_card1", (("raid", "int", 0, 10), ("lst", "int", 10, 10))),  # p. 10-58
+}
+
+
+def _synthetic(block: Block, base: str) -> dict[str, tuple]:
+    tokens = [token for token in block.name[len(base):].split("_") if token]
+    return {token: spec for (prefix, option), spec in SYNTHETIC_OPTIONS.items()
+            for token in tokens if token == option and base.startswith(prefix)}
+
+
+def _split_synthetic(block: Block, data: list[tuple[int, str]], synthetic: dict[str, tuple],
+                     long: bool) -> tuple[list[tuple[int, str]], list[FieldInfo]]:
+    """Remove the synthesised option lines from ``data`` and describe their fields."""
+    if long:
+        raise Unsupported(f"{block.name}: long format with synthesised option cards is not supported")
+    lines, infos = list(data), []
+    for wanted in ("first", "after_card1"):
+        for option, (position, fields) in synthetic.items():
+            if position != wanted:
+                continue
+            at = 0 if position == "first" else 1
+            if len(lines) <= at:
+                raise Unsupported(f"{block.name}: the {option} card is missing")
+            index, line = lines.pop(at)
+            stray = stray_text(line, [(offset, width) for _, _, offset, width in fields], tolerant=False)
+            if stray and not any(kind == "str" for _, kind, _, _ in fields):
+                raise Unsupported(f"{block.name}: text outside the {option} card on line {index} ({stray[:40]!r})")
+            free = is_free_format(line)
+            for token, (name, kind, offset, width) in enumerate(fields):
+                infos.append(FieldInfo(name, kind, FieldSlot(index, offset, width, token if free else None),
+                                       option.lower()))
+    return lines, infos
+
+
+def _check_options(block: Block, cls: type, base: str, long: bool, synthetic: set[str] = frozenset()) -> None:
     """Every keyword-name token after the PyDYNA class name must be an option PyDYNA knows."""
-    suffix = [token for token in block.name[len(base):].split("_") if token]
+    suffix = [token for token in block.name[len(base):].split("_") if token and token not in synthetic]
     if not suffix:
         return
     probe = _load(cls, pydyna_title(block, long))
@@ -336,16 +374,20 @@ def _pydyna_layout(block: Block, lookup: Mapping[str, object], long: bool = Fals
     cls, base = _pydyna_class(block.name)
     if _TABLE_CARDS & {type(card).__name__ for card in cls()._cards}:
         return tables.table_layout(block, cls, base, long=long, title=pydyna_title(block, long))
-    _check_options(block, cls, base, long)
+    synthetic = _synthetic(block, base)
+    _check_options(block, cls, base, long, set(synthetic))
     data = [(i, line) for i, line in block.data()]
     while data and is_blank(data[-1][1]):
         data.pop()
+    extra_infos: list[FieldInfo] = []
+    if synthetic:
+        data, extra_infos = _split_synthetic(block, data, synthetic, long)
     try:
         infos, missing = _chunk_fields(cls, block, lookup, data, long)
-        return Layout(block.name, fields=infos, source="pydyna", missing_cards=missing)
+        return Layout(block.name, fields=extra_infos + infos, source="pydyna", missing_cards=missing)
     except _ExtraLines as extra:
         size = extra.cards
-        if size == 0 or len(data) % size:
+        if size == 0 or len(data) % size or synthetic:
             raise
     # Several instances of the keyword cards follow one keyword line (e.g. many vectors).
     result = Layout(block.name, key="instance", source="pydyna")

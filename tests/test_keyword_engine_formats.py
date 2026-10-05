@@ -220,8 +220,6 @@ def test_legacy_set_keywords_and_multi_line_title(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("text", [
-    # PyDYNA has no _ID option for this class: the JID line would be read as N1-N6
-    "*CONSTRAINED_JOINT_REVOLUTE_ID\n         5\n   7700192   7700200   7700189   7700202         0         0\n",
     # PyDYNA puts the WID card first even without _ID
     "*CONSTRAINED_GENERALIZED_WELD_SPOT\n         4         0         0       0.0         0         0\n"
     "1.00000E20       0.0       0.0       0.0       0.0       0.0\n",
@@ -293,3 +291,16 @@ def test_load_segment_rows_follow_the_manual(tmp_path: Path) -> None:
         deck.get(block, "n6", row=1)  # no midside line for a 4-node segment
     deck.set(block, "n1", 4001, row=3)
     assert deck.get(block, "n1", row=3).value == 4001
+
+
+def test_joint_id_and_local_option_cards(tmp_path: Path) -> None:
+    """*CONSTRAINED_JOINT_*_ID / _LOCAL (R11 p. 10-55, 10-58; PyDYNA lacks them, ansys/pydyna#1348)."""
+    pytest.importorskip("ansys.dyna.core")
+    deck = _deck(tmp_path, "*CONSTRAINED_JOINT_REVOLUTE_LOCAL_ID\n        10hinge\n"
+                           "       101       201       102       202                           1.0       1.0\n"
+                           "         5         1\n")
+    block = deck.blocks("*CONSTRAINED_JOINT_REVOLUTE_LOCAL_ID")[0]
+    values = {name: deck.get(block, name).value for name in ("jid", "heading", "n1", "n4", "rps", "raid", "lst")}
+    assert values == {"jid": 10, "heading": "hinge", "n1": 101, "n4": 202, "rps": 1.0, "raid": 5, "lst": 1}
+    deck.set(block, "n2", 301)
+    assert deck.get(block, "n2").value == 301 and deck.get(block, "jid").value == 10
