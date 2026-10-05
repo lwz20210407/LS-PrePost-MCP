@@ -40,3 +40,13 @@ def test_native_count_alone_does_not_certify_saved_keyword(tmp_path):
     cell = dict(directory=str(tmp_path), request_id="request", expected_nodes=8, language="command")
     with pytest.raises(ValueError, match="node count"):
         check_outputs(cell, "execution", 0)
+
+
+def test_console_disconnect_cannot_be_labelled_as_rdp(monkeypatch):
+    from types import SimpleNamespace
+
+    from tools.experiments import run_matrix
+
+    monkeypatch.setattr(run_matrix, "client_protocol_type", lambda: 0)
+    with pytest.raises(ValueError, match="actual Remote Desktop"):
+        run_matrix.run(SimpleNamespace(desktop="rdp_disconnected"))

@@ -63,6 +63,32 @@ def desktop_state():
     return "unknown"
 
 
+def client_protocol_type():
+    """Read current WTS client protocol: 0 console, 2 RDP; no client identifiers."""
+    if os.name != "nt":
+        return None
+    from ctypes import wintypes
+
+    sid = wintypes.DWORD()
+    ctypes.WinDLL("kernel32").ProcessIdToSessionId(os.getpid(), ctypes.byref(sid))
+    wts = ctypes.WinDLL("wtsapi32")
+    data, size = ctypes.c_void_p(), wintypes.DWORD()
+    wts.WTSQuerySessionInformationW.argtypes = [
+        wintypes.HANDLE,
+        wintypes.DWORD,
+        ctypes.c_int,
+        ctypes.POINTER(ctypes.c_void_p),
+        ctypes.POINTER(wintypes.DWORD),
+    ]
+    wts.WTSFreeMemory.argtypes = [ctypes.c_void_p]
+    if wts.WTSQuerySessionInformationW(None, sid.value, 16, ctypes.byref(data), ctypes.byref(size)):
+        try:
+            return ctypes.cast(data, ctypes.POINTER(ctypes.c_ushort))[0] if size.value >= 2 else None
+        finally:
+            wts.WTSFreeMemory(data)
+    return None
+
+
 def check_outputs(cell, lane, started):
     directory = Path(cell["directory"])
     receipt = directory / "receipt.txt"
@@ -142,6 +168,10 @@ def check_outputs(cell, lane, started):
 
 
 def run(args):
+    if args.desktop == "rdp_disconnected" and client_protocol_type() != 2:
+        raise ValueError(
+            "RDP test requires this runner's Windows session to be connected through actual Remote Desktop before arming"
+        )
     cells = json.loads((args.directory / "matrix.json").read_text())
     selected = [
         c
@@ -149,10 +179,11 @@ def run(args):
         if c["desktop"] == args.desktop
         and c["version"] == args.version
         and (args.mode == "all" or c["mode"] == args.mode)
+        and (args.language == "all" or c["language"] == args.language)
     ]
     service = None
     sid = None
-    if any(c["mode"] == "session" for c in selected):
+    if any(c["mode"] == "session" and c["language"] != "macro" for c in selected):
         workspace = args.directory / ("session-" + args.desktop)
         service = Service(Settings(workspace, args.executable, (args.directory,), timeout=60))
         sid = service.start_gui_session()["session_id"]
@@ -168,7 +199,7 @@ def run(args):
             report = directory / "matrix-result.json"
             if report.exists():
                 raise FileExistsError("Prepare a new matrix before rerunning")
-            evidence = dict(cell=cell, lanes={})
+            evidence = dict(cell=cell, lanes={}, protocol_type_at_start=client_protocol_type())
             for lane in ("execution", "png", "mp4"):
                 state_before = desktop_state()
                 started = time.time_ns()
@@ -260,6 +291,7 @@ if __name__ == "__main__":
     p.add_argument("--version", choices=["4.13", "4.10"], required=True)
     p.add_argument("--desktop", choices=["unlocked", "locked", "rdp_disconnected"], required=True)
     p.add_argument("--mode", choices=["all", "runc", "nographics", "session"], default="all")
+    p.add_argument("--language", choices=["all", "command", "cfile", "scl", "python", "macro"], default="all")
     a = p.parse_args()
     a.directory = a.directory.resolve()
     a.executable = a.executable.resolve(strict=True)
