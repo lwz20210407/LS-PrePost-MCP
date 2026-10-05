@@ -74,7 +74,8 @@ def replace(service, session_id, path, file_type, expected_empty):
                 dict(name=name, status=operation.get("status"), evidence=str(audit / (name + ".json")))
             )
             if operation.get("status") != "succeeded":
-                raise RuntimeError("Replacement phase failed: " + name)
+                detail = (operation.get("error") or {}).get("message", "No successful completion")
+                raise RuntimeError("Replacement phase failed: " + name + ": " + detail)
             return operation
 
         try:
@@ -166,7 +167,7 @@ def replace(service, session_id, path, file_type, expected_empty):
             removed = unload(service, session_id, old_source, str(staged), _manager=manager)
             result["old_model_unloaded"] = (
                 True
-                if removed.get("status") == "succeeded"
+                if removed.get("status") == "succeeded" or removed.get("model_removed") is True
                 else None
                 if removed.get("unload_submitted")
                 else False
@@ -192,6 +193,7 @@ def replace(service, session_id, path, file_type, expected_empty):
                 model_context=removed.get("model_context"),
                 loaded_model_context=opened.get("model_context"),
                 replacement_checkpoint=meta.get("last_checkpoint"),
+                survivor_export=removed.get("survivor_export"),
                 temporary_model_created=anchor is not None,
                 temporary_model_removed=True,
                 replacement_scope="Same owned process, explicit new-model load then old/temporary unload. Original files retained; known keyword memory checkpointed. No association, arbitrary scene restoration or multi-model recording certification.",

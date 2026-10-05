@@ -307,6 +307,37 @@ def list_identities(rows, meta, session_id):
     return identities
 
 
+def verify_survivor_export(manager, session_id, baseline, evidence_directory):
+    """Require a completed keyword save after destructive resident removal.
+
+    Inspecting counts can succeed even when the next native save crashes. Keep
+    the last pre-removal checkpoint until this save has a correlated completion.
+    This bounded health check is not a general long-session stability guarantee.
+    """
+    meta = manager.read(session_id)
+    if meta["model_kind"] != "keyword":
+        return dict(status="not_applicable", reason="Result database; no keyword export requested")
+    saved = manager.dispatch(
+        session_id, "export_keyword", {}, artifacts=(("model.k", "keyword"),), export=True
+    )
+    atomic_json(evidence_directory / "survivor-export.json", saved)
+    if saved["status"] != "succeeded":
+        raise ValueError("Surviving keyword failed post-unload export; preserve pre-removal checkpoint")
+    meta = manager.read(session_id)
+    verify_context(meta, saved["data"], session_id)
+    if saved["data"]["counts"] != baseline["counts"]:
+        raise ValueError("Surviving model counts changed during post-unload export")
+    checkpoint = saved["artifacts"][0]["path"]
+    # The dispatcher binds completed exports to the actual source and file.
+    if not context_path(checkpoint).is_file():
+        raise ValueError("Post-unload export lacks file-bound checkpoint context")
+    checkpoint_expected_empty(checkpoint, session_id)
+    meta.update(last_checkpoint=checkpoint, dirty=False)
+    remember_model(meta)
+    manager.save(session_id, meta)
+    return dict(status="succeeded", checkpoint=checkpoint, request_id=saved.get("request_id"))
+
+
 def unload(service, session_id, source_path, activate_source_path, *, _manager=None):
     manager = _manager or service._session_manager()
     with contextlib.nullcontext() if _manager is not None else manager.lock(session_id):
@@ -392,6 +423,7 @@ def unload(service, session_id, source_path, activate_source_path, *, _manager=N
                 raise ValueError(
                     "Native unload did not remove exactly the requested model and preserve other entries"
                 )
+            result["model_removed"] = True
             row = matching_resident_row(after["models"], survivor, session_id)
             selected = manager.dispatch(
                 session_id, "inspect_model", {}, native_commands=["model select " + str(row["row_index"])]
@@ -420,6 +452,11 @@ def unload(service, session_id, source_path, activate_source_path, *, _manager=N
                 dirty=False,
             )
             manager.save(session_id, meta)
+            export_check = verify_survivor_export(manager, session_id, selected["data"], directory)
+            meta = manager.read(session_id)
+            final = inspect_models(transport, close_panel=True)
+            if list_identities(final["models"], meta, session_id) != expected:
+                raise ValueError("Native list changed during post-unload export verification")
             result.update(
                 data=selected["data"],
                 model_context=verified,
@@ -430,7 +467,9 @@ def unload(service, session_id, source_path, activate_source_path, *, _manager=N
                 active_source=survivor["staged_model"],
                 remove_display_number=number,
                 removal_active_source=removal_survivor["staged_model"],
-                unload_scope="One managed resident model only; keyword checkpoint retained, files not deleted. Explicit survivor reselected and all remaining list entries verified. Full scene/multi-model crash recovery and replace/attach workflows remain separate.",
+                survivor_export=export_check,
+                active_checkpoint=meta.get("last_checkpoint"),
+                unload_scope="One managed resident model only; files not deleted. Explicit survivor reselected, remaining list entries verified, keyword survivor must complete a post-removal export. Full scene/multi-model crash recovery remains separate.",
             )
         except Exception as exc:
             meta = manager.read(session_id)

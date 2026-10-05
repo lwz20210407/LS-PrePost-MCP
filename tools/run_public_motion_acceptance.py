@@ -13,7 +13,16 @@ from ls_prepost_mcp.jobs import atomic_json
 from ls_prepost_mcp.service import Service
 
 
-def accept(workspace, executable, keyword, unsupported_keyword=None, same_session_replace=False):
+def accept(
+    workspace,
+    executable,
+    keyword,
+    unsupported_keyword=None,
+    same_session_replace=False,
+    expect_replacement_failure=False,
+):
+    if expect_replacement_failure and not same_session_replace:
+        raise ValueError("Failure regression requires --same-session-replace")
     root = Path(workspace).resolve() / ("pmp-" + uuid.uuid4().hex[:8])
     root.mkdir(parents=True)
     source = Path(keyword).resolve()
@@ -102,7 +111,23 @@ def accept(workspace, executable, keyword, unsupported_keyword=None, same_sessio
         if same_session_replace:
             # Explicit diagnostic option: this branch has a retained native
             # failure on the public angular fixture; do not count it as passed.
-            check("same-session-replace", s.replace_gui_model(sid, saved["artifacts"][0]["path"]))
+            replaced = s.replace_gui_model(sid, saved["artifacts"][0]["path"])
+            atomic_json(root / "same-session-replace.json", replaced)
+            if expect_replacement_failure:
+                assert replaced["status"] == "failed" and replaced["old_model_unloaded"] is True
+                state = s.inspect_gui_session(sid)
+                atomic_json(root / "failed-session.json", state)
+                assert not state["process_alive"] and state["state"] != "ready"
+                assert (
+                    inspect_boundary_cards(Path(replaced["old_checkpoint"]), include_motions=True) == before
+                )
+                cases.append("native-exit-reported-inside-replacement-with-checkpoint")
+                # Explicit acceptance step, never automatic application fallback.
+                restarted = check("explicit-recovery-after-exit", s.restart_gui_session(sid))
+                sid = restarted["session_id"]
+                s.show_gui_session(sid, maximize=True)
+            else:
+                check("same-session-replace", replaced)
         else:
             atomic_json(root / "before-restart-close.json", s.close_gui_session(sid, save_checkpoint=False))
             restarted = check("fresh-process-native-reopen", s.restart_gui_session(sid))
@@ -117,7 +142,9 @@ def accept(workspace, executable, keyword, unsupported_keyword=None, same_sessio
                 status="succeeded",
                 cases=cases,
                 source_unchanged=True,
-                reopen_mode="same-session diagnostic"
+                reopen_mode="expected native failure followed by explicit fresh-process recovery"
+                if expect_replacement_failure
+                else "same-session diagnostic"
                 if same_session_replace
                 else "explicit fresh owned GUI process",
                 scope="4.13.4 visible official6-node/2-shell angular model: existing rotation/inline NODE constraints, added Y motion, curve/card preservation and explicit reopen. Optional obsolete linear case must fail on skipped keyword even with81/64 mesh counts. Same-session replacement remains a separate retained native failure; no solver or general long-session certification.",
@@ -134,4 +161,9 @@ if __name__ == "__main__":
     p.add_argument("--keyword", required=True)
     p.add_argument("--unsupported-keyword")
     p.add_argument("--same-session-replace", action="store_true")
+    p.add_argument(
+        "--expect-replacement-failure",
+        action="store_true",
+        help="Verify retained 4.13.4 angular-shell crash is reported inside replacement, then explicitly recover",
+    )
     accept(**vars(p.parse_args()))

@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 import pytest
 
 from ls_prepost_mcp.checkpoint_context import save_checkpoint_context
@@ -11,6 +13,7 @@ from ls_prepost_mcp.resident_models import (
     removal_number,
     source_candidates,
     verify_context,
+    verify_survivor_export,
 )
 
 
@@ -137,3 +140,46 @@ def test_auxiliary_export_identity_is_bound_without_replacing_recovery_checkpoin
     other = dict(staged_model=str(original), model_kind="keyword")
     assert not remember_exports(other, [output], bad, "s", tmp_path)["registered"]
     assert "native_export_aliases" not in other
+
+
+@pytest.mark.parametrize("outcome", ["ok", "exited", "failed", "wrong_source", "counts_changed", "unbound"])
+def test_post_unload_export_only_promotes_correlated_source_bound_checkpoint(tmp_path, outcome):
+    old = tmp_path / "before.k"
+    old.write_text("*KEYWORD\n*END\n")
+    new = tmp_path / "after.k"
+    new.write_bytes(old.read_bytes())
+    meta = dict(model_kind="keyword", staged_model=str(old), last_checkpoint=str(old), dirty=False)
+    baseline = dict(model_directory=str(old), counts=dict(nodes=0, elements=0, states=1))
+    data = dict(baseline)
+    if outcome == "wrong_source":
+        data["model_directory"] = str(tmp_path / "unrelated.k")
+    if outcome == "counts_changed":
+        data["counts"] = dict(nodes=1, elements=0, states=1)
+    if outcome != "unbound":
+        save_checkpoint_context(new, "s", data, tmp_path)
+
+    def dispatch(*args, **kwargs):
+        if outcome == "exited":
+            raise RuntimeError("Native process exited before completion")
+        return dict(
+            status="failed" if outcome == "failed" else "succeeded",
+            data=data,
+            artifacts=[dict(path=str(new))],
+            request_id="export",
+        )
+
+    manager = SimpleNamespace(
+        read=lambda sid: dict(meta), save=lambda sid, value: meta.update(value), dispatch=dispatch
+    )
+    if outcome == "ok":
+        result = verify_survivor_export(manager, "s", baseline, tmp_path)
+        assert result["status"] == "succeeded" and meta["last_checkpoint"] == str(new)
+    else:
+        with pytest.raises((ValueError, RuntimeError)):
+            verify_survivor_export(manager, "s", baseline, tmp_path)
+        assert meta["last_checkpoint"] == str(old)
+
+
+def test_result_survivor_is_not_silently_exported_as_keyword(tmp_path):
+    manager = SimpleNamespace(read=lambda sid: dict(model_kind="d3plot"))
+    assert verify_survivor_export(manager, "s", {}, tmp_path)["status"] == "not_applicable"

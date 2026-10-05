@@ -9,7 +9,7 @@ from ls_prepost_mcp.config import Settings
 from ls_prepost_mcp.service import Service
 
 
-@pytest.mark.parametrize("failure_phase", ["load", "remove"])
+@pytest.mark.parametrize("failure_phase", ["load", "remove", "survivor_export"])
 def test_failed_replacement_keeps_checkpoint_and_reports_removal_uncertainty(
     tmp_path, monkeypatch, failure_phase
 ):
@@ -78,6 +78,13 @@ def test_failed_replacement_keeps_checkpoint_and_reports_removal_uncertainty(
     )
 
     def forbidden_unload(*args, **kwargs):
+        if failure_phase == "survivor_export":
+            return dict(
+                status="failed",
+                unload_submitted=True,
+                model_removed=True,
+                error=dict(message="Post-removal export failed"),
+            )
         if failure_phase == "remove":
             raise TimeoutError("Native removal outcome unknown")
         raise AssertionError("No unload may run after failed input")
@@ -85,11 +92,16 @@ def test_failed_replacement_keeps_checkpoint_and_reports_removal_uncertainty(
     monkeypatch.setattr(model_replacement, "unload", forbidden_unload)
     result = service.replace_gui_model("s", str(incoming))
     assert result["status"] == "failed"
-    assert result["old_model_unloaded"] is (False if failure_phase == "load" else None)
+    assert (
+        result["old_model_unloaded"]
+        is {"load": False, "remove": None, "survivor_export": True}[failure_phase]
+    )
     assert meta["state"] == "uncertain" and meta["dirty"]
     assert result["old_checkpoint"] == str(session / "checkpoint.k")
     assert (session / "checkpoint.k").read_bytes() == original.read_bytes()
-    assert [phase["name"] for phase in result["phases"]] == ["save-old", "load-replacement"]
+    assert [phase["name"] for phase in result["phases"]] == ["save-old", "load-replacement"] + (
+        ["unload-old-model"] if failure_phase == "survivor_export" else []
+    )
     assert len(calls) == 3
 
 
