@@ -55,7 +55,9 @@ REFERENCES: list[tuple[str, tuple[tuple[str, str], ...]]] = [
     ("*DATABASE_HISTORY_NODE", tuple((f"id{i}", "node") for i in range(1, 9))),
 ]
 LIST_MEMBERS = {"*SET_NODE_LIST": "node", "*SET_PART_LIST": "part", "*SET_SHELL_LIST": "shell",
-                "*SET_SOLID": "solid", "*SET_SOLID_LIST": "solid", "*SET_BEAM_LIST": "beam"}
+                "*SET_SOLID": "solid", "*SET_SOLID_LIST": "solid", "*SET_BEAM_LIST": "beam",
+                "*SET_NODE_ADD": "node_set", "*SET_PART_ADD": "part_set", "*SET_SHELL_ADD": "shell_set",
+                "*SET_SOLID_ADD": "solid_set", "*SET_BEAM_ADD": "beam_set", "*SET_SEGMENT_ADD": "segment_set"}
 # LS-DYNA contact surface type codes -> referenced kind (5 = all, no reference).
 CONTACT_TYPES = {0: "segment_set", 1: "shell_set", 2: "part_set", 3: "part", 4: "node_set", 6: "part_set"}
 MESH_KINDS = {"node", "shell", "solid", "beam"}
@@ -150,7 +152,7 @@ def _plans(deck: KeywordDeck, include_mesh: bool, report: ReferenceReport) -> li
         except Unsupported:
             report.unchecked[block.name] += 1
             continue
-        if members and not include_mesh and members != "part":
+        if members and not include_mesh and members in MESH_KINDS:
             members = None
         plans.append(_Plan(block, layout, tuple(definition) if definition else None,
                            list(refs[0]) if refs else [], contact, members))

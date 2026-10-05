@@ -23,6 +23,17 @@ SET_HEADERS: dict[str, tuple[tuple[str, str], ...]] = {
     "*SET_SOLID": (("sid", "int"), ("solver", "str")),
     "*SET_SOLID_LIST": (("sid", "int"), ("solver", "str")),
 }
+_GENERIC = (("sid", "int"), ("da1", "float"), ("da2", "float"), ("da3", "float"), ("da4", "float"))
+# *_ADD lists hold other set IDs; *_GENERATE lists hold ID ranges (header access only).
+for _family, _head in (("NODE", SET_HEADERS["*SET_NODE_LIST"]), ("PART", SET_HEADERS["*SET_PART_LIST"]),
+                       ("SHELL", _GENERIC), ("SOLID", _GENERIC), ("BEAM", _GENERIC), ("SEGMENT", _GENERIC)):
+    SET_HEADERS[f"*SET_{_family}_ADD"] = _head
+for _name, _head in (("*SET_NODE_LIST_GENERATE", SET_HEADERS["*SET_NODE_LIST"]),
+                     ("*SET_PART_LIST_GENERATE", SET_HEADERS["*SET_PART_LIST"]),
+                     ("*SET_SHELL_LIST_GENERATE", _GENERIC), ("*SET_SOLID_GENERATE", _GENERIC),
+                     ("*SET_BEAM_GENERATE", _GENERIC)):
+    SET_HEADERS[_name] = _head
+RANGE_SETS = {name for name in SET_HEADERS if name.endswith("_GENERATE")}
 CURVE_HEADER = (("lcid", "int"), ("sidr", "int"), ("sfa", "float"), ("sfo", "float"), ("offa", "float"),
                 ("offo", "float"), ("dattyp", "int"), ("lcint", "int"))
 CURVE_KEYWORDS = ("*DEFINE_CURVE", "*DEFINE_CURVE_TITLE")
@@ -77,7 +88,12 @@ def _values(line: str, width: int, count: int) -> list[str]:
 
 
 def members(block: Block, long: bool = False) -> list[int]:
-    """Member IDs in file order; blank and zero fields (row padding) are skipped."""
+    """Member IDs in file order; blank and zero fields (row padding) are skipped.
+
+    For ``*_ADD`` sets the members are set IDs. ``*_GENERATE`` sets hold ranges, not members.
+    """
+    if base_name(block.name)[0] in RANGE_SETS:
+        raise FieldError(f"{block.name} holds ID ranges, not a member list; use positional editing")
     _, _, lines = split(block)
     result = []
     for index in lines:

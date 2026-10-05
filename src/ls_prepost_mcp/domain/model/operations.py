@@ -62,8 +62,10 @@ def inspect_deck(path: str, include_paths: tuple[str, ...] = (), include_mesh: b
             elif base.startswith("*MAT_") and not base.startswith("*MAT_ADD_"):
                 materials.append({**_site(block), **_safe(deck, block, None, ("mid", "tmid", "title"))})
             elif lists.is_list_set(block.name):
+                ranged = lists.base_name(block.name)[0] in lists.RANGE_SETS
                 sets.append({**_site(block), **_safe(deck, block, None, ("sid", "title")),
-                             "members": len(deck.members(block))})
+                             "members": None if ranged else len(deck.members(block)),
+                             "member_form": "ranges" if ranged else "list"})
             elif lists.is_curve(block.name):
                 curves.append({**_site(block), **_safe(deck, block, None, ("lcid", "title")),
                                "points": len(deck.points(block))})

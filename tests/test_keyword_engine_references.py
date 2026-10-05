@@ -98,3 +98,18 @@ def test_contact_surface_types_and_set_members(tmp_path: Path) -> None:
 def test_mesh_can_be_skipped_for_speed(tmp_path: Path) -> None:
     report = _deck(tmp_path).references(include_mesh=False)
     assert "node" not in report.summary()["defined"] and report.summary()["defined"]["part"] == 2
+
+
+def test_set_add_members_are_set_references(tmp_path: Path) -> None:
+    extra = ("*SET_NODE_ADD\n"
+             "        20\n"
+             "         7        33\n"
+             "*SET_NODE_LIST_GENERATE\n"
+             "        21\n"
+             "         1      1000\n")
+    deck = _deck(tmp_path, DECK.replace("*END\n", extra + "*END\n"))
+    report = deck.references()
+    assert {(d["kind"], d["id"]) for d in report.dangling()} == {("node_set", 33)}
+    assert {20, 21, 7} <= report.defined["node_set"]
+    generate = deck.blocks("*SET_NODE_LIST_GENERATE")[0]
+    assert deck.get(generate, "sid").value == 21
