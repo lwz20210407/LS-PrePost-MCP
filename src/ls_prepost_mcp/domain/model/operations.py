@@ -15,7 +15,7 @@ from pathlib import Path
 
 import numpy as np
 
-from . import geometry, lists, mesh, quality, renumber, sets
+from . import contact, geometry, lists, mesh, quality, renumber, sets
 from .deck import Change, KeywordDeck
 from .fields import FieldError
 from .includes import identity
@@ -334,3 +334,13 @@ def check_deck(path: str, include_paths: tuple[str, ...] = (), thresholds: dict 
     result["complete"] = not unchecked  # ok=True only means no defect was found in what was read
     result["ok"] = not errors
     return result
+
+
+def check_contacts(path: str, include_paths: tuple[str, ...] = (), tolerance: float = 0.0,
+                   max_report: int = 50) -> dict:
+    """Initial penetration of every *CONTACT definition at keyword level (P06, read-only)."""
+    deck = KeywordDeck.load(path, include_paths)
+    results = contact.contact_checks(deck, tolerance, max_report)
+    return {"contacts": results, "penetrating_contacts": sum(1 for r in results if r.get("penetrating")),
+            "not_checked": sum(1 for r in results if not r["checked"]), "assumptions": contact.ASSUMPTIONS,
+            "read_only": True}

@@ -67,6 +67,9 @@ LIST_MEMBERS = {"*SET_NODE_LIST": "node", "*SET_PART_LIST": "part", "*SET_SHELL_
                 "*SET_SOLID_ADD": "solid_set", "*SET_BEAM_ADD": "beam_set", "*SET_SEGMENT_ADD": "segment_set"}
 # LS-DYNA contact surface type codes -> referenced kind (5 = all, no reference).
 CONTACT_TYPES = {0: "segment_set", 1: "shell_set", 2: "part_set", 3: "part", 4: "node_set", 6: "part_set"}
+# (surface ID field, type code field); PyDYNA uses SURFA/SURFATYP or the older SSID/SSTYP names
+# (e.g. *CONTACT_AUTOMATIC_SINGLE_SURFACE).
+CONTACT_SIDES = (("surfa", "surfatyp"), ("surfb", "surfbtyp"), ("ssid", "sstyp"), ("msid", "mstyp"))
 MESH_KINDS = {"node", "shell", "solid", "beam"}
 MAX_SITES = 10000
 
@@ -268,12 +271,12 @@ def collect(deck: KeywordDeck, include_mesh: bool = True, track: set[tuple[str, 
         header = {info.name: info for info in layout.fields}
         pairs = list(plan.refs)
         if plan.contact:
-            for side in ("a", "b"):
-                code_info = header.get(f"surf{side}typ")
+            for name, code_name in CONTACT_SIDES:
+                code_info = header.get(code_name)
                 code = _ident(read_text(plan.block.lines[code_info.slot.line], code_info.slot), lookup) if code_info else None
                 target = CONTACT_TYPES.get(code or 0)
-                if target and f"surf{side}" in header:
-                    pairs.append((f"surf{side}", target))
+                if target and name in header:
+                    pairs.append((name, target))
         for name, target in pairs:
             if name in header:
                 info = header[name]

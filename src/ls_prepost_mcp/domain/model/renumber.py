@@ -25,7 +25,7 @@ from .geometry import _where, elements, nodes
 from .layouts import RowMap
 from .parameters import field_expression
 from .quality import coincident_nodes
-from .references import CONTACT_TYPES, DEFINITIONS, MESH_KINDS, ReferenceReport, _ident, _rule
+from .references import CONTACT_SIDES, CONTACT_TYPES, DEFINITIONS, MESH_KINDS, ReferenceReport, _ident, _rule
 
 if TYPE_CHECKING:
     from .blocks import Block
@@ -48,11 +48,11 @@ def _contact_fields(deck: KeywordDeck, plan: object, kind: str) -> list[str]:
     header = {info.name: info for info in plan.layout.fields}
     lookup = deck.lookup(plan.block)
     found = []
-    for side in ("a", "b"):
-        info = header.get(f"surf{side}typ")
+    for name, code_name in CONTACT_SIDES:
+        info = header.get(code_name)
         code = _ident(read_text(plan.block.lines[info.slot.line], info.slot), lookup) if info else None
-        if CONTACT_TYPES.get(code or 0) == kind and f"surf{side}" in header:
-            found.append(f"surf{side}")
+        if CONTACT_TYPES.get(code or 0) == kind and name in header:
+            found.append(name)
     return found
 
 
