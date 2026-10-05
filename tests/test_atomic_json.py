@@ -12,6 +12,27 @@ def locked_error():
     return error
 
 
+def test_atomic_manifest_does_not_expand_long_native_job_paths(tmp_path, monkeypatch):
+    directory = tmp_path
+    while len(str(directory)) < 224:
+        directory /= "x" * min(40, 224 - len(str(directory)))
+        directory.mkdir()
+    target = directory / "metadata.json"
+    target.write_text('{"old": true}')
+    replace = Path.replace
+
+    def bounded_replace(source, destination):
+        assert source.parent == destination.parent
+        assert len(str(source)) < 260
+        assert json.loads(target.read_text()) == {"old": True}
+        return replace(source, destination)
+
+    monkeypatch.setattr(Path, "replace", bounded_replace)
+    atomic_json(target, {"new": True})
+    assert json.loads(target.read_text()) == {"new": True}
+    assert not list(directory.glob("*.tmp"))
+
+
 def test_atomic_manifest_retries_transient_windows_lock_preserving_old_document(tmp_path, monkeypatch):
     path = tmp_path / "state.json"
     path.write_text('{"old": true}')
