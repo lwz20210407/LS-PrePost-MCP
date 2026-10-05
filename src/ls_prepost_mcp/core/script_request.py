@@ -30,6 +30,7 @@ class ScriptRequest(Contract):
     initial_node_ids: Ids | None = None
     parameters: dict = Field(default_factory=dict)
     dependencies: list[ScriptDependency] = Field(default_factory=list)
+    launch_mode: Literal["c", "runc"] = "c"
 
     @model_validator(mode="after")
     def execution_context(self):
@@ -37,6 +38,8 @@ class ScriptRequest(Contract):
             raise ValueError("Batch context cannot consume a session_id")
         if self.context == "session" and (not self.session_id or self.model is not None):
             raise ValueError("Session context requires session_id and uses its current model")
+        if self.context == "session" and self.launch_mode != "c":
+            raise ValueError("Session scripts do not have a batch launch mode")
         if self.initial_node_ids is not None and (len(self.initial_node_ids) > 10000 or len(set(self.initial_node_ids)) != len(self.initial_node_ids)):
             raise ValueError("Initial node selection requires at most 10000 unique user IDs")
         if len(self.code.encode("utf8")) > 1024 * 1024 or "\x00" in self.code:
@@ -45,8 +48,8 @@ class ScriptRequest(Contract):
             if self.initial_node_ids is not None or self.capture_model:
                 raise ValueError("Python declares its own selection and output commands")
             return self
-        if self.dependencies:
-            raise ValueError("Unified dependency bundles currently require Python")
+        if self.dependencies and self.language == "command":
+            raise ValueError("Dependency bundles require cfile, SCL or Python")
         if self.language == "cfile":
             if self.initial_node_ids is not None or self.capture_model:
                 raise ValueError("Cfile declares its own selection and output commands")
