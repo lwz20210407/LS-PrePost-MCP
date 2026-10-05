@@ -897,6 +897,14 @@ infrastructure:
   - id: I10
     title: 执行通道实验与决策
     milestone: M0
+    status: done
+    verification_level: L2
+    evidence:
+      - docs/decisions/0001-session-transport.md
+      - docs/decisions/0001-experiment-evidence.json
+      - tools/experiments/run_remote_probe.py
+    remote_test_environment: UU remote
+    remote_test_condition: 用户明确使用 UU；远程断开按 UU 实测与用户确认的时间窗记录，Windows RDP 保留为未验证环境，不作为本机 M0 前置条件。
     acceptance:
       - E1-E5 实验记录（见评审方案 4.4）
       - 通道矩阵：5 个通道 × (runc= / c= -nographics / session) × 是否可渲染 × 锁屏下是否可用
@@ -912,6 +920,9 @@ infrastructure:
       - 找不到公开语料的项明确标为缺口
 
 change_log:
+  - date: 2026-10-05
+    change: 按用户实际环境将 I10/E5 远程断开验收具体化为 UU 远程，停止要求另行提供 RDP
+    reason: 用户再次明确使用 UU；保留 WTS Console 状态、运行时间和用户断开时间窗确认，结果不外推为 RDP
   - date: 2026-10-05
     change: I11 改用用户统一整理的外部语料目录，仓库只保存 ID/相对路径索引，私有语料只保存 ID
     reason: 用户补充统一语料位置与禁止复制、禁止提交数据的要求；元数据与哈希保留在外部 manifest.json
