@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "baseline_id": "R1-20261003-36",
-  "updated_at": "2026-10-05T04:27:32.229442+00:00",
-  "verified_commit": "09b207ee691a2b4df01eb83183bf71e879afb706",
+  "updated_at": "2026-10-05T04:43:10.776129+00:00",
+  "verified_commit": "2f855e886b2c40da4ade319098ae1bca85ae8460",
   "frozen_gate_count": 36,
   "scope": "范围：Windows LS-PrePost 4.13.4 可见 GUI 的首个实用版本；按36项等权验收门槛计算，不是整个软件功能覆盖率或剩余工时。",
   "outside_scope": "后续总体路线仍保留：常用菜单扩展、接触与Include工程化、7模板完整工况、4.8/4.10及两种无GUI、后排CAD与高级模块。未纳入本期36项，不能据本进度称全部完成。",
-  "current_task": "新增节点/节点集三向力与三向力矩：明确逐节点/总量均分、曲线新建复用、选择依赖、叠加审查、参数回放和重开；25项原生流程、731项测试通过。官方Example11的ELEMENT_MASS在修改前被共用校验拒绝，下一步补辅助单元保真。首版仍26/36，不等于全软件覆盖率。",
+  "current_task": "标准质量单元保真已补：官方Example11完整梁+质量模型载荷/重开通过，纯质量模型的选择/集合/载荷/参数回放通过；735项测试通过。质量glyph显隐、惯性和其他辅助族继续单独验证，首版仍26/36。",
   "groups": [
     {
       "id": "B0",
@@ -454,8 +454,9 @@
   "latest_entity_increment": {
     "tool": "create_gui_nodal_load",
     "native_checks": 25,
-    "tests_passed": 731,
+    "tests_passed": 735,
     "evidence": "docs/NODAL_LOADS.md",
-    "remaining": "COVERAGE-MASS-003; follower/local/rigid loads; no solver certification"
+    "remaining": "Mass glyph display/inertia/other auxiliary families; follower/local/rigid loads; no solver certification",
+    "mass_evidence": "docs/MASS_PRESERVATION.md"
   }
 }
