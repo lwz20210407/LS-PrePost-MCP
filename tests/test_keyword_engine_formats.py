@@ -123,3 +123,26 @@ def test_warm_up_runs_in_foreground_and_background() -> None:
     assert thread is not None
     thread.join(timeout=120)
     assert not thread.is_alive()
+
+
+def test_include_file_name_edit_reloads_tree(tmp_path: Path) -> None:
+    (tmp_path / "mat_a.k").write_bytes(b"*MAT_ELASTIC\n         1      7.85  210000.0       0.3\n")
+    (tmp_path / "mat_b.k").write_bytes(b"*MAT_ELASTIC\n         1      2.70   70000.0      0.33\n")
+    deck = _deck(tmp_path, "*KEYWORD\n*INCLUDE\nmat_a.k\n*END\n")
+    block = deck.blocks("*INCLUDE")[0]
+    assert deck.get(block, "filename").value == "mat_a.k"
+    deck.set(block, "filename", "mat_b.k")
+    assert block.lines[1] == "mat_b.k\n"
+    assert sorted(f.path.name for f in deck.files.values()) == ["main.k", "mat_a.k", "mat_b.k"]
+    assert [t["name"] for t in deck.include_tree()["includes"]] == ["mat_b.k"]
+
+
+def test_save_as_writes_only_files_still_included(tmp_path: Path) -> None:
+    (tmp_path / "mat_a.k").write_bytes(b"*MAT_ELASTIC\n         1      7.85  210000.0       0.3\n")
+    (tmp_path / "mat_b.k").write_bytes(b"*MAT_ELASTIC\n         1      2.70   70000.0      0.33\n")
+    deck = _deck(tmp_path, "*KEYWORD\n*INCLUDE\nmat_a.k\n*END\n")
+    deck.set(deck.blocks("*INCLUDE")[0], "filename", "mat_b.k")
+    out = tmp_path / "out"
+    report = deck.save_as(out)
+    assert sorted(p.name for p in out.iterdir()) == ["main.k", "mat_b.k"]
+    assert report["skipped_unreferenced_edits"] == []

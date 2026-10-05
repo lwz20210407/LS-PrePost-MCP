@@ -294,6 +294,19 @@ def _title_layout(block: Block) -> Layout:
     return Layout(block.name, fields=[title], source="builtin")
 
 
+def _include_layout(block: Block) -> Layout:
+    """File-name fields of ``*INCLUDE`` (one per line) and ``*INCLUDE_TRANSFORM`` / ``_AUTO_OFFSET`` (card 1)."""
+    data = [(i, line) for i, line in block.data() if not is_blank(line)]
+    if any(body(line).rstrip().endswith(" +") for _, line in data):
+        raise Unsupported("Include names continued with ' +' need positional editing")
+    if block.name != "*INCLUDE":
+        data = data[:1]
+    infos = [FieldInfo("filename", "str", FieldSlot(index, 0, 80), "filename") for index, _ in data]
+    if len(infos) == 1:
+        return Layout(block.name, fields=infos, source="builtin-include")
+    return Layout(block.name, rows={n: [info] for n, info in enumerate(infos, 1)}, key="row", source="builtin-include")
+
+
 def layout(block: Block, lookup: Mapping[str, object], deck_format: str = "standard") -> Layout:
     """Return the named-field layout of ``block`` or raise :class:`Unsupported`."""
     if block.kind != "keyword" or block.keyword is None:
@@ -310,6 +323,8 @@ def layout(block: Block, lookup: Mapping[str, object], deck_format: str = "stand
         return _part_layout(block, long)
     if block.name == "*TITLE":
         return _title_layout(block)
+    if block.name in ("*INCLUDE", "*INCLUDE_TRANSFORM", "*INCLUDE_AUTO_OFFSET"):
+        return _include_layout(block)
     if umat.is_umat(block.name):
         return umat.umat_layout(block, lookup, long)
     if lists.is_list_set(block.name) or lists.is_curve(block.name):

@@ -36,7 +36,8 @@ def _relocation_plan(deck: KeywordDeck, out_dir: Path) -> tuple[dict[Path, Path]
     for key in absolute:
         if deck.files[key].modified:
             raise ValueError(f"{deck.files[key].path} is included by absolute path and was edited; save in place")
-    movable = [f.path for k, f in deck.files.items() if k not in absolute]
+    reachable = {identity(deck.main.path)} | {identity(r.child.path) for r in deck.includes if r.child}
+    movable = [f.path for k, f in deck.files.items() if k not in absolute and k in reachable]
     opaque = [r.resolution.path for r in deck.includes
               if r.kind == "opaque" and r.resolution and r.resolution.path and not Path(r.name).is_absolute()]
     root = Path(os.path.commonpath([str(p.parent.resolve()) for p in movable + opaque]))
@@ -68,7 +69,11 @@ def save_as(deck: KeywordDeck, out_dir: str | os.PathLike[str], overwrite: bool 
                         "sha256": hashlib.sha256(data).hexdigest()})
     main_dest = plan[deck.main.path]
     reloaded = type(deck).load(main_dest)
+    planned = {identity(source) for source in plan}
+    skipped = [str(f.path) for k, f in deck.files.items() if f.modified and k not in planned
+               and str(f.path) not in external]
     return {"main": str(main_dest), "files": written, "external_unchanged": external,
+            "skipped_unreferenced_edits": skipped,
             "reload_files": len(reloaded.files), "reload_warnings": reloaded.warnings}
 
 
