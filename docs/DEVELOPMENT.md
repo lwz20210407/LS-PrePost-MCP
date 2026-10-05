@@ -8,6 +8,14 @@ M0 仅整理文档、校验、语料、实验与 M0-3 bug 修复，不重构 src
 
 用户已明确授权 I02 在独立分支 codex/m1-contracts 立即先行：六个合同及工作流门槛转换以 L1 验证，M0 的远程门槛和 PR #1 范围保持不变。I02 的测试入口为 `pytest tests/test_core_contracts.py tests/test_workflow_gates.py tests/test_reference_workflow.py`。
 
+I01 在 `codex/m1-engine` 继续，基于 I02 分支。普通单测自动跳过原生测试；原生执行需把 `LSPP_ENGINE_EXECUTABLE` 指向对应版本安装，将 `LSPP_ENGINE_FIXTURE` 指向 M0 原创八节点、三状态壳语料目录（input.k、d3plot、d3plot01），然后运行：
+
+```shell
+uv run pytest -m native tests/test_engine_native.py
+```
+
+4.13 跑全部六例；4.10 批处理子集加 `-k five_batch`。4.10 队列的模型来源读回问题已记录为 KI-048，不能通过取消来源验证来绕过。原生测试读取外部语料，所有执行副本与证据由 pytest 的 `--basetemp` 指向当次 scratch 目录；不得把语料或原生日志提交。
+
 ## 可重复检查
 
 ```shell

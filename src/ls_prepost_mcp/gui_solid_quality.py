@@ -3,11 +3,11 @@
 import math
 import re
 
+from .core.native_log import native_errors, read_delta
 from .field_contracts import EntitySelection
 from .gui_mesh import check_same_nodes, check_same_parts, mesh_index
 from .gui_selection import available_ids, part_visibility
 from .jobs import atomic_json, check_artifact
-from .programs import native_errors
 from .windows_transport import WindowsCommandTransport
 
 # Observed from 4.13.4 Model Checking / Solid / Check command recordings.
@@ -144,9 +144,7 @@ def check_solids(service, session_id, checks, units, capture_failed_ids=False):
                 raise RuntimeError("Native solid quality request failed")
             if any(result["data"]["counts"].get(k) != state["counts"].get(k) for k in ("nodes", "elements")):
                 raise ValueError("Model counts changed during solid checking")
-            with log.open("rb") as stream:
-                stream.seek(offset)
-                text = stream.read().decode("utf8", errors="replace")
+            text = read_delta(log, offset, existed=True)
             controls = [
                 r
                 for r in transport.inspect_controls()

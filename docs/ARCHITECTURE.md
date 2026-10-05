@@ -20,9 +20,19 @@ MCP 提供执行、观察、验证、知识检索和工程计算。Agent 负责�
 
 现有会话链路是 cfile + 应用内 bridge + complete.json；Win32 当前只承担触发。是否可改为桥接端自行轮询由 I10 的 E1–E5 决定，见 [传输实验](decisions/0001-session-transport.md)。共享配置隔离、增量日志读取、请求关联和产物身份检查在引擎层收敛。
 
+I01 已将五个批处理调用方收敛到 `runner.execute → BatchEngine.run(BatchJob)`，旧 process 字典仅作为兼容投影；无领域验证的零退出码返回 unverified，原有计数、数值、产物和源文件身份检查继续决定工具结果。`Sessions.dispatch → SessionEngine.run(SessionJob)` 统一提交、超时、回执关联与 JobResult，保留迟到回执供恢复，禁止自动重放。
+
+两条引擎共用 `engine/environment.py` 的独立配置副本和 TEMP/TMP，用户配置原文不改；日志统一由 `core/native_log.py` 读取请求后缀并拒绝截断/丢失。`gui_session_action` 通过每个 Service 的 ContextVar 显式绑定会话执行器，退出或异常后复位；不再创建临时 Service、替换 `_native` 或用后台进程替代旧会话变换。
+
+`Sessions.start(transport="queue")` 是 I01 内部非交互入口：loopback 接收线程只收带会话凭据的请求 ID，应用主线程执行，回执仍为 complete.json。重复通知和已执行请求不会重放，关闭信号在当前请求结束后退出。4.13 已验证同 PID 连续读取、保存和重开；4.10 的批处理子集通过，队列模型来源检查受 KI-048 限制。公开 `start_gui_session` 继续使用 Win32 观察通道；五通道统一的公开入口属于 A01–A05。
+
 Command、cfile、SCL、应用内 Python、原生宏是五个一等通道，统一接口 `run_script(language, context=batch|session)`。宏支持 `*macro begin/end`、parameter、`&name`/`&{name}` 和 `(n/e/p)` 拾取域，拾取值由 Selector 绑定。现有 create_native_macro/run_native_macro 是 JSON 模板，将并入 A08 配方库并保留旧别名至 v0.6。执行通道不是不可信代码沙箱。
 
 ## 合同与领域操作
+
+I01 经审阅改为 partial/L1：历史批处理和队列六例不覆盖公开 Win32 传输。
+缺配置拒绝与对外诊断透传已补回归；公开 Win32 打开、读取、检查点保存重开及同 PID 复用已通过 4.13 原生测试，见[补测报告](decisions/evidence/i01-followup/report.md)。其余 GUI 修改路径统一仍是 tasks.yaml 中的明确缺口。
+[历史原生报告](decisions/evidence/i01/report.md) 保留已执行范围，不作为 I01 全部完成依据。
 
 `core/contracts.py` 使用 pydantic 定义：
 

@@ -374,6 +374,30 @@
 - 规避：先要求独立载入回执与预期节点数一致，再查实际菜单/面板；超时不重复点击，以本次关联回执与新产物验证结果。
 - 来源与证据：[ADR 0001](decisions/0001-session-transport.md)、[更新后的 macro/session/unlocked 三项记录](decisions/0001-experiment-evidence.json)。产品级迁移留给 M1。
 
+## KI-048 4.10 队列会话的模型目录读回
+
+- 现象：I01 的主线程队列会话打开独立 keyword 后，读到 8 节点、3 单元，但 DataCenter model_directory 仍为会话根目录，与已暂存输入目录不一致；来源校验明确失败。
+- 版本：本机 4.10；同一队列流程在 4.13 通过打开、连续读取、保存重开和关闭。
+- 处理：保留失败和来源身份校验，4.10 当前验收五个批处理调用方子集；版本能力与替代来源读回由 I03 处理。
+- 证据：[I01 原生回归](../tests/test_engine_native.py)、[来源检查](../src/ls_prepost_mcp/model_context.py)。原始回执与日志仅存本地。
+
+## KI-052 Windows 深层 job 的临时 JSON 文件超长
+
+- 现象：目标文件本身可写，但完整文件名后追加 32 位 UUID 的原子临时文件超过 Windows 路径限制；边界条件创建在写入模型身份旁车时失败。
+- 修复：`atomic_json` 在同一目录独占创建短临时文件，保留原子替换和 Windows 短暂共享锁重试；不再重复目标文件名。测试框架也缩短用例目录前缀。
+- 证据：[深层目录与原文件保留回归](../tests/test_atomic_json.py)。此次 GUI 窗口中边界条件创建用例修复后通过；原始失败记录保留在本地。
+
+## KI-050 缺少用户配置时拒绝启动
+
+- 现象：用仅含星号的私有 lsppconf 代替缺失的用户配置会丢失 Python home/首次运行设置，后台程序可能等待初始化。
+- 处理：I01 现在直接拒绝缺配置，提示先启动对应安装完成设置，或显式指定 LSPP_CONFIG_SOURCE；不再生成空白替代配置。
+- 证据：tests/test_engines.py 的缺配置拒绝与原配置不变回归；此检查在原生进程启动之前执行。
+
+## KI-051 退出码为零也可能有原生诊断失败
+
+- 行为：共享引擎检测到原生错误行即失败，即使 returncode=0。五个批处理调用方现在透传 engine_error.message，保留真实命令诊断，而非只报退出码和超时状态。
+- 证据：tests/test_engine_native.py 的无效命令原生负例，以及 tests/test_engines.py 的公开 Service 错误透传回归。
+
 ## 能力范围原文索引
 
 以下是 M0 冻结能力文件的全部 scope/limitation 字段，按原文去重。它们同时包含已验证范围和未验证项，不全是原生缺陷。版本、规避和证据保留原文；原文未注明者不补造。来源文件：[capabilities.json](../src/ls_prepost_mcp/data/capabilities.json)。

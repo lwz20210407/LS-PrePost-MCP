@@ -6,9 +6,9 @@ import re
 import numpy as np
 
 from .config import command_path
+from .core.native_log import native_errors, read_delta
 from .jobs import atomic_json, check_artifact, fingerprint, now
 from .post_backend import write_csv
-from .programs import native_errors
 from .windows_transport import WindowsCommandTransport
 
 
@@ -227,9 +227,7 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
             manifest["export_request"] = {k: v for k, v in finished.items() if k != "data"}
             if finished["status"] != "succeeded":
                 raise ValueError("Native plot export failed")
-            with log.open("rb") as stream:
-                stream.seek(offset)
-                text = stream.read().decode("utf8", errors="replace")
+            text = read_delta(log, offset, existed=True)
             (directory / "native-plot.log").write_text(text, encoding="utf8")
             if native_errors(text):
                 raise ValueError("Native plot diagnostics reported errors")

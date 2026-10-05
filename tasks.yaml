@@ -830,6 +830,17 @@ infrastructure:
   - id: I01
     title: 执行引擎 Engine（BatchEngine 默认 + SessionEngine 可选）
     milestone: M1
+    status: partial
+    verification_level: L1
+    gaps:
+      - renumber/quality 面板路径和五个批处理兼容字典仍待完整统一；公开 Win32 打开、检查点和重开已补原生证据
+    evidence:
+      - src/ls_prepost_mcp/engine/batch.py
+      - src/ls_prepost_mcp/engine/session.py
+      - tests/test_engines.py
+      - tests/test_engine_native.py
+      - docs/decisions/evidence/i01/report.md
+      - docs/decisions/evidence/i01-followup/report.md
     acceptance:
       - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
       - 删除 gui_session_action 中运行时替换 _native 的做法
@@ -853,6 +864,8 @@ infrastructure:
   - id: I03
     title: 命令构建器与版本能力表
     milestone: M1
+    gaps:
+      - I01 实测 4.10 主线程队列打开 keyword 后计数正确，但 model_directory 仍指向会话根目录；来源身份检查拒绝。见 KNOWN_ISSUES KI-048；4.10 当前只验收批处理子集。
     acceptance:
       - genselect / fringe / anim 等命令只在 native/commands.py 生成，有黄金输出测试
       - 版本差异集中在能力表，src 其他位置不出现版本判断

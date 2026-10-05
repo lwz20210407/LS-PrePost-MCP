@@ -5,11 +5,11 @@ import math
 from pydantic import StrictFloat, StrictInt
 
 from .config import scl_command_path
+from .core.native_log import native_errors, read_delta
 from .fringe_presentation import averaging_command
 from .gui_controls import wait_for_gui_state
 from .jobs import atomic_json, check_artifact, now
 from .media_validation import movie_validators, parse_movie_log, validate_mp4
-from .programs import native_errors
 from .scene_state import require_movie_field_coverage
 
 
@@ -163,9 +163,7 @@ class GuiMediaTools:
                 manifest["native_request"] = {k: v for k, v in native.items() if k != "data"}
                 if native["status"] != "succeeded":
                     raise ValueError("Native movie request did not complete")
-                with log.open("rb") as stream:
-                    stream.seek(offset)
-                    text = stream.read().decode("utf8", errors="replace")
+                text = read_delta(log, offset, existed=True)
                 (directory / "native-movie.log").write_text(text, encoding="utf8")
                 if native_errors(text):
                     raise ValueError("Native movie diagnostics reported errors")
