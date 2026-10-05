@@ -166,10 +166,21 @@ def _ordered_cards(keyword: object) -> list[tuple[str, object]]:
     return _arrange(keyword._cards, set(getattr(keyword, "_active_options", set())))
 
 
+def title_alias(name: str) -> str:
+    """Keyword name as PyDYNA should read it.
+
+    *CONTACT_..._TITLE is read by LS-DYNA like _ID (first line CID, HEADING): with CID 77 on
+    that line the R11 solver reports contact interface ID 77. The manual lists only ID.
+    """
+    if name.startswith("*CONTACT_") and name.endswith("_TITLE") and "_ID_" not in name:
+        return name[: -len("_TITLE")] + "_ID"
+    return name
+
+
 def pydyna_title(block: Block, long: bool) -> str:
     """Keyword line for PyDYNA: upper case, ``+`` when the block is in long format."""
     keyword = block.keyword
-    text = keyword.name + ("+" if long else "") + ((" " + keyword.extra) if keyword.extra else "")
+    text = title_alias(keyword.name) + ("+" if long else "") + ((" " + keyword.extra) if keyword.extra else "")
     return text + ending(block.lines[0])
 
 
@@ -413,7 +424,7 @@ def _omitted_id_card(block: Block, cls: type, base: str, long: bool) -> int | No
 
 def _check_options(block: Block, cls: type, base: str, long: bool, synthetic: set[str] = frozenset()) -> None:
     """Every keyword-name token after the PyDYNA class name must be an option PyDYNA knows."""
-    suffix = [token for token in block.name[len(base):].split("_") if token and token not in synthetic]
+    suffix = [token for token in title_alias(block.name)[len(base):].split("_") if token and token not in synthetic]
     if not suffix:
         return
     probe = _load(cls, pydyna_title(block, long))

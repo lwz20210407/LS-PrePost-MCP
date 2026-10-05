@@ -48,6 +48,7 @@ REFERENCES: list[tuple[str, tuple[tuple[str, str], ...]]] = [
     ("*MAT_ADD_", (("mid", "material"),)),
     ("*DEFINE_TABLE", (("lcid", "curve"),)),  # builtin rows: VALUE, LCID
     ("*LOAD_SEGMENT", (("lcid", "curve"),)),  # PyDYNA links only N1-N8 of the builtin segment rows
+    ("*DATABASE_CROSS_SECTION_SET", (("ssid", "shell_set"),)),  # PyDYNA links NSID/HSID/BSID/DSID only
     ("*MAT_PIECEWISE_LINEAR_PLASTICITY", (("lcss", "curve"), ("lcsr", "curve"))),
     ("*BOUNDARY_SPC_SET", (("nsid", "node_set"),)), ("*BOUNDARY_SPC_NODE", (("nid", "node"),)),
     ("*BOUNDARY_PRESCRIBED_MOTION_SET", (("nsid", "node_set"), ("lcid", "curve"))),
@@ -80,6 +81,10 @@ TYPE_CODED: list[tuple[str, tuple[tuple[str, str, dict[int, str]], ...]]] = [
     # SSTYP (PyDYNA LSTRSTYP): 0 part set, 1 part, 2 segment set; MSTYP (ALESTYP): 0 part set, 1 part (R11 p. 10-99)
     ("*CONSTRAINED_LAGRANGE_IN_SOLID", (("lstrsid", "lstrstyp", {0: "part_set", 1: "part", 2: "segment_set"}),
                                         ("alesid", "alestyp", {0: "part_set", 1: "part"}))),
+    # one group per line; IDTYPE: 0 part set, 1 part (R17 manual p. 4-71)
+    ("*ALE_MULTI-MATERIAL_GROUP", (("sid", "idtype", {0: "part_set", 1: "part"}),)),
+    # ITYPE: 0 rigid body (part), 1 accelerometer, 2 coordinate system (R17 manual, *DATABASE_CROSS_SECTION_SET)
+    ("*DATABASE_CROSS_SECTION_SET", (("id", "itype", {0: "part", 2: "coordinate"}),)),
 ]
 
 

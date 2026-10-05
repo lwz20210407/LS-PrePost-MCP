@@ -172,3 +172,20 @@ def test_load_segment_curve_and_nodes_follow_renumbering(tmp_path: Path) -> None
     block = deck.blocks("*LOAD_SEGMENT")[0]
     assert deck.get(block, "lcid", row=1).value == 70 and deck.get(block, "n1", row=1).value == 101
     assert deck.references().dangling_count == 0
+
+
+def test_contact_title_form_and_coded_groups(tmp_path: Path) -> None:
+    text = _model("*CONTACT_AUTOMATIC_SURFACE_TO_SURFACE_TITLE\n        77impact\n"
+                  "         1         1         3         3\n\n\n"
+                  "*ALE_MULTI-MATERIAL_GROUP\n         1         1\n         2         0\n"
+                  "*DATABASE_CROSS_SECTION_SET\n         1         0         0         0         0         0         1\n")
+    deck = _deck(tmp_path, text)
+    contact = deck.blocks("*CONTACT_AUTOMATIC_SURFACE_TO_SURFACE_TITLE")[0]
+    assert deck.get(contact, "cid").value == 77 and deck.get(contact, "surfa").value == 1
+    assert deck.references().dangling_count == 0
+    renumber(deck, "part", {1: 5})
+    group = deck.blocks("*ALE_MULTI-MATERIAL_GROUP")[0]
+    section = deck.blocks("*DATABASE_CROSS_SECTION_SET")[0]
+    assert deck.get(contact, "surfa").value == 5 and deck.get(contact, "cid").value == 77
+    assert deck.get(group, "sid", row=1).value == 5 and deck.get(group, "sid", row=2).value == 2
+    assert deck.get(section, "id").value == 5
