@@ -246,3 +246,22 @@ def test_joint_failure_and_local_after_parm_card(tmp_path: Path) -> None:
     assert values == {"jid": 77, "n6": 6, "parm": 2.5, "raid": 1, "lst": 0, "tfail": 0.5, "mzz": None}
     renumber(deck, "part", {1: 5})  # RAID with LST=0 is a rigid body part
     assert deck.get(block, "raid").value == 5 and deck.get(block, "n1").value == 1
+
+
+def test_free_format_table_rows(tmp_path: Path) -> None:
+    """Comma rows of a table keyword (tube.k of the Reid class examples) read, renumber and stay commas."""
+    spc = "".join(f"{n:>10},  0,1,1,1, 1, 1, 1\n" for n in (1, 2, 9))
+    deck = _deck(tmp_path, _model("*BOUNDARY_SPC_NODE\n" + spc))
+    block = deck.blocks("*BOUNDARY_SPC_NODE")[1]
+    assert deck.get(block, "dofx", row=9).value == 1
+    renumber(deck, "node", {9: 109})
+    assert deck.get(block, "nid", row=109).value == 109
+    assert block.lines[3].rstrip() == "       109,  0,1,1,1, 1, 1, 1"
+
+
+def test_counts_and_own_ids_do_not_block_renumbering(tmp_path: Path) -> None:
+    extra = ("*CONTROL_SOLUTION\n         0         0         0         7\n"
+             "*DEFINE_CURVE\n         7\n                 0.0                 0.0\n                 1.0                 1.0\n")
+    deck = _deck(tmp_path, _model(extra))
+    renumber(deck, "curve", {7: 70})  # LCINT=7 is a point count, not curve 7
+    assert deck.get(deck.blocks("*CONTROL_SOLUTION")[0], "lcint").value == 7

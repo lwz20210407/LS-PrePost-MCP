@@ -14,7 +14,7 @@ import warnings
 from .blocks import Block
 from .fields import FieldError, FieldSlot, is_free_format, long_spans, parse_number, read_text, stray_text
 from .layouts import Column, FieldInfo, Layout, RowMap, Unsupported
-from .text import is_blank
+from .text import body, is_blank
 
 SAMPLE = 20
 
@@ -178,14 +178,33 @@ def _rows_with_optional_n5_card(block: Block, row_lines: list[int], group: list[
     return rows
 
 
+def _fixed(line: str, spans: dict[int, tuple[int, int]]) -> str:
+    """A comma (free format) line rewritten in fixed columns, token -> (offset, width), for PyDYNA."""
+    out = ""
+    for token, text in enumerate(body(line).split(",")):
+        value = text.strip()
+        if not value or token not in spans:
+            continue
+        offset, width = spans[token]
+        if len(value) > width:
+            raise Unsupported(f"Free-format value {value!r} is wider than its {width}-character field")
+        out = out.ljust(offset) + value.rjust(width)
+    return out + "\n"
+
+
 def _self_check(block: Block, keyword_class: type, position: int, head: list, keys: list, rows: RowMap,
                 fields: list[FieldInfo], title: str) -> None:
     picks = keys[:SAMPLE] + [k for k in keys[max(len(keys) - SAMPLE, SAMPLE):]]
     lines = [i for i, _ in head]
+    spans: dict[int, dict[int, tuple[int, int]]] = {}
+    for info in fields:
+        if info.slot.token is not None:
+            spans.setdefault(info.slot.line, {})[info.slot.token] = (info.slot.offset, info.slot.width)
     long = any(c.width == 20 for columns in rows.template for c in columns)
     for key in picks:
         lines.extend(rows.line_indices(key))
         for columns, index in zip(rows.template, rows.line_indices(key)):
+            spans[index] = {token: (c.offset, c.width) for token, c in enumerate(columns)}
             stray = stray_text(block.lines[index], [(c.offset, c.width) for c in columns], long)
             if stray:
                 raise Unsupported(f"{block.name}: text outside the row fields on line {index} ({stray[:40]!r})")
@@ -193,7 +212,9 @@ def _self_check(block: Block, keyword_class: type, position: int, head: list, ke
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         try:
-            keyword.loads(title + "".join(block.lines[i] for i in lines))
+            # PyDYNA cannot parse comma rows; the comparison below still reads the rows as written
+            keyword.loads(title + "".join(_fixed(block.lines[i], spans[i]) if i in spans and is_free_format(
+                block.lines[i]) else block.lines[i] for i in lines))
         except Exception as error:  # PyDYNA raises many exception types on malformed input
             raise Unsupported(f"PyDYNA could not parse a sample of {block.name}: {error}") from error
     frame = keyword._cards[position].table

@@ -75,7 +75,12 @@ def write_text(line: str, slot: FieldSlot, value: str, align: str = "right") -> 
             tokens.append("")
         old = tokens[slot.token]
         lead, trail = old[:len(old) - len(old.lstrip())], old[len(old.rstrip()):] if old.strip() else ""
-        tokens[slot.token] = lead + value + trail
+        new = lead + value + trail
+        if len(new) > slot.width >= len(value) and len(old) <= slot.width:
+            # padded tokens stay within the fixed field width (R11 Vol I: free-format values must
+            # not exceed the field length): drop padding instead of widening the token
+            new = value.rjust(slot.width) if lead else value
+        tokens[slot.token] = new
         return ",".join(tokens) + end
     if len(value) > slot.width:
         raise FieldError(f"{value!r} does not fit in a {slot.width}-character field")
