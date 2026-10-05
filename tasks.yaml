@@ -897,7 +897,7 @@ infrastructure:
   - id: I10
     title: 执行通道实验与决策
     milestone: M0
-    status: done
+    status: partial
     verification_level: L2
     evidence:
       - docs/decisions/0001-session-transport.md

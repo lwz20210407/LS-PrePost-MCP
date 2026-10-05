@@ -17,6 +17,7 @@ p.add_argument('--operator-ready', action='store_true', required=True,
                help='Operator agreed to disconnect UU during this run; reconnect confirmation remains required')
 p.add_argument('--fixture', type=Path, required=True)
 p.add_argument('--delay', type=int, default=30)
+p.add_argument('--remaining-matrix', action='store_true', help='Run the 13 runc/macro cells omitted by the default-route probe')
 a = p.parse_args()
 sys.path.insert(0, str(a.repository / 'tools' / 'experiments'))
 sys.path.insert(0, str(a.repository / 'src'))
@@ -33,12 +34,22 @@ report = dict(task_id='I10/E5', environment='UU remote',
 print('ARMED: delay before disconnected probes:', a.delay, flush=True)
 time.sleep(a.delay)
 report['started_at'] = time.time()
-for version, executable, mode in [
-    ('4.13', str(a.executable_413), 'nographics'),
-    ('4.10', str(a.executable_410), 'nographics'),
-    ('4.13', str(a.executable_413), 'session'),
-]:
-    for language in ('command', 'cfile', 'scl', 'python'):
+ordinary = ('command', 'cfile', 'scl', 'python')
+lanes = [
+    ('4.13', str(a.executable_413), 'nographics', ordinary),
+    ('4.10', str(a.executable_410), 'nographics', ordinary),
+    ('4.13', str(a.executable_413), 'session', ordinary),
+]
+if a.remaining_matrix:
+    lanes = [
+        ('4.13', str(a.executable_413), 'runc', ordinary + ('macro',)),
+        ('4.10', str(a.executable_410), 'runc', ordinary + ('macro',)),
+        ('4.13', str(a.executable_413), 'nographics', ('macro',)),
+        ('4.10', str(a.executable_410), 'nographics', ('macro',)),
+        ('4.13', str(a.executable_413), 'session', ('macro',)),
+    ]
+for version, executable, mode, languages in lanes:
+    for language in languages:
         args = argparse.Namespace(directory=root/'matrix', executable=Path(executable), version=version,
                                   desktop='unlocked', mode=mode, language=language)
         before = time.time()
