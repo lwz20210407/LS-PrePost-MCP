@@ -649,7 +649,7 @@ tasks:
     depends_on: [G03]
     status: partial
     existing: [prepare_native_program]
-    evidence: [tests/test_native_macro_transport.py, docs/decisions/0006-native-macro-probe.md]
+    evidence: [tests/test_native_macro_transport.py, tests/test_native_macros.py, docs/decisions/0006-native-macro-probe.md]
     gaps:
       - 只支持数值参数；拒绝字符串参数、表达式默认值、interactive 暂停、分号多命令、嵌套宏
       - 拾取域只接受正整数 ID，不能用选择结果绑定
