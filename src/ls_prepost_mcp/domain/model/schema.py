@@ -18,7 +18,6 @@ import math
 import re
 import warnings
 from collections.abc import Mapping
-from dataclasses import dataclass, field
 
 from . import lists, tables
 from .blocks import Block
@@ -32,6 +31,7 @@ from .fields import (
     read_text,
     write_text,
 )
+from .layouts import Column, FieldInfo, Layout, RowMap, Unsupported
 from .parameters import reference
 from .text import body, ending, is_blank
 
@@ -42,93 +42,48 @@ PART_FIELDS = (("pid", "int"), ("secid", "int"), ("mid", "int"), ("eosid", "int"
                ("hgid", "int"), ("grav", "int"), ("adpopt", "int"), ("tmid", "int"))
 
 
-class Unsupported(ValueError):
-    """Named-field access is not available for this block; use positional editing."""
-
-
-@dataclass(frozen=True)
-class FieldInfo:
-    name: str
-    kind: str  # "int" | "float" | "str"
-    slot: FieldSlot
-    card: str
-    default: object = None
-
-
-@dataclass
-class Layout:
-    """Field positions of one block. ``rows`` is used by table keywords (key -> fields)."""
-
-    keyword: str
-    fields: list[FieldInfo] = field(default_factory=list)
-    rows: dict[int, list[FieldInfo]] = field(default_factory=dict)
-    key: str | None = None
-    source: str = ""
-    missing_cards: list[str] = field(default_factory=list)
-
-    def lookup(self, name: str, card: str | None = None, row: int | None = None) -> FieldInfo:
-        name = name.lower()
-        if row is None:
-            pool = self.fields
-            if self.key is not None and not any(f.name == name for f in pool):
-                raise KeyError(f"{self.keyword} holds rows; give row=<{self.key}>")
-        else:
-            if self.key is None:
-                raise KeyError(f"{self.keyword} has no rows")
-            if row not in self.rows:
-                raise KeyError(f"No row with {self.key}={row} in {self.keyword}")
-            pool = self.rows[row]
-        matches = [f for f in pool if f.name == name and (card is None or f.card == card)]
-        if not matches:
-            raise KeyError(f"No field {name!r} in {self.keyword}")
-        if len(matches) > 1:
-            raise KeyError(f"Field {name!r} occurs on cards {[m.card for m in matches]}; give card=")
-        return matches[0]
-
-
 def _slot(line: str, index: int, offset: int, width: int, token: int) -> FieldSlot:
     return FieldSlot(index, offset, width, token if is_free_format(line) else None)
 
 
 def _node_layout(block: Block, long: bool = False) -> Layout:
-    layout = Layout(block.name, key="nid", source="builtin")
     spans = long_spans([w for _, _, _, w in NODE_FIELDS]) if long else [(o, w) for _, _, o, w in NODE_FIELDS]
+    columns = [Column(n, k, o, w) for (n, k, _, _), (o, w) in zip(NODE_FIELDS, spans)]
+    rows: dict[int, tuple[int, ...]] = {}
     for index, line in block.data():
         if is_blank(line):
             continue
-        infos = [FieldInfo(n, k, _slot(line, index, o, w, t), "node")
-                 for t, ((n, k, _, _), (o, w)) in enumerate(zip(NODE_FIELDS, spans))]
         try:
-            nid = parse_number(read_text(line, infos[0].slot))
+            nid = parse_number(read_text(line, _slot(line, index, columns[0].offset, columns[0].width, 0)))
         except FieldError as error:
             raise Unsupported(f"*NODE line {index}: {error}") from error
         if not isinstance(nid, int):
             raise Unsupported(f"*NODE line {index} has no integer node ID")
-        if nid in layout.rows:
+        if nid in rows:
             raise Unsupported(f"Duplicate node ID {nid} in one *NODE block")
-        layout.rows[nid] = infos
-    return layout
+        rows[nid] = (index,)
+    return Layout(block.name, rows=RowMap(block, [columns], ["node"], rows), key="nid", source="builtin")
 
 
 def _part_layout(block: Block, long: bool = False) -> Layout:
-    layout = Layout(block.name, key="pid", source="builtin")
     width = 20 if long else 10
+    template = [[Column("heading", "str", 0, 80)],
+                [Column(n, k, width * t, width) for t, (n, k) in enumerate(PART_FIELDS)]]
     data = [(i, line) for i, line in block.data()]
     while data and is_blank(data[-1][1]):
         data.pop()
     if len(data) % 2:
         raise Unsupported("*PART block does not consist of heading/card line pairs")
+    rows: dict[int, tuple[int, ...]] = {}
     for (h_index, _), (c_index, line) in zip(data[0::2], data[1::2]):
-        infos = [FieldInfo("heading", "str", FieldSlot(h_index, 0, 80), "heading")]
-        infos += [FieldInfo(n, k, _slot(line, c_index, width * t, width, t), "card1") for t, (n, k) in enumerate(PART_FIELDS)]
         try:
-            pid = parse_number(read_text(line, infos[1].slot))
+            pid = parse_number(read_text(line, _slot(line, c_index, 0, width, 0)))
         except FieldError as error:
             raise Unsupported(f"*PART line {c_index}: {error}") from error
         if not isinstance(pid, int):
             raise Unsupported(f"*PART card line {c_index} has no integer PID")
-        layout.rows[pid] = infos
-    return layout
+        rows[pid] = (h_index, c_index)
+    return Layout(block.name, rows=RowMap(block, template, ["heading", "card1"], rows), key="pid", source="builtin")
 
 
 def _pydyna_class(name: str) -> tuple[type, str]:
@@ -307,10 +262,7 @@ def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
 def _pydyna_layout(block: Block, lookup: Mapping[str, object], long: bool = False) -> Layout:
     cls, base = _pydyna_class(block.name)
     if _TABLE_CARDS & {type(card).__name__ for card in cls()._cards}:
-        shape = tables.table_layout(block, cls, base, Unsupported, long=long, title=pydyna_title(block, long))
-        return Layout(block.name, fields=[FieldInfo(*item) for item in shape["fields"]],
-                      rows={k: [FieldInfo(*item) for item in v] for k, v in shape["rows"].items()},
-                      key=shape["key"], source="pydyna-table")
+        return tables.table_layout(block, cls, base, long=long, title=pydyna_title(block, long))
     data = [(i, line) for i, line in block.data()]
     while data and is_blank(data[-1][1]):
         data.pop()
@@ -371,3 +323,6 @@ def block_format(block: Block, deck_format: str = "standard") -> str:
     """``standard``, ``long`` or ``i10`` for one block (its ``+``/``-``/``%`` flag overrides the deck)."""
     flag = block.keyword.flag if block.keyword else ""
     return {"-": "standard", "+": "long", "%": "i10"}.get(flag, deck_format)
+
+
+__all__ = ["FieldInfo", "Layout", "Unsupported", "block_format", "layout", "pydyna_title"]

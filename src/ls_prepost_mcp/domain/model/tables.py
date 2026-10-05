@@ -1,29 +1,21 @@
 """Row layouts for table keywords (``*ELEMENT_*``, ``*BOUNDARY_SPC_NODE``, ``*SET_SEGMENT``, ...).
 
 Field widths come from the PyDYNA table schema, so large blocks are mapped without
-parsing them. A sample of rows (first and last ``SAMPLE``) plus all header lines is then
-parsed by PyDYNA and compared field by field; any disagreement refuses the layout.
+parsing them; rows are kept as line indices (:class:`RowMap`). A sample of rows (first
+and last ``SAMPLE``) plus all header lines is parsed by PyDYNA and compared field by
+field; any disagreement refuses the layout.
 """
 from __future__ import annotations
 
 import math
 import warnings
-from dataclasses import dataclass
 
 from .blocks import Block
 from .fields import FieldError, FieldSlot, is_free_format, long_spans, parse_number, read_text
+from .layouts import Column, FieldInfo, Layout, RowMap, Unsupported
 from .text import is_blank
 
 SAMPLE = 20
-
-
-@dataclass(frozen=True)
-class Column:
-    name: str
-    kind: str
-    offset: int
-    width: int
-    default: object = None
 
 
 def _kind(python_type: type) -> str:
@@ -53,13 +45,13 @@ def _is_missing(value: object) -> bool:
         return value is None
 
 
-def _same(text: str, expected: object, column: Column) -> bool:
+def _same(text: str, expected: object, kind: str, default: object) -> bool:
     stripped = text.strip()
     if "&" in stripped:
         return True  # parameter references are checked by the scalar layouts
     if not stripped:
-        return _is_missing(expected) or expected == column.default
-    if column.kind == "str":
+        return _is_missing(expected) or expected == default
+    if kind == "str":
         return not _is_missing(expected) and str(expected).strip() == stripped
     try:
         value = parse_number(stripped)
@@ -70,125 +62,110 @@ def _same(text: str, expected: object, column: Column) -> bool:
     return math.isclose(float(value), float(expected), rel_tol=1e-9, abs_tol=1e-30)
 
 
-def _slot(line: str, index: int, column: Column, token: int) -> FieldSlot:
-    return FieldSlot(index, column.offset, column.width, token if is_free_format(line) else None)
-
-
-def table_layout(block: Block, keyword_class: type, base: str, unsupported: type[Exception],
-                 long: bool = False, title: str | None = None) -> dict:
-    """Return ``{"fields": [...], "rows": {key: [...]}, "key": name}`` as plain tuples.
-
-    ``fields``/``rows`` hold ``(name, kind, slot, card, default)`` tuples so that the
-    caller can build its own field objects. Raises ``unsupported`` when the block does
-    not fit a single-table shape or the sampled self-check fails.
-    """
-    instance = keyword_class()
-    top = instance._cards
+def _shape(block: Block, keyword_class: type, base: str) -> tuple[int, object, list[object]]:
+    """Index of the table card, the table card and the header cards (pre-options + cards)."""
+    top = keyword_class()._cards
     kinds = [type(card).__name__ for card in top]
     tables = [i for i, kind in enumerate(kinds) if kind in ("TableCard", "TableCardGroup")]
     if len(tables) != 1 or {"CardSet", "SeriesCard"} & set(kinds):
-        raise unsupported(f"{block.name}: table shape {kinds} is not supported")
+        raise Unsupported(f"{block.name}: table shape {kinds} is not supported")
     position = tables[0]
-    table = top[position]
     if any(kind == "Card" for kind in kinds[position + 1:]):
-        raise unsupported(f"{block.name}: cards after the table are not supported")
+        raise Unsupported(f"{block.name}: cards after the table are not supported")
     suffix = set(block.name[len(base) + 1:].split("_")) if len(block.name) > len(base) else set()
+    options = [card for card in top if type(card).__name__ == "OptionCardSet"]
+    if suffix - {card._option_spec.name for card in options} - {""}:
+        raise Unsupported(f"{block.name}: unknown option suffix {sorted(suffix)}")
     pre: list[tuple[int, list[object]]] = []
-    for card in top:
-        if type(card).__name__ != "OptionCardSet" or card._option_spec.name not in suffix:
+    for card in options:
+        if card._option_spec.name not in suffix:
             continue
         if str(card._option_spec.position.placement.value) != "pre":
-            raise unsupported(f"{block.name}: post option {card._option_spec.name} with a table")
+            raise Unsupported(f"{block.name}: post option {card._option_spec.name} with a table")
         pre.append((card._option_spec.position.index, list(card._cards)))
-    if suffix - {card._option_spec.name for card in top if type(card).__name__ == "OptionCardSet"} - {""}:
-        raise unsupported(f"{block.name}: unknown option suffix {sorted(suffix)}")
-    head_cards = [c for _, cards in sorted(pre, key=lambda p: -p[0]) for c in cards]
-    head_cards += [card for card in top[:position] if type(card).__name__ == "Card"]
+    head = [c for _, cards in sorted(pre, key=lambda p: -p[0]) for c in cards]
+    head += [card for card in top[:position] if type(card).__name__ == "Card"]
+    return position, top[position], head
 
+
+def table_layout(block: Block, keyword_class: type, base: str, long: bool = False,
+                 title: str | None = None) -> Layout:
+    """Header fields plus a :class:`RowMap` of rows, or :class:`Unsupported`."""
+    position, table, head_cards = _shape(block, keyword_class, base)
     data = [(i, line) for i, line in block.data()]
     while data and is_blank(data[-1][1]):
         data.pop()
     if len(data) < len(head_cards):
-        raise unsupported(f"{block.name}: missing header cards")
+        raise Unsupported(f"{block.name}: missing header cards")
     fields = []
     for card, (index, line) in zip(head_cards, data):
+        free = is_free_format(line)
         for token, column in enumerate(_columns(card._schema, long)):
             if not column.name.startswith("unused"):
-                fields.append((column.name, column.kind, _slot(line, index, column, token), "header", column.default))
-    rows_data = data[len(head_cards):]
+                slot = FieldSlot(index, column.offset, column.width, token if free else None)
+                fields.append(FieldInfo(column.name, column.kind, slot, "header", column.default))
+    row_lines = [i for i, _ in data[len(head_cards):]]
 
     beyond_pid = FieldSlot(0, 40, 160) if long else FieldSlot(0, 16, 64)
     if type(table).__name__ == "TableCard":
         group = [_columns(table._schema, long)]
-    elif block.name == "*ELEMENT_SOLID" and rows_data and read_text(rows_data[0][1], beyond_pid).strip():
+    elif block.name == "*ELEMENT_SOLID" and row_lines and read_text(block.lines[row_lines[0]], beyond_pid).strip():
         group = [_widen(_SOLID_ONE_LINE) if long else _SOLID_ONE_LINE]  # LS-PrePost one-line solid format
     else:
-        subcards = table._cards
-        if any(getattr(sub, "_active_func", None) is not None for sub in subcards):
-            raise unsupported(f"{block.name}: conditional row cards are not supported")
-        group = [_columns(sub._schema, long) for sub in subcards]
+        if any(getattr(sub, "_active_func", None) is not None for sub in table._cards):
+            raise Unsupported(f"{block.name}: conditional row cards are not supported")
+        group = [_columns(sub._schema, long) for sub in table._cards]
     per = len(group)
-    if len(rows_data) % per:
-        raise unsupported(f"{block.name}: {len(rows_data)} row lines do not form groups of {per}")
+    if len(row_lines) % per:
+        raise Unsupported(f"{block.name}: {len(row_lines)} row lines do not form groups of {per}")
+    rows = [tuple(row_lines[start:start + per]) for start in range(0, len(row_lines), per)]
 
-    rows: list[list[tuple]] = []
-    for start in range(0, len(rows_data), per):
-        record = []
-        for columns, (index, line) in zip(group, rows_data[start:start + per]):
-            for token, column in enumerate(columns):
-                if not column.name.startswith("unused"):
-                    record.append((column.name, column.kind, _slot(line, index, column, token), "row", column.default))
-        rows.append(record)
-
-    key = group[0][0].name
+    probe = RowMap(block, group, ["row"] * per, dict(enumerate(rows)))
+    first = probe.locate(group[0][0].name)
     try:
-        keys = [parse_number(read_text(block.lines[r[0][2].line], r[0][2])) for r in rows]
+        keys = [parse_number(probe.cell(indices, first)) for indices in rows]
     except FieldError:
         keys = []
     if keys and all(isinstance(k, int) for k in keys) and len(set(keys)) == len(keys):
-        keyed = dict(zip(keys, rows))
+        key, mapping = group[0][0].name, dict(zip(keys, rows))
     else:
-        key, keyed = "row", {n: r for n, r in enumerate(rows, 1)}
-
-    _self_check(block, keyword_class, position, head_cards, data, rows, per, fields, unsupported,
+        key, mapping = "row", dict(enumerate(rows, 1))
+    rowmap = RowMap(block, group, ["row"] * per, mapping)
+    _self_check(block, keyword_class, position, data[:len(head_cards)], list(mapping), rowmap, fields,
                 title or block.lines[0].upper())
-    return {"fields": fields, "rows": keyed, "key": key}
+    return Layout(block.name, fields=fields, rows=rowmap, key=key, source="pydyna-table")
 
 
-def _self_check(block: Block, keyword_class: type, position: int, head_cards: list, data: list,
-                rows: list, per: int, fields: list, unsupported: type[Exception], title: str) -> None:
-    picks = list(range(min(SAMPLE, len(rows))))
-    picks += [i for i in range(max(len(rows) - SAMPLE, 0), len(rows)) if i not in picks]
-    head_lines = [i for i, _ in data[:len(head_cards)]]
-    row_lines = [rows[i][0][2].line for i in picks]
-    indices = [0] + head_lines
-    for line in row_lines:
-        start = [i for i, _ in data].index(line)
-        indices += [i for i, _ in data[start:start + per]]
-    text = title + "".join(block.lines[i] for i in indices[1:])
+def _self_check(block: Block, keyword_class: type, position: int, head: list, keys: list, rows: RowMap,
+                fields: list[FieldInfo], title: str) -> None:
+    picks = keys[:SAMPLE] + [k for k in keys[max(len(keys) - SAMPLE, SAMPLE):]]
+    lines = [i for i, _ in head]
+    for key in picks:
+        lines.extend(rows.line_indices(key))
     keyword = keyword_class()
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         try:
-            keyword.loads(text)
+            keyword.loads(title + "".join(block.lines[i] for i in lines))
         except Exception as error:  # PyDYNA raises many exception types on malformed input
-            raise unsupported(f"PyDYNA could not parse a sample of {block.name}: {error}") from error
+            raise Unsupported(f"PyDYNA could not parse a sample of {block.name}: {error}") from error
     frame = keyword._cards[position].table
     if len(frame) != len(picks):
-        raise unsupported(f"{block.name}: sample has {len(picks)} rows but PyDYNA read {len(frame)}")
-    for sample_row, row_index in enumerate(picks):
-        for name, kind, slot, _, default in rows[row_index]:
-            if name not in frame.columns:
+        raise Unsupported(f"{block.name}: sample has {len(picks)} rows but PyDYNA read {len(frame)}")
+    for sample_row, key in enumerate(picks):
+        for info in rows[key]:
+            if info.name not in frame.columns:
                 continue
-            text_value = read_text(block.lines[slot.line], slot)
-            if not _same(text_value, frame.iloc[sample_row][name], Column(name, kind, 0, 0, default)):
-                raise unsupported(f"Table self-check failed for {name!r} on line {slot.line} "
-                                  f"({text_value!r} vs PyDYNA {frame.iloc[sample_row][name]!r})")
-    for name, kind, slot, _, default in fields:
-        expected = getattr(keyword, name, None) if hasattr(type(keyword), name) else None
-        text_value = read_text(block.lines[slot.line], slot)
-        if expected is not None and not _same(text_value, expected, Column(name, kind, 0, 0, default)):
-            raise unsupported(f"Table header self-check failed for {name!r} ({text_value!r} vs {expected!r})")
+            text = read_text(block.lines[info.slot.line], info.slot)
+            expected = frame.iloc[sample_row][info.name]
+            if not _same(text, expected, info.kind, info.default):
+                raise Unsupported(f"Table self-check failed for {info.name!r} on line {info.slot.line} "
+                                  f"({text!r} vs PyDYNA {expected!r})")
+    for info in fields:
+        expected = getattr(keyword, info.name, None) if hasattr(type(keyword), info.name) else None
+        text = read_text(block.lines[info.slot.line], info.slot)
+        if expected is not None and not _same(text, expected, info.kind, info.default):
+            raise Unsupported(f"Table header self-check failed for {info.name!r} ({text!r} vs {expected!r})")
 
 
 __all__ = ["SAMPLE", "table_layout"]

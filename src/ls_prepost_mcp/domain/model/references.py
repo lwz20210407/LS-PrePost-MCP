@@ -1,8 +1,10 @@
 """ID definitions and cross references between keyword blocks (dangling / duplicate / unused IDs).
 
-Rules are declarative: which keyword fields define an ID of a kind, and which fields
-refer to one. Blocks whose fields cannot be read (no layout) are counted as unchecked,
-never silently treated as clean.
+Rules are declarative: which keyword fields define an ID of a kind, and which fields refer
+to one. Two passes keep large meshes cheap: pass 1 collects defined IDs (row keys of node /
+element / part tables are taken as a whole), pass 2 reads references and stores a location
+only for dangling references or for explicitly tracked IDs. Blocks whose fields cannot be
+read are counted as unchecked, never treated as clean.
 """
 from __future__ import annotations
 
@@ -13,7 +15,7 @@ from typing import TYPE_CHECKING
 from . import lists
 from .blocks import Block
 from .fields import FieldError, parse_number, read_text
-from .schema import Layout, Unsupported
+from .layouts import Layout, RowMap, Unsupported
 
 if TYPE_CHECKING:
     from .deck import KeywordDeck
@@ -57,6 +59,7 @@ LIST_MEMBERS = {"*SET_NODE_LIST": "node", "*SET_PART_LIST": "part", "*SET_SHELL_
 # LS-DYNA contact surface type codes -> referenced kind (5 = all, no reference).
 CONTACT_TYPES = {0: "segment_set", 1: "shell_set", 2: "part_set", 3: "part", 4: "node_set", 6: "part_set"}
 MESH_KINDS = {"node", "shell", "solid", "beam"}
+MAX_SITES = 10000
 
 
 @dataclass
@@ -70,26 +73,28 @@ class Site:
 
 @dataclass
 class ReferenceReport:
-    definitions: dict[str, dict[int, list[Site]]] = field(default_factory=lambda: defaultdict(dict))
-    references: dict[str, dict[int, list[Site]]] = field(default_factory=lambda: defaultdict(dict))
+    defined: dict[str, set[int]] = field(default_factory=lambda: defaultdict(set))
+    definition_sites: dict[str, dict[int, list[Site]]] = field(default_factory=lambda: defaultdict(dict))
+    referenced: dict[str, set[int]] = field(default_factory=lambda: defaultdict(set))
+    dangling_sites: list[tuple[str, int, Site]] = field(default_factory=list)
+    dangling_count: int = 0
+    tracked: dict[tuple[str, int], list[Site]] = field(default_factory=lambda: defaultdict(list))
     unchecked: dict[str, int] = field(default_factory=lambda: defaultdict(int))
 
     def dangling(self) -> list[dict]:
-        return [{"kind": kind, "id": ident, **vars(site)}
-                for kind, refs in self.references.items() for ident, sites in refs.items()
-                if ident not in self.definitions.get(kind, {}) for site in sites]
+        """Dangling references (locations capped at ``MAX_SITES``; see ``dangling_count``)."""
+        return [{"kind": kind, "id": ident, **vars(site)} for kind, ident, site in self.dangling_sites]
 
     def duplicates(self) -> list[dict]:
         return [{"kind": kind, "id": ident, "sites": [vars(s) for s in sites]}
-                for kind, defs in self.definitions.items() for ident, sites in defs.items() if len(sites) > 1]
+                for kind, defs in self.definition_sites.items() for ident, sites in defs.items() if len(sites) > 1]
 
     def unused(self, kinds: tuple[str, ...] = ("section", "material", "eos", "hourglass", "curve")) -> dict:
-        return {kind: sorted(set(self.definitions.get(kind, {})) - set(self.references.get(kind, {})))
-                for kind in kinds}
+        return {kind: sorted(self.defined.get(kind, set()) - self.referenced.get(kind, set())) for kind in kinds}
 
     def summary(self) -> dict:
-        return {"defined": {k: len(v) for k, v in self.definitions.items()},
-                "dangling": len(self.dangling()), "duplicates": len(self.duplicates()),
+        return {"defined": {k: len(v) for k, v in self.defined.items() if v},
+                "dangling": self.dangling_count, "duplicates": len(self.duplicates()),
                 "unchecked_blocks": dict(self.unchecked)}
 
 
@@ -102,64 +107,149 @@ def _rule(name: str, rules: list) -> object | None:
     return best
 
 
-def _int(block: Block, info: object, lookup: dict) -> int | None:
-    text = read_text(block.lines[info.slot.line], info.slot).strip()
-    if text.startswith("&") or text.startswith("-&"):
+def _ident(text: str, lookup: dict) -> int | None:
+    text = text.strip()
+    if not text:
+        return None
+    if "&" in text:
         value = lookup.get(text.lstrip("-&").lower())
     else:
         try:
-            value = parse_number(text)
-        except FieldError:
-            return None
+            value = int(text)
+        except ValueError:
+            try:
+                value = parse_number(text)
+            except FieldError:
+                return None
     return int(value) if isinstance(value, (int, float)) and float(value).is_integer() and value > 0 else None
 
 
-def _site(block: Block, info: object, row: int | None) -> Site:
-    return Site(block.name, str(block.file.path), block.line_number + info.slot.line, info.name, row)
+@dataclass
+class _Plan:
+    block: Block
+    layout: Layout
+    definition: tuple[str, str] | None
+    refs: list[tuple[str, str]]
+    contact: bool
+    members: str | None
 
 
-def collect(deck: KeywordDeck, include_mesh: bool = True) -> ReferenceReport:
-    """Scan all blocks in reading order. ``include_mesh=False`` skips node/element tables."""
-    report = ReferenceReport()
+def _plans(deck: KeywordDeck, include_mesh: bool, report: ReferenceReport) -> list[_Plan]:
+    plans = []
     for block in deck.iter_blocks():
         base = lists.base_name(block.name)[0]
         definition = None if base.startswith(NOT_DEFINITIONS) else _rule(base, DEFINITIONS)
         refs = _rule(base, REFERENCES)
         contact = base.startswith("*CONTACT_")
-        members_kind = LIST_MEMBERS.get(base)
+        members = LIST_MEMBERS.get(base)
         mesh = (definition and definition[1] in MESH_KINDS) or base.startswith("*ELEMENT_")
-        if not (definition or refs or contact or members_kind) or (mesh and not include_mesh):
+        if not (definition or refs or contact or members) or (mesh and not include_mesh):
             continue
         try:
-            layout: Layout = deck.layout(block)
+            layout = deck.layout(block)
         except Unsupported:
             report.unchecked[block.name] += 1
             continue
-        lookup = deck.lookup(block)
-        groups = ([(None, layout.fields)] if layout.fields else []) + list(layout.rows.items())
-        for row, infos in groups:
-            by_name = {info.name: info for info in infos}
-            if definition and definition[0] in by_name:
-                ident = _int(block, by_name[definition[0]], lookup)
-                if ident is not None:
-                    report.definitions[definition[1]].setdefault(ident, []).append(_site(block, by_name[definition[0]], row))
-            pairs = list(refs[0]) if refs else []
-            if contact:
-                for side in ("a", "b"):
-                    kind_info = by_name.get(f"surf{side}typ")
-                    code = _int(block, kind_info, lookup) if kind_info else None
-                    target = CONTACT_TYPES.get(code or 0)
-                    if target and f"surf{side}" in by_name:
-                        pairs.append((f"surf{side}", target))
-            for name, target in pairs:
-                if name in by_name:
-                    ident = _int(block, by_name[name], lookup)
+        if members and not include_mesh and members != "part":
+            members = None
+        plans.append(_Plan(block, layout, tuple(definition) if definition else None,
+                           list(refs[0]) if refs else [], contact, members))
+    return plans
+
+
+def _site(plan: _Plan, line_index: int, name: str, row: int | None) -> Site:
+    return Site(plan.block.name, str(plan.block.file.path), plan.block.line_number + line_index, name, row)
+
+
+def _define(report: ReferenceReport, kind: str, ident: int, site: object, track: set) -> None:
+    """Record a definition; ``site`` is a Site or a zero-argument factory (built only when needed)."""
+    seen = ident in report.defined[kind]
+    report.defined[kind].add(ident)
+    if kind not in MESH_KINDS or seen or (kind, ident) in track:
+        made = site() if callable(site) else site
+        if kind not in MESH_KINDS or seen:
+            sites = report.definition_sites[kind].setdefault(ident, [])
+            if seen and kind in MESH_KINDS and not sites:
+                sites.append(Site("?", "", 0, "first definition (mesh, location not kept)"))
+            sites.append(made)
+        if (kind, ident) in track:
+            report.tracked[("def", kind, ident)].append(made)
+
+
+def _refer(report: ReferenceReport, kind: str, ident: int, site: object, track: set) -> None:
+    report.referenced[kind].add(ident)
+    dangling = ident not in report.defined.get(kind, ())
+    if dangling or (kind, ident) in track:
+        made = site() if callable(site) else site
+        if dangling:
+            report.dangling_count += 1
+            if len(report.dangling_sites) < MAX_SITES:
+                report.dangling_sites.append((kind, ident, made))
+        if (kind, ident) in track:
+            report.tracked[("ref", kind, ident)].append(made)
+
+
+def collect(deck: KeywordDeck, include_mesh: bool = True, track: set[tuple[str, int]] | None = None) -> ReferenceReport:
+    """Scan all blocks. ``include_mesh=False`` skips node/element tables; ``track`` keeps locations."""
+    report, track = ReferenceReport(), track or set()
+    plans = _plans(deck, include_mesh, report)
+    for plan in plans:  # pass 1: definitions
+        if not plan.definition:
+            continue
+        name, kind = plan.definition
+        rows, lookup = plan.layout.rows, deck.lookup(plan.block)
+        if isinstance(rows, RowMap) and plan.layout.key == name:
+            located = rows.locate(name)
+            for key, indices in rows.lines():
+                _define(report, kind, key, lambda i=indices, k=key: _site(plan, i[located[0]], name, k), track)
+            continue
+        for row, infos in ([(None, plan.layout.fields)] if plan.layout.fields else []) + list(plan.layout.rows.items()):
+            for info in infos:
+                if info.name == name:
+                    ident = _ident(read_text(plan.block.lines[info.slot.line], info.slot), lookup)
                     if ident is not None:
-                        report.references[target].setdefault(ident, []).append(_site(block, by_name[name], row))
-        if members_kind and (include_mesh or members_kind == "part"):
-            for ident in deck.members(block):
-                site = Site(block.name, str(block.file.path), block.line_number, "members")
-                report.references[members_kind].setdefault(ident, []).append(site)
+                        _define(report, kind, ident, _site(plan, info.slot.line, name, row), track)
+    for plan in plans:  # pass 2: references
+        lookup = deck.lookup(plan.block)
+        layout = plan.layout
+        header = {info.name: info for info in layout.fields}
+        pairs = list(plan.refs)
+        if plan.contact:
+            for side in ("a", "b"):
+                code_info = header.get(f"surf{side}typ")
+                code = _ident(read_text(plan.block.lines[code_info.slot.line], code_info.slot), lookup) if code_info else None
+                target = CONTACT_TYPES.get(code or 0)
+                if target and f"surf{side}" in header:
+                    pairs.append((f"surf{side}", target))
+        for name, target in pairs:
+            if name in header:
+                info = header[name]
+                ident = _ident(read_text(plan.block.lines[info.slot.line], info.slot), lookup)
+                if ident is not None:
+                    _refer(report, target, ident, _site(plan, info.slot.line, name, None), track)
+        if isinstance(layout.rows, RowMap):
+            located = {name: layout.rows.locate(name) for name, _ in pairs}
+            for key, indices in layout.rows.lines():
+                for name, target in pairs:
+                    spot = located.get(name)
+                    if spot is None:
+                        continue
+                    ident = _ident(layout.rows.cell(indices, spot), lookup)
+                    if ident is not None:
+                        _refer(report, target, ident,
+                               lambda i=indices, s=spot, n=name, k=key: _site(plan, i[s[0]], n, k), track)
+        else:
+            for row, infos in layout.rows.items():
+                by_name = {info.name: info for info in infos}
+                for name, target in pairs:
+                    if name in by_name:
+                        info = by_name[name]
+                        ident = _ident(read_text(plan.block.lines[info.slot.line], info.slot), lookup)
+                        if ident is not None:
+                            _refer(report, target, ident, _site(plan, info.slot.line, name, row), track)
+        if plan.members:
+            for ident in deck.members(plan.block):
+                _refer(report, plan.members, ident, _site(plan, 0, "members", None), track)
     return report
 
 
@@ -169,18 +259,21 @@ def defined_by(deck: KeywordDeck, block: Block) -> list[tuple[str, int]]:
     definition = None if base.startswith(NOT_DEFINITIONS) else _rule(base, DEFINITIONS)
     if not definition:
         return []
+    name, kind = definition
     try:
         layout = deck.layout(block)
     except Unsupported:
         return []
+    if isinstance(layout.rows, RowMap) and layout.key == name:
+        return [(kind, key) for key in layout.rows]
     lookup = deck.lookup(block)
     found = []
     for _, infos in ([(None, layout.fields)] if layout.fields else []) + list(layout.rows.items()):
         for info in infos:
-            if info.name == definition[0]:
-                ident = _int(block, info, lookup)
+            if info.name == name:
+                ident = _ident(read_text(block.lines[info.slot.line], info.slot), lookup)
                 if ident is not None:
-                    found.append((definition[1], ident))
+                    found.append((kind, ident))
     return found
 
 
@@ -193,15 +286,16 @@ def check_delete(deck: KeywordDeck, block: Block) -> None:
     owned = defined_by(deck, block)
     if not owned:
         return
-    report = collect(deck, include_mesh=any(kind in MESH_KINDS for kind, _ in owned))
+    track = set(owned)
+    report = collect(deck, include_mesh=any(kind in MESH_KINDS for kind, _ in owned), track=track)
+    inside = range(block.line_number, block.line_number + len(block.lines))
     problems = []
     for kind, ident in owned:
-        others = [s for s in report.definitions.get(kind, {}).get(ident, [])
-                  if not (s.file == str(block.file.path) and s.keyword == block.name
-                          and block.line_number <= s.line < block.line_number + len(block.lines))]
+        others = [s for s in report.tracked.get(("def", kind, ident), [])
+                  if not (s.file == str(block.file.path) and s.line in inside)]
         if others:
             continue  # another definition of the same ID remains
-        for site in report.references.get(kind, {}).get(ident, []):
+        for site in report.tracked.get(("ref", kind, ident), []):
             problems.append(f"{kind} {ident} used by {site.keyword}.{site.field} at {site.file}:{site.line}")
     if problems:
         shown = "; ".join(problems[:20]) + (f"; ... {len(problems) - 20} more" if len(problems) > 20 else "")

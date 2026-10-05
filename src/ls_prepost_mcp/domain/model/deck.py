@@ -13,6 +13,7 @@ from . import lists, persist, references, scope
 from .blocks import Block, SourceFile, make_blocks
 from .fields import FieldError, FieldSlot, format_value, is_free_format, parse_number, read_text, write_text
 from .includes import Resolution, classify, file_names, identity, resolve
+from .layouts import RowMap
 from .parameters import reference
 from .schema import FieldInfo, Layout, Unsupported, block_format
 from .schema import layout as block_layout
@@ -66,6 +67,7 @@ class KeywordDeck:
         self.max_files = max_files
         self.base_search_dirs = list(search_dirs)
         self.changes: list[Change] = []
+        self._layouts: dict[int, tuple[Block, Layout]] = {}
         self._rebuild()
 
     @classmethod
@@ -75,6 +77,7 @@ class KeywordDeck:
 
     # ------------------------------------------------------------------ structure
     def _rebuild(self) -> None:
+        self._layouts.clear()
         self.includes: list[IncludeRef] = []
         self.search_dirs = list(self.base_search_dirs)
         self.warnings: list[str] = []
@@ -197,7 +200,13 @@ class KeywordDeck:
 
     # ------------------------------------------------------------------ fields
     def layout(self, block: Block) -> Layout:
-        return block_layout(block, self.lookup(block), self.format)
+        """Named-field layout of ``block`` (cached until the next change to the deck)."""
+        cached = self._layouts.get(id(block))
+        if cached is not None and cached[0] is block:
+            return cached[1]
+        result = block_layout(block, self.lookup(block), self.format)
+        self._layouts[id(block)] = (block, result)
+        return result
 
     def _value(self, block: Block, info: FieldInfo) -> FieldValue:
         raw = read_text(block.lines[info.slot.line], info.slot)
@@ -263,13 +272,22 @@ class KeywordDeck:
         before = block.lines[index]
         block.lines[index] = write_text(before, info.slot, text, "left" if info.kind == "str" else "right")
         check_row = int(value) if lay.key and name.lower() == lay.key and not ref else row
+        # A value inside a table row cannot change the table structure: re-read the cell.
+        # Anything else (card activity, row keys) is verified with a fresh layout.
+        quick = isinstance(lay.rows, RowMap) and row is not None and name.lower() != lay.key
         try:
-            written = self.get(block, name, card, check_row).raw.strip()
+            if quick:
+                written = read_text(block.lines[index], info.slot).strip()
+            else:
+                self._layouts.clear()
+                written = self.get(block, name, card, check_row).raw.strip()
         except (Unsupported, KeyError, FieldError) as error:
             block.lines[index] = before
+            self._layouts.clear()
             raise FieldError(f"Edit of {name!r} failed verification: {error}") from error
         if written != text.strip():
             block.lines[index] = before
+            self._layouts.clear()
             raise FieldError(f"Edit of {name!r} failed verification: read back {written!r}")
         return self._record(block, index, f"{name}={text}", before, exact)
 
@@ -334,6 +352,7 @@ class KeywordDeck:
         return self._record_lines(block, f"points -> {len(pairs)}", removed, added)
 
     def _record_lines(self, block: Block, description: str, removed: list[str], added: list[str]) -> Change:
+        self._layouts.clear()
         block.file.modified = True
         change = Change(block.file.path, block.name, block.line_number, description, "".join(removed), "".join(added))
         self.changes.append(change)
@@ -378,6 +397,7 @@ class KeywordDeck:
         source = block.file
         line = block.line_number
         source.blocks.remove(block)
+        self._layouts.clear()
         source.modified = True
         change = Change(source.path, block.name, line, f"deleted {block.name}", block.text(), "")
         self.changes.append(change)
@@ -391,6 +411,7 @@ class KeywordDeck:
         return new
 
     def _record(self, block: Block, index: int, description: str, before: str, exact: bool) -> Change:
+        self._layouts.clear()
         block.file.modified = True
         change = Change(block.file.path, block.name, block.line_number + index, description,
                         before, block.lines[index], exact)
