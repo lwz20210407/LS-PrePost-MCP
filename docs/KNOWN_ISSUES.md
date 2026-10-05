@@ -365,6 +365,13 @@
 - 规避：覆盖选区前显式 clear；每次组合后核对真实成员。
 - 来源文档与证据：[ADR 0001 的附加复现](decisions/0001-session-transport.md)、[报告哈希](decisions/0001-experiment-evidence.json)。
 
+## KI-047 宏面板出现与初始化完成是两件事
+
+- 现象：启动时过早打开 Macro 面板并 Exec，输入模型尚未载入，原生计数为 0；同步菜单调用可能超时而面板实际已打开。
+- 版本：4.13.4（17Dec2025），原始 .mac 文件。
+- 规避：先要求独立载入回执与预期节点数一致，再查实际菜单/面板；超时不重复点击，以本次关联回执与新产物验证结果。
+- 来源与证据：[ADR 0001](decisions/0001-session-transport.md)、[更新后的 macro/session/unlocked 三项记录](decisions/0001-experiment-evidence.json)。产品级迁移留给 M1。
+
 ## 能力范围原文索引
 
 以下是 M0 冻结能力文件的全部 scope/limitation 字段，按原文去重。它们同时包含已验证范围和未验证项，不全是原生缺陷。版本、规避和证据保留原文；原文未注明者不补造。来源文件：[capabilities.json](../src/ls_prepost_mcp/data/capabilities.json)。

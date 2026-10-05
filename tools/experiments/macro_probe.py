@@ -32,6 +32,15 @@ def run(cell, executable, lane, run_dir):
     macro.write_text(source.replace("*macro end", tail + "*macro end"), encoding="utf8")
     start = run_dir / "start.cfile"
     commands = 'open keyword "' + str(directory.parent / "fixture/input.k") + '"\n'
+    ready = run_dir / "ready.txt"
+    ready_script = run_dir / "ready.scl"
+    ready_script.write_text(
+        '/*LS-SCRIPT*/\ndefine:\nvoid main(void){\nFILE *f;\nInt n;\nn=SCLGetDataCenterInt("num_nodes");\nf=fopen("'
+        + str(ready).replace("\\", "\\\\")
+        + '","w");\nfprintf(f,"%d\\n",n);\nfclose(f);\n}\nmain();\n',
+        encoding="ascii",
+    )
+    commands += 'runscript "' + str(ready_script) + '"\n'
     if cell["mode"] != "session":
         commands += "exit\n"
     start.write_text(commands, encoding="utf8")
@@ -56,6 +65,12 @@ def run(cell, executable, lane, run_dir):
             if cell["mode"] == "session":
                 transport = WindowsCommandTransport(process.pid)
                 deadline = time.monotonic() + 30
+                while not ready.exists():
+                    if process.poll() is not None or time.monotonic() > deadline:
+                        raise RuntimeError("Native macro input did not finish loading")
+                    time.sleep(0.1)
+                if ready.read_text().strip() != str(cell["expected_nodes"]):
+                    raise ValueError("Macro input count mismatch before execution")
                 while True:
                     try:
                         menu = transport.inspect_menu()
@@ -66,7 +81,15 @@ def run(cell, executable, lane, run_dir):
                     if process.poll() is not None or time.monotonic() > deadline:
                         raise RuntimeError("Experimental macro process did not expose the recorded menu")
                     time.sleep(0.1)
-                transport.open_menu_item(["Misc.", "Launch Macro Interface"])
+                try:
+                    transport.open_menu_item(["Misc.", "Launch Macro Interface"])
+                except RuntimeError as exc:
+                    if "timed out" not in str(exc):
+                        raise
+                    # A native modal handler can outlive SendMessageTimeout.
+                    # Never send the menu request again; inspect its actual panel.
+                    evidence["menu_dispatch"] = "timeout; awaiting owned Macro panel readback"
+                    deadline = time.monotonic() + 15
                 while True:
                     try:
                         handle = transport._panel_control("Macro", 10609, class_name="ListBox")
@@ -101,7 +124,12 @@ def run(cell, executable, lane, run_dir):
                     parent, 0x0111, 10609 | (1 << 16), handle, 2, 2000, transport.ctypes.byref(result)
                 ):
                     raise RuntimeError("Macro selection notification timed out")
-                transport._click_panel_control("Macro", 10615, "Exec")
+                try:
+                    transport._click_panel_control("Macro", 10615, "Exec")
+                except RuntimeError as exc:
+                    if "timed out" not in str(exc):
+                        raise
+                    evidence["exec_dispatch"] = "timeout; no retry; requiring fresh correlated receipt"
                 evidence["trigger"] = "native Macro list M0Export + Exec (10615), PID/caption checked"
             deadline = time.monotonic() + 60
             receipt = directory / "receipt.txt"
