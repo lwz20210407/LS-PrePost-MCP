@@ -12,4 +12,6 @@
 - New T1 names must occur in tasks.yaml target_tools; use recipes or scripts for long-tail operations. Old names remain aliases until v0.6.
 - I07 belongs to Claude on claude/keyword-engine (local commit a1fb96c). During M0–M2 do not implement I07 or create files under src/ls_prepost_mcp/domain/model/. Integrate that work in M3.
 - The user authorized continuing M1: I02 contracts, I01 engines I03 command builders/version capabilities and I04 native regression. Keep each change reviewable on its own stacked branch; M0 evidence remains in its separate PR.
-- UU remote is the actual confirmed remote environment. Thirteen remaining runc/macro UU matrix cells remain unverified; do not reinstate an RDP prerequisite or silently mark those cells complete.
+- UU remote is the actual confirmed remote environment. The user moved thirteen remaining runc/macro UU cells to I04; M0 is 8/8. Keep them unverified until the remote evidence and operator window are validated.
+
+- Follow through I04, I08, I05, A01–A05, A08, A10 until all M1 exits pass. Batch GUI/remote needs into one external pending list and continue independent work while waiting. Keep local-book content and derivatives private and outside Git.

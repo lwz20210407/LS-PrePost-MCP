@@ -881,10 +881,13 @@ infrastructure:
       - tools/native_regression.py
       - tests/test_native_acceptance.py
       - tests/test_native_regression.py
+      - tests/test_native_remote.py
+      - tests/test_native_input_preconditions.py
     gaps:
       - 当前 55 个 tools/run_* 入口已全部收编为 57 个 pytest 用例（保留原生/文件及 batch/GUI 变体）；CLI 参数发现已逐一验证。
-      - 已通过三个文件验收和 program_acceptance 的真实批处理验收；全量 GUI 与外部语料回归尚待参数配置和集中验收，未计为完成。
+      - 已通过三个文件验收和 program_acceptance 的真实批处理验收；57 组 CLI 参数及 15 组外部输入已配置，关键输入已做原生预检；全量 GUI 与 13 个 UU 格尚待集中验收，未计为完成。
     acceptance:
+      - 补测从 M0 转入的 13 个 UU 远程格（4.13/4.10 的 runc 五通道共 10 格，以及两版本 nographics 原生宏和 4.13 会话原生宏共 3 格），记录执行、PNG、MP4 结果与用户确认的断开时间窗
       - 52 个 tools/run_* 收编为带 marker 的 pytest，共享 fixture
       - 一条命令生成 Markdown 报告；私有语料通过环境变量启用
 

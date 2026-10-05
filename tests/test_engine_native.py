@@ -20,6 +20,8 @@ def native_case(tmp_path, pytestconfig):
     executable = pytestconfig.getoption("--native-executable") or os.environ.get("LSPP_ENGINE_EXECUTABLE")
     fixture = pytestconfig.getoption("--native-fixture")
     if not executable or not fixture:
+        if pytestconfig.getoption("--run-native") and pytestconfig.getoption("--native-strict"):
+            pytest.fail("Native engine fixture and executable are required")
         pytest.skip("Set LSPP_ENGINE_EXECUTABLE and LSPP_ENGINE_FIXTURE for I01 native regression")
     source = Path(fixture)
     assert all((source / name).is_file() for name in ("input.k", "d3plot", "d3plot01"))

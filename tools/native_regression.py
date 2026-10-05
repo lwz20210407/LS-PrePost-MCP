@@ -238,10 +238,16 @@ def pytest_addoption(parser):
     group.addoption("--native-inputs", default=os.environ.get("LSPP_NATIVE_INPUTS"), help="External JSON mapping case IDs to CLI inputs")
     group.addoption("--native-timeout", type=float, default=600)
     group.addoption("--native-strict", action="store_true", help="Fail rather than skip unavailable GUI/inputs")
+    group.addoption("--native-executable-410", help="4.10 installation for the transferred remote probes")
+    group.addoption("--remote-capture", action="store_true", help="Capture all 13 UU probes in an explicitly armed window")
+    group.addoption("--remote-evidence", help="Existing externally stored UU capture to verify after confirmation")
+    group.addoption("--remote-confirmation", help="External operator window JSON; never infer UU status from WTS")
+    group.addoption("--remote-timeout", type=float, default=2700)
 
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "gui: requires an operator-approved visible GUI window")
+    config.addinivalue_line("markers", "remote: requires an operator-confirmed UU disconnection window")
     config._native_rows = {}
     config._native_root = None
     if config.getoption("--run-native"):
@@ -253,6 +259,8 @@ def pytest_configure(config):
             raise pytest.UsageError("Native evidence must be outside the repository")
         if not math.isfinite(config.getoption("--native-timeout")) or config.getoption("--native-timeout") <= 0:
             raise pytest.UsageError("Native timeout must be positive")
+        if not math.isfinite(config.getoption("--remote-timeout")) or config.getoption("--remote-timeout") <= 0:
+            raise pytest.UsageError("Remote timeout must be positive")
         root.mkdir(parents=True, exist_ok=False)
         config._native_root = root
         if config.option.basetemp is None:

@@ -274,6 +274,22 @@ def run(args):
                     if service and sid and args.desktop == "unlocked":
                         service.close_gui_session(sid, save_checkpoint=False)
                         sid = None
+                # Keep each lane's own outputs before the next lane reuses the
+                # cell-level filenames. Stale files are never copied as evidence.
+                item["captured_files"] = []
+                try:
+                    saved = run_dir / "artifacts"
+                    saved.mkdir()
+                    for name in ("receipt.txt", "model.k", "image.png", "movie.mp4"):
+                        source = directory / name
+                        if source.is_file() and source.stat().st_mtime_ns >= started:
+                            target = saved / name
+                            shutil.copy2(source, target)
+                            item["captured_files"].append(dict(
+                                path=target.relative_to(directory).as_posix(),
+                                sha256=hashlib.sha256(target.read_bytes()).hexdigest()))
+                except OSError as exc:
+                    item.update(status="failed", error="Evidence preservation failed: " + str(exc))
                 item["desktop_after"] = desktop_state()
                 item["elapsed_seconds"] = (time.time_ns() - started) / 1e9
                 evidence["lanes"][lane] = item

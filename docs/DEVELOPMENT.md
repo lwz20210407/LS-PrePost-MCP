@@ -81,4 +81,12 @@ uv run pytest -m native --run-native --native-strict --native-gui --native-execu
 uv run pytest tests/test_native_acceptance.py -m native -k "engineering_unit or workflow_gate or parameter_study_acceptance.file" --run-native --native-strict --native-output "<新建的外部目录>"
 ```
 
-I04 在全量原生用例完成前保持 partial。M0 尚未确认归属的 13 个 UU 远程格另行保留，不能用本框架的默认桌面结果替代。
+I04 在全量原生用例完成前保持 partial。用户已把 M0 剩余 13 个 UU 远程格转入 I04，不能用默认桌面结果替代。
+
+### UU 远程格的捕获与确认
+
+13 格由 `tests/test_native_remote.py` 收集。只在用户明确安排的窗口内使用 `--remote-capture --native-gui`，并提供 `--native-executable-410`、`--native-fixture` 和 `--remote-confirmation`。确认文件放仓库外，捕获前为 `{"environment":"UU","phase":"armed","operator_ready":true}`；程序预留 30 秒供用户断开 UU。
+
+捕获后必须由用户确认实际断开区间，将本地确认文件改为 confirmed，含 operator_confirmed=true、disconnected_from/disconnected_until 两个 Unix 时间戳。随后用同一 pytest 入口传 `--remote-evidence <原捕获目录>` 和确认文件，在新的 native-output 目录验证。未确认区间不会判为通过；记录/每阶段产物哈希变化也会失败。
+
+这些用例核验的是实验记录及远程条件，原生各 lane 的 succeeded/failed 原样保留在报告，不能把“记录已验证”解释成不支持的 runc/宏路线已成功。每阶段保留自己的回执、模型和媒体，后续阶段不能用同名文件覆盖前一阶段证据。
