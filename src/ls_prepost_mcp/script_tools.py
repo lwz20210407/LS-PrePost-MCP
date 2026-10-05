@@ -35,7 +35,7 @@ def log_result(path, directory, *, source=None, offset=0):
 
 
 class ScriptTools:
-    def run_script(self, language: Literal["command", "cfile"], code: str,
+    def run_script(self, language: Literal["command", "cfile", "scl"], code: str,
                    context: Literal["batch", "session"] = "batch", session_id: str | None = None,
                    model: str | None = None, file_type: Literal["keyword", "d3plot"] = "keyword",
                    outputs: list[ScriptOutput] | None = None, expected_counts: dict[str, int] | None = None,
@@ -51,11 +51,11 @@ class ScriptTools:
         if context == "session" and opened and (declared or initial_node_ids is not None or capture_model):
             raise ValueError("Open command cannot declare output files, an initial selection or a snapshot")
         rendered = render_cfile(code, request.parameters) if language == "cfile" else code
-        if language == "cfile":
+        if language in ("cfile", "scl"):
             prepared = self.prepare_native_program(language, code=rendered, outputs=declared, expected_counts=counts)
             result = self.execute_native_program(prepared["job_id"], prepared["data"]["sha256"], model=model,
                                                  file_type=file_type, session_id=session_id,
-                                                 allow_owned_output_context=context == "session")
+                                                 allow_owned_output_context=context == "session" and language == "cfile")
             directory = Path(result["job_directory"])
             if context == "session":
                 native_dir = Path(result.get("native_request", {}).get("job_directory", directory))
@@ -98,6 +98,13 @@ class ScriptTools:
             if language == "cfile":
                 text = log.read_text(encoding="utf8", errors="replace")
                 extra = dict(rendered_source=rendered, diagnostics=cfile_diagnostics(result.get("executed_source", rendered), text))
+            elif language == "scl":
+                text = log.read_text(encoding="utf8", errors="replace")
+                diagnostics = []
+                for message in native_errors(text):
+                    match = re.search(r"\bline\s*(?:number\s*)?[:=]?\s*(\d+)", message, re.I)
+                    diagnostics.append(dict(line=int(match[1]) if match else None, message=message))
+                extra = dict(diagnostics=diagnostics)
             outcome = JobResult(operation="run_script", job_id=normalized.job_id or result.get("request_id"),
                                 status=status, backend="lsprepost", artifacts=normalized.artifacts,
                                 evidence=(*normalized.evidence, artifact), error=error,

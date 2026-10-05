@@ -609,8 +609,9 @@ tasks:
     layer: T1
     target_tools: [run_script]
     channel: scl
-    status: partial
+    status: done
     existing: [prepare_native_program, execute_native_program, probe_scl]
+    evidence: [tests/test_script_scl_native.py, docs/decisions/0004-scl-execution.md]
     acceptance:
       - 读写数组并输出 CSV；结果与 A04 的同等 Python 任务一致
       - 编译错误明确失败并返回行号
