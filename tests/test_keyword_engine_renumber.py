@@ -230,3 +230,19 @@ def test_thick_shell_history_is_not_a_shell_reference(tmp_path: Path) -> None:
                                   "*DATABASE_HISTORY_SHELL_SET\n         4\n"))
     report = deck.references()
     assert report.referenced["tshell"] == {1} and report.referenced["shell_set"] == {4}
+
+
+def test_joint_failure_and_local_after_parm_card(tmp_path: Path) -> None:
+    """R11 Vol I 10-54..10-58: [ID], card 1, PARM card (GEARS), LOCAL, FAILURE x2 (last one blank)."""
+    joint = ("*CONSTRAINED_JOINT_GEARS_ID_LOCAL_FAILURE\n        77gear pair\n"
+             "         1         2         3         4         5         6       1.0\n"
+             "       2.5         7         0       0.0       0.0\n"
+             "         1         0\n"
+             "         0       0.5       0.0\n"
+             "\n")
+    deck = _deck(tmp_path, _model(joint))
+    block = deck.blocks("*CONSTRAINED_JOINT_GEARS_ID_LOCAL_FAILURE")[0]
+    values = {name: deck.get(block, name).value for name in ("jid", "n6", "parm", "raid", "lst", "tfail", "mzz")}
+    assert values == {"jid": 77, "n6": 6, "parm": 2.5, "raid": 1, "lst": 0, "tfail": 0.5, "mzz": None}
+    renumber(deck, "part", {1: 5})  # RAID with LST=0 is a rigid body part
+    assert deck.get(block, "raid").value == 5 and deck.get(block, "n1").value == 1

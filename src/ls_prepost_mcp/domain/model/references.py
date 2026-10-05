@@ -65,6 +65,7 @@ REFERENCES: list[tuple[str, tuple[tuple[str, str], ...]]] = [
     # *DATABASE_HISTORY_OPTION, R17 Vol I 16-115: SHELL_SET holds shell sets; TSHELL, TSHELL_ID and
     # TSHELL_SET thick shells (PyDYNA links TSHELL_ID to shells). NODE/NODE_SET/SOLID/BEAM: PyDYNA links.
     ("*DATABASE_HISTORY_SHELL_SET", tuple((f"id{i}", "shell_set") for i in range(1, 9))),
+    ("*CONSTRAINED_JOINT_", (("cid", "coordinate"),)),  # FAILURE card 1 (R11 Vol I 10-58)
     ("*DATABASE_HISTORY_TSHELL", tuple((f"id{i}", "tshell") for i in range(1, 9))),
     ("*DATABASE_HISTORY_TSHELL_SET", tuple((f"id{i}", "tshell_set") for i in range(1, 9))),
 ]
@@ -91,6 +92,8 @@ TYPE_CODED: list[tuple[str, tuple[tuple[str, str, dict[int, str]], ...]]] = [
     ("*ALE_MULTI-MATERIAL_GROUP", (("sid", "idtype", {0: "part_set", 1: "part"}),)),
     # ITYPE: 0 rigid body (part), 1 accelerometer, 2 coordinate system (R17 manual, *DATABASE_CROSS_SECTION_SET)
     ("*DATABASE_CROSS_SECTION_SET", (("id", "itype", {0: "part", 2: "coordinate"}),)),
+    # LOCAL card: RAID is a rigid body (part) for LST 0, an accelerometer for LST 1 (R11 Vol I 10-57)
+    ("*CONSTRAINED_JOINT_", (("raid", "lst", {0: "part"}),)),
 ]
 
 

@@ -394,10 +394,15 @@ def _leading_id_card(keyword: object) -> bool:
 
 
 # Option cards that LS-DYNA defines and PyDYNA lacks, placed around the PyDYNA cards.
-# (keyword prefix, option) -> (position, fields); positions: "first" or "after_card1".
+# (keyword prefix, option) -> (position, cards); "first" precedes the PyDYNA cards, "after" cards follow
+# them in this table's order. *CONSTRAINED_JOINT (R11 Vol I 10-54..10-58, R17 10-62): [ID], card 1,
+# [PARM card of MOTOR/GEARS/RACK_AND_PINION/PULLEY/SCREW], [LOCAL], [FAILURE x2].
 SYNTHETIC_OPTIONS = {
-    ("*CONSTRAINED_JOINT_", "ID"): ("first", (("jid", "int", 0, 10), ("heading", "str", 10, 70))),  # R11 p. 10-55
-    ("*CONSTRAINED_JOINT_", "LOCAL"): ("after_card1", (("raid", "int", 0, 10), ("lst", "int", 10, 10))),  # p. 10-58
+    ("*CONSTRAINED_JOINT_", "ID"): ("first", ((("jid", "int", 0, 10), ("heading", "str", 10, 70)),)),
+    ("*CONSTRAINED_JOINT_", "LOCAL"): ("after", ((("raid", "int", 0, 10), ("lst", "int", 10, 10)),)),
+    ("*CONSTRAINED_JOINT_", "FAILURE"): ("after", (
+        (("cid", "int", 0, 10), ("tfail", "float", 10, 10), ("coupl", "float", 20, 10)),
+        tuple((name, "float", 10 * i, 10) for i, name in enumerate(("nxx", "nyy", "nzz", "mxx", "myy", "mzz"))))),
 }
 
 
@@ -408,26 +413,31 @@ def _synthetic(block: Block, base: str) -> dict[str, tuple]:
 
 
 def _split_synthetic(block: Block, data: list[tuple[int, str]], synthetic: dict[str, tuple],
-                     long: bool) -> tuple[list[tuple[int, str]], list[FieldInfo]]:
-    """Remove the synthesised option lines from ``data`` and describe their fields."""
+                     long: bool, pydyna_cards: int) -> tuple[list[tuple[int, str]], list[FieldInfo]]:
+    """Remove the synthesised option lines from ``data`` and describe their fields.
+
+    ``pydyna_cards`` is the number of PyDYNA cards; "after" cards are counted from the front, so a
+    blank last card (all defaults) is still found.
+    """
     if long:
         raise Unsupported(f"{block.name}: long format with synthesised option cards is not supported")
     lines, infos = list(data), []
-    for wanted in ("first", "after_card1"):
-        for option, (position, fields) in synthetic.items():
+    for wanted in ("first", "after"):
+        for option, (position, cards) in synthetic.items():
             if position != wanted:
                 continue
-            at = 0 if position == "first" else 1
-            if len(lines) <= at:
-                raise Unsupported(f"{block.name}: the {option} card is missing")
-            index, line = lines.pop(at)
-            stray = stray_text(line, [(offset, width) for _, _, offset, width in fields], tolerant=False)
-            if stray and not any(kind == "str" for _, kind, _, _ in fields):
-                raise Unsupported(f"{block.name}: text outside the {option} card on line {index} ({stray[:40]!r})")
-            free = is_free_format(line)
-            for token, (name, kind, offset, width) in enumerate(fields):
-                infos.append(FieldInfo(name, kind, FieldSlot(index, offset, width, token if free else None),
-                                       option.lower()))
+            for number, fields in enumerate(cards):
+                at = 0 if position == "first" else pydyna_cards
+                if len(lines) <= at:
+                    raise Unsupported(f"{block.name}: the {option} card is missing")
+                index, line = lines.pop(at)
+                stray = stray_text(line, [(offset, width) for _, _, offset, width in fields], tolerant=False)
+                if stray and not any(kind == "str" for _, kind, _, _ in fields):
+                    raise Unsupported(f"{block.name}: text outside the {option} card on line {index} ({stray[:40]!r})")
+                free = is_free_format(line)
+                card = option.lower() + (str(number + 1) if number else "")
+                for token, (name, kind, offset, width) in enumerate(fields):
+                    infos.append(FieldInfo(name, kind, FieldSlot(index, offset, width, token if free else None), card))
     return lines, infos
 
 
@@ -464,11 +474,12 @@ def _pydyna_layout(block: Block, lookup: Mapping[str, object], long: bool = Fals
     synthetic = _synthetic(block, base)
     _check_options(block, cls, base, long, set(synthetic))
     data = [(i, line) for i, line in block.data()]
-    while data and is_blank(data[-1][1]):
-        data.pop()
     extra_infos: list[FieldInfo] = []
     if synthetic:
-        data, extra_infos = _split_synthetic(block, data, synthetic, long)
+        cards = sum(1 for card in _load(cls, pydyna_title(block, long))._cards if getattr(card, "active", True))
+        data, extra_infos = _split_synthetic(block, data, synthetic, long, cards)
+    while data and is_blank(data[-1][1]):
+        data.pop()
     omit = _omitted_id_card(block, cls, base, long)
     if omit is not None:
         infos, missing = _chunk_fields(cls, block, lookup, data, long, omit=omit)
