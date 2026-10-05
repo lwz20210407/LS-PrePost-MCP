@@ -247,3 +247,13 @@ def test_stray_text_policy() -> None:
     assert stray_text(f"{4:>10}{0:>10}{0:>10}\n", [(0, 10)]) == "0 0"  # ID card: nothing tolerated
     assert stray_text(f"{1:>10}{'':>10}{2:>10}\n", [(0, 10), (20, 10), (30, 10)]) is None  # blank gap
     assert stray_text(f"{1:>10}  7{'':>7}{3:>10}\n", [(0, 10), (20, 10), (30, 10)]) == "7"
+
+
+def test_composite_shell_angles_with_zero_padding(tmp_path: Path) -> None:
+    """NIP=1 needs one angle; LS-PrePost writes the whole 8-field angle line (public belted.k)."""
+    pytest.importorskip("ansys.dyna.core")
+    deck = _deck(tmp_path, "*SECTION_SHELL\n       105         5     0.000         1         0         0         1\n"
+                           "  0.304800  0.304800  0.304800  0.304800\n"
+                           "     0.000     0.000     0.000     0.000     0.000     0.000     0.000     0.000\n")
+    block = deck.blocks("*SECTION_SHELL")[0]
+    assert deck.get(block, "t1").value == pytest.approx(0.3048)

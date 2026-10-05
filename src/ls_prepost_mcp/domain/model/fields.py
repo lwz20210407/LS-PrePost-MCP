@@ -162,17 +162,18 @@ def _zero(token: str) -> bool:
         return False
 
 
-def stray_text(line: str, spans: list[tuple[int, int]], long: bool = False) -> str | None:
+def stray_text(line: str, spans: list[tuple[int, int]], long: bool = False, tolerant: bool | None = None) -> str | None:
     """Text of ``line`` outside the fields that suggests cards matched to the wrong lines.
 
     Fixed format: non-blank characters within the card width (80, long 160) that no span
     covers; comma format: non-empty tokens beyond the fields. Extra trailing fields that are
     zero or blank are tolerated on cards with three or more fields (PyDYNA lacks some newer
     trailing fields, e.g. CID_RCF of contact card C); ID cards with one or two fields tolerate
-    nothing, because a misplaced ID card is exactly what this check has to catch.
+    nothing, because a misplaced ID card is exactly what this check has to catch. ``tolerant``
+    overrides the field-count rule (series lines such as shell layer angles are never ID cards).
     """
     text = body(line)
-    tolerant = len(spans) >= 3
+    tolerant = len(spans) >= 3 if tolerant is None else tolerant
     if is_free_format(line):
         extra = [token.strip() for token in text.split(",")[len(spans):] if token.strip()]
         if not extra or (tolerant and all(_zero(token) for token in extra)):

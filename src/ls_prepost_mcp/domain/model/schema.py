@@ -261,7 +261,7 @@ def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
             if isinstance(card, _SeriesLine):
                 series = card.series
                 width = 20 if long else int(series._element_width)
-                coverage.append((card_name, index, [(j * width, width) for j in range(card.count)]))
+                coverage.append((card_name, index, [(j * width, width) for j in range(card.count)], True))
                 kind = _kind(series._type)
                 for j in range(card.count):
                     slot = _slot(line, index, j * width, width, j)
@@ -273,7 +273,7 @@ def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
             # A card holding one text field (title/heading) is never comma separated: commas are text.
             title_card = len(schemas) == 1 and _kind(schemas[0].type) == "str"
             if not title_card:  # one text field: commas and any column are part of the text
-                coverage.append((card_name, index, list(spans)))
+                coverage.append((card_name, index, list(spans), None))
             seen: dict[str, int] = {}
             for token, (schema, (offset, width)) in enumerate(zip(schemas, spans)):
                 name = schema.name.lower()
@@ -292,8 +292,8 @@ def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
     for info in first:
         slots.setdefault(info.slot.line, []).append(info.slot)
     infos, missing, sources, coverage = build(_load(cls, _substituted_text(block, indices, lookup, slots, long)))
-    for card_name, index, spans in coverage:
-        stray = stray_text(block.lines[index], spans, long)
+    for card_name, index, spans, tolerant in coverage:
+        stray = stray_text(block.lines[index], spans, long, tolerant)
         if stray:
             raise Unsupported(f"Text outside the fields of {card_name} on line {index} ({stray[:40]!r}): "
                               "the PyDYNA cards do not match this block")
