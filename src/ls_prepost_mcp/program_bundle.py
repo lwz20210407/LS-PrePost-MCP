@@ -60,12 +60,14 @@ def capture_dependencies(settings, dependencies, outputs):
 
 def identity(content, contract):
     source_hash = hashlib.sha256(content).hexdigest()
-    if not contract.get("dependencies"):
+    if not contract.get("dependencies") and "python_parameters" not in contract:
         return source_hash  # Preserve existing single-file execution tokens.
     canonical = dict(source_sha256=source_hash, language=contract["language"],
                      files=[{k:item[k] for k in ("name", "size", "sha256")}
-                            for item in sorted(contract["dependencies"], key=lambda x:x["name"])],
+                            for item in sorted(contract.get("dependencies", []), key=lambda x:x["name"])],
                      outputs=contract["outputs"], expected_counts=contract["expected_counts"])
+    if "python_parameters" in contract:
+        canonical["python_parameters"] = contract["python_parameters"]
     return hashlib.sha256(json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode("utf8")).hexdigest()
 
 
@@ -153,11 +155,12 @@ def validate_script_references(content, language, captured):
     return graph
 
 
-def python_wrapper(directory, dependency_names):
+def python_wrapper(directory, dependency_names, parameters=None):
     # Valid on the older embedded Python grammar. Isolate declared module names
     # and remove modules loaded from this job; leave SDK/stdlib modules intact.
     roots = sorted({(n.split("/")[0] if "/" in n else n[:-3]) for n in dependency_names if n.endswith(".py")})
-    return "_root=" + repr(str(Path(directory).resolve())) + "\n_names=" + repr(roots) + "\n" + """import os,sys,json,runpy,traceback
+    payload = json.dumps(parameters or {}, allow_nan=False)
+    return "_root=" + repr(str(Path(directory).resolve())) + "\n_names=" + repr(roots) + "\n_parameters_json=" + repr(payload) + "\n" + """import os,sys,json,runpy,traceback
 _path=list(sys.path)
 _cwd=os.getcwd()
 _initial=set(sys.modules)
@@ -167,7 +170,7 @@ _reply={'ok':False}
 try:
     os.chdir(_root)
     sys.path.insert(0,_root)
-    runpy.run_path(os.path.join(_root,'program.py'),run_name='__main__')
+    runpy.run_path(os.path.join(_root,'program.py'),run_name='__main__',init_globals={'PARAMETERS':json.loads(_parameters_json)})
     _reply['ok']=True
 except BaseException as _exc:
     _reply.update(error=type(_exc).__name__+': '+str(_exc),traceback=traceback.format_exc())

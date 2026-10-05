@@ -73,7 +73,11 @@ class Jobs:
 def check_artifact(path: Path, kind: str) -> dict:
     if not path.is_file() or path.stat().st_size == 0:
         raise ValueError("Missing or empty artifact: " + path.name)
-    if kind == "png":
+    metadata = {}
+    if kind == "npz":
+        from .array_artifacts import inspect_npz
+        metadata = inspect_npz(path)
+    elif kind == "png":
         from PIL import Image, ImageStat
         with Image.open(path) as im:
             im.verify()
@@ -100,4 +104,7 @@ def check_artifact(path: Path, kind: str) -> dict:
             raise ValueError("Invalid keyword artifact")
     elif kind == "json":
         json.loads(path.read_text(encoding="utf-8"))
-    return {**fingerprint(path), "kind": kind, "validated": True}
+    result = {**fingerprint(path), **metadata, "kind": kind, "validated": True}
+    if kind == "npz":
+        result.pop("hash_note", None)
+    return result

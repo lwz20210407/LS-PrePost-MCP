@@ -100,7 +100,7 @@ def output_contract(outputs):
             or name.lower() in names
         ):
             raise ValueError("Output must be a unique, non-reserved job-local filename")
-        if item["kind"] not in ("keyword", "csv", "json", "text", "png"):
+        if item["kind"] not in ("keyword", "csv", "json", "text", "png", "npz"):
             raise ValueError("Unsupported output validation kind")
         names.add(name.lower())
     return outputs
@@ -154,12 +154,21 @@ class ProgramTools:
         expected_counts: dict | None = None,
         dependencies: list[dict] | None = None,
         macro_name: str | None = None,
+        script_parameters: dict | None = None,
     ) -> dict:
         """Prepare command/cfile/SCL/application-Python or native macro source without execution. language=macro binds one *macro block (macro_name required for multiple blocks), literal numeric parameter defaults and &name/(n/e/p) user IDs into an explicit cfile; retains source.mac and native-editable bound.mac. Interactive/unresolved picks are rejected. Dependencies {path,name} are frozen. Returns reviewed rendered source and execution SHA256; no global macro installation."""
         if language not in {*LANGUAGES, "macro"} or (code is None) == (path is None):
             raise ValueError("Choose command/cfile/scl/python/macro and exactly one of code/path")
         if language != "macro" and macro_name is not None:
             raise ValueError("macro_name only applies to native macro source")
+        if script_parameters is not None:
+            if language != "python" or not isinstance(script_parameters, dict):
+                raise ValueError("Script parameters require a Python JSON object")
+            if parameters:
+                raise ValueError("Choose Python data parameters, not source interpolation")
+            serialized = json.dumps(script_parameters, allow_nan=False)
+            if len(serialized.encode("utf8")) > 1024 * 1024:
+                raise ValueError("Python parameters exceed 1 MiB")
         source = self.settings.input_path(path) if path else None
         if source:
             if source.stat().st_size > 1024 * 1024:
@@ -181,6 +190,8 @@ class ProgramTools:
 
             rendered, bound_macro, native_macro = compile_macro(code, params, macro_name)
             language = "cfile"
+        elif script_parameters is not None:
+            rendered = code
         else:
             rendered = render(code, params)
         outputs, counts = output_contract(outputs), count_contract(expected_counts)
@@ -205,6 +216,8 @@ class ProgramTools:
             outputs=outputs,
             expected_counts=counts,
         )
+        if script_parameters is not None:
+            contract["python_parameters"] = json.loads(serialized)
         contract["sha256"] = identity(program.read_bytes(), contract)
         if native_macro is not None:
             contract["native_macro"] = native_macro
@@ -308,7 +321,7 @@ class ProgramTools:
             elif language == "scl":
                 commands.append("runscript program.scl")
             else:
-                wrapper = python_wrapper(directory, [item["name"] for item, _ in captured])
+                wrapper = python_wrapper(directory, [item["name"] for item, _ in captured], contract.get("python_parameters"))
                 (directory / "bootstrap.py").write_text(wrapper, encoding="utf8")
                 commands.append("runpython bootstrap.py")
             (directory / "complete.scl").write_text(

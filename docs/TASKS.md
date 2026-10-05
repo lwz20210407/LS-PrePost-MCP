@@ -474,7 +474,7 @@
 
 ### A04 应用内 Python 脚本
 
-状态：partial；版本：v0.5；里程碑：M1；层：T1
+状态：done；版本：v0.5；里程碑：M1；层：T1
 
 用 LSPP 内置 Python 读出每个 Part 的单元数和最大位移
 

@@ -9,11 +9,16 @@ from .contracts import Contract, Ids, Text
 
 class ScriptOutput(Contract):
     name: Text
-    kind: Literal["keyword", "csv", "json", "text", "png"]
+    kind: Literal["keyword", "csv", "json", "text", "png", "npz"]
+
+
+class ScriptDependency(Contract):
+    path: Text
+    name: Text
 
 
 class ScriptRequest(Contract):
-    language: Literal["command", "cfile", "scl"]
+    language: Literal["command", "cfile", "scl", "python"]
     code: Text
     context: Literal["batch", "session"] = "batch"
     session_id: str | None = None
@@ -24,6 +29,7 @@ class ScriptRequest(Contract):
     capture_model: bool = False
     initial_node_ids: Ids | None = None
     parameters: dict = Field(default_factory=dict)
+    dependencies: list[ScriptDependency] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def execution_context(self):
@@ -35,6 +41,12 @@ class ScriptRequest(Contract):
             raise ValueError("Initial node selection requires at most 10000 unique user IDs")
         if len(self.code.encode("utf8")) > 1024 * 1024 or "\x00" in self.code:
             raise ValueError("Script requires nonempty source up to 1 MiB")
+        if self.language == "python":
+            if self.initial_node_ids is not None or self.capture_model:
+                raise ValueError("Python declares its own selection and output commands")
+            return self
+        if self.dependencies:
+            raise ValueError("Unified dependency bundles currently require Python")
         if self.language == "cfile":
             if self.initial_node_ids is not None or self.capture_model:
                 raise ValueError("Cfile declares its own selection and output commands")

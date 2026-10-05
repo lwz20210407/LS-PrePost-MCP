@@ -10,7 +10,7 @@ from pydantic import StrictInt
 from .core.contracts import Artifact, JobResult
 from .core.native_log import native_errors
 from .core.script_parameters import cfile_diagnostics, render_cfile
-from .core.script_request import ScriptOutput, ScriptRequest
+from .core.script_request import ScriptDependency, ScriptOutput, ScriptRequest
 from .jobs import atomic_json, fingerprint
 from .native import commands as nc
 from .outcomes import normalize_outcome
@@ -35,24 +35,27 @@ def log_result(path, directory, *, source=None, offset=0):
 
 
 class ScriptTools:
-    def run_script(self, language: Literal["command", "cfile", "scl"], code: str,
+    def run_script(self, language: Literal["command", "cfile", "scl", "python"], code: str,
                    context: Literal["batch", "session"] = "batch", session_id: str | None = None,
                    model: str | None = None, file_type: Literal["keyword", "d3plot"] = "keyword",
                    outputs: list[ScriptOutput] | None = None, expected_counts: dict[str, int] | None = None,
                    capture_model: bool = False, initial_node_ids: list[StrictInt] | None = None,
-                   parameters: dict | None = None) -> dict:
-        """Run one native command in explicit batch/session context; return JobResult and this request's native log. File/count contracts are explicit; no inferred engineering verdict. Scripts use native permissions."""
+                   parameters: dict | None = None, dependencies: list[ScriptDependency] | None = None) -> dict:
+        """Run native command/cfile/SCL/embedded Python in batch or the specified session. Return JobResult, request-scoped native log and checked outputs. Python receives PARAMETERS as JSON data and frozen dependency files; arrays return NPZ paths/shape/dtype. Scripts use native permissions."""
         request = ScriptRequest(language=language, code=code, context=context, session_id=session_id, model=model,
                                 file_type=file_type, outputs=outputs or [], expected_counts=expected_counts or {},
-                                capture_model=capture_model, initial_node_ids=initial_node_ids, parameters=parameters or {})
+                                capture_model=capture_model, initial_node_ids=initial_node_ids, parameters=parameters or {},
+                                dependencies=dependencies or [])
         declared = output_contract([value.model_dump() for value in request.outputs])
         counts = count_contract(request.expected_counts)
         opened = re.fullmatch(r'\s*(?:open|openc)\s+(keyword|d3plot)\s+(.+?)(?:\s+nodialog)?\s*', code, re.I)
         if context == "session" and opened and (declared or initial_node_ids is not None or capture_model):
             raise ValueError("Open command cannot declare output files, an initial selection or a snapshot")
         rendered = render_cfile(code, request.parameters) if language == "cfile" else code
-        if language in ("cfile", "scl"):
-            prepared = self.prepare_native_program(language, code=rendered, outputs=declared, expected_counts=counts)
+        if language in ("cfile", "scl", "python"):
+            prepared = self.prepare_native_program(language, code=rendered, outputs=declared, expected_counts=counts,
+                                                   script_parameters=request.parameters if language == "python" else None,
+                                                   dependencies=[d.model_dump() for d in request.dependencies])
             result = self.execute_native_program(prepared["job_id"], prepared["data"]["sha256"], model=model,
                                                  file_type=file_type, session_id=session_id,
                                                  allow_owned_output_context=context == "session" and language == "cfile")
@@ -105,6 +108,14 @@ class ScriptTools:
                     match = re.search(r"\bline\s*(?:number\s*)?[:=]?\s*(\d+)", message, re.I)
                     diagnostics.append(dict(line=int(match[1]) if match else None, message=message))
                 extra = dict(diagnostics=diagnostics)
+            elif language == "python":
+                reply_file = directory / "python-result.json"
+                if reply_file.is_file():
+                    reply = json.loads(reply_file.read_text(encoding="utf8"))
+                    extra = dict(python_result=reply)
+                    if not reply.get("ok"):
+                        status, error = "failed", dict(type="EmbeddedPythonError", message=reply.get("error", "Python failed"),
+                                                       traceback=reply.get("traceback"))
             outcome = JobResult(operation="run_script", job_id=normalized.job_id or result.get("request_id"),
                                 status=status, backend="lsprepost", artifacts=normalized.artifacts,
                                 evidence=(*normalized.evidence, artifact), error=error,

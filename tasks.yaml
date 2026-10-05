@@ -627,8 +627,9 @@ tasks:
     layer: T1
     target_tools: [run_script]
     channel: python
-    status: partial
+    status: done
     existing: [prepare_native_program, execute_native_program]
+    evidence: [tests/test_script_python_native.py, docs/decisions/0005-python-execution.md]
     acceptance:
       - DataCenter / LsPrePost 调用；脚本参数传递；多文件依赖包
       - Python 异常返回完整栈

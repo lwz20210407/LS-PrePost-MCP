@@ -69,7 +69,7 @@ def execute_prepared(service, sid, prepared_id, expected_hash, contract, content
             commands.append("runscript " + scl_command_path(directory / contract["program"]))
         else:
             wrapper = directory / "gui-python.py"
-            wrapper.write_text(python_wrapper(directory, [item["name"] for item, _ in dependencies]), encoding="utf8")
+            wrapper.write_text(python_wrapper(directory, [item["name"] for item, _ in dependencies], contract.get("python_parameters")), encoding="utf8")
             commands.append("runpython " + command_path(wrapper))
         atomic_json(directory / "commands.json", commands)
         log = manager.directory(sid) / "lspost.msg"
