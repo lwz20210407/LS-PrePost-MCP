@@ -46,6 +46,7 @@ REFERENCES: list[tuple[str, tuple[tuple[str, str], ...]]] = [
     ("*ELEMENT_SOLID", (("pid", "part"),) + _NODES8),
     ("*ELEMENT_BEAM", (("pid", "part"), ("n1", "node"), ("n2", "node"), ("n3", "node"))),
     ("*MAT_ADD_", (("mid", "material"),)),
+    ("*DEFINE_TABLE", (("lcid", "curve"),)),  # builtin rows: VALUE, LCID
     ("*MAT_PIECEWISE_LINEAR_PLASTICITY", (("lcss", "curve"), ("lcsr", "curve"))),
     ("*BOUNDARY_SPC_SET", (("nsid", "node_set"),)), ("*BOUNDARY_SPC_NODE", (("nid", "node"),)),
     ("*BOUNDARY_PRESCRIBED_MOTION_SET", (("nsid", "node_set"), ("lcid", "curve"))),

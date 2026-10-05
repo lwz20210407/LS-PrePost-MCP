@@ -257,3 +257,24 @@ def test_composite_shell_angles_with_zero_padding(tmp_path: Path) -> None:
                            "     0.000     0.000     0.000     0.000     0.000     0.000     0.000     0.000\n")
     block = deck.blocks("*SECTION_SHELL")[0]
     assert deck.get(block, "t1").value == pytest.approx(0.3048)
+
+
+def test_define_table_rows_hold_curve_ids(tmp_path: Path) -> None:
+    deck = _deck(tmp_path, "*DEFINE_TABLE\n      1000\n           0.0000001                1001\n"
+                           "               0.001                1002\n"
+                           "*DEFINE_CURVE\n      1001\n                 0.0                 1.0\n")
+    block = deck.blocks("*DEFINE_TABLE")[0]
+    assert deck.get(block, "tbid").value == 1000 and deck.get(block, "sfa").value == 1.0
+    assert deck.get(block, "lcid", row=2).value == 1002 and deck.get(block, "value", row=1).value == 1e-7
+    report = deck.references()
+    assert [(d["kind"], d["id"]) for d in report.dangling()] == [("curve", 1002)]
+    deck.set(block, "lcid", 1001, row=2)
+    assert deck.references().dangling_count == 0
+
+
+def test_spotweld_id_uses_the_leading_wid_card(tmp_path: Path) -> None:
+    pytest.importorskip("ansys.dyna.core")
+    deck = _deck(tmp_path, "*CONSTRAINED_SPOTWELD_ID\n        77\n"
+                           "       101       102       0.0       0.0       0.0       0.0       0.0       0.0\n")
+    block = deck.blocks("*CONSTRAINED_SPOTWELD_ID")[0]
+    assert deck.get(block, "wid").value == 77 and deck.get(block, "n2").value == 102

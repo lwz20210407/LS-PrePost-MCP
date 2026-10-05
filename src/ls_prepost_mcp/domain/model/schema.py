@@ -309,6 +309,15 @@ def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
     return infos, missing
 
 
+def _leading_id_card(keyword: object) -> bool:
+    """Whether the first card holds only an ID (optionally with a title), like an _ID option card."""
+    cards = _ordered_cards(keyword)
+    if not cards or isinstance(cards[0][1], _SeriesLine):
+        return False
+    names = [s.name.lower() for s in cards[0][1]._schema.fields if not s.name.lower().startswith("unused")]
+    return bool(names) and names[0].endswith("id") and len(names) <= 2 and names[1:] in ([], ["title"], ["heading"])
+
+
 def _check_options(block: Block, cls: type, base: str, long: bool) -> None:
     """Every keyword-name token after the PyDYNA class name must be an option PyDYNA knows."""
     suffix = [token for token in block.name[len(base):].split("_") if token]
@@ -317,6 +326,8 @@ def _check_options(block: Block, cls: type, base: str, long: bool) -> None:
     probe = _load(cls, pydyna_title(block, long))
     known = {token for option in getattr(probe, "_active_options", set()) for token in str(option).split("_")}
     unknown = [token for token in suffix if token not in known]
+    if unknown == ["ID"] and _leading_id_card(probe):
+        unknown = []  # PyDYNA keeps the option-only ID card unconditionally (e.g. *CONSTRAINED_SPOTWELD WID)
     if unknown:
         raise Unsupported(f"PyDYNA {base} has no option {'_'.join(unknown)}; its cards would be misplaced")
 
@@ -387,6 +398,8 @@ def layout(block: Block, lookup: Mapping[str, object], deck_format: str = "stand
         return _include_layout(block)
     if umat.is_umat(block.name):
         return umat.umat_layout(block, lookup, long)
+    if lists.is_define_table(block.name):
+        return lists.define_table_layout(block, long)
     if lists.is_list_set(block.name) or lists.is_curve(block.name):
         try:
             headers = lists.header_fields(block, long)

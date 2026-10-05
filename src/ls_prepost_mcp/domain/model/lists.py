@@ -7,7 +7,8 @@ the block, including comments and the header line, is kept).
 from __future__ import annotations
 
 from .blocks import Block
-from .fields import FieldError, FieldSlot, format_value, is_free_format, long_spans, parse_number
+from .fields import FieldError, FieldSlot, format_value, is_free_format, long_spans, parse_number, stray_text
+from .layouts import Column, FieldInfo, Layout, RowMap, Unsupported
 from .parameters import field_expression, resolve_field
 from .text import body, ending, is_blank
 
@@ -132,6 +133,43 @@ def ranges(block: Block, long: bool = False) -> list[tuple[int, int]]:
             raise FieldError(f"Non-integer range in {block.name}")
         pairs.append((first, last))
     return pairs
+
+
+TABLE_KEYWORDS = ("*DEFINE_TABLE", "*DEFINE_TABLE_TITLE")
+TABLE_HEADER = (("tbid", "int", None), ("sfa", "float", 1.0), ("offa", "float", 0.0))
+TABLE_ROW = [Column("value", "float", 0, 20, 0.0), Column("lcid", "int", 20, 20)]
+
+
+def is_define_table(name: str) -> bool:
+    return name in TABLE_KEYWORDS
+
+
+def define_table_layout(block: Block, long: bool = False) -> Layout:
+    """``*DEFINE_TABLE``: header (TBID, SFA, OFFA) and rows of VALUE (columns 1-20) and LCID (21-40).
+
+    PyDYNA models only the values; LS-DYNA also accepts the curve ID on each row (when it is
+    blank the curves follow the table in order). Rows are keyed by their position (1, 2, ...).
+    """
+    try:
+        title, header, row_lines = split(block)
+    except FieldError as error:
+        raise Unsupported(str(error)) from error
+    fields = [] if title is None else [FieldInfo("title", "str", FieldSlot(title, 0, 80), "title")]
+    line = block.lines[header]
+    spans = long_spans([10, 10, 10]) if long else [(0, 10), (10, 10), (20, 10)]
+    for token, ((name, kind, default), (offset, width)) in enumerate(zip(TABLE_HEADER, spans)):
+        slot = FieldSlot(header, offset, width, token if is_free_format(line) else None)
+        fields.append(FieldInfo(name, kind, slot, "card1", default))
+    rows: dict[int, tuple[int, ...]] = {}
+    for index in row_lines:
+        if is_blank(block.lines[index]):
+            continue
+        stray = stray_text(block.lines[index], [(0, 20), (20, 20)], long, tolerant=False)
+        if stray:
+            raise Unsupported(f"{block.name}: text outside VALUE/LCID on line {index} ({stray[:40]!r})")
+        rows[len(rows) + 1] = (index,)
+    return Layout(block.name, fields=fields, rows=RowMap(block, [TABLE_ROW], ["row"], rows), key="row",
+                  source="builtin-table")
 
 
 def _point_value(text: str, lookup: dict | None) -> float | int | None:
