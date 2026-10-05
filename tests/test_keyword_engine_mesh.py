@@ -112,3 +112,35 @@ def test_mesh_edits_survive_save_and_reload(tmp_path: Path) -> None:
     deck.save_as(tmp_path / "out")
     again = KeywordDeck.load(tmp_path / "out" / "main.k")
     assert _coords(again)[5] == (0.0, 0.0, 3.0) and check_quality(again)["ok"]
+
+
+def test_p08_story_mirror_copy_merge_and_check(tmp_path: Path) -> None:
+    """Translate the part, mirror-copy it about the YZ plane, merge the shared face, check the model."""
+    from ls_prepost_mcp.domain.model.mesh import copy_elements, reflection
+    from ls_prepost_mcp.domain.model.renumber import merge_duplicate_nodes
+    deck = _deck(tmp_path, "*PART\nblock\n         1         1         1\n*SECTION_SOLID\n         1         1\n"
+                           "*MAT_ELASTIC\n         1    7.8e-9  210000.0       0.3\n" + _cube_text())
+    translate_nodes(deck, range(1, 9), (10.0, 0.0, 0.0))
+    translate_nodes(deck, range(1, 9), (-10.0, 0.0, 0.0))
+    matrix, offset = reflection((1, 0, 0), (0, 0, 0))
+    result = copy_elements(deck, "*ELEMENT_SOLID", [1], matrix=matrix, offset=offset)
+    assert result == {"nodes": 8, "elements": 1, "first_node": 9, "first_element": 2, "mirrored": True}
+    assert check_quality(deck)["ok"]  # the mirrored copy is not inside out
+    merged = merge_duplicate_nodes(deck, 1e-6)
+    assert merged["merged"] == 4 and merged["collapsed_elements"] == 0
+    report = check_quality(deck)
+    assert report["ok"] and report["solids"]["hexahedra"]["count"] == 2
+    assert deck.references().dangling_count == 0
+    deck.save_as(tmp_path / "out")
+    again = KeywordDeck.load(tmp_path / "out" / "main.k")
+    assert nodes(again)[0].size == 12 and check_quality(again)["ok"]
+
+
+def test_copy_refusals(tmp_path: Path) -> None:
+    from ls_prepost_mcp.domain.model.mesh import copy_elements
+    deck = _deck(tmp_path, _cube_text())
+    with pytest.raises(FieldError, match="not found"):
+        copy_elements(deck, "*ELEMENT_SOLID", [5])
+    with pytest.raises(FieldError, match="Part 7"):
+        copy_elements(deck, "*ELEMENT_SOLID", [1], part_id=7)
+    assert deck.changes == []

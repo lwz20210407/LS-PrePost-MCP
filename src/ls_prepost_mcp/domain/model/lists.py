@@ -112,6 +112,28 @@ def members(block: Block, long: bool = False) -> list[int]:
     return result
 
 
+RANGE_KINDS = {"*SET_NODE_LIST_GENERATE": "node", "*SET_PART_LIST_GENERATE": "part",
+               "*SET_SHELL_LIST_GENERATE": "shell", "*SET_SOLID_GENERATE": "solid", "*SET_BEAM_GENERATE": "beam"}
+
+
+def ranges(block: Block, long: bool = False) -> list[tuple[int, int]]:
+    """``(first, last)`` ID ranges of a ``*SET_*_GENERATE`` block (zero pairs are padding)."""
+    _, _, lines = split(block)
+    values = []
+    for index in lines:
+        for text in _values(block.lines[index], 20 if long else 10, 8):
+            value = parse_number(text)
+            values.append(0 if value is None else value)
+    pairs = []
+    for first, last in zip(values[0::2], values[1::2]):
+        if first == 0 and last == 0:
+            continue
+        if not (isinstance(first, int) and isinstance(last, int)):
+            raise FieldError(f"Non-integer range in {block.name}")
+        pairs.append((first, last))
+    return pairs
+
+
 def _point_value(text: str, lookup: dict | None) -> float | int | None:
     if field_expression(text) is not None:
         value = resolve_field(text, lookup or {})

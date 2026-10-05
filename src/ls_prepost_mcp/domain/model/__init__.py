@@ -1,4 +1,4 @@
-"""Byte-preserving LS-DYNA keyword engine (tasks.yaml I07; backend of P01, P02, P03, P09, P10, P11).
+"""Byte-preserving LS-DYNA keyword engine (tasks.yaml I07; backend of P01, P02, P03, P04, P08, P09, P10, P11).
 
 Entry points
 ------------
@@ -31,6 +31,13 @@ Entry points
     element blocks that cannot be read are listed as unchecked.
 ``cases.generate_cases``
     Parameter-study decks, one directory per case, each compared with the base deck.
+``mesh`` (transform / translate / rotate / reflect nodes, reverse elements, unify shell normals)
+    Only selected rows change; mirrored elements are reordered back to positive orientation.
+``renumber`` (renumber, renumber_range, merge_duplicate_nodes, delete_elements)
+    IDs change in their definitions and in every referring field: hand rules plus the PyDYNA
+    link metadata of :mod:`links`, set members and contact surfaces. Refused, with nothing
+    changed, when a block that may refer to the kind cannot be read, a GENERATE range or a
+    parameter expression is involved, or new IDs collide; verified by a second reference scan.
 
 Guarantees
 ----------
@@ -39,6 +46,9 @@ Guarantees
 * Every named-field layout from PyDYNA is self-checked against PyDYNA's own parse (tables:
   first and last 20 rows plus headers). Disagreement raises :class:`Unsupported` instead of
   writing to a guessed position; positional editing remains available.
+* Because PyDYNA can be wrong in the same way as the layout, a block is also refused when a
+  keyword-name option is unknown to PyDYNA or a line holds text outside the fields of its card
+  (zero trailing fields excepted on multi-field cards).
 * Every write is read back; failures are reverted.
 
 Formats: standard, long (``+`` or ``LONG=Y``), comma separated; i10 is positional only.

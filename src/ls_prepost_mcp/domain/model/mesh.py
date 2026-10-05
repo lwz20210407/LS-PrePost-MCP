@@ -108,9 +108,7 @@ def reflect_nodes(deck: KeywordDeck, node_ids: Iterable[int], normal: object, po
     nodes are all mirrored gets its connectivity reordered back to positive orientation;
     elements only partly selected are left as they are and counted.
     """
-    unit = np.asarray(normal, dtype=float) / np.linalg.norm(normal)
-    matrix = np.eye(3) - 2 * np.outer(unit, unit)
-    offset = 2 * float(np.dot(np.asarray(point, dtype=float), unit)) * unit
+    matrix, offset = reflection(normal, point)
     wanted = np.unique(np.asarray(list(node_ids), dtype=np.int64))
     flips: dict[str, list[int]] = {}
     partial = 0
@@ -243,5 +241,82 @@ def unify_shell_normals(deck: KeywordDeck, element_ids: Iterable[int] | None = N
             "edges_shared_by_more_than_two": branched, "orientation_conflicts": conflicts // 2}
 
 
-__all__ = ["flipped", "reflect_nodes", "reverse_elements", "rotate_nodes", "rotation_matrix",
-           "transform_nodes", "translate_nodes", "unify_shell_normals"]
+def reflection(normal: object, point: object = (0.0, 0.0, 0.0)) -> tuple[np.ndarray, np.ndarray]:
+    """``(matrix, offset)`` of the mirror in the plane through ``point`` with ``normal``."""
+    unit = np.asarray(normal, dtype=float) / np.linalg.norm(normal)
+    return np.eye(3) - 2 * np.outer(unit, unit), 2 * float(np.dot(np.asarray(point, dtype=float), unit)) * unit
+
+
+def _rows_text(rows: list[list[str]], widths: list[int], newline: str) -> str:
+    return "".join("".join(cell.rjust(width) for cell, width in zip(row, widths)) + newline for row in rows)
+
+
+def copy_elements(deck: KeywordDeck, keyword: str, element_ids: Iterable[int], *, matrix: object = None,
+                  offset: object = None, part_id: int | None = None) -> dict:
+    """Copy elements and their nodes, transformed by ``x' = matrix @ x + offset``.
+
+    New node and element IDs continue after the largest existing ones; a mirroring transform
+    (negative determinant) reorders the copies to positive orientation. The copies keep their
+    part unless ``part_id`` names an existing part. Elements of option variants (_THICKNESS,
+    ...) and long / i10 decks are refused, because their extra cards would not be copied.
+    """
+    if deck.format != "standard":
+        raise Unsupported(f"Copying elements in {deck.format} format decks is not supported")
+    width = WIDTHS[keyword]
+    wanted = sorted({int(e) for e in element_ids})
+    plain = [b for b in deck.iter_blocks() if b.name == keyword]
+    variants = [b for b in deck.iter_blocks() if b.name.startswith(keyword + "_")]
+    eids, pids, conn = elements(deck, keyword, width)
+    rows = {int(e): i for i, e in enumerate(eids)}
+    missing = [e for e in wanted if e not in rows]
+    if missing:
+        raise FieldError(f"{len(missing)} {keyword} IDs not found, e.g. {missing[:10]}")
+    if variants:
+        in_variants = {int(e) for b in variants for e in deck.layout(b).rows}
+        if in_variants & set(wanted):
+            raise Unsupported(f"{keyword} option variants carry extra cards; copy them as plain elements first")
+    if not plain:
+        raise FieldError(f"No plain {keyword} block to copy from")
+    report = deck.references(False)
+    if part_id is not None and part_id not in report.defined.get("part", set()):
+        raise FieldError(f"Part {part_id} is not defined")
+    picked = np.asarray([rows[e] for e in wanted])
+    old_conn, old_pids = conn[picked], pids[picked]
+    ids, xyz = nodes(deck)
+    used = np.unique(old_conn[old_conn > 0])
+    lookup = {int(n): i for i, n in enumerate(ids)}
+    absent = [int(n) for n in used if int(n) not in lookup]
+    if absent:
+        raise FieldError(f"Elements use undefined nodes, e.g. {absent[:10]}")
+    matrix = np.eye(3) if matrix is None else np.asarray(matrix, dtype=float).reshape(3, 3)
+    offset = np.zeros(3) if offset is None else np.asarray(offset, dtype=float).reshape(3)
+    moved = xyz[[lookup[int(n)] for n in used]] @ matrix.T + offset
+    first_node = int(ids.max()) + 1 if ids.size else 1
+    first_element = int(eids.max()) + 1 if eids.size else 1
+    renamed = {int(n): first_node + k for k, n in enumerate(used)}
+    new_conn = np.vectorize(lambda n: renamed.get(int(n), 0))(old_conn)
+    mirrored = bool(np.linalg.det(matrix) < 0)
+    if mirrored:
+        new_conn = flipped(new_conn, keyword == "*ELEMENT_SOLID")
+    last = max(first_node + len(used), first_element + len(wanted))
+    if len(str(last)) > 8:
+        raise FieldError("New IDs need more than 8 digits; use a long-format deck")
+    newline = plain[0].file.newline()
+    node_rows = []
+    for (old, new), point in zip(renamed.items(), moved):
+        cells = [str(new)]
+        for value in point:
+            text_value, _ = format_value(float(value), 16, "float")
+            cells.append(text_value)
+        node_rows.append(cells)
+    element_rows = [[str(first_element + k), str(part_id if part_id is not None else int(pid))]
+                    + [str(int(n)) for n in row] for k, (pid, row) in enumerate(zip(old_pids, new_conn))]
+    text = ("*NODE" + newline + _rows_text(node_rows, [8, 16, 16, 16], newline)
+            + keyword + newline + _rows_text(element_rows, [8] * (2 + width), newline))
+    deck.insert(text, file=plain[0].file)
+    return {"nodes": len(used), "elements": len(wanted), "first_node": first_node,
+            "first_element": first_element, "mirrored": mirrored}
+
+
+__all__ = ["copy_elements", "flipped", "reflect_nodes", "reflection", "reverse_elements", "rotate_nodes",
+           "rotation_matrix", "transform_nodes", "translate_nodes", "unify_shell_normals"]
