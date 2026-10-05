@@ -26,6 +26,16 @@ class FieldSlot:
     token: int | None = None  # set when the line is comma separated
 
 
+def long_spans(widths: list[int]) -> list[tuple[int, int]]:
+    """Long-format ``(offset, width)`` spans: width ``max(w, 20)``, offsets accumulate."""
+    spans, offset = [], 0
+    for width in widths:
+        wide = max(width, 20)
+        spans.append((offset, wide))
+        offset += wide
+    return spans
+
+
 def is_free_format(line: str) -> bool:
     """LS-DYNA treats a data line containing a comma as free (comma separated) format."""
     return "," in body(line)

@@ -11,7 +11,7 @@ import warnings
 from dataclasses import dataclass
 
 from .blocks import Block
-from .fields import FieldError, FieldSlot, is_free_format, parse_number, read_text
+from .fields import FieldError, FieldSlot, is_free_format, long_spans, parse_number, read_text
 from .text import is_blank
 
 SAMPLE = 20
@@ -30,8 +30,15 @@ def _kind(python_type: type) -> str:
     return "int" if python_type is int else "float" if python_type is float else "str"
 
 
-def _columns(schema: object) -> list[Column]:
-    return [Column(f.name.lower(), _kind(f.type), f.offset, f.width, f.default) for f in schema.fields]
+def _columns(schema: object, long: bool = False) -> list[Column]:
+    fields = list(schema.fields)
+    spans = long_spans([f.width for f in fields]) if long else [(f.offset, f.width) for f in fields]
+    return [Column(f.name.lower(), _kind(f.type), o, w, f.default) for f, (o, w) in zip(fields, spans)]
+
+
+def _widen(columns: list[Column]) -> list[Column]:
+    spans = long_spans([c.width for c in columns])
+    return [Column(c.name, c.kind, o, w, c.default) for c, (o, w) in zip(columns, spans)]
 
 
 _SOLID_ONE_LINE = [Column("eid", "int", 0, 8), Column("pid", "int", 8, 8)] + [
@@ -67,7 +74,8 @@ def _slot(line: str, index: int, column: Column, token: int) -> FieldSlot:
     return FieldSlot(index, column.offset, column.width, token if is_free_format(line) else None)
 
 
-def table_layout(block: Block, keyword_class: type, base: str, unsupported: type[Exception]) -> dict:
+def table_layout(block: Block, keyword_class: type, base: str, unsupported: type[Exception],
+                 long: bool = False, title: str | None = None) -> dict:
     """Return ``{"fields": [...], "rows": {key: [...]}, "key": name}`` as plain tuples.
 
     ``fields``/``rows`` hold ``(name, kind, slot, card, default)`` tuples so that the
@@ -104,20 +112,21 @@ def table_layout(block: Block, keyword_class: type, base: str, unsupported: type
         raise unsupported(f"{block.name}: missing header cards")
     fields = []
     for card, (index, line) in zip(head_cards, data):
-        for token, column in enumerate(_columns(card._schema)):
+        for token, column in enumerate(_columns(card._schema, long)):
             if not column.name.startswith("unused"):
                 fields.append((column.name, column.kind, _slot(line, index, column, token), "header", column.default))
     rows_data = data[len(head_cards):]
 
+    beyond_pid = FieldSlot(0, 40, 160) if long else FieldSlot(0, 16, 64)
     if type(table).__name__ == "TableCard":
-        group = [_columns(table._schema)]
-    elif block.name == "*ELEMENT_SOLID" and rows_data and read_text(rows_data[0][1], FieldSlot(0, 16, 64)).strip():
-        group = [_SOLID_ONE_LINE]  # LS-PrePost one-line solid format
+        group = [_columns(table._schema, long)]
+    elif block.name == "*ELEMENT_SOLID" and rows_data and read_text(rows_data[0][1], beyond_pid).strip():
+        group = [_widen(_SOLID_ONE_LINE) if long else _SOLID_ONE_LINE]  # LS-PrePost one-line solid format
     else:
         subcards = table._cards
         if any(getattr(sub, "_active_func", None) is not None for sub in subcards):
             raise unsupported(f"{block.name}: conditional row cards are not supported")
-        group = [_columns(sub._schema) for sub in subcards]
+        group = [_columns(sub._schema, long) for sub in subcards]
     per = len(group)
     if len(rows_data) % per:
         raise unsupported(f"{block.name}: {len(rows_data)} row lines do not form groups of {per}")
@@ -141,12 +150,13 @@ def table_layout(block: Block, keyword_class: type, base: str, unsupported: type
     else:
         key, keyed = "row", {n: r for n, r in enumerate(rows, 1)}
 
-    _self_check(block, keyword_class, position, head_cards, data, rows, per, fields, unsupported)
+    _self_check(block, keyword_class, position, head_cards, data, rows, per, fields, unsupported,
+                title or block.lines[0].upper())
     return {"fields": fields, "rows": keyed, "key": key}
 
 
 def _self_check(block: Block, keyword_class: type, position: int, head_cards: list, data: list,
-                rows: list, per: int, fields: list, unsupported: type[Exception]) -> None:
+                rows: list, per: int, fields: list, unsupported: type[Exception], title: str) -> None:
     picks = list(range(min(SAMPLE, len(rows))))
     picks += [i for i in range(max(len(rows) - SAMPLE, 0), len(rows)) if i not in picks]
     head_lines = [i for i, _ in data[:len(head_cards)]]
@@ -155,7 +165,7 @@ def _self_check(block: Block, keyword_class: type, position: int, head_cards: li
     for line in row_lines:
         start = [i for i, _ in data].index(line)
         indices += [i for i, _ in data[start:start + per]]
-    text = block.lines[0].upper() + "".join(block.lines[i] for i in indices[1:])
+    text = title + "".join(block.lines[i] for i in indices[1:])
     keyword = keyword_class()
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")

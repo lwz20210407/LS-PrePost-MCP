@@ -268,11 +268,11 @@ def test_unsupported_keyword_falls_back_to_positional(deck_dir: Path) -> None:
     assert block.lines[1] == "       1       2       1       2       3       4\n"
 
 
-def test_long_format_blocks_are_positional_only(tmp_path: Path) -> None:
-    (tmp_path / "main.k").write_text("*MAT_ELASTIC +\n                   1                7.85\n*END\n")
+def test_i10_format_blocks_are_positional_only(tmp_path: Path) -> None:
+    (tmp_path / "main.k").write_bytes(b"*NODE%\n         1               0.0\n*END\n")
     deck = KeywordDeck.load(tmp_path / "main.k")
     with pytest.raises(Unsupported):
-        deck.layout(deck.blocks("*MAT_ELASTIC")[0])
+        deck.layout(deck.blocks("*NODE")[0])
 
 
 # ---------------------------------------------------------------- blocks and saving

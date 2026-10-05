@@ -14,7 +14,7 @@ from .blocks import Block, SourceFile, make_blocks
 from .fields import FieldError, FieldSlot, format_value, is_free_format, parse_number, read_text, write_text
 from .includes import Resolution, classify, file_names, identity, resolve
 from .parameters import reference
-from .schema import FieldInfo, Layout, Unsupported
+from .schema import FieldInfo, Layout, Unsupported, block_format
 from .schema import layout as block_layout
 from .scope import ParameterRecord
 from .text import deck_format, ending
@@ -296,18 +296,22 @@ class KeywordDeck:
         """Member IDs of a ``*SET_*_LIST`` style block (header fields via :meth:`get`)."""
         if not lists.is_list_set(block.name):
             raise Unsupported(f"{block.name} is not a list set")
-        return lists.members(block)
+        return lists.members(block, self._long(block))
 
     def set_members(self, block: Block, ids: list[int]) -> Change:
         """Replace all members; header, title and comments are kept."""
         if not lists.is_list_set(block.name):
             raise Unsupported(f"{block.name} is not a list set")
         saved = list(block.lines)
-        removed, added = lists.write_members(block, list(ids))
-        if lists.members(block) != list(ids):
+        long = self._long(block)
+        removed, added = lists.write_members(block, list(ids), long=long)
+        if lists.members(block, long) != list(ids):
             block.lines[:] = saved
             raise FieldError("Member list failed verification after writing")
         return self._record_lines(block, f"members -> {len(ids)} IDs", removed, added)
+
+    def _long(self, block: Block) -> bool:
+        return block_format(block, self.format) == "long"
 
     def points(self, block: Block) -> list[tuple[float, float]]:
         """``(a, o)`` points of a ``*DEFINE_CURVE`` block."""

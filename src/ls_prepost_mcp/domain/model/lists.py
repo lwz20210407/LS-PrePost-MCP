@@ -7,7 +7,7 @@ the block, including comments and the header line, is kept).
 from __future__ import annotations
 
 from .blocks import Block
-from .fields import FieldError, FieldSlot, format_value, is_free_format, parse_number
+from .fields import FieldError, FieldSlot, format_value, is_free_format, long_spans, parse_number
 from .text import body, ending, is_blank
 
 # Header card (card 1) of list sets, after the optional title line.
@@ -55,7 +55,7 @@ def split(block: Block) -> tuple[int | None, int, list[int]]:
     return title, header, [i for i, _ in data[needed:]]
 
 
-def header_fields(block: Block) -> list[tuple[str, str, FieldSlot, str]]:
+def header_fields(block: Block, long: bool = False) -> list[tuple[str, str, FieldSlot, str]]:
     """``(name, kind, slot, card)`` for the title and header fields."""
     title, header, _ = split(block)
     spec = CURVE_HEADER if is_curve(block.name) else SET_HEADERS[base_name(block.name)[0]]
@@ -63,8 +63,9 @@ def header_fields(block: Block) -> list[tuple[str, str, FieldSlot, str]]:
     result = []
     if title is not None:
         result.append(("title", "str", FieldSlot(title, 0, 80), "title"))
-    for token, (name, kind) in enumerate(spec):
-        result.append((name, kind, FieldSlot(header, 10 * token, 10, token if is_free_format(line) else None), "card1"))
+    spans = long_spans([10] * len(spec)) if long else [(10 * t, 10) for t in range(len(spec))]
+    for token, ((name, kind), (offset, width)) in enumerate(zip(spec, spans)):
+        result.append((name, kind, FieldSlot(header, offset, width, token if is_free_format(line) else None), "card1"))
     return result
 
 
@@ -75,12 +76,12 @@ def _values(line: str, width: int, count: int) -> list[str]:
     return [text[i:i + width] for i in range(0, width * count, width)]
 
 
-def members(block: Block) -> list[int]:
+def members(block: Block, long: bool = False) -> list[int]:
     """Member IDs in file order; blank and zero fields (row padding) are skipped."""
     _, _, lines = split(block)
     result = []
     for index in lines:
-        for text in _values(block.lines[index], 10, 8):
+        for text in _values(block.lines[index], 20 if long else 10, 8):
             value = parse_number(text)
             if value in (None, 0):
                 continue
@@ -130,11 +131,12 @@ def _replace_list(block: Block, new_lines: list[str]) -> tuple[list[str], list[s
     return removed, formatted
 
 
-def write_members(block: Block, ids: list[int], per_line: int = 8) -> tuple[list[str], list[str]]:
+def write_members(block: Block, ids: list[int], per_line: int = 8, long: bool = False) -> tuple[list[str], list[str]]:
     if any(isinstance(i, bool) or int(i) != i or i <= 0 for i in ids):
         raise FieldError("Member IDs must be positive integers")
     rows = [ids[i:i + per_line] for i in range(0, len(ids), per_line)]
-    lines = ["".join(format_value(int(v), 10, "int")[0].rjust(10) for v in row) for row in rows]
+    width = 20 if long else 10
+    lines = ["".join(format_value(int(v), width, "int")[0].rjust(width) for v in row) for row in rows]
     return _replace_list(block, lines)
 
 

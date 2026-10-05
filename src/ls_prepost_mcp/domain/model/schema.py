@@ -22,9 +22,18 @@ from dataclasses import dataclass, field
 
 from . import lists, tables
 from .blocks import Block
-from .fields import FieldError, FieldSlot, format_value, is_free_format, parse_number, read_text, write_text
+from .fields import (
+    FieldError,
+    FieldSlot,
+    format_value,
+    is_free_format,
+    long_spans,
+    parse_number,
+    read_text,
+    write_text,
+)
 from .parameters import reference
-from .text import body, is_blank
+from .text import body, ending, is_blank
 
 _REF_TOKEN = re.compile(r"-?&[A-Za-z_][A-Za-z0-9_]*")
 NODE_FIELDS = (("nid", "int", 0, 8), ("x", "float", 8, 16), ("y", "float", 24, 16),
@@ -81,12 +90,14 @@ def _slot(line: str, index: int, offset: int, width: int, token: int) -> FieldSl
     return FieldSlot(index, offset, width, token if is_free_format(line) else None)
 
 
-def _node_layout(block: Block) -> Layout:
+def _node_layout(block: Block, long: bool = False) -> Layout:
     layout = Layout(block.name, key="nid", source="builtin")
+    spans = long_spans([w for _, _, _, w in NODE_FIELDS]) if long else [(o, w) for _, _, o, w in NODE_FIELDS]
     for index, line in block.data():
         if is_blank(line):
             continue
-        infos = [FieldInfo(n, k, _slot(line, index, o, w, t), "node") for t, (n, k, o, w) in enumerate(NODE_FIELDS)]
+        infos = [FieldInfo(n, k, _slot(line, index, o, w, t), "node")
+                 for t, ((n, k, _, _), (o, w)) in enumerate(zip(NODE_FIELDS, spans))]
         try:
             nid = parse_number(read_text(line, infos[0].slot))
         except FieldError as error:
@@ -99,8 +110,9 @@ def _node_layout(block: Block) -> Layout:
     return layout
 
 
-def _part_layout(block: Block) -> Layout:
+def _part_layout(block: Block, long: bool = False) -> Layout:
     layout = Layout(block.name, key="pid", source="builtin")
+    width = 20 if long else 10
     data = [(i, line) for i, line in block.data()]
     while data and is_blank(data[-1][1]):
         data.pop()
@@ -108,7 +120,7 @@ def _part_layout(block: Block) -> Layout:
         raise Unsupported("*PART block does not consist of heading/card line pairs")
     for (h_index, _), (c_index, line) in zip(data[0::2], data[1::2]):
         infos = [FieldInfo("heading", "str", FieldSlot(h_index, 0, 80), "heading")]
-        infos += [FieldInfo(n, k, _slot(line, c_index, 10 * t, 10, t), "card1") for t, (n, k) in enumerate(PART_FIELDS)]
+        infos += [FieldInfo(n, k, _slot(line, c_index, width * t, width, t), "card1") for t, (n, k) in enumerate(PART_FIELDS)]
         try:
             pid = parse_number(read_text(line, infos[1].slot))
         except FieldError as error:
@@ -177,8 +189,15 @@ def _ordered_cards(keyword: object) -> list[tuple[str, object]]:
     return _arrange(keyword._cards, set(getattr(keyword, "_active_options", set())))
 
 
+def pydyna_title(block: Block, long: bool) -> str:
+    """Keyword line for PyDYNA: upper case, ``+`` when the block is in long format."""
+    keyword = block.keyword
+    text = keyword.name + ("+" if long else "") + ((" " + keyword.extra) if keyword.extra else "")
+    return text + ending(block.lines[0])
+
+
 def _substituted_text(block: Block, indices: list[int], lookup: Mapping[str, object],
-                      slots: dict[int, list[FieldSlot]] | None) -> str:
+                      slots: dict[int, list[FieldSlot]] | None, long: bool = False) -> str:
     """Text of the selected block lines for PyDYNA.
 
     The keyword line is upper-cased (PyDYNA matches titles case-sensitively) and
@@ -189,7 +208,7 @@ def _substituted_text(block: Block, indices: list[int], lookup: Mapping[str, obj
     for index in indices:
         line = block.lines[index]
         if index == 0:
-            out.append(line.upper())
+            out.append(pydyna_title(block, long))
             continue
         if line.startswith("$") or "&" not in line:
             out.append(line)
@@ -250,7 +269,7 @@ class _ExtraLines(Unsupported):
 
 
 def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
-                  chunk: list[tuple[int, str]]) -> tuple[list[FieldInfo], list[str]]:
+                  chunk: list[tuple[int, str]], long: bool = False) -> tuple[list[FieldInfo], list[str]]:
     """Fields of one card instance (``chunk`` = its data lines), self-checked against PyDYNA."""
     indices = [0] + [i for i, _ in chunk]
 
@@ -260,19 +279,20 @@ def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
             raise _ExtraLines(len(chunk), len(cards))
         infos = []
         for (card_name, card), (index, line) in zip(cards, chunk):
-            for token, schema in enumerate(card._schema.fields):
+            schemas = card._schema.fields
+            spans = long_spans([s.width for s in schemas]) if long else [(s.offset, s.width) for s in schemas]
+            for token, (schema, (offset, width)) in enumerate(zip(schemas, spans)):
                 if schema.name.lower().startswith("unused"):
                     continue  # ignored by LS-DYNA; PyDYNA does not keep its text
                 infos.append(FieldInfo(schema.name.lower(), _kind(schema.type),
-                                       _slot(line, index, schema.offset, schema.width, token), card_name,
-                                       schema.default))
+                                       _slot(line, index, offset, width, token), card_name, schema.default))
         return infos, [name for name, _ in cards[len(chunk):]], dict(cards)
 
-    first, _, _ = build(_load(cls, _substituted_text(block, indices, lookup, None)))
+    first, _, _ = build(_load(cls, _substituted_text(block, indices, lookup, None, long)))
     slots: dict[int, list[FieldSlot]] = {}
     for info in first:
         slots.setdefault(info.slot.line, []).append(info.slot)
-    infos, missing, cards = build(_load(cls, _substituted_text(block, indices, lookup, slots)))
+    infos, missing, cards = build(_load(cls, _substituted_text(block, indices, lookup, slots, long)))
     for info in infos:
         card = cards[info.card]
         index = card._schema.name_to_index.get(info.name)
@@ -284,10 +304,10 @@ def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
     return infos, missing
 
 
-def _pydyna_layout(block: Block, lookup: Mapping[str, object]) -> Layout:
+def _pydyna_layout(block: Block, lookup: Mapping[str, object], long: bool = False) -> Layout:
     cls, base = _pydyna_class(block.name)
     if _TABLE_CARDS & {type(card).__name__ for card in cls()._cards}:
-        shape = tables.table_layout(block, cls, base, Unsupported)
+        shape = tables.table_layout(block, cls, base, Unsupported, long=long, title=pydyna_title(block, long))
         return Layout(block.name, fields=[FieldInfo(*item) for item in shape["fields"]],
                       rows={k: [FieldInfo(*item) for item in v] for k, v in shape["rows"].items()},
                       key=shape["key"], source="pydyna-table")
@@ -295,7 +315,7 @@ def _pydyna_layout(block: Block, lookup: Mapping[str, object]) -> Layout:
     while data and is_blank(data[-1][1]):
         data.pop()
     try:
-        infos, missing = _chunk_fields(cls, block, lookup, data)
+        infos, missing = _chunk_fields(cls, block, lookup, data, long)
         return Layout(block.name, fields=infos, source="pydyna", missing_cards=missing)
     except _ExtraLines as extra:
         size = extra.cards
@@ -304,7 +324,7 @@ def _pydyna_layout(block: Block, lookup: Mapping[str, object]) -> Layout:
     # Several instances of the keyword cards follow one keyword line (e.g. many vectors).
     result = Layout(block.name, key="instance", source="pydyna")
     for number, begin in enumerate(range(0, len(data), size), 1):
-        infos, missing = _chunk_fields(cls, block, lookup, data[begin:begin + size])
+        infos, missing = _chunk_fields(cls, block, lookup, data[begin:begin + size], long)
         if missing:
             raise Unsupported(f"Instance {number} of {block.name} has a different card count")
         result.rows[number] = infos
@@ -325,23 +345,29 @@ def layout(block: Block, lookup: Mapping[str, object], deck_format: str = "stand
         raise Unsupported("Not a keyword block")
     if any("BEGIN PGP MESSAGE" in line for line in block.lines):
         raise Unsupported("Encrypted block: content cannot be read or edited")
-    flag = block.keyword.flag
-    fmt = {"-": "standard", "+": "long", "%": "i10"}.get(flag, deck_format)
-    if fmt != "standard":
-        raise Unsupported("Long / i10 format blocks support positional editing only (named fields planned)")
+    fmt = block_format(block, deck_format)
+    if fmt == "i10":
+        raise Unsupported("i10 format blocks support positional editing only")
+    long = fmt == "long"
     if block.name == "*NODE":
-        return _node_layout(block)
+        return _node_layout(block, long)
     if block.name == "*PART":
-        return _part_layout(block)
+        return _part_layout(block, long)
     if block.name == "*TITLE":
         return _title_layout(block)
     if lists.is_list_set(block.name) or lists.is_curve(block.name):
         try:
-            headers = lists.header_fields(block)
+            headers = lists.header_fields(block, long)
         except FieldError as error:
             raise Unsupported(str(error)) from error
         return Layout(block.name, fields=[FieldInfo(n, k, slot, card) for n, k, slot, card in headers],
                       source="builtin-list")
     if any(body(line).startswith("&") for _, line in block.data()) and block.name.startswith("*CONTACT"):
         raise Unsupported("MPP continuation cards starting with '&' need positional editing")
-    return _pydyna_layout(block, lookup)
+    return _pydyna_layout(block, lookup, long)
+
+
+def block_format(block: Block, deck_format: str = "standard") -> str:
+    """``standard``, ``long`` or ``i10`` for one block (its ``+``/``-``/``%`` flag overrides the deck)."""
+    flag = block.keyword.flag if block.keyword else ""
+    return {"-": "standard", "+": "long", "%": "i10"}.get(flag, deck_format)
