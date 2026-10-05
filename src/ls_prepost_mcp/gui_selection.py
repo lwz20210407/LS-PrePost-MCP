@@ -119,6 +119,19 @@ def verify_selection(before, after, expected, kind):
     )
 
 
+def hidden_parts_only(state):
+    """Allow the existing part reveal plan only with current native readback.
+
+    A hidden part can still contain Blank members; exact selected-ID and display
+    verification below must succeed before publishing any successful result.
+    """
+    visibility = state.get("visibility_binary") or {}
+    plan = state.get("native_selection_plan") or {}
+    return (plan.get("strategy") in ("whole", "parts")
+            and visibility.get("inactive_in_visible_parts") == 0
+            and any(not active for active in part_visibility(state).values()))
+
+
 class GuiSelectionTools:
     def _select_gui(
         self, session_id, action, arguments, kind, choose, suffix=None, on_verified=None, part_selection=None,
@@ -147,7 +160,7 @@ class GuiSelectionTools:
             if not expected <= available or len(expected) > state.get("selection_limit", 20000):
                 raise ValueError("Selection is outside the current entity registry or verification bound")
             visibility = state.get("visibility_binary")
-            if visibility and visibility.get("active_count", 0) < visibility["count"] and len(expected) > 20000 and not topology:
+            if visibility and visibility.get("active_count", 0) < visibility["count"] and len(expected) > 20000 and not topology and not hidden_parts_only(state):
                 raise ValueError("Hidden entities require exact-ID selection (20,000 selected-ID budget); narrow the scope or explicitly show entities first")
 
         def commands(state, directory):
@@ -158,7 +171,7 @@ class GuiSelectionTools:
             result = [] if topology else ["+m " + pid for pid, active in part_visibility(state).items() if not active]
             result += [nc.selection('clear'), nc.selection_target(target)]
             visibility = state.get("visibility_binary")
-            if visibility and visibility.get("active_count", 0) < visibility["count"] and not topology:
+            if visibility and visibility.get("active_count", 0) < visibility["count"] and not topology and not hidden_parts_only(state):
                 # Whole/by-part native selection omits Blank members in 4.13.
                 # Explicit IDs preserve the declared registered-entity semantics.
                 plan = None
