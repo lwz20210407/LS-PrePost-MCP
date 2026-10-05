@@ -130,3 +130,20 @@ def test_line_numbers_after_a_middle_block_grows(tmp_path: Path) -> None:
     deck.set_members(sets, list(range(1, 17)))  # 3 members on one line -> 16 members on two lines
     assert (first.line_number, sets.line_number, later.line_number) == (before[0], before[1], before[2] + 1)
     assert deck.main.text().splitlines()[later.line_number - 1] == "*SET_PART_LIST"
+
+
+def test_type_coded_initial_velocity_follows_part_renumbering(tmp_path: Path) -> None:
+    """Found by the edit-then-solve regression: STYP=2 makes ID a part ID (LS-DYNA error 11085 when missed)."""
+    deck = _deck(tmp_path, _model("*INITIAL_VELOCITY_GENERATION\n         1         2       0.0       0.0       0.0"
+                                  "     -10.0\n       0.0       0.0       0.0       0.0       0.0       0.0\n"))
+    assert deck.references().referenced["part"] == {1}
+    renumber(deck, "part", {1: 5})
+    block = deck.blocks("*INITIAL_VELOCITY_GENERATION")[0]
+    assert deck.get(block, "id").value == 5 and deck.references().dangling_count == 0
+
+
+def test_renumber_refuses_unruled_id_like_fields(tmp_path: Path) -> None:
+    deck = _deck(tmp_path, _model("*ALE_REFERENCE_SYSTEM_GROUP\n         1         1\n"))
+    with pytest.raises(FieldError, match="sid=1 may be a part ID"):
+        renumber(deck, "part", {1: 5})
+    assert deck.changes == []

@@ -70,6 +70,31 @@ CONTACT_TYPES = {0: "segment_set", 1: "shell_set", 2: "part_set", 3: "part", 4: 
 # (surface ID field, type code field); PyDYNA uses SURFA/SURFATYP or the older SSID/SSTYP names
 # (e.g. *CONTACT_AUTOMATIC_SINGLE_SURFACE).
 CONTACT_SIDES = (("surfa", "surfatyp"), ("surfb", "surfbtyp"), ("ssid", "sstyp"), ("msid", "mstyp"))
+# Fields whose target kind is chosen by a type code in the same card: (id field, code field, code -> kind).
+# Only codes verified in the keyword manual are listed; other ID-like fields are guarded in renumber.py.
+TYPE_CODED: list[tuple[str, tuple[tuple[str, str, dict[int, str]], ...]]] = [
+    ("*CONTACT_", tuple((name, code, CONTACT_TYPES) for name, code in CONTACT_SIDES)),
+    # STYP: 1 part set, 2 part, 3 node set (R11 manual, *INITIAL_VELOCITY_GENERATION card 1)
+    ("*INITIAL_VELOCITY_GENERATION", (("id", "styp", {1: "part_set", 2: "part", 3: "node_set"}),)),
+]
+
+
+def coded_rules(base: str) -> tuple[tuple[str, str, dict[int, str]], ...]:
+    return tuple(rule for prefix, rules in TYPE_CODED if base.startswith(prefix) for rule in rules)
+
+
+def coded_pairs(rules: tuple, by_name: dict, block: Block, lookup: dict) -> list[tuple[str, str]]:
+    """``(id field, kind)`` of the type-coded references among the fields of one card or row."""
+    found = []
+    for name, code_name, codes in rules:
+        code_info = by_name.get(code_name)
+        if code_info is None or name not in by_name:
+            continue
+        code = _ident(read_text(block.lines[code_info.slot.line], code_info.slot), lookup)
+        kind = codes.get(code or 0)
+        if kind:
+            found.append((name, kind))
+    return found
 MESH_KINDS = {"node", "shell", "solid", "beam"}
 MAX_SITES = 10000
 
@@ -155,7 +180,7 @@ class _Plan:
     layout: Layout
     definition: tuple[str, str] | None
     refs: list[tuple[str, str]]
-    contact: bool
+    coded: tuple
     members: str | None
 
 
@@ -165,10 +190,10 @@ def _plans(deck: KeywordDeck, include_mesh: bool, report: ReferenceReport) -> li
         base = lists.base_name(block.name)[0]
         definition = None if base.startswith(NOT_DEFINITIONS) else _rule(base, DEFINITIONS)
         refs = _references(block.name, base, include_mesh)
-        contact = base.startswith("*CONTACT_")
+        coded = coded_rules(base)
         members = LIST_MEMBERS.get(base)
         mesh = (definition and definition[1] in MESH_KINDS) or base.startswith("*ELEMENT_")
-        if not (definition or refs or contact or members) or (mesh and not include_mesh):
+        if not (definition or refs or coded or members) or (mesh and not include_mesh):
             continue
         try:
             layout = deck.layout(block)
@@ -180,7 +205,7 @@ def _plans(deck: KeywordDeck, include_mesh: bool, report: ReferenceReport) -> li
         if members and not include_mesh and members in MESH_KINDS:
             members = None
         plans.append(_Plan(block, layout, tuple(definition) if definition else None,
-                           _expand(refs, layout), contact, members))
+                           _expand(refs, layout), coded, members))
     return plans
 
 
@@ -270,13 +295,7 @@ def collect(deck: KeywordDeck, include_mesh: bool = True, track: set[tuple[str, 
         layout = plan.layout
         header = {info.name: info for info in layout.fields}
         pairs = list(plan.refs)
-        if plan.contact:
-            for name, code_name in CONTACT_SIDES:
-                code_info = header.get(code_name)
-                code = _ident(read_text(plan.block.lines[code_info.slot.line], code_info.slot), lookup) if code_info else None
-                target = CONTACT_TYPES.get(code or 0)
-                if target and name in header:
-                    pairs.append((name, target))
+        pairs += coded_pairs(plan.coded, header, plan.block, lookup)
         for name, target in pairs:
             if name in header:
                 info = header[name]
@@ -297,7 +316,7 @@ def collect(deck: KeywordDeck, include_mesh: bool = True, track: set[tuple[str, 
         else:
             for row, infos in layout.rows.items():
                 by_name = {info.name: info for info in infos}
-                for name, target in pairs:
+                for name, target in pairs + coded_pairs(plan.coded, by_name, plan.block, lookup):
                     if name in by_name:
                         info = by_name[name]
                         ident = _ident(read_text(plan.block.lines[info.slot.line], info.slot), lookup)

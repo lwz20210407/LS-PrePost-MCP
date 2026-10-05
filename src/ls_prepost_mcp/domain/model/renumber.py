@@ -14,6 +14,7 @@ After applying, the references are collected again and must not show new danglin
 """
 from __future__ import annotations
 
+import re
 from collections.abc import Callable, Iterable
 from typing import TYPE_CHECKING
 
@@ -22,10 +23,10 @@ import numpy as np
 from . import lists, references
 from .fields import FieldError, FieldSlot, format_value, is_free_format, read_text, write_text
 from .geometry import _where, elements, nodes
-from .layouts import RowMap
+from .layouts import RowMap, Unsupported
 from .parameters import field_expression
 from .quality import coincident_nodes
-from .references import CONTACT_SIDES, CONTACT_TYPES, DEFINITIONS, MESH_KINDS, ReferenceReport, _ident, _rule
+from .references import DEFINITIONS, MESH_KINDS, ReferenceReport, _ident, _rule, coded_pairs
 
 if TYPE_CHECKING:
     from .blocks import Block
@@ -44,16 +45,44 @@ def _may_refer(name: str, kind: str) -> bool:
                 or any(target == kind for _, target in references._references(name, base, True)))
 
 
-def _contact_fields(deck: KeywordDeck, plan: object, kind: str) -> list[str]:
-    header = {info.name: info for info in plan.layout.fields}
-    lookup = deck.lookup(plan.block)
-    found = []
-    for name, code_name in CONTACT_SIDES:
-        info = header.get(code_name)
-        code = _ident(read_text(plan.block.lines[info.slot.line], info.slot), lookup) if info else None
-        if CONTACT_TYPES.get(code or 0) == kind and name in header:
-            found.append(name)
-    return found
+ID_LIKE = re.compile(r"(?:id|sid)(?:_\d+)?$|^lc")
+SELF_IDS = {"wid", "jid", "coupid", "did"}  # a keyword's own ID, not a reference
+
+
+def _unruled(deck: KeywordDeck, block: Block, layout: object, covered: set[str], mapping: dict[int, int],
+             kind: str, problems: list[str]) -> None:
+    """Refuse when an ID-like integer field that no rule covers holds an affected ID.
+
+    Without a rule the field cannot be rewritten, and leaving it could silently point at a
+    different object after renumbering (found by edit-then-solve regression runs).
+    """
+    def suspicious(info: object) -> bool:
+        return (info.kind == "int" and info.name not in covered and info.name not in SELF_IDS
+                and info.card not in ("id", "title") and bool(ID_LIKE.search(info.name)))
+
+    lookup = deck.lookup(block)
+    groups = [list(layout.fields)]
+    rows = layout.rows
+    if isinstance(rows, RowMap):
+        columns = [(position, column) for position, template in enumerate(rows.template) for column in template
+                   if column.kind == "int" and column.name not in covered and column.name not in SELF_IDS
+                   and ID_LIKE.search(column.name)]
+        for key, indices in rows.lines():
+            for position, column in columns:
+                if position < len(indices):
+                    text = rows.cell(indices, (position, column.offset, column.width, None))
+                    if _ident(text, lookup) in mapping:
+                        problems.append(f"{_where(block)} row {key} {column.name}={text.strip()} may be a {kind} "
+                                        "ID but no rule covers this field")
+    else:
+        groups += [list(infos) for infos in rows.values()]
+    for infos in groups:
+        for info in infos:
+            if suspicious(info):
+                value = _ident(read_text(block.lines[info.slot.line], info.slot), lookup)
+                if value in mapping:
+                    problems.append(f"{_where(block)} {info.name}={value} may be a {kind} ID but no rule covers "
+                                    "this field")
 
 
 def _cell(block: Block, line: str, offset: int, width: int, token: int | None, mapping: dict[int, int],
@@ -88,11 +117,11 @@ def _plan(deck: KeywordDeck, kind: str, mapping: dict[int, int], definitions: bo
         names = [name for name, target in plan.refs if target == kind]
         if definitions and plan.definition and plan.definition[1] == kind:
             names.append(plan.definition[0])
-        if plan.contact:
-            names += _contact_fields(deck, plan, kind)
-        edits: dict[int, str] = {}
         lookup = deck.lookup(block)
-        if names:
+        names += [name for name, target in coded_pairs(plan.coded, {i.name: i for i in layout.fields}, block, lookup)
+                  if target == kind]
+        edits: dict[int, str] = {}
+        if names or plan.coded:
             for info in layout.fields:
                 if info.name in names:
                     line = edits.get(info.slot.line, block.lines[info.slot.line])
@@ -117,8 +146,11 @@ def _plan(deck: KeywordDeck, kind: str, mapping: dict[int, int], definitions: bo
                             edits[index], cells = new, cells + 1
             else:
                 for key, infos in rows.items():
+                    row_names = names + [name for name, target in
+                                         coded_pairs(plan.coded, {i.name: i for i in infos}, block, lookup)
+                                         if target == kind]
                     for info in infos:
-                        if info.name in names:
+                        if info.name in row_names:
                             line = edits.get(info.slot.line, block.lines[info.slot.line])
                             new = _cell(block, line, info.slot.offset, info.slot.width, info.slot.token, mapping,
                                         lookup, problems, lambda k=key, i=info: f"{_where(block)} row {k} {i.name}")
@@ -132,7 +164,20 @@ def _plan(deck: KeywordDeck, kind: str, mapping: dict[int, int], definitions: bo
             if new_members != old:
                 member_plans.append((block, new_members))
                 cells += sum(a != b for a, b in zip(old, new_members))
+    by_block = {id(plan.block): plan for plan in plans}
     for block in deck.iter_blocks():
+        plan = by_block.get(id(block))
+        try:
+            layout = plan.layout if plan else deck.layout(block)
+        except (Unsupported, FieldError):
+            layout = None
+        if layout is not None:
+            covered = set()
+            if plan:
+                covered = {name for name, _ in plan.refs} | {field for rule in plan.coded for field in rule[:2]}
+                if plan.definition:
+                    covered.add(plan.definition[0])
+            _unruled(deck, block, layout, covered, mapping, kind, problems)
         base = lists.base_name(block.name)[0]
         if lists.RANGE_KINDS.get(base) == kind:
             for first, last in lists.ranges(block, deck._long(block)):
