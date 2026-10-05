@@ -697,6 +697,10 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 里程碑：M1
 
+状态：partial；验证：L2
+
+证据：[src/ls_prepost_mcp/native/commands.py](../src/ls_prepost_mcp/native/commands.py), [src/ls_prepost_mcp/native/versions.py](../src/ls_prepost_mcp/native/versions.py), [tests/test_native_commands.py](../tests/test_native_commands.py), [docs/decisions/evidence/i03/report.md](../docs/decisions/evidence/i03/report.md), [tests/test_engine_native.py](../tests/test_engine_native.py)
+
 - genselect / fringe / anim 等命令只在 native/commands.py 生成，有黄金输出测试
 - 版本差异集中在能力表，src 其他位置不出现版本判断
 

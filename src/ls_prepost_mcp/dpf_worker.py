@@ -6,6 +6,7 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 from .dpf_fields import RESULTS, field_spec, flatten_fields, result_contract, time_axis
+from .native.versions import dependency_supported
 
 
 def runtime_info(server_path=None):
@@ -17,7 +18,7 @@ def runtime_info(server_path=None):
     except PackageNotFoundError:
         report["reason"] = "Install the dpf optional dependency (ansys-dpf-core0.16.1)"
         return report
-    if report["client_version"] != "0.16.1":
+    if not dependency_supported("ansys-dpf-core", report["client_version"]):
         report["reason"] = "This adapter is aligned with ansys-dpf-core0.16.1"
         return report
     try:

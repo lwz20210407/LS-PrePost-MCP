@@ -1,6 +1,7 @@
 """Visible native renumbering through validated dialog fields and native ID logs."""
 
 from .gui_mesh import check_same_nodes, mesh_index
+from .native import commands as nc
 from .windows_transport import WindowsCommandTransport
 
 
@@ -153,9 +154,9 @@ class GuiRenumberTools:
                 {},
                 native_commands=[
                     "pall",
-                    "genselect clear",
-                    "genselect target " + entity_type,
-                    "genselect whole",
+                    nc.selection('clear'),
+                    nc.selection_target(entity_type),
+                    nc.selection('whole'),
                 ],
             )
             if selected["status"] != "succeeded":

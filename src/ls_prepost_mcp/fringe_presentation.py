@@ -1,4 +1,5 @@
 """Native result captions and explicit rendering averages; no generated title suffixes."""
+from .native import commands as nc
 
 AVERAGES = {"none": "none", "nodal": "nodal", "minmax": "minmax"}
 
@@ -25,7 +26,7 @@ for component in "xyz":
 def averaging_command(averaging):
     if not isinstance(averaging, str) or averaging not in AVERAGES:
         raise ValueError("averaging must be minmax, nodal or none")
-    return "range avgfrng "+AVERAGES[averaging]
+    return nc.averaging(AVERAGES[averaging])
 
 
 def result_name(field):

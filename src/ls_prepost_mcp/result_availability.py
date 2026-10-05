@@ -3,6 +3,7 @@
 from importlib.metadata import version
 
 from .jobs import fingerprint
+from .native.versions import dependency_supported
 
 
 def header_field_contract(header, native_counts, domain, field, sampling):
@@ -83,7 +84,7 @@ def header_field_contract(header, native_counts, domain, field, sampling):
 
 def validate_field_availability(settings, staged_model, counts, domain, field, sampling):
     try:
-        if version("lasso-python") != "2.0.4":
+        if not dependency_supported("lasso-python", version("lasso-python")):
             raise ValueError("Header validation is pinned to lasso-python2.0.4")
         from lasso.dyna.d3plot_header import D3plotHeader
     except ImportError as exc:

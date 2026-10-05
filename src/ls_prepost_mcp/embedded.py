@@ -13,6 +13,25 @@ import sys
 import traceback
 from array import array as packed_array
 
+if __package__:
+    from .native import commands as nc
+    from .native import versions as nv
+else:
+    import importlib.util
+
+    def _support_module(name):
+        root = os.path.dirname(os.path.abspath(__file__))
+        path = os.path.join(root, "native_" + name + ".py")
+        if not os.path.isfile(path):
+            path = os.path.join(root, "native", name + ".py")
+        spec = importlib.util.spec_from_file_location("_lspp_native_" + name, path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    nc = _support_module("commands")
+    nv = _support_module("versions")
+
 
 def read_native_masses(path, expected_count):
     """Read standard ELEMENT_MASS without guessing undocumented SDK enum codes."""
@@ -495,10 +514,8 @@ def run(request_path, response_path):
         p = request["parameters"]
         if action == "connectivity" and p.get("element_type") == "beam" and not request.get("safe_beam_connectivity"):
             raise RuntimeError("Native beam connectivity array binding failed heap-safety tests; use a protocol4 GUI session with native keyword readback")
-        if action in ("extract_nodal", "node_history") and sys.version_info[:2] < (3, 10):
-            raise RuntimeError(
-                "Native vector arrays on the older embedded Python ABI did not pass numerical cross-checks. Use the explicit LASSO/LS-Reader tools or the verified 4.13 profile."
-            )
+        if action in ("extract_nodal", "node_history"):
+            nv.require_vector_abi(sys.version_info)
         job_directory = request.get("job_directory", os.getcwd())
         if request.get("safe_beam_connectivity"):
             dc = BeamSafeDataCenter(dc, job_directory)
@@ -509,13 +526,12 @@ def run(request_path, response_path):
             os.chdir(os.path.dirname(source))
             try:
                 kind = request["file_type"]
-                opener = "openc" if kind == "d3plot" else "open"
                 load_name = (
                     source.replace("\\", "/")
                     if kind == "keyword" and request.get("absolute_keyword_path")
                     else os.path.basename(source)
                 )
-                lp.execute_command(opener + " " + kind + ' "' + load_name + '"')
+                lp.execute_command(nc.open_model(load_name, kind, openc=kind == "d3plot"))
             finally:
                 os.chdir(job_directory)
             if int(dc.get_data("num_nodes")) <= 0 and request.get("expected_empty") is not True:
@@ -712,7 +728,7 @@ def run(request_path, response_path):
             times = sequence(get("state_times"))
             rows = []
             if p.get("preserve_state"):
-                lp.execute_command("anim stop")
+                lp.execute_command(nc.animation('stop'))
             initial_state = int(get("current_state")) if p.get("preserve_state") else None
             if initial_state is not None:
                 check_state(initial_state)
@@ -838,16 +854,16 @@ def run(request_path, response_path):
             if not selected.issubset(set(ids)):
                 raise ValueError("Unknown node ID")
             before = node_rows(ids, ["node_x", "node_y", "node_z"], None)
-            lp.execute_command("genselect clear")
-            lp.execute_command("genselect target node")
-            lp.execute_command("genselect transfer 0")
+            lp.execute_command(nc.selection('clear'))
+            lp.execute_command(nc.selection_target('node'))
+            lp.execute_command(nc.selection_transfer(0))
             for uid in p["node_ids"]:
-                lp.execute_command("genselect node add node %d" % uid)
+                lp.execute_command(nc.selection_add('node', uid, 'node'))
             lp.execute_command(
                 "rotate_model " + " ".join(str(v) for v in p["center"]) + " %s %s" % (p["axis"], p["angle"])
             )
             lp.execute_command("rotate_model accept 0 0 0")
-            lp.execute_command("genselect clear")
+            lp.execute_command(nc.selection('clear'))
             after = node_rows(ids, ["node_x", "node_y", "node_z"], None)
             angle = math.radians(p["angle"])
             cos, sin = math.cos(angle), math.sin(angle)
@@ -879,13 +895,13 @@ def run(request_path, response_path):
             if not selected.issubset(set(all_ids)):
                 raise ValueError("Requested user node ID does not exist")
             before = node_rows(all_ids, ["node_x", "node_y", "node_z"], None)
-            lp.execute_command("genselect clear")
-            lp.execute_command("genselect target node")
+            lp.execute_command(nc.selection('clear'))
+            lp.execute_command(nc.selection_target('node'))
             for uid in p["node_ids"]:
-                lp.execute_command("genselect node add node %d" % uid)
+                lp.execute_command(nc.selection_add('node', uid, 'node'))
             lp.execute_command("translate_model " + " ".join(str(v) for v in p["offset"]))
             lp.execute_command("translate_model accept")
-            lp.execute_command("genselect clear")
+            lp.execute_command(nc.selection('clear'))
             after_ids = [int(v) for v in sequence(get("node_ids"))]
             if after_ids != all_ids:
                 raise ValueError("Translation unexpectedly changed the node ID registry")
@@ -919,13 +935,13 @@ def run(request_path, response_path):
                         )
             before_nodes = int(get("num_nodes"))
             before_elements = int(get("num_elements"))
-            lp.execute_command("genselect clear")
-            lp.execute_command("genselect target element")
+            lp.execute_command(nc.selection('clear'))
+            lp.execute_command(nc.selection_target('element'))
             for uid in p["element_ids"]:
-                lp.execute_command("genselect element add element %d" % uid)
+                lp.execute_command(nc.selection_add('element', uid, 'element'))
             lp.execute_command('elemmove apply %d "mcp_part"' % p["part_id"])
             lp.execute_command("elemmove accept %d" % p["part_id"])
-            lp.execute_command("genselect clear")
+            lp.execute_command(nc.selection('clear'))
             moved = set(int(v) for v in sequence(get("elemofpart_ids", type=1, id=p["part_id"])))
             if not set(p["element_ids"]).issubset(moved):
                 raise ValueError("Native target part does not contain requested element IDs")
@@ -948,13 +964,13 @@ def run(request_path, response_path):
             z = [float(v) for v in sequence(get("node_z"))]
             if max(z) - min(z) > 1e-8:
                 raise ValueError("Initial extrusion adapter requires a planar XY shell mesh")
-            lp.execute_command("genselect clear")
-            lp.execute_command("genselect target shell")
-            lp.execute_command("genselect shell add part %d" % p["part_id"])
+            lp.execute_command(nc.selection('clear'))
+            lp.execute_command(nc.selection_target('shell'))
+            lp.execute_command(nc.selection_add('shell', p['part_id'], 'part'))
             lp.execute_command(
                 "elgenerate solid shelldrag 2 0 %s %d 0 0 0 0 0 10000" % (p["length"], p["layers"])
             )
-            lp.execute_command("genselect clear")
+            lp.execute_command(nc.selection('clear'))
             lp.execute_command("elgenerate accept")
             data = inventory()
             data["solid_count"] = int(get("num_solid_elements"))
@@ -973,19 +989,19 @@ def run(request_path, response_path):
             with open("initial.k", "w") as f:
                 f.write("*KEYWORD\n*TITLE\nMCP session model\n*END\n")
             lp.execute_command(
-                'open keyword "' + os.path.join(job_directory, "initial.k").replace("\\", "/") + '"'
+                nc.open_model(os.path.join(job_directory, "initial.k"))
             )
             data = inventory()
         elif action == "gui_display":
             if p.get("state") is not None:
                 check_state(p["state"])
-                lp.execute_command("anim stop")
+                lp.execute_command(nc.animation('stop'))
                 lp.switch_state(p["state"])
             for command in p["commands"]:
                 lp.execute_command(command)
             if p.get("capture"):
                 output = os.path.join(job_directory, "snapshot.png").replace("\\", "/")
-                lp.execute_command('print png "' + output + '" opaque enlisted "OGL1x1"')
+                lp.execute_command(nc.print_png(output))
             data = inventory()
             data["applied_commands"] = p["commands"]
         elif action == "gui_parts":
@@ -1013,15 +1029,15 @@ def run(request_path, response_path):
             data = {"visibility": after, "mode": p["mode"], "verified": True}
         elif action == "gui_animation":
             if p["operation"] == "stop":
-                lp.execute_command("anim stop")
+                lp.execute_command(nc.animation('stop'))
             else:
                 check_state(p["first"])
                 check_state(p["last"])
-                lp.execute_command("anim first %d" % p["first"])
-                lp.execute_command("anim last %d" % p["last"])
-                lp.execute_command("anim incr %d" % p["increment"])
-                lp.execute_command("anim " + p["direction"])
-                lp.execute_command("anim start")
+                lp.execute_command(nc.animation('first', p['first']))
+                lp.execute_command(nc.animation('last', p['last']))
+                lp.execute_command(nc.animation('incr', p['increment']))
+                lp.execute_command(nc.animation(p['direction']))
+                lp.execute_command(nc.animation('start'))
             data = {
                 "operation": p["operation"],
                 "configuration": p,
@@ -1035,13 +1051,13 @@ def run(request_path, response_path):
                 check_state(p["state"])
                 lp.switch_state(p["state"])
             if p.get("fringe_code") is not None:
-                lp.execute_command("fringe " + str(p["fringe_code"]))
-                lp.execute_command("pfringe")
-            lp.execute_command("range avgfrng " + averaging)
+                lp.execute_command(nc.fringe(p['fringe_code']))
+                lp.execute_command(nc.plot_fringe())
+            lp.execute_command(nc.averaging(averaging))
             lp.execute_command(p["view"])
             lp.execute_command("ac")
             output = os.path.join(job_directory, "snapshot.png").replace("\\", "/")
-            lp.execute_command('print png "' + output + '" opaque enlisted "OGL1x1"')
+            lp.execute_command(nc.print_png(output))
             data = {
                 "view": p["view"],
                 "state": p.get("state"),

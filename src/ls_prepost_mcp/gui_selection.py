@@ -15,6 +15,7 @@ from .gui_mesh import (
     mesh_index,
     verify_mesh_digest,
 )
+from .native import commands as nc
 
 
 def mesh_signature(state):
@@ -155,7 +156,7 @@ class GuiSelectionTools:
             plan = state.get("native_selection_plan")
             topology = plan and plan.get("strategy") == "topology"
             result = [] if topology else ["+m " + pid for pid, active in part_visibility(state).items() if not active]
-            result += ["genselect clear", "genselect target " + target]
+            result += [nc.selection('clear'), nc.selection_target(target)]
             visibility = state.get("visibility_binary")
             if visibility and visibility.get("active_count", 0) < visibility["count"] and not topology:
                 # Whole/by-part native selection omits Blank members in 4.13.
@@ -165,29 +166,29 @@ class GuiSelectionTools:
                 if plan["target"] != target:
                     raise ValueError("Native bulk-selection plan targets the wrong domain")
                 if topology:
-                    result += ["genselect propagate off", "genselect propagate adaptive off", "genselect 3dsurf off"]
+                    result += [nc.selection_propagation(False), nc.selection_propagation(False, adaptive=True), nc.selection_surface(False)]
                     if plan["mode"] == "propagate":
-                        result += ["genselect propagate featang " + repr(plan["feature_angle"]), "genselect propagate on"]
-                    result += ["genselect shell add shell %d" % uid for uid in plan["seed_ids"]]
+                        result += [nc.feature_angle(plan['feature_angle']), nc.selection_propagation(True)]
+                    result += [nc.selection_add('shell', uid, 'shell') for uid in plan["seed_ids"]]
                     if plan["mode"] == "adjacent":
-                        result += ["genselect adjacent"] * plan["rings"]
-                    result.append("genselect propagate off")
+                        result += [nc.selection('adjacent')] * plan["rings"]
+                    result.append(nc.selection_propagation(False))
                 elif plan["strategy"] == "whole":
-                    result.append("genselect whole")
+                    result.append(nc.selection('whole'))
                 else:
-                    result += ["genselect %s add part %d" % (target, pid) for pid in plan["part_ids"]]
+                    result += [nc.selection_add(target, pid, 'part') for pid in plan["part_ids"]]
                 strategy["name"] = "native_" + plan["strategy"] + "_streamed_verification"
             elif "mesh_digest" in state:
-                result += ["genselect %s add %s %d" % (target, target, uid) for uid in sorted(expected)]
+                result += [nc.selection_add(target, uid, target) for uid in sorted(expected)]
                 strategy["name"] = "explicit_ids_streamed_verification"
             elif expected and expected == available_ids(state, target):
-                result.append("genselect whole")
+                result.append(nc.selection('whole'))
                 strategy["name"] = "native_whole"
             elif part_selection is not None and expected == in_parts(state, target, part_selection):
-                result += ["genselect %s add part %d" % (target, pid) for pid in part_selection]
+                result += [nc.selection_add(target, pid, 'part') for pid in part_selection]
                 strategy["name"] = "native_part"
             else:
-                result += ["genselect %s add %s %d" % (target, target, uid) for uid in sorted(expected)]
+                result += [nc.selection_add(target, uid, target) for uid in sorted(expected)]
                 strategy["name"] = "explicit_ids"
             restore = ["-m " + pid for pid, active in part_visibility(state).items() if not active]
             return result + (suffix or []) + restore
@@ -374,7 +375,7 @@ class GuiSelectionTools:
             dict(entity_type=entity_type, entity_ids=entity_ids, slot=slot),
             entity_type,
             lambda state: set(entity_ids),
-            [f"genselect save {index}", "genselect clear", f"genselect load {index}"],
+            [nc.selection_buffer('save', index), nc.selection('clear'), nc.selection_buffer('load', index)],
             on_verified=remember,
             snapshot_parameters=dict(entity_type=entity_type, entity_ids=entity_ids),
         )
@@ -409,9 +410,9 @@ class GuiSelectionTools:
             "load_gui_selection_buffer",
             dict(slot=slot),
             lambda state, directory: [
-                "genselect clear",
-                "genselect target " + entry["entity_type"],
-                f"genselect load {index}",
+                nc.selection('clear'),
+                nc.selection_target(entry['entity_type']),
+                nc.selection_buffer('load', index),
             ],
             lambda a, b: verify_selection(a, b, entry["entity_ids"], entry["entity_type"]),
             precheck,

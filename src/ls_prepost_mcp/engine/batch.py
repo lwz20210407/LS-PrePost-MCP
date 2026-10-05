@@ -6,6 +6,7 @@ import time
 
 from ..core.contracts import JobResult
 from ..core.native_log import LogCursor, decode, native_errors
+from ..native.versions import require_capability
 from .environment import native_environment
 from .jobs import BatchJob
 
@@ -18,6 +19,7 @@ class BatchEngine:
         process = dict(returncode=None, timed_out=False, pid=None, argv=args,
                        cwd=str(job.directory), graphics=job.graphics)
         try:
+            process["capabilities"] = require_capability(job.executable, "batch")
             env, configuration = native_environment(job.executable, job.directory)
             process["configuration"] = configuration
             cursor = LogCursor.capture(job.directory / "lspost.msg")

@@ -4,6 +4,7 @@ import shutil
 from pathlib import Path
 
 from .jobs import atomic_json, fingerprint, now
+from .native import commands as nc
 from .runner import execute, failure_message
 
 
@@ -28,7 +29,7 @@ def inspect_database(settings, jobs, source: Path) -> dict:
                   'fprintf(fp,"%d %d %d\\n",nn,ne,ns);\nfclose(fp);\n}\nmain();\n')
         (directory / "inventory.scl").write_text(script, encoding="ascii")
         commands = directory / "commands.cfile"
-        commands.write_text('new\nopenc d3plot "d3plot"\nrunscript inventory.scl\nexit\n', encoding="ascii")
+        nc.write_cfile(commands, ["new", nc.open_model("d3plot", "d3plot", openc=True), nc.run_script("inventory.scl", "scl"), "exit"])
         process = execute(settings.native_executable(), commands, directory, timeout=settings.timeout, graphics=False)
         manifest["process"] = process
         if process.get("engine_status") == "failed" or process["returncode"] != 0 or process["timed_out"]:

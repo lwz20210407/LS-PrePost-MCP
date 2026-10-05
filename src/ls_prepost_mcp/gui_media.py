@@ -4,12 +4,12 @@ import math
 
 from pydantic import StrictFloat, StrictInt
 
-from .config import scl_command_path
 from .core.native_log import native_errors, read_delta
 from .fringe_presentation import averaging_command
 from .gui_controls import wait_for_gui_state
 from .jobs import atomic_json, check_artifact, now
 from .media_validation import movie_validators, parse_movie_log, validate_mp4
+from .native import commands as nc
 from .scene_state import require_movie_field_coverage
 
 
@@ -144,18 +144,18 @@ class GuiMediaTools:
             log = manager.directory(session_id) / "lspost.msg"
             try:
                 ready, evidence = wait_for_gui_state(
-                    manager, session_id, 1, self.settings.timeout, native_commands=["anim stop", "state 1"]
+                    manager, session_id, 1, self.settings.timeout, native_commands=[nc.animation('stop'), nc.state(1)]
                 )
                 manifest["initial_state_observations"] = evidence
                 if ready["status"] != "succeeded":
                     raise ValueError("Cannot verify the initial movie state")
                 commands = [
-                    "anim stop",
+                    nc.animation('stop'),
                     average_command,
-                    "anim first 1",
-                    f"anim last {final_state}",
-                    "anim incr 1",
-                    f"movie MP4/H264 {width}x{height} {scl_command_path(movie.with_suffix(''))} {fps}",
+                    nc.animation('first', 1),
+                    nc.animation('last', final_state),
+                    nc.animation('incr', 1),
+                    nc.movie(movie.with_suffix(''), width, height, fps),
                 ]
                 atomic_json(directory / "commands.json", commands)
                 offset = log.stat().st_size if log.exists() else 0
@@ -195,7 +195,7 @@ class GuiMediaTools:
                         session_id,
                         original,
                         self.settings.timeout,
-                        native_commands=["anim stop", f"state {original}"],
+                        native_commands=[nc.animation('stop'), nc.state(original)],
                     )
                     manifest["state_restoration"] = dict(
                         original=original,

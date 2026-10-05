@@ -5,6 +5,8 @@ import os
 import re
 from pathlib import Path
 
+from ..native.versions import installation_version
+
 
 def locate_config(executable, environ):
     explicit = environ.get("LSPP_CONFIG_SOURCE")
@@ -18,11 +20,9 @@ def locate_config(executable, environ):
         path = Path(configured).expanduser() / "lsppconf"
         if path.is_file():
             return path.resolve()
-    version = re.search(r"lsprepost[ _-]?(\d+\.\d+)", Path(executable).name, re.I)
-    if not version:
-        version = re.search(r"(?:LS-PrePost[^/\\]*?)(\d+\.\d+)", str(Path(executable).parent), re.I)
+    version = installation_version(executable)
     if version and environ.get("APPDATA"):
-        path = Path(environ["APPDATA"]) / "LSTC" / ("LS-PrePost" + version[1]) / "lsppconf"
+        path = Path(environ["APPDATA"]) / "LSTC" / ("LS-PrePost" + version) / "lsppconf"
         if path.is_file():
             return path.resolve()
     return None

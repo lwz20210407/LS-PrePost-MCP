@@ -6,11 +6,11 @@ from pathlib import Path
 
 from pydantic import StrictInt
 
-from .config import command_path
 from .core.native_log import native_errors, read_delta
 from .gui_mesh import verify_mesh_digest
 from .gui_selection import part_visibility
 from .jobs import atomic_json, check_artifact
+from .native import commands as nc
 from .post_backend import ids
 
 CODES = {"shell": 10, "solid": 11, "beam": 12, "element": 19}
@@ -56,8 +56,8 @@ def identity(data):
 
 def selected_commands(kind, identifiers):
     target = "shell" if kind == "shell" else "element"
-    return ["genselect clear", "genselect target "+target]+[
-        "genselect %s add %s %d" % (target, target, uid) for uid in sorted(identifiers)]
+    return [nc.selection('clear'), nc.selection_target(target)]+[
+        nc.selection_add(target, uid, target) for uid in sorted(identifiers)]
 
 
 def transitions(kind, old, desired):
@@ -65,13 +65,13 @@ def transitions(kind, old, desired):
     code = CODES[kind]
     changed = {key for key in desired if desired[key] != old[key]}
     if not changed:
-        return ["genselect clear"]
+        return [nc.selection('clear')]
     scoped = {key for key in old if kind == "element" or key[0] == kind}
     shown, hidden = {key[1] for key in changed if desired[key]}, {key[1] for key in changed if not desired[key]}
     if len({desired[key] for key in scoped}) == 1:
-        return ["unblank all %d" % code if shown else "blank all %d" % code, "genselect clear"]
+        return ["unblank all %d" % code if shown else "blank all %d" % code, nc.selection('clear')]
     if changed == scoped:
-        return ["blank reverse %d" % code, "genselect clear"]
+        return ["blank reverse %d" % code, nc.selection('clear')]
     prefix = []
     all_shown = {key[1] for key in scoped if desired[key]}
     all_hidden = {key[1] for key in scoped if not desired[key]}
@@ -89,7 +89,7 @@ def transitions(kind, old, desired):
             "blank selection", "blank reverse %d" % code]
     if hidden:
         commands += selected_commands(kind, hidden)+["blank selection"]
-    return commands+["genselect clear"]
+    return commands+[nc.selection('clear')]
 
 
 class GuiVisibilityTools:
@@ -111,12 +111,12 @@ class GuiVisibilityTools:
         arguments = dict(entity_type=entity_type, mode=mode, entity_ids=entity_ids, capture=capture)
         with manager.lock(session_id):
             meta = self._visible_mesh_session(session_id, manager, allow_results=True)
-            baseline = manager.dispatch(session_id, "gui_mesh_digest", {}, native_commands=["anim stop"])
+            baseline = manager.dispatch(session_id, "gui_mesh_digest", {}, native_commands=[nc.animation('stop')])
             if baseline["status"] != "succeeded":
                 return baseline
             original = baseline["data"]
             original_parts = part_visibility(original)
-            restore = ["-m "+pid for pid, active in original_parts.items() if not active]+["genselect clear"]
+            restore = ["-m "+pid for pid, active in original_parts.items() if not active]+[nc.selection('clear')]
             log = manager.directory(session_id)/"lspost.msg"
             offset = log.stat().st_size if log.exists() else 0
             result, directory, changed_scene = baseline, Path(baseline["job_directory"]), False
@@ -125,7 +125,7 @@ class GuiVisibilityTools:
             pending_last = None
             preservation_verified = False
             try:
-                reveal = ["+m "+pid for pid, active in original_parts.items() if not active]+["genselect clear"]
+                reveal = ["+m "+pid for pid, active in original_parts.items() if not active]+[nc.selection('clear')]
                 view = manager.dispatch(session_id, "gui_mesh_digest", dict(visibility_readback=True), native_commands=reveal)
                 result, directory = view, Path(view["job_directory"])
                 if view["status"] != "succeeded":
@@ -214,7 +214,7 @@ class GuiVisibilityTools:
                     result["artifacts"].append(check_artifact(directory/"verification.json", "json"))
                     if capture:
                         image = manager.dispatch(session_id, "inspect_model", {}, native_commands=[
-                            "print png "+command_path(directory/"visibility.png")+' opaque enlisted "OGL1x1"'])
+                            nc.print_png(directory/"visibility.png")])
                         if image["status"] == "succeeded":
                             result["artifacts"].append(check_artifact(directory/"visibility.png", "png"))
                         else:
