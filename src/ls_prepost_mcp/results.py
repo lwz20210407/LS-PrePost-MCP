@@ -3,6 +3,8 @@ from contextlib import contextmanager
 from glob import escape
 from importlib.metadata import version
 
+from .native.versions import dependency_supported
+
 
 def lasso_vectors(arrays: dict, quantity: str):
     """Normalize LASSO 2.0.4 raw d3plot coordinates to actual displacements.
@@ -12,7 +14,7 @@ def lasso_vectors(arrays: dict, quantity: str):
     subtracting the reference node_coordinates; never subtract for velocity.
     """
     import numpy as np
-    if version("lasso-python") != "2.0.4":
+    if not dependency_supported("lasso-python", version("lasso-python")):
         raise RuntimeError("Displacement normalization is verified for lasso-python 2.0.4; validate a new version first")
     if quantity not in ("displacement", "velocity"):
         raise ValueError("Unsupported vector quantity")

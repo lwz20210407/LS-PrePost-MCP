@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from ls_prepost_mcp.config import Settings
+from ls_prepost_mcp.native import commands as nc
 from ls_prepost_mcp.service import Service
 from ls_prepost_mcp.sessions import Sessions
 
@@ -75,3 +76,38 @@ def test_queue_session_reuses_pid_and_never_uses_win32(native_case, monkeypatch)
     finally:
         closed = service.close_gui_session(sid, save_checkpoint=False)
         assert closed["state"] == "closed", closed
+
+
+def test_command_builders_native_id_buffer_state_and_fringe(native_case):
+    service, source = native_case
+    commands = [nc.animation("stop"), nc.animation("first", 1), nc.animation("last", 3),
+                nc.animation("incr", 1), nc.state(3), nc.fringe(9), nc.plot_fringe(),
+                nc.averaging("minmax"), nc.selection("clear"), nc.selection_target("node"),
+                nc.selection_add("node", 11), nc.selection_add("node", 79),
+                nc.selection_buffer("save", 0), nc.selection("clear"), nc.selection_buffer("load", 0)]
+    code = (
+        "import json,DataCenter as dc,LsPrePost as lp\n"
+        "trace=[]\n"
+        "for command in " + repr(commands) + ":\n"
+        "    lp.execute_command(command)\n"
+        "    n=int(dc.get_data('num_selection'))\n"
+        "    selected=sorted(int(v) for v in dc.get_data('selection_ids',type=0)) if n else []\n"
+        "    trace.append({'command':command,'count':n,'ids':selected})\n"
+        "json.dump(trace,open('command-trace.json','w'))\n"
+        "count=int(dc.get_data('num_selection'))\n"
+        "ids=sorted(int(v) for v in dc.get_data('selection_ids',type=0)) if count else []\n"
+        "assert count==2 and ids==[11,79], repr(ids)\n"
+        "current=int(dc.get_data('current_state'))\n"
+        "assert current==3, repr(current)\n"
+        "json.dump({'selection_ids':ids,'count':count,'state':current},open('selection-proof.json','w'))\n"
+        "lp.execute_command('print png \"commands.png\" opaque enlisted \"OGL1x1\"')\n"
+    )
+    prepared = service.prepare_native_program("python", code=code,
+        outputs=[dict(name="selection-proof.json", kind="json"), dict(name="commands.png", kind="png")],
+        expected_counts=dict(nodes=8, states=3))
+    result = service.execute_native_program(prepared["job_id"], prepared["data"]["sha256"],
+                                            model=str(source / "d3plot"), file_type="d3plot")
+    assert result["status"] == "succeeded", result
+    proof = json.loads((Path(result["job_directory"]) / "selection-proof.json").read_text())
+    assert proof == dict(selection_ids=[11, 79], count=2, state=3)
+    assert all(a["validated"] for a in result["artifacts"])

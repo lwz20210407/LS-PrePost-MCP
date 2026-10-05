@@ -7,6 +7,7 @@ from pathlib import Path
 from .entity_cards import fields, inspect_cards, native_blocks
 from .gui_mesh import check_same_nodes, check_same_parts, mesh_index
 from .mesh_quality import element_metrics
+from .native import commands as nc
 from .segment_geometry import canonical_cycle
 
 MESH = {"*NODE", "*ELEMENT_SHELL", "*ELEMENT_SOLID"}
@@ -205,7 +206,7 @@ def replace_node(service, sid, source, target, units):
         if opened["status"] != "succeeded":
             raise ValueError("Reference-repaired keyword did not reopen natively")
         commands = ["+m "+pid if visible else "-m "+pid for pid,visible in before["part_visibility"].items()]
-        result = manager.dispatch(sid,"gui_mesh_state",{},native_commands=commands+["genselect clear"],
+        result = manager.dispatch(sid,"gui_mesh_state",{},native_commands=commands+[nc.selection('clear')],
                                   artifacts=(("model.k","keyword"),),export=True)
         result["raw_replace_request"] = raw["job_directory"]
         result["reference_patch"] = str(repaired)
@@ -219,6 +220,6 @@ def replace_node(service, sid, source, target, units):
         return dict(node_sets_and_segments_and_spcs_verified=True, unrelated_blocks_preserved=True,
                     unchanged_keyword_families=sorted({name for name,_ in context["expected"]["other"] if name not in MESH}),
                     all_keywords_certified=False, scope="Supported list sets, Segment sets, SPCs and native mesh; no solver/physics certification")
-    commands = ["elemedit replace clear",f"elemedit replace two {source} {target} 2","elemedit replace accept","genselect clear"]
+    commands = ["elemedit replace clear",f"elemedit replace two {source} {target} 2","elemedit replace accept",nc.selection('clear')]
     return service._gui_mesh_edit(sid,"replace_gui_node",dict(source_node_id=source,target_node_id=target,units=units),
         commands,verify,precheck,postcheck,preflight,finalize_native=finalize)

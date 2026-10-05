@@ -23,6 +23,9 @@ from .engine.environment import native_environment
 from .engine.queue_transport import QueueTransport
 from .jobs import atomic_json, check_artifact, fingerprint, now
 from .model_context import verify_load_reply
+from .native import commands as nc
+from .native.bundle import stage_bridge
+from .native.versions import require_capability
 from .native_connectivity import beam_connectivity_prelude
 from .outcomes import normalize_outcome
 from .windows_transport import WindowsCommandTransport
@@ -142,15 +145,17 @@ class Sessions:
     def start(self, *, transport="win32"):
         if transport not in ("win32", "queue"):
             raise ValueError("Session transport must be win32 or queue")
+        exe = self.settings.native_executable()
+        if transport == "queue":
+            require_capability(exe, "queue_model_identity")
         if transport == "win32":
             WindowsCommandTransport(0).require_interactive_desktop()
         if os.name != "nt":
             raise RuntimeError("Persistent GUI sessions currently support Windows")
-        exe = self.settings.native_executable()
         ident = uuid.uuid4().hex
         directory = self.directory(ident)
         directory.mkdir(parents=True)
-        shutil.copyfile(Path(__file__).with_name("embedded.py"), directory / "bridge.py")
+        stage_bridge(directory)
         bootstrap = directory / "initialize.py"
         ready = directory / "ready.json"
         (directory / "initial.k").write_text("*KEYWORD\n*TITLE\nMCP session model\n*END\n", encoding="ascii")
@@ -813,7 +818,7 @@ class SessionTools:
                         session_id,
                         requested,
                         self.settings.timeout,
-                        native_commands=["anim stop", "state %d" % requested],
+                        native_commands=[nc.animation('stop'), nc.state(requested)],
                     )
                     result["data"]["state_restored"] = observed["status"] == "succeeded"
                     result["state_restoration"] = dict(requested_state=requested, observations=evidence)

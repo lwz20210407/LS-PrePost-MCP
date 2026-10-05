@@ -14,6 +14,7 @@ from .gui_controls import wait_for_gui_state
 from .gui_mesh import ReadOnlyScopeMismatch, verify_mesh_digest
 from .gui_selection import part_visibility
 from .jobs import atomic_json, check_artifact
+from .native import commands as nc
 from .post_backend import ids
 
 COUNTS = {"distance": 2, "height": 2, "angle3": 3, "angle4": 4, "circle3": 3}
@@ -97,7 +98,7 @@ class GuiCommonTools:
                 raise ValueError("Keyword geometry has reference coordinates; omit state")
             if state is not None:
                 settled, _ = wait_for_gui_state(manager, session_id, state, self.settings.timeout,
-                                                native_commands=["anim stop", "state %d" % state])
+                                                native_commands=[nc.animation('stop'), nc.state(state)])
                 if settled["status"] != "succeeded":
                     return settled
             baseline = manager.dispatch(session_id, "gui_mesh_digest", {})

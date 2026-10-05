@@ -12,6 +12,7 @@ from .fringe_presentation import averaging_command, result_name
 from .gui_controls import wait_for_gui_state
 from .gui_curves import plot_text
 from .jobs import atomic_json, check_artifact, now
+from .native import commands as nc
 from .native_results import ELEMENT_FIELDS, NODE_FIELDS
 from .post_backend import ids, write_csv
 from .result_availability import validate_field_availability
@@ -337,7 +338,7 @@ def render_field(
                 session_id,
                 state,
                 service.settings.timeout,
-                native_commands=["anim stop", f"state {state}"],
+                native_commands=[nc.animation('stop'), nc.state(state)],
             )
             if ready["status"] != "succeeded":
                 raise ValueError("Result state did not settle before field extraction")
@@ -370,7 +371,7 @@ def render_field(
                 session_id,
                 "inspect_model",
                 {},
-                native_commands=["genselect clear", "runscript " + scl_command_path(script)],
+                native_commands=[nc.selection('clear'), "runscript " + scl_command_path(script)],
             )
             manifest["native_request"] = {k: v for k, v in applied.items() if k != "data"}
             if applied["status"] != "succeeded" or applied["data"]["current_state"] != state:
@@ -391,8 +392,8 @@ def render_field(
                 raise ValueError("Native fringe CSV does not match the verified visible physical population")
             commands = [
                 average_command,
-                "range reversesigns off",
-                f"range userdef {bounds[0]:.17g} {bounds[1]:.17g};",
+                nc.reverse_signs(False),
+                nc.fringe_bounds(bounds[0], bounds[1]),
                 "showlegend 1",
                 "timestamp 1",
                 "print png " + command_path(directory / "fringe.png") + ' opaque enlisted "OGL1x1"',

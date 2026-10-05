@@ -9,6 +9,7 @@ from pydantic import StrictFloat, StrictInt
 
 from .config import command_path
 from .jobs import atomic_json, check_artifact
+from .native import commands as nc
 
 
 class ReadOnlyScopeMismatch(ValueError):
@@ -468,8 +469,8 @@ class GuiMeshTools:
             raise ValueError("Positive finite merge tolerance required")
         commands = [
             "pall",
-            "genselect clear",
-            "genselect target node",
+            nc.selection('clear'),
+            nc.selection_target('node'),
             "dupnode open 1",
             "dupnode keepnode 1",
             "dupnode keepcenter off",
@@ -510,15 +511,15 @@ class GuiMeshTools:
         selected = None if shell_ids is None else set(shell_ids)
         commands = [
             "pall",
-            "genselect clear",
-            "genselect target shell",
+            nc.selection('clear'),
+            nc.selection_target('shell'),
         ]
         commands += (
-            ["genselect whole"]
+            [nc.selection('whole')]
             if selected is None
-            else ["genselect shell add shell %d" % uid for uid in sorted(selected)]
+            else [nc.selection_add('shell', uid, 'shell') for uid in sorted(selected)]
         )
-        commands += ["normal reverse", "genselect clear"]
+        commands += ["normal reverse", nc.selection('clear')]
 
         def precheck(state):
             if "mesh_digest" in state:
@@ -553,12 +554,12 @@ class GuiMeshTools:
         offset = numbers(offset, 3, "offset")
         unit_label(units)
         selected = set(node_ids)
-        commands = ["pall", "genselect clear", "genselect target node", "genselect transfer 0"]
-        commands += ["genselect node add node %d" % uid for uid in node_ids]
+        commands = ["pall", nc.selection('clear'), nc.selection_target('node'), nc.selection_transfer(0)]
+        commands += [nc.selection_add('node', uid, 'node') for uid in node_ids]
         commands += [
             "translate_model " + " ".join(map(str, offset)),
             "translate_model accept",
-            "genselect clear",
+            nc.selection('clear'),
         ]
 
         def precheck(state):
@@ -602,12 +603,12 @@ class GuiMeshTools:
             )
             return result + center
 
-        commands = ["pall", "genselect clear", "genselect target node", "genselect transfer 0"]
-        commands += ["genselect node add node %d" % uid for uid in node_ids]
+        commands = ["pall", nc.selection('clear'), nc.selection_target('node'), nc.selection_transfer(0)]
+        commands += [nc.selection_add('node', uid, 'node') for uid in node_ids]
         commands += [
             "rotate_model " + " ".join(map(str, center)) + " %s %s" % (axis, angle),
             "rotate_model accept 0 0 0",
-            "genselect clear",
+            nc.selection('clear'),
         ]
 
         def precheck(state):

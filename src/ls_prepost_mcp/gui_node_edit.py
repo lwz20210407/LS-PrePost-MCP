@@ -6,6 +6,7 @@ import numpy as np
 
 from .gui_mesh import check_same_parts, mesh_index, verify_mesh_digest
 from .gui_selection import part_visibility
+from .native import commands as nc
 
 
 def verify_coordinates(before, after, targets, tolerance):
@@ -85,14 +86,14 @@ def set_coordinates(service, session_id, nodes, units, tolerance):
                 groups.setdefault(tuple(delta), []).append(uid)
 
     def commands(state, directory):
-        result = ["pall", "genselect clear", "genselect target node", "genselect transfer 0"]
+        result = ["pall", nc.selection('clear'), nc.selection_target('node'), nc.selection_transfer(0)]
         for delta, uids in groups.items():
-            result.extend("genselect node add node %d" % uid for uid in uids)
+            result.extend(nc.selection_add('node', uid, 'node') for uid in uids)
             result.extend(
                 [
                     "translate_model " + " ".join(str(float(v)) for v in delta),
                     "translate_model accept",
-                    "genselect clear",
+                    nc.selection('clear'),
                 ]
             )
         result.extend("-m " + pid for pid, active in part_visibility(state).items() if not active)

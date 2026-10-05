@@ -30,6 +30,8 @@ from .installation_assets import InstallationTools
 from .jobs import Jobs, atomic_json, check_artifact, fingerprint, now
 from .keyword_tools import KeywordTools
 from .mesh_tools import MeshTools
+from .native.bundle import stage_bridge
+from .native.versions import profile, require_installation
 from .post_tools import PostTools
 from .pre_tools import PreTools
 from .programs import ProgramTools
@@ -98,7 +100,7 @@ class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools
         atomic_json(directory / "request.json", request)
         if source:
             manifest["input"] = fingerprint(source)
-        bridge = Path(__file__).with_name("embedded.py").resolve()
+        bridge = stage_bridge(directory)
         bootstrap = directory / "bootstrap.py"
         bootstrap.write_text("import os, runpy\nos.chdir(" + repr(str(directory)) + ")\n"
                              "bridge = runpy.run_path(" + repr(str(bridge)) + ")\n"
@@ -170,6 +172,7 @@ class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools
         """List configured executables only; file existence is not a compatibility test."""
         return {"default": str(self.settings.executable) if self.settings.executable else None,
                 "profiles": [{"version": k, "executable": str(v), "exists": v.is_file(),
+                              "capabilities": profile(v),
                               "verification": "Call an explicit probe; existence does not prove compatibility"}
                              for k, v in self.settings.profiles.items()]}
 
@@ -183,6 +186,7 @@ class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools
                    "create_solid_box", "translate_mesh_nodes", "move_elements_to_part", "extrude_shell_part",
                    "rotate_mesh_nodes", "create_solid_sphere", "native_tensile_postprocess", "native_energy_postprocess",
                    "execute_native_program", "run_native_macro"}
+        require_installation(version=version)
         if version not in self.settings.profiles:
             raise ValueError("Unknown installation profile")
         if action not in allowed:

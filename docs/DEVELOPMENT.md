@@ -14,7 +14,9 @@ I01 在 `codex/m1-engine` 继续，基于 I02 分支。普通单测自动跳过�
 uv run pytest -m native tests/test_engine_native.py
 ```
 
-4.13 跑全部六例；4.10 批处理子集加 `-k five_batch`。4.10 队列的模型来源读回问题已记录为 KI-048，不能通过取消来源验证来绕过。原生测试读取外部语料，所有执行副本与证据由 pytest 的 `--basetemp` 指向当次 scratch 目录；不得把语料或原生日志提交。
+4.13 跑全部七例；4.10 批处理和命令子集加 `-k "not queue_session"`。4.10 队列的模型来源读回问题已记录为 KI-048，版本能力表在启动前拒绝，不能通过取消来源验证来绕过。原生测试读取外部语料，所有执行副本与证据由 pytest 的 `--basetemp` 指向当次 scratch 目录；不得把语料或原生日志提交。
+
+I03 的命令黄金输出、参数拒绝、语法集中约束、版本能力与脱离宿主包的 bridge 加载测试位于 `tests/test_native_commands.py`。新增选择/动画/云图命令必须进入 `native/commands.py`；版本判断进入 `native/versions.py`。原生回归额外核对稀疏用户 ID、缓冲区保存/恢复、状态 3 和 PNG。
 
 ## 可重复检查
 

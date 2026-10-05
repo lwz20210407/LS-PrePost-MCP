@@ -8,6 +8,7 @@ from pydantic import StrictFloat
 
 from .fringe_presentation import averaging_command
 from .jobs import atomic_json
+from .native import commands as nc
 
 
 def camera_commands(zoom_scale=None, pan_xy=None, rotation_xyz_degrees=None):
@@ -133,7 +134,7 @@ class GuiControls:
             integer(fringe_code, "fringe_code", 1, 9999)
             if manager.read(session_id)["model_kind"] != "d3plot":
                 raise ValueError("Fringe requires a result session")
-            commands += ["fringe " + str(fringe_code), "pfringe"]
+            commands += [nc.fringe(fringe_code), nc.plot_fringe()]
         commands.extend(rotations)
         if center:
             commands.append("ac")
@@ -151,7 +152,7 @@ class GuiControls:
                 "gui_display",
                 p,
                 artifacts=(("snapshot.png", "png"),) if p["capture"] else (),
-                native_commands=["anim stop", "state %d" % state] if state is not None else (),
+                native_commands=[nc.animation('stop'), nc.state(state)] if state is not None else (),
             )
             if state is not None and result["status"] == "succeeded":
                 initial_request = result["job_directory"]

@@ -4,6 +4,8 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .native.versions import require_installation
+
 
 def command_path(path: Path) -> str:
     value = path.as_posix()
@@ -64,6 +66,7 @@ class Settings:
     def native_executable(self) -> Path:
         if self.executable is None or not self.executable.is_file():
             raise ValueError("LSPP_EXECUTABLE must point to an installed LS-PrePost executable")
+        require_installation(self.executable)
         return self.executable
 
     def check_keyword_includes(self, path: Path, seen: set[Path] | None = None) -> None:
