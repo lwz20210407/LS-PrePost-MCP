@@ -154,7 +154,7 @@ def _plans(deck: KeywordDeck, include_mesh: bool, report: ReferenceReport) -> li
             continue
         try:
             layout = deck.layout(block)
-        except Unsupported:
+        except (Unsupported, FieldError):
             report.unchecked[block.name] += 1
             continue
         if members and not include_mesh and members in MESH_KINDS:
@@ -255,7 +255,12 @@ def collect(deck: KeywordDeck, include_mesh: bool = True, track: set[tuple[str, 
                         if ident is not None:
                             _refer(report, target, ident, _site(plan, info.slot.line, name, row), track)
         if plan.members:
-            for ident in deck.members(plan.block):
+            try:
+                members = deck.members(plan.block)
+            except (FieldError, Unsupported):
+                report.unchecked[plan.block.name] += 1
+                members = []
+            for ident in members:
                 _refer(report, plan.members, ident, _site(plan, 0, "members", None), track)
     return report
 

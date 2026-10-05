@@ -1,4 +1,4 @@
-"""Byte-preserving LS-DYNA keyword engine (tasks.yaml I07; backend of P01, P02, P03, P10, P11).
+"""Byte-preserving LS-DYNA keyword engine (tasks.yaml I07; backend of P01, P02, P03, P09, P10, P11).
 
 Entry points
 ------------
@@ -20,6 +20,17 @@ Entry points
     Dangling/duplicate/unused IDs, unified diff, saving.
 ``operations.inspect_deck / read_fields / edit_deck`` and ``compare.compare_decks``
     JSON-friendly functions intended to back MCP tools; ``edit_deck`` is atomic.
+``geometry`` and ``sets.create_set``
+    Node/element selection (box, sphere, plane, parts), exterior segments with outward
+    normals, new ``*SET_*`` blocks. Element variants with the same connectivity (``_THICKNESS``,
+    ``_ORTHO``, ...) are included; other variants raise :class:`Unsupported`, never vanish.
+``operations.check_deck`` and ``quality.check_quality``
+    Model check without LS-PrePost: missing/cyclic includes, parameter errors, dangling and
+    duplicate IDs, inverted elements, quality distributions (scaled Jacobian, aspect ratio,
+    warpage, angles), coincident nodes. Metrics are judged only against caller thresholds;
+    element blocks that cannot be read are listed as unchecked.
+``cases.generate_cases``
+    Parameter-study decks, one directory per case, each compared with the base deck.
 
 Guarantees
 ----------

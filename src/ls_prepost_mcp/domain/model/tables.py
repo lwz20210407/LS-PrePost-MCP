@@ -7,6 +7,7 @@ field; any disagreement refuses the layout.
 """
 from __future__ import annotations
 
+import inspect
 import math
 import warnings
 
@@ -114,15 +115,20 @@ def table_layout(block: Block, keyword_class: type, base: str, long: bool = Fals
     elif block.name == "*ELEMENT_SOLID" and row_lines and read_text(block.lines[row_lines[0]], beyond_pid).strip():
         group = [_widen(_SOLID_ONE_LINE) if long else _SOLID_ONE_LINE]  # LS-PrePost one-line solid format
     else:
-        if any(getattr(sub, "_active_func", None) is not None for sub in table._cards):
+        conditional = [getattr(sub, "_active_func", None) is not None for sub in table._cards]
+        if any(conditional) and not (conditional[-1] and not any(conditional[:-1])
+                                     and _depends_on_n5(table._cards[-1])):
             raise Unsupported(f"{block.name}: conditional row cards are not supported")
         group = [_columns(sub._schema, long) for sub in table._cards]
-    per = len(group)
-    if len(row_lines) % per:
-        raise Unsupported(f"{block.name}: {len(row_lines)} row lines do not form groups of {per}")
-    rows = [tuple(row_lines[start:start + per]) for start in range(0, len(row_lines), per)]
+    if any(getattr(sub, "_active_func", None) is not None for sub in getattr(table, "_cards", [])):
+        rows = _rows_with_optional_n5_card(block, row_lines, group)
+    else:
+        per = len(group)
+        if len(row_lines) % per:
+            raise Unsupported(f"{block.name}: {len(row_lines)} row lines do not form groups of {per}")
+        rows = [tuple(row_lines[start:start + per]) for start in range(0, len(row_lines), per)]
 
-    probe = RowMap(block, group, ["row"] * per, dict(enumerate(rows)))
+    probe = RowMap(block, group, ["row"] * len(group), dict(enumerate(rows)))
     first = probe.locate(group[0][0].name)
     try:
         keys = [parse_number(probe.cell(indices, first)) for indices in rows]
@@ -132,10 +138,44 @@ def table_layout(block: Block, keyword_class: type, base: str, long: bool = Fals
         key, mapping = group[0][0].name, dict(zip(keys, rows))
     else:
         key, mapping = "row", dict(enumerate(rows, 1))
-    rowmap = RowMap(block, group, ["row"] * per, mapping)
+    rowmap = RowMap(block, group, ["row"] * len(group), mapping)
     _self_check(block, keyword_class, position, data[:len(head_cards)], list(mapping), rowmap, fields,
                 title or block.lines[0].upper())
     return Layout(block.name, fields=fields, rows=rowmap, key=key, source="pydyna-table")
+
+
+def _depends_on_n5(card: object) -> bool:
+    """True for PyDYNA's ``self.elements['n5'].any()`` condition (thic5-8 card of 8-node shells)."""
+    try:
+        return "['n5']" in inspect.getsource(card._active_func)
+    except (OSError, TypeError):
+        return False
+
+
+def _rows_with_optional_n5_card(block: Block, row_lines: list[int], group: list[list[Column]]) -> list[tuple]:
+    """Rows whose last card exists only when N5-N8 are set, decided per element as LS-DYNA does.
+
+    PyDYNA decides on that card before reading any row, so blocks containing 8-node shells
+    fail the PyDYNA self-check and are refused instead of being read unverified.
+    """
+    corners = [(token, column) for token, column in enumerate(group[0]) if column.name in ("n5", "n6", "n7", "n8")]
+    rows, start = [], 0
+    while start < len(row_lines):
+        line = block.lines[row_lines[start]]
+        free = is_free_format(line)
+        present = False
+        for token, column in corners:
+            text = read_text(line, FieldSlot(0, column.offset, column.width, token if free else None))
+            try:
+                present = present or parse_number(text) not in (None, 0)
+            except FieldError:
+                present = True  # parameter reference or expression: a node is given
+        count = len(group) - (0 if present else 1)
+        if start + count > len(row_lines):
+            raise Unsupported(f"{block.name}: the last element has {len(row_lines) - start} of {count} lines")
+        rows.append(tuple(row_lines[start:start + count]))
+        start += count
+    return rows
 
 
 def _self_check(block: Block, keyword_class: type, position: int, head: list, keys: list, rows: RowMap,

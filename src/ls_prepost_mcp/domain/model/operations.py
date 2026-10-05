@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from pathlib import Path
 
-from . import geometry, lists, sets
+from . import geometry, lists, quality, sets
 from .deck import Change, KeywordDeck
 from .fields import FieldError
 from .includes import identity
@@ -214,4 +214,38 @@ def edit_deck(path: str, edits: list[dict], *, output_dir: str | None = None, in
     elif in_place:
         result["save"] = deck.save_in_place()
         result["written"] = True
+    return result
+
+
+def check_deck(path: str, include_paths: tuple[str, ...] = (), thresholds: dict | None = None,
+               coincident_tol: float | None = None, include_mesh: bool = True) -> dict:
+    """Model check without LS-PrePost (P09): includes, parameters, references and element quality.
+
+    Errors are objective defects (missing includes, include cycles, parameter errors, dangling
+    or duplicate IDs, inverted/degenerate elements). Quality metrics are judged only against
+    the given ``thresholds``.
+    """
+    deck = KeywordDeck.load(path, include_paths)
+    errors = [{"kind": "include", "message": w} for w in deck.warnings
+              if w.startswith(("Missing include", "Include cycle"))]
+    errors += [{"kind": "parameter", "name": r.definition.name, "message": r.definition.error,
+                **_site(r.block)} for r in deck.parameters if r.definition.error]
+    report = deck.references(include_mesh)
+    if report.dangling_count:
+        errors.append({"kind": "dangling_references", "count": report.dangling_count, "sample": report.dangling()[:50]})
+    duplicates = report.duplicates()
+    if duplicates:
+        errors.append({"kind": "duplicate_ids", "count": len(duplicates), "sample": duplicates[:50]})
+    result = {"references": {**report.summary(), "unused": report.unused()}, "warnings": deck.warnings,
+              "read_only": True, "mesh_checked": include_mesh}
+    unchecked = [f"References not read: {name} x{count}" for name, count in report.unchecked.items()]
+    if include_mesh:
+        checked = quality.check_quality(deck, thresholds, coincident_tol)
+        errors += checked["errors"]
+        unchecked += [f"Mesh block not read: {item}" for item in checked["unchecked_mesh_blocks"]]
+        result["quality"] = {k: v for k, v in checked.items() if k != "errors"}
+    result["errors"] = errors
+    result["unchecked"] = unchecked
+    result["complete"] = not unchecked  # ok=True only means no defect was found in what was read
+    result["ok"] = not errors
     return result

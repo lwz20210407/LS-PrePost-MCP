@@ -81,6 +81,8 @@ class RowMap(Mapping[int, list[FieldInfo]]):
 
     def cell(self, indices: tuple[int, ...], located: tuple[int, int, int, int]) -> str:
         position, offset, width, token = located
+        if position >= len(indices):
+            return ""  # optional trailing card absent in this row
         line = self.block.lines[indices[position]]
         return read_text(line, FieldSlot(0, offset, width, token if is_free_format(line) else None))
 

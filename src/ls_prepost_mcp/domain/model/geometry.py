@@ -57,53 +57,93 @@ def _fast_columns(block: object, rows: RowMap, names: list[str]) -> np.ndarray |
     return np.stack(columns, axis=1) if columns else np.empty((len(indices), 0))
 
 
-def nodes(deck: KeywordDeck) -> tuple[np.ndarray, np.ndarray]:
-    """``(ids, xyz)`` of every ``*NODE`` row in reading order."""
+# Option variants whose N1..N8 mean the same corner nodes as the plain keyword.
+SAME_CONNECTIVITY = {"*ELEMENT_SHELL": {"THICKNESS", "BETA", "MCID", "OFFSET", "DOF"},
+                     "*ELEMENT_SOLID": {"ORTHO", "DOF"}}
+
+
+def _where(block: object) -> str:
+    return f"{block.name} ({block.file.path.name}:{block.line_number})"
+
+
+def _skip(block: object, error: Exception, skipped: list[str] | None) -> None:
+    """Record an unreadable mesh block in ``skipped``, or raise when the caller gave no list."""
+    message = f"{_where(block)}: {error}"
+    if skipped is None:
+        raise Unsupported(message) from error
+    skipped.append(message)
+
+
+def _node_block(deck: KeywordDeck, block: object) -> tuple[list[int], np.ndarray]:
+    layout = deck.layout(block)
+    rows, lookup = layout.rows, deck.lookup(block)
+    if not isinstance(rows, RowMap):
+        raise Unsupported("no row layout")
+    fast = _fast_columns(block, rows, ["x", "y", "z"])
+    if fast is not None:
+        return list(rows), fast
+    spots = [rows.locate(axis) for axis in ("x", "y", "z")]
+    coords = [[_number(rows.cell(indices, spot), lookup) for spot in spots] for _, indices in rows.lines()]
+    return list(rows), np.asarray(coords, dtype=float).reshape(-1, 3)
+
+
+def nodes(deck: KeywordDeck, skipped: list[str] | None = None) -> tuple[np.ndarray, np.ndarray]:
+    """``(ids, xyz)`` of every ``*NODE`` row in reading order (unreadable blocks: see :func:`elements`)."""
     ids: list[int] = []
-    coords: list[tuple[float, ...]] = []
+    coords: list[np.ndarray] = []
     for block in deck.blocks("*NODE"):
-        layout = deck.layout(block)
-        rows, lookup = layout.rows, deck.lookup(block)
-        if not isinstance(rows, RowMap):
-            raise Unsupported("*NODE without a row layout")
-        fast = _fast_columns(block, rows, ["x", "y", "z"])
-        if fast is not None:
-            ids.extend(rows)
-            coords.extend(map(tuple, fast))
+        try:
+            keys, xyz = _node_block(deck, block)
+        except (Unsupported, FieldError) as error:
+            _skip(block, error, skipped)
             continue
-        spots = [rows.locate(axis) for axis in ("x", "y", "z")]
-        for key, indices in rows.lines():
-            ids.append(key)
-            coords.append(tuple(_number(rows.cell(indices, spot), lookup) for spot in spots))
-    return np.asarray(ids, dtype=np.int64), np.asarray(coords, dtype=float).reshape(-1, 3)
+        ids.extend(keys)
+        coords.append(xyz)
+    return np.asarray(ids, dtype=np.int64), np.concatenate(coords) if coords else np.empty((0, 3))
 
 
-def elements(deck: KeywordDeck, keyword: str, width: int) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """``(eids, pids, connectivity[n, width])`` for ``*ELEMENT_SOLID`` (8) or ``*ELEMENT_SHELL`` (4)."""
-    eids, pids, conn = [], [], []
+def _element_block(deck: KeywordDeck, block: object, keyword: str, columns: list[str]) -> np.ndarray:
+    """``[n, 1 + len(columns)]`` integer table: element ID followed by ``columns``."""
+    name = block.name
+    options = set(name[len(keyword) + 1:].split("_")) if name != keyword else set()
+    if not options <= SAME_CONNECTIVITY[keyword]:
+        raise Unsupported("connectivity of this variant is not read")
+    layout = deck.layout(block)
+    rows, lookup = layout.rows, deck.lookup(block)
+    keyed = layout.key == "eid"  # duplicate element IDs fall back to row numbers: read the column
+    wanted = columns if keyed else ["eid"] + columns
+    spots = [rows.locate(c) for c in wanted] if isinstance(rows, RowMap) else []
+    if not spots or any(s is None for s in spots):
+        raise Unsupported("element rows are not available")
+    fast = _fast_columns(block, rows, wanted)
+    if fast is not None:
+        table = fast.astype(np.int64)
+    else:
+        table = np.asarray([[int(_number(rows.cell(indices, s), lookup)) for s in spots]
+                            for _, indices in rows.lines()], dtype=np.int64).reshape(-1, len(wanted))
+    return np.column_stack([np.asarray(list(rows), dtype=np.int64), table]) if keyed else table
+
+
+def elements(deck: KeywordDeck, keyword: str, width: int,
+             skipped: list[str] | None = None) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """``(eids, pids, connectivity[n, width])`` for ``*ELEMENT_SOLID`` (8) or ``*ELEMENT_SHELL`` (4).
+
+    Includes option variants with the same connectivity (``_THICKNESS``, ``_ORTHO``, ...).
+    Blocks that cannot be read (other variants, unsupported layouts, malformed rows) raise
+    :class:`Unsupported`, or are listed in ``skipped`` when a list is given, so callers never
+    miss elements silently.
+    """
     columns = ["pid"] + [f"n{i}" for i in range(1, width + 1)]
-    for block in deck.blocks(keyword):
-        if block.name != keyword:
-            continue  # option variants (_THICKNESS, ...) are not plain row tables
-        layout = deck.layout(block)
-        rows, lookup = layout.rows, deck.lookup(block)
-        spots = [rows.locate(c) for c in columns] if isinstance(rows, RowMap) else []
-        if not spots or any(s is None for s in spots):
-            raise Unsupported(f"{keyword} rows are not available")
-        fast = _fast_columns(block, rows, columns)
-        if fast is not None:
-            values = fast.astype(np.int64)
-            eids.extend(rows)
-            pids.extend(values[:, 0].tolist())
-            conn.extend(values[:, 1:].tolist())
+    tables = []
+    for block in deck.iter_blocks():
+        if block.name != keyword and not block.name.startswith(keyword + "_"):
             continue
-        for key, indices in rows.lines():
-            values = [int(_number(rows.cell(indices, s), lookup)) for s in spots]
-            eids.append(key)
-            pids.append(values[0])
-            conn.append(values[1:])
-    return (np.asarray(eids, dtype=np.int64), np.asarray(pids, dtype=np.int64),
-            np.asarray(conn, dtype=np.int64).reshape(-1, width))
+        try:
+            tables.append(_element_block(deck, block, keyword, columns))
+        except (Unsupported, FieldError) as error:
+            _skip(block, error, skipped)
+    table = np.concatenate(tables) if tables else np.empty((0, width + 2), dtype=np.int64)
+    return table[:, 0], table[:, 1], table[:, 2:]
 
 
 def _normalize(faces: np.ndarray) -> tuple[np.ndarray, np.ndarray]:

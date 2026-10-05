@@ -79,6 +79,8 @@ def evaluate(expression: str, lookup: Mapping[str, float]) -> float:
             if key not in names:
                 raise FieldError(f"Undefined parameter {node.id!r} in {expression!r}")
             value = names[key]
+            if value is None:
+                raise FieldError(f"Parameter {node.id!r} has no value (its definition could not be evaluated)")
             if isinstance(value, str):
                 raise FieldError(f"Character parameter {node.id!r} used in arithmetic")
             return float(value)
@@ -191,6 +193,8 @@ def resolve_field(text: str, lookup: Mapping[str, object]) -> float | int | str 
     if ref:
         value = lookup.get(ref[1].lower())
         if value is None:
+            if ref[1].lower() in lookup:
+                raise FieldError(f"Parameter {ref[1]!r} has no value (its definition could not be evaluated)")
             raise FieldError(f"Undefined parameter {ref[1]!r}")
         if isinstance(value, str):
             return value
