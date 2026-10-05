@@ -1,4 +1,5 @@
 """I06: deterministic task/tool docs; --check never writes files."""
+
 import argparse
 import sys
 from pathlib import Path
@@ -19,7 +20,7 @@ def marked(text, name, content):
         return text.rstrip() + "\n\n" + replacement + "\n"
     if text.count(begin) != 1 or text.count(end) != 1 or text.index(begin) > text.index(end):
         raise ValueError(f"invalid {name} marker pair")
-    return text[:text.index(begin)] + replacement + text[text.index(end) + len(end):]
+    return text[: text.index(begin)] + replacement + text[text.index(end) + len(end) :]
 
 
 def generate(catalog, registry):
@@ -30,30 +31,61 @@ def generate(catalog, registry):
         for t in catalog["tasks"]:
             if t["group"] != group:
                 continue
-            task_lines += [f"### {t['id']} {t['title']}", "", f"状态：{t['status']}；版本：{t['release']}；里程碑：{t['milestone'] or '待排期'}；层：{t['layer']}", "", t["story"], "", "验收：", ""]
+            task_lines += [
+                f"### {t['id']} {t['title']}",
+                "",
+                f"状态：{t['status']}；版本：{t['release']}；里程碑：{t['milestone'] or '待排期'}；层：{t['layer']}",
+                "",
+                t["story"],
+                "",
+                "验收：",
+                "",
+            ]
             task_lines += [f"- {a}" for a in t["acceptance"]]
             task_lines += ["", "现有入口：" + (", ".join(f"`{n}`" for n in t["existing"]) or "无"), ""]
             if t.get("gaps"):
                 task_lines += ["缺口：", ""] + [f"- {a}" for a in t["gaps"]] + [""]
     task_lines += ["## 基础设施", ""]
     for t in catalog["infrastructure"]:
-        task_lines += [f"### {t['id']} {t['title']}", "", f"里程碑：{t['milestone']}", ""] + [f"- {a}" for a in t["acceptance"]] + [""]
-    tool_lines = ["# 当前 MCP 工具", "", "由实际 full profile registry 生成。目标工具是迁移设计，不表示已经注册。未列入任务 existing 的工具标注基础设施迁移 I08。", "", "| 工具 | 所属任务 | 参数摘要（* 必填） |", "|---|---|---|"]
+        task_lines += (
+            [f"### {t['id']} {t['title']}", "", f"里程碑：{t['milestone']}", ""]
+            + [f"- {a}" for a in t["acceptance"]]
+            + [""]
+        )
+    tool_lines = [
+        "# 当前 MCP 工具",
+        "",
+        "由实际 full profile registry 生成。目标工具是迁移设计，不表示已经注册。未列入任务 existing 的工具标注基础设施迁移 I08。",
+        "",
+        "| 工具 | 所属任务 | 参数摘要（* 必填） |",
+        "|---|---|---|",
+    ]
     for name, tool in sorted(registry.items()):
         schema = tool.parameters
-        params = [f"{key}{'*' if key in schema.get('required', []) else ''}: {v.get('type', 'union/ref')}" for key, v in schema.get("properties", {}).items()]
+        params = [
+            f"{key}{'*' if key in schema.get('required', []) else ''}: {v.get('type', 'union/ref')}"
+            for key, v in schema.get("properties", {}).items()
+        ]
         task_ids = ", ".join(t["id"] for t in owners(catalog, name)) or "I08"
         tool_lines.append(f"| `{name}` | {task_ids} | {cell('; '.join(params) or '无')} |")
     rows = ["| 类别 | 任务 | 当前状态 | 目标版本 |", "|---|---|---|---|"]
     for t in catalog["tasks"]:
         state = {"partial": "部分实现", "todo": "待实现", "done": "已验收"}[t["status"]]
         rows.append(f"| {labels[t['group']]} | {t['id']} {t['title']} | {state} | {t['release']} |")
-    policy = "## 目标版本策略（自动生成）\n\n" + catalog["decisions"]["D3"] + "\n\n此处是验收目标；以下历史证据保留其原始范围。"
+    policy = (
+        "## 目标版本策略（自动生成）\n\n"
+        + catalog["decisions"]["D3"]
+        + "\n\n此处是验收目标；以下历史证据保留其原始范围。"
+    )
     return {
         ROOT / "docs/TASKS.md": "\n".join(task_lines).rstrip() + "\n",
         ROOT / "docs/TOOLS.md": "\n".join(tool_lines) + "\n",
-        ROOT / "README.md": marked((ROOT / "README.md").read_text(encoding="utf-8"), "tasks", "\n".join(rows)),
-        ROOT / "docs/COMPATIBILITY.md": marked((ROOT / "docs/COMPATIBILITY.md").read_text(encoding="utf-8"), "versions", policy),
+        ROOT / "README.md": marked(
+            (ROOT / "README.md").read_text(encoding="utf-8"), "tasks", "\n".join(rows)
+        ),
+        ROOT / "docs/COMPATIBILITY.md": marked(
+            (ROOT / "docs/COMPATIBILITY.md").read_text(encoding="utf-8"), "versions", policy
+        ),
     }
 
 

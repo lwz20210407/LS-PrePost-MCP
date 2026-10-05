@@ -1,4 +1,5 @@
 """M0-3: exercise the actual checker through workflow dispatch and gates."""
+
 import hashlib
 
 import pytest
@@ -23,10 +24,13 @@ def test_reference_verdict_controls_workflow(tmp_path, material_id, valid):
     assert direct["status"] == "succeeded"
     assert direct["valid_within_scope"] is valid
     assert direct["data"]["valid_within_scope"] is valid
-    workflow = service.create_workflow("Reference check", [
-        dict(id="check", action="validate_model_references", arguments=dict(model=str(deck))),
-        dict(id="after", action="validate_model_references", arguments=dict(model=str(deck))),
-    ])["artifacts"][0]["path"]
+    workflow = service.create_workflow(
+        "Reference check",
+        [
+            dict(id="check", action="validate_model_references", arguments=dict(model=str(deck))),
+            dict(id="after", action="validate_model_references", arguments=dict(model=str(deck))),
+        ],
+    )["artifacts"][0]["path"]
     result = service.run_workflow(workflow)
     assert result["status"] == ("succeeded" if valid else "failed")
     assert result["data"]["completed_steps"] == (2 if valid else 0)

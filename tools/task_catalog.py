@@ -1,4 +1,5 @@
 """I06: build-time task catalog and actual MCP registry inspection (no native launch)."""
+
 from pathlib import Path
 
 import yaml

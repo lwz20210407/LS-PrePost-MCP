@@ -10,7 +10,7 @@
 #   - status 只能因证据变化而改变：done 必须附 L2（必要时 L3）证据路径。
 #   - 里程碑进行中出现的新需求写入 backlog.md，不直接改本文件。
 #   - 本文件可以公开：不得写入私有模型路径、私有数据、用户课程内容。
-#   - ui_entry 是初稿，按通用 LSPP 界面习惯填写；M0 中须对照 4.13 界面截图审计核正菜单名称。
+#   - ui_entry 已按 4.13.4 菜单截图核正到可证实的入口；不据此宣称面板内全部子项已验收。
 
 schema_version: 1
 product: >-
@@ -125,7 +125,7 @@ tasks:
     group: pre
     title: 模型检视
     story: 打开这个 k 文件，告诉我有哪些部件、材料、截面、集合、单元类型和数量，以及 Include 结构
-    ui_entry: [F2 SelPar, Model > Keyword Manager, F10 File]
+    ui_entry: ["FEM > Model and Part > Assembly and Select Part", "FEM > Model and Part > Keyword Manager", "File > Open > LS-DYNA Keyword File"]
     release: v0.5
     milestone: M3
     layer: T1
@@ -145,7 +145,7 @@ tasks:
     group: pre
     title: 关键字卡片读改增删（Include 保真）
     story: 把 Part 3 的材料换成 MAT_024 并改屈服应力，保存，Include 文件结构不要动
-    ui_entry: [Model > Keyword Manager]
+    ui_entry: ["FEM > Model and Part > Keyword Manager"]
     release: v0.5
     milestone: M3
     layer: T1
@@ -169,7 +169,7 @@ tasks:
     group: pre
     title: 材料 / 截面 / Part 创建与关联
     story: 新建一个 MAT_015 Johnson-Cook 材料和实体截面，赋给 Part 5
-    ui_entry: [Model > Keyword Manager, Model > Part Data]
+    ui_entry: ["FEM > Model and Part > Keyword Manager", "FEM > Model and Part > Part Data"]
     release: v0.5
     milestone: M3
     layer: T1+T2
@@ -189,7 +189,7 @@ tasks:
     group: pre
     title: 集合创建
     story: 把 z=0 平面上的节点做成节点集；把弹体外表面做成 Segment 集
-    ui_entry: [Model > Entity Creation > Set, F2 SelPar]
+    ui_entry: ["FEM > Model and Part > Create Entity > Set Data", "FEM > Model and Part > Assembly and Select Part"]
     release: v0.5
     milestone: M3
     layer: T1
@@ -210,7 +210,7 @@ tasks:
     group: pre
     title: 边界条件与载荷
     story: 底面固支，顶面加 10 MPa 压力，弹体初速度 800 m/s
-    ui_entry: [Model > Entity Creation > Boundary / Load / Initial]
+    ui_entry: ["FEM > Model and Part > Create Entity > Boundary / Load / Initial / Rigidwall"]
     release: v0.5
     milestone: M3
     layer: T1
@@ -229,7 +229,7 @@ tasks:
     group: pre
     title: 接触定义与初始穿透检查
     story: 给弹体和靶板加侵蚀面面接触，检查初始穿透
-    ui_entry: [Model > Entity Creation > Contact, Model Check > Contact Check]
+    ui_entry: ["FEM > Model and Part > Create Entity > Contact", "Application > Model Checking > General Checking"]
     release: v0.5
     milestone: M3
     layer: T1+T2
@@ -247,7 +247,7 @@ tasks:
     group: pre
     title: 规则网格生成
     story: 生成一个 50×50×5 mm 的六面体靶板，单元 0.5 mm
-    ui_entry: [Mesh > Shape Mesher, Mesh > Block Mesher]
+    ui_entry: ["FEM > Element and Mesh > Shape Mesher", "FEM > Element and Mesh > Block Mesher"]
     release: v0.6
     milestone: null
     layer: T2
@@ -264,7 +264,7 @@ tasks:
     group: pre
     title: 网格编辑
     story: 把 Part 2 沿 X 平移 10 mm，再关于 YZ 平面镜像复制一份，合并重复节点，统一法向
-    ui_entry: [Mesh > Element Tools, Mesh > Translate / Rotate / Reflect, EleTol > Duplicate Nodes, EleTol > Normals, EleTol > Renumber]
+    ui_entry: ["FEM > Element Tools > Move or Copy / Transform / Duplicate Nodes / Normals", "FEM > Model and Part > Renumber"]
     release: v0.5
     milestone: M3
     layer: T1+T2
@@ -286,7 +286,7 @@ tasks:
     group: pre
     title: 模型检查
     story: 检查这个模型能不能直接提交计算，列出问题
-    ui_entry: [Model > Model Check > Keyword Check, EleTol > Element Quality, EleTol > Duplicate Nodes]
+    ui_entry: ["Application > Model Checking > General Checking", "FEM > Element Tools > Duplicate Nodes"]
     release: v0.5
     milestone: M3
     layer: T1
@@ -306,7 +306,7 @@ tasks:
     group: pre
     title: 控制与输出卡
     story: 终止时间 50 µs，输出 d3plot 每 1 µs，GLSTAT/MATSUM/RCFORC 每 0.1 µs，开启沙漏控制
-    ui_entry: [Model > Keyword Manager > CONTROL / DATABASE]
+    ui_entry: ["FEM > Model and Part > Keyword Manager"]
     release: v0.5
     milestone: M3
     layer: T2
@@ -323,7 +323,7 @@ tasks:
     group: pre
     title: 保存并原生重开验证
     story: 保存修改后的模型并确认 LSPP 能正常读回
-    ui_entry: [F10 File > Save Keyword]
+    ui_entry: ["File > Save > Save Keyword"]
     release: v0.5
     milestone: M3
     layer: T1
@@ -343,7 +343,7 @@ tasks:
     group: post
     title: 结果概览
     story: 这个 d3plot 有多少个状态，时间范围多少，有哪些变量，有没有删除单元
-    ui_entry: [F10 File > Open d3plot, Post > State]
+    ui_entry: ["File > Open > LS-DYNA Binary Plot", "FEM > Post > State"]
     release: v0.5
     milestone: M2
     layer: T1
@@ -361,7 +361,7 @@ tasks:
     group: post
     title: 云图出图
     story: 出 0.5 ms 时刻弹体部件的 von Mises 云图，色标 0-1500 MPa，等轴测视角
-    ui_entry: [F9 Fcomp, Post > Fringe Range, Post > Views]
+    ui_entry: ["FEM > Post > Fringe Component", "FEM > Post > Fringe Range", "FEM > Model and Part > Views"]
     release: v0.5
     milestone: M2
     layer: T1
@@ -382,7 +382,7 @@ tasks:
     group: post
     title: 场数据提取
     story: 把第 20 个状态 Part 3 所有单元的应力六分量导出成 CSV
-    ui_entry: [F9 Fcomp, Post > Output]
+    ui_entry: ["FEM > Post > Fringe Component", "FEM > Post > Output"]
     release: v0.5
     milestone: M2
     layer: T1
@@ -400,7 +400,7 @@ tasks:
     group: post
     title: 工程量与失效掩码
     story: 计算靶板所有单元的应力三轴度和 Lode 参数，排除已删除单元，找出最大值所在单元
-    ui_entry: [F9 Fcomp > Stress / Misc]
+    ui_entry: ["FEM > Post > Fringe Component"]
     release: v0.5
     milestone: M2
     layer: T1
@@ -418,7 +418,7 @@ tasks:
     group: post
     title: 时程曲线（History）
     story: 提取节点 1001 的 Z 位移和单元 500 的 Mises 随时间变化，以及 Part 2 的动能
-    ui_entry: [Post > History]
+    ui_entry: ["FEM > Post > History"]
     release: v0.5
     milestone: M2
     layer: T1
@@ -436,7 +436,7 @@ tasks:
     group: post
     title: binout / ASCII 全库曲线
     story: 从 binout 取 RCFORC 里接触 2 的合力和 SECFORC 截面 1 的 Z 向力
-    ui_entry: [F6 ASCII, Post > Binout]
+    ui_entry: ["FEM > Post > ASCII", "FEM > Post > Binary Output"]
     release: v0.5
     milestone: M2
     layer: T1
@@ -456,7 +456,7 @@ tasks:
     group: post
     title: 曲线运算
     story: 力-位移曲线转成工程应力应变，再转真应力应变，SAE 600 滤波
-    ui_entry: [F3 XYPlot > Oper / Filter]
+    ui_entry: ["FEM > Post > XY Plot"]
     release: v0.5
     milestone: M2
     layer: T1
@@ -474,7 +474,7 @@ tasks:
     group: post
     title: XYPlot 出图
     story: 把 3 个工况的力-位移曲线画在一张图上，带图例，导出 PNG 和 CSV
-    ui_entry: [F3 XYPlot]
+    ui_entry: ["FEM > Post > XY Plot"]
     release: v0.5
     milestone: M2
     layer: T1
@@ -490,7 +490,7 @@ tasks:
     group: post
     title: 动画导出
     story: 导出从 0.1 ms 到 0.8 ms、每隔 2 帧、20 fps 的 Mises 云图动画
-    ui_entry: [Post > Animation, F10 File > Movie]
+    ui_entry: ["底部工具栏 Anim"]
     release: v0.5
     milestone: M2
     layer: T1
@@ -509,7 +509,7 @@ tasks:
     group: post
     title: 截面力与剖切面
     story: 在 z=10 mm 处切一刀，输出截面上的合力时程和剖面云图
-    ui_entry: [Post > Section Plane, Post > Splane]
+    ui_entry: ["FEM > Model and Part > Section Plane"]
     release: v0.6
     milestone: null
     layer: T2
@@ -524,7 +524,7 @@ tasks:
     group: post
     title: 测量
     story: 量一下这两个节点的距离、这三个节点的夹角，以及 Part 3 的质量和体积
-    ui_entry: [F4 Measure]
+    ui_entry: ["FEM > Element Tools > Measure"]
     release: v0.6
     milestone: null
     layer: T1+T2
@@ -541,7 +541,7 @@ tasks:
     group: post
     title: 能量检查
     story: 检查能量是否守恒，沙漏能占比是多少
-    ui_entry: [F6 ASCII > GLSTAT / MATSUM]
+    ui_entry: ["FEM > Post > ASCII", "FEM > Post > Binary Output"]
     release: v0.5
     milestone: M2
     layer: T1
@@ -561,7 +561,7 @@ tasks:
     group: auto
     title: 命令栏 Command（单条原生命令）
     story: 执行一条 LSPP 命令，就像在左下角输入栏里敲一样，并告诉我 LSPP 返回了什么
-    ui_entry: [左下角命令输入栏]
+    ui_entry: ["左下角命令输入栏"]
     release: v0.5
     milestone: M1
     layer: T1
@@ -581,7 +581,7 @@ tasks:
     group: auto
     title: cfile 命令流
     story: 运行这个 cfile，把里面的 width 换成 8 再跑一次
-    ui_entry: [F10 File > Open > Command File]
+    ui_entry: ["File > Open > Command File"]
     release: v0.5
     milestone: M1
     layer: T1
@@ -602,7 +602,7 @@ tasks:
     group: auto
     title: SCL 脚本
     story: 运行这个 SCL 脚本，读出所有节点坐标写成 CSV
-    ui_entry: [Misc > SCL]
+    ui_entry: ["左下角命令输入栏（runscript）"]
     release: v0.5
     milestone: M1
     layer: T1
@@ -619,7 +619,7 @@ tasks:
     group: auto
     title: 应用内 Python 脚本
     story: 用 LSPP 内置 Python 读出每个 Part 的单元数和最大位移
-    ui_entry: [Misc > Python]
+    ui_entry: ["左下角命令输入栏（runpython）"]
     release: v0.5
     milestone: M1
     layer: T1
@@ -637,7 +637,7 @@ tasks:
     group: auto
     title: 原生宏执行
     story: 运行这个 .mac 宏，参数 N1 取 103，拾取的节点用 Part 2 顶面节点
-    ui_entry: [Misc > Macro]
+    ui_entry: ["Misc. > Launch Macro Interface"]
     release: v0.5
     milestone: M1
     layer: T1
@@ -661,7 +661,7 @@ tasks:
     group: auto
     title: 宏安装与快捷键管理
     story: 把这个宏装到 LSPP 宏工具栏，并绑定到 Shift+F3
-    ui_entry: [Misc > Macro, F1 Function-key map]
+    ui_entry: ["Misc. > Launch Macro Interface"]
     release: v0.6
     milestone: null
     layer: T1
@@ -678,7 +678,7 @@ tasks:
     group: auto
     title: 命令录制转配方
     story: 我刚在 GUI 里手工做了一遍出图流程，把它变成可以换参数重跑的配方
-    ui_entry: [lspost.cfile 自动记录, Misc > Command History]
+    ui_entry: ["Misc. > Start Recording Commands", "Misc. > Manage Command File"]
     release: v0.5
     milestone: M4
     layer: T1
@@ -757,7 +757,7 @@ tasks:
     group: general
     title: 视图控制
     story: 换成前视图，放大 2 倍，居中到 Part 3
-    ui_entry: [View 菜单, 底部工具栏视图按钮]
+    ui_entry: ["View", "FEM > Model and Part > Views", "底部工具栏 Front / RotX / Home"]
     release: v0.5
     milestone: M2
     layer: T1
@@ -774,7 +774,7 @@ tasks:
     group: general
     title: 显示控制
     story: 隐藏 Part 1 和 2，Part 3 改成半透明红色，显示单元编号
-    ui_entry: [F7 Color, F8 Blank, F2 SelPar, 底部工具栏显示开关]
+    ui_entry: ["FEM > Model and Part > Part Color / Appearance", "FEM > Element Tools > Blank"]
     release: v0.6
     milestone: null
     layer: T1+T2
@@ -791,7 +791,7 @@ tasks:
     group: general
     title: 统一选择器
     story: 选出 Part 2 外表面上 z>10 的节点
-    ui_entry: [F2 SelPar, 通用选择面板]
+    ui_entry: ["FEM > Model and Part > Assembly and Select Part", "通用选择面板"]
     release: v0.5
     milestone: M3
     layer: T1
@@ -812,7 +812,7 @@ tasks:
     group: general
     title: 实体识别 Identify
     story: 节点 1001 的坐标和它在第 30 个状态的位移是多少？属于哪个 Part？
-    ui_entry: [F5 Identify]
+    ui_entry: ["FEM > Element Tools > Identify"]
     release: v0.5
     milestone: M2
     layer: T1
@@ -912,3 +912,35 @@ change_log:
   - date: 2026-10-05
     change: 初版冻结（37 项任务，其中 v0.5 共 32 项；11 项基础设施）
     reason: 架构评审后用户确认 D1-D7
+
+ui_entry_audit:
+  version: 4.13.4 / 2026 R1 / 17Dec2025
+  reviewed_on: '2026-10-05'
+  scope: Top-level menu/panel entry labels from existing local screenshots; no new UI
+    execution; private screenshots remain outside Git. A03/A04 route through the observed
+    command input, with runscript/runpython from existing native scripts.
+  screenshots:
+  - name: 001-overview-0.png
+    sha256: a1127117f89f331cd755125b244c6e011dd813ad050176430256cbb7f92644f6
+  - name: 003-file-open-2.png
+    sha256: 1c855c45afb399c184296efd8fcc1b99782bdffcf0e0922f6d158fd9bb14e253
+  - name: 009-file-save-2.png
+    sha256: dce8ac49c66a393d67bcd1ebcf1f5d83e6331e7fa34b9b733c9bc591504d37fc
+  - name: 013-misc-open-1.png
+    sha256: 6ace7b17c774508700358b122724068b48f911e7977b2603d05eeb8b2c32f2cc
+  - name: 023-fem-1.png
+    sha256: 727b6ecb1a1bdb3b0eed2f6e35cb1f9c3e92ae4b5d9105c78c47d0f546befa5d
+  - name: 024-fem-mesh-2.png
+    sha256: 504dde3a356a4141d95b524a3951972a85546d498e59cd58fa03295557fe2b78
+  - name: 025-fem-model-2.png
+    sha256: 613fb351adf94a607e2afc174b7e23deb71bc5c26b16c685bf181c35888a369f
+  - name: 026-fem-element-tools-2.png
+    sha256: a99424b6cf4cd0ca049a6be1727c2482b752ac99e02c41a1fe4f9b70dcb1f21f
+  - name: 027-fem-post-2.png
+    sha256: 22e532246dbaba42ba0bd83bd60f017efb565bc55232d56c3e575c2542f6e11e
+  - name: 030-application-model-checking-2.png
+    sha256: 0f8de3f3d8bd940270a225811649dce63dbfa9d866bc4b9f5c6ea990a38e965d
+  - name: 063-create-entity-stable-0.png
+    sha256: 16878667f621dfeea808684b0012a509459a0498659431a5ea6b5f28840c9fc7
+  - name: 066-entity-contact-types-0.png
+    sha256: 9ce7cddfff2d37b1c7df56a15e871509ef2f80583454c876a59b463999f6d1d2

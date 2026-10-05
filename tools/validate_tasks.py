@@ -1,4 +1,5 @@
 """I06: validate the sole planning source against the live MCP registry."""
+
 import argparse
 import sys
 from pathlib import Path
@@ -24,7 +25,16 @@ def validate(catalog, tool_names):
         for item in catalog[section]:
             required = {"id", "title", "milestone", "acceptance"}
             if section == "tasks":
-                required |= {"group", "story", "ui_entry", "release", "layer", "target_tools", "status", "existing"}
+                required |= {
+                    "group",
+                    "story",
+                    "ui_entry",
+                    "release",
+                    "layer",
+                    "target_tools",
+                    "status",
+                    "existing",
+                }
             if section == "milestones":
                 required = {"id", "name", "tasks", "infrastructure", "exit"}
             if not isinstance(item, dict):
@@ -34,7 +44,16 @@ def validate(catalog, tool_names):
             ids.append(label)
             for field in sorted(required - item.keys()):
                 errors.append(f"{label}: missing {field}")
-            for field in ("acceptance", "target_tools", "existing", "ui_entry", "depends_on", "tasks", "infrastructure", "exit"):
+            for field in (
+                "acceptance",
+                "target_tools",
+                "existing",
+                "ui_entry",
+                "depends_on",
+                "tasks",
+                "infrastructure",
+                "exit",
+            ):
                 if field in item and not isinstance(item[field], list):
                     errors.append(f"{label}: {field} must be a list")
             if section == "tasks" and item.get("status") not in catalog["status_values"]:
