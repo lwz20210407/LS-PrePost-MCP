@@ -273,6 +273,16 @@ def _catalog() -> tuple[tuple[str, str, str], ...]:
     return tuple(rows)
 
 
+def keywords() -> list[str]:
+    """Every keyword the field documentation covers (PyDYNA classes that load), sorted."""
+    return sorted({row[0] for row in _catalog()})
+
+
+def catalog() -> list[dict]:
+    """The (keyword, field, help) records behind :func:`search`; ``field`` "" stands for the keyword itself."""
+    return [{"keyword": keyword, "field": field, "help": help_text} for keyword, field, help_text in _catalog()]
+
+
 def search(query: str, limit: int = 10) -> list[dict]:
     """Rank keyword/field records for a free-text query (keyword names, field names, help words)."""
     keyword_terms = [t.upper() for t in re.findall(r"\*[A-Za-z0-9_\-]+", query)]
@@ -302,5 +312,5 @@ def search(query: str, limit: int = 10) -> list[dict]:
             for s, k, f, h in scored[:limit]]
 
 
-__all__ = ["CONTACT_RENAMES", "ENV", "VERIFIED_R11", "field_doc", "keyword_doc", "manual_field_text",
-           "manual_section", "search"]
+__all__ = ["CONTACT_RENAMES", "ENV", "VERIFIED_R11", "catalog", "field_doc", "keyword_doc", "keywords",
+           "manual_field_text", "manual_section", "search"]

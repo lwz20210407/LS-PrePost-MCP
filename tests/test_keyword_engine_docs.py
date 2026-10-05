@@ -54,3 +54,12 @@ def test_search_ranks_the_asked_field_first() -> None:
     assert all(r["keyword"].startswith("*CONTACT_ERODING") and r["field"] == "sfsa" for r in top)
     best = kd.search("*PART 的 SECID 指向什么", limit=1)[0]  # *PART is a table group: fields come from its cards
     assert (best["keyword"], best["field"], best["evidence"]) == ("*PART", "secid", "verified")
+
+
+def test_public_keyword_list_and_catalog() -> None:
+    names = kd.keywords()
+    assert names == sorted(names) and len(names) == len(set(names))
+    assert {"*MAT_ELASTIC_PERI", "*SECTION_SOLID_PERI", "*PART"} <= set(names)
+    rows = kd.catalog()
+    assert {r["keyword"] for r in rows} == set(names)
+    assert {"keyword": "*MAT_ELASTIC_PERI", "field": "gt"} in [{k: r[k] for k in ("keyword", "field")} for r in rows]
