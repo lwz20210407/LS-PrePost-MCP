@@ -11,4 +11,10 @@
 - Vendor binaries, manuals, native logs, private paths/data and credentials stay out of Git. Use explicit job directories and obey parent workspace hygiene.
 - New T1 names must occur in tasks.yaml target_tools; use recipes or scripts for long-tail operations. Old names remain aliases until v0.6.
 - I07 belongs to Claude on claude/keyword-engine (local commit a1fb96c). During M0–M2 do not implement I07 or create files under src/ls_prepost_mcp/domain/model/. Integrate that work in M3.
-- The user explicitly authorized early M1/I02 implementation on codex/m1-contracts. This branch may add core contracts and migrate workflow gates to JobResult; it does not waive M0's RDP gate or authorize other milestone work. Keep M0 PR #1 unchanged.
+
+- User-approved M0 closeout: 13 remaining UU remote cells move to I04; M0 is 8/8 and PR #1 becomes Ready for review, never merge it automatically.
+- Continue M1 in order I04, I08, I05, A01–A05, A08, A10 until all four exits hold. Use one branch/stacked PR per task; preserve I07 ownership and I02 contract compatibility for Claude.
+- Before a commit, run full-dependency pytest, Ruff and task/docs/migration validators and confirm baseline CI green; after pushing, require that commit's CI green before reporting the task verified. CI cannot evaluate an uncommitted tree.
+- local-book is restricted: register ID/relative path only; never publish its contents or derived data. Private inputs stay in external environment configuration.
+- Reports use at most six Chinese lines: 完成 / 证据 / 下一项 / 待用户. Continue independent work while awaiting one batched GUI/remote window.
+- I02 adds strict core contracts and migrates workflow gates; keep the I07 integration boundary.

@@ -16,6 +16,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "tests/corpus/manifest.yaml"
 PUBLIC_GROUPS = ("catalogs", "keyword_sources", "result_sets", "regression_inputs")
+RESTRICTED_GROUP = "restricted_sources"
 
 
 def digest(path):
@@ -57,8 +58,8 @@ def load_registry(path=MANIFEST):
     if registry.get("schema_version") != 2 or registry.get("root_env") != "LSPP_CORPUS_DIR":
         raise ValueError("Expected reference-only corpus registry schema 2")
     seen = set()
-    for group in (*PUBLIC_GROUPS, "private_corpora"):
-        for entry in registry[group]:
+    for group in (*PUBLIC_GROUPS, RESTRICTED_GROUP, "private_corpora"):
+        for entry in registry.get(group, []) if group == RESTRICTED_GROUP else registry[group]:
             allowed = {"id"} if group == "private_corpora" else {"id", "path"}
             if set(entry) != allowed:
                 raise ValueError(f"{group}: entries must contain only {sorted(allowed)}")
@@ -68,11 +69,15 @@ def load_registry(path=MANIFEST):
             seen.add(name)
             if "path" in entry:
                 destination(ROOT, entry["path"])
+                is_book = PurePosixPath(entry["path"]).parts[0].casefold() == "local-book"
+                if (group == RESTRICTED_GROUP) != is_book:
+                    raise ValueError("local-book references must stay in restricted_sources")
     return registry
 
 
 def entries(registry):
-    return {e["id"]: e for group in (*PUBLIC_GROUPS, "private_corpora") for e in registry[group]}
+    return {e["id"]: e for group in (*PUBLIC_GROUPS, RESTRICTED_GROUP, "private_corpora")
+            for e in registry.get(group, [])}
 
 
 def resolve(entry, root):
@@ -102,6 +107,8 @@ def read_catalogs(registry, root):
 
     for entry in registry["catalogs"]:
         path = resolve(entry, root)
+        if path.is_relative_to(destination(root, "local-book")):
+            raise ValueError("Restricted book catalogs cannot enter public verification")
         raw = path.read_bytes()
         snapshots[entry["path"]] = hashlib.sha256(raw).hexdigest()
         catalog = json.loads(raw.decode("utf-8"))
@@ -145,7 +152,7 @@ def main():
         "--check-registry", action="store_true", help="CI-safe schema check; no external corpus required"
     )
     parser.add_argument(
-        "--verify-all", action="store_true", help="Read and hash all files listed by the external catalogs"
+        "--verify-all", action="store_true", help="Read and hash public catalogs only; restricted book contents are not expanded"
     )
     args = parser.parse_args()
     registry = load_registry()
@@ -167,10 +174,15 @@ def main():
         raise SystemExit("Corpus must be outside the repository and not its ancestor")
     records, snapshots = read_catalogs(registry, root)
     selected = {} if args.ids else records
+    restricted_ids = {entry["id"] for entry in registry.get(RESTRICTED_GROUP, [])}
+    restricted = []
     for name in args.ids:
         if name not in index:
             raise SystemExit("Unknown corpus ID: " + name)
         path = resolve(index[name], root)
+        if name in restricted_ids:
+            restricted.append(index[name])
+            continue  # Resolve authorized metadata only; no book text/derived index is published.
         relative = index[name]["path"]
         matches = {
             key: row
@@ -190,6 +202,9 @@ def main():
         if args.verify_all or args.ids
         else dict(indexed_files=len(records))
     )
+    if restricted:
+        report["restricted_references"] = restricted
+        report["restricted_contents_read"] = False
     for relative, expected in snapshots.items():
         if digest(destination(root, relative)) != expected:
             raise ValueError("External catalog changed during verification; repeat with a stable catalog")
