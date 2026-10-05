@@ -108,6 +108,21 @@ def _kind(python_type: type) -> str:
     return "int" if python_type is int else "float" if python_type is float else "str"
 
 
+class _SeriesLine:
+    """One data line of a PyDYNA SeriesCard: values ``start .. start + count - 1``."""
+
+    def __init__(self, series: object, start: int, count: int) -> None:
+        self.series, self.start, self.count = series, start, count
+
+
+def _series_lines(card: object) -> list[tuple[str, object]]:
+    import dataclasses
+    if dataclasses.is_dataclass(card._type):
+        raise Unsupported("Structured series cards are not supported for named fields yet")
+    total, per = len(card), int(card._fields_per_card)
+    return [(card._name.lower(), _SeriesLine(card, start, min(per, total - start))) for start in range(0, total, per)]
+
+
 def _arrange(cards: list[object], active_options: set[str]) -> list[tuple[str, object]]:
     """Active plain cards in file order: pre-options (outermost first), main, post-options."""
     pre: list[tuple[int, list[tuple[str, object]]]] = []
@@ -135,6 +150,9 @@ def _arrange(cards: list[object], active_options: set[str]) -> list[tuple[str, o
             if len(items) != 1:
                 raise Unsupported(f"{len(items)} repeated card sets in one block")
             main.extend(_arrange(items[0]._cards, active_options))
+        elif kind == "SeriesCard":
+            if card.active:
+                main.extend(_series_lines(card))
         elif getattr(card, "active", True):
             raise Unsupported(f"Active {kind} cards are not supported for named fields yet")
     ordered = [c for _, group in sorted(pre, key=lambda p: -p[0]) for c in group]
@@ -239,6 +257,15 @@ def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
             raise _ExtraLines(len(chunk), len(cards))
         infos, sources = [], []
         for (card_name, card), (index, line) in zip(cards, chunk):
+            if isinstance(card, _SeriesLine):
+                series = card.series
+                width = 20 if long else int(series._element_width)
+                kind = _kind(series._type)
+                for j in range(card.count):
+                    slot = _slot(line, index, j * width, width, j)
+                    infos.append(FieldInfo(f"{card_name}{card.start + j + 1}", kind, slot, card_name))
+                    sources.append((series, card.start + j))
+                continue
             schemas = card._schema.fields
             spans = long_spans([s.width for s in schemas]) if long else [(s.offset, s.width) for s in schemas]
             # A card holding one text field (title/heading) is never comma separated: commas are text.
@@ -262,7 +289,10 @@ def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
         slots.setdefault(info.slot.line, []).append(info.slot)
     infos, missing, sources = build(_load(cls, _substituted_text(block, indices, lookup, slots, long)))
     for info, (card, position) in zip(infos, sources):
-        expected = card._values[position] if position < len(card._values) else None
+        if type(card).__name__ == "SeriesCard":
+            expected = card[position] if position < len(card) else None
+        else:
+            expected = card._values[position] if position < len(card._values) else None
         text = read_text(block.lines[info.slot.line], info.slot)
         if not _same(text, expected, info.kind, info.default, lookup):
             raise Unsupported(f"Layout self-check failed for {info.name!r} on line {info.slot.line} "
