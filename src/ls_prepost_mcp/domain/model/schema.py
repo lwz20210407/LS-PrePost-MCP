@@ -317,10 +317,20 @@ def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
         else:
             expected = card._values[position] if position < len(card._values) else None
         text = read_text(block.lines[info.slot.line], info.slot)
+        if _comma_title(card, text, expected):
+            continue  # PyDYNA cuts a title at its first comma; the engine keeps the whole title line
         if not _same(text, expected, info.kind, info.default, lookup):
             raise Unsupported(f"Layout self-check failed for {info.name!r} on line {info.slot.line} "
                               f"({text!r} vs PyDYNA {expected!r})")
     return infos, missing
+
+
+def _comma_title(card: object, text: str, expected: object) -> bool:
+    """A one-text-field (title) card whose PyDYNA value is the text before the first comma."""
+    fields = getattr(getattr(card, "_schema", None), "fields", None)
+    if not fields or len(fields) != 1 or _kind(fields[0].type) != "str" or "," not in text:
+        return False
+    return str(expected or "").strip() == text.split(",", 1)[0].strip()
 
 
 # Keywords whose ID/TITLE card exists only with the _ID/_TITLE option (LS-DYNA manual) while PyDYNA

@@ -342,3 +342,13 @@ def test_plain_blocks_of_option_only_id_keywords(tmp_path: Path) -> None:
     assert deck.get(lagrange, "coupid").value == 7 and deck.get(lagrange, "alesid").value == 12
     with pytest.raises(KeyError):
         deck.get(spot, "wid")
+
+
+def test_material_title_with_comma_is_kept_whole(tmp_path: Path) -> None:
+    """PyDYNA cuts titles at the first comma; the engine keeps the title line (book material card)."""
+    pytest.importorskip("ansys.dyna.core")
+    deck = _deck(tmp_path, "*MAT_ELASTIC_TITLE\nAA6022-T43 with Gosh hardening, t=1.00mm\n"
+                           "         1    2.7e-9   70000.0      0.33\n")
+    block = deck.blocks("*MAT_ELASTIC_TITLE")[0]
+    assert deck.get(block, "title").value == "AA6022-T43 with Gosh hardening, t=1.00mm"
+    assert deck.get(block, "e").value == 70000.0
