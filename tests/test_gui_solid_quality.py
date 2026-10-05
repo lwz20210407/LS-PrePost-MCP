@@ -44,8 +44,8 @@ def test_solid_native_findings_are_automatic_workflow_gates():
     result = dict(status="succeeded", verification=dict(passed_checks=False))
     outcome = normalize_outcome("check_gui_solid_quality", result)
     assert outcome.execution_accepted and outcome.check_status == "failed"
-    assert not evaluate_gate(outcome, result, [], "auto")["passed"]
-    assert evaluate_gate(outcome, result, [], "report_only")["passed"]
+    assert not evaluate_gate(outcome, [], "auto")["passed"]
+    assert evaluate_gate(outcome, [], "report_only")["passed"]
 
 
 @pytest.mark.parametrize(

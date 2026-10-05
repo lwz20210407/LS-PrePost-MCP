@@ -37,6 +37,12 @@ Command、cfile、SCL、应用内 Python、原生宏是五个一等通道，统�
 
 工作流门槛只读 JobResult，执行完成与工程检查通过分别表达。API 使用用户 ID 和 1-based 状态；单位由调用者声明，阈值由调用者给定。保留结果数学与独立逻辑测试。
 
+I02 的六个 pydantic 合同已在 [core/contracts.py](../src/ls_prepost_mcp/core/contracts.py) 实现，core 仅依赖标准库与 pydantic。选择条件、采样和过滤参数使用判别联合；字符串/布尔值不会转成实体 ID，空 ID 选择保持为空，参考/变形坐标及 1-based 状态分别校验。ModelRef 的 Include 条目只是文件身份和父子关系元数据，I07 负责解析与编辑。
+
+旧操作返回值在 outcomes.normalize_outcome 中一次转换为 JobResult；prepared 只在明确的准备动作上对应 succeeded + preparation 阶段，未知状态转为 unverified。workflow_checks.evaluate_gate 仅接收并重新校验 JobResult，执行状态和自动质量结论不再从原字典判断。comparison_data 仅用于兼容旧工作流中用户指定的 JSON 路径断言；旧步骤结果、门槛报告和 outcomes.json 投影保留。类型化结果带 `contract: JobResult/v1` 标识，JSON 持久化或录制后仍按同一合同恢复，保留检查结论与准备阶段。
+
+合同实例构建不访问文件、不执行原生动作；产物真实身份、数值正确性和后端/版本能力仍由运行器及检查器验证。缺少 SHA256 的旧产物不会被升级为完整身份已验证。领域工具输入的逐项迁移继续按所属任务执行。
+
 ## 前处理
 
 I07 由 Claude 在 `claude/keyword-engine` 并行开发，M3 合并；M0–M2 不在本分支实现 I07，也不创建 `src/ls_prepost_mcp/domain/model/` 下的文件。归属与集成约束以 tasks.yaml 为准。

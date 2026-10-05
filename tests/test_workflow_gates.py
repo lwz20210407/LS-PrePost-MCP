@@ -24,18 +24,16 @@ def test_execution_success_does_not_imply_check_pass(value, verdict):
     result = dict(status="succeeded", verification=dict(passed_checks=value, solver_validated=False))
     outcome = normalize_outcome("check_gui_shell_quality", result)
     assert outcome.execution_accepted and outcome.check_status == verdict
-    assert evaluate_gate(outcome, result, [])["passed"] is (value is True)
+    assert evaluate_gate(outcome, [])["passed"] is (value is True)
 
 
 def test_missing_verdict_and_unverified_execution_are_never_implicitly_true():
     result = dict(status="succeeded")
     outcome = normalize_outcome("check_gui_keywords", result)
-    assert outcome.check_status == "missing" and not evaluate_gate(outcome, result, [])["passed"]
+    assert outcome.check_status == "missing" and not evaluate_gate(outcome, [])["passed"]
     for status in (None, True, "running", "timeout", "completed_unverified", "prepared", "nonsense"):
         result = dict(status=status)
-        assert not evaluate_gate(normalize_outcome("inspect_model", result), result, [], "report_only")[
-            "passed"
-        ]
+        assert not evaluate_gate(normalize_outcome("inspect_model", result), [], "report_only")["passed"]
     assert normalize_outcome("prepare_native_program", dict(status="prepared")).execution_accepted
     assert not normalize_outcome("prepare_native_program", dict(status="succeeded")).execution_accepted
 

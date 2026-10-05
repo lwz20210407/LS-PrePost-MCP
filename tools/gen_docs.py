@@ -50,10 +50,22 @@ def generate(catalog, registry):
     for t in catalog["infrastructure"]:
         ownership = ["负责人：" + t["owner"], ""] if t.get("owner") else []
         integration = ["集成约束：" + t["integration"], ""] if t.get("integration") else []
+        completion = (
+            ["状态：" + t["status"] + "；验证：" + t.get("verification_level", "待记录"), ""]
+            if t.get("status")
+            else []
+        )
+        evidence = (
+            ["证据：" + ", ".join(f"[{path}](../{path})" for path in t["evidence"]), ""]
+            if t.get("evidence")
+            else []
+        )
         task_lines += (
             [f"### {t['id']} {t['title']}", "", f"里程碑：{t['milestone']}", ""]
             + ownership
             + integration
+            + completion
+            + evidence
             + [f"- {a}" for a in t["acceptance"]]
             + [""]
         )

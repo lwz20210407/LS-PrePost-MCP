@@ -838,6 +838,13 @@ infrastructure:
   - id: I02
     title: 语义合同 core/contracts.py
     milestone: M1
+    status: done
+    evidence:
+      - src/ls_prepost_mcp/core/contracts.py
+      - tests/test_core_contracts.py
+      - tests/test_workflow_gates.py
+      - tests/test_reference_workflow.py
+    verification_level: L1
     acceptance:
       - ModelRef、Selector、FieldSpec、CurveSpec、JobResult、Artifact 以 pydantic 定义
       - JobResult.status 只有 succeeded / failed / partial / unverified 四种
@@ -912,6 +919,9 @@ infrastructure:
       - 找不到公开语料的项明确标为缺口
 
 change_log:
+  - date: 2026-10-05
+    change: 用户明确授权立即插队 M1/I02，在 codex/m1-contracts 独立分支实现合同与工作流门槛边界
+    reason: 不依赖 GUI 的底座先行；M0 PR 保持原范围，RDP 退出条件不变，I07 仍由 Claude 在 M3 集成
   - date: 2026-10-05
     change: I11 改用用户统一整理的外部语料目录，仓库只保存 ID/相对路径索引，私有语料只保存 ID
     reason: 用户补充统一语料位置与禁止复制、禁止提交数据的要求；元数据与哈希保留在外部 manifest.json

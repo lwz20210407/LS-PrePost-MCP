@@ -6,6 +6,8 @@
 
 M0 仅整理文档、校验、语料、实验与 M0-3 bug 修复，不重构 src、不新增工具。开发分支 restructure/v0.5；每个子项独立提交，里程碑结束开 PR 不合并。报告任务完成数和净增删行数，不再更新旧进度台账。
 
+用户已明确授权 I02 在独立分支 codex/m1-contracts 立即先行：六个合同及工作流门槛转换以 L1 验证，M0 的远程门槛和 PR #1 范围保持不变。I02 的测试入口为 `pytest tests/test_core_contracts.py tests/test_workflow_gates.py tests/test_reference_workflow.py`。
+
 ## 可重复检查
 
 ```shell

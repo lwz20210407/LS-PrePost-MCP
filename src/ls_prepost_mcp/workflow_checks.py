@@ -2,6 +2,7 @@
 
 import math
 
+from .core.contracts import JobResult
 from .outcomes import result_value
 
 UNARY = {"is_true", "is_false", "is_null", "not_null"}
@@ -96,23 +97,29 @@ def evaluate_checks(result, checks):
     return evaluations
 
 
-def evaluate_gate(outcome, result, checks, policy="auto"):
+def evaluate_gate(result: JobResult, checks, policy="auto"):
+    if not isinstance(result, JobResult):
+        raise TypeError("Workflow gates require JobResult, not a legacy result dictionary")
+    result = JobResult.model_validate(result)
     if policy not in POLICIES:
         raise ValueError("Unknown quality policy")
-    required = policy == "require_pass" or (policy == "auto" and outcome.check_path is not None)
-    predicates = evaluate_checks(result, checks)
+    required = policy == "require_pass" or (policy == "auto" and bool(result.checks))
+    comparison = (
+        result.comparison_data if result.comparison_data is not None else result.model_dump(mode="json")
+    )
+    predicates = evaluate_checks(comparison, checks)
     reasons = []
-    if not outcome.execution_accepted:
+    if not result.execution_accepted:
         reasons.append("execution_status_not_accepted")
-    if required and outcome.check_status != "passed":
-        reasons.append("quality_verdict_" + outcome.check_status)
+    if required and result.check_status != "passed":
+        reasons.append("quality_verdict_" + result.check_status)
     if any(not predicate["passed"] for predicate in predicates):
         reasons.append("explicit_check_failed")
     return dict(
         passed=not reasons,
         quality_policy=policy,
         quality_required=required,
-        quality_verdict=outcome.check_status,
+        quality_verdict=result.check_status,
         checks=predicates,
         reasons=reasons,
         report_only=policy == "report_only",
