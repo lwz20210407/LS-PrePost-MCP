@@ -1393,7 +1393,7 @@
     "summary": "Three reviewed workflows: result providers, beam manipulation and erosion. Optional DPF backend, not LS-PrePost GUI control.",
     "license_status": "Official documentation reference; no vendor Server/manual/example dataset redistribution",
     "integration": "adapter_implemented_runtime_unverified",
-    "scope": "Reviewed2026-10-03; docs/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
+    "scope": "Reviewed2026-10-03; docs/archive/2026-10/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
   },
   {
     "id": "official-dpf-lsdyna-results",
@@ -1402,7 +1402,7 @@
     "summary": "d3plot/binout DataSources, optional actunits, global and labelled part/interface histories. Branch field scoping must map to its own time support; master/slave idtype stays distinct.",
     "license_status": "Official documentation reference; no vendor Server/manual/example dataset redistribution",
     "integration": "adapter_implemented_runtime_unverified",
-    "scope": "Reviewed2026-10-03; docs/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
+    "scope": "Reviewed2026-10-03; docs/archive/2026-10/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
   },
   {
     "id": "official-dpf-lsdyna-beams",
@@ -1411,7 +1411,7 @@
     "summary": "DPF8.0+ beam scalar force/moment/stress/strain in local directions, mesh/body scoping and extrema workflows. Norm-based maxima mean absolute peaks, not maximum signed stress. Local/global rotation is not supplied by these LS-DYNA operators.",
     "license_status": "Official documentation reference; no vendor Server/manual/example dataset redistribution",
     "integration": "adapter_implemented_runtime_unverified",
-    "scope": "Reviewed2026-10-03; docs/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
+    "scope": "Reviewed2026-10-03; docs/archive/2026-10/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
   },
   {
     "id": "official-dpf-lsdyna-erosion",
@@ -1420,7 +1420,7 @@
     "summary": "DPF8.0+ erosion_flag active1/eroded0, complete d3plot family, surviving element submesh and corresponding nodal displacement. Display visibility does not establish physical erosion.",
     "license_status": "Official documentation reference; no vendor Server/manual/example dataset redistribution",
     "integration": "adapter_implemented_runtime_unverified",
-    "scope": "Reviewed2026-10-03; docs/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
+    "scope": "Reviewed2026-10-03; docs/archive/2026-10/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
   },
   {
     "id": "official-dpf-compatibility",
@@ -1429,7 +1429,7 @@
     "summary": "Client/server versions have distinct compatibility requirements. Adapter aligns client0.16.1 and Server7.1+, with8.0+ for beam/erosion; no installed-server acceptance yet.",
     "license_status": "Official documentation reference; no vendor Server/manual/example dataset redistribution",
     "integration": "adapter_implemented_runtime_unverified",
-    "scope": "Reviewed2026-10-03; docs/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
+    "scope": "Reviewed2026-10-03; docs/archive/2026-10/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
   },
   {
     "id": "official-dpf-licensing",
@@ -1438,7 +1438,7 @@
     "summary": "Standalone Server requires user acceptance of separate vendor terms; client MIT does not redistribute Server. Entry context prohibits license checkout; transformation operators may require licensing. No agreement or license setting is changed by the adapter.",
     "license_status": "Official documentation reference; no vendor Server/manual/example dataset redistribution",
     "integration": "adapter_implemented_runtime_unverified",
-    "scope": "Reviewed2026-10-03; docs/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
+    "scope": "Reviewed2026-10-03; docs/archive/2026-10/DPF_INTEGRATION.md tracks implementation and missing native acceptance"
   },
   {
     "id": "guide-common-measure",
@@ -1447,7 +1447,7 @@
     "summary": "Reviewed legacy controls plus2026R1sections6.3.10 and current4.13Item21-entry list. Coordinate/distance/height/angle/circle subset now implemented with native numeric and geometry checks; complete local axes, mass/inertia, surface/segment/SALE/throat and history controls remain open.",
     "license_status": "Official reference; vendor PDF/images/binaries not redistributed",
     "integration": "reference_reviewed_with_partial_native_adoption",
-    "scope": "docs/COMMON_OPERATIONS_COVERAGE.md records full controls and gaps"
+    "scope": "docs/archive/2026-10/COMMON_OPERATIONS_COVERAGE.md records full controls and gaps"
   },
   {
     "id": "guide-common-ident",
@@ -1456,7 +1456,7 @@
     "summary": "Reviewed entity types, supplied XYZ highlight, fringe/directions/popup/part-name/echo and separate clear operations. Checked node Identify coordinate query is implemented; full annotation lifecycle is not.",
     "license_status": "Official reference; vendor PDF/images/binaries not redistributed",
     "integration": "reference_reviewed_with_partial_native_adoption",
-    "scope": "docs/COMMON_OPERATIONS_COVERAGE.md records full controls and gaps"
+    "scope": "docs/archive/2026-10/COMMON_OPERATIONS_COVERAGE.md records full controls and gaps"
   },
   {
     "id": "guide-common-blank",
@@ -1465,7 +1465,7 @@
     "summary": "Reviewed entity-level blank/unblank/reverse/last-selection and surface/edge update. These operations differ from whole-part visibility; not counted as implemented by existing part controls.",
     "license_status": "Official reference; vendor PDF/images/binaries not redistributed",
     "integration": "reference_reviewed_with_partial_native_adoption",
-    "scope": "docs/COMMON_OPERATIONS_COVERAGE.md records full controls and gaps"
+    "scope": "docs/archive/2026-10/COMMON_OPERATIONS_COVERAGE.md records full controls and gaps"
   },
   {
     "id": "keyword-r11-boundaries",
@@ -1531,7 +1531,7 @@
     "summary": "Existing plain NODE motions, inline constraints and curves;6nodes/2shells. Added Y motion and fresh-process reopen verified. Same-session replacement/export has a retained native failure, including unmodified input.",
     "integration": "bounded_native_preprocessing_with_known_lifecycle_failure",
     "license_status": "Reference/downloaded local fixture only",
-    "scope": "See docs/NATIVE_KNOWN_ISSUES.md"
+    "scope": "See docs/archive/2026-10/NATIVE_KNOWN_ISSUES.md"
   },
   {
     "id": "official-linear-partial-import",
@@ -1549,7 +1549,7 @@
     "summary": "Official node/SET/rigid load creation interface. Supports the selection-to-nodal-load workflow; only node/SET global fixed-axis creation implemented here.",
     "integration": "bounded_native_nodal_load_creation",
     "license_status": "Documentation reference only",
-    "scope": "docs/NODAL_LOADS.md"
+    "scope": "docs/archive/2026-10/NODAL_LOADS.md"
   },
   {
     "id": "official-example11-nodal-force",
@@ -1558,6 +1558,6 @@
     "summary": "Original41-node/21-element beam plus ELEMENT_MASS initially failed shared mesh digest. Standard mass preservation now enables existing-load overlap review, curve reuse, load superposition and fresh-process native reopen on the unchanged full input.",
     "integration": "bounded_native_nodal_load_and_mass_preservation",
     "license_status": "Local reference input only; no raw model redistributed",
-    "scope": "Standard mass node/value/part/count preservation; mass glyph display, inertia and other auxiliary families unverified. docs/MASS_PRESERVATION.md"
+    "scope": "Standard mass node/value/part/count preservation; mass glyph display, inertia and other auxiliary families unverified. docs/archive/2026-10/MASS_PRESERVATION.md"
   }
 ]

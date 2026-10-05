@@ -4,7 +4,6 @@ import inspect
 import math
 from pathlib import Path
 
-from .config import scl_command_path
 from .core.native_log import native_errors, read_delta
 from .gui_mesh import check_same_nodes, check_same_parts, mesh_index, verify_mesh_digest
 from .gui_selection import available_ids, part_visibility
@@ -101,7 +100,7 @@ def run_fields(service, session_id, action, parameters):
                     snapshot,
                     native_commands=[
                         nc.animation('stop'),
-                        "runscript " + scl_command_path(directory / "extract.scl"),
+                        nc.run_script(directory / "extract.scl", "scl"),
                         nc.state(original_state),
                     ],
                 )
