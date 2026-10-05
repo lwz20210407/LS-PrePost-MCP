@@ -76,6 +76,9 @@ TYPE_CODED: list[tuple[str, tuple[tuple[str, str, dict[int, str]], ...]]] = [
     ("*CONTACT_", tuple((name, code, CONTACT_TYPES) for name, code in CONTACT_SIDES)),
     # STYP: 1 part set, 2 part, 3 node set (R11 manual, *INITIAL_VELOCITY_GENERATION card 1)
     ("*INITIAL_VELOCITY_GENERATION", (("id", "styp", {1: "part_set", 2: "part", 3: "node_set"}),)),
+    # SSTYP (PyDYNA LSTRSTYP): 0 part set, 1 part, 2 segment set; MSTYP (ALESTYP): 0 part set, 1 part (R11 p. 10-99)
+    ("*CONSTRAINED_LAGRANGE_IN_SOLID", (("lstrsid", "lstrstyp", {0: "part_set", 1: "part", 2: "segment_set"}),
+                                        ("alesid", "alestyp", {0: "part_set", 1: "part"}))),
 ]
 
 

@@ -220,11 +220,10 @@ def test_legacy_set_keywords_and_multi_line_title(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("text", [
-    # PyDYNA puts the WID card first even without _ID
-    "*CONSTRAINED_GENERALIZED_WELD_SPOT\n         4         0         0       0.0         0         0\n"
-    "1.00000E20       0.0       0.0       0.0       0.0       0.0\n",
-    "*CONSTRAINED_SPOTWELD\n       101       102       0.0       0.0       0.0       0.0       0.0       0.0\n"
-    "       103       104       0.0       0.0       0.0       0.0       0.0       0.0\n",
+    # option PyDYNA does not know for this class (its cards would be misplaced)
+    "*CONSTRAINED_JOINT_REVOLUTE_FAILURE\n       101       201       102       202\n",
+    # text outside the one-field WID card of the _ID form
+    "*CONSTRAINED_SPOTWELD_ID\n        77        99\n       101       102\n",
 ])
 def test_misaligned_pydyna_cards_are_refused(tmp_path: Path, text: str) -> None:
     pytest.importorskip("ansys.dyna.core")
@@ -324,3 +323,22 @@ def test_nul_bytes_are_refused(tmp_path: Path) -> None:
     (tmp_path / "bin.k").write_bytes("*KEYWORD\n".encode("utf-16-le"))
     with pytest.raises(ValueError, match="NUL bytes"):
         KeywordDeck.load(tmp_path / "bin.k")
+
+
+def test_plain_blocks_of_option_only_id_keywords(tmp_path: Path) -> None:
+    """ansys/pydyna#1347: without _ID the WID/COUPID card does not exist; the engine skips PyDYNA's."""
+    pytest.importorskip("ansys.dyna.core")
+    deck = _deck(tmp_path, "*CONSTRAINED_GENERALIZED_WELD_SPOT\n"
+                           "         4         0         0       0.0         0         0\n"
+                           "1.00000E20       0.5       0.0       0.0       0.0       0.0\n"
+                           "*CONSTRAINED_SPOTWELD\n"
+                           "       101       102     100.0     200.0       2.0       2.0\n"
+                           "*CONSTRAINED_LAGRANGE_IN_SOLID_TITLE\n         7coupling\n"
+                           "        11        12         1         1                             1\n")
+    weld, spot, lagrange = (next(b for b in deck.iter_blocks() if b.name == name) for name in (
+        "*CONSTRAINED_GENERALIZED_WELD_SPOT", "*CONSTRAINED_SPOTWELD", "*CONSTRAINED_LAGRANGE_IN_SOLID_TITLE"))
+    assert deck.get(weld, "nsid").value == 4 and deck.get(weld, "epsf").value == 0.5
+    assert deck.get(spot, "n2").value == 102 and deck.get(spot, "ss").value == 200.0
+    assert deck.get(lagrange, "coupid").value == 7 and deck.get(lagrange, "alesid").value == 12
+    with pytest.raises(KeyError):
+        deck.get(spot, "wid")

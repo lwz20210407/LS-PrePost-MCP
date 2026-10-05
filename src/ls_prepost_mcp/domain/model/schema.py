@@ -183,6 +183,9 @@ def _substituted_text(block: Block, indices: list[int], lookup: Mapping[str, obj
     """
     out = []
     for index in indices:
+        if index == -1:
+            out.append("\n")  # placeholder for an option-only card that the block does not have
+            continue
         line = block.lines[index]
         if index == 0:
             out.append(pydyna_title(block, long))
@@ -248,12 +251,23 @@ class _ExtraLines(Unsupported):
 
 
 def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
-                  chunk: list[tuple[int, str]], long: bool = False) -> tuple[list[FieldInfo], list[str]]:
-    """Fields of one card instance (``chunk`` = its data lines), self-checked against PyDYNA."""
-    indices = [0] + [i for i, _ in chunk]
+                  chunk: list[tuple[int, str]], long: bool = False,
+                  omit: int | None = None) -> tuple[list[FieldInfo], list[str]]:
+    """Fields of one card instance (``chunk`` = its data lines), self-checked against PyDYNA.
+
+    ``omit``: index of a PyDYNA card the block does not have (an option-only ID card that
+    PyDYNA reads unconditionally); PyDYNA gets a blank line in its place.
+    """
+    data_indices = [i for i, _ in chunk]
+    if omit is None:
+        indices = [0] + data_indices
+    else:
+        indices = [0] + data_indices[:omit] + [-1] + data_indices[omit:]
 
     def build(keyword: object) -> tuple[list[FieldInfo], list[str], list[tuple[object, int]], list]:
         cards = _ordered_cards(keyword)
+        if omit is not None:
+            cards = cards[:omit] + cards[omit + 1:]
         if len(chunk) > len(cards):
             raise _ExtraLines(len(chunk), len(cards))
         infos, sources, coverage = [], [], []
@@ -309,13 +323,33 @@ def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
     return infos, missing
 
 
+# Keywords whose ID/TITLE card exists only with the _ID/_TITLE option (LS-DYNA manual) while PyDYNA
+# reads it unconditionally (ansys/pydyna#1347). Plain blocks are read without that card.
+OPTION_ONLY_ID = (
+    "*AIRBAG_PARTICLE", "*ALE_COUPLING_NODAL_DRAG", "*ALE_COUPLING_NODAL_PENALTY", "*ALE_FAIL_SWITCH_MMG",
+    "*ALE_FSI_SWITCH_MMG", "*ALE_STRUCTURED_FSI", "*CONSTRAINED_BEAM_IN_SOLID", "*CONSTRAINED_GENERALIZED_WELD",
+    "*CONSTRAINED_LAGRANGE_IN_SOLID", "*CONSTRAINED_LOCAL", "*CONSTRAINED_SHELL_IN_SOLID",
+    "*CONSTRAINED_SOLID_IN_SOLID", "*CONSTRAINED_SPOTWELD", "*CONTACT_GUIDED_CABLE",
+    "*DEFINE_ADAPTIVE_SOLID_TO_DES", "*DEFINE_ADAPTIVE_SOLID_TO_SPH", "*DEFINE_SPH_DE_COUPLING",
+    "*INTERFACE_COMPONENT", "*LOAD_ALE_CONVECTION", "*LOAD_NURBS_SHELL", "*LOAD_SEGMENT_NONUNIFORM",
+    "*LOAD_SEGMENT_SET_NONUNIFORM", "*LOAD_SHELL",
+)
+
+
+def _id_card(keyword: object) -> tuple[int, bool] | None:
+    """``(index, has_title)`` of the first card holding only an ID (optionally with a title/heading)."""
+    for index, (_, card) in enumerate(_ordered_cards(keyword)):
+        if isinstance(card, _SeriesLine):
+            continue
+        names = [s.name.lower() for s in card._schema.fields if not s.name.lower().startswith("unused")]
+        if names and names[0].endswith("id") and len(names) <= 2 and names[1:] in ([], ["title"], ["heading"]):
+            return index, len(names) == 2
+    return None
+
+
 def _leading_id_card(keyword: object) -> bool:
-    """Whether the first card holds only an ID (optionally with a title), like an _ID option card."""
-    cards = _ordered_cards(keyword)
-    if not cards or isinstance(cards[0][1], _SeriesLine):
-        return False
-    names = [s.name.lower() for s in cards[0][1]._schema.fields if not s.name.lower().startswith("unused")]
-    return bool(names) and names[0].endswith("id") and len(names) <= 2 and names[1:] in ([], ["title"], ["heading"])
+    found = _id_card(keyword)
+    return found is not None and found[0] == 0
 
 
 # Option cards that LS-DYNA defines and PyDYNA lacks, placed around the PyDYNA cards.
@@ -356,6 +390,17 @@ def _split_synthetic(block: Block, data: list[tuple[int, str]], synthetic: dict[
     return lines, infos
 
 
+def _omitted_id_card(block: Block, cls: type, base: str, long: bool) -> int | None:
+    """Index of the PyDYNA ID card to skip for a plain block of an OPTION_ONLY_ID keyword."""
+    if not base.startswith(OPTION_ONLY_ID):
+        return None
+    tokens = {token for token in block.name[len(base):].split("_") if token}
+    if tokens & {"ID", "TITLE"}:
+        return None
+    found = _id_card(_load(cls, pydyna_title(block, long)))
+    return None if found is None else found[0]
+
+
 def _check_options(block: Block, cls: type, base: str, long: bool, synthetic: set[str] = frozenset()) -> None:
     """Every keyword-name token after the PyDYNA class name must be an option PyDYNA knows."""
     suffix = [token for token in block.name[len(base):].split("_") if token and token not in synthetic]
@@ -364,8 +409,9 @@ def _check_options(block: Block, cls: type, base: str, long: bool, synthetic: se
     probe = _load(cls, pydyna_title(block, long))
     known = {token for option in getattr(probe, "_active_options", set()) for token in str(option).split("_")}
     unknown = [token for token in suffix if token not in known]
-    if unknown == ["ID"] and _leading_id_card(probe):
-        unknown = []  # PyDYNA keeps the option-only ID card unconditionally (e.g. *CONSTRAINED_SPOTWELD WID)
+    found = _id_card(probe)
+    if found is not None and (unknown == ["ID"] or (unknown == ["TITLE"] and found[1])):
+        unknown = []  # PyDYNA keeps the option-only ID/TITLE card unconditionally (ansys/pydyna#1347)
     if unknown:
         raise Unsupported(f"PyDYNA {base} has no option {'_'.join(unknown)}; its cards would be misplaced")
 
@@ -382,6 +428,10 @@ def _pydyna_layout(block: Block, lookup: Mapping[str, object], long: bool = Fals
     extra_infos: list[FieldInfo] = []
     if synthetic:
         data, extra_infos = _split_synthetic(block, data, synthetic, long)
+    omit = _omitted_id_card(block, cls, base, long)
+    if omit is not None:
+        infos, missing = _chunk_fields(cls, block, lookup, data, long, omit=omit)
+        return Layout(block.name, fields=extra_infos + infos, source="pydyna", missing_cards=missing)
     try:
         infos, missing = _chunk_fields(cls, block, lookup, data, long)
         return Layout(block.name, fields=extra_infos + infos, source="pydyna", missing_cards=missing)

@@ -115,12 +115,17 @@ def test_line_numbers_follow_removed_lines_and_inserted_blocks(tmp_path: Path) -
 
 
 def test_renumber_refuses_when_a_node_referencing_block_is_unreadable(tmp_path: Path) -> None:
-    deck = _deck(tmp_path, _model("*CONSTRAINED_SPOTWELD\n         1         2       0.0       0.0       0.0       0.0"
-                                  "       0.0       0.0\n         3         4       0.0       0.0       0.0       0.0"
-                                  "       0.0       0.0\n"))
-    with pytest.raises(FieldError, match="CONSTRAINED_SPOTWELD x1 cannot be read"):
+    deck = _deck(tmp_path, _model("*CONSTRAINED_JOINT_REVOLUTE_FAILURE\n         1         2         3         4\n"))
+    with pytest.raises(FieldError, match="CONSTRAINED_JOINT_REVOLUTE_FAILURE x1 cannot be read"):
         renumber(deck, "node", {1: 101})
     assert deck.changes == []
+
+
+def test_renumber_rewrites_plain_spotweld_nodes(tmp_path: Path) -> None:
+    deck = _deck(tmp_path, _model("*CONSTRAINED_SPOTWELD\n         1         2       0.0       0.0       0.0       0.0\n"))
+    renumber(deck, "node", {1: 101})
+    block = deck.blocks("*CONSTRAINED_SPOTWELD")[0]
+    assert deck.get(block, "n1").value == 101 and deck.get(block, "n2").value == 2
 
 
 def test_line_numbers_after_a_middle_block_grows(tmp_path: Path) -> None:
@@ -147,3 +152,12 @@ def test_renumber_refuses_unruled_id_like_fields(tmp_path: Path) -> None:
     with pytest.raises(FieldError, match="sid=1 may be a part ID"):
         renumber(deck, "part", {1: 5})
     assert deck.changes == []
+
+
+def test_lagrange_in_solid_part_references(tmp_path: Path) -> None:
+    """Plain *CONSTRAINED_LAGRANGE_IN_SOLID (no COUPID card) with SSTYP/MSTYP = 1 (parts)."""
+    deck = _deck(tmp_path, _model("*CONSTRAINED_LAGRANGE_IN_SOLID\n         1         1         1         1\n"))
+    renumber(deck, "part", {1: 5})
+    block = deck.blocks("*CONSTRAINED_LAGRANGE_IN_SOLID")[0]
+    assert deck.get(block, "lstrsid").value == 5 and deck.get(block, "alesid").value == 5
+    assert deck.references().dangling_count == 0
