@@ -138,6 +138,6 @@ Keyword Check 现已独立接入：报告必须包含原生头尾标记和完整
 
 这一可选模式会覆盖原生 Buffer1，并在完成时清空通用选区；其他缓冲槽保留。受管 Buffer1 身份在发命令前作废，已有受管元数据保存为恢复参考；这不是未知手工缓存内容的快照。随后可把 `failed_element_ids` 绑定给 `select_gui_entities`。默认统计模式不改变受管缓存身份。
 
-仅定位问题、不要求质量合格时，[定位配方](../examples/workflows/visible_gui_locate_failed_solids.json) 明确使用 `quality_policy="report_only"`，然后选择失败并集；它没有批准继续编辑坏网格。原生验证使用不连续单元 ID 101/507，分别捕获不同体积条件、验证通过后的空集合、其他缓冲槽保留，并验证录制后改阈值会选择新的失败集合。入口为 `tools/run_gui_failed_ids_acceptance.py`。
+仅定位问题、不要求质量合格时，[定位配方](../../../examples/workflows/visible_gui_locate_failed_solids.json) 明确使用 `quality_policy="report_only"`，然后选择失败并集；它没有批准继续编辑坏网格。原生验证使用不连续单元 ID 101/507，分别捕获不同体积条件、验证通过后的空集合、其他缓冲槽保留，并验证录制后改阈值会选择新的失败集合。入口为 `tools/run_gui_failed_ids_acceptance.py`。
 
 模型重开、重置和检查点替换会作废旧受管选区缓存身份，即使新模型坐标/ID 恰好相同。旧配方若依赖录制开始前的缓存，应把保存选区步骤纳入模板。打开 d3plot 时也会清除上一 keyword 的默认检查点引用；原文件、历史检查点和日志仍保留，可通过明确路径恢复。

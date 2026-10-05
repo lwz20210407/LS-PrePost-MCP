@@ -56,7 +56,7 @@ keyword 与 d3plot 会话现共用 EntitySelection（真实用户 ID）及原生
 
 节点向量也携带 FieldSpec、用户 ID/状态和原生分量来源；单位仍是调用者标签，未推断量纲。GUI 工作流中的 `extract_node_history` 自动走同一会话，并非额外后台 LSPP。先停止动画，提取后通过原生命令恢复原时刻并单独读回确认；不自动重新播放动画。独立批处理仅报告恢复请求，不能冒充已验证的 GUI 恢复。
 
-可复用三步模板见 [visible_gui_relative_displacement.json](../examples/workflows/visible_gui_relative_displacement.json)：选择 → 节点历史 → 第一个选中节点减第二个选中节点。选择 ID 以升序返回，差值正方向因此明确按升序 ID 定义；它不是任意轴投影、随动参考系或自动应变计。必须提供恰好两个节点、状态列表、结果单位和共同时间单位。
+可复用三步模板见 [visible_gui_relative_displacement.json](../../../examples/workflows/visible_gui_relative_displacement.json)：选择 → 节点历史 → 第一个选中节点减第二个选中节点。选择 ID 以升序返回，差值正方向因此明确按升序 ID 定义；它不是任意轴投影、随动参考系或自动应变计。必须提供恰好两个节点、状态列表、结果单位和共同时间单位。
 
 `tools/run_gui_post_workflow_acceptance.py` 在代表性私有结果副本上连续执行两个分量版本，各三步；曲线逐点相减、原生位置减参考坐标与原生位移的恒等关系、时刻/选区/几何/显隐保持、原文件族哈希和零 keyword 导出均核对通过。测试使用未知模型单位标签，不据此认证实际单位或材料响应。
 
@@ -70,7 +70,7 @@ keyword 与 d3plot 会话现共用 EntitySelection（真实用户 ID）及原生
 
 4.13.4 代表性实体结果已验：选择 → 原生 SCL 六应力分量及 Mises → Python 三轴度/Lode 派生与原生 Mises 对照；另外导出六个应变分量和等效塑性应变。应变输出保留原生约定，未声明工程剪应变/材料坐标/平均方式的额外解释；壳层、厚壳和特殊实体仍需分别实测。GUI 完成验证使用应用内 Python，因此不能把批处理 SCL 的“不依赖 Python”标签照搬过来。
 
-应力工作流已通过托管录制 → 将 states 参数化 → 原生重开暂存结果 → 同一 GUI 回放，录制的上下文检查也保留。公开 [visible_gui_selected_stress.json](../examples/workflows/visible_gui_selected_stress.json) 提供选择到应力的两步模板，必须填写 element_ids、states、units；默认实体 solid 与原生 default/mid，不代表壳层已获得此次认证。
+应力工作流已通过托管录制 → 将 states 参数化 → 原生重开暂存结果 → 同一 GUI 回放，录制的上下文检查也保留。公开 [visible_gui_selected_stress.json](../../../examples/workflows/visible_gui_selected_stress.json) 提供选择到应力的两步模板，必须填写 element_ids、states、units；默认实体 solid 与原生 default/mid，不代表壳层已获得此次认证。
 
 本机构建的 SCL 加载器要求 Windows 原生反斜杠路径；正斜杠盘符路径会被错误拼接到已有打开目录。路径修复仅作用于专用 SCL 命令，不修改用户配置；生成的 SCL 输出使用明确绝对路径。原命令接口参考仍见 [官方说明](https://lsdyna.ansys.com/command/)，运行结论以此处指定构建实测为准。
 # DPF extension, 2026-10-03

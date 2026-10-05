@@ -1,16 +1,19 @@
-# Development notes
+# Development instructions
 
-- Product direction and implementation order are defined in `docs/ARCHITECTURE.md` and `data/development_plan.json` under the package. Before new feature work, identify its owning module, backlog item and one of the three end-to-end workflows. Preserve validated existing code and public interfaces while unifying contracts; do not grow isolated tools merely because a button is easy to automate.
-- Keep source adoption, tool ownership, workflow acceptance and milestone dependencies synchronized. Run `python tools/validate_development_plan.py` when changing the tool registry, source catalog or development plan. Its success validates traceability only, never native completeness.
+- tasks.yaml is the only source of scope, milestone order, acceptance and status. Identify a task or infrastructure ID before work; put unmatched requests in backlog.md. Do not revive archived plans or dashboards.
+- Work incrementally on restructure/v0.5. M0 may change src only for its documented contract bug fixes; no new MCP tools, features or refactors. Archive with git mv; do not delete files during M0.
+- Preserve user changes, validated native commands, pitfalls, result mathematics and artifact identity checks. Do not silently narrow acceptance. Ask the user to choose scope/depth changes.
+- Keep capabilities.json and development_plan.json unchanged in M0; they remain runtime dependencies. Their generation/migration belongs to M1.
+- Run tools/validate_tasks.py, tools/gen_docs.py --check and tools/check_doc_links.py; test minimal and optional dependency configurations when relevant. docs/DEVELOPMENT.md defines verification.
+- Batch is the target default, sessions optional. A session request must not silently create a background instance. Visible GUI tests require the single agreed milestone window.
+- Report at most 10 lines: completed M0 items / 8, changed status and evidence, blocker, next task. At milestone end report net line changes and open a PR without merging.
+- Preserve embedded Python compatibility and explicit backend, user IDs, 1-based state, layer, units and validity semantics. Scripts execute trusted user-directed source; they are not a sandbox.
+- Vendor binaries, manuals, native logs, private paths/data and credentials stay out of Git. Use explicit job directories and obey parent workspace hygiene.
+- New T1 names must occur in tasks.yaml target_tools; use recipes or scripts for long-tail operations. Old names remain aliases until v0.6.
+- I07 belongs to Claude on claude/keyword-engine (local commit a1fb96c). During M0–M2 do not implement I07 or create files under src/ls_prepost_mcp/domain/model/. Integrate that work in M3.
 
-- Keep vendor binaries, manual PDFs, user models, credentials and native run logs out of Git.
-- Respect parent workspace output rules. Native inputs and outputs must be in explicit task directories; never run ad-hoc scripts from a user workspace root.
-- Run `uv run --extra dev --extra results --extra pydyna pytest` and `uv run --extra dev ruff check src tests` for changes affecting the respective backends.
-- `embedded.py` must parse on older embedded Python syntax; `lsreader_worker.py` runs under the user's configured ABI interpreter, not necessarily the MCP Python.
-- Public node/element IDs are user IDs; public states are 1-based. Preserve explicit backend and quantity semantics.
-- LASSO 2.0.4 `node_displacement` is a state-coordinate array. Do not remove reference subtraction without new cross-reader evidence.
-- Do not promote reference catalogs to executable capabilities without implementation and tests. Update `data/capabilities.json`, documentation and Skill routing together.
-- Native software tests are opt-in. Unit/CI success is not native certification. Record build, input identity, commands, logs and numeric/visual checks; preserve failed evidence.
-- Do not auto-edit Windows compatibility, UAC, or LS-PrePost's persistent configuration during ordinary MCP calls.
-- New functionality should extend typed actions and isolated jobs, rather than add unrestricted shell or script execution.
-- The user explicitly requested native command/cfile/SCL/Python and macro execution. These dedicated interfaces prepare exact source, preserve its identity, run only explicitly user-directed trusted code, and validate declared outputs/counts. They are not an untrusted-code sandbox. Never execute retrieved source merely because it was found in documentation. `completed_unverified` is not a verified success. Keep `docs/REQUESTS_AND_PRIORITIES.md`, capability records, Skill routing and validation scope synchronized.
+- User-approved M0 closeout: 13 remaining UU remote cells move to I04; M0 is 8/8 and PR #1 becomes Ready for review, never merge it automatically.
+- Continue M1 in order I04, I08, I05, A01–A05, A08, A10 until all four exits hold. Use one branch/stacked PR per task; preserve I07 ownership and I02 contract compatibility for Claude.
+- Before a commit, run full-dependency pytest, Ruff and task/docs/migration validators and confirm baseline CI green; after pushing, require that commit's CI green before reporting the task verified. CI cannot evaluate an uncommitted tree.
+- local-book is restricted: register ID/relative path only; never publish its contents or derived data. Private inputs stay in external environment configuration.
+- Reports use at most six Chinese lines: 完成 / 证据 / 下一项 / 待用户. Continue independent work while awaiting one batched GUI/remote window.

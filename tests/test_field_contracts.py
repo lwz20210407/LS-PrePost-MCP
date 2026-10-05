@@ -147,6 +147,7 @@ def test_reader_stress_and_scalar_slice_share_provenance_without_reinterpreting_
 
 
 def test_displacement_contract_records_the_actual_reference_subtraction(tmp_path, monkeypatch):
+    pytest.importorskip("lasso.dyna")
     source = tmp_path / "d3plot"
     source.write_bytes(b"synthetic displacement")
     db = SimpleNamespace(

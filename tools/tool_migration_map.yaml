@@ -1,0 +1,575 @@
+schema_version: 1
+baseline: ce4cd51
+tools:
+  activate_gui_model:
+    target: alias
+    task_id: I01
+    legacy_until: v0.6
+  apply_keyword_filter:
+    target: recipe
+    task_id: P10
+    legacy_until: v0.6
+  assess_energy_balance:
+    target: check_energy
+    task_id: Q12
+    legacy_until: v0.6
+  build_tensile_curves:
+    target: curve_ops
+    task_id: Q07
+    legacy_until: v0.6
+  check_gui_keywords:
+    target: check_model
+    task_id: P09
+    legacy_until: v0.6
+  check_gui_shell_quality:
+    target: check_model
+    task_id: P09
+    legacy_until: v0.6
+  check_gui_solid_quality:
+    target: check_model
+    task_id: P09
+    legacy_until: v0.6
+  checkpoint_gui_session:
+    target: save_model
+    task_id: P11
+    legacy_until: v0.6
+  close_gui_session:
+    target: alias
+    task_id: I01
+    legacy_until: v0.6
+  combine_gui_selections:
+    target: query_entities
+    task_id: G03
+    legacy_until: v0.6
+  combine_history_curves:
+    target: curve_ops
+    task_id: Q07
+    legacy_until: v0.6
+  compose_keyword_deck:
+    target: edit_keywords
+    task_id: P02
+    legacy_until: v0.6
+  compute_stress_invariants:
+    target: extract_field
+    task_id: Q04
+    legacy_until: v0.6
+  control_gui_animation:
+    target: export_movie
+    task_id: Q09
+    legacy_until: v0.6
+  convert_history_units:
+    target: curve_ops
+    task_id: Q07
+    legacy_until: v0.6
+  create_elastic_material:
+    target: edit_keywords
+    task_id: P03
+    legacy_until: v0.6
+  create_gui_elements:
+    target: mesh_ops
+    task_id: P08
+    legacy_until: v0.6
+  create_gui_entity_set:
+    target: create_entities
+    task_id: P04
+    legacy_until: v0.6
+  create_gui_nodal_load:
+    target: create_entities
+    task_id: P05
+    legacy_until: v0.6
+  create_gui_nodes:
+    target: mesh_ops
+    task_id: P08
+    legacy_until: v0.6
+  create_gui_nonreflecting_boundary:
+    target: create_entities
+    task_id: P05
+    legacy_until: v0.6
+  create_gui_prescribed_motion:
+    target: create_entities
+    task_id: P05
+    legacy_until: v0.6
+  create_gui_segment_pressure:
+    target: create_entities
+    task_id: P05
+    legacy_until: v0.6
+  create_gui_segment_set:
+    target: create_entities
+    task_id: P04
+    legacy_until: v0.6
+  create_gui_spc:
+    target: create_entities
+    task_id: P05
+    legacy_until: v0.6
+  create_native_macro:
+    target: recipe
+    task_id: A08
+    legacy_until: v0.6
+    note: JSON templates migrate to A08 recipes; retain legacy alias, not a native
+      .mac interface.
+  create_node_set_by_box:
+    target: create_entities
+    task_id: P04
+    legacy_until: v0.6
+  create_shell_plate:
+    target: recipe
+    task_id: P07
+    legacy_until: v0.6
+  create_solid_box:
+    target: recipe
+    task_id: P07
+    legacy_until: v0.6
+  create_solid_sphere:
+    target: recipe
+    task_id: P07
+    legacy_until: v0.6
+  create_tensile_shell_plate:
+    target: recipe
+    task_id: P03
+    legacy_until: v0.6
+  create_workflow:
+    target: run_sweep
+    task_id: A09
+    legacy_until: v0.6
+  describe_installed_template:
+    target: find_recipe
+    task_id: A08
+    legacy_until: v0.6
+  describe_pydyna_keyword:
+    target: keyword_fields
+    task_id: A10
+    legacy_until: v0.6
+  execute_gui_command:
+    target: run_script
+    task_id: A01
+    legacy_until: v0.6
+  execute_native_program:
+    target: run_script
+    task_id: A01
+    legacy_until: v0.6
+  export_dpf_result:
+    target: extract_field
+    task_id: Q03
+    legacy_until: v0.6
+  export_gui_animation:
+    target: export_movie
+    task_id: Q09
+    legacy_until: v0.6
+  export_gui_curve_plot:
+    target: render_xyplot
+    task_id: Q08
+    legacy_until: v0.6
+  export_gui_field_animation:
+    target: export_movie
+    task_id: Q09
+    legacy_until: v0.6
+  export_keyword:
+    target: save_model
+    task_id: P11
+    legacy_until: v0.6
+  extract_ascii_curve:
+    target: extract_database
+    task_id: Q06
+    legacy_until: v0.6
+  extract_binout_curve:
+    target: extract_database
+    task_id: Q06
+    legacy_until: v0.6
+  extract_binout_table:
+    target: extract_database
+    task_id: Q06
+    legacy_until: v0.6
+  extract_d3plot_field:
+    target: extract_field
+    task_id: Q03
+    legacy_until: v0.6
+  extract_d3plot_nodal:
+    target: extract_field
+    task_id: Q03
+    legacy_until: v0.6
+  extract_d3plot_stress:
+    target: extract_field
+    task_id: Q03
+    legacy_until: v0.6
+  extract_lsreader_nodal:
+    target: extract_field
+    task_id: Q03
+    legacy_until: v0.6
+  extract_native_ascii_curve:
+    target: extract_database
+    task_id: Q06
+    legacy_until: v0.6
+  extract_native_binout_curve:
+    target: extract_database
+    task_id: Q06
+    legacy_until: v0.6
+  extract_native_fields:
+    target: extract_field
+    task_id: Q03
+    legacy_until: v0.6
+  extract_native_stress:
+    target: extract_field
+    task_id: Q03
+    legacy_until: v0.6
+  extract_nodal_results:
+    target: extract_field
+    task_id: Q03
+    legacy_until: v0.6
+  extract_node_history:
+    target: extract_history
+    task_id: Q05
+    legacy_until: v0.6
+  extrude_shell_part:
+    target: recipe
+    task_id: P07
+    legacy_until: v0.6
+  get_element_connectivity:
+    target: query_entities
+    task_id: G04
+    legacy_until: v0.6
+  gui_session_action:
+    target: alias
+    task_id: I01
+    legacy_until: v0.6
+  import_command_recording:
+    target: record_to_recipe
+    task_id: A07
+    legacy_until: v0.6
+  inspect_binout:
+    target: result_info
+    task_id: Q01
+    legacy_until: v0.6
+  inspect_binout_variable:
+    target: result_info
+    task_id: Q01
+    legacy_until: v0.6
+  inspect_d3plot_database:
+    target: result_info
+    task_id: Q01
+    legacy_until: v0.6
+  inspect_d3plot_scl:
+    target: result_info
+    task_id: Q01
+    legacy_until: v0.6
+  inspect_dpf_results:
+    target: result_info
+    task_id: Q01
+    legacy_until: v0.6
+  inspect_gui_entity_sets:
+    target: create_entities
+    task_id: P04
+    legacy_until: v0.6
+  inspect_gui_menu:
+    target: alias
+    task_id: I01
+    legacy_until: v0.6
+  inspect_gui_mesh:
+    target: query_entities
+    task_id: G04
+    legacy_until: v0.6
+  inspect_gui_mesh_quality:
+    target: check_model
+    task_id: P09
+    legacy_until: v0.6
+  inspect_gui_session:
+    target: model_info
+    task_id: P01
+    legacy_until: v0.6
+  inspect_keyword_deck:
+    target: model_info
+    task_id: P01
+    legacy_until: v0.6
+  inspect_lsreader:
+    target: result_info
+    task_id: Q01
+    legacy_until: v0.6
+  inspect_mesh_quality:
+    target: check_model
+    task_id: P09
+    legacy_until: v0.6
+  inspect_model:
+    target: model_info
+    task_id: P01
+    legacy_until: v0.6
+  inspect_result_fields:
+    target: result_info
+    task_id: Q01
+    legacy_until: v0.6
+  inspect_result_validity:
+    target: extract_field
+    task_id: Q04
+    legacy_until: v0.6
+  inspect_workflow:
+    target: run_sweep
+    task_id: A09
+    legacy_until: v0.6
+  instantiate_installed_template:
+    target: recipe
+    task_id: P10
+    legacy_until: v0.6
+  list_capabilities:
+    target: search_docs
+    task_id: A10
+    legacy_until: v0.6
+  list_gui_sessions:
+    target: alias
+    task_id: I01
+    legacy_until: v0.6
+  list_installation_assets:
+    target: find_recipe
+    task_id: A08
+    legacy_until: v0.6
+  list_installations:
+    target: alias
+    task_id: I01
+    legacy_until: v0.6
+  list_jobs:
+    target: alias
+    task_id: I01
+    legacy_until: v0.6
+  list_nodes:
+    target: query_entities
+    task_id: G04
+    legacy_until: v0.6
+  list_parts:
+    target: model_info
+    task_id: P01
+    legacy_until: v0.6
+  list_pydyna_keywords:
+    target: keyword_fields
+    task_id: A10
+    legacy_until: v0.6
+  load_gui_selection_buffer:
+    target: query_entities
+    task_id: G03
+    legacy_until: v0.6
+  measure_gui_geometry:
+    target: measure
+    task_id: Q11
+    legacy_until: v0.6
+  measure_parts:
+    target: measure
+    task_id: Q11
+    legacy_until: v0.6
+  merge_duplicate_mesh_nodes:
+    target: mesh_ops
+    task_id: P08
+    legacy_until: v0.6
+  merge_gui_duplicate_nodes:
+    target: mesh_ops
+    task_id: P08
+    legacy_until: v0.6
+  move_elements_to_part:
+    target: edit_keywords
+    task_id: P03
+    legacy_until: v0.6
+  native_energy_postprocess:
+    target: check_energy
+    task_id: Q12
+    legacy_until: v0.6
+  native_postprocess_case:
+    target: recipe
+    task_id: Q03
+    legacy_until: v0.6
+  native_tensile_postprocess:
+    target: recipe
+    task_id: Q07
+    legacy_until: v0.6
+  open_in_gui_session:
+    target: open_model
+    task_id: P01
+    legacy_until: v0.6
+  parameterize_workflow:
+    target: record_to_recipe
+    task_id: A07
+    legacy_until: v0.6
+  prepare_native_program:
+    target: run_script
+    task_id: A01
+    legacy_until: v0.6
+  probe_dpf_runtime:
+    target: alias
+    task_id: I08
+    legacy_until: v0.6
+  probe_environment:
+    target: alias
+    task_id: I01
+    legacy_until: v0.6
+  probe_scl:
+    target: run_script
+    task_id: A03
+    legacy_until: v0.6
+  process_curve:
+    target: curve_ops
+    task_id: Q07
+    legacy_until: v0.6
+  read_job:
+    target: alias
+    task_id: I01
+    legacy_until: v0.6
+  recover_gui_session:
+    target: alias
+    task_id: I01
+    legacy_until: v0.6
+  render_gui_field:
+    target: render_fringe
+    task_id: Q02
+    legacy_until: v0.6
+  render_snapshot:
+    target: render_fringe
+    task_id: Q02
+    legacy_until: v0.6
+  renumber_gui_entities:
+    target: mesh_ops
+    task_id: P08
+    legacy_until: v0.6
+  replace_gui_model:
+    target: alias
+    task_id: I01
+    legacy_until: v0.6
+  replace_gui_node:
+    target: mesh_ops
+    task_id: P08
+    legacy_until: v0.6
+  reset_gui_session:
+    target: alias
+    task_id: I01
+    legacy_until: v0.6
+  restart_gui_session:
+    target: alias
+    task_id: I01
+    legacy_until: v0.6
+  restore_gui_checkpoint:
+    target: alias
+    task_id: I01
+    legacy_until: v0.6
+  reverse_gui_shell_normals:
+    target: mesh_ops
+    task_id: P08
+    legacy_until: v0.6
+  rotate_gui_nodes:
+    target: mesh_ops
+    task_id: P08
+    legacy_until: v0.6
+  rotate_mesh_nodes:
+    target: mesh_ops
+    task_id: P08
+    legacy_until: v0.6
+  run_native_macro:
+    target: recipe
+    task_id: A08
+    legacy_until: v0.6
+    note: JSON templates migrate to A08 recipes; retain legacy alias, not a native
+      .mac interface.
+  run_on_version:
+    target: run_script
+    task_id: A01
+    legacy_until: v0.6
+  run_workflow:
+    target: run_sweep
+    task_id: A09
+    legacy_until: v0.6
+  run_workflow_sweep:
+    target: run_sweep
+    task_id: A09
+    legacy_until: v0.6
+  save_gui_selection_buffer:
+    target: query_entities
+    task_id: G03
+    legacy_until: v0.6
+  search_commands:
+    target: command_help
+    task_id: A10
+    legacy_until: v0.6
+  search_knowledge:
+    target: search_docs
+    task_id: A10
+    legacy_until: v0.6
+  search_workflows:
+    target: search_docs
+    task_id: A10
+    legacy_until: v0.6
+  select_gui_entities:
+    target: query_entities
+    task_id: G03
+    legacy_until: v0.6
+  select_gui_nodes_by_box:
+    target: query_entities
+    task_id: G03
+    legacy_until: v0.6
+  select_gui_nodes_by_plane:
+    target: query_entities
+    task_id: G03
+    legacy_until: v0.6
+  select_gui_nodes_by_sphere:
+    target: query_entities
+    task_id: G03
+    legacy_until: v0.6
+  select_gui_shell_topology:
+    target: query_entities
+    task_id: G03
+    legacy_until: v0.6
+  set_gui_display:
+    target: set_view
+    task_id: G01
+    legacy_until: v0.6
+  set_gui_entity_visibility:
+    target: set_display
+    task_id: G02
+    legacy_until: v0.6
+  set_gui_node_coordinates:
+    target: mesh_ops
+    task_id: P08
+    legacy_until: v0.6
+  set_gui_part_visibility:
+    target: set_display
+    task_id: G02
+    legacy_until: v0.6
+  show_gui_session:
+    target: alias
+    task_id: I01
+    legacy_until: v0.6
+  start_gui_session:
+    target: open_model
+    task_id: P01
+    legacy_until: v0.6
+  start_session_recording:
+    target: record_to_recipe
+    task_id: A07
+    legacy_until: v0.6
+  stop_session_recording:
+    target: record_to_recipe
+    task_id: A07
+    legacy_until: v0.6
+  transform_mesh_deck:
+    target: mesh_ops
+    task_id: P08
+    legacy_until: v0.6
+  translate_gui_nodes:
+    target: mesh_ops
+    task_id: P08
+    legacy_until: v0.6
+  translate_mesh_nodes:
+    target: mesh_ops
+    task_id: P08
+    legacy_until: v0.6
+  unload_gui_model:
+    target: alias
+    task_id: I01
+    legacy_until: v0.6
+  update_elastic_material:
+    target: edit_keywords
+    task_id: P03
+    legacy_until: v0.6
+  update_keyword_fields:
+    target: edit_keywords
+    task_id: P02
+    legacy_until: v0.6
+  update_keyword_table_row:
+    target: edit_keywords
+    task_id: P02
+    legacy_until: v0.6
+  validate_model_references:
+    target: check_model
+    task_id: P09
+    legacy_until: v0.6

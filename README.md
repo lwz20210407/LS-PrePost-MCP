@@ -1,149 +1,109 @@
 # LS-PrePost-MCP
 
-面向自然语言的 LS-PrePost 前后处理自动化：MCP 工具、原生命令/SCL/Python 接口、结果读取与可追溯工作流。
+让支持 MCP 的 AI Agent 通过自然语言操作 LS-PrePost，完成 LS-DYNA 模型检查、有限范围的编辑、结果提取和出图，并返回可核查的产物与日志。
 
-新增[选择驱动的三维/二维Segment集](docs/SEGMENT_SETS.md)和[压力/无反射边界](docs/BOUNDARY_CONDITIONS.md)：法向、引用、参数化回放和保存重开已有4.13.4限定原生验收；不包含求解物理验证。
+**当前为 Private 开发仓库，版本 v0.4；v0.5 尚未完成。** 主要原生证据来自 Windows LS-PrePost 4.13.4；4.10/4.8 的已验证子集见 [兼容性](docs/COMPATIBILITY.md)。
 
-**状态：早期开发版。目标版本为 4.8、4.10、4.13。目标覆盖常用功能，不代表当前已覆盖。**
+## 能做什么
 
-开发进度见[验收台账与实时面板](docs/PROGRESS.md)，不以工具数当功能覆盖率。[Entity Creation](docs/ENTITY_CREATION.md) 已打通4.13.4选区建集、SPC、Segment压力与二维/三维无反射条件的限定流程。旧求解器二维路线使用经读回验证的有序节点对，不混用新版负SID语义。
+现有入口可处理独立 keyword 模型、集合和部分载荷、网格编辑、节点/实体结果、曲线及图像。带 Include 的保真编辑、接触定义、RCFORC/SECFORC 完整流程仍是缺口。下表按完整任务验收记录状态；“部分实现”应先核对 [任务目录](docs/TASKS.md) 中的限制。
 
-近期增量：[标准单元显隐与受管恢复](docs/GUI_VISIBILITY.md)、保留模型标题/原生结果名称和默认 MinMax 显示平均、[可选精简 MCP 入口](docs/MCP_TOOL_PROFILES.md)。原生 4.13.4 验收与未支持范围分别记录；[外部评审处理](docs/REVIEW_RESPONSE_2026-10-03.md)保持通用前后处理定位，不把专项案例变成产品主线。
+<!-- tasks:begin -->
+| 类别 | 任务 | 当前状态 | 目标版本 |
+|---|---|---|---|
+| 前处理 | P01 模型检视 | 部分实现 | v0.5 |
+| 前处理 | P02 关键字卡片读改增删（Include 保真） | 待实现 | v0.5 |
+| 前处理 | P03 材料 / 截面 / Part 创建与关联 | 部分实现 | v0.5 |
+| 前处理 | P04 集合创建 | 部分实现 | v0.5 |
+| 前处理 | P05 边界条件与载荷 | 部分实现 | v0.5 |
+| 前处理 | P06 接触定义与初始穿透检查 | 待实现 | v0.5 |
+| 前处理 | P07 规则网格生成 | 部分实现 | v0.6 |
+| 前处理 | P08 网格编辑 | 部分实现 | v0.5 |
+| 前处理 | P09 模型检查 | 部分实现 | v0.5 |
+| 前处理 | P10 控制与输出卡 | 待实现 | v0.5 |
+| 前处理 | P11 保存并原生重开验证 | 部分实现 | v0.5 |
+| 后处理 | Q01 结果概览 | 部分实现 | v0.5 |
+| 后处理 | Q02 云图出图 | 部分实现 | v0.5 |
+| 后处理 | Q03 场数据提取 | 部分实现 | v0.5 |
+| 后处理 | Q04 工程量与失效掩码 | 部分实现 | v0.5 |
+| 后处理 | Q05 时程曲线（History） | 部分实现 | v0.5 |
+| 后处理 | Q06 binout / ASCII 全库曲线 | 部分实现 | v0.5 |
+| 后处理 | Q07 曲线运算 | 部分实现 | v0.5 |
+| 后处理 | Q08 XYPlot 出图 | 部分实现 | v0.5 |
+| 后处理 | Q09 动画导出 | 部分实现 | v0.5 |
+| 后处理 | Q10 截面力与剖切面 | 待实现 | v0.6 |
+| 后处理 | Q11 测量 | 部分实现 | v0.6 |
+| 后处理 | Q12 能量检查 | 部分实现 | v0.5 |
+| 自动化 | A01 命令栏 Command（单条原生命令） | 部分实现 | v0.5 |
+| 自动化 | A02 cfile 命令流 | 部分实现 | v0.5 |
+| 自动化 | A03 SCL 脚本 | 部分实现 | v0.5 |
+| 自动化 | A04 应用内 Python 脚本 | 部分实现 | v0.5 |
+| 自动化 | A05 原生宏执行 | 部分实现 | v0.5 |
+| 自动化 | A06 宏安装与快捷键管理 | 待实现 | v0.6 |
+| 自动化 | A07 命令录制转配方 | 部分实现 | v0.5 |
+| 自动化 | A08 配方库 | 部分实现 | v0.5 |
+| 自动化 | A09 参数化批量 | 部分实现 | v0.5 |
+| 自动化 | A10 知识检索 | 部分实现 | v0.5 |
+| 通用 | G01 视图控制 | 部分实现 | v0.5 |
+| 通用 | G02 显示控制 | 部分实现 | v0.6 |
+| 通用 | G03 统一选择器 | 部分实现 | v0.5 |
+| 通用 | G04 实体识别 Identify | 部分实现 | v0.5 |
+<!-- tasks:end -->
 
-[视图控制](docs/GUI_CAMERA.md)已扩展绝对缩放/平移和增量 X/Y/Z 旋转，支持参数化回放；keyword 与代表性 d3plot 经过可见 4.13.4 验证。书签、任意旋转中心和选区适配仍待补齐。
+## 工作原理
 
-产品与工程主线见 [顶层设计](docs/ARCHITECTURE.md)：以 **常用网格编辑与检查、明确语义的工程后处理、录制与参数化复用** 三条完整流程作为版本验收目标。统一语义/执行/质量合同后按依赖扩展模块，当前设计不代表已完成架构迁移。[资料转化状态](docs/SOURCE_ADOPTION.md)与[待开发清单](docs/BACKLOG_REVIEW_2026-10-01.md)分别说明输入依据和缺口。
+自然语言 → AI Agent → MCP → 原生命令、cfile、SCL、应用内 Python 或读取器 → LS-PrePost 模型与结果。
 
-首批架构落地：[统一工作流结果与质量门槛](docs/WORKFLOW_GATES.md)。已加入检查不合格时停止后续步骤、参数化阈值和失败证据，并提供可复用配方及文件后端合成验收。
+工具提供执行、观察、验证、知识检索和工程计算。每次作业保留输入身份、命令、日志和产物检查；数值结果标明实际后端。v0.5 将统一为批处理默认、常驻会话可选的执行引擎，当前仍使用各工具既有的执行方式。
 
-当前按[交付批次](docs/DELIVERY_PLAN.md)优先推进前处理、后处理和自动参数化。[工作流框架](docs/WORKFLOW_FRAMEWORK.md)已统一操作路由和整条流程预检，支持 1–20 组显式参数独立执行及结果汇总；合成网格变换→原生质量→保存重开已在可见 4.13.4 验证。[原生输出](docs/NATIVE_MEDIA.md)现包含带标签单曲线 PNG、数值读回及从 state1 连续导出的 MP4，均已接入录制参数回放。多曲线/完整云图及任意范围/格式动画仍需补齐，现有子集不代表全部完成。
+## 快速开始
 
-本项目独立实现任务与执行核心，吸收公开项目、官方文档和本地案例的接口经验；可复用数据与依赖按各自许可证接入。来源、已实现能力、实机验证和待开发功能分别登记，详见 [来源与复用](docs/SOURCES.md)、[兼容性](docs/COMPATIBILITY.md)、[开发路线](docs/ROADMAP.md)。
-
-**资料尚未全部转化为可执行功能。** 按实际工作任务列出的实现与缺口见[覆盖矩阵](docs/COVERAGE.md)，不以命令目录或工具数量代替覆盖程度。
-
-按前处理、后处理、参数化、命令/Python/宏、顶部菜单、右侧与底部工具栏逐项展开的现状见 [v0.2.0 界面与能力缺口审计](docs/FEATURE_GAP_AUDIT_v0.2.0.md)。
-
-**v0.3.0 增量**：41 个安装过滤器与 7 个模板的接入，持久 GUI/检查点/托管录制和参数回放，网格变换/重复节点合并/质量检查，以及原生曲线到工程曲线和能量筛查。各项实机范围、后端区别和未完成项见 [v0.3 工作流与验证](docs/WORKFLOWS_v0.3.md)。
-
-全部用户要求的持续开发清单见 [需求总清单与优先级](docs/REQUESTS_AND_PRIORITIES.md)。仓库现已提供 [原始 command / cfile / SCL / Python / 参数宏](docs/NATIVE_PROGRAMS.md) 的正式执行工具，逐通道记录实机范围；原始脚本入口不等于所有软件功能都已完成工程封装。
-
-最新进展：[同一可见 GUI 的网格编辑工作流](docs/GUI_WORKFLOWS.md)，包括原生合并、法向、原位变换、新增节点/单元与质量读回；[图文/代码/视频转化记录](docs/TUTORIAL_INTEGRATION.md)标注实际阅读、观看与复现进度。
-
-**2026-10-01 进展**：[结果合同与可见后处理流程](docs/RESULT_CONTRACTS.md)现包含 keyword/d3plot 选择、部件显隐保留、原生节点历史到相对位移三步模板及原时刻恢复。自动质量门槛、原生壳质量、Keyword Check、缓存、重编号和录制回放已有明确范围的验证。[待开发清单](docs/BACKLOG_REVIEW_2026-10-01.md)仍保留大模型、失效/层/历史语义、更多网格编辑、曲线窗口和菜单覆盖等缺口。
-
-## 已实现的能力
-
-通用前后处理操作见 [F1–F10 子功能覆盖与缺口](docs/COMMON_OPERATIONS_COVERAGE.md)。新增 [原生几何测量](docs/GUI_MEASUREMENTS.md)，已验证参考/结果状态坐标、距离、轴向高度及关键词角度/圆心半径；完整面板与实体显隐/标记生命周期继续开发。
-
-**2026-10-03：**新增 [DPF 可选适配与安装条件](docs/DPF_INTEGRATION.md)：已解析官方 LS-DYNA 三个示例，接入诊断、结果清单及保留标签/时间轴的导出代码。当前本机缺 DPF Server；合成合同测试不代表真实 DPF 读取已通过，原生 LS-PrePost 路线继续保留。
-
-规模边界按工具区分：[大模型支持说明](docs/MODEL_SCALE.md)。20,000 是旧整模快照工具的实现限制，不是 LS-PrePost 软件上限。分页读取、命名字段云图以及指定节点选择/平移/旋转/坐标修改/保存重开已通过超过30万单元的私有原生验收；10万壳单元合成编辑流程也通过。其余选择和网格编辑继续迁移。
-
-- 标准 MCP stdio 服务及同源 CLI。
-- 每任务独立目录、命令文件、输入身份、结构化结果、超时处理和日志。
-- 应用内 Python 探测、模型计数、节点/部件查询、单元连通性。
-- 原生壳板网格创建、保存副本、重新读取、PNG 导出。
-- 原生六面体方块网格、单个平面壳部件拉伸、选定节点平移、单元转移部件，核对数量/坐标/归属并输出 k 文件。
-- 原生 SCL 探测，不依赖应用内 Python。
-- 节点向量和时程接口；4.13已作读取器对照，4.10旧ABI的原生向量路径主动拒绝，见矩阵。
-- 可选 LASSO d3plot/binout 数值读取后端，明确返回 `backend=lasso`。
-- LS-Reader独立进程适配、PyDYNA Deck清单与弹性材料创建/修改/重读核对，见[后端合同](docs/BACKENDS.md)。
-- 原生 SCL 应力/应变/节点字段、六分量应力与原生 Mises 一致性检查、三轴度和明确定义的 Lode 参数。
-- 原生 ASCII/XYPlot 曲线、原生 SCLBinout 曲线，以及逐组后处理验收、全时程极值和实体 ID、结果图。详见[后处理合同](docs/POSTPROCESSING.md)。
-- 可选读取器的显式场分量/历史槽位导出、binout 多变量表、数值 ASCII 曲线、非均匀时间微分与积分。
-- [显式单位转换](docs/UNIT_CONTRACTS.md)、不同输入时间/数值单位统一后对齐，以及力/相对位移到工程应力应变和功的可复用配方；单位制不自动猜测。
-- 按坐标范围创建节点集合、限定范围的模型引用检查，以及原生网格配合 PyDYNA 的位移加载壳板生成与原生重开检查。
-- PyDYNA 实际关键字类/字段检索、结构化 Deck 组合、唯一匹配的标量卡与表格行编辑，拒绝未知字段并重读核验。六个文档板块的解析及迁移边界见[PyDYNA 集成](docs/PYDYNA_INTEGRATION.md)。
-- 多安装版本配置和按版本调用，避免全局切换实例。
-- 持久 Windows GUI 会话、显示/部件可见性、模型检查点及恢复、迟到响应协调。协议 3 已在同一可见 GUI 原位平移/旋转；旧协议保留检查点作业后重开路径。
-- 4.13.4 可见 GUI 的选择/布尔/原生缓存、全体/局部壳法向、节点/壳/部件重编号、原生壳质量 13 项可选指标及 Keyword Check 报告；均明确限定范围并保留失败案例。
-- 安装模板参数表达式安全求值、模板实例化、关键字过滤器应用；网格质量、合并与文件变换走明确标注的 PyDYNA/几何后端。
-- 托管操作录制、显式参数绑定、顺序工作流；原生命令录制的受限编译，未知命令阻止回放。
-- 原生 ASCII 提取后构建相对位移、力—位移、工程应力—应变；原生 SCLBinout 能量提取及筛查。
-- 命令目录、官方教程验收案例、来源索引和配套 [Skill](skills/ls-prepost/SKILL.md)。
-
-![Native LS-PrePost shell plate](docs/images/native-shell-plate.png)
-
-上图来自初始实机测试生成的 5×5 壳网格。未使用真实工程模型作为公开演示。
-
-## 安装
-
-外部 MCP 环境使用 Python 3.11+。LS-PrePost 自身的嵌入式解释器独立管理，不能把外部环境直接强塞进去。
+需要仓库访问权限、Python 3.11+、uv，以及合法安装的 LS-PrePost。Windows 4.13 是当前主要验收环境。
 
 ```shell
 git clone https://github.com/lwz20210407/LS-PrePost-MCP.git
 cd LS-PrePost-MCP
-uv sync --extra dev --extra results --extra pydyna
+uv sync --extra results --extra pydyna
 ```
 
-不使用 uv 时：
-
-```shell
-python -m venv .venv
-python -m pip install -e ".[dev,results,pydyna]"
-```
-
-上述 pip 命令应在已激活的 `.venv` 中执行，或使用该环境的 Python 绝对路径。
-
-## 本机配置
-
-设置以下环境变量。示例路径需替换为自己的安装和任务目录：
+配置安装、输入和产物目录：
 
 ```powershell
 $env:LSPP_EXECUTABLE = 'C:\path\to\lsprepost.exe'
-$env:LSPP_WORKSPACE = 'C:\path\to\lspp-jobs'
-$env:LSPP_ALLOWED_ROOTS = 'C:\path\to\models;C:\path\to\results'
-$env:LSPP_TIMEOUT = '120'
-```
-
-`LSPP_WORKSPACE` 是唯一产物入口；已有输入文件不会被覆盖。输入可以位于该目录或允许的根目录。Linux 的根目录列表使用 `:` 分隔。
-
-可选多版本配置：
-
-```powershell
-$env:LSPP_EXECUTABLES = '{"4.8":"C:/path/4.8/lsprepost.exe","4.10":"C:/path/4.10/lsprepost.exe","4.13":"C:/path/4.13/lsprepost.exe"}'
-```
-
-MCP 客户端使用本项目虚拟环境里的 `ls-prepost-mcp` 可执行入口，或以该环境的 Python 启动 `-m ls_prepost_mcp.server`，并传入上述环境变量。服务使用 stdio；不要将调试打印写到协议 stdout。
-
-## CLI 与自然语言示例
-
-```shell
-uv run lspp capabilities
+$env:LSPP_WORKSPACE = 'D:\lspp-jobs'
+$env:LSPP_ALLOWED_ROOTS = 'D:\models;D:\results'
 uv run lspp probe_environment
-uv run lspp create_shell_plate --json '{"nx":5,"ny":5,"size":[10,10],"units":"mm-ms-g"}'
 ```
 
-JSON 的引号规则随 shell 而异；也可以通过 MCP 直接传结构化参数。
+在 Agent 中添加 stdio MCP 服务 `uv --directory C:/path/LS-PrePost-MCP run ls-prepost-mcp`，传入上述环境变量；安装配套 [Skill](skills/ls-prepost/SKILL.md)。完整配置、多版本与精简工具模式见 [安装指南](docs/INSTALL.md)。
 
-可让代理执行：
+## 示例
 
-- “用指定版本建立 10×10 的板，划分成 5×5 壳单元，保存后重开检查，再导出等轴测图。”
-- “列出这个模型前一百个节点，保留真实节点ID和原始坐标。”
-- “用 LS-PrePost 原生接口提取指定实体单元的六分量应力，检查 Mises，再输出三轴度及两种 Lode 参数，并说明积分点和参数定义。”
-- “用原生 ASCII 功能读取 NODOUT 的指定节点 Z 位移；保留单位、时间、命令和验证记录。”
-- “用 LASSO 提取指定节点在第1、2状态的位移向量，单位保持模型原单位。”
-- “检索 Shell Drag 的官方步骤和验收条件，区分文档支持与已自动化功能。”
+- “建立 10×10 mm 的板，划分为 5×5 壳单元，单位 mm-ms-g，保存并重开核对。”
+- “列出这个模型前一百个节点，保留真实节点 ID 和原始坐标。”
+- “用 LASSO 提取指定节点在第 1、2 状态的位移，保留模型单位，并注明读取后端。”
+- “查找 Shell Drag 的官方命令和前置条件。”
 
-每次原生调用返回 job ID、状态、日志和产物；`failed` 不应被代理总结为成功。CLI 在任务失败时返回非零退出码。`search_commands` 的命中只代表参考资料，不能直接当成已验证可执行命令。
+可复用输入示例见 [examples](examples/)。执行前应确认模型类型、单位、实体、状态以及工具已验证范围。返回 `failed` 时查看作业日志和检查结果。
+
+## 文档
+
+- [任务与验收](docs/TASKS.md) · [当前工具与参数](docs/TOOLS.md)
+- [安装](docs/INSTALL.md) · [兼容性](docs/COMPATIBILITY.md) · [已知问题](docs/KNOWN_ISSUES.md)
+- [架构](docs/ARCHITECTURE.md) · [路线图](docs/ROADMAP.md) · [开发指南](docs/DEVELOPMENT.md)
+- [变更记录](CHANGELOG.md) · [待评估需求](backlog.md)
 
 ## 测试
 
 ```shell
 uv run pytest
+uv run --extra dev --extra results --extra pydyna pytest
 ```
 
-CI 测试不启动商业软件。实机冒烟需要合法安装，并在用户指定目录内运行生成案例或授权样例。结果见 [兼容性记录](docs/COMPATIBILITY.md)。
+第一条在未装可选后端时跳过相关测试；第二条覆盖这些后端。以上为逻辑测试，原生验证需要 LS-PrePost 安装与专门语料。
 
-## 已知边界
+## 使用边界与许可
 
-- 目前没有任意 Python/shell 执行工具，也没有接管既有 GUI 会话。
-- 文件范围检查属于应用层边界，不是操作系统沙箱。
-- 暂仅支持普通 `*INCLUDE`；复杂 include path/参数变换规则会明确拒绝。
-- 原生保存和材料修改暂要求无include的独立deck；MPP binout多分片会明确拒绝，避免只读一片返回不完整结果。
-- 原生渲染依赖图形环境，`-nographics` 不等于真正无图形；未把 `runc=` 推广到旧版本。
-- 输入单位由调用者声明，不进行隐式推断或材料参数补全。
-- 当前没有求解器启动工具。参数化位移加载壳板只是限定的分析设置；复杂网格、更多材料/边界/接触、碎片等仍在建设。
+脚本通道会执行指定代码，**不是沙箱**；应用层文件范围检查不隔离任意 Python/SCL 的副作用。单位和工程阈值由调用者声明。项目不包含求解器提交，不分发厂商软件、手册和私有模型。
 
-本项目代码使用 MIT。命令目录来自 Apache-2.0 项目，独立条款见 [NOTICE](NOTICE.md)。LS-PrePost/LS-DYNA、官方手册及其他第三方组件保留各自权利；本仓库不分发厂商软件、手册全文或私有模型。
+项目代码采用 MIT；第三方命令目录及其条款见 [NOTICE](NOTICE.md)。LS-PrePost / LS-DYNA 及相关文档权利归各自所有者。
