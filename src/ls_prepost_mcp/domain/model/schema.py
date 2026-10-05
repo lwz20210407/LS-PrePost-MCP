@@ -20,6 +20,7 @@ import warnings
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 
+from . import lists
 from .blocks import Block
 from .fields import FieldError, FieldSlot, format_value, is_free_format, parse_number, read_text, write_text
 from .parameters import reference
@@ -329,6 +330,13 @@ def layout(block: Block, lookup: Mapping[str, object], deck_format: str = "stand
         return _part_layout(block)
     if block.name == "*TITLE":
         return _title_layout(block)
+    if lists.is_list_set(block.name) or lists.is_curve(block.name):
+        try:
+            headers = lists.header_fields(block)
+        except FieldError as error:
+            raise Unsupported(str(error)) from error
+        return Layout(block.name, fields=[FieldInfo(n, k, slot, card) for n, k, slot, card in headers],
+                      source="builtin-list")
     if any(body(line).startswith("&") for _, line in block.data()) and block.name.startswith("*CONTACT"):
         raise Unsupported("MPP continuation cards starting with '&' need positional editing")
     return _pydyna_layout(block, lookup)

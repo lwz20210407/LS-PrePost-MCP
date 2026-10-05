@@ -62,3 +62,54 @@ def test_unused_fields_are_not_editable(tmp_path: Path) -> None:
                            "         0       500\n")
     names = {info.name for info in deck.layout(deck.blocks("*CONTROL_THERMAL_SOLVER")[0]).fields}
     assert names and not any(name.startswith("unused") for name in names)
+
+
+def test_list_set_header_and_members(tmp_path: Path) -> None:
+    deck = _deck(tmp_path, "*SET_NODE_LIST_TITLE\r\n"
+                           "top nodes\r\n"
+                           "$#     sid       da1\r\n"
+                           "        10       0.0\r\n"
+                           "         1         2         3         4         5         6         7         8\r\n"
+                           "$ second row\r\n"
+                           "         9        11         0         0         0         0         0         0\r\n"
+                           "*END\r\n")
+    block = deck.blocks("*SET_NODE_LIST")[0]
+    assert deck.get(block, "sid").value == 10 and deck.get(block, "title").value == "top nodes"
+    assert deck.members(block) == [1, 2, 3, 4, 5, 6, 7, 8, 9, 11]
+    deck.set_members(block, [21, 22, 23])
+    assert deck.members(block) == [21, 22, 23]
+    assert block.lines[:4] == ["*SET_NODE_LIST_TITLE\r\n", "top nodes\r\n", "$#     sid       da1\r\n",
+                               "        10       0.0\r\n"]
+    assert block.lines[4] == "        21        22        23\r\n" and "$ second row\r\n" in block.lines
+    deck.set(block, "sid", 12)
+    assert deck.get(block, "sid").value == 12
+
+
+def test_empty_list_set_gets_members_after_header(tmp_path: Path) -> None:
+    deck = _deck(tmp_path, "*SET_PART_LIST\n         5")
+    block = deck.blocks("*SET_PART_LIST")[0]
+    assert deck.members(block) == []
+    deck.set_members(block, [1, 2])
+    assert block.lines == ["*SET_PART_LIST\n", "         5\n", "         1         2\n"]
+
+
+def test_curve_points_fixed_and_comma(tmp_path: Path) -> None:
+    deck = _deck(tmp_path, "*DEFINE_CURVE_TITLE\n"
+                           "ramp\n"
+                           "         7         0       1.0       2.0\n"
+                           "                 0.0                 0.0\n"
+                           "0.001,1.0\n"
+                           "*END\n")
+    block = deck.blocks("*DEFINE_CURVE")[0]
+    assert deck.get(block, "lcid").value == 7 and deck.get(block, "sfo").value == 2.0
+    assert deck.points(block) == [(0.0, 0.0), (0.001, 1.0)]
+    deck.set_points(block, [(0.0, 0.0), (5e-4, 0.5), (1e-3, 1.0)])
+    assert deck.points(block) == [(0.0, 0.0), (5e-4, 0.5), (1e-3, 1.0)]
+    assert block.lines[:3] == ["*DEFINE_CURVE_TITLE\n", "ramp\n", "         7         0       1.0       2.0\n"]
+    assert block.lines[4] == "              0.0005                 0.5\n"
+
+
+def test_members_reject_non_list_keywords(tmp_path: Path) -> None:
+    deck = _deck(tmp_path, "*NODE\n       1             0.0             0.0             0.0\n")
+    with pytest.raises(Unsupported):
+        deck.members(deck.blocks("*NODE")[0])

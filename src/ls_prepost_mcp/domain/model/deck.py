@@ -1,24 +1,23 @@
 """Keyword deck: include tree, parameters, named/positional edits and byte-preserving save."""
 from __future__ import annotations
 
-import difflib
-import hashlib
 import logging
 import math
 import os
-import uuid
 from collections import Counter
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
+from . import lists, persist, scope
 from .blocks import Block, SourceFile, make_blocks
 from .fields import FieldError, FieldSlot, format_value, is_free_format, parse_number, read_text, write_text
 from .includes import Resolution, classify, file_names, identity, resolve
-from .parameters import ParameterDef, evaluate_definition, parse_definitions, reference
+from .parameters import reference
 from .schema import FieldInfo, Layout, Unsupported
 from .schema import layout as block_layout
-from .text import deck_format, decode, ending, split_lines
+from .scope import ParameterRecord
+from .text import deck_format, ending
 
 logger = logging.getLogger(__name__)
 _STRUCTURAL = ("*INCLUDE", "*PARAMETER", "*KEYWORD")
@@ -34,12 +33,6 @@ class IncludeRef:
     child: SourceFile | None = None
     cycle: bool = False
     repeated: bool = False
-
-
-@dataclass
-class ParameterRecord:
-    definition: ParameterDef
-    block: Block
 
 
 @dataclass
@@ -190,53 +183,13 @@ class KeywordDeck:
                 "parameters": len(self.parameters), "warnings": list(self.warnings)}
 
     # ------------------------------------------------------------------ parameters
-    def _ancestors(self, key: str) -> list[str]:
-        chain = []
-        while key in self._parents:
-            key = self._parents[key]
-            chain.append(key)
-        return chain
-
-    def _scope(self, key: str, global_scope: dict, local: dict) -> dict:
-        scope = dict(global_scope)
-        for owner in reversed([key] + self._ancestors(key)):
-            scope.update(local.get(owner, {}))
-        return scope
-
     def _evaluate_parameters(self) -> None:
-        self.parameters: list[ParameterRecord] = []
-        global_scope: dict[str, object] = {}
-        local: dict[str, dict[str, object]] = {}
-        for block in self.iter_blocks():
-            if not block.name.startswith("*PARAMETER"):
-                continue
-            key = identity(block.file.path)
-            definitions, problems = parse_definitions(block.name, block.data())
-            self.warnings.extend(f"{self._where(block)} {problem}" for problem in problems)
-            for definition in definitions:
-                evaluate_definition(definition, self._scope(key, global_scope, local))
-                target = local.setdefault(key, {}) if definition.local else global_scope
-                if definition.key in target:
-                    self.warnings.append(f"Parameter {definition.name!r} redefined at {self._where(block)}")
-                target[definition.key] = definition.value
-                self.parameters.append(ParameterRecord(definition, block))
-        for record in self.parameters:
-            definition = record.definition
-            if definition.error and "Undefined parameter" in definition.error:
-                key = identity(record.block.file.path)
-                evaluate_definition(definition, self._scope(key, global_scope, local))
-                if definition.error is None:
-                    (local.setdefault(key, {}) if definition.local else global_scope)[definition.key] = definition.value
-                    self.warnings.append(f"Parameter {definition.name!r} refers to a parameter defined later")
-        for record in self.parameters:
-            if record.definition.error:
-                self.warnings.append(f"Parameter {record.definition.name!r}: {record.definition.error}")
-        self._global, self._local = global_scope, local
+        self._scopes = scope.evaluate(self)
+        self.parameters: list[ParameterRecord] = self._scopes.records
 
     def lookup(self, block: Block) -> dict[str, object]:
         """Parameter values visible to ``block`` (lower-case names)."""
-        scope = self._scope(identity(block.file.path), self._global, self._local)
-        return {k: v for k, v in scope.items() if v is not None}
+        return {k: v for k, v in self._scopes.visible(identity(block.file.path)).items() if v is not None}
 
     # ------------------------------------------------------------------ fields
     def layout(self, block: Block) -> Layout:
@@ -334,6 +287,50 @@ class KeywordDeck:
         block.lines[index] = write_text(line, slot, text, align)
         return self._record(block, index, f"data line {data_index} -> {text!r}", before, True)
 
+    # ------------------------------------------------------------------ lists and curves
+    def members(self, block: Block) -> list[int]:
+        """Member IDs of a ``*SET_*_LIST`` style block (header fields via :meth:`get`)."""
+        if not lists.is_list_set(block.name):
+            raise Unsupported(f"{block.name} is not a list set")
+        return lists.members(block)
+
+    def set_members(self, block: Block, ids: list[int]) -> Change:
+        """Replace all members; header, title and comments are kept."""
+        if not lists.is_list_set(block.name):
+            raise Unsupported(f"{block.name} is not a list set")
+        saved = list(block.lines)
+        removed, added = lists.write_members(block, list(ids))
+        if lists.members(block) != list(ids):
+            block.lines[:] = saved
+            raise FieldError("Member list failed verification after writing")
+        return self._record_lines(block, f"members -> {len(ids)} IDs", removed, added)
+
+    def points(self, block: Block) -> list[tuple[float, float]]:
+        """``(a, o)`` points of a ``*DEFINE_CURVE`` block."""
+        if not lists.is_curve(block.name):
+            raise Unsupported(f"{block.name} is not *DEFINE_CURVE")
+        return lists.points(block)
+
+    def set_points(self, block: Block, pairs: list[tuple[float, float]]) -> Change:
+        """Replace all curve points (20-character fields); header and title are kept."""
+        if not lists.is_curve(block.name):
+            raise Unsupported(f"{block.name} is not *DEFINE_CURVE")
+        saved = list(block.lines)
+        removed, added = lists.write_points(block, [(float(a), float(o)) for a, o in pairs])
+        read = lists.points(block)
+        if len(read) != len(pairs) or any(not (math.isclose(a, x, rel_tol=1e-6, abs_tol=1e-30) and
+                                               math.isclose(o, y, rel_tol=1e-6, abs_tol=1e-30))
+                                          for (a, o), (x, y) in zip(read, pairs)):
+            block.lines[:] = saved
+            raise FieldError("Curve points failed verification after writing")
+        return self._record_lines(block, f"points -> {len(pairs)}", removed, added)
+
+    def _record_lines(self, block: Block, description: str, removed: list[str], added: list[str]) -> Change:
+        block.file.modified = True
+        change = Change(block.file.path, block.name, block.line_number, description, "".join(removed), "".join(added))
+        self.changes.append(change)
+        return change
+
     # ------------------------------------------------------------------ blocks
     def insert(self, text: str, *, file: SourceFile | None = None, before: Block | None = None,
                after: Block | None = None) -> list[Block]:
@@ -389,67 +386,18 @@ class KeywordDeck:
 
     # ------------------------------------------------------------------ output
     def modified_files(self) -> list[SourceFile]:
-        return [f for f in self.files.values() if f.modified and f.data() != f.original]
+        return persist.modified_files(self)
 
     def diff(self) -> str:
-        parts = []
-        for source in self.modified_files():
-            parts.extend(difflib.unified_diff(split_lines(decode(source.original)), split_lines(source.text()),
-                                              fromfile=str(source.path), tofile=str(source.path) + " (edited)"))
-        return "".join(parts)
-
-    def _relocation_plan(self, out_dir: Path) -> tuple[dict[Path, Path], list[str]]:
-        absolute = {identity(r.child.path) for r in self.includes if r.child and Path(r.name).is_absolute()}
-        external = [str(self.files[k].path) for k in absolute]
-        for key in absolute:
-            if self.files[key].modified:
-                raise ValueError(f"{self.files[key].path} is included by absolute path and was edited; save in place")
-        movable = [f.path for k, f in self.files.items() if k not in absolute]
-        opaque = [r.resolution.path for r in self.includes
-                  if r.kind == "opaque" and r.resolution and r.resolution.path and not Path(r.name).is_absolute()]
-        root = Path(os.path.commonpath([str(p.parent.resolve()) for p in movable + opaque]))
-        plan = {p: out_dir / p.resolve().relative_to(root) for p in movable + opaque}
-        return plan, external
+        return persist.diff(self)
 
     def save_as(self, out_dir: str | os.PathLike[str], overwrite: bool = False) -> dict:
-        """Write the deck to a new directory keeping relative layout; untouched files are copied verbatim."""
-        out = Path(out_dir)
-        plan, external = self._relocation_plan(out)
-        sources = {identity(f.path): f for f in self.files.values()}
-        for source, dest in plan.items():
-            if identity(dest) == identity(source):
-                raise ValueError("Output directory would overwrite the input files; use save_in_place")
-            if dest.exists() and not overwrite:
-                raise FileExistsError(f"{dest} exists")
-        written = []
-        for source, dest in plan.items():
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            item = sources.get(identity(source))
-            data = item.data() if item is not None else source.read_bytes()
-            _atomic_write(dest, data)
-            written.append({"source": str(source), "dest": str(dest), "modified": bool(item and item.modified),
-                            "sha256": hashlib.sha256(data).hexdigest()})
-        main_dest = plan[self.main.path]
-        reloaded = KeywordDeck.load(main_dest)
-        return {"main": str(main_dest), "files": written, "external_unchanged": external,
-                "reload_files": len(reloaded.files), "reload_warnings": reloaded.warnings}
+        """Write to a new directory keeping relative layout; untouched files are copied verbatim."""
+        return persist.save_as(self, out_dir, overwrite)
 
     def save_in_place(self, backup_suffix: str = ".orig") -> dict:
         """Overwrite only edited files after writing ``<name><backup_suffix>`` backups."""
-        targets = self.modified_files()
-        for source in targets:
-            backup = source.path.with_name(source.path.name + backup_suffix)
-            if backup.exists():
-                raise FileExistsError(f"Backup {backup} exists; refusing to overwrite it")
-        report = []
-        for source in targets:
-            backup = source.path.with_name(source.path.name + backup_suffix)
-            _atomic_write(backup, source.original)
-            data = source.data()
-            _atomic_write(source.path, data)
-            report.append({"path": str(source.path), "backup": str(backup), "sha256": hashlib.sha256(data).hexdigest()})
-            source.original, source.modified = data, False
-        return {"written": report}
+        return persist.save_in_place(self, backup_suffix)
 
 
 _OPTION_SUFFIXES = {"TITLE", "ID", "MPP", "ID_MPP", "MPP_ID"}
@@ -469,9 +417,3 @@ def _equal(actual: object, expected: object) -> bool:
     if actual is None or expected is None:
         return actual is expected
     return math.isclose(float(actual), float(expected), rel_tol=1e-9, abs_tol=1e-30)
-
-
-def _atomic_write(path: Path, data: bytes) -> None:
-    tmp = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
-    tmp.write_bytes(data)
-    os.replace(tmp, path)
