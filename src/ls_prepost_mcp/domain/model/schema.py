@@ -14,8 +14,10 @@ positional editing.
 """
 from __future__ import annotations
 
+import logging
 import math
 import re
+import threading
 import warnings
 from collections.abc import Mapping
 
@@ -35,6 +37,7 @@ from .layouts import Column, FieldInfo, Layout, RowMap, Unsupported
 from .parameters import reference
 from .text import body, ending, is_blank
 
+logger = logging.getLogger(__name__)
 _REF_TOKEN = re.compile(r"-?&[A-Za-z_][A-Za-z0-9_]*")
 NODE_FIELDS = (("nid", "int", 0, 8), ("x", "float", 8, 16), ("y", "float", 24, 16),
                ("z", "float", 40, 16), ("tc", "int", 56, 8), ("rc", "int", 64, 8))
@@ -327,4 +330,25 @@ def block_format(block: Block, deck_format: str = "standard") -> str:
     return {"-": "standard", "+": "long", "%": "i10"}.get(flag, deck_format)
 
 
-__all__ = ["FieldInfo", "Layout", "Unsupported", "block_format", "layout", "pydyna_title"]
+__all__ = ["FieldInfo", "Layout", "Unsupported", "block_format", "layout", "pydyna_title", "warm_up"]
+
+
+def warm_up(background: bool = True) -> threading.Thread | None:
+    """Import PyDYNA keyword classes before the first named-field request.
+
+    The first import takes roughly 15-20 s (thousands of keyword modules). Call this when
+    a server starts; a later import on another thread waits for it instead of repeating it.
+    """
+    def load() -> None:
+        try:
+            import ansys.dyna.core.keywords  # noqa: F401
+            from ansys.dyna.core.keywords.keyword_classes.type_mapping import TypeMapping  # noqa: F401
+        except ImportError:
+            logger.info("PyDYNA not installed; named fields fall back to builtin layouts only")
+
+    if not background:
+        load()
+        return None
+    thread = threading.Thread(target=load, name="pydyna-warm-up", daemon=True)
+    thread.start()
+    return thread

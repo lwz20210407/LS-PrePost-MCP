@@ -7,7 +7,7 @@ from .blocks import Block, SourceFile
 from .deck import Change, FieldValue, IncludeRef, KeywordDeck
 from .fields import FieldError
 from .references import ReferencedError, ReferenceReport
-from .schema import Layout, Unsupported
+from .schema import Layout, Unsupported, warm_up
 
 __all__ = ["Block", "Change", "FieldError", "FieldValue", "IncludeRef", "KeywordDeck", "Layout", "ReferencedError", "ReferenceReport",
-           "SourceFile", "Unsupported"]
+           "SourceFile", "Unsupported", "warm_up"]

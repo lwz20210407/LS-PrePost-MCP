@@ -113,3 +113,13 @@ def test_members_reject_non_list_keywords(tmp_path: Path) -> None:
     deck = _deck(tmp_path, "*NODE\n       1             0.0             0.0             0.0\n")
     with pytest.raises(Unsupported):
         deck.members(deck.blocks("*NODE")[0])
+
+
+def test_warm_up_runs_in_foreground_and_background() -> None:
+    from ls_prepost_mcp.domain.model import warm_up
+
+    assert warm_up(background=False) is None
+    thread = warm_up()
+    assert thread is not None
+    thread.join(timeout=120)
+    assert not thread.is_alive()
