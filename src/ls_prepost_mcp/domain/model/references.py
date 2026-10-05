@@ -16,6 +16,7 @@ from . import lists
 from .blocks import Block
 from .fields import FieldError, parse_number, read_text
 from .layouts import Layout, RowMap, Unsupported
+from .parameters import field_expression, resolve_field
 
 if TYPE_CHECKING:
     from .deck import KeywordDeck
@@ -55,6 +56,7 @@ REFERENCES: list[tuple[str, tuple[tuple[str, str], ...]]] = [
     ("*DATABASE_HISTORY_NODE", tuple((f"id{i}", "node") for i in range(1, 9))),
 ]
 LIST_MEMBERS = {"*SET_NODE_LIST": "node", "*SET_PART_LIST": "part", "*SET_SHELL_LIST": "shell",
+                "*SET_NODE": "node", "*SET_PART": "part", "*SET_SHELL": "shell", "*SET_BEAM": "beam",
                 "*SET_SOLID": "solid", "*SET_SOLID_LIST": "solid", "*SET_BEAM_LIST": "beam",
                 "*SET_NODE_ADD": "node_set", "*SET_PART_ADD": "part_set", "*SET_SHELL_ADD": "shell_set",
                 "*SET_SOLID_ADD": "solid_set", "*SET_BEAM_ADD": "beam_set", "*SET_SEGMENT_ADD": "segment_set"}
@@ -113,8 +115,11 @@ def _ident(text: str, lookup: dict) -> int | None:
     text = text.strip()
     if not text:
         return None
-    if "&" in text:
-        value = lookup.get(text.lstrip("-&").lower())
+    if field_expression(text) is not None:
+        try:
+            value = resolve_field(text, lookup)
+        except FieldError:
+            return None
     else:
         try:
             value = int(text)

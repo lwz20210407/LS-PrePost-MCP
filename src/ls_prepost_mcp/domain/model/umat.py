@@ -13,7 +13,7 @@ from collections.abc import Mapping
 from .blocks import Block
 from .fields import FieldError, FieldSlot, is_free_format, long_spans, parse_number, read_text
 from .layouts import FieldInfo, Layout, Unsupported
-from .parameters import reference
+from .parameters import field_expression, resolve_field
 from .text import is_blank
 
 KEYWORDS = ("*MAT_USER_DEFINED_MATERIAL_MODELS", "*MAT_USER_DEFINED_MATERIAL_MODELS_TITLE")
@@ -41,9 +41,14 @@ def _card(index: int, line: str, spec: tuple, card: str, long: bool) -> list[Fie
 def _count(infos: list[FieldInfo], name: str, block: Block, lookup: Mapping[str, object]) -> int:
     info = next(i for i in infos if i.name == name)
     text = read_text(block.lines[info.slot.line], info.slot).strip()
-    ref = reference(text)
-    value = lookup.get(ref[1].lower()) if ref else None
-    if not ref:
+    ref = field_expression(text) is not None
+    value = None
+    if ref:
+        try:
+            value = resolve_field(text, lookup)
+        except FieldError as error:
+            raise Unsupported(f"{block.name}: {name.upper()} {error}") from error
+    else:
         try:
             value = parse_number(text)
         except FieldError as error:

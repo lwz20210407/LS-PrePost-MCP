@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from .blocks import Block
 from .fields import FieldError, FieldSlot, format_value, is_free_format, long_spans, parse_number
+from .parameters import field_expression, resolve_field
 from .text import body, ending, is_blank
 
 # Header card (card 1) of list sets, after the optional title line.
@@ -33,6 +34,10 @@ for _name, _head in (("*SET_NODE_LIST_GENERATE", SET_HEADERS["*SET_NODE_LIST"]),
                      ("*SET_SHELL_LIST_GENERATE", _GENERIC), ("*SET_SOLID_GENERATE", _GENERIC),
                      ("*SET_BEAM_GENERATE", _GENERIC)):
     SET_HEADERS[_name] = _head
+# Legacy spellings without _LIST read as list sets.
+for _alias, _target in (("*SET_NODE", "*SET_NODE_LIST"), ("*SET_PART", "*SET_PART_LIST"),
+                        ("*SET_SHELL", "*SET_SHELL_LIST"), ("*SET_BEAM", "*SET_BEAM_LIST")):
+    SET_HEADERS[_alias] = SET_HEADERS[_target]
 RANGE_SETS = {name for name in SET_HEADERS if name.endswith("_GENERATE")}
 CURVE_HEADER = (("lcid", "int"), ("sidr", "int"), ("sfa", "float"), ("sfo", "float"), ("offa", "float"),
                 ("offo", "float"), ("dattyp", "int"), ("lcint", "int"))
@@ -108,12 +113,11 @@ def members(block: Block, long: bool = False) -> list[int]:
 
 
 def _point_value(text: str, lookup: dict | None) -> float | int | None:
-    stripped = text.strip()
-    if "&" in stripped:
-        value = (lookup or {}).get(stripped.lstrip("-&").lower())
+    if field_expression(text) is not None:
+        value = resolve_field(text, lookup or {})
         if not isinstance(value, (int, float)):
-            raise FieldError(f"Undefined parameter in curve point {stripped!r}")
-        return -value if stripped.startswith("-") else value
+            raise FieldError(f"Curve point {text.strip()!r} is not numeric")
+        return value
     return parse_number(text)
 
 

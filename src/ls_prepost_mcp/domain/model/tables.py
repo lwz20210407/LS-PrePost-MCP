@@ -47,8 +47,8 @@ def _is_missing(value: object) -> bool:
 
 def _same(text: str, expected: object, kind: str, default: object) -> bool:
     stripped = text.strip()
-    if "&" in stripped:
-        return True  # parameter references are checked by the scalar layouts
+    if "&" in stripped or stripped.startswith("<"):
+        return True  # parameter expressions are checked by the scalar layouts
     if not stripped:
         return _is_missing(expected) or expected == default
     if kind == "str":

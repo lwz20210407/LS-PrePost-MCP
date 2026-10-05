@@ -14,7 +14,7 @@ from .blocks import Block, SourceFile, make_blocks
 from .fields import FieldError, FieldSlot, format_value, is_free_format, parse_number, read_text, write_text
 from .includes import identity
 from .layouts import RowMap
-from .parameters import reference
+from .parameters import field_expression, reference, resolve_field
 from .schema import FieldInfo, Layout, Unsupported, block_format
 from .schema import layout as block_layout
 from .scope import ParameterRecord
@@ -134,12 +134,13 @@ class KeywordDeck:
     def _value(self, block: Block, info: FieldInfo) -> FieldValue:
         raw = read_text(block.lines[info.slot.line], info.slot)
         stripped, parameter, value = raw.strip(), None, None
-        ref = reference(stripped)
-        if ref:
-            parameter = ref[1]
-            value = self.lookup(block).get(parameter.lower())
-            if isinstance(value, (int, float)) and ref[0]:
-                value = -value
+        if stripped and info.kind != "str" and field_expression(stripped) is not None:
+            ref = reference(stripped)
+            parameter = ref[1] if ref else stripped
+            try:
+                value = resolve_field(stripped, self.lookup(block))
+            except FieldError:
+                value = None
         elif not stripped:
             value = info.default
         elif info.kind == "str":
@@ -184,10 +185,9 @@ class KeywordDeck:
         lay = self.layout(block)
         info = lay.lookup(name, card, row)
         width = info.slot.width if info.slot.token is None else 40
-        ref = reference(value) if isinstance(value, str) else None
+        ref = (isinstance(value, str) and info.kind != "str" and field_expression(value) is not None)
         if ref:
-            if ref[1].lower() not in self.lookup(block):
-                raise FieldError(f"Undefined parameter {ref[1]!r}")
+            resolve_field(value, self.lookup(block))  # raises FieldError for undefined names
             text, exact = value.strip(), True
         else:
             if info.kind == "str":

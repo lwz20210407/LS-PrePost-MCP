@@ -14,6 +14,7 @@ import numpy as np
 
 from .fields import FieldError, parse_number
 from .layouts import RowMap, Unsupported
+from .parameters import field_expression, resolve_field
 
 if TYPE_CHECKING:
     from .deck import KeywordDeck
@@ -26,12 +27,11 @@ TET_FACES = ((0, 2, 1, 1), (0, 1, 3, 3), (1, 2, 3, 3), (0, 3, 2, 2))
 
 
 def _number(text: str, lookup: dict) -> float:
-    text = text.strip()
-    if "&" in text:
-        value = lookup.get(text.lstrip("-&").lower())
-        if value is None:
-            raise FieldError(f"Undefined parameter in {text!r}")
-        return -float(value) if text.startswith("-") else float(value)
+    if field_expression(text) is not None:
+        resolved = resolve_field(text, lookup)
+        if not isinstance(resolved, (int, float)):
+            raise FieldError(f"{text.strip()!r} is not numeric")
+        return float(resolved)
     value = parse_number(text)
     return 0.0 if value is None else float(value)
 

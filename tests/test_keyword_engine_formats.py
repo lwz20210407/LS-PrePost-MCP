@@ -192,3 +192,28 @@ def test_ampersand_names_in_expressions_and_curve_points(tmp_path: Path) -> None
                            "               &tEnd                 0.0\n")
     assert [r.definition.value for r in deck.parameters] == [0.002, 0.001]
     assert deck.points(deck.blocks("*DEFINE_CURVE")[0]) == [(0.0, 0.0), (0.001, 1.0), (0.002, 0.0)]
+
+
+def test_inline_expressions_in_fields(tmp_path: Path) -> None:
+    pytest.importorskip("ansys.dyna.core")
+    deck = _deck(tmp_path, "*PARAMETER\n"
+                           "R tmax        0.004\n"
+                           "*CONTROL_TERMINATION\n"
+                           "<&tmax+1>\n"
+                           "*DEFINE_CURVE\n"
+                           "         1\n"
+                           "                 0.0                 0.0\n"
+                           "        &tmax*0.5                     1.0\n")
+    block = deck.blocks("*CONTROL_TERMINATION")[0]
+    value = deck.get(block, "endtim")
+    assert value.value == pytest.approx(1.004) and value.parameter == "<&tmax+1>"
+    assert deck.points(deck.blocks("*DEFINE_CURVE")[0])[1] == (pytest.approx(0.002), 1.0)
+    deck.set(block, "endtim", "<&tmax*2>")
+    assert deck.get(block, "endtim").value == pytest.approx(0.008)
+
+
+def test_legacy_set_keywords_and_multi_line_title(tmp_path: Path) -> None:
+    deck = _deck(tmp_path, "*TITLE\nfirst line\nsecond line\n*SET_PART\n         4\n         1         2\n")
+    assert deck.get(deck.blocks("*TITLE")[0], "title").value == "first line"
+    block = deck.blocks("*SET_PART")[0]
+    assert deck.get(block, "sid").value == 4 and deck.members(block) == [1, 2]

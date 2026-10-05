@@ -173,6 +173,32 @@ def evaluate_definition(definition: ParameterDef, lookup: Mapping[str, float | i
         definition.value, definition.error = None, str(error)
 
 
+_INLINE = re.compile(r"^\s*<(.+)>\s*$")
+
+
+def field_expression(text: str) -> str | None:
+    """Expression held by a field: ``&name``, ``-&name``, ``<expr>`` or an ``&``-expression."""
+    stripped = text.strip()
+    inline = _INLINE.match(stripped)
+    if inline:
+        return inline.group(1).strip()
+    return stripped if "&" in stripped else None
+
+
+def resolve_field(text: str, lookup: Mapping[str, object]) -> float | int | str | None:
+    """Value of a field written as a parameter reference or expression (None for plain text)."""
+    ref = reference(text)
+    if ref:
+        value = lookup.get(ref[1].lower())
+        if value is None:
+            raise FieldError(f"Undefined parameter {ref[1]!r}")
+        if isinstance(value, str):
+            return value
+        return -value if ref[0] else value
+    expression = field_expression(text)
+    return None if expression is None else evaluate(expression, lookup)  # type: ignore[arg-type]
+
+
 def reference(text: str) -> tuple[bool, str] | None:
     """Return ``(negated, name)`` if a field holds ``&name`` or ``-&name``."""
     match = REFERENCE.match(text)

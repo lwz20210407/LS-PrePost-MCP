@@ -34,11 +34,11 @@ from .fields import (
     write_text,
 )
 from .layouts import Column, FieldInfo, Layout, RowMap, Unsupported
-from .parameters import reference
+from .parameters import field_expression, resolve_field
 from .text import body, ending, is_blank
 
 logger = logging.getLogger(__name__)
-_REF_TOKEN = re.compile(r"-?&[A-Za-z_][A-Za-z0-9_]*")
+_REF_TOKEN = re.compile(r"<[^<>]*>|-?&[A-Za-z_][A-Za-z0-9_]*(?:[-+*/^][A-Za-z0-9_.&()]+)*")
 NODE_FIELDS = (("nid", "int", 0, 8), ("x", "float", 8, 16), ("y", "float", 24, 16),
                ("z", "float", 40, 16), ("tc", "int", 56, 8), ("rc", "int", 64, 8))
 PART_FIELDS = (("pid", "int"), ("secid", "int"), ("mid", "int"), ("eosid", "int"),
@@ -186,7 +186,7 @@ def _substituted_text(block: Block, indices: list[int], lookup: Mapping[str, obj
         if index == 0:
             out.append(pydyna_title(block, long))
             continue
-        if line.startswith("$") or "&" not in line:
+        if line.startswith("$") or ("&" not in line and "<" not in line):
             out.append(line)
             continue
         if slots is None or index not in slots:
@@ -194,14 +194,15 @@ def _substituted_text(block: Block, indices: list[int], lookup: Mapping[str, obj
             continue
         new = line
         for slot in slots[index]:
-            ref = reference(read_text(new, slot))
-            if ref is None:
+            cell = read_text(new, slot)
+            if field_expression(cell) is None:
                 continue
-            negated, name = ref
-            value = lookup.get(name.lower())
+            try:
+                value = resolve_field(cell, lookup)
+            except FieldError as error:
+                raise Unsupported(f"Parameter expression {cell.strip()!r}: {error}") from error
             if not isinstance(value, (int, float)):
-                raise Unsupported(f"Parameter {name!r} has no numeric value")
-            value = -value if negated else value
+                raise Unsupported(f"Parameter expression {cell.strip()!r} has no numeric value")
             text, _ = format_value(value, slot.width if slot.token is None else 40)
             new = write_text(new, slot, text)
         out.append(new)
@@ -225,9 +226,8 @@ def _same(text: str, expected: object, kind: str, default: object, lookup: Mappi
         return expected is None or expected == default or (isinstance(expected, float) and math.isnan(expected))
     if kind == "str":
         return str(expected or "").strip() == stripped
-    ref = reference(stripped)
     try:
-        value = (-1 if ref[0] else 1) * float(lookup[ref[1].lower()]) if ref else parse_number(stripped)
+        value = resolve_field(stripped, lookup) if field_expression(stripped) else parse_number(stripped)
     except (KeyError, TypeError, FieldError):
         return False
     if expected is None:
@@ -326,8 +326,8 @@ def _pydyna_layout(block: Block, lookup: Mapping[str, object], long: bool = Fals
 
 def _title_layout(block: Block) -> Layout:
     data = [(i, line) for i, line in block.data() if not is_blank(line)]
-    if len(data) != 1:
-        raise Unsupported("*TITLE must have exactly one title line")
+    if not data:
+        raise Unsupported("*TITLE has no title line")
     title = FieldInfo("title", "str", FieldSlot(data[0][0], 0, 80), "title")
     return Layout(block.name, fields=[title], source="builtin")
 
