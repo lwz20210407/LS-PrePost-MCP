@@ -750,6 +750,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 里程碑：M0
 
-- tests/corpus/manifest.yaml：每个语料的 ID、来源 URL 或环境变量、SHA256、覆盖的任务
+- tests/corpus/manifest.yaml 仅登记公开语料 ID 与相对统一根目录的路径；来源 URL、许可、SHA256、特征从外部 public-keyword/manifest.json 和 public-results/manifest.json 读取，覆盖任务由本文件 corpus 引用关联
+- LSPP_CORPUS_DIR 指向同时包含 public-keyword 与 public-results 的统一根目录；不复制、下载或提交语料内容，私有 fangzhen/deployed_wings 仅登记 ID
 - 必备语料：include_contact（含 Include 与接触的 keyword）、shell_d3plot、solid_d3plot、binout_forces（含 RCFORC/SECFORC）、mpp_binout、large_private
 - 找不到公开语料的项明确标为缺口

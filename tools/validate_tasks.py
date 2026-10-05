@@ -1,6 +1,7 @@
 """I06: validate the sole planning source against the live MCP registry."""
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -94,7 +95,16 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--catalog", type=Path)
     args = parser.parse_args()
-    errors = validate(read_catalog(args.catalog), registered_tools())
+    catalog = read_catalog(args.catalog)
+    errors = validate(catalog, registered_tools())
+    from fetch_corpus import entries, load_registry
+
+    corpus_ids = set(entries(load_registry()))
+    for task in catalog.get("tasks", []):
+        for criterion in task.get("acceptance", []):
+            for corpus_id in re.findall(r"corpus:([A-Za-z0-9_.-]+)", criterion):
+                if corpus_id not in corpus_ids:
+                    errors.append(f"{task['id']}: unregistered corpus {corpus_id}")
     if errors:
         print("\n".join(errors))
         return 1

@@ -41,6 +41,7 @@ jobs:
       - run: uv run --no-sync python tools/validate_tasks.py
       - run: uv run --no-sync python tools/gen_docs.py --check
       - run: uv run --no-sync python tools/validate_tool_migration.py
+      - run: uv run --no-sync python tools/fetch_corpus.py --check-registry
       - run: uv run --no-sync python tools/check_doc_links.py
       - run: uv run --no-sync python tools/run_workflow_gate_acceptance.py --workspace "${{ runner.temp }}/lspp-workflow-gates"
       - run: uv run --no-sync python tools/run_engineering_unit_acceptance.py --workspace "${{ runner.temp }}/lspp-unit-acceptance"

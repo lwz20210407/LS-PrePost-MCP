@@ -14,6 +14,7 @@ uv run --extra dev --extra results --extra pydyna pytest
 uv run python tools/validate_tasks.py
 uv run python tools/gen_docs.py --check
 uv run python tools/check_doc_links.py
+uv run python tools/fetch_corpus.py --check-registry
 uv run --extra dev ruff check src tests
 ```
 
@@ -31,7 +32,13 @@ tools/gen_docs.py 生成 TASKS、TOOLS、README 能力表和 COMPATIBILITY 的�
 
 ## 数据与知识
 
-回归语料由 tests/corpus/manifest.yaml 定义；公开源先确认许可，下载到 LSPP_CORPUS_DIR。私有输入经 LSPP_PRIVATE_CORPUS 引入，只登记 ID 与覆盖任务，不提交路径或派生数据。资料分别用于任务定义、知识检索和回归语料，不另开吸收计划。
+回归语料登记在 tests/corpus/manifest.yaml：仅保留公开语料 ID 和相对路径，私有条目仅保留 ID。`LSPP_CORPUS_DIR` 指向已整理的统一根目录，其下同时有 `public-keyword/manifest.json` 和 `public-results/manifest.json`。来源 URL、许可、SHA256 和特征从这两份外部清单读取，不在仓库重复保存。不复制、重新下载或执行收集的文件；许可不明、GPL/NC 等原始文件均留在仓库外。
+
+`tools/fetch_corpus.py` 保留旧命令名，现为只读定位/校验入口：`--list` 列出 ID 与相对路径；默认核对目录与外部清单；`--verify-all` 流式校验外部清单列出的全部文件；指定 ID 只校验该引用范围。它不会修复、改写或下载缺失文件，且拒绝越界路径和指向根目录外的链接。不要把环境变量设成 public-keyword 子目录；I07 独立分支的旧测试入口在 M3 集成时适配此统一约定，M0 不改动其代码。
+
+私有 `fangzhen`、`deployed_wings` 只登记 ID；`large_private` 保留为 deployed_wings 的旧场景 ID。私有路径及其派生数据不入库，本公共语料入口不猜测私有绑定。tasks.yaml 的 corpus: 引用给出覆盖任务，登记和校验哈希不改变任务完成状态。
+
+`include_contact`、`shell_d3plot`、`solid_d3plot`、`binout_forces`、`mpp_binout` 已指向统一目录中的具体输入；力库清单包含 RCFORC/SECFORC，MPP 分片已可定位。相应数值、原生交叉验证及 MPP 与单机等价性仍按 Q06 的验收标准完成。
 
 ## 迁移约束
 

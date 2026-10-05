@@ -4,7 +4,7 @@
 
 ## 离线准备
 
-先用 tools/fetch_corpus.py 获得 shell_d3plot。然后：
+I10 使用 tools/synthetic_shell_result.py 创建的原创八节点、三状态合成结果，放在新建的实验目录外部输入区；不要把已登记的公开 shell_d3plot 直接当成该固定探针输入，也不改写统一外部语料目录。然后：
 
 ```shell
 uv run --extra results python tools/experiments/prepare.py --output <新实验目录> --synthetic-d3plot <语料缓存>/shell_d3plot/d3plot

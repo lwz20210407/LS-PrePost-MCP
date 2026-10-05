@@ -906,11 +906,15 @@ infrastructure:
     title: 回归语料清单
     milestone: M0
     acceptance:
-      - tests/corpus/manifest.yaml：每个语料的 ID、来源 URL 或环境变量、SHA256、覆盖的任务
+      - tests/corpus/manifest.yaml 仅登记公开语料 ID 与相对统一根目录的路径；来源 URL、许可、SHA256、特征从外部 public-keyword/manifest.json 和 public-results/manifest.json 读取，覆盖任务由本文件 corpus 引用关联
+      - LSPP_CORPUS_DIR 指向同时包含 public-keyword 与 public-results 的统一根目录；不复制、下载或提交语料内容，私有 fangzhen/deployed_wings 仅登记 ID
       - 必备语料：include_contact（含 Include 与接触的 keyword）、shell_d3plot、solid_d3plot、binout_forces（含 RCFORC/SECFORC）、mpp_binout、large_private
       - 找不到公开语料的项明确标为缺口
 
 change_log:
+  - date: 2026-10-05
+    change: I11 改用用户统一整理的外部语料目录，仓库只保存 ID/相对路径索引，私有语料只保存 ID
+    reason: 用户补充统一语料位置与禁止复制、禁止提交数据的要求；元数据与哈希保留在外部 manifest.json
   - date: 2026-10-05
     change: 初版冻结（37 项任务，其中 v0.5 共 32 项；11 项基础设施）
     reason: 架构评审后用户确认 D1-D7
