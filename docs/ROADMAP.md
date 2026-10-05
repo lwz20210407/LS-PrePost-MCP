@@ -14,7 +14,7 @@
 - docs 顶层不超过 12 份，其余 git mv 到 docs/archive/2026-10/；README 改为说明书结构
 - KNOWN_ISSUES.md 收齐全部原生坑，每条注明来源文档
 - uv run pytest 通过（不装可选依赖时相关测试 skip 而非 fail）；validate_model_references 合同 bug 修复并有回归测试
-- E1-E5 实验与批处理通道矩阵有记录，会话传输决策写入 ADR
+- E1-E5 实验与批处理通道矩阵有记录，会话传输决策写入 ADR；用户确认将剩余 13 个 UU 远程 runc/原生宏格转入 I04，不作为 M0 退出条件
 - tests/corpus/manifest.yaml 建立，全部现有工具（138 服务 + 4 知识）的迁移映射表完成
 - SKILL.md 改为"意图 → 工具"路由表（不超过 150 行），更新日志式内容移入 CHANGELOG
 - M0 不新增任何 MCP 工具或功能

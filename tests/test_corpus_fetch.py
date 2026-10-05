@@ -114,3 +114,32 @@ def test_existing_long_windows_path_is_not_misreported_missing(tmp_path):
         tmp_path, {relative: dict(size=len(content), sha256=hashlib.sha256(content).hexdigest())}
     )
     assert result["verified_files"] == 1
+
+
+def test_book_references_are_metadata_only_and_separate_from_public_catalogs(tmp_path):
+    import yaml
+
+    registry = dict(schema_version=2, root_env="LSPP_CORPUS_DIR", catalogs=[], keyword_sources=[],
+                    result_sets=[], regression_inputs=[], private_corpora=[],
+                    restricted_sources=[dict(id="local-book.example", path="local-book/example")])
+    path = tmp_path / "registry.yaml"
+    path.write_text(yaml.safe_dump(registry), encoding="utf8")
+    assert load_registry(path)["restricted_sources"] == registry["restricted_sources"]
+    registry["catalogs"] = [dict(id="bad", path="local-book/manifest.json")]
+    path.write_text(yaml.safe_dump(registry), encoding="utf8")
+    with pytest.raises(ValueError, match="restricted_sources"):
+        load_registry(path)
+    registry["catalogs"] = []
+    registry["restricted_sources"][0]["sha256"] = "0" * 64
+    path.write_text(yaml.safe_dump(registry), encoding="utf8")
+    with pytest.raises(ValueError, match="only"):
+        load_registry(path)
+
+
+def test_default_catalog_scan_never_reads_restricted_manifest(tmp_path):
+    book = tmp_path / "local-book"
+    book.mkdir()
+    (book / "manifest.json").write_text("Not JSON: private contents must not be opened", encoding="utf8")
+    registry = dict(catalogs=[], restricted_sources=[dict(id="local-book.catalog", path="local-book/manifest.json")])
+    records, snapshots = read_catalogs(registry, tmp_path)
+    assert records == {} and snapshots == {}
