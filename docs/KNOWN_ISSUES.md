@@ -351,12 +351,19 @@
 - 规避：实验使用 WTS 会话的 SessionFlags，区分连接状态与锁定状态；未知值不当成功。产品 WindowsCommandTransport 的相应检查留给 M1/I01/I03。
 - 来源与证据：[ADR 0001](decisions/0001-session-transport.md)、[探针回归](../tests/test_m0_experiments.py)、[Microsoft SessionFlags 定义](https://learn.microsoft.com/en-us/windows/win32/api/wtsapi32/ns-wtsapi32-wtsinfoex_level1_w)。v6 的状态中断结果被排除，v7 完整重跑。
 
-## 待复核的外部评审观察
+## KI-045 顶层 inctreeinfo2file 无效
 
-以下两条来自已采纳评审；当前仓库未检出对应可复现脚本或原始日志，不扩大证据等级。
+- 现象：顶层 cfile 调用 `inctreeinfo2file "tree.txt"` 被报 `Invalid command inctreeinfo2file!`，没有生成文件；进程仍返回 0。
+- 版本：4.13.4（17Dec2025），本轮原创 8 节点 keyword。
+- 规避：不能仅以退出码判断命令成功；Include 树另经已验证接口核对，不依赖这个顶层拼写。
+- 来源文档与证据：[ADR 0001 的附加复现](decisions/0001-session-transport.md)、[原始报告与命令哈希](decisions/0001-experiment-evidence.json)。
 
-- **inctreeinfo2file**：评审记录 4.13.4 拒绝顶层写法；规避是暂不依赖该写法，在 I10 窗口复核。来源：[A01/P01 任务约束](../tasks.yaml)；证据：待补本机构建命令与增量日志。
-- **连续 genselect add**：评审记录连续 add 是并集；组合选择前明确清空或执行集合运算并读回。版本：评审未给出独立构建证据。来源：[G03](../tasks.yaml)；证据：待补最小复现。
+## KI-046 连续 genselect add 为并集
+
+- 现象：依次添加节点 11、13，最终原生读回为 `[11,13]`、数量 2，不是只保留第二次选择。
+- 版本：4.13.4（17Dec2025），c= -nographics + 应用内 Python。
+- 规避：覆盖选区前显式 clear；每次组合后核对真实成员。
+- 来源文档与证据：[ADR 0001 的附加复现](decisions/0001-session-transport.md)、[报告哈希](decisions/0001-experiment-evidence.json)。
 
 ## 能力范围原文索引
 
