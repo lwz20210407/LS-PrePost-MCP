@@ -9,7 +9,7 @@ rounded to the field width and the largest rounding is reported.
 from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -58,9 +58,15 @@ def _apply(deck: KeywordDeck, plans: list[tuple[Block, dict[int, str]]], descrip
 def transform_nodes(deck: KeywordDeck, node_ids: Iterable[int], matrix: object = None,
                     offset: object = None, description: str = "transform nodes") -> dict:
     """``x' = matrix @ x + offset`` for the given node IDs (all must exist)."""
-    wanted = np.unique(np.asarray(list(node_ids), dtype=np.int64))
     matrix = np.eye(3) if matrix is None else np.asarray(matrix, dtype=float).reshape(3, 3)
     offset = np.zeros(3) if offset is None else np.asarray(offset, dtype=float).reshape(3)
+    return move_nodes(deck, node_ids, lambda keys, xyz: xyz @ matrix.T + offset, description)
+
+
+def move_nodes(deck: KeywordDeck, node_ids: Iterable[int],
+               move: Callable[[np.ndarray, np.ndarray], np.ndarray], description: str) -> dict:
+    """New coordinates ``move(ids, xyz)`` for the given node IDs (all must exist), block by block."""
+    wanted = np.unique(np.asarray(list(node_ids), dtype=np.int64))
     plans, found, worst = [], set(), 0.0
     for block in deck.blocks("*NODE"):
         keys, xyz = _node_block(deck, block)
@@ -68,7 +74,7 @@ def transform_nodes(deck: KeywordDeck, node_ids: Iterable[int], matrix: object =
         mask = np.isin(keys, wanted)
         if not mask.any():
             continue
-        moved = xyz[mask] @ matrix.T + offset
+        moved = move(keys[mask], xyz[mask])
         updates = {int(k): {"x": float(p[0]), "y": float(p[1]), "z": float(p[2])} for k, p in zip(keys[mask], moved)}
         edits, rounding = _plan_rows(deck, block, deck.layout(block).rows, updates, "float")
         plans.append((block, edits))
@@ -149,6 +155,12 @@ def _element_rows(deck: KeywordDeck, keyword: str) -> Iterable[tuple[Block, RowM
         yield block, layout.rows
 
 
+def _refuse_midside(block: Block, rows: RowMap, keyword: str, keys: list[int], action: str) -> None:
+    mid = rows.locate("n5") if keyword == "*ELEMENT_SHELL" else None
+    if mid is not None and any(rows.cell(rows.line_indices(key), mid).strip() not in ("", "0") for key in keys):
+        raise Unsupported(f"{_where(block)}: 8-node shells (N5-N8 set) are not {action}")
+
+
 def _flip_plans(deck: KeywordDeck, keyword: str, element_ids: Iterable[int]) -> list[tuple[Block, dict[int, str]]]:
     wanted = set(int(e) for e in element_ids)
     width = WIDTHS[keyword]
@@ -163,9 +175,7 @@ def _flip_plans(deck: KeywordDeck, keyword: str, element_ids: Iterable[int]) -> 
         here = [key for key in rows if key in wanted]
         if not here:
             continue
-        mid = rows.locate("n5") if keyword == "*ELEMENT_SHELL" else None
-        if mid is not None and any(rows.cell(rows.line_indices(key), mid).strip() not in ("", "0") for key in here):
-            raise Unsupported(f"{_where(block)}: 8-node shells (N5-N8 set) are not reordered")
+        _refuse_midside(block, rows, keyword, here, "reordered")
         new = flipped(conn[[index[key] for key in here]], keyword == "*ELEMENT_SOLID")
         updates = {key: dict(zip(names, map(int, values))) for key, values in zip(here, new)}
         plans.append((block, _plan_rows(deck, block, rows, updates, "int")[0]))
@@ -251,22 +261,21 @@ def _rows_text(rows: list[list[str]], widths: list[int], newline: str) -> str:
     return "".join("".join(cell.rjust(width) for cell, width in zip(row, widths)) + newline for row in rows)
 
 
-def copy_elements(deck: KeywordDeck, keyword: str, element_ids: Iterable[int], *, matrix: object = None,
-                  offset: object = None, part_id: int | None = None) -> dict:
-    """Copy elements and their nodes, transformed by ``x' = matrix @ x + offset``.
+def source_elements(deck: KeywordDeck, keyword: str, element_ids: Iterable[int],
+                    part_id: int | None = None) -> tuple[Block, np.ndarray, np.ndarray, np.ndarray]:
+    """``(first plain block, ids, pids, conn)`` of elements that may be copied as plain rows.
 
-    New node and element IDs continue after the largest existing ones; a mirroring transform
-    (negative determinant) reorders the copies to positive orientation. The copies keep their
-    part unless ``part_id`` names an existing part. Elements of option variants (_THICKNESS,
-    ...) and long / i10 decks are refused, because their extra cards would not be copied.
+    Refused: long / i10 decks, option variants (_THICKNESS, ... carry extra cards), 8-node
+    shells (only N1-N4 would be copied), undefined nodes and an undefined ``part_id``.
     """
     if deck.format != "standard":
         raise Unsupported(f"Copying elements in {deck.format} format decks is not supported")
-    width = WIDTHS[keyword]
     wanted = sorted({int(e) for e in element_ids})
+    if not wanted:
+        raise FieldError("No elements selected")
     plain = [b for b in deck.iter_blocks() if b.name == keyword]
     variants = [b for b in deck.iter_blocks() if b.name.startswith(keyword + "_")]
-    eids, pids, conn = elements(deck, keyword, width)
+    eids, pids, conn = elements(deck, keyword, WIDTHS[keyword])
     rows = {int(e): i for i, e in enumerate(eids)}
     missing = [e for e in wanted if e not in rows]
     if missing:
@@ -277,46 +286,69 @@ def copy_elements(deck: KeywordDeck, keyword: str, element_ids: Iterable[int], *
             raise Unsupported(f"{keyword} option variants carry extra cards; copy them as plain elements first")
     if not plain:
         raise FieldError(f"No plain {keyword} block to copy from")
-    report = deck.references(False)
-    if part_id is not None and part_id not in report.defined.get("part", set()):
+    chosen = set(wanted)
+    for block, block_rows in _element_rows(deck, keyword):
+        _refuse_midside(block, block_rows, keyword, [k for k in block_rows if k in chosen], "copied")
+    if part_id is not None and part_id not in deck.references(False).defined.get("part", set()):
         raise FieldError(f"Part {part_id} is not defined")
     picked = np.asarray([rows[e] for e in wanted])
-    old_conn, old_pids = conn[picked], pids[picked]
+    ids, _ = nodes(deck)
+    absent = np.setdiff1d(conn[picked][conn[picked] > 0], ids)
+    if absent.size:
+        raise FieldError(f"Elements use undefined nodes, e.g. {absent[:10].tolist()}")
+    return plain[0], np.asarray(wanted), pids[picked], conn[picked]
+
+
+def write_mesh(deck: KeywordDeck, keyword: str, block: Block, node_ids: np.ndarray, points: np.ndarray,
+               element_ids: np.ndarray, pids: np.ndarray, conn: np.ndarray) -> None:
+    """Insert new *NODE rows and ``keyword`` rows (8-column fields) into ``block``'s file."""
+    last = max(int(node_ids.max()) if node_ids.size else 0, int(element_ids.max()))
+    if len(str(last)) > 8:
+        raise FieldError("New IDs need more than 8 digits; use a long-format deck")
+    newline = block.file.newline()
+    node_rows = [[str(int(n))] + [format_value(float(v), 16, "float")[0] for v in point]
+                 for n, point in zip(node_ids, points)]
+    element_rows = [[str(int(e)), str(int(pid))] + [str(int(n)) for n in row]
+                    for e, pid, row in zip(element_ids, pids, conn)]
+    text = "*NODE" + newline + _rows_text(node_rows, [8, 16, 16, 16], newline) if node_rows else ""
+    text += keyword + newline + _rows_text(element_rows, [8] * (2 + conn.shape[1]), newline)
+    deck.insert(text, file=block.file)
+
+
+def next_ids(deck: KeywordDeck, keyword: str) -> tuple[int, int]:
+    """First free node ID and first free ``keyword`` element ID (after the largest ones)."""
+    ids, _ = nodes(deck)
+    eids, _, _ = elements(deck, keyword, WIDTHS[keyword])
+    return (int(ids.max()) + 1 if ids.size else 1), (int(eids.max()) + 1 if eids.size else 1)
+
+
+def copy_elements(deck: KeywordDeck, keyword: str, element_ids: Iterable[int], *, matrix: object = None,
+                  offset: object = None, part_id: int | None = None) -> dict:
+    """Copy elements and their nodes, transformed by ``x' = matrix @ x + offset``.
+
+    New node and element IDs continue after the largest existing ones; a mirroring transform
+    (negative determinant) reorders the copies to positive orientation. The copies keep their
+    part unless ``part_id`` names an existing part. See :func:`source_elements` for refusals.
+    """
+    block, wanted, old_pids, old_conn = source_elements(deck, keyword, element_ids, part_id)
     ids, xyz = nodes(deck)
     used = np.unique(old_conn[old_conn > 0])
-    lookup = {int(n): i for i, n in enumerate(ids)}
-    absent = [int(n) for n in used if int(n) not in lookup]
-    if absent:
-        raise FieldError(f"Elements use undefined nodes, e.g. {absent[:10]}")
     matrix = np.eye(3) if matrix is None else np.asarray(matrix, dtype=float).reshape(3, 3)
     offset = np.zeros(3) if offset is None else np.asarray(offset, dtype=float).reshape(3)
-    moved = xyz[[lookup[int(n)] for n in used]] @ matrix.T + offset
-    first_node = int(ids.max()) + 1 if ids.size else 1
-    first_element = int(eids.max()) + 1 if eids.size else 1
-    renamed = {int(n): first_node + k for k, n in enumerate(used)}
-    new_conn = np.vectorize(lambda n: renamed.get(int(n), 0))(old_conn)
+    order = np.argsort(ids)
+    moved = xyz[order[np.searchsorted(ids[order], used)]] @ matrix.T + offset
+    first_node, first_element = next_ids(deck, keyword)
+    new_ids = first_node + np.arange(used.size)
+    new_conn = np.where(old_conn > 0, first_node + np.searchsorted(used, old_conn), 0)
     mirrored = bool(np.linalg.det(matrix) < 0)
     if mirrored:
         new_conn = flipped(new_conn, keyword == "*ELEMENT_SOLID")
-    last = max(first_node + len(used), first_element + len(wanted))
-    if len(str(last)) > 8:
-        raise FieldError("New IDs need more than 8 digits; use a long-format deck")
-    newline = plain[0].file.newline()
-    node_rows = []
-    for (old, new), point in zip(renamed.items(), moved):
-        cells = [str(new)]
-        for value in point:
-            text_value, _ = format_value(float(value), 16, "float")
-            cells.append(text_value)
-        node_rows.append(cells)
-    element_rows = [[str(first_element + k), str(part_id if part_id is not None else int(pid))]
-                    + [str(int(n)) for n in row] for k, (pid, row) in enumerate(zip(old_pids, new_conn))]
-    text = ("*NODE" + newline + _rows_text(node_rows, [8, 16, 16, 16], newline)
-            + keyword + newline + _rows_text(element_rows, [8] * (2 + width), newline))
-    deck.insert(text, file=plain[0].file)
-    return {"nodes": len(used), "elements": len(wanted), "first_node": first_node,
+    pids = np.full(wanted.size, part_id) if part_id is not None else old_pids
+    write_mesh(deck, keyword, block, new_ids, moved, first_element + np.arange(wanted.size), pids, new_conn)
+    return {"nodes": int(used.size), "elements": int(wanted.size), "first_node": first_node,
             "first_element": first_element, "mirrored": mirrored}
 
 
-__all__ = ["copy_elements", "flipped", "reflect_nodes", "reflection", "reverse_elements", "rotate_nodes",
-           "rotation_matrix", "transform_nodes", "translate_nodes", "unify_shell_normals"]
+__all__ = ["copy_elements", "flipped", "move_nodes", "next_ids", "reflect_nodes", "reflection", "reverse_elements",
+           "rotate_nodes", "rotation_matrix", "source_elements", "transform_nodes", "translate_nodes",
+           "unify_shell_normals", "write_mesh"]

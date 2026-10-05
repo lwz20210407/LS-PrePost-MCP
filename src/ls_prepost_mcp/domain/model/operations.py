@@ -20,6 +20,7 @@ from . import (
     contacts,
     controls,
     coordinates,
+    generate,
     geometry,
     lists,
     loads,
@@ -171,8 +172,8 @@ def _create_set(deck: KeywordDeck, edit: dict) -> Change:
     return change
 
 
-MESH_OPS = {"transform_nodes", "copy_elements", "renumber", "merge_duplicate_nodes", "delete_elements",
-            "reverse_elements", "unify_shell_normals", "clean_coordinates"}
+MESH_OPS = {"transform_nodes", "copy_elements", "array_elements", "offset_shells", "renumber",
+            "merge_duplicate_nodes", "delete_elements", "reverse_elements", "unify_shell_normals", "clean_coordinates"}
 PROPERTY_OPS = {"add_material": "material", "add_eos": "eos", "add_section": "section", "add_hourglass": "hourglass"}
 SUMMARY_OPS = MESH_OPS | set(PROPERTY_OPS) | {"add_boundary", "set_control", "add_part", "set_part", "add_contact"}
 
@@ -255,6 +256,14 @@ def _mesh_op(deck: KeywordDeck, edit: dict) -> dict:
             else (None, None)
         return mesh.copy_elements(deck, edit["keyword"], _ids(deck, edit, "element"), matrix=matrix,
                                   offset=offset, part_id=edit.get("part_id"))
+    if op == "array_elements":
+        matrix, offset = _affine(edit)
+        return generate.array_elements(deck, edit["keyword"], _ids(deck, edit, "element"), edit["count"],
+                                       matrix=matrix, offset=offset, part_id=edit.get("part_id"))
+    if op == "offset_shells":
+        return generate.offset_shells(deck, _ids(deck, {**edit, "keyword": "*ELEMENT_SHELL"}, "element"),
+                                      edit["distance"], copy=bool(edit.get("copy", True)),
+                                      part_id=edit.get("part_id"))
     if op == "renumber":
         if "mapping" in edit:
             return renumber.renumber(deck, edit["kind"], {int(a): int(b) for a, b in edit["mapping"].items()})
@@ -317,7 +326,8 @@ def edit_deck(path: str, edits: list[dict], *, output_dir: str | None = None, in
 
     Field ops: set, set_parameter, set_members, set_points, insert, delete, create_set.
     Mesh ops (P08, summaries in ``summaries``): transform_nodes (translate / rotate / reflect /
-    matrix), copy_elements, renumber (mapping or first/last/start), merge_duplicate_nodes,
+    matrix), copy_elements, array_elements (count + step transform), offset_shells (distance,
+    copy?, part_id?), renumber (mapping or first/last/start), merge_duplicate_nodes,
     delete_elements, reverse_elements, unify_shell_normals, clean_coordinates (axes?, magnitude?);
     targets by ``ids`` or ``select``.
     Setup ops: add_boundary (P05; ``kind`` from loads.KINDS, ``units`` required) and set_control
