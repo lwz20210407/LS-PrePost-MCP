@@ -1,6 +1,7 @@
 """Curated source and capability records, never treated as executable code."""
 import csv
 import json
+import os
 from pathlib import Path
 
 
@@ -8,9 +9,16 @@ def records() -> list[dict]:
     return json.loads(Path(__file__).with_name("data").joinpath("sources.json").read_text(encoding="utf-8"))
 
 
-def search_knowledge(query: str, limit: int = 10) -> list[dict]:
+def search_knowledge(query: str, limit: int = 10, include_private: bool = False, category: str | None = None) -> list[dict]:
+    """Search LSPP_KNOWLEDGE_INDEX when configured; private records require explicit opt-in."""
     if not query.strip() or not 1 <= limit <= 50:
         raise ValueError("Provide a query and limit 1..50")
+    configured = os.environ.get("LSPP_KNOWLEDGE_INDEX")
+    if configured:
+        from .knowledge_index import search_index
+        return search_index(configured, query, limit=limit, include_private=include_private, category=category)
+    if include_private or category is not None:
+        raise ValueError("Configure LSPP_KNOWLEDGE_INDEX for categorized/private document search")
     words = query.casefold().split()
     ranked = []
     for record in records():

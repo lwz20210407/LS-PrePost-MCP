@@ -1,0 +1,1217 @@
+{
+  "schema_version": 1,
+  "task": "I04",
+  "kind": "retrospective_attachment",
+  "provenance": "历史 I04 记录：三个 file 验收不启动 LSPP；program_acceptance.batch 为真实 LSPP 批处理程序验收。原始报告未记录 Git revision，仅附原始文件 SHA256，不写成当前 PR 头重跑。",
+  "scope": "Existing local records; no new native run and no GUI/remote scope extension. Raw contents and absolute paths omitted.",
+  "pytest_logs": [
+    {
+      "name": "i04-native-program.log",
+      "sha256": "1d1e043d03acf3114f4ce88750d62a2e4cd2c2f1e9d027ad65bdf35a4a227eb1",
+      "recorded_pytest_summary": [
+        "1 passed, 56 deselected in 126.55s (0:02:06)"
+      ]
+    }
+  ],
+  "records": [
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/acceptance.json",
+      "size": 273,
+      "sha256": "b58657e4eec897ba7578829d740065eac826411d6c94cd4ed006ef851473b240",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/accepted.json",
+      "size": 18888,
+      "sha256": "269826f5aecec933a6aa205e9c85fd042caacf45c45873ade60b16524adc56a8",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/jobs/051761a1f89846f0af954521e093d532/definition.json",
+      "size": 2010,
+      "sha256": "b7071cd007bc6a9d48709ac0efd781a5752044831b66a39d55871dfdeac0229d"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/jobs/051761a1f89846f0af954521e093d532/gates.json",
+      "size": 258,
+      "sha256": "68e96120f25ff032f4b31486dc9aec1cc91c63b81b520e35333ab9609acb364d"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/jobs/051761a1f89846f0af954521e093d532/job.json",
+      "size": 6620,
+      "sha256": "261429ef7bee535a1157ae6ddb4d7cb2b0e134188997e7ebf17ed42e4f77f687",
+      "recorded_status": "failed"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/jobs/051761a1f89846f0af954521e093d532/outcomes.json",
+      "size": 262,
+      "sha256": "920bc7807e7087674b53e10c2ed8cfec98daccecd7a64309517d93d38402101c"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/jobs/051761a1f89846f0af954521e093d532/preflight.json",
+      "size": 2023,
+      "sha256": "088407f3236beb8cb357eebb50cabbb0c875635995d1bac3d0af4995dfee8e36",
+      "recorded_status": "ready"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/jobs/051761a1f89846f0af954521e093d532/steps.json",
+      "size": 159,
+      "sha256": "b98a13662aea99239edf150f0241ae4e7c4c002ac7d539168474e9cbc89c3b63"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/jobs/59e77cfd20f045f89fbf2a85544f4aec/job.json",
+      "size": 4263,
+      "sha256": "4747f03b7f487ab225bb920cc2f230b7a58b8e9fabbd41bf01bb465cc0cf502a",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/jobs/7d880f87d8a441a19d37805fc0b1188c/definition.json",
+      "size": 2010,
+      "sha256": "b7071cd007bc6a9d48709ac0efd781a5752044831b66a39d55871dfdeac0229d"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/jobs/7d880f87d8a441a19d37805fc0b1188c/gates.json",
+      "size": 635,
+      "sha256": "670c881f77b8ffaaa87d4f587b96298198e60612e94dca7f009443be717c171d"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/jobs/7d880f87d8a441a19d37805fc0b1188c/job.json",
+      "size": 18888,
+      "sha256": "269826f5aecec933a6aa205e9c85fd042caacf45c45873ade60b16524adc56a8",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/jobs/7d880f87d8a441a19d37805fc0b1188c/outcomes.json",
+      "size": 807,
+      "sha256": "bb3839fae10c705686e3a58d1b543dde49478308996c3949c30b5a113ecf6eae"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/jobs/7d880f87d8a441a19d37805fc0b1188c/preflight.json",
+      "size": 2023,
+      "sha256": "088407f3236beb8cb357eebb50cabbb0c875635995d1bac3d0af4995dfee8e36",
+      "recorded_status": "ready"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/jobs/7d880f87d8a441a19d37805fc0b1188c/steps.json",
+      "size": 10518,
+      "sha256": "0ae18136ceedd341a493fb9427be8868c2db5acc250fbc10056d93e581635940"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/jobs/9a9cba44f1884776b017730ae6f2f000/job.json",
+      "size": 2397,
+      "sha256": "9d2d0ad4ca95ac318531962742d54cca3514a467d25015b68160d13245288a2a",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/jobs/d7396068f15a4645a20efd3a31627f79/job.json",
+      "size": 3290,
+      "sha256": "60f1d09d3d6a20ccf10885a9c9b3d29c703697a170b637f3e5cbf19a5b6aaa35",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/rejected.json",
+      "size": 6620,
+      "sha256": "261429ef7bee535a1157ae6ddb4d7cb2b0e134188997e7ebf17ed42e4f77f687",
+      "recorded_status": "failed"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/engineering-units-428bab372ca34e0c9969952cd1b0dd02/workflow.json",
+      "size": 2012,
+      "sha256": "d10ef9316353cd200e280f6f00526e3b2d4e3d8cc36c0ffb351a00e7d3bdb4b2"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/stdout.log",
+      "size": 460,
+      "sha256": "0e3331cc6e0feffbf6a771388b016b2932de6768353def66b9e9b37dde6ff3dd"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "engineering_unit_acceptance.file/verified.json",
+      "size": 492,
+      "sha256": "1276eabcd5250594c03939f546e14969e18d8627050433a4de40b2e6c0a00adb"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/acceptance.json",
+      "size": 279,
+      "sha256": "6d6ad8affdc19a448c8464a0f0421185d363300dd9132988db3663557e7e0373",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/engineering-study.json",
+      "size": 5841,
+      "sha256": "6dace304cf06f16381fbd2a20f9533af74edf8c99b98d26a370be747c3335cdb",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/03f6add2f3b44981a0c0a848b742d8fa/job.json",
+      "size": 3281,
+      "sha256": "ef21019c2a5a4237319d91bcd5a956698358ee038dac059bb5de4fae43575994",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/30ce098505ec4334a0153e7c7d88d166/definition.json",
+      "size": 2010,
+      "sha256": "b7071cd007bc6a9d48709ac0efd781a5752044831b66a39d55871dfdeac0229d"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/30ce098505ec4334a0153e7c7d88d166/gates.json",
+      "size": 635,
+      "sha256": "670c881f77b8ffaaa87d4f587b96298198e60612e94dca7f009443be717c171d"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/30ce098505ec4334a0153e7c7d88d166/job.json",
+      "size": 18861,
+      "sha256": "48a829660f2232d710de3fcbb0518aad33bd4e5c765dcfae47a85b5a5a602b7c",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/30ce098505ec4334a0153e7c7d88d166/outcomes.json",
+      "size": 807,
+      "sha256": "bb3839fae10c705686e3a58d1b543dde49478308996c3949c30b5a113ecf6eae"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/30ce098505ec4334a0153e7c7d88d166/preflight.json",
+      "size": 2023,
+      "sha256": "088407f3236beb8cb357eebb50cabbb0c875635995d1bac3d0af4995dfee8e36",
+      "recorded_status": "ready"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/30ce098505ec4334a0153e7c7d88d166/steps.json",
+      "size": 10476,
+      "sha256": "957ba331ce7a680ede7c5d9fb8923fdd85c16d70606b531a3b9adfbdcab7e7b9"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/5382b3a194ad4608ba188a4a3e674dec/definition.json",
+      "size": 2010,
+      "sha256": "b7071cd007bc6a9d48709ac0efd781a5752044831b66a39d55871dfdeac0229d"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/5382b3a194ad4608ba188a4a3e674dec/gates.json",
+      "size": 635,
+      "sha256": "670c881f77b8ffaaa87d4f587b96298198e60612e94dca7f009443be717c171d"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/5382b3a194ad4608ba188a4a3e674dec/job.json",
+      "size": 18861,
+      "sha256": "1dacc6a4cfdb7f16fece4d85769dbbdb65ac1dfe3ec44fdbce97495462f136d3",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/5382b3a194ad4608ba188a4a3e674dec/outcomes.json",
+      "size": 807,
+      "sha256": "bb3839fae10c705686e3a58d1b543dde49478308996c3949c30b5a113ecf6eae"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/5382b3a194ad4608ba188a4a3e674dec/preflight.json",
+      "size": 2023,
+      "sha256": "088407f3236beb8cb357eebb50cabbb0c875635995d1bac3d0af4995dfee8e36",
+      "recorded_status": "ready"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/5382b3a194ad4608ba188a4a3e674dec/steps.json",
+      "size": 10476,
+      "sha256": "595a370221b5c72c9d0f08a61e20ae7ebe45e3895ce8ce8d4856fb55ab71ff84"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/54b55d750bbf4aa88f1697449f0622e6/job.json",
+      "size": 2385,
+      "sha256": "6deb1cd31d52c605d60d7496f2b14a60828396eb7a7e62c766e437207fa5aecb",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/ac3743203df548cda28c3b84b2bcc2f6/job.json",
+      "size": 3281,
+      "sha256": "0ca5632c68ec93ce9333daa18f48b1c802ef10c20a5eae655ca3d0bce273ebff",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/c5b00399491143ff979092b23676f390/job.json",
+      "size": 4242,
+      "sha256": "c5ff3b03490d2da3f971d855a8b14403fdcf3f080de29bce6ecb71f77964b062",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/c999f7faebcc4aa49b1ec98db622ec59/job.json",
+      "size": 2385,
+      "sha256": "deae97026335a5ab4cee15d6fb0582e67c626be4b0aa6d73447fa9bfa1c8a07d",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/ceb4d35c8a354723a47fa652a53a55f9/cases.json",
+      "size": 871,
+      "sha256": "b19dda4e7a61d85e08b27054b0694c6f0171dba5f348d50ef7d0c7f4641dace3"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/ceb4d35c8a354723a47fa652a53a55f9/job.json",
+      "size": 5841,
+      "sha256": "6dace304cf06f16381fbd2a20f9533af74edf8c99b98d26a370be747c3335cdb",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/ceb4d35c8a354723a47fa652a53a55f9/preflight.json",
+      "size": 4367,
+      "sha256": "57d50ff0090ca4542277e234ed5a89ae72ebb61d1d47f1262971026e659875a1"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/ceb4d35c8a354723a47fa652a53a55f9/workflow.json",
+      "size": 2010,
+      "sha256": "b7071cd007bc6a9d48709ac0efd781a5752044831b66a39d55871dfdeac0229d"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/jobs/e2a66e93abd34aefba6c54f6eedfe1c4/job.json",
+      "size": 4242,
+      "sha256": "3ec5b1ac9eba44277fd238b40003f8b4f45e8fea66346675d98d0ce9354aaac6",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/parameter-study-f467bb4163524ac984d5f923ac919140/tensile.json",
+      "size": 2012,
+      "sha256": "d10ef9316353cd200e280f6f00526e3b2d4e3d8cc36c0ffb351a00e7d3bdb4b2"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/stdout.log",
+      "size": 318,
+      "sha256": "d39c16736c7dd4c35bc97fc6ec59247cd8681cccfe8a2e51221171b0a733fa17"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "parameter_study_acceptance.file/verified.json",
+      "size": 488,
+      "sha256": "fc8b62213c3e6f55092d8bea4d3b1aa6ee14a7cc15c6f932a270eb920579d3ac"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "report.json",
+      "size": 1041,
+      "sha256": "5a9c8a44140bc4dfa41b4809668c08830618f38584053467c9a4367a3d971f0b",
+      "case_results": {
+        "tests/test_native_acceptance.py::test_legacy_acceptance[engineering_unit_acceptance.file]": "passed",
+        "tests/test_native_acceptance.py::test_legacy_acceptance[parameter_study_acceptance.file]": "passed",
+        "tests/test_native_acceptance.py::test_legacy_acceptance[workflow_gate_acceptance.file]": "passed"
+      }
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/acceptance.json",
+      "size": 2039,
+      "sha256": "7bcf428b1a7ffad3d9f781962682109f3fb708edfc4578e81d623cccd8ada316"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/energy-workflow.json",
+      "size": 1375,
+      "sha256": "a01f39042550e646dd13fb2467a9f2b1aa67c850f7355f111587145585b6e2fa"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/120d7405cfdb4d04bcd227490956dc3a/definition.json",
+      "size": 2089,
+      "sha256": "412d4384f3ca5ced7efb6d0705ad26c97139efb925542480e9d95d3e2088d9d3"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/120d7405cfdb4d04bcd227490956dc3a/gates.json",
+      "size": 1288,
+      "sha256": "bc6b39eee3cbbd407ddfd08ca1068ba8d09288c44561ffe7523238b17a2c111d"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/120d7405cfdb4d04bcd227490956dc3a/job.json",
+      "size": 10969,
+      "sha256": "8f282c418f50dc3b3614fa22df044debea9c494fa4db55a00a382ad6e876a41c",
+      "recorded_status": "failed"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/120d7405cfdb4d04bcd227490956dc3a/outcomes.json",
+      "size": 356,
+      "sha256": "6297efc73a58d4305e5626bea7b9ac33f0f524621792f13b333e5abeb47f2cef"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/120d7405cfdb4d04bcd227490956dc3a/preflight.json",
+      "size": 1905,
+      "sha256": "2c0463ad3ea5b653575ba5c38c3b98e34b21331777163e0909392153da597cb5",
+      "recorded_status": "ready"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/120d7405cfdb4d04bcd227490956dc3a/steps.json",
+      "size": 3180,
+      "sha256": "d57bd5d650fcad40df023cdc258d000a4a5716f941752cb685522c525c508d7f"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/2705af4b2a63482c88ed8861ae021245/job.json",
+      "size": 2124,
+      "sha256": "67af616deb55db7199043e3f71886a3c44bfe05fd80972e42b525df17031d9d9",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/2705af4b2a63482c88ed8861ae021245/quality.json",
+      "size": 1057,
+      "sha256": "5c631a82083f2759d0624bfe6fada212a284e5e11229b5f41e1ad1f939f5fd7a"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/2cd43d00c57549cba0142a18904b6d67/definition.json",
+      "size": 864,
+      "sha256": "133ef33c0e5658cfa5c580376ca5b91ccc552c507f49170e1f83a74e3f6a4333"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/2cd43d00c57549cba0142a18904b6d67/gates.json",
+      "size": 413,
+      "sha256": "33976775f82700fb5baa104e8e88d6ab8d37fcc8179a8fc305f182e99a008c70"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/2cd43d00c57549cba0142a18904b6d67/job.json",
+      "size": 10064,
+      "sha256": "c47adae6ed1a6ddbc8107b80634ba0d25944c77735c0e359b4723b35eeef2d44",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/2cd43d00c57549cba0142a18904b6d67/outcomes.json",
+      "size": 766,
+      "sha256": "bf3ee259c52fd1beab21271f1528df3b18364cf5d85f3af413d15acfab3a3113"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/2cd43d00c57549cba0142a18904b6d67/preflight.json",
+      "size": 1058,
+      "sha256": "80917d43d0d7513a6ca87630b178b125d6a69d68f1ae7a7ff122dfdb503fb046",
+      "recorded_status": "ready"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/2cd43d00c57549cba0142a18904b6d67/steps.json",
+      "size": 4608,
+      "sha256": "96b31037cbf636a8439efd8943a11b74fb66735e7758bcd4198b28b5d9e81049"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/44d25ad8bd0b4379b340fcd97bb20f8e/job.json",
+      "size": 997,
+      "sha256": "448ca11eff99413b5d6bfb3260699427cce49d468418eccb6557122249c89b56",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/44d25ad8bd0b4379b340fcd97bb20f8e/workflow.json",
+      "size": 864,
+      "sha256": "133ef33c0e5658cfa5c580376ca5b91ccc552c507f49170e1f83a74e3f6a4333"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/53a7d6c5df5f4f179de220dfc6ce11e7/definition.json",
+      "size": 2089,
+      "sha256": "412d4384f3ca5ced7efb6d0705ad26c97139efb925542480e9d95d3e2088d9d3"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/53a7d6c5df5f4f179de220dfc6ce11e7/gates.json",
+      "size": 1426,
+      "sha256": "f516b462e563dc906173513f2c2965d6017b1ea616bed610165d94de98ad2dcc"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/53a7d6c5df5f4f179de220dfc6ce11e7/job.json",
+      "size": 14218,
+      "sha256": "0c1c4eee6bba39e56c8340da82421460e9dac267266fb0537e4d9fbd255d55fd",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/53a7d6c5df5f4f179de220dfc6ce11e7/outcomes.json",
+      "size": 632,
+      "sha256": "174a86dc66368cdf99ec8e79449a0c5730790b5a9756e686e0e27822d82c4aef"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/53a7d6c5df5f4f179de220dfc6ce11e7/preflight.json",
+      "size": 1905,
+      "sha256": "2c0463ad3ea5b653575ba5c38c3b98e34b21331777163e0909392153da597cb5",
+      "recorded_status": "ready"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/53a7d6c5df5f4f179de220dfc6ce11e7/steps.json",
+      "size": 5898,
+      "sha256": "0ee99ee48768e7571771913fefc331e45177f25d5777d1eb7f0f3beb1b6e6ae5"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/686bcdba955b44f7bc18421b7a9b12d8/job.json",
+      "size": 2236,
+      "sha256": "910717db984d88e9d97398983d61f9e0b541a599f8af5274e17cd366eda2f009",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/686bcdba955b44f7bc18421b7a9b12d8/quality.json",
+      "size": 877,
+      "sha256": "bd8577146908c7ade8189670a1aa47acad2e5b6ba58e134d6fd88402e58da154"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/69418f7f1d794d979d2913bd836d03f7/definition.json",
+      "size": 2089,
+      "sha256": "412d4384f3ca5ced7efb6d0705ad26c97139efb925542480e9d95d3e2088d9d3"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/69418f7f1d794d979d2913bd836d03f7/gates.json",
+      "size": 1335,
+      "sha256": "4be0012d38f537aeb42e7191b2c4543d2a071798e647051309316068a8f2d7da"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/69418f7f1d794d979d2913bd836d03f7/job.json",
+      "size": 11026,
+      "sha256": "b645b8f74764a4f8b85d57f8b339cc72666c456b3a57722db9c9f588cf43e5cf",
+      "recorded_status": "failed"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/69418f7f1d794d979d2913bd836d03f7/outcomes.json",
+      "size": 356,
+      "sha256": "6297efc73a58d4305e5626bea7b9ac33f0f524621792f13b333e5abeb47f2cef"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/69418f7f1d794d979d2913bd836d03f7/preflight.json",
+      "size": 1905,
+      "sha256": "2c0463ad3ea5b653575ba5c38c3b98e34b21331777163e0909392153da597cb5",
+      "recorded_status": "ready"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/69418f7f1d794d979d2913bd836d03f7/steps.json",
+      "size": 3183,
+      "sha256": "4c07ce1d6cc95172a15d7f20f6194ea651acdb23912b0537ff78ce891463834c"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/7764dac4b2f342ca8b506430692e025d/job.json",
+      "size": 2579,
+      "sha256": "e3d9323a54bc10d64df038b2c48baa1424ffcbc331b01e5f3268a8d94a4d2816",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/9affe5261c864caf85a15e6415d894c0/job.json",
+      "size": 3012,
+      "sha256": "47eec1b0c2de1f153fb03b6590281b28a5859647b366018f133e8ecdaeca3e50",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/9affe5261c864caf85a15e6415d894c0/summary.json",
+      "size": 277,
+      "sha256": "f5ee1ecdb2a2e0f987657ca78d51c3f5d9826d7b3e5880a59cc5734f5effbb8b"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/9bbc7cf125864d0f888d9071f774bc49/job.json",
+      "size": 3021,
+      "sha256": "2f7c6159c8c77b4218f5f4ab0c8acdf94dd917c4ccde4ed5f1cd4648ea7c0652",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/9bbc7cf125864d0f888d9071f774bc49/summary.json",
+      "size": 277,
+      "sha256": "386a147ef5c3c1f39d312c78ff4ce599f1fcb8e1f0ba65f60be3ebd51d99b39d"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/dc93192996d1453e88154dc313063dbf/job.json",
+      "size": 2124,
+      "sha256": "0fec5cb3608dd5faa782431cca816a8d31a567fb9c142e8581b38b69cadf4559",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/dc93192996d1453e88154dc313063dbf/quality.json",
+      "size": 1155,
+      "sha256": "bdf6e3172e8f3e0545511839c3e23b11dd83c845d60b2781366f65e0af9d256f"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/dfe5b78d1b654c2b90bbc30d94f656a3/definition.json",
+      "size": 861,
+      "sha256": "3ed463e63ebafc0fc4ada98df19610946d4a7308c0a4291ca230799f105eadd5"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/dfe5b78d1b654c2b90bbc30d94f656a3/gates.json",
+      "size": 244,
+      "sha256": "2facec0526df784627f758e58f89ec781a6446e349712a24e7bec2e8b4bcdeb5"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/dfe5b78d1b654c2b90bbc30d94f656a3/job.json",
+      "size": 7008,
+      "sha256": "3f51a94e6cbb26642f6525aa4298aceb89e4b9dd3d5b4cfd1d19aae7586d419a",
+      "recorded_status": "failed"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/dfe5b78d1b654c2b90bbc30d94f656a3/outcomes.json",
+      "size": 396,
+      "sha256": "64539abbecd8a89f665394bb8ffd9b25a7032dbf35758d2f560770706a5061a1"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/dfe5b78d1b654c2b90bbc30d94f656a3/preflight.json",
+      "size": 1058,
+      "sha256": "80917d43d0d7513a6ca87630b178b125d6a69d68f1ae7a7ff122dfdb503fb046",
+      "recorded_status": "ready"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/dfe5b78d1b654c2b90bbc30d94f656a3/steps.json",
+      "size": 2243,
+      "sha256": "5e2b10814e5dc115297e58937ff7b66a8b060597a766353085236edcdd05d3ad"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/e57cda802d6f4b41a753d3f0c89767f1/job.json",
+      "size": 3024,
+      "sha256": "1302203100a1396f31076d2ae415539071f190289f5b9bbb38a87bf853d9dad3",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/e57cda802d6f4b41a753d3f0c89767f1/summary.json",
+      "size": 277,
+      "sha256": "e8fee88316500c8066695f9b46c81bdcff8237b3b88a0b7b5b0887ba8b5609a0"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/f4f0da0ee17a416498774f36992182f6/job.json",
+      "size": 996,
+      "sha256": "44af8e71c8b3b8c901c780fe8684428d9b0055cf02982fe5adc1395221d5b8d2",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/gate-acceptance-84c4153082d54784abfce4faaa1e45b8/jobs/f4f0da0ee17a416498774f36992182f6/workflow.json",
+      "size": 861,
+      "sha256": "3ed463e63ebafc0fc4ada98df19610946d4a7308c0a4291ca230799f105eadd5"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/stdout.log",
+      "size": 2041,
+      "sha256": "37b4be4a8650ab66debda505e7b2ebcb51a36eff6d07079ed5e11c6082f3c285"
+    },
+    {
+      "source_set": "i04-file-acceptance-2",
+      "relative_path": "workflow_gate_acceptance.file/verified.json",
+      "size": 485,
+      "sha256": "171dada0e5a2787508769ae073ce3e9a650f9db0333a19419ed6d621cdb8b3a6"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/acceptance.json",
+      "size": 40374,
+      "sha256": "27059cf17cb7bfb2aabfcb91e05c246948d7835bd6e95b56d80cb3dfc3ec748a"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/10e4a3cc5f4445bba42374c3fd9363bd/commands.cfile",
+      "size": 148,
+      "sha256": "987166ec6c24084dc4f536cd3fe1ad81cda400eb4e4224851b794b0c8efc9e44"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/10e4a3cc5f4445bba42374c3fd9363bd/complete.scl",
+      "size": 269,
+      "sha256": "21552185f7d1406214d581b681f567323159d1d783ba2f74c58247b626267a2f"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/10e4a3cc5f4445bba42374c3fd9363bd/contract.json",
+      "size": 459,
+      "sha256": "39332e773f77faff3e3970ecb1e550b8cc8307ac148247c2ef857c667583f8d4"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/10e4a3cc5f4445bba42374c3fd9363bd/job.json",
+      "size": 4353,
+      "sha256": "8eb16f4b7022c5417c27fc89dc4d12b771e1a7f889ec630472132856e36fad02",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 1,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/10e4a3cc5f4445bba42374c3fd9363bd/lspost.cfile",
+      "size": 294,
+      "sha256": "e1f43e5004e86cb4db7d1bb473e60687162936dad17233edd3187fa25185ed3e"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/10e4a3cc5f4445bba42374c3fd9363bd/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/10e4a3cc5f4445bba42374c3fd9363bd/program.cfile",
+      "size": 108,
+      "sha256": "d7b0fa139276dd5de6e627f84277acfa68ea58b2366d62c2c90b97bb8b8585cc"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/10e4a3cc5f4445bba42374c3fd9363bd/stderr.log",
+      "size": 71,
+      "sha256": "375dbe0b9a780eeb10d9e538c6c8988cffac864c7dadb0af83ff81e47bc59b55"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/10e4a3cc5f4445bba42374c3fd9363bd/stdout.log",
+      "size": 773,
+      "sha256": "ccd587ac4a59f557548e8de9718bc58569e924d74b827f67c350a84559d90ef8"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/126df227555f4c14a4ac439ade8b996b/bootstrap.py",
+      "size": 856,
+      "sha256": "fea286a6f074381d38afa8fe68c95f03beb4457aa704783be001af09777e29dd"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/126df227555f4c14a4ac439ade8b996b/bridge.py",
+      "size": 64589,
+      "sha256": "1fc347570a6c65c285e8fc7b53fb5f413fc451cb96d405d3fae9abd34ea834f0"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/126df227555f4c14a4ac439ade8b996b/commands.cfile",
+      "size": 213,
+      "sha256": "272619d5ee8976eb37ed61405f96d9bd0fee6af3fd2a5a155497bd00d459db0e"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/126df227555f4c14a4ac439ade8b996b/job.json",
+      "size": 4561,
+      "sha256": "d2f16347ecf02c4d558172172ef266b9f3b258398f15fe42ba5ee4c53f5768fd",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/126df227555f4c14a4ac439ade8b996b/lspost.cfile",
+      "size": 370,
+      "sha256": "834fa68f2c9e0e734862d12b36997cf29e6307088f2aff738143d445c3b51a55"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/126df227555f4c14a4ac439ade8b996b/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/126df227555f4c14a4ac439ade8b996b/native_commands.py",
+      "size": 3440,
+      "sha256": "d90469a4ff1405e20d291992f47e60247a03794f3432c8bb3ec9f58c1d5caad9"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/126df227555f4c14a4ac439ade8b996b/native_versions.py",
+      "size": 3158,
+      "sha256": "7e99dcf96610c006bd223acebf63309d10e0d6060d092dd4bb1fd728c3d67c44"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/126df227555f4c14a4ac439ade8b996b/request.json",
+      "size": 581,
+      "sha256": "ebf64b0bf2743d6fa180385bc793353874dd2f09e5e248c685ebc10d2c807ba0"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/126df227555f4c14a4ac439ade8b996b/response.json",
+      "size": 825,
+      "sha256": "8b7fb7f60dff201b8f84f4848c003955217790ca84c198a2c756b1e110d2e135",
+      "recorded_ok": true
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/126df227555f4c14a4ac439ade8b996b/stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/126df227555f4c14a4ac439ade8b996b/stdout.log",
+      "size": 850,
+      "sha256": "b7e7838b6bc08132e296dcccff831fc843417b4367ef5da88c8cfad70f52f457"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/225a8b909c3d4d33a94f8a21a07d44cf/job.json",
+      "size": 968,
+      "sha256": "c28a50f63dea1203dbba679bc18c8e14e516fe3d73872b1b88f27963ba9da83b",
+      "recorded_status": "succeeded"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/225a8b909c3d4d33a94f8a21a07d44cf/macro.json",
+      "size": 449,
+      "sha256": "9c92a911c78a8b104f406e3b3567afb97d658fc5bdb365923ec834e8c9996a07"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/5d218e0c882d4a82adb3e33e3cc6e457/contract.json",
+      "size": 459,
+      "sha256": "39332e773f77faff3e3970ecb1e550b8cc8307ac148247c2ef857c667583f8d4"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/5d218e0c882d4a82adb3e33e3cc6e457/job.json",
+      "size": 1993,
+      "sha256": "aa50450afd8fb3a966fee2202db49029cd833a5bb929a2620a14f11e9556c1df",
+      "recorded_status": "prepared"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/5d218e0c882d4a82adb3e33e3cc6e457/program.cfile",
+      "size": 108,
+      "sha256": "d7b0fa139276dd5de6e627f84277acfa68ea58b2366d62c2c90b97bb8b8585cc"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/6701137f97764037bb55457d7d35f36f/contract.json",
+      "size": 464,
+      "sha256": "3d7df9751b750d616502f69e183c9b9346791eaaaa312785eb4c2e6fa241362b"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/6701137f97764037bb55457d7d35f36f/job.json",
+      "size": 1652,
+      "sha256": "4b7b49312b73d17c654c71510adbbec466ca54f398b1f5e6f55995d685d7a8c7",
+      "recorded_status": "prepared"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/6701137f97764037bb55457d7d35f36f/program.cfile",
+      "size": 24,
+      "sha256": "43d137ea4fb490c57b23a14809d2c93d16da0b78f2822ccc6957a0e3578b5f5a"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/8c534951a6a448548195230fed34bf59/commands.cfile",
+      "size": 88,
+      "sha256": "9c862b18e4f158d9ae90ed44454f1019e08a0a58a300dfb7810ea952a148f5c8"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/8c534951a6a448548195230fed34bf59/complete.scl",
+      "size": 269,
+      "sha256": "21552185f7d1406214d581b681f567323159d1d783ba2f74c58247b626267a2f"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/8c534951a6a448548195230fed34bf59/contract.json",
+      "size": 464,
+      "sha256": "3d7df9751b750d616502f69e183c9b9346791eaaaa312785eb4c2e6fa241362b"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/8c534951a6a448548195230fed34bf59/job.json",
+      "size": 4733,
+      "sha256": "7187eb889eced7ae03ca327d4c4a57340d4d870c773850ce0d062c34592b124b",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 1,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/8c534951a6a448548195230fed34bf59/lspost.cfile",
+      "size": 222,
+      "sha256": "4c378afc3e71781d7488d3f7c8ec64abdd7691b70e744eae9b7452e69ddcba3a"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/8c534951a6a448548195230fed34bf59/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/8c534951a6a448548195230fed34bf59/program.cfile",
+      "size": 24,
+      "sha256": "43d137ea4fb490c57b23a14809d2c93d16da0b78f2822ccc6957a0e3578b5f5a"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/8c534951a6a448548195230fed34bf59/stderr.log",
+      "size": 71,
+      "sha256": "a7c3b37569a343aed086924bcbd8f6db2a0022222f72d2894fdfcdbaee5d282a"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/8c534951a6a448548195230fed34bf59/stdout.log",
+      "size": 868,
+      "sha256": "d9e7098e705739ee67dea0960dae096b665f7c2ddcdb3a277c04e164fdf77a3b"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/ae9afdb79d494f5586a666d32b7713e7/commands.cfile",
+      "size": 85,
+      "sha256": "11f48846f5ebf4c50236cd986fe8111cadf21aa9f2d9cd693edbaecabbbe6819"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/ae9afdb79d494f5586a666d32b7713e7/complete.scl",
+      "size": 269,
+      "sha256": "21552185f7d1406214d581b681f567323159d1d783ba2f74c58247b626267a2f"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/ae9afdb79d494f5586a666d32b7713e7/contract.json",
+      "size": 453,
+      "sha256": "f6593eeca2161085dd29d95080321e8769519b11949680aed37d2bed32a1ee2e"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/ae9afdb79d494f5586a666d32b7713e7/job.json",
+      "size": 4718,
+      "sha256": "09bcc6f2126c49f7d25ef6298532eee3d470e231e0c3b84819d9ac40f9a9ac51",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 1,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/ae9afdb79d494f5586a666d32b7713e7/lspost.cfile",
+      "size": 219,
+      "sha256": "4980bb38fd7a4dc0d27003f503890a6a90259263f75c1dbeaa4267359b9fc065"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/ae9afdb79d494f5586a666d32b7713e7/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/ae9afdb79d494f5586a666d32b7713e7/program.scl",
+      "size": 174,
+      "sha256": "1881a8805b12440b50962b6eaf7a1d1a09831d398848c099f25f66109328f922"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/ae9afdb79d494f5586a666d32b7713e7/stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/ae9afdb79d494f5586a666d32b7713e7/stdout.log",
+      "size": 868,
+      "sha256": "d12712eab57fece9714ab9dba32882e83c0cf4bb4fae28bc6073782247e97eaf"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/b880bda1da9d4de387fa7e1aaeb85109/bootstrap.py",
+      "size": 1337,
+      "sha256": "c8ed4178c0fab77a71e180111cc5e2b38326ba2ce7d69d648dfbe55943fe3efe"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/b880bda1da9d4de387fa7e1aaeb85109/commands.cfile",
+      "size": 86,
+      "sha256": "e2506cb72368ce977144f296c83068340109a1fa86184726a0bdf394417f9627"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/b880bda1da9d4de387fa7e1aaeb85109/complete.scl",
+      "size": 269,
+      "sha256": "21552185f7d1406214d581b681f567323159d1d783ba2f74c58247b626267a2f"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/b880bda1da9d4de387fa7e1aaeb85109/contract.json",
+      "size": 455,
+      "sha256": "a696943f7618654be809c32683cbae85f7ef331fb700be079b17d2a301a860ba"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/b880bda1da9d4de387fa7e1aaeb85109/job.json",
+      "size": 4726,
+      "sha256": "a3c9ebcc2633510e8c08a5b7653754a14a4f926276f7a10ff2b1bf893baa991e",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 1,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/b880bda1da9d4de387fa7e1aaeb85109/lspost.cfile",
+      "size": 220,
+      "sha256": "c66b4cab2511056d1b0e4abcd483f7f860525f8a8eadbd25d3db16fa09a535a9"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/b880bda1da9d4de387fa7e1aaeb85109/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/b880bda1da9d4de387fa7e1aaeb85109/nodes.json",
+      "size": 12,
+      "sha256": "9557ce69eba0ba431d457dc79c2331d0b6e1849ecd700ca4d16b3522c5e0b910"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/b880bda1da9d4de387fa7e1aaeb85109/program.py",
+      "size": 223,
+      "sha256": "dbf0e25da11d436128d65c2aae91d8334b1a8f0586b0e31aef1cf6279b8a01eb"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/b880bda1da9d4de387fa7e1aaeb85109/python-result.json",
+      "size": 12,
+      "sha256": "6bc0da1f42f96fc37b8bd7ed20ba57606d2a0da5cda2b135c7854fbdc985b8a3",
+      "recorded_ok": true
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/b880bda1da9d4de387fa7e1aaeb85109/stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/b880bda1da9d4de387fa7e1aaeb85109/stdout.log",
+      "size": 867,
+      "sha256": "40106618a2c32f4ca31a73b88567c30be40ecbb54e746c1a84b3b56c4ec5d915"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/d05a4b7f98734619927cc157b84d497e/contract.json",
+      "size": 453,
+      "sha256": "f6593eeca2161085dd29d95080321e8769519b11949680aed37d2bed32a1ee2e"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/d05a4b7f98734619927cc157b84d497e/job.json",
+      "size": 2061,
+      "sha256": "4a289bcea133086286eed5e9081b521707d1a19ba90d8951fa35f679d1648267",
+      "recorded_status": "prepared"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/d05a4b7f98734619927cc157b84d497e/program.scl",
+      "size": 174,
+      "sha256": "1881a8805b12440b50962b6eaf7a1d1a09831d398848c099f25f66109328f922"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/e51c532b3269470485d2c002669c2667/commands.cfile",
+      "size": 148,
+      "sha256": "18a606596c252769f6b0b36eea05e571d73f702b40568dba74675d5cb4ad9ffa"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/e51c532b3269470485d2c002669c2667/complete.scl",
+      "size": 269,
+      "sha256": "21552185f7d1406214d581b681f567323159d1d783ba2f74c58247b626267a2f"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/e51c532b3269470485d2c002669c2667/contract.json",
+      "size": 459,
+      "sha256": "6a1f4e08afc1718a8ff6ae0bc92fb64fd5be960d73c12100ce0b9926a7739d17"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/e51c532b3269470485d2c002669c2667/job.json",
+      "size": 4730,
+      "sha256": "779fc24be774e08ce7adbeaca798d2600932d1d5eec8b3f1d9f9b7d9af423dcf",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 1,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/e51c532b3269470485d2c002669c2667/lspost.cfile",
+      "size": 294,
+      "sha256": "a84dbc9b965ff6b563a9e3b304aaec377d05698a8ff506471978bdc2140bd26f"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/e51c532b3269470485d2c002669c2667/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/e51c532b3269470485d2c002669c2667/program.cfile",
+      "size": 108,
+      "sha256": "c5eb554473183647644fce39fc81f107a91e94a1e32d64ec3008013421d3f5e8"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/e51c532b3269470485d2c002669c2667/stderr.log",
+      "size": 71,
+      "sha256": "d05a1e45a8a296a83583da894bfb2fe1f466b894ec3723da14a40803266cfe13"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/e51c532b3269470485d2c002669c2667/stdout.log",
+      "size": 773,
+      "sha256": "ccd587ac4a59f557548e8de9718bc58569e924d74b827f67c350a84559d90ef8"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/e5f299ddc00e41d7ae3f791edf65109a/contract.json",
+      "size": 455,
+      "sha256": "a696943f7618654be809c32683cbae85f7ef331fb700be079b17d2a301a860ba"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/e5f299ddc00e41d7ae3f791edf65109a/job.json",
+      "size": 2118,
+      "sha256": "f02508bbc70e2e72cf1125a8349fbbf4545037609722a91537a92c2163feba86",
+      "recorded_status": "prepared"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/e5f299ddc00e41d7ae3f791edf65109a/program.py",
+      "size": 223,
+      "sha256": "dbf0e25da11d436128d65c2aae91d8334b1a8f0586b0e31aef1cf6279b8a01eb"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/eadcce0ec9b84ba5ba26f6e835862976/contract.json",
+      "size": 459,
+      "sha256": "6a1f4e08afc1718a8ff6ae0bc92fb64fd5be960d73c12100ce0b9926a7739d17"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/eadcce0ec9b84ba5ba26f6e835862976/job.json",
+      "size": 1754,
+      "sha256": "4d1d9afbd0031e69e433550ddf6d30ffbd14992606aaacb3ad76d55ee1a6037e",
+      "recorded_status": "prepared"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/native-programs-10fabd66b5c5470087f9026287b2c35e/jobs/eadcce0ec9b84ba5ba26f6e835862976/program.cfile",
+      "size": 108,
+      "sha256": "c5eb554473183647644fce39fc81f107a91e94a1e32d64ec3008013421d3f5e8"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/stdout.log",
+      "size": 410,
+      "sha256": "c42e0fad4acfadf83b5af017187885adc1d8dcb32e580a3132cc576f261b0403"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "program_acceptance.batch/verified.json",
+      "size": 472,
+      "sha256": "33775acc927e4489f7e6fb01334e440b2d626458ea8443ac9b85ff209a89eaf7"
+    },
+    {
+      "source_set": "i04-native-program",
+      "relative_path": "report.json",
+      "size": 360,
+      "sha256": "7acc28976999cba860fc9b62f3e0167e3494efe2155841bbbe020636e9c74f00",
+      "case_results": {
+        "tests/test_native_acceptance.py::test_legacy_acceptance[program_acceptance.batch]": "passed"
+      }
+    }
+  ]
+}

@@ -4,7 +4,6 @@ import math
 
 from pydantic import StrictFloat, StrictInt
 
-from .config import scl_command_path
 from .core.native_log import native_errors, read_delta
 from .fringe_presentation import averaging_command
 from .gui_controls import wait_for_gui_state
@@ -156,7 +155,7 @@ class GuiMediaTools:
                     nc.animation('first', 1),
                     nc.animation('last', final_state),
                     nc.animation('incr', 1),
-                    f"movie MP4/H264 {width}x{height} {scl_command_path(movie.with_suffix(''))} {fps}",
+                    nc.movie(movie.with_suffix(''), width, height, fps),
                 ]
                 atomic_json(directory / "commands.json", commands)
                 offset = log.stat().st_size if log.exists() else 0
