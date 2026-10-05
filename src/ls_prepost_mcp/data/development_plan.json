@@ -26,7 +26,8 @@
         "keyword-r16-element-sets",
         "keyword-r16-prescribed-motion",
         "official-motion-shell-example",
-        "official-linear-partial-import"
+        "official-linear-partial-import",
+        "official-loadpt-panel"
       ],
       "review_status": "selected_sections_reviewed",
       "conversion_status": "partial",
@@ -56,7 +57,8 @@
         "research-54",
         "research-55",
         "official-movie-tutorial",
-        "local-advanced-2020r1-native-macros"
+        "local-advanced-2020r1-native-macros",
+        "official-example11-nodal-force"
       ],
       "review_status": "selected_workflows_reviewed",
       "conversion_status": "partial",
@@ -455,6 +457,7 @@
         "compose_keyword_deck",
         "create_elastic_material",
         "create_gui_entity_set",
+        "create_gui_nodal_load",
         "create_gui_nonreflecting_boundary",
         "create_gui_prescribed_motion",
         "create_gui_segment_pressure",

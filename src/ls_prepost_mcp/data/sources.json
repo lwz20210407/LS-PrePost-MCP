@@ -1541,5 +1541,23 @@
     "integration": "native_negative_fixture",
     "license_status": "Reference/downloaded local fixture only",
     "scope": "No claim that all solver versions reject the original keyword"
+  },
+  {
+    "id": "official-loadpt-panel",
+    "title": "LS-PrePost LoadPt panel and general selection",
+    "url": "https://lsdyna.ansys.com/loadpt/",
+    "summary": "Official node/SET/rigid load creation interface. Supports the selection-to-nodal-load workflow; only node/SET global fixed-axis creation implemented here.",
+    "integration": "bounded_native_nodal_load_creation",
+    "license_status": "Documentation reference only",
+    "scope": "docs/NODAL_LOADS.md"
+  },
+  {
+    "id": "official-example11-nodal-force",
+    "title": "Official Example11 concentrated load on a beam with attached mass",
+    "url": "https://lsdyna.ansys.com/example-11/",
+    "summary": "Complete original downloaded locally. Opens41nodes/21elements, but ELEMENT_MASS is rejected by current shared mesh digest before load mutation. Retained gap fixture, not positive nodal-load acceptance.",
+    "integration": "native_unsupported_auxiliary_element_fixture",
+    "license_status": "Local reference input only; no raw model redistributed",
+    "scope": "Extend auxiliary-element preservation before claiming this workflow passes"
   }
 ]

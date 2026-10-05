@@ -1717,6 +1717,22 @@
       ],
       "scope": "Global NODE_ID/SET_ID motion; x/y/z/rx/ry/rz, displacement/velocity/acceleration, declared units/radians, new/reused time curves, explicit shared-group append, node selection dependencies and parameter replay. SPC/motion/inline NODE TC-RC and node-set-change checks. No rigid/local/vector/adaptive/solver or general lifecycle certification.",
       "validation": "Synthetic33-step workflow with16motion rows including partial-import rejection/restart recovery; official6node/2shell8-case fresh-process acceptance. Same-session public replacement remains failed separately."
+    },
+    {
+      "id": "model.create_gui_nodal_load",
+      "tool": "create_gui_nodal_load",
+      "status": "native_tested",
+      "sources": [
+        "official-loadpt-panel",
+        "library-pydyna",
+        "official-example11-nodal-force"
+      ],
+      "tested_profiles": [
+        "4.13.4 Windows visible maximized GUI"
+      ],
+      "scope": "Global nodal force/moment x/y/z/rx/ry/rz; explicit units, per_node SET linkage or total_equal frozen POINT distribution, selection dependencies, curve creation/reuse, overlap review and intentional superposition. Mesh/display/cards preserved; explicit fresh-process reopen. No follower/local/rigid/load-ID variant or solver certification.",
+      "validation": "tools/run_nodal_load_acceptance.py synthetic mixed shell/solid/beam full workflow passed, including parameter replay with changed node count and load curve; real native numeric/card checks.",
+      "known_limitations": "Official Example11 contains ELEMENT_MASS and is rejected by current shared mesh digest before edits. Not a passed public workflow; keep original model intact and extend auxiliary-element coverage."
     }
   ],
   "native_reference_builds": [

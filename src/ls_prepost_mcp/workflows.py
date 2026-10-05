@@ -20,6 +20,7 @@ GUI_ACTIONS = {
     "inspect_gui_entity_sets",
     "create_gui_spc",
     "create_gui_prescribed_motion",
+    "create_gui_nodal_load",
     "set_gui_entity_visibility",
     "measure_gui_geometry",
     "render_gui_field",
@@ -582,7 +583,7 @@ class WorkflowTools:
                 steps.append(
                     dict(id="step" + str(len(steps) + 1), action=action, arguments=entry["parameters"])
                 )
-                if action in ("create_gui_entity_set", "create_gui_segment_set", "create_gui_prescribed_motion") and entry["parameters"].get("selection_job"):
+                if action in ("create_gui_entity_set", "create_gui_segment_set", "create_gui_prescribed_motion", "create_gui_nodal_load") and entry["parameters"].get("selection_job"):
                     source = entry["parameters"]["selection_job"]
                     if source not in operation_positions:
                         review_reasons.append(dict(reason="Entity-set selection source was not recorded earlier", action=action))

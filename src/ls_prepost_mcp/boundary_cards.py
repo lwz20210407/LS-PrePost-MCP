@@ -6,6 +6,7 @@ from collections import Counter
 import numpy as np
 
 from .entity_cards import fields, list_set, motion_rows, native_blocks
+from .nodal_load_cards import nodal_load_rows
 
 PREFIXES = ("*DEFINE_CURVE", "*DEFINE_TABLE", "*DEFINE_FUNCTION", "*LOAD_SEGMENT_SET", "*BOUNDARY_NON_REFLECTING")
 
@@ -31,16 +32,23 @@ def curve_record(name, lines):
                 offa=number(row[4]), offo=number(row[5]), dattyp=int(row[6] or 0), lcint=int(row[7] or 0), points=points)
 
 
-def inspect_boundary_cards(path, include_ordered_node_sets=False, include_motions=False):
+def inspect_boundary_cards(path, include_ordered_node_sets=False, include_motions=False, include_nodal_loads=False):
     prefixes = PREFIXES + (("*SET_NODE",) if include_ordered_node_sets else ())
     if include_motions:
         prefixes+=('*BOUNDARY_PRESCRIBED_MOTION',)
-    result = dict(curves={}, loads=[], motions=[], nonreflecting=[], ordered_node_sets={}, namespace_ids=set(), unresolved=[], other=Counter())
+    if include_nodal_loads:
+        prefixes+=('*LOAD_NODE',)
+    result = dict(curves={}, loads=[], motions=[], nodal_loads=[], nonreflecting=[], ordered_node_sets={}, namespace_ids=set(), unresolved=[], other=Counter())
     for name, digest, lines in native_blocks(path, prefixes):
         if name in ("*KEYWORD", "*END"):
             continue
         if not name.startswith(prefixes):
             result["other"][(name, digest)] += 1
+        elif name.startswith('*LOAD_NODE'):
+            try:
+                result['nodal_loads'].extend(nodal_load_rows(name, lines))
+            except NotImplementedError:
+                result['unresolved'].append((name, digest))
         elif name.startswith('*BOUNDARY_PRESCRIBED_MOTION'):
             try:
                 result['motions'].extend(motion_rows(name,lines))
@@ -100,7 +108,7 @@ def inspect_boundary_cards(path, include_ordered_node_sets=False, include_motion
     return result
 
 
-def verify_boundary_delta(before, after, curve=None, load=None, nonreflecting=None, new_node_sets=None, motions=None):
+def verify_boundary_delta(before, after, curve=None, load=None, nonreflecting=None, new_node_sets=None, motions=None, nodal_loads=None):
     if before["other"] != after["other"] or Counter(before["unresolved"]) != Counter(after["unresolved"]):
         raise ValueError("Boundary creation changed an unrelated native keyword")
     expected_curves = dict(before["curves"])
@@ -142,8 +150,34 @@ def verify_boundary_delta(before, after, curve=None, load=None, nonreflecting=No
         actual_motions.append(matches[0])
     if Counter(tuple(sorted(m.items())) for m in before.get('motions',[])+actual_motions) != Counter(tuple(sorted(m.items())) for m in after.get('motions',[])):
         raise ValueError('Unexpected prescribed-motion changes')
+    remaining = Counter(tuple(sorted(row.items())) for row in after.get('nodal_loads', []))
+    actual_nodal_loads = []
+    # Remove old records first: intentional identical superposition is valid.
+    for old in before.get('nodal_loads', []):
+        key = tuple(sorted(old.items()))
+        if remaining[key] <= 0:
+            raise ValueError('Existing nodal load changed')
+        remaining[key] -= 1
+    candidates = {}
+    for key, count in remaining.items():
+        if count:
+            row = dict(key)
+            scale = row.pop('scale')
+            candidates.setdefault(tuple(sorted(row.items())), Counter())[scale] += count
+    for expected in nodal_loads or []:
+        key = tuple(sorted((k, v) for k, v in expected.items() if k != 'scale'))
+        scales = candidates.get(key, {})
+        match = next((scale for scale, count in scales.items() if count > 0
+                      and math.isclose(scale, expected['scale'], rel_tol=2e-6, abs_tol=0)), None)
+        if match is None:
+            raise ValueError('Native nodal-load references/scale differ from request')
+        actual_nodal_loads.append(dict(key, scale=match))
+        scales[match] -= 1
+    if any(count for scales in candidates.values() for count in scales.values()):
+        raise ValueError('Unexpected added nodal loads')
     return dict(native_card_references_verified=True, unrelated_native_cards_preserved=True,
                 curve_maximum_absolute_error=max_error, curve_relative_tolerance=2e-6,
                 actual_load=actual_load,
                 actual_motions=actual_motions,
+                actual_nodal_loads=actual_nodal_loads,
                 solver_validated=False)
