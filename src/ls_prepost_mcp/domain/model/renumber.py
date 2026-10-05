@@ -45,7 +45,8 @@ def _may_refer(name: str, kind: str) -> bool:
                 or any(target == kind for _, target in references._references(name, base, True)))
 
 
-ID_LIKE = re.compile(r"(?:id|sid)(?:_\d+)?$|^lc")
+# ID-like names: ..id / ..sid (with a numeric suffix such as id1 or lcid_2), lc.. curves, n1..n8 nodes
+ID_LIKE = re.compile(r"(?:id|sid)_?\d*$|^lc|^n\d+$")
 SELF_IDS = {"wid", "jid", "coupid", "did"}  # a keyword's own ID, not a reference
 
 

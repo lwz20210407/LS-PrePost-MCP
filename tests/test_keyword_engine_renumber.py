@@ -161,3 +161,14 @@ def test_lagrange_in_solid_part_references(tmp_path: Path) -> None:
     block = deck.blocks("*CONSTRAINED_LAGRANGE_IN_SOLID")[0]
     assert deck.get(block, "lstrsid").value == 5 and deck.get(block, "alesid").value == 5
     assert deck.references().dangling_count == 0
+
+
+def test_load_segment_curve_and_nodes_follow_renumbering(tmp_path: Path) -> None:
+    text = _model("*LOAD_SEGMENT\n         7       1.0                   1         2         3         4\n"
+                  "*DEFINE_CURVE\n         7\n                 0.0                 0.0\n                 1.0                 1.0\n")
+    deck = _deck(tmp_path, text)
+    renumber(deck, "curve", {7: 70})
+    renumber(deck, "node", {1: 101})
+    block = deck.blocks("*LOAD_SEGMENT")[0]
+    assert deck.get(block, "lcid", row=1).value == 70 and deck.get(block, "n1", row=1).value == 101
+    assert deck.references().dangling_count == 0
