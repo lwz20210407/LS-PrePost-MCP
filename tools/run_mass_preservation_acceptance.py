@@ -1,7 +1,6 @@
 """Opt-in mass-only model selection/set/load replay and native reopen."""
 
 import argparse
-import json
 import uuid
 from pathlib import Path
 
