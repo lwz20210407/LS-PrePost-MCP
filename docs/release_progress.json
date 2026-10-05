@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "baseline_id": "R1-20261003-36",
-  "updated_at": "2026-10-04T22:15:50.119334+00:00",
-  "verified_commit": "b6d9f86e8f3f457b91f0ef09103541521ac966ce",
+  "updated_at": "2026-10-05T00:10:05.049201+00:00",
+  "verified_commit": "fb07bc91264a2491f3f5ba54c1114fc3ac1d93be",
   "frozen_gate_count": 36,
   "scope": "范围：Windows LS-PrePost 4.13.4 可见 GUI 的首个实用版本；按36项等权验收门槛计算，不是整个软件功能覆盖率或剩余工时。",
   "outside_scope": "后续总体路线仍保留：常用菜单扩展、接触与Include工程化、7模板完整工况、4.8/4.10及两种无GUI、后排CAD与高级模块。未纳入本期36项，不能据本进度称全部完成。",
-  "current_task": "Private持续开发：显式替换四种keyword/result组合及空模型失败保护通过；官方鸟撞旧模型误报、原生质量与录制失败阻断重新回归，恢复B0-03至26/36。下一步关联语义/多模型录制及通用前后处理联合验收；旧版本、无GUI和全软件覆盖不因此完成。",
+  "current_task": "Private持续开发：规定运动已完成NODE/SET、六轴/三类型、曲线/选区回放、共享分组和SPC/TC-RC冲突检查；33步合成与8项官方新进程验收通过。部分关键字跳读现拒绝。官方双壳原位替换后退出仍是B4-05缺口，26/36不变。",
   "groups": [
     {
       "id": "B0",
@@ -62,7 +62,7 @@
       "title": "执行结果、质量门槛及失败停止",
       "state": "passed",
       "work_item": "T02",
-      "note": "公开鸟撞原始误报回归：报错返回failed且来源/代际不推进；显式替换正确进入1状态keyword。壳质量/keyword/录制门槛失败阻断重新通过。范围仅执行与失败停止，关联和全场数组仍未认证。",
+      "note": "公开鸟撞原始误报回归：报错返回failed且来源/代际不推进；显式替换正确进入1状态keyword。壳质量/keyword/录制门槛失败阻断重新通过。范围仅执行与失败停止，关联和全场数组仍未认证。 补充无效关键字/跳读数据负例：即使网格数正确也失败，即时与迟到回执均不推进来源。",
       "evidence": [
         "docs/WORKFLOW_GATES.md",
         "docs/UI_AUDIT_POST_GAPS.md",
@@ -357,9 +357,10 @@
       "title": "长流程、故障与多实例隔离回归",
       "state": "pending",
       "work_item": "T10",
-      "note": "已有短流程和失败案例；系统稳定性矩阵待完成",
+      "note": "官方6节点/2壳角运动原例在同进程替换后的导出中原生退出，未改原例也复现；新进程重开通过，原位故障仍待解决。长流程、多实例系统矩阵未完成。",
       "evidence": [
-        "docs/VERIFICATION.md"
+        "docs/VERIFICATION.md",
+        "docs/NATIVE_KNOWN_ISSUES.md"
       ]
     },
     {
