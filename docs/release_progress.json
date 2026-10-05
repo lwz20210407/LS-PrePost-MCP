@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "baseline_id": "R1-20261003-36",
-  "updated_at": "2026-10-05T04:09:48.866677+00:00",
-  "verified_commit": "9ed5abbd143c659db2573294e8ca9dce5034b6a7",
+  "updated_at": "2026-10-05T04:27:32.229442+00:00",
+  "verified_commit": "09b207ee691a2b4df01eb83183bf71e879afb706",
   "frozen_gate_count": 36,
   "scope": "范围：Windows LS-PrePost 4.13.4 可见 GUI 的首个实用版本；按36项等权验收门槛计算，不是整个软件功能覆盖率或剩余工时。",
   "outside_scope": "后续总体路线仍保留：常用菜单扩展、接触与Include工程化、7模板完整工况、4.8/4.10及两种无GUI、后排CAD与高级模块。未纳入本期36项，不能据本进度称全部完成。",
-  "current_task": "持续开发：补上keyword卸载/替换后的原生导出验收，官方双壳退出现在在调用内明确失败并保留检查点；18项替换矩阵和故障后的显式恢复通过，716项测试通过。原生崩溃未修复，首版仍26/36。下一批继续通用Entity载荷与自动化闭环。",
+  "current_task": "新增节点/节点集三向力与三向力矩：明确逐节点/总量均分、曲线新建复用、选择依赖、叠加审查、参数回放和重开；25项原生流程、731项测试通过。官方Example11的ELEMENT_MASS在修改前被共用校验拒绝，下一步补辅助单元保真。首版仍26/36，不等于全软件覆盖率。",
   "groups": [
     {
       "id": "B0",
@@ -450,5 +450,12 @@
       "reason": "Initial inventory; Entity Creation gates omitted"
     }
   ],
-  "verification_increment": "532 local tests;26 native node-replacement checks; hosted CI37207085736 succeeded. GUI audit captures are not functional acceptance passes."
+  "verification_increment": "532 local tests;26 native node-replacement checks; hosted CI37207085736 succeeded. GUI audit captures are not functional acceptance passes.",
+  "latest_entity_increment": {
+    "tool": "create_gui_nodal_load",
+    "native_checks": 25,
+    "tests_passed": 731,
+    "evidence": "docs/NODAL_LOADS.md",
+    "remaining": "COVERAGE-MASS-003; follower/local/rigid loads; no solver certification"
+  }
 }
