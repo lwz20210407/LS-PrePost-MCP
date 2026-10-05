@@ -15,7 +15,7 @@ from pathlib import Path
 
 import numpy as np
 
-from . import contact, geometry, lists, mesh, quality, renumber, sets
+from . import contact, controls, geometry, lists, loads, mesh, quality, renumber, sets
 from .deck import Change, KeywordDeck
 from .fields import FieldError
 from .includes import identity
@@ -148,6 +148,20 @@ def _create_set(deck: KeywordDeck, edit: dict) -> Change:
 
 MESH_OPS = {"transform_nodes", "copy_elements", "renumber", "merge_duplicate_nodes", "delete_elements",
             "reverse_elements", "unify_shell_normals"}
+SUMMARY_OPS = MESH_OPS | {"add_boundary", "set_control"}
+
+
+def _setup_op(deck: KeywordDeck, edit: dict) -> dict:
+    """P05 boundary conditions / loads (``units`` must be declared) and P10 control recipes."""
+    if edit["op"] == "set_control":
+        return {"cards": controls.apply_recipe(deck, edit["recipe"], dict(edit.get("params") or {}))}
+    if not edit.get("units"):
+        raise FieldError("Declare the unit system of the values (units); nothing is converted")
+    kind = edit["kind"]
+    if kind not in loads.KINDS:
+        raise FieldError(f"Unknown boundary kind {kind!r}; use one of {sorted(loads.KINDS)}")
+    params = {k: v for k, v in edit.items() if k not in ("op", "kind", "units")}
+    return {"units": edit["units"], **loads.KINDS[kind](deck, **params)}
 
 
 def _ids(deck: KeywordDeck, edit: dict, kind: str) -> list[int]:
@@ -259,6 +273,8 @@ def edit_deck(path: str, edits: list[dict], *, output_dir: str | None = None, in
     Mesh ops (P08, summaries in ``summaries``): transform_nodes (translate / rotate / reflect /
     matrix), copy_elements, renumber (mapping or first/last/start), merge_duplicate_nodes,
     delete_elements, reverse_elements, unify_shell_normals; targets by ``ids`` or ``select``.
+    Setup ops: add_boundary (P05; ``kind`` from loads.KINDS, ``units`` required) and set_control
+    (P10; ``recipe`` from controls.RECIPES or ascii, ``params``).
     """
     if output_dir and in_place:
         raise ValueError("Choose output_dir or in_place, not both")
@@ -268,9 +284,10 @@ def edit_deck(path: str, edits: list[dict], *, output_dir: str | None = None, in
     applied, summaries = [], []
     for number, edit in enumerate(edits):
         try:
-            if edit.get("op") in MESH_OPS:
+            if edit.get("op") in SUMMARY_OPS:
                 before = len(deck.changes)
-                summaries.append({"edit": number, "op": edit["op"], **_mesh_op(deck, edit)})
+                run = _mesh_op if edit["op"] in MESH_OPS else _setup_op
+                summaries.append({"edit": number, "op": edit["op"], **run(deck, edit)})
                 changes = deck.changes[before:]
             else:
                 changes = _apply(deck, edit)

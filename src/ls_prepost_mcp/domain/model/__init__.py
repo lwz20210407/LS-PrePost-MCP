@@ -1,4 +1,4 @@
-"""Byte-preserving LS-DYNA keyword engine (tasks.yaml I07; backend of P01, P02, P03, P04, P08, P09, P10, P11).
+"""Byte-preserving LS-DYNA keyword engine (tasks.yaml I07; backend of P01, P02, P03, P04, P06, P08, P09, P10, P11).
 
 Entry points
 ------------
@@ -29,6 +29,9 @@ Entry points
     duplicate IDs, inverted elements, quality distributions (scaled Jacobian, aspect ratio,
     warpage, angles), coincident nodes. Metrics are judged only against caller thresholds;
     element blocks that cannot be read are listed as unchecked.
+``contact.check_penetration`` and ``operations.check_contacts``
+    Initial penetration of slave nodes into master surfaces, per *CONTACT definition; closest
+    feature with pseudonormal sign, shell thickness offsets; read-only.
 ``cases.generate_cases``
     Parameter-study decks, one directory per case, each compared with the base deck.
 ``mesh`` (transform / translate / rotate / reflect nodes, reverse elements, unify shell normals)
