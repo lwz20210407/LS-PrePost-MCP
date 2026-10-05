@@ -97,6 +97,40 @@ class SourceFile:
     def data(self) -> bytes:
         return encode(self.text())
 
+    def encoding(self) -> str | None:
+        """Text encoding of the original bytes: ascii, utf-8 or gbk; None when unknown."""
+        cached = getattr(self, "_encoding", "")
+        if cached != "":
+            return cached
+        found = None
+        for name in ("ascii", "utf-8", "gbk"):
+            try:
+                self.original.decode(name)
+            except UnicodeDecodeError:
+                continue
+            found = name
+            break
+        self._encoding = found
+        return found
+
+    def to_text(self, value: str) -> str:
+        """Map a real string to the byte-per-character text form of this file."""
+        if value.isascii():
+            return value
+        encoding = self.encoding()
+        if encoding == "ascii":
+            encoding = "utf-8"
+        if encoding is None:
+            raise ValueError(f"Cannot write non-ASCII text into {self.path}: file encoding is unknown")
+        return value.encode(encoding).decode("latin-1")
+
+    def from_text(self, text: str) -> str:
+        """Readable string for a field of this file (UTF-8/GBK decoded when known)."""
+        if text.isascii():
+            return text
+        encoding = self.encoding() or "latin-1"
+        return text.encode("latin-1").decode(encoding, errors="replace")
+
     def newline(self) -> str:
         """Dominant line ending of the original file (used for inserted text)."""
         text = decode(self.original)

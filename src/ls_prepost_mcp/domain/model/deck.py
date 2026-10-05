@@ -220,7 +220,7 @@ class KeywordDeck:
         elif not stripped:
             value = info.default
         elif info.kind == "str":
-            value = stripped
+            value = block.file.from_text(stripped) if block.file else stripped
         else:
             value = parse_number(stripped)
         return FieldValue(info.name, raw, value, parameter, info.card, block.line_number + info.slot.line)
@@ -267,7 +267,12 @@ class KeywordDeck:
                 raise FieldError(f"Undefined parameter {ref[1]!r}")
             text, exact = value.strip(), True
         else:
-            text, exact = format_value(str(value) if info.kind == "str" else value, width, info.kind)
+            if info.kind == "str":
+                try:
+                    value = block.file.to_text(str(value)) if block.file else str(value)
+                except ValueError as error:
+                    raise FieldError(str(error)) from error
+            text, exact = format_value(value, width, info.kind)
         index = info.slot.line
         before = block.lines[index]
         block.lines[index] = write_text(before, info.slot, text, "left" if info.kind == "str" else "right")

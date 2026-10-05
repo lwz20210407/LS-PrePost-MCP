@@ -146,3 +146,17 @@ def test_save_as_writes_only_files_still_included(tmp_path: Path) -> None:
     report = deck.save_as(out)
     assert sorted(p.name for p in out.iterdir()) == ["main.k", "mat_b.k"]
     assert report["skipped_unreferenced_edits"] == []
+
+
+@pytest.mark.parametrize("encoding", ["utf-8", "gbk"])
+def test_non_ascii_titles_follow_file_encoding(tmp_path: Path, encoding: str) -> None:
+    text = "*KEYWORD\n$ \u6ce8\u91ca\n*PART\n\u94a2\u677f\n         1         1         1\n*END\n"
+    (tmp_path / "main.k").write_bytes(text.encode(encoding))
+    deck = KeywordDeck.load(tmp_path / "main.k")
+    part = deck.blocks("*PART")[0]
+    assert deck.get(part, "heading", row=1).value == "\u94a2\u677f"
+    deck.set(part, "heading", "\u94dd\u5408\u91d1\u9776\u677f", row=1)
+    out = tmp_path / "out"
+    deck.save_as(out)
+    expected = text.replace("\u94a2\u677f", "\u94dd\u5408\u91d1\u9776\u677f").encode(encoding)
+    assert (out / "main.k").read_bytes() == expected
