@@ -681,6 +681,10 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 里程碑：M1
 
+状态：done；验证：L1
+
+证据：[src/ls_prepost_mcp/core/contracts.py](../src/ls_prepost_mcp/core/contracts.py), [tests/test_core_contracts.py](../tests/test_core_contracts.py), [tests/test_workflow_gates.py](../tests/test_workflow_gates.py), [tests/test_reference_workflow.py](../tests/test_reference_workflow.py)
+
 - ModelRef、Selector、FieldSpec、CurveSpec、JobResult、Artifact 以 pydantic 定义
 - JobResult.status 只有 succeeded / failed / partial / unverified 四种
 - 工作流门槛只读 JobResult
@@ -742,6 +746,10 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 ### I10 执行通道实验与决策
 
 里程碑：M0
+
+状态：done；验证：L2
+
+证据：[docs/decisions/0001-session-transport.md](../docs/decisions/0001-session-transport.md), [docs/decisions/0001-experiment-evidence.json](../docs/decisions/0001-experiment-evidence.json), [tools/experiments/run_remote_probe.py](../tools/experiments/run_remote_probe.py)
 
 - E1-E5 实验记录（见评审方案 4.4）
 - 通道矩阵：5 个通道 × (runc= / c= -nographics / session) × 是否可渲染 × 锁屏下是否可用

@@ -37,6 +37,27 @@ Command、cfile、SCL、应用内 Python、原生宏是五个一等通道，统�
 
 工作流门槛只读 JobResult，执行完成与工程检查通过分别表达。API 使用用户 ID 和 1-based 状态；单位由调用者声明，阈值由调用者给定。保留结果数学与独立逻辑测试。
 
+I02 的六个 pydantic 合同已在 [core/contracts.py](../src/ls_prepost_mcp/core/contracts.py) 实现，core 仅依赖标准库与 pydantic。选择条件、采样和过滤参数使用判别联合；字符串/布尔值不会转成实体 ID，显式 ID 列表不能为空，空选择使用 `kind="none"`，参考/变形坐标及 1-based 状态分别校验。ModelRef 的 Include 条目只是文件身份和父子关系元数据，I07 负责解析与编辑。
+
+旧操作返回值在 outcomes.normalize_outcome 中一次转换为 JobResult；prepared 只在明确的准备动作上对应 succeeded + preparation 阶段，未知状态转为 unverified。workflow_checks.evaluate_gate 仅接收并重新校验 JobResult，执行状态和自动质量结论不再从原字典判断。comparison_data 仅用于兼容旧工作流中用户指定的 JSON 路径断言；旧步骤结果、门槛报告和 outcomes.json 投影保留。类型化结果带 `contract: JobResult/v1` 标识，JSON 持久化或录制后仍按同一合同恢复，保留检查结论与准备阶段。
+
+合同实例构建不访问文件、不执行原生动作；产物真实身份、数值正确性和后端/版本能力仍由运行器及检查器验证。缺少 SHA256 的旧产物不会被升级为完整身份已验证。领域工具输入的逐项迁移继续按所属任务执行。
+
+### FieldSpec 迁移约定（I02 → M2）
+
+`core.contracts.FieldSpec` 是新的领域请求：量、分量、Selector、时间选择及采样均显式输入。
+仍在使用的 `field_contracts.FieldSpec` 是旧结果请求/出处描述，包含已展开的 fields、
+ResultSelection、SamplingSpec 和 transformations。两者没有类型或语义等价关系，不能
+仅改 import 或直接把旧字典传入新类。当前 I02 不宣称这七个旧调用方已迁移。
+
+M2 按所属结果任务迁移：先解析 Selector 为用户 ID 和 1-based 状态，再由后端适配器
+映射 quantity/components 到旧字段名称。native layer/积分点与 reader stored point 不
+自动互换；DPF location、transformations 等新合同尚未覆盖的语义须显式保留或拒绝。
+迁移时需补采样、坐标系、平均和失效语义的等价回归；完成前使用完整模块名区分二者。
+
+JobResult 的 failed 必须带非空 error；partial 必须说明 error/warnings，且有 data 或
+artifact。检查聚合忽略 not_applicable；只有全体均不适用时才返回 not_applicable。
+
 ## 前处理
 
 I07 由 Claude 在 `claude/keyword-engine` 并行开发，M3 合并；M0–M2 不在本分支实现 I07，也不创建 `src/ls_prepost_mcp/domain/model/` 下的文件。归属与集成约束以 tasks.yaml 为准。

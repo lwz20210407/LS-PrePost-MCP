@@ -17,3 +17,4 @@
 - Before a commit, run full-dependency pytest, Ruff and task/docs/migration validators and confirm baseline CI green; after pushing, require that commit's CI green before reporting the task verified. CI cannot evaluate an uncommitted tree.
 - local-book is restricted: register ID/relative path only; never publish its contents or derived data. Private inputs stay in external environment configuration.
 - Reports use at most six Chinese lines: 完成 / 证据 / 下一项 / 待用户. Continue independent work while awaiting one batched GUI/remote window.
+- I02 adds strict core contracts and migrates workflow gates; keep the I07 integration boundary.

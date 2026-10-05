@@ -6,8 +6,9 @@ import re
 import uuid
 from pathlib import Path
 
+from .core.contracts import JobResult
 from .jobs import atomic_json, check_artifact, now
-from .outcomes import normalize_outcome, result_value
+from .outcomes import describe_outcome, normalize_outcome, result_value
 from .sessions import NATIVE_ACTIONS, alive, process_identity
 from .workflow_checks import POLICIES, evaluate_gate, validate_checks
 from .workflow_runtime import compile_workflow, operation_route
@@ -387,17 +388,20 @@ class WorkflowTools:
                 attempted += 1
                 try:
                     result = operation_route(self, action, session_id).execute(self, arguments, session_id)
+                    outcome = normalize_outcome(action, result) if isinstance(result, JobResult) else None
+                    if isinstance(result, JobResult):
+                        result = result.model_dump(mode="json")
                     if not isinstance(result, dict):
                         raise ValueError("Operation result must be a JSON object")
                     json.dumps(result, allow_nan=False)
+                    if outcome is None:
+                        outcome = normalize_outcome(action, result)
                 except Exception as exc:
                     result = dict(status="failed", error=dict(type=type(exc).__name__, message=str(exc)))
+                    outcome = normalize_outcome(action, result)
                 results[step["id"]] = result
-                outcome = normalize_outcome(action, result)
-                outcomes[step["id"]] = outcome.to_dict()
-                gate = evaluate_gate(
-                    outcome, result, resolved_checks[step["id"]], step.get("quality_policy", "auto")
-                )
+                outcomes[step["id"]] = describe_outcome(outcome)
+                gate = evaluate_gate(outcome, resolved_checks[step["id"]], step.get("quality_policy", "auto"))
                 gates[step["id"]] = gate
                 self._record_workflow_gate(
                     session_id,
