@@ -390,6 +390,13 @@ class KeywordDeck:
         """Defined IDs, references, dangling/duplicate/unused IDs across the whole deck."""
         return references.collect(self, include_mesh)
 
+    def insert_card(self, keyword: str, fields: dict[str, object], *, options: list[str] | None = None,
+                    file: SourceFile | None = None, before: Block | None = None,
+                    after: Block | None = None) -> list[Block]:
+        """Insert a new card built from field values (PyDYNA text, verified by reading back)."""
+        from .cards import insert_card
+        return insert_card(self, keyword, fields, options=options, file=file, before=before, after=after)
+
     def delete(self, block: Block, force: bool = False) -> Change:
         """Remove a block; refuses when IDs it defines are still referenced (unless ``force``)."""
         if not force:

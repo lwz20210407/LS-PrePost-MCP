@@ -138,7 +138,13 @@ def _apply(deck: KeywordDeck, edit: dict) -> list[Change]:
         anchor_before = _target(deck, edit["before"])[0] if edit.get("before") else None
         anchor_after = _target(deck, edit["after"])[0] if edit.get("after") else None
         before = len(deck.changes)
-        deck.insert(edit["text"], file=_file(deck, edit.get("file")), before=anchor_before, after=anchor_after)
+        target = _file(deck, edit.get("file")) if edit.get("file") or not (anchor_before or anchor_after) else None
+        if "card" in edit:
+            card = edit["card"]
+            deck.insert_card(card["keyword"], card.get("fields", {}), options=card.get("options"),
+                             file=target, before=anchor_before, after=anchor_after)
+        else:
+            deck.insert(edit["text"], file=target, before=anchor_before, after=anchor_after)
         return deck.changes[before:]
     if op == "delete":
         block, _ = _target(deck, edit)
