@@ -32,7 +32,7 @@ uv run --extra dev ruff check src tests
 
 普通开发用 uv 默认 dev 依赖组。可选后端测试按实际导入跳过；验证最小安装时以 UV_PROJECT_ENVIRONMENT 指定新的仓库外环境。UV_CACHE_DIR、pytest cache_dir、--basetemp 必须指向本任务目录。不要复用会被 pytest 清空的旧 basetemp。
 
-CI（.github/workflows/tests.yml）只在推到 main、PR（Draft 除外）和手动触发时运行。PR 跑两个任务：Ubuntu + Python 3.11，Windows + Python 3.12；main 和手动触发跑完整四个。私有仓库的 Actions 分钟数用完时任务不会启动，此时合并前在本地把 PR 合到最新 main，跑与 CI 相同的全部步骤（pytest、ruff、lint-imports、四个校验脚本、check_doc_links 和文件验收），作为合并依据。
+CI（.github/workflows/tests.yml）只在推到 main、PR（Draft 除外）和手动触发时运行。每次运行包括：Ubuntu 和 Windows × Python 3.11 和 3.12 四个组合的完整检查（pytest、ruff、lint-imports、四个校验脚本、check_doc_links 和文件验收），以及一个只装 dev 依赖的最小依赖 pytest 任务。仓库自 2026-10-07 起公开，Actions 不受额度限制，合并以 PR 的 CI 全部通过为准；临时本地合并关卡（[0010](decisions/0010-local-verification-gate.md)）已停用。
 
 tools/gen_docs.py 生成 TASKS、TOOLS、README 能力表和 COMPATIBILITY 的版本策略部分。CI 校验生成物一致性；其他版本实测说明保留人工来源。tasks.yaml 的 ui_entry 已按既有 4.13.4 截图核正到可证实入口，截图身份保存在 ui_entry_audit；面板内子项不据此自动获得验收。
 
@@ -128,7 +128,7 @@ run_recipe 传入配方 ID、参数及输入模型。默认 launch_mode=c，显�
 原样补丁保存在仓库外报告目录的 `working-tree.patch`，可独立重算 SHA256；固定三行上下文且不合并相邻 hunk，避免用户 Git 配置改变证据指纹。
 Git 不可用时身份字段为空。diff 不包含未跟踪文件，源码快照补充这些文件的指纹。
 
-托管 CI 额度恢复前，按用户批准的[临时本地合并关卡](decisions/0010-local-verification-gate.md)记录实际提交的完整检查，托管结果仍保留待验证。
+2026-10-06 至 2026-10-07 托管 CI 不可用期间，合并依据是[临时本地合并关卡](decisions/0010-local-verification-gate.md)的记录；该关卡已随仓库公开停用，现在以托管 CI 结果为准。
 
 I05 完整字段索引：安装 pydyna 可选依赖后，显式运行
 `python tools/build_knowledge_index.py --all-keywords --output <仓库外索引路径>`。
