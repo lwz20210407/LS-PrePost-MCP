@@ -406,6 +406,13 @@
 - 行为：共享引擎检测到原生错误行即失败，即使 returncode=0。五个批处理调用方现在透传 engine_error.message，保留真实命令诊断，而非只报退出码和超时状态。
 - 证据：tests/test_engine_native.py 的无效命令原生负例，以及 tests/test_engines.py 的公开 Service 错误透传回归。
 
+## I02 审阅修复：旧返回值的失败诊断
+
+- 已修：旧 `failed` 结果缺少有效 error.message 时，从 restoration_error、reason 或嵌套 restoration 的诊断补齐；无诊断时明确记录“旧接口未提供诊断”，仍保留 failed。
+- 已修：旧 `partial` 结果没有 error/warnings 时，从失败检查的 reason 等信息补 warnings；仍必须有 data 或 artifact，否则按合同返回 unverified。二者都不会通过工作流执行门槛。
+- 合同约束：`JobResult(status="failed")` 的 error.message 必须是非空白字符串。字段名称和结构不变；已声明 JobResult/v1 的结果严格校验，不使用旧接口兼容补齐。
+- 原始结果保存在 comparison_data，不原地修改。证据：[旧结果与门槛回归](../tests/test_legacy_outcomes.py)。本项是纯 Python 合同修复，没有新增原生通过声明。
+
 ## 能力范围原文索引
 
 以下是 M0 冻结能力文件的全部 scope/limitation 字段，按原文去重。它们同时包含已验证范围和未验证项，不全是原生缺陷。版本、规避和证据保留原文；原文未注明者不补造。来源文件：[capabilities.json](../src/ls_prepost_mcp/data/capabilities.json)。
