@@ -2,6 +2,7 @@
 import errno
 import os
 import shutil
+from types import SimpleNamespace
 
 import pytest
 
@@ -100,3 +101,27 @@ def test_permission_failure_is_not_reinterpreted_as_missing_link_support(tmp_pat
     with pytest.raises(PermissionError):
         index.build_index(path, [document("record", "runtime42")])
     assert list(tmp_path.iterdir()) == []
+
+
+def test_colliding_partial_name_keeps_preexisting_file(tmp_path, monkeypatch):
+    path = tmp_path / "index.sqlite"
+    orphan = tmp_path / "index.sqlite.fixed.partial"
+    orphan.write_bytes(b"Keep earlier evidence")
+    monkeypatch.setattr(index.uuid, "uuid4", lambda: SimpleNamespace(hex="fixed"))
+    with pytest.raises(FileExistsError):
+        index.build_index(path, [document("record", "runtime42")])
+    assert orphan.read_bytes() == b"Keep earlier evidence"
+    assert set(tmp_path.iterdir()) == {orphan}
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows fallback")
+def test_colliding_publish_name_keeps_preexisting_file(tmp_path, monkeypatch):
+    path = tmp_path / "index.sqlite"
+    orphan = tmp_path / "index.sqlite.fixed.publish"
+    orphan.write_bytes(b"Keep earlier publication")
+    monkeypatch.setattr(index.uuid, "uuid4", lambda: SimpleNamespace(hex="fixed"))
+    monkeypatch.setattr(index.os, "link", lambda *args: (_ for _ in ()).throw(OSError(errno.ENOTSUP, "No links")))
+    with pytest.raises(FileExistsError):
+        index.build_index(path, [document("record", "runtime42")])
+    assert orphan.read_bytes() == b"Keep earlier publication"
+    assert set(tmp_path.iterdir()) == {orphan}

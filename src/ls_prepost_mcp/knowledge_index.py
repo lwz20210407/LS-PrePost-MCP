@@ -33,14 +33,18 @@ def publish_index(partial, path):
     # Windows rename refuses an existing destination, unlike POSIX rename.
     # Keep the copy in the destination directory and close it before publication.
     staged = path.with_name(path.name + "." + uuid.uuid4().hex + ".publish")
+    created = False
     try:
         with partial.open("rb") as source, staged.open("xb") as destination:
+            created = True
             shutil.copyfileobj(source, destination)
             destination.flush()
             os.fsync(destination.fileno())
         os.rename(staged, path)
+        created = False  # The temporary name is no longer owned after rename.
     finally:
-        staged.unlink(missing_ok=True)
+        if created:
+            staged.unlink(missing_ok=True)
 
 
 @dataclass(frozen=True)
@@ -158,9 +162,10 @@ def build_index(destination, documents, fields=()):
     if path.exists():
         raise FileExistsError(path)
     partial = path.with_name(path.name + "." + uuid.uuid4().hex + ".partial")
+    created = False
     try:
         with partial.open("xb"):
-            pass
+            created = True
         with closing(sqlite3.connect(partial)) as db, db:
             db.execute("CREATE TABLE documents (id TEXT PRIMARY KEY, source_id TEXT, category TEXT, title TEXT, text TEXT, locator TEXT, license TEXT, visibility TEXT, version TEXT, line_start INTEGER, line_end INTEGER, sha256 TEXT)")
             db.execute("CREATE VIRTUAL TABLE search_terms USING fts5(id UNINDEXED, terms)")
@@ -187,7 +192,8 @@ def build_index(destination, documents, fields=()):
         # Atomic no-overwrite publication also handles two concurrent builders.
         publish_index(partial, path)
     finally:
-        partial.unlink(missing_ok=True)  # Only this invocation's UUID-named partial.
+        if created:
+            partial.unlink(missing_ok=True)  # Only this invocation's UUID-named partial.
     return dict(schema_version=2, documents=len(seen), keyword_fields=len(field_map), categories=counts,
                 private=any(row.visibility == "private" for row in rows))
 
