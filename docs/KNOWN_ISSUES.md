@@ -1150,3 +1150,10 @@ WinError 5/32 采用最多 1.15 秒的分段退避，其他错误直接返回；
 按新构建器另选仓库外路径重建，实测可降到约 0.35 秒。旧索引仍可读，schema_version 不变。
 时间是本机该样本的测量值，不是性能保证；原始与重建对照见
 [字段查找证据](decisions/evidence/a10-field-lookup/report.md)。
+
+## I01 批处理取消与进程树生命周期
+
+批处理现在用 Windows Job Object 管理本次进程树；正常任务结束也会终止仍存活的后代。
+持续驻留需求使用 SessionEngine。暂停启动、绑定失败拒绝执行、等待中断和宿主退出的
+实测结果及启动强杀窗口见 [生命周期回归](decisions/evidence/i01-process-lifetime/report.md)。
+Python 异常传播前会先清理；清理失败不覆盖原始异常，普通失败将清理注记放入 warnings。
