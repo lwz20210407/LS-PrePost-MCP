@@ -5,9 +5,10 @@ import hashlib
 import os
 from pathlib import Path, PureWindowsPath
 
+from . import access
 from .blocks import SourceFile
 from .deck import KeywordDeck
-from .includes import classify, identity
+from .includes import classify, identity, joined
 
 # Measured with LS-DYNA R11 on one-element decks (2026-10-06): an included UTF-16 file stops the
 # run (Error 10450/10133), while an *INCLUDE without a file-name card is skipped silently.
@@ -61,7 +62,7 @@ def preflight_includes(path: str | os.PathLike[str], include_paths: tuple[str, .
         where = _at(root, ref.parent.path, ref.block.line_number, ref.block.name, ref.name, ref.name_line)
         res = ref.resolution
         target = {"path": str(res.path)} if res is not None and res.path is not None else {}
-        directory = Path(ref.name) if Path(ref.name).is_absolute() else root / ref.name
+        directory = Path(ref.name) if Path(ref.name).is_absolute() else joined(root, Path(ref.name))
         resolved = str(directory) if ref.kind == "path" and not ref.error else target.get("path")
         references.append({**where, "kind": ref.kind, "path": resolved, "rule": res.rule if res else None,
                            "candidates": list(res.candidates) if res else []})
@@ -132,6 +133,7 @@ def _at(root: Path, file: Path, line: int | None = None, keyword: str | None = N
 def _entry(root: Path, path: Path, role: str, data: bytes | None) -> dict:
     digest, size = hashlib.sha256(), 0
     if data is None:
+        access.require(path)
         with path.open("rb") as stream:
             for chunk in iter(lambda: stream.read(1 << 20), b""):
                 digest.update(chunk)
@@ -153,6 +155,7 @@ def _relative(root: Path, path: Path) -> str | None:
 
 def _is_dir(directory: Path) -> bool:
     try:
+        access.require(directory)
         return directory.is_dir()
     except OSError:
         return False

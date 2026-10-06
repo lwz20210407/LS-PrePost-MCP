@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 
 from . import geometry, selectors, sets
 from .cards import insert_card
-from .fields import FieldError
+from .fields import FieldError, single_line
 
 if TYPE_CHECKING:
     from .deck import KeywordDeck
@@ -66,7 +66,7 @@ def ensure_curve(deck: KeywordDeck, spec: dict) -> int:
         raise FieldError("A curve needs at least two points")
     lcid = max(defined, default=0) + 1
     title = spec.get("title")
-    head = ["*DEFINE_CURVE_TITLE", title] if title else ["*DEFINE_CURVE"]
+    head = ["*DEFINE_CURVE_TITLE", single_line(title, "Curve title")] if title else ["*DEFINE_CURVE"]
     blocks = deck.insert("\n".join(head + [f"{lcid:>10}", "0.0 0.0"]) + "\n")
     deck.set_points(blocks[0], points)
     return lcid

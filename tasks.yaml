@@ -503,6 +503,7 @@ tasks:
       - 每次运算把公式与参数写进结果元数据
 
   - id: Q08
+    owner: cursor
     group: post
     title: XYPlot 出图
     story: 把 3 个工况的力-位移曲线画在一张图上，带图例，导出 PNG 和 CSV
@@ -538,6 +539,7 @@ tasks:
       - 首、末帧与 Q02 对应状态的静态图一致（感知哈希容差内）
 
   - id: Q10
+    owner: antigravity
     group: post
     title: 截面力与剖切面
     story: 在 z=10 mm 处切一刀，输出截面上的合力时程和剖面云图
@@ -573,6 +575,7 @@ tasks:
       - 质量类测量缺少密度或单位时拒绝
 
   - id: Q12
+    owner: antigravity
     group: post
     title: 能量检查
     story: 检查能量是否守恒，沙漏能占比是多少
@@ -873,6 +876,7 @@ tasks:
 # ---------------------------------------------------------------------------
 infrastructure:
   - id: I01
+    owner: codex
     title: 执行引擎 Engine（BatchEngine 默认 + SessionEngine 可选）
     milestone: M1
     status: partial
@@ -939,6 +943,7 @@ infrastructure:
       - 版本差异集中在能力表，src 其他位置不出现版本判断
 
   - id: I04
+    owner: codex
     title: 原生回归框架 pytest -m native
     milestone: M1
     status: partial
@@ -982,6 +987,7 @@ infrastructure:
       - 公开部分可入仓库；私有课程资料的索引在仓库外
 
   - id: I06
+    owner: codex
     title: 文档生成
     milestone: M0
     acceptance:

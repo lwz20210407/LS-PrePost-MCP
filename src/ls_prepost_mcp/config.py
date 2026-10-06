@@ -73,6 +73,12 @@ class Settings:
         source = self.input_path(str(path))
         report = preflight_includes(source)
         references = report["references"]
+        # Confinement errors take precedence over diagnostics about external contents.
+        for entry in report["files"]:
+            self.input_path(entry["path"])
+        for ref in references:
+            for candidate in ref["candidates"]:
+                self.input_path(candidate)
         failure = ""
         if not report["ok"]:
             problem = next(p for p in report["problems"] if p["severity"] == "error")
@@ -92,10 +98,8 @@ class Settings:
         if any(p["kind"] == "empty_include" for p in report["problems"]):
             raise ValueError("Empty *INCLUDE card")
         for entry in report["files"]:
-            self.input_path(entry["path"])
+            _check_include_layout(Path(entry["path"]))
         for ref in references:
-            for candidate in ref["candidates"]:
-                self.input_path(candidate)
             if native_cwd is not None and not Path(ref["name"]).is_absolute():
                 # Native batches run in the job directory, not the source directory.
                 # A cwd-relative alternative must not bypass the preflight tree.
@@ -104,3 +108,19 @@ class Settings:
                     checked = self.input_path(str(alternate))
                     if ref["path"] is None or checked != Path(ref["path"]).resolve():
                         raise ValueError("Native working-directory INCLUDE resolves to a different file")
+
+
+def _check_include_layout(path):
+    """Reject ignored keyword placement; filename parsing stays in shared preflight."""
+    ended = False
+    with path.open(encoding="latin1") as stream:
+        for raw in stream:
+            line = raw.lstrip()
+            if line.upper().startswith("*INCLUDE"):
+                if line != raw:
+                    raise ValueError("INCLUDE keywords must start in the first column")
+                if ended:
+                    raise ValueError("INCLUDE after *END is not supported for native loading")
+            header = line.split("$", 1)[0].split(",", 1)[0].strip().upper()
+            if header == "*END":
+                ended = True

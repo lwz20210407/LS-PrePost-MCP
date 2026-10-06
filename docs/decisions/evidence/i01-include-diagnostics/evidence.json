@@ -1,0 +1,57 @@
+{
+  "task": "I01",
+  "actual_git_revision": "4dfc675a1ae64619f1767c026be179fa4c9f4cb2",
+  "working_tree_dirty": false,
+  "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames -U3 --inter-hunk-context=0",
+  "git_diff_scope": {
+    "base": "HEAD",
+    "included": "All tracked staged and unstaged changes",
+    "excluded_paths": [],
+    "untracked_included": false
+  },
+  "source_snapshot_sha256": "1d9df1e8c54df44f8fb4b8cd38651b4d52cec2f5f7cbf40b1d70f54817cf0783",
+  "version": "4.10",
+  "context": "batch",
+  "report": "include-410-batch-report/report.json",
+  "report_sha256": "c1eb42b45d177c5876e0f7582eb20f2fa5ff576dafcd097ecc23e4f110ef5656",
+  "exit_code": 0,
+  "test_source_identity": {
+    "path": "tests/test_native_include_failure.py",
+    "git_blob_id": "130f4cff271ed55b7c77209807d40539c00b86d5",
+    "sha256_lf": "5eba0e6a05e6fdfccdaf68db25053c94660f50cbca0ee3e63cc3341476776cf7",
+    "newline_basis": "Git blob normalized CRLF to LF"
+  },
+  "cases": {
+    "tests/test_native_include_failure.py::test_native_include_open_failure_is_not_success[relative-fails]": {
+      "status": "passed",
+      "seconds": 11.544893199985381
+    },
+    "tests/test_native_include_failure.py::test_native_include_open_failure_is_not_success[absolute-loads]": {
+      "status": "passed",
+      "seconds": 15.441422100004274
+    }
+  },
+  "ce42": {
+    "report": "ce42-fixed.log",
+    "report_sha256": "8088f6e22ac75a1ca1b48446f2e3bf45f4f182b6dea715cc3a61fa6aa6cffe43",
+    "h0": {
+      "case": "H0_control_plain_include",
+      "check": "real #52",
+      "status": "failed",
+      "nodes": null,
+      "error": "Native batch failed: timeout=False, returncode=0, diagnostics=['Error - Include File first.k Not open']",
+      "cwd": "<case>\\ws\\jobs\\1cdac0306d824422af48aac3943f6d64",
+      "seconds": 7.9
+    }
+  },
+  "limits": [
+    "4.13 was not run for this change",
+    "Reference-count budget awaits the Claude-owned public preflight interface"
+  ],
+  "fixture_sha256": {
+    "input.k": "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43",
+    "d3plot": "08e29edab83a10901589cf5e20714bed8a019cc69a7b93e6cba08d5c231d58c1",
+    "d3plot01": "f928ad97b3293bb3b52d669ad491e4831fbdc1d9681b06ec5883b4aca2dc74b5"
+  }
+}
