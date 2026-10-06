@@ -503,6 +503,7 @@ tasks:
       - 每次运算把公式与参数写进结果元数据
 
   - id: Q08
+    owner: cursor
     group: post
     title: XYPlot 出图
     story: 把 3 个工况的力-位移曲线画在一张图上，带图例，导出 PNG 和 CSV
