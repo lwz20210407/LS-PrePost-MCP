@@ -216,7 +216,10 @@ class Sessions:
         export=False,
         native_commands=(),
         expected_empty=False,
+        _before_submit=None,
     ):
+        if _before_submit is not None and not callable(_before_submit):
+            raise TypeError("Session preparation must be callable")
         if native_commands and model is not None:
             raise ValueError("Open the model before submitting in-memory native commands")
         if any(
@@ -239,6 +242,8 @@ class Sessions:
         if safe_beams and data.get("bridge_protocol", 1) < 4:
             raise RuntimeError("Start a new GUI session for the native-keyword beam connectivity bridge")
         queued = data.get("engine_transport") == "queue"
+        if _before_submit is not None and queued:
+            raise ValueError("Native panel operations require a Win32 observation session")
         if queued:
             ready = json.loads((self.directory(ident) / "ready.json").read_text(encoding="utf8"))
             if ready.get("session_id") != ident or ready.get("pid") != data["process"]["pid"]:
@@ -261,6 +266,7 @@ class Sessions:
             native_commands=list(native_commands),
             safe_beam_connectivity=safe_beams,
             expected_empty=expected_empty,
+            host_preparation=_before_submit is not None,
         )
         atomic_json(directory / "request.json", request)
         contract = dict(artifacts=list(artifacts), export=export, was_uncertain=was_uncertain)
@@ -347,9 +353,16 @@ class Sessions:
             return outcome.model_copy(update={"job_id": directory.name, "backend": "lsprepost",
                                               "comparison_data": result})
 
+        def submit():
+            # The engine captures the log cursor and marks the request uncertain
+            # before any panel action. A partially applied click is never replayed.
+            if _before_submit is not None:
+                _before_submit(transport, directory)
+            transport.submit(directory.name if queued else nc.run_script(command_file, "cfile"))
+
         outcome = SessionEngine().run(SessionJob(
             operation=action, directory=directory, timeout=self.settings.timeout,
-            submit=lambda: transport.submit(directory.name if queued else nc.run_script(command_file, "cfile")),
+            submit=submit,
             is_alive=lambda: alive(data["process"]), verify=verify,
             log=self.directory(ident) / "lspost.msg"))
         atomic_json(directory / "engine-result.json", outcome.model_dump(mode="json"))
