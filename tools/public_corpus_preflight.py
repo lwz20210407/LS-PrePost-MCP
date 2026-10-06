@@ -10,8 +10,8 @@ from tools.fetch_corpus import io_root, plain_path
 
 def input_tree(source, family, *, keyword):
     """Return publishable metadata plus private paths used only for preservation checks."""
-    source = plain_path(source)
-    family = [plain_path(path) for path in family]
+    source = plain_path(source).absolute()
+    family = [plain_path(path).absolute() for path in family]
     if keyword:
         report = preflight_includes(source)
         files = report["files"]
@@ -34,7 +34,13 @@ def input_tree(source, family, *, keyword):
         public = dict(ok=True, tree_kind="result_family", tree_sha256_version=1,
                       tree_sha256=hashlib.sha256("\n".join(f["sha256"] for f in files).encode("ascii")).hexdigest(),
                       problems=[], unsupported_native_variants=[])
-    public["files"] = [{key: row[key] for key in ("relative", "role", "size", "sha256")} for row in files]
+    # Includes may legitimately live above the main deck. Declare a common base,
+    # rather than publishing null locators or leaking absolute local paths.
+    common = Path(os.path.commonpath([str(plain_path(row["path"]).parent) for row in files])) if files else source.parent
+    public["files_relative_to"] = "common_input_directory"
+    public["main_relative"] = source.relative_to(common).as_posix()
+    public["files"] = [dict(relative=plain_path(row["path"]).relative_to(common).as_posix(),
+                            **{key: row[key] for key in ("role", "size", "sha256")}) for row in files]
     return public, {Path(row["path"]): row["sha256"] for row in files}
 
 

@@ -86,6 +86,9 @@ def test_extended_root_parent_include_has_same_tree_as_plain_path(tmp_path):
     actual, _ = input_tree(extended, [extended], keyword=True)
     assert actual["ok"] is True
     assert actual == expected
+    assert actual["files_relative_to"] == "common_input_directory"
+    assert actual["main_relative"] == "deck/main.k"
+    assert [row["relative"] for row in actual["files"]] == ["deck/main.k", "inc/child.k"]
 
 
 def test_source_directory_snapshot_detects_created_files_and_subdirectories(tmp_path):
@@ -106,3 +109,14 @@ def test_io_root_normalizes_dot_segments_before_extending(tmp_path):
     (tmp_path / "nested").mkdir()
     assert io_root(io_root(tmp_path) / "nested" / "..") == io_root(tmp_path)
     assert plain_path(io_root(tmp_path)) == tmp_path
+
+
+def test_relative_input_uses_the_same_declared_file_base(tmp_path, monkeypatch):
+    from pathlib import Path
+
+    main = tmp_path / "main.k"
+    main.write_text("*KEYWORD\n*END\n")
+    expected, _ = input_tree(main, [main], keyword=True)
+    monkeypatch.chdir(tmp_path)
+    actual, _ = input_tree(Path("main.k"), [Path("main.k")], keyword=True)
+    assert actual == expected
