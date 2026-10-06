@@ -1,10 +1,12 @@
 """I05 source-attributed local reference index. Indexed text is never executable."""
 
 import csv
+import errno
 import hashlib
 import json
 import os
 import re
+import shutil
 import sqlite3
 import uuid
 from contextlib import closing
@@ -16,6 +18,33 @@ from .keyword_documentation import KeywordField
 CATEGORIES = frozenset(("command", "api", "keyword", "user_guide", "recipe", "known_issue"))
 PUBLIC_LICENSES = frozenset(("MIT", "Apache-2.0", "BSD-3-Clause", "CC0-1.0"))
 REPOSITORY = Path(__file__).resolve().parents[2]
+
+
+def publish_index(partial, path):
+    """Publish complete bytes without overwriting any concurrently created index."""
+    try:
+        os.link(partial, path)
+        return
+    except OSError as exc:
+        unsupported = exc.errno in {errno.ENOSYS, errno.ENOTSUP, errno.EOPNOTSUPP}
+        unsupported = unsupported or getattr(exc, "winerror", None) in (1, 50)
+        if os.name != "nt" or not unsupported:
+            raise
+    # Windows rename refuses an existing destination, unlike POSIX rename.
+    # Keep the copy in the destination directory and close it before publication.
+    staged = path.with_name(path.name + "." + uuid.uuid4().hex + ".publish")
+    created = False
+    try:
+        with partial.open("rb") as source, staged.open("xb") as destination:
+            created = True
+            shutil.copyfileobj(source, destination)
+            destination.flush()
+            os.fsync(destination.fileno())
+        os.rename(staged, path)
+        created = False  # The temporary name is no longer owned after rename.
+    finally:
+        if created:
+            staged.unlink(missing_ok=True)
 
 
 @dataclass(frozen=True)
@@ -136,9 +165,10 @@ def build_index(destination, documents, fields=()):
     if path.exists():
         raise FileExistsError(path)
     partial = path.with_name(path.name + "." + uuid.uuid4().hex + ".partial")
+    created = False
     try:
         with partial.open("xb"):
-            pass
+            created = True
         with closing(sqlite3.connect(partial)) as db, db:
             db.execute("CREATE TABLE documents (id TEXT PRIMARY KEY, source_id TEXT, category TEXT, title TEXT, text TEXT, locator TEXT, license TEXT, visibility TEXT, version TEXT, line_start INTEGER, line_end INTEGER, sha256 TEXT)")
             db.execute("CREATE VIRTUAL TABLE search_terms USING fts5(id UNINDEXED, terms)")
@@ -164,9 +194,10 @@ def build_index(destination, documents, fields=()):
                                 field.help, json.dumps(field.links), json.dumps(field.manual_ref), json.dumps(field.solver_status), field.license, json.dumps(field.aliases)))
             counts = dict(db.execute("SELECT category, count(*) FROM documents GROUP BY category"))
         # Atomic no-overwrite publication also handles two concurrent builders.
-        os.link(partial, path)
+        publish_index(partial, path)
     finally:
-        partial.unlink(missing_ok=True)  # Only this invocation's UUID-named partial.
+        if created:
+            partial.unlink(missing_ok=True)  # Only this invocation's UUID-named partial.
     return dict(schema_version=2, documents=len(seen), keyword_fields=len(field_map), categories=counts,
                 private=any(row.visibility == "private" for row in rows))
 
@@ -188,17 +219,35 @@ def search_index(path, query, *, category=None, limit=10, include_private=False,
         return []
     latin = [value for value in query_terms if not value.startswith("zh_")]
     chinese = [value for value in query_terms if value.startswith("zh_") and len(value) == 5]
-    selected = latin or chinese or query_terms
-    expression = (" AND " if latin else " OR ").join('"' + value.replace('"', '""') + '"' + ("*" if "_" in value and not value.startswith("zh_") else "") for value in selected)
+    if not chinese:
+        chinese = [value for value in query_terms if value.startswith("zh_")]
+    def quote(value):
+        # Retain A10's identifier-prefix behavior without expanding query terms.
+        prefix = "*" if "_" in value and not value.startswith("zh_") else ""
+        return '"' + value.replace('"', '""') + '"' + prefix
+    latin_expression = " AND ".join(quote(value) for value in latin)
+    chinese_expression = " OR ".join(quote(value) for value in chinese)
+    mixed = bool(latin and chinese)
+    expression = ("(" + latin_expression + ") OR (" + chinese_expression + ")"
+                  if mixed else latin_expression or chinese_expression)
     uri = Path(path).resolve(strict=True).as_uri() + "?mode=ro"
     with closing(sqlite3.connect(uri, uri=True)) as db:
         db.row_factory = sqlite3.Row
         if db.execute("SELECT schema_version FROM metadata").fetchone()[0] != 2:
             raise ValueError("Unsupported knowledge index schema")
         if keyword_filter is None:
-            sql = "SELECT documents.*, bm25(search_terms) AS rank FROM search_terms JOIN documents ON documents.id=search_terms.id WHERE search_terms MATCH ?"
-            params = [expression]
-            order = "rank, documents.id"
+            sql = "SELECT documents.*, bm25(search_terms) AS rank"
+            params = []
+            if mixed:
+                sql += (", CASE WHEN documents.id IN (SELECT id FROM search_terms WHERE search_terms MATCH ?) THEN 0 "
+                        "WHEN documents.id IN (SELECT id FROM search_terms WHERE search_terms MATCH ?) THEN 1 "
+                        "ELSE 2 END AS query_priority")
+                params += ["(" + latin_expression + ") AND (" + chinese_expression + ")", latin_expression]
+            else:
+                sql += ", 0 AS query_priority"
+            sql += " FROM search_terms JOIN documents ON documents.id=search_terms.id WHERE search_terms MATCH ?"
+            params.append(expression)
+            order = "query_priority, rank, documents.id"
             order_params = []
         else:
             prefix, field_name = keyword_filter
@@ -207,7 +256,7 @@ def search_index(path, query, *, category=None, limit=10, include_private=False,
             # crowd an explicitly requested field out of the candidate set.
             # CROSS JOIN fixes the outer loop to fields on existing schema-v2
             # indexes; otherwise SQLite scans/joins all documents first.
-            sql = ("SELECT documents.*, 0.0 AS rank FROM keyword_fields AS k "
+            sql = ("SELECT documents.*, 0.0 AS rank, 0 AS query_priority FROM keyword_fields AS k "
                    "CROSS JOIN documents ON documents.id=k.document_id "
                    "WHERE k.entity_key>=? AND k.entity_key<?")
             params = [prefix, prefix[:-1] + chr(ord(prefix[-1]) + 1)]
@@ -230,6 +279,9 @@ def search_index(path, query, *, category=None, limit=10, include_private=False,
     results = []
     for row in rows:
         data = dict(row)
+        priority = data.pop("query_priority")
+        data["query_match"] = (("both", "code_only", "text_only")[priority] if mixed
+                               else "code_only" if latin else "text_only")
         text = data.pop("text")
         position = text.casefold().find(query.casefold())
         if position < 0:

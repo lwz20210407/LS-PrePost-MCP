@@ -5,7 +5,6 @@ import re
 
 import numpy as np
 
-from .config import command_path
 from .core.native_log import native_errors, read_delta
 from .jobs import atomic_json, check_artifact, fingerprint, now
 from .native import commands as nc
@@ -200,7 +199,7 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
         offset = log.stat().st_size if log.exists() else 0
         try:
             reference = xy.name + ('~1' if len(curves) == 1 else '')
-            create = ["open xydata " + command_path(xy), "newplot", f'show "{reference}" 0']
+            create = [nc.open_xydata(xy), "newplot", f'show "{reference}" 0']
             created = manager.dispatch(session_id, "inspect_model", {}, native_commands=create)
             manifest["create_request"] = {k: v for k, v in created.items() if k != "data"}
             if created["status"] != "succeeded":
@@ -219,7 +218,7 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
                 *([prefix + f'curvelegend {i+1}/1 "{curve["spec"]["label"]}"' for i, curve in enumerate(curves)]
                   if len(curves) > 1 or curve_label is not None else []),
                 nc.print_png(directory / "plot.png", mode="nogamma", window=f"PlotWindow-{plot_id}"),
-                prefix + "savefile xypair " + command_path(directory / "native.xy") + " 1 all",
+                nc.save_xypair(directory / "native.xy", plot_id),
             ]
             atomic_json(directory / "commands.json", create + commands)
             finished = manager.dispatch(session_id, "inspect_model", {}, native_commands=commands)

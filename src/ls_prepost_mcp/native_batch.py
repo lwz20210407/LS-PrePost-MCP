@@ -88,14 +88,14 @@ def run_case(settings, jobs, source: Path, units: str, *, renderer=None):
             target = directory / ("d3plot" + p.name[len(source.name):] if p in sources else p.name)
             shutil.copyfile(p, target)
             created_copies.append(target)
-        (directory / "extract.scl").write_text(batch_script(), encoding="ascii")
+        nc.write_scl(directory / "extract.scl", batch_script())
         commands = ['new', nc.open_model("d3plot", "d3plot", openc=True), nc.run_script("extract.scl", "scl")]
         curves = []
         if (directory / "glstat").exists():
             for component in (1, 2):
                 name = 'glstat_%d' % component
                 commands += ['ascii glstat open "glstat" 0', 'ascii glstat plot %d' % component,
-                             'xyplot 1 savefile xypair "%s.xy" 1 all' % name, 'deletewin 1']
+                             nc.save_xypair(name + ".xy"), 'deletewin 1']
                 curves.append(name)
         if (directory / "nodout").exists():
             with (directory / "nodout").open(errors="replace") as f:
@@ -106,7 +106,7 @@ def run_case(settings, jobs, source: Path, units: str, *, renderer=None):
                 for component in (1, 2, 3, 5, 6, 7, 9, 10, 11):
                     name = 'nodout_%s_%d' % (node, component)
                     commands += ['ascii nodout open "nodout" 0', 'ascii nodout plot %d %s' % (component, node),
-                                 'xyplot 1 savefile xypair "%s.xy" 1 all' % name, 'deletewin 1']
+                                 nc.save_xypair(name + ".xy"), 'deletewin 1']
                     curves.append(name)
         if (directory / "matsum").exists():
             with (directory / "matsum").open(errors="replace") as f:
@@ -117,7 +117,7 @@ def run_case(settings, jobs, source: Path, units: str, *, renderer=None):
                 for component in (1, 2):
                     name = 'matsum_%s_%d' % (part, component)
                     commands += ['ascii matsum open "matsum" 0', 'ascii matsum plot %d %s' % (component, part),
-                                 'xyplot 1 savefile xypair "%s.xy" 1 all' % name, 'deletewin 1']
+                                 nc.save_xypair(name + ".xy"), 'deletewin 1']
                     curves.append(name)
         commands += ['exit']
         nc.write_cfile(directory / "commands.cfile", commands)

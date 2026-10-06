@@ -5,7 +5,6 @@ from pathlib import Path
 
 from pydantic import StrictInt
 
-from .config import command_path
 from .core.validation import integer
 from .deck_backend import api
 from .entity_cards import (
@@ -20,6 +19,7 @@ from .entity_cards import (
 from .gui_mesh import verify_mesh_digest
 from .gui_selection import mesh_signature, part_visibility
 from .jobs import atomic_json, check_artifact
+from .native import commands as nc
 from .post_backend import ids
 
 
@@ -141,7 +141,7 @@ class GuiEntityTools:
                 path.write_text(fragment_text, encoding="ascii")
             else:
                 fragment.export_file(str(path))
-            return ["import keyword " + command_path(path)]
+            return [nc.import_keyword(path)]
 
         expected = dict(entity_type=entity_type, set_id=set_id, title=title, member_ids=sorted(members),
                         **attributes)
@@ -273,7 +273,7 @@ class GuiEntityTools:
         def commands(state, directory):
             path = directory / "entity-spc.k"
             fragment.export_file(str(path))
-            return ["import keyword " + command_path(path)]
+            return [nc.import_keyword(path)]
 
         def postcheck(_, path, validation):
             audit = verify_cards(baseline, inspect_cards(path), new_spcs=expected)

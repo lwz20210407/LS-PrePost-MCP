@@ -437,7 +437,7 @@
 
 ### A01 命令栏 Command（单条原生命令）
 
-状态：partial；版本：v0.5；里程碑：M1；层：T1
+状态：done；版本：v0.5；里程碑：M1；层：T1
 
 执行一条 LSPP 命令，就像在左下角输入栏里敲一样，并告诉我 LSPP 返回了什么
 
@@ -450,13 +450,9 @@
 
 现有入口：`prepare_native_program`, `execute_native_program`, `execute_gui_command`, `run_on_version`
 
-缺口：
-
-- 历史 4.13 batch/session 与 4.10 batch 报告未记录实际 Git revision 和运行时未提交 diff SHA256；需带完整身份重跑并将 report.md、evidence.json 入库
-
 ### A02 cfile 命令流
 
-状态：partial；版本：v0.5；里程碑：M1；层：T1
+状态：done；版本：v0.5；里程碑：M1；层：T1
 
 运行这个 cfile，把里面的 width 换成 8 再跑一次
 
@@ -470,13 +466,9 @@
 
 现有入口：`prepare_native_program`, `execute_native_program`
 
-缺口：
-
-- 历史 A02 原生证据缺少实际 Git revision 或运行时未提交 diff SHA256；在 report.md 与 evidence.json 按身份完整入库前保持 partial，配方模式登记不替代执行证据
-
 ### A03 SCL 脚本
 
-状态：partial；版本：v0.5；里程碑：M1；层：T1
+状态：done；版本：v0.5；里程碑：M1；层：T1
 
 运行这个 SCL 脚本，读出所有节点坐标写成 CSV
 
@@ -488,13 +480,9 @@
 
 现有入口：`prepare_native_program`, `execute_native_program`, `probe_scl`
 
-缺口：
-
-- 历史原生报告未记录实际 Git revision 与运行时未提交 diff SHA256，需重新取证并将 report.md、evidence.json 入库
-
 ### A04 应用内 Python 脚本
 
-状态：partial；版本：v0.5；里程碑：M1；层：T1
+状态：done；版本：v0.5；里程碑：M1；层：T1
 
 用 LSPP 内置 Python 读出每个 Part 的单元数和最大位移
 
@@ -506,10 +494,6 @@
 - 4.13 全量、4.10 子集通过
 
 现有入口：`prepare_native_program`, `execute_native_program`
-
-缺口：
-
-- 历史原生报告未记录实际 Git revision 与运行时未提交 diff SHA256，需重新取证并将 report.md、evidence.json 入库
 
 ### A05 原生宏执行
 
@@ -723,7 +707,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：partial；验证：L2
 
-证据：[src/ls_prepost_mcp/native/commands.py](../src/ls_prepost_mcp/native/commands.py), [src/ls_prepost_mcp/native/versions.py](../src/ls_prepost_mcp/native/versions.py), [tests/test_native_commands.py](../tests/test_native_commands.py), [docs/decisions/evidence/i03/report.md](../docs/decisions/evidence/i03/report.md), [tests/test_engine_native.py](../tests/test_engine_native.py)
+证据：[src/ls_prepost_mcp/native/commands.py](../src/ls_prepost_mcp/native/commands.py), [src/ls_prepost_mcp/native/versions.py](../src/ls_prepost_mcp/native/versions.py), [tests/test_native_commands.py](../tests/test_native_commands.py), [docs/decisions/evidence/i03/report.md](../docs/decisions/evidence/i03/report.md), [docs/decisions/evidence/i03-paths/report.md](../docs/decisions/evidence/i03-paths/report.md), [tests/test_engine_native.py](../tests/test_engine_native.py)
 
 - genselect / fringe / anim 等命令只在 native/commands.py 生成，有黄金输出测试
 - 版本差异集中在能力表，src 其他位置不出现版本判断

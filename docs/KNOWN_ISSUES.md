@@ -432,11 +432,11 @@
 | I02 | 已修（#16）：旧 failed/partial 保留执行状态，从 reason/restoration_error 或失败检查补齐诊断。 |
 | I02 | 已修（#16）：failed.error.message 必须为非空白字符串；引擎空消息异常和原生失败回执补齐诊断。FieldSpec 适配层及等价测试仍为 tasks.yaml 中的 M2 gap。 |
 | I10 | ADR 0001 已改为如实说明历史证据 JSON 没有探针脚本 SHA256，未补造该字段。 |
-| I05 | 混合查询丢失中文词，例如“MPP 节点选择”；需保留两类查询词。 |
-| I05 | os.link 发布索引不适用于 FAT/exFAT 及部分网络盘；需复制到同目录临时文件并原子改名的回退。 |
+| I05 | 已修混合查询丢失中文词：两类词共同匹配优先，其次完整代码词匹配、中文匹配；query_match 明示 both/code_only/text_only，私有过滤不变。不按 A10 留出题调参。 |
+| I05 | Windows 不支持硬链接时，复制到同目录独占临时文件，关闭并 fsync 后以不覆盖目标的 rename 发布；竞争和中断有回归。未实测 FAT 实体卷/网络盘；非 Windows 的无硬链接文件系统仍明确失败，以保留不覆盖保证。 |
 | I04 | KI-052 的短用例目录前缀在本 PR #5 补交，不属于 2f10da2 的改动。 |
 | I04 | 原生证据必须写实际 Git revision；工作树未提交时另记改动身份，不得宣称为 PR 头运行。 |
-| I03 | import keyword、open xydata、savefile xypair、modelcheck writetofile 尚有 8 模块 12 处；SCL 编码未统一。 |
+| I03 | 已集中 import keyword、open xydata、savefile xypair、modelcheck writetofile（含额外四处批处理导出）；生成的 SCL 统一 UTF-8/LF。4.13/4.10 后台导入、XY、SCL 各三例通过；GUI 调用仍待窗口复核。 |
 | I03 | 路径兼容性变化：quoted_path 现在在启动前拒绝分号、引号及控制字符，旧调用者可能因此获得明确 ValueError。 |
 | I01/I03 | KI-049 的空格/中文 job 工作目录问题列为最高优先级 P2；源文件路径与 job 工作目录须分别验证。 |
 | I04 | 缺少可执行文件的提示已同时列出 --native-executable、LSPP_ENGINE_EXECUTABLE 和 LSPP_EXECUTABLE。 |
@@ -447,7 +447,7 @@
 - `bind_output_paths` 按完整参数 token 匹配声明输出名，尚未按命令角色区分输入和输出。同名 token 即使出现在 open 命令中，也会改写为当前 job 的路径；读取已有文件时应使用不与声明输出同名的路径。请求原文和执行副本均保留以便核对。
 - 用户提供的命令和 cfile 拥有 LS-PrePost 进程的原生权限，可以读写进程有权访问的任意路径。输出合同验证声明产物，不是脚本文件访问沙箱。
 - 单命令入口拒绝 open command / openc command（含大小写及空白变体）；命令文件须使用 cfile 通道。JobResult 包装保留已有 warnings 与 checks，partial 不会因丢失警告而退成 unverified。
-- 证据：[单命令合同回归](../tests/test_script_command.py)。A01 历史原生记录缺少提交及 diff 身份，状态为 partial，待重新取证。
+- 证据：[单命令合同回归](../tests/test_script_command.py)。A01 的旧记录缺少提交及 diff 身份；现已在干净 main 9e55e9b 重新验证并附 [A01 原生证据](decisions/evidence/a01/report.md)，据此恢复 done。
 
 ## 能力范围原文索引
 
@@ -1120,3 +1120,11 @@ Standard ELEMENT_MASS supported for structural preservation; mass glyph display,
 - [tools/run_workflow_acceptance.py](../tools/run_workflow_acceptance.py) — `76d528b11e2b948c224be291c9660f53cf04cc2712c5a9f29b1f87a92bd236ba`
 - [tools/run_workflow_gate_acceptance.py](../tools/run_workflow_gate_acceptance.py) — `cd6759202440b9321ea95aed7faf292b5a3a38c0183794821fba27a32325edfd`
 - [src/ls_prepost_mcp/data/capabilities.json](../src/ls_prepost_mcp/data/capabilities.json) — `bb76b2e66358b4f93338c845c218f66bddbf4121567aa058128a07c7c67112aa`
+
+## A10：旧 schema-v2 索引的字段查询耗时
+
+#29 之前构建的 v2 索引没有 keyword_lookup 辅助索引。结构化过滤确保显式字段不被
+说明文本挤掉，但旧索引每 100 次字段查询约 9–10 秒；此前文本检索约 0.7 秒且可能漏字段。
+按新构建器另选仓库外路径重建，实测可降到约 0.35 秒。旧索引仍可读，schema_version 不变。
+时间是本机该样本的测量值，不是性能保证；原始与重建对照见
+[字段查找证据](decisions/evidence/a10-field-lookup/report.md)。

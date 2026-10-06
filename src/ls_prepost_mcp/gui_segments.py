@@ -5,13 +5,13 @@ import math
 import numpy as np
 from pydantic import StrictFloat, StrictInt
 
-from .config import command_path
 from .core.validation import integer, numbers, unit_label
 from .deck_backend import api
 from .entity_cards import inspect_cards, verify_cards
 from .gui_entities import entity_title, selection_source, stable_scene
 from .gui_selection import mesh_signature
 from .jobs import atomic_json
+from .native import commands as nc
 from .post_backend import ids
 from .segment_geometry import build_segments
 
@@ -91,7 +91,7 @@ class GuiSegmentTools:
                         reverse=reverse, normal_direction=normal_direction, cosine_min=cosine_min,
                         coordinate_source="fresh native keyword export", segments=context["audit"]))
             context["geometry_report"] = str(directory / "segment-geometry.json")
-            return ["import keyword " + command_path(path)]
+            return [nc.import_keyword(path)]
 
         def postcheck(_, path, validation):
             target = dict(entity_type="segment", set_id=set_id, title=title, segments=context["records"],

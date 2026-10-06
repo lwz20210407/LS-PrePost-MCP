@@ -264,7 +264,7 @@ def render_field(
 
         try:
             context = directory / "context.scl"
-            context.write_text(context_script(before["part_ids"], directory / "parts.csv"), encoding="utf8")
+            nc.write_scl(context, context_script(before["part_ids"], directory / "parts.csv"))
             info = manager.dispatch(
                 session_id, "inspect_model", {}, native_commands=[nc.run_script(context, "scl")]
             )
@@ -351,7 +351,7 @@ def render_field(
                 )
             label = result_name(field)
             script = directory / "field.scl"
-            script.write_text(
+            nc.write_scl(script,
                 field_fringe_script(
                     entity_type,
                     field,
@@ -364,7 +364,6 @@ def render_field(
                     directory / "complete.txt",
                     physical_mask=physical_report is not None,
                 ),
-                encoding="utf8",
             )
             applied = manager.dispatch(
                 session_id,

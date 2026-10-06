@@ -5,7 +5,6 @@ import math
 from pydantic import StrictFloat, StrictInt
 
 from .boundary_cards import inspect_boundary_cards, verify_boundary_delta
-from .config import command_path
 from .core.validation import integer
 from .deck_backend import api
 from .entity_cards import check_motion_conflicts, inspect_cards, set_members
@@ -15,6 +14,7 @@ from .gui_mesh import verify_mesh_digest
 from .gui_motion import validate_time_curve
 from .gui_selection import mesh_signature
 from .jobs import atomic_json
+from .native import commands as nc
 from .nodal_load_cards import LOAD_AXES, distribution_scale, load_overlap
 from .post_backend import ids
 
@@ -199,7 +199,7 @@ class GuiNodalLoadTools:
             )
             path = directory / "nodal-load.k"
             fragment.export_file(str(path))
-            return ["import keyword " + command_path(path)]
+            return [nc.import_keyword(path)]
 
         def postcheck(_, path, verification):
             actual = inspect_boundary_cards(path, include_nodal_loads=True)

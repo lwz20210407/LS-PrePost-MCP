@@ -35,8 +35,11 @@ def test_old_schema_v2_without_lookup_index_remains_readable(tmp_path, monkeypat
 
 
 def test_explicit_field_cannot_be_crowded_out_by_other_fields_help(tmp_path, monkeypatch):
-    index(tmp_path, monkeypatch, [record(), *[
-        record(name="other_" + str(i), help="target") for i in range(60)]])
+    # terms() deduplicates words: repeated prose alone does not make a long FTS
+    # document. Use distinct context words to expose the old LIMIT-before-filter.
+    long_help = " ".join("explanation_" + str(i) for i in range(600))
+    index(tmp_path, monkeypatch, [record(help=long_help), *[
+        record(name="other_" + str(i), help="target " * 100) for i in range(60)]])
     rows = keyword_fields("SYNTH_COMPONENT", "target", limit=1)
     assert len(rows) == 1 and rows[0]["keyword_field"]["field"] == "target"
     assert rows[0]["evidence_level"] == "documented" and rows[0]["version"] == "synthetic fixture"

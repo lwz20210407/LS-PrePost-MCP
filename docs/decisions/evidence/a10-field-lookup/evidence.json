@@ -1050,5 +1050,16 @@
     ],
     "preparation": "Copied the same public index; added only CREATE INDEX keyword_lookup ON keyword_fields(entity_key,field), matching the builder DDL",
     "scope": "Deterministic existing-field retrieval, not natural-language held-out evaluation"
+  },
+  "historical_diff_scope": {
+    "base": "d6f64fa",
+    "head": "22ce5a5",
+    "command": "git diff d6f64fa 22ce5a5 --binary -- . ':!docs' ':!tasks.yaml'",
+    "excluded_paths": [
+      "docs",
+      "tasks.yaml"
+    ],
+    "untracked_included": false,
+    "sha256": "759f7ea0b2ab3ea197f653f775a82b06e293ab83edd09bf057aa30ca4ba9d7c1"
   }
 }

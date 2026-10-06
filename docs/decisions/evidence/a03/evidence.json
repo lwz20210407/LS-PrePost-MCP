@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "task": "A03",
+  "runs": [
+    {
+      "task": "A03",
+      "version": "413",
+      "context": "batch",
+      "actual_git_revision": "9e55e9b04920932d647de219a819b01355747f29",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "report": "a03-413-report/report.json",
+      "run_id": "main-channels-batch-r1",
+      "report_sha256": "69392b98e3ed6f3d3d5b0a4481b6b4ec17b4427a55e494c7145e148c352eead9",
+      "cases": [
+        "tests/test_script_scl_native.py::test_scl_array_csv_and_compile_line[batch]"
+      ]
+    },
+    {
+      "task": "A03",
+      "version": "410",
+      "context": "batch",
+      "actual_git_revision": "9e55e9b04920932d647de219a819b01355747f29",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "report": "a03-410-report/report.json",
+      "run_id": "main-channels-batch-r1",
+      "report_sha256": "00bcc8fb7d47a5ee86af2e30f751ee51f8389587bc99d9be170e013b095b52a6",
+      "cases": [
+        "tests/test_script_scl_native.py::test_scl_array_csv_and_compile_line[batch]"
+      ]
+    },
+    {
+      "task": "A03",
+      "version": "48",
+      "context": "batch",
+      "actual_git_revision": "9e55e9b04920932d647de219a819b01355747f29",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "report": "a03-48-report/report.json",
+      "run_id": "main-channels-batch-r1",
+      "report_sha256": "a6c6ceb4513b97b8dbf662a1d4fe93fbdb1ad9f965f7e6431ccf8dd0bda77638",
+      "cases": [
+        "tests/test_script_scl_native.py::test_scl_array_csv_and_compile_line[batch]"
+      ]
+    },
+    {
+      "task": "A03",
+      "version": "413",
+      "context": "session",
+      "actual_git_revision": "9e55e9b04920932d647de219a819b01355747f29",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "report": "a03-413-report/report.json",
+      "run_id": "main-channels-session-r1",
+      "report_sha256": "c85f73c501d575401d36ed56b593d41690c1080e2498f4dcab0015a218b9673a",
+      "cases": [
+        "tests/test_script_scl_native.py::test_scl_array_csv_and_compile_line[session]"
+      ]
+    }
+  ],
+  "fixture_sha256": {
+    "input.k": "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43",
+    "d3plot": "08e29edab83a10901589cf5e20714bed8a019cc69a7b93e6cba08d5c231d58c1",
+    "d3plot01": "f928ad97b3293bb3b52d669ad491e4831fbdc1d9681b06ec5883b4aca2dc74b5"
+  },
+  "test_source_sha256": "83ee30a89908c7e43931eab654a4d9d676013106295f8fb86942fe6380e7ee13",
+  "scope": "非连续节点 ID 与 XYZ/合计数组 CSV；4.13 与 Python 交叉比较；编译错误源行号。",
+  "session_window": "User-authorized unlocked desktop; owned queue sessions closed after tests"
+}
