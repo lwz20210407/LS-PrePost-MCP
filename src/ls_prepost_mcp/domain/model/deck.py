@@ -49,20 +49,30 @@ class Change:
 class KeywordDeck:
     """An LS-DYNA keyword deck loaded with all include files, editable without reformatting."""
 
-    def __init__(self, main: SourceFile, search_dirs: list[Path], max_files: int = 5000) -> None:
+    def __init__(self, main: SourceFile, search_dirs: list[Path], max_files: int = 5000,
+                 record_unreadable: bool = False, network: bool = True) -> None:
         self.main = main
         self.main_dir = main.path.parent
         self.files: dict[str, SourceFile] = {identity(main.path): main}
         self.max_files = max_files
+        self.record_unreadable = record_unreadable
+        self.network = network
         self.base_search_dirs = list(search_dirs)
         self.changes: list[Change] = []
         self._layouts: dict[int, tuple[Block, Layout]] = {}
         self._rebuild()
 
     @classmethod
-    def load(cls, path: str | os.PathLike[str], include_paths: tuple[str, ...] = (), max_files: int = 5000) -> KeywordDeck:
-        """Load ``path`` and every include file it references (read-only on disk)."""
-        return cls(SourceFile.read(Path(path)), [Path(p) for p in include_paths], max_files)
+    def load(cls, path: str | os.PathLike[str], include_paths: tuple[str, ...] = (), max_files: int = 5000,
+             record_unreadable: bool = False) -> KeywordDeck:
+        """Load ``path`` and every include file it references (read-only on disk).
+
+        An include that cannot be read as keyword text, or one beyond ``max_files``, raises
+        unless ``record_unreadable`` is set; then it is skipped and recorded on its reference.
+        Constructed directly with ``network=False``, UNC include names are recorded and never
+        accessed (used by :func:`preflight.preflight_includes` for untrusted decks).
+        """
+        return cls(SourceFile.read(Path(path)), [Path(p) for p in include_paths], max_files, record_unreadable)
 
     # ------------------------------------------------------------------ structure
     def _rebuild(self) -> None:

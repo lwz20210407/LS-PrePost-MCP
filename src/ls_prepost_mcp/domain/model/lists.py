@@ -46,8 +46,21 @@ CURVE_KEYWORDS = ("*DEFINE_CURVE", "*DEFINE_CURVE_TITLE")
 
 
 def base_name(name: str) -> tuple[str, bool]:
-    """Strip a trailing ``_TITLE`` option: ``*SET_NODE_LIST_TITLE`` -> (``*SET_NODE_LIST``, True)."""
-    return (name[:-6], True) if name.endswith("_TITLE") else (name, False)
+    """Strip a trailing ``_TITLE`` option: ``*SET_NODE_LIST_TITLE`` -> (``*SET_NODE_LIST``, True).
+
+    The ``_COLLECT`` option of ``*SET_*`` keywords (merge blocks with the same SID) does not change
+    the cards, so it is stripped too: ``*SET_SHELL_GENERAL_COLLECT`` -> ``*SET_SHELL_GENERAL``.
+    """
+    titled = name.endswith("_TITLE")
+    base = name[:-6] if titled else name
+    if base.startswith("*SET_"):
+        base = "_".join(token for token in base.split("_") if token != "COLLECT")
+    return base, titled
+
+
+def collected(name: str) -> bool:
+    """``*SET_..._COLLECT``: blocks with the same SID form one merged set."""
+    return name.startswith("*SET_") and "COLLECT" in name.split("_")
 
 
 def is_list_set(name: str) -> bool:

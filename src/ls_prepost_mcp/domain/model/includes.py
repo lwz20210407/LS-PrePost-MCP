@@ -5,6 +5,7 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from . import access
 from .text import body, is_blank
 
 PATH_KEYWORDS = ("*INCLUDE_PATH", "*INCLUDE_PATH_RELATIVE")
@@ -73,6 +74,22 @@ def identity(path: Path) -> str:
     return os.path.normcase(os.path.abspath(path))
 
 
+def is_network(name: str) -> bool:
+    """UNC and device names (``\\\\host\\share``, ``//host/share``, ``\\\\?\\``, ``\\\\.\\``).
+
+    Windows accepts either separator, so mixed spellings such as ``\\/host/share`` count too.
+    """
+    return name.replace("/", "\\").startswith("\\\\")
+
+
+def joined(directory: Path, target: Path) -> Path:
+    """``directory / target``; under an extended-length (``\\\\?\\``) directory Windows does not
+    collapse ``..``, so the joined path is normalized lexically like any ordinary path."""
+    candidate = directory / target
+    text = str(candidate)
+    return Path(os.path.normpath(text)) if text.startswith("\\\\?\\") else candidate
+
+
 def resolve(name: str, including_dir: Path, main_dir: Path, search_dirs: list[Path]) -> Resolution:
     """Resolve an include name.
 
@@ -82,13 +99,15 @@ def resolve(name: str, including_dir: Path, main_dir: Path, search_dirs: list[Pa
     """
     target = Path(name)
     if target.is_absolute():
+        access.require(target)
         return Resolution(target if target.is_file() else None, "absolute",
                           [identity(target)] if target.is_file() else [])
     ordered = [("including_dir", including_dir), ("main_dir", main_dir)]
     ordered += [("include_path", d) for d in search_dirs]
     found: list[tuple[str, Path]] = []
     for rule, directory in ordered:
-        candidate = directory / target
+        candidate = joined(directory, target)
+        access.require(candidate)  # before the stat: a refused path is not probed either
         if candidate.is_file() and identity(candidate) not in {identity(p) for _, p in found}:
             found.append((rule, candidate))
     if not found:

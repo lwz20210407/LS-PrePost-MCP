@@ -1,10 +1,11 @@
 """Byte-preserving keyword engine (tasks.yaml I07): include tree, parameters, edits, save."""
 import hashlib
+import os
 from pathlib import Path
 
 import pytest
 
-from ls_prepost_mcp.domain.model import FieldError, KeywordDeck, Unsupported
+from ls_prepost_mcp.domain.model import FieldError, KeywordDeck, Unsupported, persist
 from ls_prepost_mcp.domain.model.blocks import parse_blocks
 from ls_prepost_mcp.domain.model.fields import FieldSlot, format_value, write_text
 from ls_prepost_mcp.domain.model.parameters import evaluate, parse_definitions
@@ -320,6 +321,116 @@ def test_save_in_place_writes_backup_once(deck_dir: Path) -> None:
         deck.save_in_place()
 
 
+def _deny_replace(monkeypatch, name: str, times: int) -> list[float]:
+    """Make ``os.replace`` onto ``name`` fail like a Windows reader holding it; return the backoff."""
+    replace, sleep, delays, left = os.replace, persist.time.sleep, [], [times]
+
+    def flaky(source, destination):
+        if Path(destination).name == name and left[0]:
+            left[0] -= 1
+            error = PermissionError("Temporarily denied by a Windows reader")
+            error.winerror = 5
+            raise error
+        replace(source, destination)
+
+    def backoff(delay):
+        delays.append(delay)
+        sleep(delay)  # A real Windows reader may add another sharing denial after the injected ones.
+
+    monkeypatch.setattr(persist.os, "replace", flaky)
+    monkeypatch.setattr(persist.time, "sleep", backoff)
+    return delays
+
+
+def test_atomic_write_retries_brief_windows_sharing_denials(tmp_path: Path, monkeypatch) -> None:
+    target = tmp_path / "a.k"
+    target.write_bytes(b"old")
+    delays = _deny_replace(monkeypatch, "a.k", 2)
+    persist.atomic_write(target, b"new")
+    assert target.read_bytes() == b"new"
+    assert delays[:2] == [0.02, 0.04]
+    assert delays == list(persist.SHARING_DELAYS[:len(delays)])
+    assert [p.name for p in tmp_path.iterdir()] == ["a.k"]
+
+
+def test_atomic_write_gives_up_without_leaving_a_temporary(tmp_path: Path, monkeypatch) -> None:
+    target = tmp_path / "a.k"
+    target.write_bytes(b"old")
+    delays = _deny_replace(monkeypatch, "a.k", 99)
+    with pytest.raises(PermissionError):
+        persist.atomic_write(target, b"new")
+    assert delays == list(persist.SHARING_DELAYS)
+    assert target.read_bytes() == b"old" and [p.name for p in tmp_path.iterdir()] == ["a.k"]
+
+
+def test_atomic_write_does_not_retry_errors_without_a_sharing_code(tmp_path: Path, monkeypatch) -> None:
+    delays: list[float] = []
+
+    def denied(source, destination):
+        raise PermissionError("POSIX EACCES")
+
+    monkeypatch.setattr(persist.os, "replace", denied)
+    monkeypatch.setattr(persist.time, "sleep", delays.append)
+    with pytest.raises(PermissionError):
+        persist.atomic_write(tmp_path / "a.k", b"new")
+    assert delays == [] and list(tmp_path.iterdir()) == []
+
+
+def test_failed_save_in_place_keeps_the_file_and_can_be_retried(deck_dir: Path, monkeypatch) -> None:
+    deck = KeywordDeck.load(deck_dir / "main.k")
+    original = (deck_dir / "parts" / "parts.k").read_bytes()
+    (block, row), = deck.find("*PART", pid=1)
+    deck.set(block, "secid", 3, row=row)
+    _deny_replace(monkeypatch, "parts.k", 99)
+    with pytest.raises(PermissionError):
+        deck.save_in_place()
+    assert (deck_dir / "parts" / "parts.k").read_bytes() == original
+    assert sorted(p.name for p in (deck_dir / "parts").iterdir()) == ["mesh.k", "parts.k"]
+    monkeypatch.undo()
+    report = deck.save_in_place()
+    assert [Path(r["path"]).name for r in report["written"]] == ["parts.k"]
+    assert (deck_dir / "parts" / "parts.k.orig").read_bytes() == original
+
+
+def test_save_in_place_keeps_the_backup_when_the_file_was_replaced(deck_dir: Path, monkeypatch) -> None:
+    deck = KeywordDeck.load(deck_dir / "main.k")
+    original = (deck_dir / "parts" / "parts.k").read_bytes()
+    (block, row), = deck.find("*PART", pid=1)
+    deck.set(block, "secid", 3, row=row)
+    replace = os.replace
+
+    def replaced_then_failed(source, destination):  # e.g. a network share reporting late
+        replace(source, destination)
+        if Path(destination).name == "parts.k":
+            raise OSError("reported after the rename")
+
+    monkeypatch.setattr(persist.os, "replace", replaced_then_failed)
+    with pytest.raises(OSError) as raised:
+        deck.save_in_place()
+    assert (deck_dir / "parts" / "parts.k").read_bytes() != original
+    assert (deck_dir / "parts" / "parts.k.orig").read_bytes() == original
+    assert "parts.k.orig was kept" in "".join(raised.value.__notes__)
+
+
+def test_failed_second_file_keeps_the_first_backup(deck_dir: Path, monkeypatch) -> None:
+    deck = KeywordDeck.load(deck_dir / "main.k")
+    # Exercise two-file persistence without depending on optional PyDYNA schemas.
+    deck.set_parameter("thick", 2.5)
+    (block, row), = deck.find("*PART", pid=1)
+    deck.set(block, "secid", 3, row=row)
+    first, second = (f.path for f in persist.modified_files(deck))
+    before = {path: path.read_bytes() for path in (first, second)}
+    _deny_replace(monkeypatch, second.name, 99)
+    with pytest.raises(PermissionError):
+        deck.save_in_place()
+    assert Path(str(first) + ".orig").read_bytes() == before[first]
+    assert second.read_bytes() == before[second] and not Path(str(second) + ".orig").exists()
+    monkeypatch.undo()
+    report = deck.save_in_place()
+    assert [r["path"] for r in report["written"]] == [str(second)]
+    assert Path(str(second) + ".orig").read_bytes() == before[second]
+
+
 def test_save_as_refuses_to_overwrite_inputs(deck_dir: Path) -> None:
     deck = KeywordDeck.load(deck_dir / "main.k")
     with pytest.raises(ValueError):
@@ -333,3 +444,19 @@ def test_diff_lists_only_changed_lines(deck_dir: Path) -> None:
     diff = deck.diff()
     changed = [line for line in diff.splitlines() if line[:1] in "+-" and line[:3] not in ("+++", "---")]
     assert changed == ["-         1         1         1", "+         1         1         5"]
+
+
+def test_sharing_retry_schedule_is_exact_without_filesystem_interference(monkeypatch):
+    calls, delays = [], []
+
+    def operation():
+        calls.append(None)
+        if len(calls) <= 2:
+            error = PermissionError("injected sharing denial")
+            error.winerror = 5
+            raise error
+        return "saved"
+
+    monkeypatch.setattr(persist.time, "sleep", delays.append)
+    assert persist._retry_sharing(operation) == "saved"
+    assert len(calls) == 3 and delays == [0.02, 0.04]

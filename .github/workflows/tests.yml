@@ -1,16 +1,28 @@
 name: tests
-on: [push, pull_request]
+# Actions minutes are limited on this private repository (Windows jobs count double), so:
+# - pushes run only on main; a branch with a pull request is tested once, by the pull request;
+# - draft pull requests are not tested until they are marked ready for review;
+# - pull requests run two jobs that still cover both systems and both Python versions;
+#   pushes to main and manual runs (workflow_dispatch) run the full four-job matrix.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
   python:
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        python: ['3.11', '3.12']
+        include: ${{ fromJSON(github.event_name == 'pull_request'
+          && '[{"os":"ubuntu-latest","python":"3.11"},{"os":"windows-latest","python":"3.12"}]'
+          || '[{"os":"ubuntu-latest","python":"3.11"},{"os":"ubuntu-latest","python":"3.12"},{"os":"windows-latest","python":"3.11"},{"os":"windows-latest","python":"3.12"}]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     env:

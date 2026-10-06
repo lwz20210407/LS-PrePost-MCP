@@ -34,11 +34,19 @@ $env:LSPP_TIMEOUT = '120'
 
 `LSPP_WORKSPACE` 是唯一产物入口；已有输入文件不会被覆盖。输入可以位于该目录或允许的根目录。Linux 的根目录列表使用 `:` 分隔。
 
+Windows 的无图形批处理如需使用中文工作目录，可显式设置 `LSPP_NATIVE_ALIAS_ROOT`，指向一个已经存在、完整路径仅含 ASCII 字符的本地目录。该目录还须位于作业目录之外，且必须位于支持目录联接的本地 NTFS 卷；不要使用网络盘或 UNC 根目录。每个进程创建独占临时别名，指向原作业目录；产物仍写在 `LSPP_WORKSPACE`，不会另复制模型。进程结束后只清理本次别名，别名身份改变时拒绝清理。配置、日志和实际执行路径会记入作业证据。
+
+服务被强杀后，别名根目录可能残留 `lspp-*` 目录联接。直接删除联接项只会删除别名，不会删除它指向的作业目录；本机已验证 PowerShell 5.1 `Remove-Item -Recurse`、`cmd rd /s` 和 Python `shutil.rmtree` 的这一行为。清理前先核实它确实是目录联接及其目标，保留仍被运行中作业使用的别名。
+
+该选项只作用于无图形 BatchEngine；可见图形进程与 SessionEngine 保持原路径。未设置时保持原行为，中文路径限制见 [KI-049](KNOWN_ISSUES.md#ki-049-含空格中文工作目录的原生配置解析)。4.8、原生宏、远程及图形流程仍需各自的原生证据。
+
 可选多版本配置：
 
 ```powershell
 $env:LSPP_EXECUTABLES = '{"4.8":"C:/path/4.8/lsprepost.exe","4.10":"C:/path/4.10/lsprepost.exe","4.13":"C:/path/4.13/lsprepost.exe"}'
 ```
+
+配置键可以是版本号，也可以是 `production`、`lspp413` 等普通名称。只有 `4.13`、`4.13.4` 这类纯版本号会与检测到的版本族核对；普通名称不声明版本。可执行文件的资源冲突和 4.11 排除规则始终生效，名称不会绕过这些检查。
 
 MCP 客户端使用本项目虚拟环境里的 `ls-prepost-mcp` 可执行入口，或以该环境的 Python 启动 `-m ls_prepost_mcp.server`，并传入上述环境变量。服务使用 stdio；不要将调试打印写到协议 stdout。
 

@@ -503,6 +503,7 @@ tasks:
       - 每次运算把公式与参数写进结果元数据
 
   - id: Q08
+    owner: cursor
     group: post
     title: XYPlot 出图
     story: 把 3 个工况的力-位移曲线画在一张图上，带图例，导出 PNG 和 CSV
@@ -538,6 +539,7 @@ tasks:
       - 首、末帧与 Q02 对应状态的静态图一致（感知哈希容差内）
 
   - id: Q10
+    owner: antigravity
     group: post
     title: 截面力与剖切面
     story: 在 z=10 mm 处切一刀，输出截面上的合力时程和剖面云图
@@ -570,6 +572,7 @@ tasks:
       - 质量类测量缺少密度或单位时拒绝
 
   - id: Q12
+    owner: antigravity
     group: post
     title: 能量检查
     story: 检查能量是否守恒，沙漏能占比是多少
@@ -869,6 +872,7 @@ tasks:
 # ---------------------------------------------------------------------------
 infrastructure:
   - id: I01
+    owner: codex
     title: 执行引擎 Engine（BatchEngine 默认 + SessionEngine 可选）
     milestone: M1
     status: partial
@@ -921,7 +925,7 @@ infrastructure:
     status: partial
     gaps:
       - 路径命令及 SCL 写入已集中；GUI 模型检查、实体导入等调用待集中窗口原生复核，批处理的导入/XY/SCL 子集已有独立证据
-      - KI-049：4.13/4.10 的 ASCII 空格 job 目录已通过批处理保存、PNG、重开；中文 job 目录仍为 gap，GUI/Movie 路径待集中窗口验证
+      - KI-049：4.13/4.10 的 ASCII 空格目录及显式启用 ASCII 别名的中文目录已通过无图形保存、PNG、重开和四个后台入口；未启用别名的中文目录、GUI/Movie 与 native_postprocess_case 图形回调仍待验证
     verification_level: L2
     evidence:
       - src/ls_prepost_mcp/native/commands.py
@@ -939,6 +943,7 @@ infrastructure:
       - 版本差异集中在能力表，src 其他位置不出现版本判断
 
   - id: I04
+    owner: codex
     title: 原生回归框架 pytest -m native
     milestone: M1
     status: partial
@@ -956,7 +961,7 @@ infrastructure:
     gaps:
       - 当前 55 个 tools/run_* 入口已全部收编为 57 个 pytest 用例（保留原生/文件及 batch/GUI 变体）；CLI 参数发现已逐一验证。
       - 三个文件验收和 program_acceptance 批处理已有证据；集成工作副本累计 53 个 GUI 用例通过，包含待审 A02 修复，不作为 PR #5 头全量验证；13 个 UU 格等待用户断开
-      - 用户要求的公开抽样现为 126 例（首轮 26 例，新增 100 例）；新增部分尚待批量执行，输入特征不等于全部字段已验证，失败及不支持项分别保留
+      - 公开抽样为 126 例（首轮 26，新增 100）；新增 100 已执行，历史报告 16 通过 / 84 失败，dirty 基线缺 diff 哈希，不能作为当前分支通过证明；失败已初分，仍需修复或明确输入限制后重跑
     acceptance:
       - 补测从 M0 转入的 13 个 UU 远程格（4.13/4.10 的 runc 五通道共 10 格，以及两版本 nographics 原生宏和 4.13 会话原生宏共 3 格），记录执行、PNG、MP4 结果与用户确认的断开时间窗
       - 55 个 tools/run_* 收编为 57 个带 marker 的 pytest 用例，共享 fixture
@@ -982,6 +987,7 @@ infrastructure:
       - 公开部分可入仓库；私有课程资料的索引在仓库外
 
   - id: I06
+    owner: codex
     title: 文档生成
     milestone: M0
     acceptance:

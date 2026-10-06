@@ -14,6 +14,9 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_recorded_channel_source_blobs_have_portable_lf_hashes(task):
     if not (ROOT / ".git").exists():
         pytest.skip("Historical Git objects are unavailable in an unpacked source copy")
+    shallow = subprocess.check_output(["git", "rev-parse", "--is-shallow-repository"], cwd=ROOT)
+    if shallow.strip() == b"true":
+        pytest.skip("Historical Git blobs require a full clone; shallow clones omit evidence revisions")
     data = json.loads((ROOT / "docs/decisions/evidence" / task / "evidence.json").read_text(encoding="utf8"))
     for run in data["runs"]:
         source = run["test_source_identity"]

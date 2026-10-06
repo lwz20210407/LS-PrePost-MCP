@@ -20,7 +20,7 @@ import numpy as np
 
 from . import geometry, joint_checks, selectors, sets
 from .deck import KeywordDeck
-from .fields import FieldError, format_value
+from .fields import FieldError, format_value, single_line
 from .loads import ensure_curve
 
 KINDS = {"spherical": "SPHERICAL", "revolute": "REVOLUTE", "cylindrical": "CYLINDRICAL", "planar": "PLANAR",
@@ -162,7 +162,11 @@ def _attach(deck: KeywordDeck, side: tuple[str, int | None, list[int]], new: lis
         # the existing set may be shared with other keywords: the body gets a new set (old members + new nodes)
         block, row = _cnrb(deck, pid)
         old = int(deck.get(block, "nsid", row=row).value)
-        members = deck.members(joint_checks.node_set_blocks(deck)[old])
+        node_sets = joint_checks.node_set_blocks(deck)
+        if old not in node_sets:
+            raise FieldError(f"Node set {old} of nodal rigid body {pid} is not one readable member list "
+                             "(missing, several _COLLECT blocks or a duplicate SID)")
+        members = deck.members(node_sets[old])
         nsid = sets.create_set(deck, "node", members + new, title=f"{title} on nodal rigid body {pid}", file=file)[0]
         deck.set(block, "nsid", nsid, row=row)
         return {"nodal_rigid_body": pid, "node_set": nsid, "previous_node_set": old}
@@ -182,7 +186,7 @@ def _real(value: object) -> str:
 def _card_text(kind: str, nodes: list[int], jid: int, title: str, rps: float, damp: float, motor: dict | None,
                local: dict | None, failure: dict | None) -> str:
     keyword = f"*CONSTRAINED_JOINT_{kind}_ID" + ("_LOCAL" if local else "") + ("_FAILURE" if failure else "")
-    lines = [keyword, f"{jid:>10}{title[:70]}"]
+    lines = [keyword, f"{jid:>10}{single_line(title, 'Joint title')[:70]}"]
     lines.append("".join(f"{n:>10}" if n else " " * 10 for n in nodes) + _real(rps) + _real(damp))
     if motor is not None:
         lines.append(" " * 10 + f"{motor['lcid']:>10}{motor['type']:>10}")

@@ -34,3 +34,34 @@ def test_disagreeing_resource_does_not_break_discovery_but_blocks_execution(tmp_
     assert versions.profile(executable)["resource_conflict"] is True
     with pytest.raises(ValueError, match="strings disagree"):
         versions.require_installation(executable)
+
+
+@pytest.mark.parametrize("label", ["lspp413", "production"])
+def test_named_profile_is_not_a_version_claim_and_can_dispatch(tmp_path, monkeypatch, label):
+    executable = tmp_path / "actual413.exe"
+    executable.touch()
+    monkeypatch.setattr(versions, "read_version_resource", lambda _: resource("4.13.4", "4.13.4", "4.13.4"))
+    service = Service(Settings(tmp_path / "work", executable, profiles={label: executable}))
+    capabilities = service.list_installations()["profiles"][0]["capabilities"]
+    assert capabilities["version"] == "4.13" and capabilities["requested_version"] is None
+    assert capabilities["configured_label_conflict"] is False
+    calls = []
+
+    def probe(selected):
+        calls.append(selected.settings.native_executable())
+        return {"dispatched": True}
+
+    monkeypatch.setattr(Service, "probe_environment", probe)
+    assert service.run_on_version(label, "probe_environment", {}) == {
+        "dispatched": True, "installation_profile": label}
+    assert calls == [executable]
+
+
+def test_named_profile_does_not_bypass_excluded_executable(tmp_path, monkeypatch):
+    executable = tmp_path / "actual411.exe"
+    executable.touch()
+    monkeypatch.setattr(versions, "read_version_resource", lambda _: resource("4.11.0", "4.11.0", "4.11.0"))
+    service = Service(Settings(tmp_path / "work", executable, profiles={"production": executable}))
+    monkeypatch.setattr(Service, "probe_environment", lambda *_: pytest.fail("Must reject before dispatch"))
+    with pytest.raises(ValueError, match="excluded"):
+        service.run_on_version("production", "probe_environment", {})

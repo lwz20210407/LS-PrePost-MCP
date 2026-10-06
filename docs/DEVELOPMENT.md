@@ -32,6 +32,8 @@ uv run --extra dev ruff check src tests
 
 普通开发用 uv 默认 dev 依赖组。可选后端测试按实际导入跳过；验证最小安装时以 UV_PROJECT_ENVIRONMENT 指定新的仓库外环境。UV_CACHE_DIR、pytest cache_dir、--basetemp 必须指向本任务目录。不要复用会被 pytest 清空的旧 basetemp。
 
+CI（.github/workflows/tests.yml）只在推到 main、PR（Draft 除外）和手动触发时运行。PR 跑两个任务：Ubuntu + Python 3.11，Windows + Python 3.12；main 和手动触发跑完整四个。私有仓库的 Actions 分钟数用完时任务不会启动，此时合并前在本地把 PR 合到最新 main，跑与 CI 相同的全部步骤（pytest、ruff、lint-imports、四个校验脚本、check_doc_links 和文件验收），作为合并依据。
+
 tools/gen_docs.py 生成 TASKS、TOOLS、README 能力表和 COMPATIBILITY 的版本策略部分。CI 校验生成物一致性；其他版本实测说明保留人工来源。tasks.yaml 的 ui_entry 已按既有 4.13.4 截图核正到可证实入口，截图身份保存在 ui_entry_audit；面板内子项不据此自动获得验收。
 
 ## 测试分层
@@ -122,8 +124,11 @@ run_recipe 传入配方 ID、参数及输入模型。默认 launch_mode=c，显�
 可发现它们。旧名字保留至 v0.6。五配方的真实版本证据见[ADR 0007](decisions/0007-recipes.md)。
 
 原生 report.md / report.json 自动附启动时的实际 Git revision、工作树状态、
-`git diff HEAD --binary` SHA256 和源码快照 SHA256；逐文件哈希见 execution-context.json。
+按 [DIFF_COMMAND](../tools/native_regression.py) 固定参数生成的 diff SHA256 和源码快照 SHA256；逐文件哈希见 execution-context.json。
+原样补丁保存在仓库外报告目录的 `working-tree.patch`，可独立重算 SHA256；固定三行上下文且不合并相邻 hunk，避免用户 Git 配置改变证据指纹。
 Git 不可用时身份字段为空。diff 不包含未跟踪文件，源码快照补充这些文件的指纹。
+
+托管 CI 额度恢复前，按用户批准的[临时本地合并关卡](decisions/0010-local-verification-gate.md)记录实际提交的完整检查，托管结果仍保留待验证。
 
 I05 完整字段索引：安装 pydyna 可选依赖后，显式运行
 `python tools/build_knowledge_index.py --all-keywords --output <仓库外索引路径>`。
