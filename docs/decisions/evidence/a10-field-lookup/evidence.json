@@ -1,0 +1,1065 @@
+{
+  "task": "A10",
+  "sampling": "SELECT DISTINCT entity_key,field ORDER BY entity_key,field; take every floor(population/100)-th row, first 100",
+  "baseline": {
+    "actual_git_revision": "d6f64fa7099b416c0bd8003426a0d6bb8fb6a26d",
+    "working_tree_dirty": false,
+    "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "index_sha256": "d0c6193e6ca94132486b5cf2fff5f41957e77c2da108deab01eae8fcacdec2e3",
+    "population": 66110,
+    "query_count": 100,
+    "empty": 6,
+    "exact_keyword": 94,
+    "seconds": 1.3589999999967404,
+    "results": [
+      {
+        "keyword": "*AIRBAG_ADIABATIC_GAS_MODEL",
+        "field": "gamma",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE",
+        "field": "tsplit",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_DECOMPOSITION_INFLATION_TIME",
+        "field": "bair",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_DECOMPOSITION_JET_SEGMENT_TIME_ID",
+        "field": "xmair",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_DECOMPOSITION_MOLEFRACTION_SEGMENT_TIME_ID",
+        "field": "unit",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_DECOMPOSITION_TIME_ID",
+        "field": "tsplit",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_INFLATION_TIME",
+        "field": "xmi",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_JET_TIME",
+        "field": "tstop",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_MOLEFRACTION_TIME",
+        "field": "title",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_MPP_DECOMPOSITION_INFLATION_SEGMENT_TIME",
+        "field": "aair",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_MPP_DECOMPOSITION_JET_SEGMENT_ID",
+        "field": "sid2",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_MPP_DECOMPOSITION_MOLEFRACTION_SEGMENT_ID",
+        "field": "lcmi",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_MPP_DECOMPOSITION_SEGMENT_TIME",
+        "field": "vdi",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_MPP_INFLATION_SEGMENT_ID",
+        "field": "sidsv",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_MPP_JET_SEGMENT_ID",
+        "field": "ngas",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_MPP_MOLEFRACTION_SEGMENT_ID",
+        "field": "bi",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_MPP_SEGMENT_TIME",
+        "field": "sid1",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_TIME",
+        "field": "np",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_WANG_NEFSKE_JETTING_POP",
+        "field": "mw",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*AIRBAG_WANG_NEFSKE_MULTIPLE_JETTING_POP_CM_ID",
+        "field": "lct",
+        "returned": 0,
+        "exact_keyword": false
+      },
+      {
+        "keyword": "*BATTERY_ECHEM_CELL_GEOMETRY",
+        "field": "cccmesh",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*BOUNDARY_PRESCRIBED_ORIENTATION_RIGID_EULERP",
+        "field": "death",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CESE_BOUNDARY_SOLID_WALL_PART",
+        "field": "lcid",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*COMPONENT_GEBOD_JOINT_RIGHT_ANKLE",
+        "field": "scf1",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONSTRAINED_COORDINATE",
+        "field": "x",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONSTRAINED_JOINT_COOR_TRANSLATIONAL_MOTOR",
+        "field": "mzz",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONSTRAINED_LAGRANGE_IN_SOLID_EDGES",
+        "field": "hmax",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONSTRAINED_SPR2",
+        "field": "expt",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONTACT_2D_TIED_SLIDING",
+        "field": "tol_ig",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONTACT_AUTOMATIC_NODES_TO_SURFACE",
+        "field": "fs",
+        "returned": 0,
+        "exact_keyword": false
+      },
+      {
+        "keyword": "*CONTACT_AUTOMATIC_ONE_WAY_SURFACE_TO_SURFACE_TIEBREAK_USER",
+        "field": "igap",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONTACT_AUTOMATIC_SINGLE_SURFACE_TIED",
+        "field": "region",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONTACT_AUTOMATIC_SURFACE_TO_SURFACE_TIEBREAK",
+        "field": "cparm8",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONTACT_CONSTRAINT_NODES_TO_SURFACE",
+        "field": "sbst",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONTACT_ERODING_SURFACE_TO_SURFACE",
+        "field": "sfsat",
+        "returned": 0,
+        "exact_keyword": false
+      },
+      {
+        "keyword": "*CONTACT_FORMING_SURFACE_TO_SURFACE_MORTAR",
+        "field": "vsf",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONTACT_GEBOD_LOWER_TORSO",
+        "field": "isym",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONTACT_GEBOD_UPPER_TORSO",
+        "field": "dtpchk",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONTACT_ONE_WAY_SURFACE_TO_SURFACE_INTERFERENCE",
+        "field": "srnde",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONTACT_SLIDING_ONLY_PENALTY",
+        "field": "lcidab",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONTACT_SURFACE_TO_SURFACE_THERMAL_FRICTION",
+        "field": "bckt",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONTACT_TIED_NODES_TO_SURFACE_OFFSET",
+        "field": "shledg",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONTACT_TIED_SHELL_EDGE_TO_SURFACE_CONSTRAINED_OFFSET",
+        "field": "snlog",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONTROL_CPU",
+        "field": "iglst",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*CONTROL_IMPLICIT_INERTIA_RELIEF",
+        "field": "thresh",
+        "returned": 0,
+        "exact_keyword": false
+      },
+      {
+        "keyword": "*CONTROL_SHELL",
+        "field": "delfr",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*DATABASE_FREQUENCY_BINARY_D3FTG",
+        "field": "binary",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*DEFINE_BOX_ADAPTIVE_LOCAL",
+        "field": "title",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*DEFINE_DE_HBOND",
+        "field": "stype",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*DEFINE_HEX_SPOTWELD_ASSEMBLY_8",
+        "field": "eid3",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*DEFORMABLE_TO_RIGID_INERTIA",
+        "field": "zc",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*ELEMENT_BEAM_PID_OFFSET",
+        "field": "wz2",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*ELEMENT_SHELL_BETA",
+        "field": "thic2",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*ELEMENT_SOLID_H20_DOF",
+        "field": "n19",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*ELEMENT_SOLID_TET4TOTET10_DOF_FORMAT2",
+        "field": "ns1",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*EM_RANDLES_BATMAC",
+        "field": "temp",
+        "returned": 0,
+        "exact_keyword": false
+      },
+      {
+        "keyword": "*EOS_MIE_GRUNEISEN",
+        "field": "alpha0",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*FREQUENCY_DOMAIN_RANDOM_VIBRATION",
+        "field": "ncpsd",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*ICFD_DATABASE_NODOUT",
+        "field": "outlv",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*INCLUDE_TRANSFORM",
+        "field": "suffix",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*INTERFACE_BLANKSIZE_INITIAL_TRIM",
+        "field": "filename5",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*LOAD_BODY_Z",
+        "field": "sf",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*LOAD_THERMAL_VARIABLE",
+        "field": "nsidex",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_016",
+        "field": "ys10",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_040",
+        "field": "beta",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_067",
+        "field": "lcidtdt",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_088",
+        "field": "edots",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_113",
+        "field": "e0mart",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_132",
+        "field": "ind",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_147",
+        "field": "title",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_171",
+        "field": "ts4",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_197",
+        "field": "a",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_219",
+        "field": "angle5",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_243",
+        "field": "crc4",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_261",
+        "field": "enl",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_291",
+        "field": "n25",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_ADD_INELASTICITY",
+        "field": "a2",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_ANISOTROPIC_THERMOELASTIC",
+        "field": "c33",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_CF_MICROMECHANICS",
+        "field": "pr13",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_COMPOSITE_MSC",
+        "field": "a2",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_DESHPANDE_FLECK_FOAM",
+        "field": "derfi",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_ENHANCED_COMPOSITE_DAMAGE_MODEL",
+        "field": "crit",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_GENERAL_VISCOELASTIC_MOISTURE",
+        "field": "beta",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_HYSTERETIC_REINFORCEMENT",
+        "field": "v1",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_LAMINATED_FRACTURE_DAIMLER_CAMANHO",
+        "field": "yt",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_MODIFIED_PIECEWISE_LINEAR_PLASTICITY_PRESTRAIN",
+        "field": "tdel",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_ORTHOTROPIC_ELASTIC_PHASE_CHANGE",
+        "field": "a22",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_PIECEWISE_LINEAR_PLASTICITY_MIDFAIL",
+        "field": "tdel",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_RC_BEAM",
+        "field": "fc",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_SEISMIC_ISOLATOR",
+        "field": "pcrini",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_SPECIAL_ORTHOTROPIC",
+        "field": "title",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_T08",
+        "field": "a2",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_THERMAL_USER_DEFINED",
+        "field": "ihve",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*MAT_VISCOELASTIC_THERMAL",
+        "field": "lcid",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*PART_CONTACT_PRINT",
+        "field": "prbf",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*RIGIDWALL_GEOMETRIC_CYLINDER",
+        "field": "lencyl",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*RIGIDWALL_GEOMETRIC_PRISM_MOTION",
+        "field": "death",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*SECTION_POINT_SOURCE",
+        "field": "lcidvel",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*SET_BEAM_GENERATE_INCREMENT",
+        "field": "bbeg",
+        "returned": 1,
+        "exact_keyword": true
+      },
+      {
+        "keyword": "*SET_MULTI-MATERIAL_GROUP_LIST",
+        "field": "ammgid6",
+        "returned": 0,
+        "exact_keyword": false
+      }
+    ],
+    "scope": "Deterministic existing-field lookup audit, not natural-language retrieval evaluation"
+  },
+  "intermediate": {
+    "actual_git_revision": "d6f64fa7099b416c0bd8003426a0d6bb8fb6a26d",
+    "working_tree_dirty": true,
+    "git_diff_sha256": "970b60a9056cbedaadcf5c017e1fbba49d3f86bf63253dc4dc582e1f04bafec6",
+    "index_sha256": "d0c6193e6ca94132486b5cf2fff5f41957e77c2da108deab01eae8fcacdec2e3",
+    "query_count": 100,
+    "empty": 0,
+    "exact_keyword": 100,
+    "seconds": 136.70299999999406,
+    "scope": "Deterministic existing-field lookup audit, not natural-language retrieval evaluation"
+  },
+  "final": {
+    "actual_git_revision": "d6f64fa7099b416c0bd8003426a0d6bb8fb6a26d",
+    "working_tree_dirty": true,
+    "git_diff_sha256": "759f7ea0b2ab3ea197f653f775a82b06e293ab83edd09bf057aa30ca4ba9d7c1",
+    "runs": [
+      {
+        "index": "existing_v2",
+        "index_sha256": "d0c6193e6ca94132486b5cf2fff5f41957e77c2da108deab01eae8fcacdec2e3",
+        "queries": 100,
+        "found": 100,
+        "seconds": 11.781000000002678
+      },
+      {
+        "index": "indexed_v2",
+        "index_sha256": "247fefbcdf8faae3f8bc5965d848833e2fbc213ae685dd8978be726d12937aae",
+        "queries": 100,
+        "found": 100,
+        "seconds": 0.375
+      }
+    ],
+    "queries": [
+      {
+        "keyword": "*AIRBAG_ADIABATIC_GAS_MODEL",
+        "field": "gamma"
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE",
+        "field": "tsplit"
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_DECOMPOSITION_INFLATION_TIME",
+        "field": "bair"
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_DECOMPOSITION_JET_SEGMENT_TIME_ID",
+        "field": "xmair"
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_DECOMPOSITION_MOLEFRACTION_SEGMENT_TIME_ID",
+        "field": "unit"
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_DECOMPOSITION_TIME_ID",
+        "field": "tsplit"
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_INFLATION_TIME",
+        "field": "xmi"
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_JET_TIME",
+        "field": "tstop"
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_MOLEFRACTION_TIME",
+        "field": "title"
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_MPP_DECOMPOSITION_INFLATION_SEGMENT_TIME",
+        "field": "aair"
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_MPP_DECOMPOSITION_JET_SEGMENT_ID",
+        "field": "sid2"
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_MPP_DECOMPOSITION_MOLEFRACTION_SEGMENT_ID",
+        "field": "lcmi"
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_MPP_DECOMPOSITION_SEGMENT_TIME",
+        "field": "vdi"
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_MPP_INFLATION_SEGMENT_ID",
+        "field": "sidsv"
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_MPP_JET_SEGMENT_ID",
+        "field": "ngas"
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_MPP_MOLEFRACTION_SEGMENT_ID",
+        "field": "bi"
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_MPP_SEGMENT_TIME",
+        "field": "sid1"
+      },
+      {
+        "keyword": "*AIRBAG_PARTICLE_TIME",
+        "field": "np"
+      },
+      {
+        "keyword": "*AIRBAG_WANG_NEFSKE_JETTING_POP",
+        "field": "mw"
+      },
+      {
+        "keyword": "*AIRBAG_WANG_NEFSKE_MULTIPLE_JETTING_POP_CM_ID",
+        "field": "lct"
+      },
+      {
+        "keyword": "*BATTERY_ECHEM_CELL_GEOMETRY",
+        "field": "cccmesh"
+      },
+      {
+        "keyword": "*BOUNDARY_PRESCRIBED_ORIENTATION_RIGID_EULERP",
+        "field": "death"
+      },
+      {
+        "keyword": "*CESE_BOUNDARY_SOLID_WALL_PART",
+        "field": "lcid"
+      },
+      {
+        "keyword": "*COMPONENT_GEBOD_JOINT_RIGHT_ANKLE",
+        "field": "scf1"
+      },
+      {
+        "keyword": "*CONSTRAINED_COORDINATE",
+        "field": "x"
+      },
+      {
+        "keyword": "*CONSTRAINED_JOINT_COOR_TRANSLATIONAL_MOTOR",
+        "field": "mzz"
+      },
+      {
+        "keyword": "*CONSTRAINED_LAGRANGE_IN_SOLID_EDGES",
+        "field": "hmax"
+      },
+      {
+        "keyword": "*CONSTRAINED_SPR2",
+        "field": "expt"
+      },
+      {
+        "keyword": "*CONTACT_2D_TIED_SLIDING",
+        "field": "tol_ig"
+      },
+      {
+        "keyword": "*CONTACT_AUTOMATIC_NODES_TO_SURFACE",
+        "field": "fs"
+      },
+      {
+        "keyword": "*CONTACT_AUTOMATIC_ONE_WAY_SURFACE_TO_SURFACE_TIEBREAK_USER",
+        "field": "igap"
+      },
+      {
+        "keyword": "*CONTACT_AUTOMATIC_SINGLE_SURFACE_TIED",
+        "field": "region"
+      },
+      {
+        "keyword": "*CONTACT_AUTOMATIC_SURFACE_TO_SURFACE_TIEBREAK",
+        "field": "cparm8"
+      },
+      {
+        "keyword": "*CONTACT_CONSTRAINT_NODES_TO_SURFACE",
+        "field": "sbst"
+      },
+      {
+        "keyword": "*CONTACT_ERODING_SURFACE_TO_SURFACE",
+        "field": "sfsat"
+      },
+      {
+        "keyword": "*CONTACT_FORMING_SURFACE_TO_SURFACE_MORTAR",
+        "field": "vsf"
+      },
+      {
+        "keyword": "*CONTACT_GEBOD_LOWER_TORSO",
+        "field": "isym"
+      },
+      {
+        "keyword": "*CONTACT_GEBOD_UPPER_TORSO",
+        "field": "dtpchk"
+      },
+      {
+        "keyword": "*CONTACT_ONE_WAY_SURFACE_TO_SURFACE_INTERFERENCE",
+        "field": "srnde"
+      },
+      {
+        "keyword": "*CONTACT_SLIDING_ONLY_PENALTY",
+        "field": "lcidab"
+      },
+      {
+        "keyword": "*CONTACT_SURFACE_TO_SURFACE_THERMAL_FRICTION",
+        "field": "bckt"
+      },
+      {
+        "keyword": "*CONTACT_TIED_NODES_TO_SURFACE_OFFSET",
+        "field": "shledg"
+      },
+      {
+        "keyword": "*CONTACT_TIED_SHELL_EDGE_TO_SURFACE_CONSTRAINED_OFFSET",
+        "field": "snlog"
+      },
+      {
+        "keyword": "*CONTROL_CPU",
+        "field": "iglst"
+      },
+      {
+        "keyword": "*CONTROL_IMPLICIT_INERTIA_RELIEF",
+        "field": "thresh"
+      },
+      {
+        "keyword": "*CONTROL_SHELL",
+        "field": "delfr"
+      },
+      {
+        "keyword": "*DATABASE_FREQUENCY_BINARY_D3FTG",
+        "field": "binary"
+      },
+      {
+        "keyword": "*DEFINE_BOX_ADAPTIVE_LOCAL",
+        "field": "title"
+      },
+      {
+        "keyword": "*DEFINE_DE_HBOND",
+        "field": "stype"
+      },
+      {
+        "keyword": "*DEFINE_HEX_SPOTWELD_ASSEMBLY_8",
+        "field": "eid3"
+      },
+      {
+        "keyword": "*DEFORMABLE_TO_RIGID_INERTIA",
+        "field": "zc"
+      },
+      {
+        "keyword": "*ELEMENT_BEAM_PID_OFFSET",
+        "field": "wz2"
+      },
+      {
+        "keyword": "*ELEMENT_SHELL_BETA",
+        "field": "thic2"
+      },
+      {
+        "keyword": "*ELEMENT_SOLID_H20_DOF",
+        "field": "n19"
+      },
+      {
+        "keyword": "*ELEMENT_SOLID_TET4TOTET10_DOF_FORMAT2",
+        "field": "ns1"
+      },
+      {
+        "keyword": "*EM_RANDLES_BATMAC",
+        "field": "temp"
+      },
+      {
+        "keyword": "*EOS_MIE_GRUNEISEN",
+        "field": "alpha0"
+      },
+      {
+        "keyword": "*FREQUENCY_DOMAIN_RANDOM_VIBRATION",
+        "field": "ncpsd"
+      },
+      {
+        "keyword": "*ICFD_DATABASE_NODOUT",
+        "field": "outlv"
+      },
+      {
+        "keyword": "*INCLUDE_TRANSFORM",
+        "field": "suffix"
+      },
+      {
+        "keyword": "*INTERFACE_BLANKSIZE_INITIAL_TRIM",
+        "field": "filename5"
+      },
+      {
+        "keyword": "*LOAD_BODY_Z",
+        "field": "sf"
+      },
+      {
+        "keyword": "*LOAD_THERMAL_VARIABLE",
+        "field": "nsidex"
+      },
+      {
+        "keyword": "*MAT_016",
+        "field": "ys10"
+      },
+      {
+        "keyword": "*MAT_040",
+        "field": "beta"
+      },
+      {
+        "keyword": "*MAT_067",
+        "field": "lcidtdt"
+      },
+      {
+        "keyword": "*MAT_088",
+        "field": "edots"
+      },
+      {
+        "keyword": "*MAT_113",
+        "field": "e0mart"
+      },
+      {
+        "keyword": "*MAT_132",
+        "field": "ind"
+      },
+      {
+        "keyword": "*MAT_147",
+        "field": "title"
+      },
+      {
+        "keyword": "*MAT_171",
+        "field": "ts4"
+      },
+      {
+        "keyword": "*MAT_197",
+        "field": "a"
+      },
+      {
+        "keyword": "*MAT_219",
+        "field": "angle5"
+      },
+      {
+        "keyword": "*MAT_243",
+        "field": "crc4"
+      },
+      {
+        "keyword": "*MAT_261",
+        "field": "enl"
+      },
+      {
+        "keyword": "*MAT_291",
+        "field": "n25"
+      },
+      {
+        "keyword": "*MAT_ADD_INELASTICITY",
+        "field": "a2"
+      },
+      {
+        "keyword": "*MAT_ANISOTROPIC_THERMOELASTIC",
+        "field": "c33"
+      },
+      {
+        "keyword": "*MAT_CF_MICROMECHANICS",
+        "field": "pr13"
+      },
+      {
+        "keyword": "*MAT_COMPOSITE_MSC",
+        "field": "a2"
+      },
+      {
+        "keyword": "*MAT_DESHPANDE_FLECK_FOAM",
+        "field": "derfi"
+      },
+      {
+        "keyword": "*MAT_ENHANCED_COMPOSITE_DAMAGE_MODEL",
+        "field": "crit"
+      },
+      {
+        "keyword": "*MAT_GENERAL_VISCOELASTIC_MOISTURE",
+        "field": "beta"
+      },
+      {
+        "keyword": "*MAT_HYSTERETIC_REINFORCEMENT",
+        "field": "v1"
+      },
+      {
+        "keyword": "*MAT_LAMINATED_FRACTURE_DAIMLER_CAMANHO",
+        "field": "yt"
+      },
+      {
+        "keyword": "*MAT_MODIFIED_PIECEWISE_LINEAR_PLASTICITY_PRESTRAIN",
+        "field": "tdel"
+      },
+      {
+        "keyword": "*MAT_ORTHOTROPIC_ELASTIC_PHASE_CHANGE",
+        "field": "a22"
+      },
+      {
+        "keyword": "*MAT_PIECEWISE_LINEAR_PLASTICITY_MIDFAIL",
+        "field": "tdel"
+      },
+      {
+        "keyword": "*MAT_RC_BEAM",
+        "field": "fc"
+      },
+      {
+        "keyword": "*MAT_SEISMIC_ISOLATOR",
+        "field": "pcrini"
+      },
+      {
+        "keyword": "*MAT_SPECIAL_ORTHOTROPIC",
+        "field": "title"
+      },
+      {
+        "keyword": "*MAT_T08",
+        "field": "a2"
+      },
+      {
+        "keyword": "*MAT_THERMAL_USER_DEFINED",
+        "field": "ihve"
+      },
+      {
+        "keyword": "*MAT_VISCOELASTIC_THERMAL",
+        "field": "lcid"
+      },
+      {
+        "keyword": "*PART_CONTACT_PRINT",
+        "field": "prbf"
+      },
+      {
+        "keyword": "*RIGIDWALL_GEOMETRIC_CYLINDER",
+        "field": "lencyl"
+      },
+      {
+        "keyword": "*RIGIDWALL_GEOMETRIC_PRISM_MOTION",
+        "field": "death"
+      },
+      {
+        "keyword": "*SECTION_POINT_SOURCE",
+        "field": "lcidvel"
+      },
+      {
+        "keyword": "*SET_BEAM_GENERATE_INCREMENT",
+        "field": "bbeg"
+      },
+      {
+        "keyword": "*SET_MULTI-MATERIAL_GROUP_LIST",
+        "field": "ammgid6"
+      }
+    ],
+    "preparation": "Copied the same public index; added only CREATE INDEX keyword_lookup ON keyword_fields(entity_key,field), matching the builder DDL",
+    "scope": "Deterministic existing-field retrieval, not natural-language held-out evaluation"
+  },
+  "historical_diff_scope": {
+    "base": "d6f64fa",
+    "head": "22ce5a5",
+    "command": "git diff d6f64fa 22ce5a5 --binary -- . ':!docs' ':!tasks.yaml'",
+    "excluded_paths": [
+      "docs",
+      "tasks.yaml"
+    ],
+    "untracked_included": false,
+    "sha256": "759f7ea0b2ab3ea197f653f775a82b06e293ab83edd09bf057aa30ca4ba9d7c1"
+  }
+}

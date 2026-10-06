@@ -16,23 +16,28 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--external-sources", type=Path, help="Private local JSON manifest of text references")
-    parser.add_argument("--keyword-provider-root", type=Path, help="Authorized Claude checkout; read-only until M3 integration")
-    parser.add_argument("--keyword", action="append", help="Keyword to index through keyword_docs; repeat as needed")
+    parser.add_argument("--keyword-provider-root", type=Path, help="Authorized external provider checkout; optional now that keyword_docs is integrated")
+    selection = parser.add_mutually_exclusive_group()
+    selection.add_argument("--keyword", action="append", help="Keyword to index through keyword_docs; repeat as needed")
+    selection.add_argument("--all-keywords", action="store_true", help="Index the integrated provider's complete keyword catalog; requires the pydyna extra")
     args = parser.parse_args()
     documents = list(repository_documents())
     fields = []
+    coverage = {}
     if args.keyword_provider_root:
         root = args.keyword_provider_root.resolve(strict=True)
-        argv = [sys.executable, "-B", keyword_documentation.__file__, "--provider-root", str(root)]
+        argv = [sys.executable, "-B", keyword_documentation.__file__, "--provider-root", str(root), "--with-coverage"]
         for keyword in args.keyword or []:
             argv += ["--keyword", keyword]
         env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1", PYTHONUTF8="1", PYTHONIOENCODING="utf-8")
         result = subprocess.run(argv, cwd=root, env=env, capture_output=True, text=True, encoding="utf8", timeout=600)
         if result.returncode:
             raise RuntimeError("keyword_docs provider failed: " + result.stderr[-4000:])
-        fields = [KeywordField(**row) for row in json.loads(result.stdout)]
-    elif args.keyword:
-        fields = list(keyword_fields(args.keyword))
+        payload = json.loads(result.stdout)
+        fields = [KeywordField(**row) for row in payload["fields"]]
+        coverage = payload["coverage"]
+    elif args.keyword or args.all_keywords:
+        fields = list(keyword_fields(args.keyword, coverage=coverage))
     if args.external_sources:
         rows = json.loads(args.external_sources.read_text(encoding="utf8"))
         if not isinstance(rows, list):
@@ -43,7 +48,10 @@ def main():
             documents.extend(chunks(row["path"], source_id=row["id"], category=row["category"],
                                     license=row["license"], version=row.get("version", "unspecified"),
                                     locator="local://" + row["id"]))
-    print(json.dumps(build_index(args.output, documents, fields), ensure_ascii=False))
+    result = build_index(args.output, documents, fields)
+    if coverage:
+        result["keyword_coverage"] = coverage
+    print(json.dumps(result, ensure_ascii=False))
 
 
 if __name__ == "__main__":
