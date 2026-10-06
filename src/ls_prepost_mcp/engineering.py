@@ -342,7 +342,7 @@ class EngineeringTools:
         Outputs kinetic, internal, hourglass, sliding, damping, eroded and external work energies
         with balance residual and ratios. If limits are omitted, ratios are reported without asserting conclusions.
         """
-        from .energy import (
+        from .domain.results.energy import (
             calculate_energy_balance,
             read_binout_matsum,
             read_glstat,
@@ -418,7 +418,7 @@ class EngineeringTools:
 
             return summary, artifacts
 
-        return self._post_job(
+        job_result = self._post_job(
             "check_energy",
             dict(
                 units=units,
@@ -431,6 +431,27 @@ class EngineeringTools:
             sources,
             work,
         )
+
+        # Enrich with JobResult/v1 and CheckResult metadata (P1-2)
+        checks = []
+        summary_data = job_result.get("data", {})
+        if isinstance(summary_data, dict) and "checks" in summary_data:
+            for check_name, check_info in summary_data["checks"].items():
+                c_status = check_info.get("status", "not_evaluated")
+                if c_status not in ("passed", "failed", "not_applicable", "missing", "invalid"):
+                    c_status = "passed" if check_info.get("passed") is True else ("failed" if check_info.get("passed") is False else "not_applicable")
+                checks.append({
+                    "name": check_name,
+                    "status": c_status,
+                    "source_path": ()
+                })
+
+        job_result["contract"] = "JobResult/v1"
+        job_result["operation"] = "check_energy"
+        job_result["backend"] = "lasso-python/pure-python"
+        job_result["checks"] = checks
+        job_result["warnings"] = summary_data.get("warnings", []) if isinstance(summary_data, dict) else []
+        return job_result
 
     def native_energy_postprocess(
         self, path: str, units: str, include_hourglass: bool = False, include_external_work: bool = False
