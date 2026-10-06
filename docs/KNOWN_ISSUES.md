@@ -1158,3 +1158,12 @@ Python 异常传播前会先清理；清理失败不覆盖原始异常，普通�
 并非 LS-PrePost 原生验证；旧 29a8d1d 的同一饱和测试失败，修复后通过。
 [原生用例](../tests/test_queue_backpressure_native.py)已写好，须同时 --run-native 与 --native-gui，
 占用应用主线程、填满一格队列后检查拒绝及不重放；尚未运行，等待集中 GUI 窗口。
+
+## A01/I01：会话日志元数据与脚本包装器的集成
+
+第六轮 GUI 补验发现：SessionEngine 新增 encoding/lossy 后，run_script 的日志包装器
+仍只接受 source/offset，Command 会话在原生打开完成后抛出 TypeError。
+包装器现在接收实际编码、保留原始字节，并让 cfile/SCL 诊断沿用相同解码规则；
+有替换解码时保持 unverified，不把日志不确定性包装成成功。
+[生产者/消费者集成回归](../tests/test_script_session_log_contract.py)覆盖四通道、GBK/UTF-16、
+正反例和 lossy；第一轮原生失败证据留存，修复后的原生回归另行登记。
