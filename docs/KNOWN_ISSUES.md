@@ -132,6 +132,8 @@
 
 ## KI-017 SCL-PATH
 
+- 第六轮复核：统一 UTF-8 字面量仍须为 SCLBinoutOpen 保留 Windows 反斜杠，正斜杠绝对路径对照失败；修正后公开 Binout 数值对照通过。见 [SCL 路径证据](decisions/evidence/i03-scl-literals/report.md)。
+
 - 现象：runscript/SCLBinoutOpen 对正斜杠 Windows 绝对路径解析错误。
 - 版本：4.13.4
 - 规避：原生命令使用转义后的反斜杠路径，SCL 输出用明确绝对路径。

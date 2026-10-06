@@ -1,0 +1,95 @@
+{
+  "task": "I03",
+  "version": "4.13.4",
+  "runs": [
+    {
+      "run_id": "r6-scl-native",
+      "identity": {
+        "actual_git_revision": "d7deaa16c660ac6bcb7952ccbc04bb75e9270847",
+        "working_tree_dirty": true,
+        "git_diff_sha256": "1a1833fd2775e73298acc0cb88b662f3badd10c9044e34b1c7a6edf3aa14255d",
+        "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames",
+        "diff_scope": {
+          "excluded_paths": [],
+          "untracked_included": false,
+          "untracked_sources": [
+            "tests/test_scl_path_literals.py",
+            "tests/test_scl_binout_paths_native.py"
+          ]
+        },
+        "source_files": {
+          "src/ls_prepost_mcp/native/commands.py": "27a8207419ad1cb9522736bcc10500c54d829764c50f9033427dcf353e3747af",
+          "src/ls_prepost_mcp/native_results.py": "4ababc5bbd8548e8876593cbd81d02aef81b7a5e7898abaa9d79c7470aec46bc",
+          "src/ls_prepost_mcp/gui_fringe.py": "fc35ebf127e08cd70db72a4a40b6ccf9e7814b9c514a142b252194abb0d72529",
+          "tests/test_scl_binout_paths_native.py": "e8779d6165a305ddb9df16f774229dcdb5bdf8b4fb1b5e5055fe29d3b8ce9d77",
+          "tests/test_scl_path_literals.py": "f4f5b8cccf6480ad1261bdefa98f452db68e06cefaf44b3423cc0ad47c452255"
+        }
+      },
+      "report_sha256": "49239dcf9924fff8448f9ba2c3ee198460b2e2c12050e2707dc91aa93df60b75",
+      "exit_status": 1,
+      "cases": [
+        {
+          "case": "tests/test_scl_binout_paths_native.py::test_binout_scl_job_paths[ascii job]",
+          "report_status": "failed",
+          "pytest_outcome": "failed",
+          "seconds": 7.116802899996401
+        },
+        {
+          "case": "tests/test_scl_binout_paths_native.py::test_binout_scl_job_paths[\\u4e2d\\u6587 \\u4f5c\\u4e1a]",
+          "report_status": "skipped",
+          "pytest_outcome": "xfailed",
+          "seconds": 5.467593900000793
+        }
+      ]
+    },
+    {
+      "run_id": "r6-scl-native-r2",
+      "identity": {
+        "actual_git_revision": "d7deaa16c660ac6bcb7952ccbc04bb75e9270847",
+        "working_tree_dirty": true,
+        "git_diff_sha256": "654eac76cf463bfbffb409d7ef116e9e40e6856efa846f3932b9dec7a1a600e1",
+        "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames",
+        "diff_scope": {
+          "excluded_paths": [],
+          "untracked_included": false,
+          "untracked_sources": [
+            "tests/test_scl_path_literals.py",
+            "tests/test_scl_binout_paths_native.py"
+          ]
+        },
+        "source_files": {
+          "src/ls_prepost_mcp/native/commands.py": "d67218e9cb15db5b304be7bbfe966ba4c2d23840e6885c02fa7dc7795f93546f",
+          "src/ls_prepost_mcp/native_results.py": "8204daeceb0fd9662aa7c47bdcb805592284a4fc1974ce2c5c027bcb29b90c36",
+          "src/ls_prepost_mcp/gui_fringe.py": "fc35ebf127e08cd70db72a4a40b6ccf9e7814b9c514a142b252194abb0d72529",
+          "tests/test_scl_binout_paths_native.py": "e8779d6165a305ddb9df16f774229dcdb5bdf8b4fb1b5e5055fe29d3b8ce9d77",
+          "tests/test_scl_path_literals.py": "aa900600aaef50ae0b60d115f8a4eff646baf899aed1215d0869327bbbaa4a65"
+        }
+      },
+      "report_sha256": "5c596f51f9dd78d7e391be8e864a10b3e530d159242ff4fc0983bb1cf6cce21c",
+      "exit_status": 0,
+      "cases": [
+        {
+          "case": "tests/test_scl_binout_paths_native.py::test_binout_scl_job_paths[ascii job]",
+          "report_status": "passed",
+          "pytest_outcome": "passed",
+          "seconds": 6.415120499994373
+        },
+        {
+          "case": "tests/test_scl_binout_paths_native.py::test_binout_scl_job_paths[\\u4e2d\\u6587 \\u4f5c\\u4e1a]",
+          "report_status": "skipped",
+          "pytest_outcome": "xfailed",
+          "seconds": 5.843431899993448
+        }
+      ]
+    }
+  ],
+  "corpus_id": "binout_forces",
+  "source_sha256": "abc6a34dba514355a4fe3218b1a5dd8048014ceb1629ba393fc19dd8c314fb62",
+  "checks": [
+    "Source SHA256 unchanged",
+    "101 MAT_SUM time samples compared with LASSO",
+    "rtol=2e-5 atol=1e-8"
+  ],
+  "gap": "KI-049 Unicode job directory still fails to find binout.scl; not passed",
+  "scope": "Raw reports/patches remain outside Git. No GUI or solver run."
+}
