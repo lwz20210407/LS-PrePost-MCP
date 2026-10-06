@@ -1,0 +1,392 @@
+{
+  "schema_version": 1,
+  "task": "I09",
+  "date": "2026-10-06",
+  "harness_commit": "11f5da0",
+  "agent": "codex",
+  "agent_version": "codex-cli 0.156.1",
+  "model": "CLI default (not recorded in the event stream)",
+  "profile": "full",
+  "preamble": "你已连接 LS-PrePost MCP 服务器 lspp，请用它的工具完成下面的任务。\n\n",
+  "isolation": "--ignore-user-config, apps and plugins disabled, read-only sandbox, lspp pre-approved and required",
+  "results": [
+    {
+      "scenario": "pre01_inspect",
+      "task_ids": [
+        "P01"
+      ],
+      "agent": "codex",
+      "profile": "full",
+      "success": true,
+      "failure": null,
+      "run_error": null,
+      "mcp_tool_calls": 4,
+      "failed_tool_calls": 1,
+      "other_tool_calls": 1,
+      "turns": 3,
+      "duration_s": 82.17,
+      "final_deck": null,
+      "checks": [
+        {
+          "check": "input_unchanged",
+          "ok": true,
+          "detail": "inputs byte-identical"
+        },
+        {
+          "check": "answer_contains",
+          "ok": true,
+          "detail": "answer ok"
+        }
+      ],
+      "tool_counts": {
+        "inspect_keyword_deck": 1,
+        "model_info": 1,
+        "list_parts": 1,
+        "check_model": 1,
+        "command_execution": 1
+      }
+    },
+    {
+      "scenario": "pre02_material_fields",
+      "task_ids": [
+        "P02"
+      ],
+      "agent": "codex",
+      "profile": "full",
+      "success": true,
+      "failure": null,
+      "run_error": null,
+      "mcp_tool_calls": 8,
+      "failed_tool_calls": 1,
+      "other_tool_calls": 0,
+      "turns": 3,
+      "duration_s": 104.98,
+      "final_deck": "jobs\\c275f8daecb34176b3ba6d276a1e75c3\\deck\\impact.k",
+      "checks": [
+        {
+          "check": "input_unchanged",
+          "ok": true,
+          "detail": "inputs byte-identical"
+        },
+        {
+          "check": "deck_consistent",
+          "ok": true,
+          "detail": "impact.k reloads, no dangling IDs"
+        },
+        {
+          "check": "part_uses",
+          "ok": true,
+          "detail": "*MAT_ELASTIC 2"
+        },
+        {
+          "check": "part_uses",
+          "ok": true,
+          "detail": "*MAT_ELASTIC 1"
+        }
+      ],
+      "tool_counts": {
+        "list_gui_sessions": 1,
+        "model_info": 1,
+        "search_docs": 1,
+        "edit_keywords": 4,
+        "update_elastic_material": 1
+      }
+    },
+    {
+      "scenario": "pre03_jc_material",
+      "task_ids": [
+        "P03"
+      ],
+      "agent": "codex",
+      "profile": "full",
+      "success": true,
+      "failure": null,
+      "run_error": null,
+      "mcp_tool_calls": 17,
+      "failed_tool_calls": 3,
+      "other_tool_calls": 0,
+      "turns": 3,
+      "duration_s": 97.63,
+      "final_deck": "jobs\\9a99c572498e4c6487de9eefc6bdf9de\\deck\\impact.k",
+      "checks": [
+        {
+          "check": "input_unchanged",
+          "ok": true,
+          "detail": "inputs byte-identical"
+        },
+        {
+          "check": "deck_consistent",
+          "ok": true,
+          "detail": "impact.k reloads, no dangling IDs"
+        },
+        {
+          "check": "part_uses",
+          "ok": true,
+          "detail": "*MAT_JOHNSON_COOK 3; *SECTION_SOLID 2; *EOS_GRUNEISEN 1"
+        },
+        {
+          "check": "part_uses",
+          "ok": true,
+          "detail": "*MAT_ELASTIC 1; *SECTION_SOLID 1"
+        }
+      ],
+      "tool_counts": {
+        "list_gui_sessions": 1,
+        "model_info": 1,
+        "search_docs": 1,
+        "keyword_fields": 2,
+        "list_pydyna_keywords": 1,
+        "describe_pydyna_keyword": 3,
+        "list_jobs": 1,
+        "edit_keywords": 5,
+        "check_model": 1,
+        "inspect_keyword_deck": 1
+      }
+    },
+    {
+      "scenario": "pre04_node_set",
+      "task_ids": [
+        "P04",
+        "G03"
+      ],
+      "agent": "codex",
+      "profile": "full",
+      "success": true,
+      "failure": null,
+      "run_error": null,
+      "mcp_tool_calls": 14,
+      "failed_tool_calls": 3,
+      "other_tool_calls": 0,
+      "turns": 3,
+      "duration_s": 111.2,
+      "final_deck": "jobs\\73df1323da764a64a50d49ef9b05780a\\deck\\impact.k",
+      "checks": [
+        {
+          "check": "input_unchanged",
+          "ok": true,
+          "detail": "inputs byte-identical"
+        },
+        {
+          "check": "deck_consistent",
+          "ok": true,
+          "detail": "impact.k reloads, no dangling IDs"
+        },
+        {
+          "check": "node_set",
+          "ok": true,
+          "detail": "set 10: 25 nodes; missing [], extra []"
+        }
+      ],
+      "tool_counts": {
+        "list_gui_sessions": 1,
+        "start_gui_session": 1,
+        "inspect_keyword_deck": 1,
+        "search_docs": 1,
+        "list_capabilities": 1,
+        "model_info": 1,
+        "create_entities": 8
+      }
+    },
+    {
+      "scenario": "pre05_boundary_velocity",
+      "task_ids": [
+        "P05"
+      ],
+      "agent": "codex",
+      "profile": "full",
+      "success": true,
+      "failure": null,
+      "run_error": null,
+      "mcp_tool_calls": 19,
+      "failed_tool_calls": 1,
+      "other_tool_calls": 0,
+      "turns": 4,
+      "duration_s": 126.49,
+      "final_deck": "jobs\\1865eed14fdf4443b4f88e72e860c5c6\\deck\\impact.k",
+      "checks": [
+        {
+          "check": "input_unchanged",
+          "ok": true,
+          "detail": "inputs byte-identical"
+        },
+        {
+          "check": "deck_consistent",
+          "ok": true,
+          "detail": "impact.k reloads, no dangling IDs"
+        },
+        {
+          "check": "spc_nodes",
+          "ok": true,
+          "detail": "25 nodes; not fully fixed []; others fixed []"
+        },
+        {
+          "check": "initial_velocity",
+          "ok": true,
+          "detail": "27 nodes; wrong [] {}; others moving []"
+        }
+      ],
+      "tool_counts": {
+        "list_gui_sessions": 1,
+        "search_docs": 1,
+        "list_capabilities": 1,
+        "inspect_keyword_deck": 1,
+        "model_info": 1,
+        "find_recipe": 1,
+        "create_entities": 11,
+        "edit_keywords": 1,
+        "check_model": 1
+      }
+    },
+    {
+      "scenario": "pre06_contact",
+      "task_ids": [
+        "P06"
+      ],
+      "agent": "codex",
+      "profile": "full",
+      "success": true,
+      "failure": null,
+      "run_error": null,
+      "mcp_tool_calls": 10,
+      "failed_tool_calls": 1,
+      "other_tool_calls": 0,
+      "turns": 3,
+      "duration_s": 97.12,
+      "final_deck": "jobs\\2553b5e624da410a86f02cf71e9903ea\\deck\\impact.k",
+      "checks": [
+        {
+          "check": "input_unchanged",
+          "ok": true,
+          "detail": "inputs byte-identical"
+        },
+        {
+          "check": "deck_consistent",
+          "ok": true,
+          "detail": "impact.k reloads, no dangling IDs"
+        },
+        {
+          "check": "contact",
+          "ok": true,
+          "detail": "*CONTACT_AUTOMATIC_SURFACE_TO_SURFACE between [[2], [1]] {'fs': 0.2, 'fd': 0.2}"
+        }
+      ],
+      "tool_counts": {
+        "list_gui_sessions": 1,
+        "search_docs": 1,
+        "inspect_keyword_deck": 1,
+        "list_capabilities": 1,
+        "find_recipe": 1,
+        "create_entities": 4,
+        "edit_keywords": 1
+      }
+    },
+    {
+      "scenario": "pre07_mesh_array",
+      "task_ids": [
+        "P08"
+      ],
+      "agent": "codex",
+      "profile": "full",
+      "success": true,
+      "failure": null,
+      "run_error": null,
+      "mcp_tool_calls": 13,
+      "failed_tool_calls": 2,
+      "other_tool_calls": 0,
+      "turns": 3,
+      "duration_s": 103.36,
+      "final_deck": "jobs\\c97134599afd4ed8844797a6d7b20cda\\deck\\impact.k",
+      "checks": [
+        {
+          "check": "input_unchanged",
+          "ok": true,
+          "detail": "inputs byte-identical"
+        },
+        {
+          "check": "deck_consistent",
+          "ok": true,
+          "detail": "impact.k reloads, no dangling IDs"
+        },
+        {
+          "check": "solid_copies",
+          "ok": true,
+          "detail": "original kept 24/24; copies [8, 8] of 8; solids 40/40"
+        }
+      ],
+      "tool_counts": {
+        "list_gui_sessions": 1,
+        "model_info": 1,
+        "search_docs": 1,
+        "mesh_ops": 7,
+        "list_mcp_resources": 1,
+        "list_mcp_resource_templates": 1,
+        "check_model": 1
+      }
+    },
+    {
+      "scenario": "pre08_check_and_controls",
+      "task_ids": [
+        "P09",
+        "P10"
+      ],
+      "agent": "codex",
+      "profile": "full",
+      "success": true,
+      "failure": null,
+      "run_error": null,
+      "mcp_tool_calls": 17,
+      "failed_tool_calls": 1,
+      "other_tool_calls": 0,
+      "turns": 3,
+      "duration_s": 148.7,
+      "final_deck": "jobs\\c71d29d443b84ceeb51e1d9dbe94a775\\deck\\impact_broken.k",
+      "checks": [
+        {
+          "check": "input_unchanged",
+          "ok": true,
+          "detail": "inputs byte-identical"
+        },
+        {
+          "check": "deck_consistent",
+          "ok": true,
+          "detail": "impact_broken.k reloads, no dangling IDs"
+        },
+        {
+          "check": "part_uses",
+          "ok": true,
+          "detail": "*MAT_ELASTIC 2; *SECTION_SOLID 1"
+        },
+        {
+          "check": "field",
+          "ok": true,
+          "detail": "*CONTROL_TERMINATION endtim=0.0002"
+        },
+        {
+          "check": "field",
+          "ok": true,
+          "detail": "*DATABASE_BINARY_D3PLOT dt=1e-05"
+        },
+        {
+          "check": "field",
+          "ok": true,
+          "detail": "*DATABASE_GLSTAT dt=1e-05"
+        },
+        {
+          "check": "field",
+          "ok": true,
+          "detail": "*DATABASE_MATSUM dt=1e-05"
+        }
+      ],
+      "tool_counts": {
+        "check_model": 2,
+        "inspect_keyword_deck": 1,
+        "list_capabilities": 1,
+        "search_docs": 1,
+        "model_info": 1,
+        "edit_keywords": 9,
+        "list_mcp_resources": 1,
+        "list_mcp_resource_templates": 1
+      }
+    }
+  ]
+}
