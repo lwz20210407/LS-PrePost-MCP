@@ -425,6 +425,18 @@
 - 原生 gap：中文 Include 根路径在两版失败；4.10 仍从 job cwd 查找相对 Include。只有匹配已观察到的特定诊断才严格 xfail，源目录不变断言始终先执行；其他错误仍失败。
 
 证据：[输入暂存回归](../tests/test_batch_input_staging.py)；原生报告随本修复附于 [I01 路径证据](decisions/evidence/i01-staging/report.md)。
+
+## P12 运动副：R11 实测要点
+
+以下是 LS-DYNA R11（SMP，双精度）实测得到的结论，证据见 [P12 证据](decisions/evidence/p12/report.md)。
+
+- 转动电机在默认罚函数下明显滞后：转动铰加转动电机，从静止以 2π rad/s 驱动 0.5 s，RPS=1 只转了 1.73 rad（目标 π），RPS=100 为 3.00 rad，`*CONTROL_RIGID` LMF=1 为 3.14147 rad。check_model 对 LMF≠1 的转动电机给出警告。移动电机在默认罚函数下误差约 0.2%。
+- 节点对间距影响罚函数的柔度：同一转动铰单摆，第二对节点离第一对 20 mm 时，沿转轴方向漂移 0.32 mm；拉开到 100 mm 时降到 0.10 mm。add_joint 默认取两侧尺寸的一半作为间距。
+- 两侧节点不在同一刚体时，R11 只给 Warning 30485 并继续计算，此时运动副实际只连接 N1 所在的刚体。check_model 把这种情况报为错误。球铰 N3 留空时 R11 也会给同一警告，这是误报，check_model 不报。
+- `*DATABASE_HISTORY_NODE` 里同一节点出现两次会导致 Error 20449，计算直接停止。
+- `*MAT_RIGID` 需要写满三张卡；`*INITIAL_VELOCITY_GENERATION` 的 PHASE 是整数字段，写成 0.0 会报 Error 10246。
+- 与运动副无关，但验证中遇到：截面只有一个单元的 ELFORM 2 实体杆，在默认 TSSFAC=0.9 下只要有外载就会发散，改用 0.5 后稳定。
+
 ## 2026-10-06 复审后续项（按任务归属）
 
 | 归属 | 待修事项或本轮处置 |
