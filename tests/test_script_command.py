@@ -5,14 +5,17 @@ import pytest
 from pydantic import ValidationError
 
 from ls_prepost_mcp.config import Settings
-from ls_prepost_mcp.core.contracts import JobResult
+from ls_prepost_mcp.core.contracts import CheckResult, JobResult
 from ls_prepost_mcp.core.script_request import ScriptRequest
 from ls_prepost_mcp.service import Service
 
 
 @pytest.mark.parametrize("values", [dict(code="top\nbottom"), dict(code="top;exit"),
                                      dict(code="exit"), dict(context="session"),
-                                     dict(session_id="sid"), dict(expected_counts={"nodes": True})])
+                                     dict(session_id="sid"), dict(expected_counts={"nodes": True}),
+                                     dict(code='open command "other.cfile"'),
+                                     dict(code=' OpEn\t COMMAND "other.cfile"'),
+                                     dict(code='openc   command "other.cfile"'), dict(code="   ")])
 def test_script_invalid_context_or_code_has_no_execution(tmp_path, values):
     args = dict(language="command", code="top")
     args.update(values)
@@ -85,3 +88,33 @@ def test_native_output_open_failure_is_an_error_but_normal_output_echo_is_not():
     from ls_prepost_mcp.core.native_log import native_errors
     assert native_errors("Output file templsppfile_F:/job/output.k not open")
     assert not native_errors("save keyword output.k\nScript parsed. no error found")
+
+
+@pytest.mark.parametrize("log_present", [True, False])
+def test_script_result_preserves_normalized_warnings_and_checks(tmp_path, monkeypatch, log_present):
+    service = Service(Settings(tmp_path))
+    if log_present:
+        (tmp_path / "lspost.msg").write_text("top\n", encoding="utf8")
+    normalized = JobResult(operation="run_script", status="partial", data=dict(exported=1),
+                           warnings=["Image export incomplete"],
+                           checks=[CheckResult(name="image", status="failed")])
+    monkeypatch.setattr("ls_prepost_mcp.script_tools.normalize_outcome", lambda *args: normalized)
+    monkeypatch.setattr(service, "prepare_native_program", lambda *a, **kw: dict(job_id="p", data=dict(sha256="h")))
+    monkeypatch.setattr(service, "execute_native_program", lambda *a, **kw: dict(job_directory=str(tmp_path)))
+    result = JobResult.model_validate(service.run_script("command", "top"))
+    assert result.status == ("partial" if log_present else "unverified")
+    assert result.warnings == normalized.warnings
+    assert result.checks == normalized.checks
+    assert not result.execution_accepted
+
+
+def test_legacy_partial_with_warning_does_not_fail_when_wrapping_native_echo(tmp_path, monkeypatch):
+    service = Service(Settings(tmp_path))
+    (tmp_path / "lspost.msg").write_bytes(b"top\n")
+    monkeypatch.setattr(service, "prepare_native_program", lambda *a, **kw: dict(job_id="p", data=dict(sha256="h")))
+    monkeypatch.setattr(service, "execute_native_program", lambda *a, **kw: dict(
+        status="partial", data=dict(exported=1), warnings=["Image missing"], job_directory=str(tmp_path)))
+    result = JobResult.model_validate(service.run_script("command", "top"))
+    assert result.status == "partial"
+    assert result.warnings == ("Image missing",)
+    assert result.data["native_echo"]["text"] == "top\n"

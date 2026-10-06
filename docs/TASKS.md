@@ -425,7 +425,7 @@
 
 ### A01 命令栏 Command（单条原生命令）
 
-状态：done；版本：v0.5；里程碑：M1；层：T1
+状态：partial；版本：v0.5；里程碑：M1；层：T1
 
 执行一条 LSPP 命令，就像在左下角输入栏里敲一样，并告诉我 LSPP 返回了什么
 
@@ -437,6 +437,10 @@
 - 4.10 回归子集通过
 
 现有入口：`prepare_native_program`, `execute_native_program`, `execute_gui_command`, `run_on_version`
+
+缺口：
+
+- 历史 4.13 batch/session 与 4.10 batch 报告未记录实际 Git revision 和运行时未提交 diff SHA256；需带完整身份重跑并将 report.md、evidence.json 入库
 
 ### A02 cfile 命令流
 

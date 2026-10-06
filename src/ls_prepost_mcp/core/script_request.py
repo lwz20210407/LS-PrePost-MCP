@@ -34,9 +34,12 @@ class ScriptRequest(Contract):
             raise ValueError("Initial node selection requires at most 10000 unique user IDs")
         if len(self.code.encode("utf8")) > 1024 * 1024 or any(c in self.code for c in "\r\n\x00;"):
             raise ValueError("Command requires one nonempty native line")
-        head = self.code.strip().split()[0].lower()
+        tokens = self.code.lower().split()
+        if not tokens:
+            raise ValueError("Command requires one nonempty native line")
+        head = tokens[0]
         if head in {"exit", "quit", "new", "system", "runpython", "runscript"}:
             raise ValueError("Use the dedicated lifecycle or script-language interface")
-        if self.code.strip().lower().startswith("openc command"):
+        if tokens[:2] in (["openc", "command"], ["open", "command"]):
             raise ValueError("Use the cfile language for command streams")
         return self
