@@ -408,7 +408,7 @@ def test_save_in_place_keeps_the_backup_when_the_file_was_replaced(deck_dir: Pat
 
 def test_failed_second_file_keeps_the_first_backup(deck_dir: Path, monkeypatch) -> None:
     deck = KeywordDeck.load(deck_dir / "main.k")
-    deck.set(deck.blocks("*CONTROL_TERMINATION")[0], "endtim", 0.002)
+    deck.set_parameter("thick", 3.0)  # built-in parameter editing: no PyDYNA needed
     (block, row), = deck.find("*PART", pid=1)
     deck.set(block, "secid", 3, row=row)
     first, second = (f.path for f in persist.modified_files(deck))
