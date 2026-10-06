@@ -64,7 +64,11 @@ def test_no_function_local_service_import_remains():
 
 def test_every_legacy_operation_has_a_unique_runtime_id_and_compatibility_period():
     assert len({r.operation_id for r in OPERATIONS}) == len(OPERATIONS)
-    assert all(r.legacy_until == "v0.6" and r.task_id and r.target for r in OPERATIONS)
+    assert all(r.task_id and r.target for r in OPERATIONS)
+    # legacy operations keep their alias until v0.6; the target tools themselves (name == target) have none
+    assert all(r.legacy_until == "v0.6" or (r.legacy_until is None and r.name == r.target) for r in OPERATIONS)
+    assert {r.name for r in OPERATIONS if r.legacy_until is None} == {
+        "model_info", "edit_keywords", "create_entities", "mesh_ops", "run_recipe", "check_model"}
     with pytest.raises(ValueError):
         resolve_operation("__dict__")
 

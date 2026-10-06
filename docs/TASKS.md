@@ -17,16 +17,16 @@
 - 只读：输入文件哈希不变
 - 超过 30 万单元的模型在 60 s 内返回摘要（corpus:large_private，私有语料）
 
-现有入口：`inspect_model`, `inspect_keyword_deck`, `list_parts`, `list_nodes`, `inspect_gui_mesh`
+现有入口：`inspect_model`, `inspect_keyword_deck`, `list_parts`, `list_nodes`, `inspect_gui_mesh`, `model_info`
 
 缺口：
 
-- 读取入口分散在 6 个工具，返回格式各异
-- 不输出 Include 树、材料/截面/Part 关联、集合清单
+- model_info（关键字引擎）已输出 Include 树与 Part/材料/截面/集合关联；与 LSPP Keyword Manager 的原生读回对比未做
+- 30 万单元 60 s 验收只在私有语料上测过（49 万单元 inspect 21.6 s），记录不在仓库
 
 ### P02 关键字卡片读改增删（Include 保真）
 
-状态：todo；版本：v0.5；里程碑：M3；层：T1
+状态：partial；版本：v0.5；里程碑：M3；层：T1
 
 把 Part 3 的材料换成 MAT_024 并改屈服应力，保存，Include 文件结构不要动
 
@@ -39,13 +39,13 @@
 - 含 *PARAMETER 的字段可读出表达式原文与求值结果
 - 保存后 LSPP 原生重开，实体计数与编辑前预期一致
 
-现有入口：`update_keyword_fields`, `update_keyword_table_row`, `compose_keyword_deck`
+现有入口：`update_keyword_fields`, `update_keyword_table_row`, `compose_keyword_deck`, `edit_keywords`
 
 缺口：
 
-- model_deck.py 遇到 *INCLUDE / *PARAMETER 直接拒绝
-- PyDYNA 路线整 deck 重写，注释与格式丢失；只能改唯一匹配的卡
-- 不能向已有模型追加卡片
+- edit_keywords 已覆盖改字段 / 插卡 / 删卡 / PARAMETER，Include 结构与未改字节保持（单元测试）
+- 保存后 LSPP 原生重开核对未做（原生侧，见 P11）
+- corpus:include_contact 的验收用例依赖语料，CI 中跳过
 
 ### P03 材料 / 截面 / Part 创建与关联
 
@@ -59,12 +59,12 @@
 - Part 关联修改后引用检查通过，原生重开后 Part Data 读回一致
 - 单位制由调用者声明；缺少单位时拒绝生成需要单位的默认值
 
-现有入口：`create_elastic_material`, `update_elastic_material`, `move_elements_to_part`
+现有入口：`create_elastic_material`, `update_elastic_material`, `move_elements_to_part`, `run_recipe`, `edit_keywords`
 
 缺口：
 
-- 只支持 MAT_001
-- 不能设置 Part 的 SECID / MID / EOSID / HGID
+- 六个材料族与两个 EOS 已有配方（run_recipe），Part 关联 add_part / set_part 已有
+- 保存后 LSPP 原生重开核对未做（原生侧，见 P11）
 
 ### P04 集合创建
 
@@ -79,12 +79,13 @@
 - Segment 法向与指定方向一致（随机抽 20 个 segment 核对）
 - 保存重开后集合 ID、成员、顺序保持
 
-现有入口：`create_gui_entity_set`, `create_gui_segment_set`, `create_node_set_by_box`, `inspect_gui_entity_sets`
+现有入口：`create_gui_entity_set`, `create_gui_segment_set`, `create_node_set_by_box`, `inspect_gui_entity_sets`, `create_entities`
 
 缺口：
 
-- 只有显式 LIST 集合；没有 GENERATE / ADD
-- 选择器只在参考坐标；实体外表面传播未认证
+- 不生成 *_GENERATE / *_ADD 集合
+- Selector 适配不支持按特征角的外表面和变形构型
+- 保存重开核对未做（原生侧）
 
 ### P05 边界条件与载荷
 
@@ -98,15 +99,16 @@
 - 曲线（DEFINE_CURVE）与载荷引用正确，单位由调用者声明
 - 保存重开后卡片字段与预期一致，引用检查通过
 
-现有入口：`create_gui_spc`, `create_gui_prescribed_motion`, `create_gui_segment_pressure`, `create_gui_nonreflecting_boundary`, `create_gui_nodal_load`
+现有入口：`create_gui_spc`, `create_gui_prescribed_motion`, `create_gui_segment_pressure`, `create_gui_nonreflecting_boundary`, `create_gui_nodal_load`, `create_entities`
 
 缺口：
 
-- 节点力 / 力矩已有（09b207e），缺重力（LOAD_BODY）、初速度、刚性墙、CNRB
+- 九类边界与载荷已有配方（create_entities / add_boundary）；R11 求解核对记录不在仓库
+- 保存后 LSPP 原生重开核对未做（原生侧，见 P11）
 
 ### P06 接触定义与初始穿透检查
 
-状态：todo；版本：v0.5；里程碑：M3；层：T1+T2
+状态：partial；版本：v0.5；里程碑：M3；层：T1+T2
 
 给弹体和靶板加侵蚀面面接触，检查初始穿透
 
@@ -117,7 +119,12 @@
 - 原生 Contact Check 报告初始穿透：节点 ID、穿透量；人为制造穿透的语料能被检出，无穿透语料报告 0
 - 不自动修复；修复动作需显式调用并保留修复前副本
 
-现有入口：无
+现有入口：`create_entities`
+
+缺口：
+
+- 五类接触配方已有（create_entities / add_contact）；原生 Contact Check 初始穿透报告未接
+- 引擎的几何穿透估算 check_contacts 未接成工具
 
 ### P07 规则网格生成
 
@@ -149,13 +156,13 @@
 - 合并与重编号在超过 30 万单元模型上完成（私有语料）
 - 偏置、阵列、Detach、Smooth 走 T2 配方，可在 v0.6 补齐
 
-现有入口：`translate_gui_nodes`, `rotate_gui_nodes`, `set_gui_node_coordinates`, `merge_gui_duplicate_nodes`, `reverse_gui_shell_normals`, `renumber_gui_entities`, `create_gui_nodes`, `create_gui_elements`, `replace_gui_node`, `translate_mesh_nodes`, `rotate_mesh_nodes`, `transform_mesh_deck`, `merge_duplicate_mesh_nodes`, `move_elements_to_part`
+现有入口：`translate_gui_nodes`, `rotate_gui_nodes`, `set_gui_node_coordinates`, `merge_gui_duplicate_nodes`, `reverse_gui_shell_normals`, `renumber_gui_entities`, `create_gui_nodes`, `create_gui_elements`, `replace_gui_node`, `translate_mesh_nodes`, `rotate_mesh_nodes`, `transform_mesh_deck`, `merge_duplicate_mesh_nodes`, `move_elements_to_part`, `mesh_ops`
 
 缺口：
 
-- GUI 与文件后端各一套，近重复工具 14 个
-- 合并重复节点受 20,000 快照上限约束；法向只能反转不能统一；重编号只能全量
-- 缺镜像 / 复制 / 阵列 / 偏置 / 删除单元
+- mesh_ops 已覆盖平移 / 旋转 / 镜像 / 复制 / 阵列 / 偏置 / 合并重复节点 / 法向统一 / 按范围重编号 / 删除单元
+- 30 万单元合并与重编号只在私有语料上测过，记录不在仓库
+- GUI 与文件后端的近重复工具仍在（I08 别名期内）
 
 ### P09 模型检查
 
@@ -170,16 +177,16 @@
 - 质量阈值由调用者给定，未给定时只报告数值不下结论
 - 只读：不修改模型
 
-现有入口：`check_gui_keywords`, `check_gui_shell_quality`, `check_gui_solid_quality`, `inspect_mesh_quality`, `inspect_gui_mesh_quality`, `validate_model_references`
+现有入口：`check_gui_keywords`, `check_gui_shell_quality`, `check_gui_solid_quality`, `inspect_mesh_quality`, `inspect_gui_mesh_quality`, `validate_model_references`, `check_model`
 
 缺口：
 
-- 6 个工具各管一块，返回格式不同
-- 缺四面体 / 梁 / 厚壳质量；接触检查见 P06
+- check_model 汇总引用 / 重复 / 质量 / 坐标舍入 / 自由格式列宽 / 规定运动曲线长度；梁与厚壳质量未覆盖
+- 与原生 Keyword Check 的交叉核对未做
 
 ### P10 控制与输出卡
 
-状态：todo；版本：v0.5；里程碑：M3；层：T2
+状态：partial；版本：v0.5；里程碑：M3；层：T2
 
 终止时间 50 µs，输出 d3plot 每 1 µs，GLSTAT/MATSUM/RCFORC 每 0.1 µs，开启沙漏控制
 
@@ -189,7 +196,12 @@
 - 参数缺失时拒绝，不填默认物理值
 - 生成卡片经 P02 引擎插入，原生重开通过
 
-现有入口：`instantiate_installed_template`, `apply_keyword_filter`
+现有入口：`instantiate_installed_template`, `apply_keyword_filter`, `run_recipe`
+
+缺口：
+
+- 终止 / 时间步 / 沙漏 / 能量 / d3plot / 34 个 ASCII 库已有配方（run_recipe），缺参数时拒绝
+- 保存后 LSPP 原生重开核对未做（原生侧，见 P11）
 
 ### P11 保存并原生重开验证
 
@@ -740,7 +752,11 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 负责人：claude
 
-集成约束：Claude 在 claude/keyword-engine 并行开发（本地提交 a1fb96c）；M0–M2 不实现 I07、不在 src/ls_prepost_mcp/domain/model/ 创建文件；M3 合并。
+集成约束：Claude 在 claude/keyword-engine 开发，M3 经 PR 合入 main；代码在 src/ls_prepost_mcp/domain/model/，目标工具在 model_target_tools.py。
+
+状态：done；验证：L1
+
+证据：[src/ls_prepost_mcp/domain/model/deck.py](../src/ls_prepost_mcp/domain/model/deck.py), [tests/test_keyword_engine.py](../tests/test_keyword_engine.py), [tests/test_keyword_engine_formats.py](../tests/test_keyword_engine_formats.py), [tests/test_keyword_engine_parameters.py](../tests/test_keyword_engine_parameters.py), [tests/test_keyword_engine_long.py](../tests/test_keyword_engine_long.py)
 
 - 按块解析、Include / INCLUDE_PATH / PARAMETER 树、定点写回、字节级往返测试
 - 字段宽度取自关键字定义，不硬编码

@@ -142,7 +142,13 @@
     {"name": "search_knowledge", "kind": "knowledge", "domain": "knowledge", "target": "search_docs", "task_id": "A10"},
     {"name": "list_capabilities", "kind": "knowledge", "domain": "knowledge", "target": "search_docs", "task_id": "A10"},
     {"name": "search_commands", "kind": "knowledge", "domain": "knowledge", "target": "command_help", "task_id": "A10"},
-    {"name": "search_workflows", "kind": "knowledge", "domain": "knowledge", "target": "search_docs", "task_id": "A10"}
+    {"name": "search_workflows", "kind": "knowledge", "domain": "knowledge", "target": "search_docs", "task_id": "A10"},
+    {"name": "model_info", "domain": "model", "target": "model_info", "task_id": "P01", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
+    {"name": "edit_keywords", "domain": "model", "target": "edit_keywords", "task_id": "P02", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
+    {"name": "create_entities", "domain": "model", "target": "create_entities", "task_id": "P04", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
+    {"name": "mesh_ops", "domain": "mesh", "target": "mesh_ops", "task_id": "P08", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
+    {"name": "run_recipe", "domain": "model", "target": "run_recipe", "task_id": "P03", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
+    {"name": "check_model", "domain": "checks", "target": "check_model", "task_id": "P09", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"}
   ],
   "workflow_aliases": {"new_model": "reset_gui_session", "open_model": "open_in_gui_session", "checkpoint": "checkpoint_gui_session"}
 }

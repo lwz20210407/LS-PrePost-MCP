@@ -11,6 +11,7 @@
 | `check_gui_keywords` | P09 | session_id*: string |
 | `check_gui_shell_quality` | P09 | session_id*: string; thresholds*: object; units*: string |
 | `check_gui_solid_quality` | P09 | session_id*: string; checks*: array; units*: string; capture_failed_ids: boolean |
+| `check_model` | P09 | model*: string; thresholds: union/ref; coincident_tolerance: union/ref; include_mesh: boolean |
 | `checkpoint_gui_session` | P11 | session_id*: string |
 | `close_gui_session` | I08 | session_id*: string; save_checkpoint: boolean |
 | `combine_gui_selections` | G03 | session_id*: string; entity_type*: string; left_ids*: array; right_ids*: array; operation: string |
@@ -20,6 +21,7 @@
 | `control_gui_animation` | Q09 | session_id*: string; operation*: string; first: integer; last: integer; increment: integer; direction: string |
 | `convert_history_units` | Q07 | path*: string; value_unit*: string; output_value_unit*: string; time_unit*: string; output_time_unit*: string; time_column: string; value_column: string |
 | `create_elastic_material` | P03 | material_id*: integer; density*: number; young_modulus*: number; poisson_ratio*: number; units*: string |
+| `create_entities` | P04, P05, P06 | model*: string; entities*: array |
 | `create_gui_elements` | P08 | session_id*: string; element_type*: string; part_id*: integer; elements*: array; units*: string |
 | `create_gui_entity_set` | P04 | session_id*: string; entity_type*: string; set_id*: integer; title*: string; entity_ids: union/ref; selection_job: union/ref; mode: string |
 | `create_gui_nodal_load` | P05 | session_id*: string; axis*: string; curve_id*: integer; time_unit*: string; value_unit*: string; distribution*: string; node_set_id: union/ref; node_ids: union/ref; selection_job: union/ref; points: union/ref; curve_title: union/ref; scale: number; allow_superposition: boolean |
@@ -38,6 +40,7 @@
 | `create_workflow` | A09 | name*: string; steps*: array; defaults: union/ref |
 | `describe_installed_template` | A08 | template_id*: string |
 | `describe_pydyna_keyword` | A10 | class_name*: string |
+| `edit_keywords` | P02, P03 | model*: string; edits*: array; allow_new_dangling: boolean |
 | `execute_gui_command` | A01 | session_id*: string; command*: string; outputs: union/ref; expected_counts: union/ref |
 | `execute_native_program` | A01, A02, A03, A04 | prepared_job_id*: string; expected_sha256*: string; model: union/ref; file_type: string; graphics: boolean; session_id: union/ref |
 | `export_dpf_result` | Q03 | path*: string; file_type*: string; result*: string; units*: string; states: union/ref; entity_ids: union/ref; label_filter: union/ref; component: union/ref; actunits: union/ref |
@@ -93,6 +96,8 @@
 | `measure_parts` | Q11 | model*: string; part_ids*: array |
 | `merge_duplicate_mesh_nodes` | P08 | model*: string; tolerance*: number; units*: string; native_check: boolean |
 | `merge_gui_duplicate_nodes` | P08 | session_id*: string; tolerance*: number; units*: string |
+| `mesh_ops` | P08 | model*: string; operations*: array |
+| `model_info` | P01 | model*: string |
 | `move_elements_to_part` | P03, P08 | model*: string; element_type*: string; element_ids*: array; part_id*: integer |
 | `native_energy_postprocess` | Q12 | path*: string; units*: string; include_hourglass: boolean; include_external_work: boolean |
 | `native_postprocess_case` | I08 | path*: string; units*: string |
@@ -119,6 +124,7 @@
 | `rotate_mesh_nodes` | P08 | model*: string; node_ids*: array; axis*: string; angle*: number; center*: array; units*: string |
 | `run_native_macro` | A08 | path*: string; parameters: union/ref; model: union/ref; file_type: string; graphics: boolean; session_id: union/ref |
 | `run_on_version` | A01 | version*: string; action*: string; parameters*: object |
+| `run_recipe` | P03, P10 | model*: string; recipes*: array |
 | `run_workflow` | A09 | path*: string; parameters: union/ref; session_id: union/ref |
 | `run_workflow_sweep` | A09 | path*: string; cases*: array; outputs: union/ref; session_id: union/ref |
 | `save_gui_selection_buffer` | G03 | session_id*: string; entity_type*: string; entity_ids*: array; slot*: integer |
