@@ -1,0 +1,29 @@
+schema_version: 1
+id: pre05_boundary_velocity
+domain: pre
+task_ids: [P05]
+title: 固定约束与初速度
+prompt: |
+  impact.k 的单位制是 mm-t-s（mm、吨、秒）。请设置边界和初始条件：
+  - 平板（Part 1）底面 z = 0 上的所有节点，固定全部 6 个自由度；
+  - 冲击块（Part 2）的所有节点，给一个沿 -z 方向、大小 100 m/s 的初速度。
+fixtures: [impact.k, impact_mesh.k]
+model: impact.k
+checks:
+  - check: input_unchanged
+  - check: deck_consistent
+  - check: spc_nodes
+    params: {nodes: {parts: [1], axis: z, value: 0.0}}
+  - check: initial_velocity
+    params: {nodes: {parts: [2]}, velocity: [0.0, 0.0, -1.0e5], rel_tol: 1.0e-6}
+oracle:
+  - tool: create_entities
+    args:
+      model: impact.k
+      entities:
+        - op: add_boundary
+          kind: spc
+          units: mm-t-s
+          dofs: all
+          target: {select: {plane: {point: [0, 0, 0], normal: [0, 0, 1]}, parts: [1]}}
+        - {op: add_boundary, kind: initial_velocity, units: mm-t-s, target: {part: 2}, velocity: [0.0, 0.0, -1.0e5]}

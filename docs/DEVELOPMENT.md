@@ -38,7 +38,7 @@ tools/gen_docs.py 生成 TASKS、TOOLS、README 能力表和 COMPATIBILITY 的�
 
 - L1：CI 运行逻辑、数学、参数和产物合同；不启动 LSPP。
 - L2：固定语料与真实 LSPP 的正反例、保存重开、数值与图像核对。M1/I04 将现有 tools/run_* 迁入 pytest -m native；M0 尚不把该命令列为现成能力。
-- L3：M2–M4 的 Agent 自然语言场景评测，退出标准见 tasks.yaml。
+- L3：M2–M4 的 Agent 自然语言场景评测，退出标准见 tasks.yaml；运行方法见下文“I09 L3 场景评测”。
 
 原生记录必须含具体构建、输入 SHA256、精确源程序、请求关联、日志和独立产物检查。失败和未知状态保留证据，不自动重放不确定的修改。需要 GUI 的验证集中在用户确认的时间窗，实验脚本见 tools/experiments；锁屏与实际远程控制软件的断开由用户操作。本机使用 UU，断开时间窗由用户确认并单独记录，不要求配置 RDP。
 
@@ -121,7 +121,26 @@ run_recipe 传入配方 ID、参数及输入模型。默认 launch_mode=c，显�
 旧 JSON 模板通过同一模块的兼容读取器运行，默认不作为已验证 T2；include_candidates=true
 可发现它们。旧名字保留至 v0.6。五配方的真实版本证据见[ADR 0007](decisions/0007-recipes.md)。
 
-
 原生 report.md / report.json 自动附启动时的实际 Git revision、工作树状态、
 `git diff HEAD --binary` SHA256 和源码快照 SHA256；逐文件哈希见 execution-context.json。
 Git 不可用时身份字段为空。diff 不包含未跟踪文件，源码快照补充这些文件的指纹。
+
+## I09 L3 场景评测
+
+每道题是 `tests/l3/scenarios/<pre|post|auto>/<id>.yaml`：中文提示词、夹具、确定性检查和参考解（MCP 工具调用序列）。夹具是 `tools/l3/fixtures.py` 生成的合成模型，测试会重新生成并逐字节比对。判分只看最终工作区和最后回答：输入文件不能变；最终模型取最新作业目录里与输入主文件同名的那份，用关键字引擎重新读回核对。不用模型判分，也不采信代理自己的汇报。
+
+`tests/test_l3_harness.py` 在 CI 中检查三件事：参考解能通过每道题；什么都不做时每道题都失败；典型的单位和数值错误会被判失败。
+
+运行真实代理（会调用语言模型，需要各自 CLI 已登录和网络）：
+
+```
+uv run --no-sync python tools/run_l3.py --agent codex --domain pre --out <仓库外目录>
+uv run --no-sync python tools/run_l3.py --agent claude --domain pre --out <仓库外目录> [--bare]
+```
+
+- 输出：每道题一个全新工作区、结果 JSON 和完整事件流；汇总在 `<out>/<agent>/summary.md`，包括成功率、MCP 调用次数、失败调用次数、非 MCP 工具调用次数和失败原因。
+- 两个代理收到同一句前言：已连接 lspp MCP 服务器，请用它的工具完成任务。
+- 隔离：
+  - Claude 关闭内置工具，只能用 lspp 工具。`--bare` 还会跳过用户记忆、技能和 CLAUDE.md，但只接受 ANTHROPIC_API_KEY 认证。
+  - Codex 不读取用户 config.toml，关闭 apps 和插件，沙箱只读，只预先批准 lspp 工具。
+- `--out` 必须在仓库外，并且不要放在带有 CLAUDE.md 或 AGENTS.md 的目录下，否则会被代理读到。

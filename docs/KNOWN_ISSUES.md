@@ -132,6 +132,8 @@
 
 ## KI-017 SCL-PATH
 
+- 第六轮复核：统一 UTF-8 字面量仍须为 SCLBinoutOpen 保留 Windows 反斜杠，正斜杠绝对路径对照失败；修正后公开 Binout 数值对照通过。见 [SCL 路径证据](decisions/evidence/i03-scl-literals/report.md)。
+
 - 现象：runscript/SCLBinoutOpen 对正斜杠 Windows 绝对路径解析错误。
 - 版本：4.13.4
 - 规避：原生命令使用转义后的反斜杠路径，SCL 输出用明确绝对路径。
@@ -425,6 +427,18 @@
 - 原生 gap：中文 Include 根路径在两版失败；4.10 仍从 job cwd 查找相对 Include。只有匹配已观察到的特定诊断才严格 xfail，源目录不变断言始终先执行；其他错误仍失败。
 
 证据：[输入暂存回归](../tests/test_batch_input_staging.py)；原生报告随本修复附于 [I01 路径证据](decisions/evidence/i01-staging/report.md)。
+
+## P12 运动副：R11 实测要点
+
+以下是 LS-DYNA R11（SMP，双精度）实测得到的结论，证据见 [P12 证据](decisions/evidence/p12/report.md)。
+
+- 转动电机在默认罚函数下明显滞后：转动铰加转动电机，从静止以 2π rad/s 驱动 0.5 s，RPS=1 只转了 1.73 rad（目标 π），RPS=100 为 3.00 rad，`*CONTROL_RIGID` LMF=1 为 3.14147 rad。check_model 对 LMF≠1 的转动电机给出警告。移动电机在默认罚函数下误差约 0.2%。
+- 节点对间距影响罚函数的柔度：同一转动铰单摆，第二对节点离第一对 20 mm 时，沿转轴方向漂移 0.32 mm；拉开到 100 mm 时降到 0.10 mm。add_joint 默认取两侧尺寸的一半作为间距。
+- 两侧节点不在同一刚体时，R11 只给 Warning 30485 并继续计算，此时运动副实际只连接 N1 所在的刚体。check_model 把这种情况报为错误。球铰 N3 留空时 R11 也会给同一警告，这是误报，check_model 不报。
+- `*DATABASE_HISTORY_NODE` 里同一节点出现两次会导致 Error 20449，计算直接停止。
+- `*MAT_RIGID` 需要写满三张卡；`*INITIAL_VELOCITY_GENERATION` 的 PHASE 是整数字段，写成 0.0 会报 Error 10246。
+- 与运动副无关，但验证中遇到：截面只有一个单元的 ELFORM 2 实体杆，在默认 TSSFAC=0.9 下只要有外载就会发散，改用 0.5 后稳定。
+
 ## 2026-10-06 复审后续项（按任务归属）
 
 | 归属 | 待修事项或本轮处置 |
@@ -432,11 +446,11 @@
 | I02 | 已修（#16）：旧 failed/partial 保留执行状态，从 reason/restoration_error 或失败检查补齐诊断。 |
 | I02 | 已修（#16）：failed.error.message 必须为非空白字符串；引擎空消息异常和原生失败回执补齐诊断。FieldSpec 适配层及等价测试仍为 tasks.yaml 中的 M2 gap。 |
 | I10 | ADR 0001 已改为如实说明历史证据 JSON 没有探针脚本 SHA256，未补造该字段。 |
-| I05 | 混合查询丢失中文词，例如“MPP 节点选择”；需保留两类查询词。 |
-| I05 | os.link 发布索引不适用于 FAT/exFAT 及部分网络盘；需复制到同目录临时文件并原子改名的回退。 |
+| I05 | 已修混合查询丢失中文词：两类词共同匹配优先，其次完整代码词匹配、中文匹配；query_match 明示 both/code_only/text_only，私有过滤不变。不按 A10 留出题调参。 |
+| I05 | Windows 不支持硬链接时，复制到同目录独占临时文件，关闭并 fsync 后以不覆盖目标的 rename 发布；竞争和中断有回归。未实测 FAT 实体卷/网络盘；非 Windows 的无硬链接文件系统仍明确失败，以保留不覆盖保证。 |
 | I04 | KI-052 的短用例目录前缀在本 PR #5 补交，不属于 2f10da2 的改动。 |
 | I04 | 原生证据必须写实际 Git revision；工作树未提交时另记改动身份，不得宣称为 PR 头运行。 |
-| I03 | import keyword、open xydata、savefile xypair、modelcheck writetofile 尚有 8 模块 12 处；SCL 编码未统一。 |
+| I03 | 已集中 import keyword、open xydata、savefile xypair、modelcheck writetofile（含额外四处批处理导出）；生成的 SCL 统一 UTF-8/LF。4.13/4.10 后台导入、XY、SCL 各三例通过；GUI 调用仍待窗口复核。 |
 | I03 | 路径兼容性变化：quoted_path 现在在启动前拒绝分号、引号及控制字符，旧调用者可能因此获得明确 ValueError。 |
 | I01/I03 | KI-049 的空格/中文 job 工作目录问题列为最高优先级 P2；源文件路径与 job 工作目录须分别验证。 |
 | I04 | 缺少可执行文件的提示已同时列出 --native-executable、LSPP_ENGINE_EXECUTABLE 和 LSPP_EXECUTABLE。 |
@@ -447,7 +461,7 @@
 - `bind_output_paths` 按完整参数 token 匹配声明输出名，尚未按命令角色区分输入和输出。同名 token 即使出现在 open 命令中，也会改写为当前 job 的路径；读取已有文件时应使用不与声明输出同名的路径。请求原文和执行副本均保留以便核对。
 - 用户提供的命令和 cfile 拥有 LS-PrePost 进程的原生权限，可以读写进程有权访问的任意路径。输出合同验证声明产物，不是脚本文件访问沙箱。
 - 单命令入口拒绝 open command / openc command（含大小写及空白变体）；命令文件须使用 cfile 通道。JobResult 包装保留已有 warnings 与 checks，partial 不会因丢失警告而退成 unverified。
-- 证据：[单命令合同回归](../tests/test_script_command.py)。A01 历史原生记录缺少提交及 diff 身份，状态为 partial，待重新取证。
+- 证据：[单命令合同回归](../tests/test_script_command.py)。A01 的旧记录缺少提交及 diff 身份；现已在干净 main 9e55e9b 重新验证并附 [A01 原生证据](decisions/evidence/a01/report.md)，据此恢复 done。
 
 ## 能力范围原文索引
 
@@ -1120,3 +1134,11 @@ Standard ELEMENT_MASS supported for structural preservation; mass glyph display,
 - [tools/run_workflow_acceptance.py](../tools/run_workflow_acceptance.py) — `76d528b11e2b948c224be291c9660f53cf04cc2712c5a9f29b1f87a92bd236ba`
 - [tools/run_workflow_gate_acceptance.py](../tools/run_workflow_gate_acceptance.py) — `cd6759202440b9321ea95aed7faf292b5a3a38c0183794821fba27a32325edfd`
 - [src/ls_prepost_mcp/data/capabilities.json](../src/ls_prepost_mcp/data/capabilities.json) — `bb76b2e66358b4f93338c845c218f66bddbf4121567aa058128a07c7c67112aa`
+
+## I05：Windows 索引发布的短暂共享锁
+
+不支持硬链接的文件系统使用复制后原子 rename，保留“不覆盖既有索引”的约束。
+WinError 5/32 采用最多 1.15 秒的分段退避，其他错误直接返回；超过重试上限仍失败。
+临时文件若因读句柄锁定无法清理，保留原 rename 异常，并通过日志和异常 note 给出
+残留文件路径。残留物不作为成功索引；句柄释放后由用户明确清理，不自动清扫历史文件。
+[真实 Windows 文件锁回归](../tests/test_index_publication_retry.py)覆盖两次失败后释放以及持续锁定。

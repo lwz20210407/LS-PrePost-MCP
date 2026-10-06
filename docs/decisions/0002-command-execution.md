@@ -22,10 +22,11 @@ SHA256、来源偏移、解码是否有损；长日志通过文件交付。已�
 
 ## 历史原生记录与证据缺口
 
-第三轮审阅后 A01 改为 partial。以下历史结果没有记录实际 Git revision
+第三轮审阅时 A01 曾改为 partial。以下历史结果没有记录实际 Git revision
 及运行时未提交 diff SHA256，不能作为当前提交的 L2 完成证据。
-需以新提交身份重跑，并把去路径的 report.md、evidence.json 入库；
-原始失败和成功记录继续保留，不补造当时的版本身份。
+本次已在干净 main 9e55e9b 上重跑 4.13 batch/session 与 4.10 batch，
+[新证据](evidence/a01/report.md) 包含真实 revision、diff、输入及报告哈希。
+A01 恢复 done；原始失败和成功记录继续保留，不补造历史身份。
 
 `tests/test_script_command_native.py` 的同一组 10 条命令覆盖打开、选择、
 平移及确认、隐藏/显示、俯视/等轴测、PNG、关键字保存；另测无效命令。
