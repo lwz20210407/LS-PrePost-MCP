@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from . import geometry, sets
+from . import geometry, selectors, sets
 from .cards import insert_card
 from .fields import FieldError
 
@@ -31,7 +31,15 @@ def _node_set(deck: KeywordDeck, target: dict) -> int:
         if sid not in deck.references(False).defined.get("node_set", set()):
             raise FieldError(f"Node set {sid} is not defined")
         return sid
-    ids = target["nodes"] if "nodes" in target else geometry.select_nodes(deck, **target["select"]).tolist()
+    if "selector" in target:
+        chosen = selectors.selector(target["selector"])
+        if chosen.entity_type != "node":
+            raise FieldError("A load or boundary target Selector must select nodes")
+        ids = selectors.resolve(deck, chosen).tolist()
+    else:
+        ids = target["nodes"] if "nodes" in target else geometry.select_nodes(deck, **target["select"]).tolist()
+    if not ids:
+        raise FieldError("The target selects no nodes")
     return sets.create_set(deck, "node", ids, title=target.get("title"))[0]
 
 

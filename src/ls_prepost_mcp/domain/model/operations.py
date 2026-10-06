@@ -29,6 +29,7 @@ from . import (
     persist,
     quality,
     renumber,
+    selectors,
     sets,
     solver_rules,
 )
@@ -144,9 +145,13 @@ def _file(deck: KeywordDeck, name: str | None) -> object:
 
 
 def _create_set(deck: KeywordDeck, edit: dict) -> Change:
-    """``{"op": "create_set", "kind": ..., "ids": [...] | "select": {...}, "sid"?, "title"?, "file"?}``."""
+    """``{"op": "create_set", "kind": ..., "ids": [...] | "select": {...} | "selector": {...}, "sid"?, ...}``."""
     kind = edit["kind"]
-    if "ids" in edit:
+    if "selector" in edit:
+        if kind not in ("node", "shell", "solid", "part"):
+            raise FieldError(f"A Selector cannot define a {kind} set; give ids or select")
+        items = _selected(deck, edit["selector"], kind)
+    elif "ids" in edit:
         items = list(edit["ids"])
     else:
         select = dict(edit.get("select") or {})
@@ -212,8 +217,19 @@ def _setup_op(deck: KeywordDeck, edit: dict) -> dict:
     return {"units": edit["units"], **loads.KINDS[kind](deck, **params)}
 
 
+def _selected(deck: KeywordDeck, value: dict, entity: str) -> list[int]:
+    """IDs of a ``core.contracts.Selector`` whose entity type must be ``entity``."""
+    chosen = selectors.selector(value)
+    if chosen.entity_type != entity:
+        raise FieldError(f"Selector entity type {chosen.entity_type!r} does not match the {entity} target")
+    return selectors.resolve(deck, chosen).tolist()
+
+
 def _ids(deck: KeywordDeck, edit: dict, kind: str) -> list[int]:
-    """Explicit ``ids`` or a geometric ``select`` (box, sphere, plane, parts)."""
+    """Explicit ``ids``, a geometric ``select`` (box, sphere, plane, parts) or a ``selector``."""
+    if "selector" in edit:
+        entity = "node" if kind == "node" else ("shell" if edit["keyword"] == "*ELEMENT_SHELL" else "solid")
+        return _selected(deck, edit["selector"], entity)
     if "ids" in edit:
         return [int(i) for i in edit["ids"]]
     select = dict(edit.get("select") or {})
