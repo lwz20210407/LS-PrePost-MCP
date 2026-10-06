@@ -1,0 +1,413 @@
+{
+  "task": "I03",
+  "phases": [
+    {
+      "phase": "i03version-native-r1",
+      "records": [
+        {
+          "version": "4.13",
+          "actual_git_revision": "e36e0a65a5e007c0257e28321302e9fd13222d9c",
+          "working_tree_dirty": true,
+          "git_diff_sha256": "f8330f8c18485894b383083df5b7f85b4445a890dda9f825d7dbe4b12509db13",
+          "exit_code": 0,
+          "renamed_metadata": [
+            [
+              {
+                "name": "renamed.exe",
+                "policy": "primary",
+                "batch": true,
+                "queue_model_identity": true,
+                "evidence": "I01: six native regression cases; KI-048 comparison",
+                "version": "4.13",
+                "version_source": "file_version_resource",
+                "runtime_verified": false,
+                "file_version": "4.13.0.1",
+                "product_name": "LS-PrePost",
+                "fixed_file_version": "4.13.0.1",
+                "product_version": "4.13.0.1",
+                "resource_conflict": false,
+                "requested_version": null,
+                "configured_label_conflict": false,
+                "path_hint_version": null,
+                "path_hint_conflict": false
+              },
+              {
+                "name": "lsprepost4.11.exe",
+                "policy": "primary",
+                "batch": true,
+                "queue_model_identity": true,
+                "evidence": "I01: six native regression cases; KI-048 comparison",
+                "version": "4.13",
+                "version_source": "file_version_resource",
+                "runtime_verified": false,
+                "file_version": "4.13.0.1",
+                "product_name": "LS-PrePost",
+                "fixed_file_version": "4.13.0.1",
+                "product_version": "4.13.0.1",
+                "resource_conflict": false,
+                "requested_version": null,
+                "configured_label_conflict": false,
+                "path_hint_version": "4.11",
+                "path_hint_conflict": true
+              },
+              {
+                "name": "lsprepost4.13.exe",
+                "policy": "primary",
+                "batch": true,
+                "queue_model_identity": true,
+                "evidence": "I01: six native regression cases; KI-048 comparison",
+                "version": "4.13",
+                "version_source": "file_version_resource",
+                "runtime_verified": false,
+                "file_version": "4.13.0.1",
+                "product_name": "LS-PrePost",
+                "fixed_file_version": "4.13.0.1",
+                "product_version": "4.13.0.1",
+                "resource_conflict": false,
+                "requested_version": null,
+                "configured_label_conflict": false,
+                "path_hint_version": "4.13",
+                "path_hint_conflict": false
+              }
+            ]
+          ],
+          "native_execution": true,
+          "report_sha256": "ee0522ed1c03d827039564da4e36497ec9b02f9e7bc92bae194efc7e5d2762ba",
+          "cases": {
+            "tests/test_engine_native.py::test_version_resources_keep_family_when_binary_is_renamed": {
+              "status": "passed",
+              "duration": 0.31710559999919496
+            },
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[service]": {
+              "status": "passed",
+              "duration": 4.685638499999186
+            },
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[scl_backend]": {
+              "status": "passed",
+              "duration": 3.61029110000527
+            },
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_results]": {
+              "status": "passed",
+              "duration": 3.349616400009836
+            },
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_batch]": {
+              "status": "passed",
+              "duration": 8.56455029999779
+            },
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[programs]": {
+              "status": "passed",
+              "duration": 3.699704099999508
+            },
+            "tests/test_engine_native.py::test_native_diagnostic_is_visible_to_program_caller": {
+              "status": "passed",
+              "duration": 3.7194988999981433
+            }
+          }
+        },
+        {
+          "version": "4.10",
+          "actual_git_revision": "e36e0a65a5e007c0257e28321302e9fd13222d9c",
+          "working_tree_dirty": true,
+          "git_diff_sha256": "f8330f8c18485894b383083df5b7f85b4445a890dda9f825d7dbe4b12509db13",
+          "exit_code": 0,
+          "renamed_metadata": [
+            [
+              {
+                "name": "renamed.exe",
+                "policy": "regression_subset",
+                "batch": true,
+                "queue_model_identity": false,
+                "evidence": "I01: five batch callers passed; queue source identity rejected (KI-048)",
+                "version": "4.10",
+                "version_source": "file_version_resource",
+                "runtime_verified": false,
+                "file_version": "4.10.0.1",
+                "product_name": "LS-PrePost",
+                "fixed_file_version": "4.9.0.1",
+                "product_version": "4.10.0.1",
+                "resource_conflict": true,
+                "requested_version": null,
+                "configured_label_conflict": false,
+                "path_hint_version": null,
+                "path_hint_conflict": false
+              },
+              {
+                "name": "lsprepost4.11.exe",
+                "policy": "regression_subset",
+                "batch": true,
+                "queue_model_identity": false,
+                "evidence": "I01: five batch callers passed; queue source identity rejected (KI-048)",
+                "version": "4.10",
+                "version_source": "file_version_resource",
+                "runtime_verified": false,
+                "file_version": "4.10.0.1",
+                "product_name": "LS-PrePost",
+                "fixed_file_version": "4.9.0.1",
+                "product_version": "4.10.0.1",
+                "resource_conflict": true,
+                "requested_version": null,
+                "configured_label_conflict": false,
+                "path_hint_version": "4.11",
+                "path_hint_conflict": true
+              },
+              {
+                "name": "lsprepost4.13.exe",
+                "policy": "regression_subset",
+                "batch": true,
+                "queue_model_identity": false,
+                "evidence": "I01: five batch callers passed; queue source identity rejected (KI-048)",
+                "version": "4.10",
+                "version_source": "file_version_resource",
+                "runtime_verified": false,
+                "file_version": "4.10.0.1",
+                "product_name": "LS-PrePost",
+                "fixed_file_version": "4.9.0.1",
+                "product_version": "4.10.0.1",
+                "resource_conflict": true,
+                "requested_version": null,
+                "configured_label_conflict": false,
+                "path_hint_version": "4.13",
+                "path_hint_conflict": true
+              }
+            ]
+          ],
+          "native_execution": true,
+          "report_sha256": "9fcadc28d1120407414e124077197316f5e621dd52fcb211b5bc08fdddf26c61",
+          "cases": {
+            "tests/test_engine_native.py::test_version_resources_keep_family_when_binary_is_renamed": {
+              "status": "passed",
+              "duration": 0.3469953999883728
+            },
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[service]": {
+              "status": "passed",
+              "duration": 6.52994760000729
+            },
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[scl_backend]": {
+              "status": "passed",
+              "duration": 6.31866330000048
+            },
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_results]": {
+              "status": "passed",
+              "duration": 6.182978199998615
+            },
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_batch]": {
+              "status": "passed",
+              "duration": 21.306580100004794
+            },
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[programs]": {
+              "status": "passed",
+              "duration": 6.4327095999906305
+            },
+            "tests/test_engine_native.py::test_native_diagnostic_is_visible_to_program_caller": {
+              "status": "passed",
+              "duration": 6.431079000001773
+            }
+          }
+        },
+        {
+          "version": "4.8",
+          "actual_git_revision": "e36e0a65a5e007c0257e28321302e9fd13222d9c",
+          "working_tree_dirty": true,
+          "git_diff_sha256": "f8330f8c18485894b383083df5b7f85b4445a890dda9f825d7dbe4b12509db13",
+          "exit_code": 0,
+          "renamed_metadata": [
+            [
+              {
+                "name": "renamed.exe",
+                "policy": "best_effort",
+                "batch": true,
+                "queue_model_identity": false,
+                "evidence": "Historical SCL subset; queue model identity unverified",
+                "version": "4.8",
+                "version_source": "file_version_resource",
+                "runtime_verified": false,
+                "file_version": "4.8.0.1",
+                "product_name": "LS-PrePost",
+                "fixed_file_version": "4.8.0.1",
+                "product_version": "4.8.0.1",
+                "resource_conflict": false,
+                "requested_version": null,
+                "configured_label_conflict": false,
+                "path_hint_version": null,
+                "path_hint_conflict": false
+              },
+              {
+                "name": "lsprepost4.11.exe",
+                "policy": "best_effort",
+                "batch": true,
+                "queue_model_identity": false,
+                "evidence": "Historical SCL subset; queue model identity unverified",
+                "version": "4.8",
+                "version_source": "file_version_resource",
+                "runtime_verified": false,
+                "file_version": "4.8.0.1",
+                "product_name": "LS-PrePost",
+                "fixed_file_version": "4.8.0.1",
+                "product_version": "4.8.0.1",
+                "resource_conflict": false,
+                "requested_version": null,
+                "configured_label_conflict": false,
+                "path_hint_version": "4.11",
+                "path_hint_conflict": true
+              },
+              {
+                "name": "lsprepost4.13.exe",
+                "policy": "best_effort",
+                "batch": true,
+                "queue_model_identity": false,
+                "evidence": "Historical SCL subset; queue model identity unverified",
+                "version": "4.8",
+                "version_source": "file_version_resource",
+                "runtime_verified": false,
+                "file_version": "4.8.0.1",
+                "product_name": "LS-PrePost",
+                "fixed_file_version": "4.8.0.1",
+                "product_version": "4.8.0.1",
+                "resource_conflict": false,
+                "requested_version": null,
+                "configured_label_conflict": false,
+                "path_hint_version": "4.13",
+                "path_hint_conflict": true
+              }
+            ]
+          ],
+          "native_execution": false,
+          "report_sha256": "a55a0800e69fb45d8a87e36b144b9fc733a68dc3f718bc93a38d3d4e4be70b1e",
+          "cases": {
+            "tests/test_engine_native.py::test_version_resources_keep_family_when_binary_is_renamed": {
+              "status": "passed",
+              "duration": 0.32467309999628924
+            }
+          }
+        }
+      ]
+    },
+    {
+      "phase": "i03version-native-r2",
+      "records": [
+        {
+          "version": "4.13",
+          "actual_git_revision": "e36e0a65a5e007c0257e28321302e9fd13222d9c",
+          "git_diff_sha256": "c5b5f100a53802ea9fad7c7d76fbf12339b50ba719c4204d063c9249dd5cd98e",
+          "exit_code": 0,
+          "report_sha256": "0b54652c4e0e37e5840d467bda2e2d292ae8e33e42465d90d8d9fa9d69457f12",
+          "cases": {
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[service]": {
+              "status": "passed",
+              "duration": 3.998343400002341
+            },
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[scl_backend]": {
+              "status": "passed",
+              "duration": 3.5890230999939376
+            },
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_results]": {
+              "status": "passed",
+              "duration": 3.5755556000076467
+            },
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_batch]": {
+              "status": "passed",
+              "duration": 9.035369399993215
+            },
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[programs]": {
+              "status": "passed",
+              "duration": 3.8375271999975666
+            },
+            "tests/test_engine_native.py::test_native_diagnostic_is_visible_to_program_caller": {
+              "status": "passed",
+              "duration": 3.775032099991222
+            }
+          }
+        },
+        {
+          "version": "4.10",
+          "actual_git_revision": "e36e0a65a5e007c0257e28321302e9fd13222d9c",
+          "git_diff_sha256": "c5b5f100a53802ea9fad7c7d76fbf12339b50ba719c4204d063c9249dd5cd98e",
+          "exit_code": 0,
+          "report_sha256": "ee8c3929058c2a84f939af1fe0d33d45375cfb735908f7cd3407bbf241314491",
+          "cases": {
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[service]": {
+              "status": "passed",
+              "duration": 6.308408900003997
+            },
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[scl_backend]": {
+              "status": "passed",
+              "duration": 6.020588600003975
+            },
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_results]": {
+              "status": "passed",
+              "duration": 6.130199799998081
+            },
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_batch]": {
+              "status": "passed",
+              "duration": 21.331500999993295
+            },
+            "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[programs]": {
+              "status": "passed",
+              "duration": 6.273426400002791
+            },
+            "tests/test_engine_native.py::test_native_diagnostic_is_visible_to_program_caller": {
+              "status": "passed",
+              "duration": 6.4476259000075515
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "unit_tests": {
+    "actual_git_revision": "e36e0a65a5e007c0257e28321302e9fd13222d9c",
+    "git_diff_sha256": "c5b5f100a53802ea9fad7c7d76fbf12339b50ba719c4204d063c9249dd5cd98e",
+    "working_tree_dirty": true,
+    "junit_sha256": "45a7affdec8d58de7318e1cba4c3cfbe97b08ab13a8769f14a571aeee2c1b029",
+    "cases": [
+      {
+        "name": "test_resource_family_wins_over_renamed_executable[4.8.0.1]",
+        "status": "passed"
+      },
+      {
+        "name": "test_resource_family_wins_over_renamed_executable[4.10.0.1]",
+        "status": "passed"
+      },
+      {
+        "name": "test_resource_family_wins_over_renamed_executable[4.13.0.1]",
+        "status": "passed"
+      },
+      {
+        "name": "test_any_reported_411_resource_blocks_before_launch[file_version]",
+        "status": "passed"
+      },
+      {
+        "name": "test_any_reported_411_resource_blocks_before_launch[product_version]",
+        "status": "passed"
+      },
+      {
+        "name": "test_any_reported_411_resource_blocks_before_launch[fixed_file_version]",
+        "status": "passed"
+      },
+      {
+        "name": "test_stale_fixed_version_is_reported_but_consistent_strings_determine_family",
+        "status": "passed"
+      },
+      {
+        "name": "test_disagreeing_strings_or_configured_label_are_rejected",
+        "status": "passed"
+      },
+      {
+        "name": "test_foreign_product_cannot_masquerade_as_lspp_by_filename",
+        "status": "passed"
+      },
+      {
+        "name": "test_missing_resource_retains_explicitly_unverified_path_fallback",
+        "status": "passed"
+      },
+      {
+        "name": "test_missing_binary_and_embedded_syntax_compatibility",
+        "status": "passed"
+      },
+      {
+        "name": "test_replaced_file_invalidates_cache_even_with_same_size_and_timestamp",
+        "status": "passed"
+      }
+    ]
+  }
+}

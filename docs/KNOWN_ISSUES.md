@@ -1141,3 +1141,10 @@ Python 异常传播前会先清理；清理失败不覆盖原始异常，普通�
 首行 BOM 可能导致原生错误正则漏判，强制 UTF-8 replacement 会损失系统 ANSI 中文内容。
 现保留原始字节，识别 BOM/UTF-8/本地编码，并允许 LSPP_NATIVE_LOG_ENCODING 显式覆盖无 BOM 日志；
 有损解码不作为干净日志放行。行为和实测范围见 [编码回归](decisions/evidence/i01-log-decoding/report.md)。
+
+## I03 路径版本提示与 Windows 资源不一致
+
+改文件名不能作为版本切换。现在 Windows 读取可执行资源并显示路径冲突；本机 4.10
+固定版本写为 4.9，但两个版本字符串一致为 4.10，故保留差异并选择一致字符串。
+资源读取范围、4.11 拒绝及真实二进制改名检查见 [版本资源回归](decisions/evidence/i03-version-resource/report.md)。
+无资源/非 Windows 仍为未验证的路径提示，不将其当作完整运行时探测。
