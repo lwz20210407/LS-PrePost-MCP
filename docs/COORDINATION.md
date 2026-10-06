@@ -12,5 +12,6 @@
 | I01 | Codex | codex/fix-queue-backpressure-restack | #40（Draft） | 进行中 | 2026-10-06 |
 | I01 | Codex | codex/m1-panel-session-engine | #26（Draft） | 进行中 | 2026-10-06 |
 | （待派发） | Cursor | — | — | — | — |
+| Q08 | Cursor | cursor/Q08-xyplot-render | — | 进行中 | 2026-10-07 |
 
 初始内容由 Claude 于 2026-10-07 按当时的分支和 PR 填写，之后由 Codex 维护。
