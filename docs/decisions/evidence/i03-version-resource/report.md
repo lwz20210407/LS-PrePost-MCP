@@ -33,3 +33,11 @@
 4.13/4.10 各 6 项批处理回归通过；五入口完成模型/产物验证，无效命令仍显式失败。
 restack_runs 追加实际 revision、working_tree_dirty=false、原始报告哈希与框架执行身份。
 本轮没有 GUI/UU 运行，也没有把历史 4.8 资源检查扩写成 4.8 的引擎实测。
+
+## 第七轮：配置标签接线与只读发现
+
+run_on_version 在创建/调用所选服务前，同时传入可执行文件与配置标签进行检查；
+list_installations 也把标签传给 profile，返回 configured_label_conflict。
+发现接口对文件/产品版本字符串不一致返回 resource_conflict/resource_string_conflict，
+继续列出其他安装；执行边界 require_installation 才拒绝该冲突。
+本机 4.10 的 fixed version=4.9 与一致的 file/product=4.10 保持原策略。
