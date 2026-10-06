@@ -28,3 +28,10 @@ I01 保持 partial。
 实现依据：[Microsoft Job Objects](https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects)、
 [进程创建标志](https://learn.microsoft.com/en-us/windows/win32/procthread/process-creation-flags)、
 [扩展限制结构](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_extended_limit_information)。
+
+## 第六轮重挂后的原生补验
+
+在不含 Draft #26 的干净 2cdc727 提交上，4.13 和 4.10 各运行 6 项批处理用例并通过：
+五个入口的实际模型/产物验证，以及无效命令诊断。不是 GUI 或队列验证。
+evidence.json 的 restack_runs 追加实际 revision、working_tree_dirty=false、原始报告哈希、
+用例状态及框架捕获的执行身份；历史 runs 与 diff/hash 保留。
