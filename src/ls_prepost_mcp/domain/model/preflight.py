@@ -8,17 +8,22 @@ from pathlib import Path, PureWindowsPath
 from . import access
 from .blocks import SourceFile
 from .deck import KeywordDeck
-from .includes import classify, identity, joined
+from .includes import classify, file_names, identity, joined
+from .tree import reference_budget
 
 # Measured with LS-DYNA R11 on one-element decks (2026-10-06): an included UTF-16 file stops the
 # run (Error 10450/10133), while an *INCLUDE without a file-name card is skipped silently.
-ERRORS = ("missing", "cycle", "unreadable", "limit", "network_path", "utf16_text")
+ERRORS = ("missing", "cycle", "unreadable", "limit", "network_path", "utf16_text", "reference_limit")
 WARNINGS = ("empty_include", "ambiguous", "repeated", "not_followed", "missing_search_dir")
 TREE_SHA256_VERSION = 1
+REFERENCE_COUNTING = ("every *INCLUDE-family file name and *INCLUDE_PATH directory, each time LS-DYNA "
+                      "reads it: a repeated include counts again together with the references inside its "
+                      "file; unresolved, unreadable, network and cyclic names count too")
 
 
 def preflight_includes(path: str | os.PathLike[str], include_paths: tuple[str, ...] = (),
-                       max_files: int = 5000, allow_network: bool = False) -> dict:
+                       max_files: int = 5000, allow_network: bool = False, *,
+                       max_references: int | None = None) -> dict:
     """Resolve every include reachable from ``path`` and report problems; never writes and never
     raises for unreadable files.
 
@@ -40,19 +45,34 @@ def preflight_includes(path: str | os.PathLike[str], include_paths: tuple[str, .
     unresolved), ``rule`` and every existing candidate (``candidates``, normalized by
     :func:`includes.identity`). A caller that confines input to allowed directories must check
     ``files`` and every candidate, not only the first name of an ``*INCLUDE``.
+
+    ``reference_count`` counts include references by :data:`REFERENCE_COUNTING` (also returned as
+    ``reference_counting``): each file name, or ``*INCLUDE_PATH`` directory, counts once every
+    time LS-DYNA reads it, so a repeated include counts again together with everything its file
+    references, and missing, unreadable, network, cyclic and over-limit names count as well. It
+    can therefore exceed ``len(references)``, which lists a repeated file's contents only once.
+    ``max_references`` (None: no limit; 0 refuses any include) bounds that count. The reference
+    that takes the count over the limit becomes a ``reference_limit`` error carrying ``counted``
+    (the count when reading stopped, at least ``max_references + 1``) and ``limit``, and reading
+    stops there: that name and every later one are neither handed to the access guard nor
+    resolved, stat'ed or read. ``files``, ``references`` and ``tree_sha256`` then describe only
+    the part read before the stop. ``reference_count`` is None when the tree was too deep to
+    follow; an invalid ``max_references`` (negative, bool, not an integer) raises ValueError.
     """
+    budget = reference_budget(max_references)
     main = Path(path)
     try:
         source = SourceFile.read(main)
     except (OSError, ValueError) as error:
-        return _report(main, [], [_problem("unreadable", _at(main.parent, main), reason=str(error))], [])
+        return _report(main, [], [_problem("unreadable", _at(main.parent, main), reason=str(error))], [],
+                       0, budget)
     try:
         deck = KeywordDeck(source, [Path(p) for p in include_paths], max_files,
-                           record_unreadable=True, network=allow_network)
+                           record_unreadable=True, network=allow_network, max_references=budget)
     except RecursionError:
         files = [_entry(main.parent, main, "main", source.original)]
         reason = "includes nested, or parameter expressions chained, too deeply to follow"
-        return _report(main, files, [_problem("limit", _at(main.parent, main), reason=reason)], [])
+        return _report(main, files, [_problem("limit", _at(main.parent, main), reason=reason)], [], None, budget)
     root = deck.main_dir
     files = [_entry(root, deck.main.path, "main", deck.main.original)]
     seen = {identity(deck.main.path)}
@@ -67,7 +87,10 @@ def preflight_includes(path: str | os.PathLike[str], include_paths: tuple[str, .
         references.append({**where, "kind": ref.kind, "path": resolved, "rule": res.rule if res else None,
                            "candidates": list(res.candidates) if res else []})
         if ref.error:
-            problems.append(_problem(ref.error_kind or "unreadable", where, reason=ref.error, **target))
+            budget_detail = ({"counted": deck.reference_count, "limit": budget}
+                             if ref.error_kind == "reference_limit" else {})
+            problems.append(_problem(ref.error_kind or "unreadable", where, reason=ref.error, **target,
+                                     **budget_detail))
             continue
         if ref.kind == "path":
             if not _is_dir(directory):
@@ -94,27 +117,30 @@ def preflight_includes(path: str | os.PathLike[str], include_paths: tuple[str, .
             files.append(_entry(root, res.path, "opaque", None))
         except OSError as error:
             problems.append(_problem("unreadable", where, reason=str(error), **target))
-    referenced = {id(ref.block) for ref in deck.includes}
     for loaded in deck.files.values():  # each file once, even when it is included repeatedly
         if loaded.wide:
             problems.append(_problem("utf16_text", _at(root, loaded.path),
                                      reason=f"{loaded.wide.upper()} text; LS-DYNA reads 8-bit text"))
         for block in loaded.keyword_blocks():
-            if classify(block.name) and id(block) not in referenced:
+            # Lexical, so blocks after a reference_limit stop are judged by their text, not by the walk.
+            if classify(block.name) and not file_names(block.name, block.data()):
                 # No file-name card; a "$" line such as "${GEOMETRY}" is a comment to LS-DYNA.
                 text = "".join(block.lines[1:])
                 hint = "placeholder" if "${" in text or "{{" in text else "no_file_card"
                 problems.append(_problem("empty_include", _at(root, loaded.path, block.line_number, block.name),
                                          hint=hint))
-    return _report(main, files, problems, references)
+    return _report(main, files, problems, references, deck.reference_count, budget)
 
 
-def _report(main: Path, files: list[dict], problems: list[dict], references: list[dict]) -> dict:
+def _report(main: Path, files: list[dict], problems: list[dict], references: list[dict],
+            reference_count: int | None, max_references: int | None) -> dict:
     digest = hashlib.sha256("\n".join(f["sha256"] for f in files).encode("ascii")).hexdigest()
     errors = sum(p["severity"] == "error" for p in problems)
     return {"path": str(main), "ok": errors == 0, "files": files,
             "tree_sha256": digest if files else None, "tree_sha256_version": TREE_SHA256_VERSION,
             "problems": problems, "references": references,
+            "reference_count": reference_count, "max_references": max_references,
+            "reference_counting": REFERENCE_COUNTING,
             "counts": {"files": len(files), "errors": errors,
                                              "warnings": len(problems) - errors},
             "read_only": True}
