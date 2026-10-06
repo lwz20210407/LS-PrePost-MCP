@@ -50,6 +50,13 @@ RESERVED = {
     "native.log",
     "stdout.log",
     "stderr.log",
+    "selection.scl",
+    "selection.txt",
+    "visibility.txt",
+    "script-model.k",
+    "native-echo.log",
+    "script-result.json",
+    "execution.cfile",
 }
 
 
@@ -85,15 +92,15 @@ def output_contract(outputs):
         name = item["name"]
         if (
             not isinstance(name, str)
-            or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,100}", name)
-            or name.endswith(".")
-            or re.fullmatch(r"(?i)(con|prn|aux|nul|com[1-9]|lpt[1-9])", name.split(".")[0])
+            or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_. -]{0,100}", name)
+            or name.endswith((".", " "))
+            or re.fullmatch(r"(?i)(con|prn|aux|nul|com[1-9]|lpt[1-9])", name.split(".")[0].rstrip())
             or name.lower() in RESERVED
             or name.lower().startswith("lspost.")
             or name.lower() in names
         ):
             raise ValueError("Output must be a unique, non-reserved job-local filename")
-        if item["kind"] not in ("keyword", "csv", "json", "text", "png"):
+        if item["kind"] not in ("keyword", "csv", "json", "text", "png", "npz"):
             raise ValueError("Unsupported output validation kind")
         names.add(name.lower())
     return outputs
@@ -147,12 +154,21 @@ class ProgramTools:
         expected_counts: dict | None = None,
         dependencies: list[dict] | None = None,
         macro_name: str | None = None,
+        script_parameters: dict | None = None,
     ) -> dict:
         """Prepare command/cfile/SCL/application-Python or native macro source without execution. language=macro binds one *macro block (macro_name required for multiple blocks), literal numeric parameter defaults and &name/(n/e/p) user IDs into an explicit cfile; retains source.mac and native-editable bound.mac. Interactive/unresolved picks are rejected. Dependencies {path,name} are frozen. Returns reviewed rendered source and execution SHA256; no global macro installation."""
         if language not in {*LANGUAGES, "macro"} or (code is None) == (path is None):
             raise ValueError("Choose command/cfile/scl/python/macro and exactly one of code/path")
         if language != "macro" and macro_name is not None:
             raise ValueError("macro_name only applies to native macro source")
+        if script_parameters is not None:
+            if language != "python" or not isinstance(script_parameters, dict):
+                raise ValueError("Script parameters require a Python JSON object")
+            if parameters:
+                raise ValueError("Choose Python data parameters, not source interpolation")
+            serialized = json.dumps(script_parameters, allow_nan=False)
+            if len(serialized.encode("utf8")) > 1024 * 1024:
+                raise ValueError("Python parameters exceed 1 MiB")
         source = self.settings.input_path(path) if path else None
         if source:
             if source.stat().st_size > 1024 * 1024:
@@ -174,6 +190,8 @@ class ProgramTools:
 
             rendered, bound_macro, native_macro = compile_macro(code, params, macro_name)
             language = "cfile"
+        elif script_parameters is not None:
+            rendered = code
         else:
             rendered = render(code, params)
         outputs, counts = output_contract(outputs), count_contract(expected_counts)
@@ -203,6 +221,8 @@ class ProgramTools:
             outputs=outputs,
             expected_counts=counts,
         )
+        if script_parameters is not None:
+            contract["python_parameters"] = json.loads(serialized)
         contract["sha256"] = identity(program.read_bytes(), contract)
         if native_macro is not None:
             contract["native_macro"] = native_macro
@@ -230,9 +250,21 @@ class ProgramTools:
         file_type: str = "keyword",
         graphics: bool = False,
         session_id: str | None = None,
+        capture_model: bool = False,
+        inspect_selection: bool = False,
+        allow_owned_output_context: bool = False,
+        launch_mode: str = "c",
     ) -> dict:
         """Execute a verified prepared source/dependency bundle. Without session_id, use an isolated native process and optional staged model; with session_id, use the current owned GUI and omit model. GUI scripts must retain its model context; keyword baseline is checkpointed, raw effects invalidate cached selections/fringes. Requires the prepared execution SHA256. No declared output/count contract means completed_unverified."""
         prepared = self.jobs.get(prepared_job_id)
+        if type(capture_model) is not bool or capture_model and (file_type != "keyword" or session_id is not None):
+            raise ValueError("Model capture requires an explicit keyword batch context")
+        if type(inspect_selection) is not bool:
+            raise ValueError("inspect_selection must be Boolean")
+        if type(allow_owned_output_context) is not bool:
+            raise ValueError("allow_owned_output_context must be Boolean")
+        if launch_mode not in ("c", "runc") or session_id is not None and launch_mode != "c":
+            raise ValueError("Choose c/runc for batch; session has no launch mode")
         if prepared["action"] != "prepare_native_program":
             raise ValueError("Expected a prepared native program")
         prepared_dir = self.jobs.root / prepared_job_id
@@ -245,6 +277,10 @@ class ProgramTools:
         if identity(content, contract) != expected_sha256 or contract["sha256"] != expected_sha256:
             raise ValueError("Source changed since preparation; inspect and prepare again")
         outputs, counts = output_contract(contract["outputs"]), count_contract(contract["expected_counts"])
+        if capture_model:
+            if any(item["name"] == "script-model.k" for item in outputs):
+                raise ValueError("script-model.k is reserved for the requested model snapshot")
+            outputs = [*outputs, dict(name="script-model.k", kind="keyword")]
         captured = checked_dependencies(prepared_dir, contract)
         validate_script_references(content, language, captured)
         if session_id is not None:
@@ -252,7 +288,8 @@ class ProgramTools:
                 raise ValueError("GUI programs use the current model; open it separately and omit model")
             from .gui_programs import execute_prepared
 
-            return execute_prepared(self, session_id, prepared_job_id, expected_sha256, contract, content, captured)
+            return execute_prepared(self, session_id, prepared_job_id, expected_sha256, contract, content, captured,
+                                    allow_owned_output_context=allow_owned_output_context)
         if file_type not in ("keyword", "d3plot"):
             raise ValueError("Unsupported input type")
         source = self.settings.input_path(model) if model else None
@@ -292,7 +329,7 @@ class ProgramTools:
             elif language == "scl":
                 commands.append(nc.run_script("program.scl", "scl"))
             else:
-                wrapper = python_wrapper(directory, [item["name"] for item, _ in captured])
+                wrapper = python_wrapper(directory, [item["name"] for item, _ in captured], contract.get("python_parameters"))
                 (directory / "bootstrap.py").write_text(wrapper, encoding="utf8")
                 commands.append(nc.run_script("bootstrap.py"))
             nc.write_scl(directory / "complete.scl",
@@ -301,12 +338,26 @@ class ProgramTools:
                 's=SCLGetDataCenterInt("num_states");\nfp=fopen("complete.txt","w");\n'
                 'fprintf(fp,"%d %d %d\\n",n,e,s);\nfclose(fp);\n}\nmain();\n',
             )
+            if capture_model:
+                commands.append(nc.save_keyword("script-model.k"))
+            if inspect_selection:
+                nc.write_scl(directory / "selection.scl",
+                    '/*LS-SCRIPT*/\ndefine:\nvoid main(void){\nInt n,k,i; Int *ids=NULL; FILE *fp;\n'
+                    'n=SCLGetDataCenterInt("num_selection");\nfp=fopen("selection.txt","w");\nfprintf(fp,"%d\\n",n);\n'
+                    'if(n>0 && n<=10000){ids=malloc(n*sizeof(Int)); k=SCLGetDataCenterIntArray("selection_ids",&ids,0,0);\n'
+                    'if(k!=n){fprintf(fp,"ERROR\\n");}else{for(i=0;i<n;i=i+1){fprintf(fp,"%d\\n",ids[i]);}} free(ids);}\n'
+                    'fclose(fp);\nn=SCLGetDataCenterInt("num_validparts");\n'
+                    'fp=fopen("visibility.txt","w");fprintf(fp,"%d\\n",n);\n'
+                    'if(n>0 && n<=10000){ids=malloc(n*sizeof(Int)); k=SCLGetDataCenterIntArray("validpart_ids",&ids,0,0);\n'
+                    'if(k!=n){fprintf(fp,"ERROR\\n");}else{for(i=0;i<n;i=i+1){fprintf(fp,"%d %d\\n",ids[i],SCLCheckIfPartIsActiveU(ids[i]));}} free(ids);}\n'
+                    'fclose(fp);\n}\nmain();\n')
+                commands.append(nc.run_script("selection.scl", "scl"))
             commands += [nc.run_script("complete.scl", "scl"), "exit"]
             command_file = directory / "commands.cfile"
             nc.write_cfile(command_file, commands)
             manifest.update(status="running", started_at=now())
             atomic_json(directory / "job.json", manifest)
-            process = execute(exe, command_file, directory, timeout=self.settings.timeout, graphics=graphics)
+            process = execute(exe, command_file, directory, timeout=self.settings.timeout, graphics=graphics, launch_mode=launch_mode)
             manifest["process"] = process
             if process.get("engine_status") == "failed" or process["timed_out"] or process["returncode"] != 0:
                 raise RuntimeError(failure_message(process, "Native program process failed or timed out"))
@@ -352,6 +403,19 @@ class ProgramTools:
                     scope="Completion plus declared file/count checks only; no proof of every command or physical validity",
                 ),
             )
+            if inspect_selection:
+                values = (directory / "selection.txt").read_text().split()
+                total = int(values[0])
+                selected = [int(value) for value in values[1:]] if total <= 10000 else None
+                if total < 0 or selected is not None and len(selected) != total:
+                    raise ValueError("Native selection readback is incomplete")
+                manifest["data"]["selection"] = dict(count=total, user_ids=selected)
+                values = (directory / "visibility.txt").read_text().split()
+                total = int(values[0])
+                flags = [int(value) for value in values[1:]] if total <= 10000 else None
+                if total < 0 or flags is not None and (len(flags) != total * 2 or any(v not in (0, 1) for v in flags[1::2])):
+                    raise ValueError("Native part visibility readback is incomplete")
+                manifest["data"]["part_visibility"] = None if flags is None else {str(flags[i]): bool(flags[i + 1]) for i in range(0, len(flags), 2)}
         except Exception as exc:
             manifest.update(status="failed", error=dict(type=type(exc).__name__, message=str(exc)))
         manifest.update(
@@ -367,6 +431,8 @@ class ProgramTools:
         command: str,
         outputs: list[dict] | None = None,
         expected_counts: dict | None = None,
+        initial_node_ids: list[int] | None = None,
+        capture_model: bool = False,
     ) -> dict:
         """Run one original LS-PrePost command through the owned GUI command-entry/cfile bridge. Record raw source, native inventory and explicit output checks; unspecified semantics remain unverified."""
         command, outputs, counts = (
@@ -374,14 +440,26 @@ class ProgramTools:
             output_contract(outputs),
             count_contract(expected_counts),
         )
+        if type(capture_model) is not bool:
+            raise ValueError("capture_model must be Boolean")
+        if initial_node_ids is not None:
+            if len(initial_node_ids) > 10000 or len(set(initial_node_ids)) != len(initial_node_ids):
+                raise ValueError("Initial node IDs must be unique and bounded")
+            for uid in initial_node_ids:
+                nc.selection_add("node", uid)
         manager = self._session_manager()
         with manager.lock(session_id):
             meta = manager.read(session_id)
+            if capture_model:
+                if meta["model_kind"] != "keyword":
+                    raise ValueError("Model capture requires a keyword session")
+                outputs = [*outputs, dict(name="script-model.k", kind="keyword")]
             if meta.get("bridge_protocol", 1) < 2:
                 raise ValueError("This session predates the raw-command bridge; save a checkpoint and start a new session")
             if meta["state"] == "uncertain":
                 raise ValueError("Resolve/restore the uncertain session before raw commands")
-            parameters = dict(command=command, expected_counts=counts)
+            parameters = dict(command=command, expected_counts=counts, output_names=[o["name"] for o in outputs],
+                              initial_node_ids=initial_node_ids, capture_model=capture_model)
             log = manager.directory(session_id) / "lspost.msg"
             offset = log.stat().st_size if log.exists() else 0
             result = manager.dispatch(
@@ -428,40 +506,8 @@ class ProgramTools:
         expected_counts: dict | None = None,
         dependencies: list[dict] | None = None,
     ) -> dict:
-        """Save a command/cfile/SCL/Python macro with numeric {{name}} entry parameters, explicit outputs and frozen dependency assets. Does not execute or install global LS-PrePost menu/shortcut macros."""
-        if not isinstance(name, str) or not name.strip() or len(name) > 120 or language not in LANGUAGES:
-            raise ValueError("Invalid macro name/language")
-        if (
-            not isinstance(code, str)
-            or not code.strip()
-            or len(code.encode("utf8")) > 1024 * 1024
-            or "\x00" in code
-        ):
-            raise ValueError("Expected nonempty macro source up to 1 MiB")
-        render(code, numeric_parameters(defaults))
-        definition = dict(
-            schema_version=1,
-            kind="native_macro",
-            name=name,
-            language=language,
-            code=code,
-            defaults=defaults,
-            outputs=output_contract(outputs),
-            expected_counts=count_contract(expected_counts),
-        )
-        directory, manifest = self.jobs.create("create_native_macro", dict(name=name, language=language))
-        captured = capture_dependencies(self.settings, dependencies, definition["outputs"])
-        write_dependencies(directory / "assets", captured)
-        definition["dependencies"] = [item for item, _ in captured]
-        atomic_json(directory / "macro.json", definition)
-        manifest.update(
-            status="succeeded",
-            job_directory=str(directory),
-            artifacts=[check_artifact(directory / "macro.json", "json")],
-            finished_at=now(),
-        )
-        atomic_json(directory / "job.json", manifest)
-        return manifest
+        """Legacy JSON recipe alias retained through v0.6; not a native .mac interface."""
+        return self._create_recipe_legacy(name, language, code, defaults, outputs, expected_counts, dependencies)
 
     def run_native_macro(
         self,
@@ -472,38 +518,5 @@ class ProgramTools:
         graphics: bool = False,
         session_id: str | None = None,
     ) -> dict:
-        """Instantiate a selected macro with its frozen assets and numeric entry parameters; use an isolated native process or an explicit current GUI session_id. Retains macro/bundle identities and native evidence. GUI recordings retain the macro parameter call rather than expanding its internal execution steps."""
-        source = self.settings.input_path(path)
-        macro = json.loads(source.read_text(encoding="utf8"))
-        if macro.get("schema_version") != 1 or macro.get("kind") != "native_macro":
-            raise ValueError("Unsupported native macro")
-        parameters = numeric_parameters(parameters or {})
-        if set(parameters) - macro["defaults"].keys():
-            raise ValueError("Unknown macro parameters")
-        checked_dependencies(source.parent / "assets", macro)
-        prepared = self.prepare_native_program(
-            macro["language"],
-            code=macro["code"],
-            parameters={**macro["defaults"], **parameters},
-            outputs=macro["outputs"],
-            expected_counts=macro["expected_counts"],
-            dependencies=[dict(path=str(source.parent / "assets" / item["name"]), name=item["name"])
-                          for item in macro.get("dependencies", [])],
-        )
-        if session_id is not None:
-            if model is not None:
-                raise ValueError("GUI macros use the current model; omit model")
-            from .gui_programs import execute_prepared
-
-            folder = self.jobs.root / prepared["job_id"]
-            contract = json.loads((folder / "contract.json").read_text(encoding="utf8"))
-            result = execute_prepared(self, session_id, prepared["job_id"], prepared["data"]["sha256"], contract,
-                (folder / contract["program"]).read_bytes(), checked_dependencies(folder, contract),
-                journal_action="run_native_macro", journal_parameters=dict(path=path, parameters=parameters))
-        else:
-            result = self.execute_native_program(
-                prepared["job_id"], prepared["data"]["sha256"], model, file_type, graphics
-            )
-        result["macro_source"] = fingerprint(source)
-        atomic_json(Path(result["job_directory"]) / "job.json", result)
-        return result
+        """Legacy JSON recipe alias retained through v0.6; not a native .mac interface."""
+        return self._run_recipe_legacy(path, parameters, model, file_type, graphics, session_id)

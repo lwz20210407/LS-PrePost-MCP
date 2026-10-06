@@ -1,7 +1,8 @@
 # I03 剩余路径构建与 SCL 编码回归
 
 16 处调用（10 个模块）迁入 import_keyword、open_xydata、save_xypair、
-modelcheck_report；九处 SCL 写入使用同一 UTF-8、LF、无 BOM 写入器。
+modelcheck_report；SCL 写入使用同一 UTF-8、LF、无 BOM 写入器；合入新 main
+后新增的 selection.scl 写入也已迁入，共十处。
 保留嵌入式 Python 3.6 语法，AST 守卫阻止在业务模块重新拼接这些命令。
 
 4.13.4 与 4.10.1 各三项后台原生用例通过：
@@ -13,6 +14,11 @@ modelcheck_report；九处 SCL 写入使用同一 UTF-8、LF、无 BOM 写入器
 实际 revision 与运行时 git diff SHA256 见 [evidence.json](evidence.json)。
 原始补丁和原生日志保留在外部 i03paths-n1；未运行 GUI/UU。
 GUI 模型检查等调用的命令字符串回归已覆盖，窗口内原生复核仍为 I03 gap。
+
+合入 main 9e55e9b 后再次运行相同后台用例，两版仍各三项通过。
+实际 HEAD 为 07ea5794d2a7178e069e45fd3816f5debaf1a666，带未提交合并，
+diff SHA256 为 87e67606a8f2ba4dc90d35f5f31f8d6c3c3e4c0aa1a3d5adf591078e0e0449bc；
+新增记录位于 evidence.json 的 review_runs，既有 96 条记录不变。
 
 ---
 

@@ -701,5 +701,74 @@
       }
     ]
   }
-}
+},
+  "review_runs": [
+  {
+    "actual_git_revision": "07ea5794d2a7178e069e45fd3816f5debaf1a666",
+    "working_tree_dirty": true,
+    "git_diff_sha256": "87e67606a8f2ba4dc90d35f5f31f8d6c3c3e4c0aa1a3d5adf591078e0e0449bc",
+    "patch_scope": "git diff HEAD --binary captured before both runs",
+    "suite": "i03",
+    "mode": "batch_only",
+    "run_id": "i03paths-n2",
+    "versions": [
+      {
+        "version": "413",
+        "pytest_exit_code": 0,
+        "report_sha256": "8c29dfd43da850a9638da85421942104443bb355463d18d451a68410067663b9",
+        "cases": [
+          {
+            "case": "tests/test_native_paths_native.py::test_import_keyword_saves_and_reopens_imported_node",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 13.645828199994867,
+            "channels": null
+          },
+          {
+            "case": "tests/test_native_paths_native.py::test_xydata_open_and_export_preserve_curve_samples",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 3.7545491000055335,
+            "channels": null
+          },
+          {
+            "case": "tests/test_native_paths_native.py::test_scl_utf8_comment_and_count_artifact",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 3.912638900001184,
+            "channels": null
+          }
+        ]
+      },
+      {
+        "version": "410",
+        "pytest_exit_code": 0,
+        "report_sha256": "b5f4fe9aa34768e982d81eec8a4d6d742dc84baefb95fd6e6891b3ea9d47d747",
+        "cases": [
+          {
+            "case": "tests/test_native_paths_native.py::test_import_keyword_saves_and_reopens_imported_node",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 39.24936020000314,
+            "channels": null
+          },
+          {
+            "case": "tests/test_native_paths_native.py::test_xydata_open_and_export_preserve_curve_samples",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 8.828493299995898,
+            "channels": null
+          },
+          {
+            "case": "tests/test_native_paths_native.py::test_scl_utf8_comment_and_count_artifact",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 8.917231699990225,
+            "channels": null
+          }
+        ]
+      }
+    ]
+  }
+]
 }

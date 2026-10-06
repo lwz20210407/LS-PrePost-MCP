@@ -1,0 +1,41 @@
+schema_version: 1
+id: snapshot
+name: 等轴测 PNG
+task_id: A08
+channel: cfile
+template: template.cfile
+description: 等轴测 PNG；原模型数值，不做单位换算或工程质量判断。
+parameters:
+  type: object
+  properties: {}
+  additionalProperties: false
+outputs:
+- name: image.png
+  kind: png
+expected_counts: {}
+versions_verified:
+- 4.13.4
+- 4.10.1
+execution_modes:
+  c_nographics:
+    status: verified
+    by_version:
+      4.13.4: verified
+      4.10.1: verified
+    evidence: docs/decisions/evidence/a08/report.md
+  runc:
+    status: failed
+    by_version:
+      4.13.4: failed
+      4.10.1: failed
+    evidence: docs/decisions/evidence/a08/report.md
+    scope: Version-specific recipe probes; do not generalize between versions or recipes
+l2_case: tests/test_recipes_native.py::test_builtin_recipe[snapshot]
+requires_model: true
+contexts:
+- batch
+tags:
+- snapshot
+- png
+- 出图
+input_kind: keyword

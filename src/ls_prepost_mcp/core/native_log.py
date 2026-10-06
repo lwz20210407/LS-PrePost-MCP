@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 NATIVE_ERROR = re.compile(
-    r"^\s*(?:\*+\s*)?(?:invalid(?:\s+[A-Za-z][\w-]*){0,3}\s+command\b|error while compiling\b|error occurred in parsing script\b|syntax error\b|runtime error\b)",
+    r"^\s*(?:\*+\s*)?(?:invalid(?:\s+[A-Za-z][\w-]*){0,3}\s+command\b|error while compiling\b|error occurred in parsing script\b|syntax error\b|runtime error\b|output file .+ not open\s*$)",
     re.IGNORECASE,
 )
 
@@ -18,7 +18,7 @@ def native_errors(text):
     return [line.strip() for line in text.splitlines() if NATIVE_ERROR.search(line)][:30]
 
 
-def read_delta(path, offset=0, *, existed=False):
+def read_delta_bytes(path, offset=0, *, existed=False):
     """Reject a lost prefix instead of treating a replaced/truncated log as clean."""
     if type(offset) is not int or offset < 0:
         raise ValueError("Invalid native log offset")
@@ -26,12 +26,16 @@ def read_delta(path, offset=0, *, existed=False):
     if not path.exists():
         if existed or offset:
             raise ValueError("Native log disappeared during the request")
-        return ""
+        return b""
     with path.open("rb") as stream:
         if stream.seek(0, 2) < offset:
             raise ValueError("Native log was truncated during the request")
         stream.seek(offset)
-        return decode(stream.read())
+        return stream.read()
+
+
+def read_delta(path, offset=0, *, existed=False):
+    return decode(read_delta_bytes(path, offset, existed=existed))
 
 
 @dataclass(frozen=True)
@@ -49,9 +53,12 @@ class LogCursor:
             return cls(path, 0, None)
         return cls(path, stat.st_size, (stat.st_dev, stat.st_ino))
 
-    def read(self):
+    def read_bytes(self):
         if self.identity is not None and self.path.exists():
             stat = self.path.stat()
             if self.identity != (stat.st_dev, stat.st_ino):
                 raise ValueError("Native log was replaced during the request")
-        return read_delta(self.path, self.offset, existed=self.identity is not None)
+        return read_delta_bytes(self.path, self.offset, existed=self.identity is not None)
+
+    def read(self):
+        return decode(self.read_bytes())

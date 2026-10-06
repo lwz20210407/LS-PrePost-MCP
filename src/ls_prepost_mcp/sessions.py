@@ -146,7 +146,7 @@ class Sessions:
         cfile = directory / "initialize.cfile"
         # A fresh process needs no `new`: some GUI builds treat it as Restart
         # and block the startup command file behind a confirmation dialog.
-        nc.write_cfile(cfile, [nc.run_script(bootstrap)] + (["exit"] if transport == "queue" else []))
+        nc.write_cfile(cfile, [nc.run_script(bootstrap)])
         env, configuration = native_environment(exe, directory)
         with (directory / "process.log").open("wb") as log:
             process = subprocess.Popen(

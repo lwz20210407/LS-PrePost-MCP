@@ -15,6 +15,7 @@
 | `close_gui_session` | I08 | session_id*: string; save_checkpoint: boolean |
 | `combine_gui_selections` | G03 | session_id*: string; entity_type*: string; left_ids*: array; right_ids*: array; operation: string |
 | `combine_history_curves` | Q07 | paths*: array; operation*: string; units*: string; source_units: union/ref; time_unit: union/ref |
+| `command_help` | I08 | command*: string; limit: integer |
 | `compose_keyword_deck` | P02 | cards*: array; units*: string |
 | `compute_stress_invariants` | Q04 | stresses*: array; units*: string; relative_tolerance: number |
 | `control_gui_animation` | Q09 | session_id*: string; operation*: string; first: integer; last: integer; increment: integer; direction: string |
@@ -38,8 +39,8 @@
 | `create_workflow` | A09 | name*: string; steps*: array; defaults: union/ref |
 | `describe_installed_template` | A08 | template_id*: string |
 | `describe_pydyna_keyword` | A10 | class_name*: string |
-| `execute_gui_command` | A01 | session_id*: string; command*: string; outputs: union/ref; expected_counts: union/ref |
-| `execute_native_program` | A01, A02, A03, A04 | prepared_job_id*: string; expected_sha256*: string; model: union/ref; file_type: string; graphics: boolean; session_id: union/ref |
+| `execute_gui_command` | A01 | session_id*: string; command*: string; outputs: union/ref; expected_counts: union/ref; initial_node_ids: union/ref; capture_model: boolean |
+| `execute_native_program` | A01, A02, A03, A04 | prepared_job_id*: string; expected_sha256*: string; model: union/ref; file_type: string; graphics: boolean; session_id: union/ref; capture_model: boolean; inspect_selection: boolean; allow_owned_output_context: boolean; launch_mode: string |
 | `export_dpf_result` | Q03 | path*: string; file_type*: string; result*: string; units*: string; states: union/ref; entity_ids: union/ref; label_filter: union/ref; component: union/ref; actunits: union/ref |
 | `export_gui_animation` | Q09 | session_id*: string; last: union/ref; fps: integer; width: integer; height: integer; averaging: string |
 | `export_gui_curve_plot` | Q08 | session_id*: string; path*: string; x_column*: string; y_column*: string; title*: string; x_label*: string; y_label*: string; x_unit*: string; y_unit*: string; curve_label: union/ref; additional_curves: union/ref |
@@ -59,6 +60,7 @@
 | `extract_nodal_results` | Q03 | d3plot*: string; node_ids*: array; quantity*: string; state*: integer; units*: string |
 | `extract_node_history` | Q05 | d3plot*: string; node_ids*: array; quantity*: string; states*: array; units*: string; curve_components: union/ref; time_unit: union/ref |
 | `extrude_shell_part` | P07 | model*: string; part_id*: integer; length*: number; layers*: integer; units*: string |
+| `find_recipe` | I08 | query: string; task_id: union/ref; channel: union/ref; limit: integer; include_candidates: boolean |
 | `get_element_connectivity` | G04 | model*: string; element_id*: integer; element_type: string; file_type: string |
 | `gui_session_action` | I08 | session_id*: string; action*: string; parameters*: object |
 | `import_command_recording` | A07 | path*: string; units*: string; recorded_model_index: union/ref |
@@ -80,6 +82,7 @@
 | `inspect_result_validity` | Q04 | path*: string; element_type*: string; states*: array; element_ids: union/ref |
 | `inspect_workflow` | A09 | path*: string; parameters: union/ref; session_id: union/ref |
 | `instantiate_installed_template` | P10, A08 | template_id*: string; parameters*: object; units*: string; model: union/ref; native_check: boolean |
+| `keyword_fields` | I08 | keyword*: string; field: union/ref; limit: integer; include_private: boolean |
 | `list_capabilities` | I08 | 无 |
 | `list_gui_sessions` | I08 | 无 |
 | `list_installation_assets` | A08 | 无 |
@@ -99,7 +102,7 @@
 | `native_tensile_postprocess` | I08 | force_path*: string; nodout_path*: string; force_database*: string; force_component*: integer; force_entity_id*: integer; top_node*: integer; bottom_node*: integer; displacement_component*: integer; area*: number; gauge_length*: number; force_unit*: string; length_unit*: string; time_unit*: string; force_sign: integer; displacement_sign: integer |
 | `open_in_gui_session` | I08 | session_id*: string; path*: string; file_type: string; discard: boolean; expected_empty: boolean |
 | `parameterize_workflow` | A07 | path*: string; bindings*: array |
-| `prepare_native_program` | A01, A02, A03, A04, A05 | language*: string; code: union/ref; path: union/ref; parameters: union/ref; outputs: union/ref; expected_counts: union/ref; dependencies: union/ref; macro_name: union/ref |
+| `prepare_native_program` | A01, A02, A03, A04, A05 | language*: string; code: union/ref; path: union/ref; parameters: union/ref; outputs: union/ref; expected_counts: union/ref; dependencies: union/ref; macro_name: union/ref; script_parameters: union/ref |
 | `probe_dpf_runtime` | I08 | 无 |
 | `probe_environment` | I08 | 无 |
 | `probe_scl` | A03 | model*: string |
@@ -119,10 +122,13 @@
 | `rotate_mesh_nodes` | P08 | model*: string; node_ids*: array; axis*: string; angle*: number; center*: array; units*: string |
 | `run_native_macro` | A08 | path*: string; parameters: union/ref; model: union/ref; file_type: string; graphics: boolean; session_id: union/ref |
 | `run_on_version` | A01 | version*: string; action*: string; parameters*: object |
+| `run_recipe` | I08 | recipe*: string; parameters: union/ref; model: union/ref; file_type: string; session_id: union/ref; launch_mode: string |
+| `run_script` | I08 | language*: string; code*: string; context: string; session_id: union/ref; model: union/ref; file_type: string; outputs: union/ref; expected_counts: union/ref; capture_model: boolean; initial_node_ids: union/ref; parameters: union/ref; dependencies: union/ref; launch_mode: string |
 | `run_workflow` | A09 | path*: string; parameters: union/ref; session_id: union/ref |
 | `run_workflow_sweep` | A09 | path*: string; cases*: array; outputs: union/ref; session_id: union/ref |
 | `save_gui_selection_buffer` | G03 | session_id*: string; entity_type*: string; entity_ids*: array; slot*: integer |
 | `search_commands` | A10 | query*: string; limit: integer |
+| `search_docs` | I08 | query*: string; category: union/ref; limit: integer; include_private: boolean |
 | `search_knowledge` | A10 | query*: string; limit: integer; include_private: boolean; category: union/ref |
 | `search_workflows` | A10 | query*: string; limit: integer |
 | `select_gui_entities` | G03 | session_id*: string; entity_type*: string; entity_ids: union/ref; part_ids: union/ref; invert: boolean; scope: string; set_ids: union/ref |
