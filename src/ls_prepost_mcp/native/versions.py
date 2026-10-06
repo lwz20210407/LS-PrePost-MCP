@@ -61,8 +61,6 @@ def _resource_family(resource):
     versions = [_family(resource.get(name)) for name in ("file_version", "product_version", "fixed_file_version")]
     if "4.11" in versions:
         return "4.11"
-    if versions[0] and versions[1] and versions[0] != versions[1]:
-        raise ValueError("Executable file/product version strings disagree")
     return next((value for value in versions if value), None)
 
 
@@ -78,6 +76,8 @@ def profile(executable=None, version=None):
     resource_family = _resource_family(resource)
     detected = resource_family or hint
     requested = _family(version) if version is not None else None
+    file_family = _family((resource or {}).get("file_version"))
+    product_family = _family((resource or {}).get("product_version"))
     key = detected or requested
     data = CAPABILITIES.get(key, {"policy": "best_effort", "batch": True,
                                  "queue_model_identity": False, "evidence": "No verified profile"})
@@ -88,6 +88,7 @@ def profile(executable=None, version=None):
                 product_version=(resource or {}).get("product_version"),
                 resource_conflict=len({_family(value) for name, value in (resource or {}).items()
                                        if name.endswith("version") and _family(value)}) > 1,
+                resource_string_conflict=bool(file_family and product_family and file_family != product_family),
                 requested_version=requested,
                 configured_label_conflict=bool(version is not None and detected and requested != detected),
                 path_hint_version=hint, path_hint_conflict=bool(resource_family and hint and hint != detected))
@@ -99,6 +100,8 @@ def require_installation(executable=None, version=None):
         raise ValueError("Executable version resource identifies a different product: " + result["product_name"])
     if result["policy"] == "excluded":
         raise ValueError("LS-PrePost " + result["version"] + " is excluded by D3")
+    if result["resource_string_conflict"]:
+        raise ValueError("Executable file/product version strings disagree")
     if result["configured_label_conflict"]:
         raise ValueError("Configured version label conflicts with detected executable family")
     return result

@@ -22,6 +22,8 @@ from . import (
     coordinates,
     generate,
     geometry,
+    joint_checks,
+    joints,
     lists,
     loads,
     materials,
@@ -183,7 +185,8 @@ MESH_OPS = {"transform_nodes", "copy_elements", "array_elements", "offset_shells
             "merge_duplicate_nodes", "delete_elements", "reverse_elements", "unify_shell_normals", "clean_coordinates",
             "quantize_coordinates"}
 PROPERTY_OPS = {"add_material": "material", "add_eos": "eos", "add_section": "section", "add_hourglass": "hourglass"}
-SUMMARY_OPS = MESH_OPS | set(PROPERTY_OPS) | {"add_boundary", "set_control", "add_part", "set_part", "add_contact"}
+SUMMARY_OPS = MESH_OPS | set(PROPERTY_OPS) | {"add_boundary", "set_control", "add_part", "set_part", "add_contact",
+                                             "add_joint"}
 
 
 def _setup_op(deck: KeywordDeck, edit: dict) -> dict:
@@ -195,6 +198,9 @@ def _setup_op(deck: KeywordDeck, edit: dict) -> dict:
         return materials.add_part(deck, **fields, file=_file(deck, edit.get("file")))
     if edit["op"] == "set_part":
         return materials.set_part(deck, edit["pid"], **{k: edit[k] for k in materials.PART_REFS if k in edit})
+    if edit["op"] == "add_joint":
+        params = {k: v for k, v in edit.items() if k not in ("op", "file")}
+        return joints.add_joint(deck, **params, file=_file(deck, edit.get("file")))
     if edit["op"] == "add_contact":
         return contacts.add_contact(deck, edit["recipe"], edit["a"], edit.get("b"), params=edit.get("params"),
                                     cid=edit.get("cid"), title=edit.get("title"), file=_file(deck, edit.get("file")))
@@ -422,6 +428,12 @@ def check_deck(path: str, include_paths: tuple[str, ...] = (), thresholds: dict 
         errors.append({"kind": "free_format_item_too_long", "count": too_long, "sample": sample,
                        "message": "comma-separated values must fit the field width (R11 Error 10459)"})
     warnings = list(deck.warnings)
+    joint_report = joint_checks.check_joints(deck)
+    for kind in sorted({e["kind"] for e in joint_report["errors"]}):
+        found = [e for e in joint_report["errors"] if e["kind"] == kind]
+        errors.append({"kind": kind, "count": len(found), "sample": found[:20], "message": found[0]["message"]})
+    warnings += [f"{w.get('keyword', 'joints')} ({w.get('file', '')}:{w.get('line', '')}): {w['message']}"
+                 for w in joint_report["warnings"][:50]]
     for short in solver_rules.short_motion_curves(deck):
         warnings.append(f"{short['keyword']} ({short['file']}:{short['line']}) uses curve {short['lcid']}, which ends "
                         f"at {short['curve_end']:g} but the motion is active until {short['active_until']:g}; past "
@@ -430,8 +442,11 @@ def check_deck(path: str, include_paths: tuple[str, ...] = (), thresholds: dict 
         warnings.append(f"{report.unverified_count} references to {', '.join(sorted(report.unverified_kinds))} IDs "
                         "could not be verified because a defining block was not read")
     result = {"references": {**report.summary(), "unused": report.unused(), "unverified": report.unverified()[:50]},
-              "warnings": warnings, "read_only": True, "mesh_checked": include_mesh}
+              "warnings": warnings, "read_only": True, "mesh_checked": include_mesh,
+              "joints": {"checked": len(joint_report["joints"]), "summary": joint_report["joints"][:50],
+                         "not_checked": joint_report["not_checked"][:20]}}
     unchecked = [f"References not read: {name} x{count}" for name, count in report.unchecked.items()]
+    unchecked += [f"Joint check not verified: {u.get('keyword', '')} {u['reason']}" for u in joint_report["unverified"][:20]]
     if include_mesh:
         checked = quality.check_quality(deck, thresholds, coincident_tol)
         errors += checked["errors"]
