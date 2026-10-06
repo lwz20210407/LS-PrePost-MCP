@@ -16,9 +16,10 @@ from .tree import reference_budget
 ERRORS = ("missing", "cycle", "unreadable", "limit", "network_path", "utf16_text", "reference_limit")
 WARNINGS = ("empty_include", "ambiguous", "repeated", "not_followed", "missing_search_dir")
 TREE_SHA256_VERSION = 1
-REFERENCE_COUNTING = ("every *INCLUDE-family file name and *INCLUDE_PATH directory, each time LS-DYNA "
-                      "reads it: a repeated include counts again together with the references inside its "
-                      "file; unresolved, unreadable, network and cyclic names count too")
+REFERENCE_COUNTING = ("every *INCLUDE-family file name and *INCLUDE_PATH directory, each time it is read "
+                      "in reading order: a repeated include counts again together with the references its "
+                      "file counted when first read; unresolved, unreadable, network and cyclic names "
+                      "count too")
 
 
 def preflight_includes(path: str | os.PathLike[str], include_paths: tuple[str, ...] = (),
@@ -48,16 +49,19 @@ def preflight_includes(path: str | os.PathLike[str], include_paths: tuple[str, .
 
     ``reference_count`` counts include references by :data:`REFERENCE_COUNTING` (also returned as
     ``reference_counting``): each file name, or ``*INCLUDE_PATH`` directory, counts once every
-    time LS-DYNA reads it, so a repeated include counts again together with everything its file
-    references, and missing, unreadable, network, cyclic and over-limit names count as well. It
-    can therefore exceed ``len(references)``, which lists a repeated file's contents only once.
-    ``max_references`` (None: no limit; 0 refuses any include) bounds that count. The reference
-    that takes the count over the limit becomes a ``reference_limit`` error carrying ``counted``
-    (the count when reading stopped, at least ``max_references + 1``) and ``limit``, and reading
-    stops there: that name and every later one are neither handed to the access guard nor
-    resolved, stat'ed or read. ``files``, ``references`` and ``tree_sha256`` then describe only
-    the part read before the stop. ``reference_count`` is None when the tree was too deep to
-    follow; an invalid ``max_references`` (negative, bool, not an integer) raises ValueError.
+    time it is read in reading order, so a repeated include counts again together with what its
+    file counted when first read (LS-DYNA reads it again), and missing, unreadable, network,
+    cyclic and over-limit names count as well. It can therefore exceed ``len(references)``, which
+    lists a repeated file's contents only once. ``max_references`` (None: no limit; 0 refuses any
+    include) bounds that count. The reference that takes the count over the limit becomes a
+    ``reference_limit`` error carrying ``counted`` (the count when reading stopped, at least
+    ``max_references + 1``) and ``limit``, and reading stops there: no later name is handed to
+    the access guard, resolved, stat'ed or read, nor is the over-limit name itself, except that
+    a repeated include going over only through its file's references was resolved before (its
+    ``path`` is reported; the file is not expanded again). ``files``, ``references`` and
+    ``tree_sha256`` then describe only the part read before the stop. ``reference_count`` is None
+    when the tree was too deep to follow; an invalid ``max_references`` (negative, bool, not an
+    integer) raises ValueError.
     """
     budget = reference_budget(max_references)
     main = Path(path)

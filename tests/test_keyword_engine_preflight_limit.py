@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from ls_prepost_mcp.domain.model import KeywordDeck, access, preflight_includes
+from ls_prepost_mcp.domain.model import KeywordDeck, SourceFile, access, preflight_includes
 
 THREE = {"main.k": "*KEYWORD\n*INCLUDE\na.k\n*INCLUDE\nb.k\n*INCLUDE\nc.k\n*END\n",
          "a.k": "*NODE\n", "b.k": "*PART\n", "c.k": "*NODE\n"}
@@ -55,9 +55,9 @@ def touched(monkeypatch) -> list[str]:
                          (os.path, "realpath"), (os.path, "exists"), (os.path, "lexists"), (os.path, "isfile"),
                          (os.path, "isdir"), (builtins, "open"), (io, "open")):
         monkeypatch.setattr(module, name, spy(getattr(module, name)))
-    if sys.platform == "win32":
-        import nt
-        monkeypatch.setattr(nt, "_getfinalpathname", spy(nt._getfinalpathname))
+    if sys.platform == "win32":  # ntpath.realpath uses its own binding of nt._getfinalpathname
+        import ntpath
+        monkeypatch.setattr(ntpath, "_getfinalpathname", spy(ntpath._getfinalpathname))
     return seen
 
 
@@ -86,8 +86,11 @@ def test_past_the_limit_nothing_is_resolved_stat_or_read(tmp_path: Path, touched
                             "a.k": "*INCLUDE\ninner.k\n", "inner.k": "*NODE\n", "beyond_b.k": "*INCLUDE\nbeyond_d.k\n",
                             "beyond_d.k": "*NODE\n", "beyond_c.k": "*NODE\n", "beyond.bin": b"\x00\x01",
                             "beyond_dir/x.k": "*NODE\n"})
+    beyond = ("beyond_b.k", "beyond_d.k", "beyond_dir", "beyond.bin", "beyond_c.k")
     unlimited = preflight_includes(main)
-    assert unlimited["ok"] and [p for p in touched if "beyond" in p]  # the spy sees these files when unlimited
+    assert unlimited["ok"] and unlimited["reference_count"] == 7
+    for name in beyond:  # without the limit the spy does see each of them
+        assert any(name in p for p in touched), name
     touched.clear()
     checked: list[str] = []
     with access.confined(lambda path: checked.append(str(path))):
@@ -102,8 +105,8 @@ def test_past_the_limit_nothing_is_resolved_stat_or_read(tmp_path: Path, touched
     assert [r["name"] for r in report["references"]] == ["a.k", "inner.k", "beyond_b.k"]
     assert [f["relative"] for f in report["files"]] == ["main.k", "a.k", "inner.k"]
     assert any(p.endswith("inner.k") for p in touched) and any(p.endswith("inner.k") for p in checked)
-    assert not [p for p in touched if "beyond" in p], touched
-    assert not [p for p in checked if "beyond" in p], checked  # not even handed to the access guard
+    assert not [p for p in touched if any(name in p for name in beyond)], touched
+    assert not [p for p in checked if any(name in p for name in beyond)], checked  # nor handed to the guard
 
 
 def test_a_repeated_include_counts_again_with_everything_it_includes(tmp_path: Path) -> None:
@@ -136,10 +139,14 @@ def test_doubling_includes_are_counted_in_reading_order_and_stopped_early(tmp_pa
     problem = report["problems"][-1]
     assert problem["counted"] == report["reference_count"] > 100 and problem["limit"] == 100
     assert report["reference_count"] < unlimited["reference_count"]
+    # The real cost is the reading-order expansion (parameters, block iteration): bounded by the count.
+    full = len(KeywordDeck.load(main).blocks())
+    deck = KeywordDeck(SourceFile.read(main), [], record_unreadable=True, max_references=100)
+    assert full == 3 * 2 ** layers - 2 and len(deck.blocks()) <= 2 * (deck.reference_count + 1) < full
 
 
 def test_unresolved_and_failed_names_count_too(tmp_path: Path, touched: list[str]) -> None:
-    main = _deck(tmp_path, {"main.k": "*INCLUDE_PATH\nno_dir\n*INCLUDE\nmissing.k\n*INCLUDE\n\\\\probe-host\\share\\x.k\n"
+    main = _deck(tmp_path, {"main.k": "*INCLUDE_PATH\nno_dir\n*INCLUDE\nmissing.k\n*INCLUDE\n\\\\probe-host.invalid\\share\\x.k\n"
                                       "*INCLUDE_BINARY\nnone.bin\n*INCLUDE\nbad.k\n*INCLUDE\nmain.k\n",
                             "bad.k": b"*NODE\x00\x00"})
     report = preflight_includes(main)
