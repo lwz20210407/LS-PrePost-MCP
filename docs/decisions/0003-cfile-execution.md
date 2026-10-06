@@ -12,8 +12,11 @@
 批处理使用 c= -nographics；session 在同一现有进程用 openc command。
 原始源文件不修改，声明的输出在执行副本中绑定到请求目录。
 会话只接受显式声明、已核验的唯一 keyword 输出作为脚本变更后的模型
-来源；其它模型上下文变化仍失败。旧 execute_native_program 默认保持
-禁止替换模型上下文，新的许可由 run_script 的 cfile 路径显式传递。
+来源；其它模型上下文变化仍失败。run_script 的 cfile 路径显式传递许可。
+旧 execute_native_program 在空 keyword 会话中创建模型，或执行单条
+字面量 `save keyword` 到声明输出时，也允许采用已验证的唯一 keyword
+输出；已有模型的任意 cfile 仍需显式许可。采用前必须核对产物内容、
+原生回读来源与声明计数；失败时保留原来源，并将会话标为 uncertain。
 
 原生实验发现：从主线程 Python 队列嵌套 openc command 后，LSPP 会
 消费启动 cfile 后续的 exit，导致整个会话退出。移除启动文件末尾 exit，

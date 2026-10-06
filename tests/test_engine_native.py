@@ -144,3 +144,33 @@ def test_path_builders_batch_unicode_and_spaces_save_png_reopen(native_case, wor
     saved = next(row["path"] for row in result["artifacts"] if row["kind"] == "keyword")
     reopened = service.inspect_model(saved)
     assert reopened["status"] == "succeeded" and reopened["data"]["counts"]["nodes"] == 8, reopened
+
+
+def test_native_diagnostic_is_visible_to_program_caller(native_case):
+    service,source=native_case
+    prepared=service.prepare_native_program("command",code="invalid_i01_native_command")
+    result=service.execute_native_program(prepared["job_id"],prepared["data"]["sha256"],model=str(source/"input.k"))
+    assert result["status"]=="failed",result
+    assert result["process"]["returncode"]==0
+    assert "invalid_i01_native_command" in result["error"]["message"]
+
+
+def test_public_win32_session_engine_round_trip(native_case):
+    if os.environ.get("LSPP_ALLOW_GUI") != "1":
+        pytest.skip("Requires an authorized, unlocked GUI window")
+    service, source = native_case
+    started = service.start_gui_session()
+    sid, pid = started["session_id"], started["process"]["pid"]
+    try:
+        opened = service.open_in_gui_session(sid, str(source / "input.k"), discard=True)
+        assert opened["status"] == "succeeded", opened
+        result = service.gui_session_action(sid, "inspect_model", {})
+        assert result["status"] == "succeeded" and result["data"]["counts"]["nodes"] == 8, result
+        evidence = json.loads((Path(result["job_directory"]) / "engine-result.json").read_text())
+        assert evidence["contract"] == "JobResult/v1" and evidence["status"] == "succeeded"
+        assert service.checkpoint_gui_session(sid)["status"] == "succeeded"
+        assert service.restore_gui_checkpoint(sid)["status"] == "succeeded"
+        assert Sessions(service.settings).read(sid)["process"]["pid"] == pid
+    finally:
+        closed = service.close_gui_session(sid, save_checkpoint=False)
+        assert closed["state"] == "closed", closed

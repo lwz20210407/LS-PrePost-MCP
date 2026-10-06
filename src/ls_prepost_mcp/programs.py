@@ -22,7 +22,7 @@ from .program_bundle import (
     validate_script_references,
     write_dependencies,
 )
-from .runner import execute
+from .runner import execute, failure_message
 
 LANGUAGES = {"command": "cfile", "cfile": "cfile", "scl": "scl", "python": "py"}
 PLACEHOLDER = re.compile(r"\{\{([A-Za-z][A-Za-z0-9_]*)\}\}")
@@ -359,7 +359,7 @@ class ProgramTools:
             process = execute(exe, command_file, directory, timeout=self.settings.timeout, graphics=graphics, launch_mode=launch_mode)
             manifest["process"] = process
             if process.get("engine_status") == "failed" or process["timed_out"] or process["returncode"] != 0:
-                raise RuntimeError("Native program process failed or timed out")
+                raise RuntimeError(failure_message(process, "Native program process failed or timed out"))
             diagnostics = []
             for log in (directory / "lspost.msg", directory / "stdout.log", directory / "stderr.log"):
                 if log.exists():

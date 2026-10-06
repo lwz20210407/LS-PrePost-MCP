@@ -8,11 +8,24 @@ from tools.native_regression import (
     Case,
     arguments,
     cases,
+    execution_identity,
     parser_schema,
     resolve_value,
     run_case,
     verify_reports,
 )
+
+
+def test_native_evidence_identity_includes_uncommitted_source_bytes(tmp_path):
+    source = tmp_path / "src" / "example.py"
+    source.parent.mkdir()
+    source.write_text("value = 1\n")
+    first = execution_identity(tmp_path)
+    source.write_text("value = 2\n")
+    second = execution_identity(tmp_path)
+    assert first["source_snapshot_sha256"] != second["source_snapshot_sha256"]
+    assert first["source_files"]["src/example.py"] != second["source_files"]["src/example.py"]
+    assert first["actual_git_head"] is None  # No invented parent-workspace Git identity.
 
 
 def test_every_manual_entrypoint_is_collected_and_gui_variants_are_explicit():

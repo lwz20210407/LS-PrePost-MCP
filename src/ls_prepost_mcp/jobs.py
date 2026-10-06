@@ -3,6 +3,7 @@ import hashlib
 import json
 import math
 import re
+import tempfile
 import time
 import uuid
 from datetime import datetime, timezone
@@ -15,8 +16,11 @@ def now() -> str:
 
 def atomic_json(path: Path, value) -> None:
     text = json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False)
-    tmp = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
-    with tmp.open("x", encoding="utf-8") as stream:
+    # Reserve an exclusive sibling without repeating a potentially long target
+    # name. Replacement stays on the same volume and remains atomic.
+    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", prefix=".", suffix=".tmp",
+                                     dir=path.parent, delete=False) as stream:
+        tmp = Path(stream.name)
         stream.write(text)
     try:
         for attempt in range(6):

@@ -39,7 +39,7 @@ from .post_tools import PostTools
 from .pre_tools import PreTools
 from .programs import ProgramTools
 from .results import lasso_vectors, open_binout
-from .runner import decode, execute
+from .runner import decode, execute, failure_message
 from .script_tools import ScriptTools
 from .sessions import SessionTools
 from .workflow_sweeps import WorkflowSweepTools
@@ -111,7 +111,7 @@ class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, Sessi
             process = execute(exe, cfile, directory, timeout=self.settings.timeout, graphics=graphics)
             manifest["process"] = process
             if process.get("engine_status") == "failed" or process["timed_out"] or process["returncode"] != 0:
-                raise RuntimeError(f"LS-PrePost process failed: returncode={process['returncode']}, timeout={process['timed_out']}")
+                raise RuntimeError(failure_message(process, f"LS-PrePost process failed: returncode={process['returncode']}, timeout={process['timed_out']}"))
             reply_path = directory / "response.json"
             if action == "scl_probe":
                 count = int((directory / "scl_nodes.txt").read_text().strip())

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "task": "A02",
+  "run_id": "g6",
+  "actual_git_head": "dc9dbc197c013221eeacbb8652602442676b9ba3",
+  "working_tree_dirty": true,
+  "patch_sha256": null,
+  "current_pr_head_native_run": false,
+  "started_at": "2026-10-05T19:59:20.3701510Z",
+  "case": "program_bundle_acceptance.native",
+  "status": "passed",
+  "duration_seconds": 32.273681699996814,
+  "script_sha256": "1ca247244a6e637c847879382767b5f20d0fbdf346e7fb5eb18e15541089bd33",
+  "acceptance_sha256": "c7e86f880829dcd6f4afe7cc66fa47c6cec4fded802e524d2ee5bc8e020809d8",
+  "verified_json_sha256": "856aeefdabfcfc5e8e2ea058e32a696098de34a240456f5a720dd517b815d698",
+  "report_json_sha256": "9d7c9db52c3c9daf0898b91adb8111b15d030421a1d195e2950a3f1ce9d89f1c"
+}
