@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from ls_prepost_mcp.domain.model import FieldError, KeywordDeck
-from ls_prepost_mcp.domain.model.controls import apply_recipe
+from ls_prepost_mcp.domain.model.controls import ASCII, apply_recipe
 from ls_prepost_mcp.domain.model.operations import edit_deck
 
 pytest.importorskip("ansys.dyna.core")
@@ -72,6 +72,8 @@ def test_p10_recipes(tmp_path: Path) -> None:
     apply_recipe(deck, "d3plot", {"dt": 0.001})
     cards = apply_recipe(deck, "ascii", {"names": ["glstat", "matsum", "rcforc"], "dt": 1e-4})
     assert [c["keyword"] for c in cards] == ["*DATABASE_GLSTAT", "*DATABASE_MATSUM", "*DATABASE_RCFORC"]
+    every = apply_recipe(deck, "ascii", {"names": list(ASCII), "dt": 1e-4, "binary": 3})
+    assert len(every) == len(ASCII) == 34 and {c["keyword"] for c in every} >= {"*DATABASE_RBDOUT", "*DATABASE_SBTOUT"}
     apply_recipe(deck, "hourglass", {"ihq": 4, "qh": 0.05})
     with pytest.raises(FieldError, match="needs"):
         apply_recipe(deck, "hourglass", {"ihq": 4})

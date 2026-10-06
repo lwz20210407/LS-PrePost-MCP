@@ -23,8 +23,11 @@ RECIPES = {
     "energy": ("*CONTROL_ENERGY", ("hgen",), ("rwen", "slnten", "rylen")),
     "d3plot": ("*DATABASE_BINARY_D3PLOT", ("dt",), ("lcdt", "npltc", "psetid")),
 }
+# *DATABASE_OPTION ASCII files (R17 Vol I) that PyDYNA also defines with DT / BINARY; most used first.
 ASCII = ("glstat", "matsum", "rcforc", "nodout", "elout", "secforc", "spcforc", "rwforc", "sleout", "bndout",
-         "deforc", "jntforc", "nodfor", "abstat", "ncforc")
+         "deforc", "jntforc", "nodfor", "abstat", "ncforc", "rbdout", "gceout", "sbtout", "swforc", "defgeo",
+         "dcfail", "disbout", "avsflt", "curvout", "tprint", "trhist", "sphout", "sphmassflow", "ssstat",
+         "demassflow", "pllyout", "prtube", "atdout", "pbstat")
 
 
 def _upsert(deck: KeywordDeck, keyword: str, fields: dict) -> dict:
