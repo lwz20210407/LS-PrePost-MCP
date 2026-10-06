@@ -97,6 +97,33 @@ def test_large_hidden_selection_rejected_before_native_commands(tmp_path, monkey
         service.select_gui_entities("s", "node", part_ids=[7])
 
 
+@pytest.mark.parametrize("blank_count", [0, 1, None])
+def test_large_part_visibility_selection_requires_native_blank_readback(tmp_path, monkeypatch, blank_count):
+    service = Service(Settings(tmp_path))
+
+    def edit(sid, action, params, commands, verify, precheck, **kwargs):
+        state = mesh()
+        wanted = list(range(1, 20002))
+        state["part_visibility"]["7"] = False
+        state.update(mesh_digest={}, registry_matches=wanted, query_selected_ids=wanted,
+                     selection_limit=1000000,
+                     native_selection_plan=dict(strategy="parts", target="node", part_ids=[7]),
+                     visibility_binary=dict(count=1, active_count=0, inactive_in_visible_parts=blank_count))
+        precheck(state)
+        generated = commands(state, tmp_path)
+        assert generated[0] == "+m 7" and generated[-1] == "-m 7"
+        assert "genselect node add part 7" in generated
+        assert len(generated) < 10
+        return generated
+
+    monkeypatch.setattr(service, "_gui_mesh_edit", edit)
+    if blank_count == 0:
+        service.select_gui_entities("s", "node", part_ids=[7])
+    else:
+        with pytest.raises(ValueError, match="Hidden entities require exact-ID"):
+            service.select_gui_entities("s", "node", part_ids=[7])
+
+
 def test_selection_predicates_and_invalid_inputs(tmp_path, monkeypatch):
     s = Service(Settings(tmp_path))
     monkeypatch.setattr(s, "_select_gui", lambda sid, action, args, kind, choose, **kwargs: choose(mesh()))

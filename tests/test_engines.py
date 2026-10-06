@@ -18,6 +18,13 @@ from ls_prepost_mcp.engine.environment import native_environment
 from ls_prepost_mcp.engine.queue_transport import QueueTransport
 
 
+@pytest.fixture(autouse=True)
+def initialized_config_for_engine_unit_tests(tmp_path,monkeypatch):
+    source=tmp_path/"user-lsppconf"
+    source.write_text("*\npython_home = test-runtime\nconsent = YES\n")
+    monkeypatch.setenv("LSPP_CONFIG_SOURCE",str(source))
+
+
 def test_batch_clean_exit_requires_domain_verification(tmp_path, monkeypatch):
     process = MagicMock(pid=123, returncode=0)
     process.communicate.return_value = (b"", b"")
@@ -57,6 +64,24 @@ def test_environment_preserves_source_and_isolates_batch_and_session(tmp_path):
         assert config["source_modified"] is False
         assert "python_home = private-runtime" in (directory / "native-config" / "lsppconf").read_text()
     assert paths[0] != paths[1] and source.read_bytes() == original
+
+
+def test_missing_native_configuration_fails_before_private_config_or_launch(tmp_path):
+    with pytest.raises(RuntimeError,match="LSPP_CONFIG_SOURCE"):
+        native_environment(tmp_path/"lspp",tmp_path,{})
+    assert not (tmp_path/"native-config").exists()
+
+
+def test_service_reports_native_diagnostic_even_when_exit_code_is_zero(tmp_path,monkeypatch):
+    from ls_prepost_mcp.config import Settings
+    from ls_prepost_mcp.service import Service
+    exe=tmp_path/"lspp.exe"
+    exe.touch()
+    service=Service(Settings(tmp_path,exe))
+    monkeypatch.setattr("ls_prepost_mcp.service.execute",lambda *a,**kw:dict(
+        returncode=0,timed_out=False,engine_status="failed",engine_error=dict(message="Invalid command actual_fault!")))
+    result=service._native("probe",{})
+    assert result["status"]=="failed" and result["error"]["message"]=="Invalid command actual_fault!"
 
 
 def test_session_receipt_and_domain_validation(tmp_path):
