@@ -11,6 +11,11 @@ below half a grid step disappears, +x/-x pairs become exactly symmetric and near
 become 0. Every other coordinate also moves by at most half a grid step; that bound and the
 largest actual change are reported. The shift is computed once in memory and written once,
 so no intermediate text rounding is added.
+
+Quantising cannot join two values that land on either side of a grid point (Cubit meshes with
+float32-level noise left such split planes). Values whose magnitudes chain within the tolerance
+are therefore snapped to the shortest decimal inside the chain (or 0), signs kept, before the
+shift; the shifted values get a second snap, since the shift can bring two close values together.
 """
 from __future__ import annotations
 
@@ -126,6 +131,15 @@ def clean_coordinates(deck: KeywordDeck, axes: str | None = None, magnitude: flo
         raise FieldError(f"magnitude {shift:g} +/- {largest:g} straddles a power of two, so positive and negative "
                          f"coordinates would be rounded on different grids (mirror pairs broken); use e.g. "
                          f"{suggestion:g}")
+    tol = before["tolerance"]
+    maps, snapped = {}, {}
+    for i, axis in enumerate(AXES):
+        if axis in axes:
+            unique = np.unique(all_xyz[:, i])
+            first = _snapped(unique, (unique + shift) - shift, *_snap_map(unique, tol))  # clusters, then the shift
+            final = _snapped(first, first, *_snap_map(first, tol))  # pairs the shift itself brought together
+            maps[axis] = (unique, final)
+            snapped[axis] = int(np.count_nonzero(final != (unique + shift) - shift))
     plans, changed, biggest = [], 0, 0.0
     for block in deck.blocks("*NODE"):
         keys, xyz = _node_block(deck, block)
@@ -134,7 +148,8 @@ def clean_coordinates(deck: KeywordDeck, axes: str | None = None, magnitude: flo
             if axis not in axes:
                 continue
             column = xyz[:, i]
-            moved = (column + shift) - shift
+            unique, final = maps[axis]
+            moved = final[np.searchsorted(unique, column)]
             for row in np.flatnonzero(moved != column):
                 updates.setdefault(int(keys[row]), {})[axis] = float(moved[row])
                 biggest = max(biggest, abs(float(moved[row] - column[row])))
@@ -142,10 +157,63 @@ def clean_coordinates(deck: KeywordDeck, axes: str | None = None, magnitude: flo
             edits, _ = _plan_rows(deck, block, deck.layout(block).rows, updates, "float")
             plans.append((block, edits))
             changed += len(updates)
-    _apply(deck, plans, f"clean coordinate round-off ({axes}: move {shift:g} and back)")
+    _apply(deck, plans, f"clean coordinate round-off ({axes}: move {shift:g} and back, then snap clusters)")
     return {"axes": axes, "magnitude": shift, "grid_step": math.ulp(shift), "bound": math.ulp(shift) / 2,
+            "snapped_values": snapped,
             "max_change": biggest, "changed_nodes": changed, "noise_before": before,
             "noise_after": coordinate_noise(deck, rel_tol)}
+
+
+SNAP_SPAN = 1000  # x tol (1e-6 of the model size): a chain of gaps <= tol this wide is still round-off
+
+
+def _cleanest(low: float, high: float, tol: float) -> float:
+    """The decimal with the fewest significant digits inside [low - tol, high + tol] (0 if reachable)."""
+    if low <= tol:
+        return 0.0
+    middle = (low + high) / 2
+    for digits in range(1, 18):
+        candidate = float(f"{middle:.{digits}g}")
+        if low - tol <= candidate <= high + tol:
+            return candidate
+    return middle
+
+
+def _snap_map(values: np.ndarray, tol: float) -> tuple[np.ndarray, np.ndarray]:
+    """Magnitudes to replace and their replacements.
+
+    Quantising cannot join two values that fall on either side of a grid point. Here |x| values
+    chained by gaps <= tol form a cluster (signs together, so mirror pairs stay exact) that takes
+    the shortest decimal within its range (4.702 rather than 4.70200000000001; -0.254 for a
+    float32-noisy group around it), or 0 when it reaches 0. No real mesh has distinct node
+    coordinates closer than 1e-9 of its size, so such chains are round-off; chains wider than
+    SNAP_SPAN x tol are still left alone.
+    """
+    magnitudes = np.unique(np.abs(values))
+    if magnitudes.size < 2 and not (magnitudes.size and 0 < magnitudes[0] <= tol):
+        return np.empty(0), np.empty(0)
+    breaks = np.flatnonzero(np.diff(magnitudes) > tol) + 1
+    old, new = [], []
+    for group in np.split(magnitudes, breaks):
+        if group[-1] - group[0] > SNAP_SPAN * tol or (group.size == 1 and group[0] > tol):
+            continue
+        target = _cleanest(float(group[0]), float(group[-1]), tol)
+        old.extend(float(value) for value in group)  # the target too, so the shift does not move it
+        new.extend([target] * group.size)
+    order = np.argsort(old)
+    return np.asarray(old)[order], np.asarray(new)[order]
+
+
+def _snapped(keys: np.ndarray, base: np.ndarray, old: np.ndarray, new: np.ndarray) -> np.ndarray:
+    """``base``, except where |key| is in a cluster: there the value of the cluster, with the sign of key."""
+    if not old.size:
+        return base
+    magnitude = np.abs(keys)
+    where = np.clip(np.searchsorted(old, magnitude), 0, old.size - 1)
+    hit = old[where] == magnitude
+    out = base.copy()
+    out[hit] = np.sign(keys[hit]) * new[where[hit]]
+    return out
 
 
 __all__ = ["clean_coordinates", "coordinate_noise"]

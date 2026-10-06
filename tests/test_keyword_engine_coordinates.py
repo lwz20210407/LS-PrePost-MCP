@@ -85,3 +85,36 @@ def test_power_of_two_magnitude_straddling_a_binade_is_refused(tmp_path: Path) -
     deck = _deck(tmp_path, NOISY)
     with pytest.raises(FieldError, match="straddles a power of two"):
         clean_coordinates(deck, axes="xy", magnitude=2.0 ** 20)
+
+
+def test_values_straddling_a_grid_point_are_snapped_together(tmp_path: Path) -> None:
+    """Cubit-style split planes: 4.702 and 4.702 + 3e-9 can land on two grid points; snap joins them."""
+    rows = [("4.702", "0.0", "0.0"), ("4.702000003", "1.0", "0.0"), ("-4.7020000000001", "2.0", "0.0"),
+            ("10.0", "3.0", "0.0"), ("1e-12", "4.0", "0.0")]
+    deck = _deck(tmp_path, rows)
+    result = clean_coordinates(deck)
+    assert result["noise_after"]["nodes_affected"] == 0
+    xs = nodes(deck)[1][:, 0].tolist()
+    assert xs == [4.702, 4.702, -4.702, 10.0, 0.0]
+
+
+def test_float32_noise_chain_snaps_to_the_cleanest_decimal(tmp_path: Path) -> None:
+    """Cubit tensile_test: values around -0.254 spaced 7.45e-9 (float32 level) over 3e-8 > 2 tol."""
+    noisy = [-0.2540000006557, -0.2539999932051, -0.2539999857545, -0.2539999783039, -0.2539999708533]
+    rows = [(f"{v:.13f}", "0.0", "0.0") for v in noisy] + [("10.0", "1.0", "0.0"), ("0.254", "2.0", "0.0")]
+    deck = _deck(tmp_path, rows)
+    result = clean_coordinates(deck)
+    assert result["noise_after"]["nodes_affected"] == 0
+    assert nodes(deck)[1][:, 0].tolist() == [-0.254] * 5 + [10.0, 0.254]
+
+
+def test_a_chain_wider_than_the_snap_span_is_left_alone(tmp_path: Path) -> None:
+    from ls_prepost_mcp.domain.model.coordinates import SNAP_SPAN
+
+    size = 1000.0
+    tol = 1e-9 * size
+    steps = int(1.2 * SNAP_SPAN)
+    rows = [(f"{1.0 + k * 0.9 * tol:.9f}", "0.0", "0.0") for k in range(steps)] + [(f"{size + 1.0}", "0.0", "0.0")]
+    deck = _deck(tmp_path, rows)
+    result = clean_coordinates(deck, axes="x")
+    assert result["snapped_values"]["x"] == 0
