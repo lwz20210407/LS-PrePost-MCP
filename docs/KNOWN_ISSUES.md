@@ -432,8 +432,8 @@
 | I02 | 已修（#16）：旧 failed/partial 保留执行状态，从 reason/restoration_error 或失败检查补齐诊断。 |
 | I02 | 已修（#16）：failed.error.message 必须为非空白字符串；引擎空消息异常和原生失败回执补齐诊断。FieldSpec 适配层及等价测试仍为 tasks.yaml 中的 M2 gap。 |
 | I10 | ADR 0001 已改为如实说明历史证据 JSON 没有探针脚本 SHA256，未补造该字段。 |
-| I05 | 混合查询丢失中文词，例如“MPP 节点选择”；需保留两类查询词。 |
-| I05 | os.link 发布索引不适用于 FAT/exFAT 及部分网络盘；需复制到同目录临时文件并原子改名的回退。 |
+| I05 | 已修混合查询丢失中文词：两类词共同匹配优先，其次完整代码词匹配、中文匹配；query_match 明示 both/code_only/text_only，私有过滤不变。不按 A10 留出题调参。 |
+| I05 | Windows 不支持硬链接时，复制到同目录独占临时文件，关闭并 fsync 后以不覆盖目标的 rename 发布；竞争和中断有回归。未实测 FAT 实体卷/网络盘；非 Windows 的无硬链接文件系统仍明确失败，以保留不覆盖保证。 |
 | I04 | KI-052 的短用例目录前缀在本 PR #5 补交，不属于 2f10da2 的改动。 |
 | I04 | 原生证据必须写实际 Git revision；工作树未提交时另记改动身份，不得宣称为 PR 头运行。 |
 | I03 | 已集中 import keyword、open xydata、savefile xypair、modelcheck writetofile（含额外四处批处理导出）；生成的 SCL 统一 UTF-8/LF。4.13/4.10 后台导入、XY、SCL 各三例通过；GUI 调用仍待窗口复核。 |
