@@ -456,6 +456,10 @@ tools:
     target: render_fringe
     task_id: Q02
     legacy_until: v0.6
+  render_xyplot:
+    target: render_xyplot
+    task_id: Q08
+    legacy_until: null
   renumber_gui_entities:
     target: mesh_ops
     task_id: P08

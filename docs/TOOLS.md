@@ -116,6 +116,7 @@
 | `recover_gui_session` | I08 | session_id*: string |
 | `render_gui_field` | Q02 | session_id*: string; entity_type*: string; field*: string; state*: integer; units*: string; integration_point: string; part_ids: union/ref; color_range: union/ref; averaging: string; validity_policy: string |
 | `render_snapshot` | Q02 | model*: string; file_type: string; view: string; state: union/ref; fringe_code: union/ref; averaging: string |
+| `render_xyplot` | I08 | curves*: array; title*: string; x_label*: string; y_label*: string; x_unit*: string; y_unit*: string; x_range: union/ref; y_range: union/ref; x_log: boolean; y_log: boolean; legend: boolean; legend_title: union/ref; session_id: union/ref |
 | `renumber_gui_entities` | P08 | session_id*: string; entity_type*: string; start_id*: integer; check_references: boolean |
 | `replace_gui_model` | I08 | session_id*: string; path*: string; file_type: string; expected_empty: boolean |
 | `replace_gui_node` | P08 | session_id*: string; source_node_id*: integer; target_node_id*: integer; units*: string |

@@ -64,6 +64,28 @@ class GuiMediaTools:
             curve_label, additional_curves
         )
 
+    def render_xyplot(
+        self,
+        curves: list[dict],
+        title: str,
+        x_label: str,
+        y_label: str,
+        x_unit: str,
+        y_unit: str,
+        x_range: list[StrictFloat] | None = None,
+        y_range: list[StrictFloat] | None = None,
+        x_log: bool = False,
+        y_log: bool = False,
+        legend: bool = True,
+        legend_title: str | None = None,
+        session_id: str | None = None,
+    ) -> dict:
+        """Plot 1..10 explicit CSV curves {path,x_column,y_column,label,x_unit,y_unit} in one native XYPlot; export PNG, curves.csv (curve,x,y at native float32 storage) and native XY readback verified per curve against the same plot window. Default is a no-graphics batch process (no visible GUI); session_id uses that owned visible session instead and never creates one. Units must match the axis units exactly; no conversion/resampling; row order/hysteresis preserved. x_range/y_range [min,max] and x_log/y_log are sent natively; native may widen limits to tick/decade boundaries. Log axes require positive samples and limits."""
+        from .gui_curves import render_xyplot
+
+        return render_xyplot(self, curves, title, x_label, y_label, x_unit, y_unit, x_range, y_range, x_log, y_log,
+                             legend, legend_title, session_id)
+
     def export_gui_animation(
         self,
         session_id: str,

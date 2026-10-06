@@ -146,6 +146,7 @@
     {"name": "run_script", "domain": "script", "target": "run_script", "task_id": "A01", "legacy_until": null},
     {"name": "find_recipe", "domain": "automation", "target": "find_recipe", "task_id": "A08", "legacy_until": null},
     {"name": "run_recipe", "domain": "automation", "target": "run_recipe", "task_id": "A08", "legacy_until": null, "workflow": true, "session_route": "optional"},
+    {"name": "render_xyplot", "domain": "presentation", "target": "render_xyplot", "task_id": "Q08", "legacy_until": null, "workflow": true, "session_route": "optional"},
     {"name": "search_docs", "domain": "knowledge", "target": "search_docs", "task_id": "A10", "kind": "knowledge", "legacy_until": null},
     {"name": "keyword_fields", "domain": "knowledge", "target": "keyword_fields", "task_id": "A10", "kind": "knowledge", "legacy_until": null},
     {"name": "command_help", "domain": "knowledge", "target": "command_help", "task_id": "A10", "kind": "knowledge", "legacy_until": null},
