@@ -185,6 +185,8 @@ class ProgramTools:
         program = directory / ("program." + LANGUAGES[language])
         if language in ("command", "cfile"):
             nc.write_cfile(program, rendered)
+        elif language == "scl":
+            nc.write_scl(program, rendered)
         else:
             program.write_text(rendered, encoding="utf8")
         if native_macro is not None:
@@ -293,12 +295,11 @@ class ProgramTools:
                 wrapper = python_wrapper(directory, [item["name"] for item, _ in captured])
                 (directory / "bootstrap.py").write_text(wrapper, encoding="utf8")
                 commands.append(nc.run_script("bootstrap.py"))
-            (directory / "complete.scl").write_text(
+            nc.write_scl(directory / "complete.scl",
                 "/*LS-SCRIPT*/\ndefine:\nvoid main(void){\nFILE *fp;\nInt n,e,s;\n"
                 'n=SCLGetDataCenterInt("num_nodes");\ne=SCLGetDataCenterInt("num_elements");\n'
                 's=SCLGetDataCenterInt("num_states");\nfp=fopen("complete.txt","w");\n'
                 'fprintf(fp,"%d %d %d\\n",n,e,s);\nfclose(fp);\n}\nmain();\n',
-                encoding="ascii",
             )
             commands += [nc.run_script("complete.scl", "scl"), "exit"]
             command_file = directory / "commands.cfile"

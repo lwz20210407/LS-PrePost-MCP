@@ -129,7 +129,7 @@ def native_fields(settings, jobs, source, domain, entity_ids, states, fields, in
             validity["report"] = validity["mask"].describe(entity_ids, states)
             atomic_json(directory / "physical-validity.json", validity["report"])
         output = directory / "native.csv" if in_memory else "native.csv"
-        (directory / "extract.scl").write_text(field_script(domain, entity_ids, states, fields, ipt, output), encoding="utf8")
+        nc.write_scl(directory / "extract.scl", field_script(domain, entity_ids, states, fields, ipt, output))
         commands = [nc.run_script(directory / "extract.scl", "scl")] if in_memory else ["new", nc.open_model("d3plot", "d3plot", openc=True), nc.run_script("extract.scl", "scl"), "exit"]
         nc.write_cfile(directory / "commands.cfile", commands)
         return validity.get("report")
@@ -200,7 +200,8 @@ def native_ascii(settings, jobs, source, database, component, entity_id, units):
         ids([entity_id], "entity_id")
     def build(directory):
         selector = str(component) + (" " + str(entity_id) if entity_id is not None else "")
-        commands = 'new\nascii %s open "input_data" 0\nascii %s plot %s\nxyplot 1 savefile xypair "curve.xy" 1 all\nexit\n' % (database, database, selector)
+        commands = ["new", 'ascii %s open "input_data" 0' % database,
+                    'ascii %s plot %s' % (database, selector), nc.save_xypair("curve.xy"), "exit"]
         nc.write_cfile(directory / "commands.cfile", commands)
     def parse(directory):
         rows = []
@@ -258,7 +259,7 @@ def native_binout(settings, jobs, source, branch, quantity, entity_id, units, ex
                    'for(i=0;i<n;i=i+1)fprintf(fp,"%%.17g,%%.17g\\n",t[i],v[i]);\n'
                    'fclose(fp);\nSCLBinoutClose(h);\nfree(t);\nfree(v);\n}\nmain();\n') % (
                        enum, enum, quantity_enum, json.dumps((directory/'native.csv').as_posix()))
-        (directory/'binout.scl').write_text(script, encoding='ascii')
+        nc.write_scl(directory/'binout.scl', script)
         nc.write_cfile(directory/'commands.cfile', ["new", nc.run_script("binout.scl", "scl"), "exit"])
     def parse(directory):
         import math

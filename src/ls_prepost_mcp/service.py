@@ -89,10 +89,10 @@ class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools
             commands.append(nc.open_model(source, file_type, openc=file_type == "d3plot"))
         if action == "scl_probe":
             script = directory / "probe.scl"
-            script.write_text('/*LS-SCRIPT*/\ndefine:\nvoid main(void)\n{\nInt n;\nFILE *fp;\n'
+            nc.write_scl(script, '/*LS-SCRIPT*/\ndefine:\nvoid main(void)\n{\nInt n;\nFILE *fp;\n'
                               'n = SCLGetDataCenterInt("num_nodes");\n'
                               'fp = fopen("scl_nodes.txt", "w");\nfprintf(fp, "%d\\n", n);\n'
-                              'fclose(fp);\n}\nmain();\n', encoding="ascii")
+                              'fclose(fp);\n}\nmain();\n')
             commands.append(nc.run_script("probe.scl", "scl"))
         if action != "scl_probe":
             commands.append(nc.run_script(bootstrap))

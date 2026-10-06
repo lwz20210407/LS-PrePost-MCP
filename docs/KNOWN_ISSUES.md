@@ -418,7 +418,7 @@
 | I05 | os.link 发布索引不适用于 FAT/exFAT 及部分网络盘；需复制到同目录临时文件并原子改名的回退。 |
 | I04 | KI-052 的短用例目录前缀在本 PR #5 补交，不属于 2f10da2 的改动。 |
 | I04 | 原生证据必须写实际 Git revision；工作树未提交时另记改动身份，不得宣称为 PR 头运行。 |
-| I03 | import keyword、open xydata、savefile xypair、modelcheck writetofile 尚有 8 模块 12 处；SCL 编码未统一。 |
+| I03 | 已集中 import keyword、open xydata、savefile xypair、modelcheck writetofile（含额外四处批处理导出）；生成的 SCL 统一 UTF-8/LF。4.13/4.10 后台导入、XY、SCL 各三例通过；GUI 调用仍待窗口复核。 |
 | I03 | 路径兼容性变化：quoted_path 现在在启动前拒绝分号、引号及控制字符，旧调用者可能因此获得明确 ValueError。 |
 | I01/I03 | KI-049 的空格/中文 job 工作目录问题列为最高优先级 P2；源文件路径与 job 工作目录须分别验证。 |
 | I04 | 缺少可执行文件的提示已同时列出 --native-executable、LSPP_ENGINE_EXECUTABLE 和 LSPP_EXECUTABLE。 |
