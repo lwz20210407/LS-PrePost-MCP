@@ -29,10 +29,10 @@
 | 原生 Keyword Check | passed |
 | 壳质量检查 | passed |
 | Hex8 实体质量及失败单元 ID 捕获 | passed |
-| A01 Command：合并后的 4.13 session | passed |
-| A02 cfile：LF 写入下的 4.13 session | passed |
-| A03 SCL：LF 写入下的 4.13 session | passed |
-| A04 Python：LF 写入下的 4.13 session | passed |
+| A01 Command：合并后的 4.13 session | passed；[a01 evidence](evidence/a01/evidence.json)，run_id=`r6-gui-window-r2-command-session` |
+| A02 cfile：LF 写入下的 4.13 session | passed；[a02 evidence](evidence/a02/evidence.json)，run_id=`r6-gui-window-r2-cfile-session` |
+| A03 SCL：LF 写入下的 4.13 session | passed；[a03 evidence](evidence/a03/evidence.json)，run_id=`r6-gui-window-r2-scl-session` |
+| A04 Python：LF 写入下的 4.13 session | passed；[a04 evidence](evidence/a04/evidence.json)，run_id=`r6-gui-window-r2-python-session` |
 | I01 队列饱和拒绝及重复通知不重放 | passed |
 
 入口：[test_public_panel_actions_have_correlated_engine_evidence](../../tests/test_engine_native.py)。
