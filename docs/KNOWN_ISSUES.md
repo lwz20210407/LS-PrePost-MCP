@@ -1200,10 +1200,17 @@ BatchEngine 和内置 Python 在作业目录运行，并非主 deck 目录。对
 
 ## I01：INCLUDE 漏读诊断与拒绝状态（第十一轮）
 
-4.10 按 job cwd 解析相对 INCLUDE；源目录中的相对文件不会被读入。`Error - Include File … Not open` 现纳入共享原生错误规则，使返回码为 0 的不完整模型也失败。4.13 按主 deck 目录解析，第九轮复跑日志中 include 打开失败为 0；不据此外推其它版本。回归见 [4.10 原生用例](../tests/test_native_include_failure.py)。
+4.10 按 job cwd 解析相对 INCLUDE；源目录中的相对文件不会被读入。`Error - Include File … Not open` 现纳入共享原生错误规则，使返回码为 0 的不完整模型也失败。4.13 按主 deck 目录解析，PR #54 的第十一轮公开语料复跑日志中 include 打开失败为 0；不据此外推其它版本。回归见 [4.10 原生用例](../tests/test_native_include_failure.py)。
 
 允许目录检查先于预检内容诊断；cwd 检查拒绝后，新建作业显式记为 failed。行首空白及 *END 后的 INCLUDE 直接拒绝，不猜测不同版本的解析。带引号的文件名（例如 `"first.k"`）在共享预检中会被拒绝，属于与旧检查的兼容性变化；尚未做原生语法认证。
 
 引用总数上限由 Claude 提供共享预检接口，Codex 接入；当前 max_files 不等于引用总数上限，该项仍待接口。
 
 第十一轮 [4.10 原生证据](decisions/evidence/i01-include-diagnostics/report.md) 已登记 2 项通过（相对漏读失败、绝对路径完整读入），ce42 H0 也返回 failed。
+
+
+## I01：输入路径在文件系统访问前拒绝网络与设备名
+
+`Settings.input_path` 在 expanduser/resolve 之前按共享 `is_network` 和 Windows 保留名规则拒绝 UNC、混合分隔符 UNC、设备命名空间及 CON/NUL 等设备名；组合 base 后再次检查，错误为 ValueError。检查不访问网络，不能靠 allowed_roots 授权这些输入。带双分隔符的扩展路径也拒绝；调用方先转换为普通本地路径（I04 已采用此口径）。本地相对/绝对文件仍执行原来的允许目录检查。
+
+回归见 [输入访问边界](../tests/test_input_path_confinement.py)：三个公开入口均在文件系统探针之前拒绝；该探针本身有自检。此变更不声称消除本地链接的并发替换窗口，也不修改管理员提供的 Settings 安装目录配置。
