@@ -99,5 +99,7 @@ def test_local_input_and_keyword_preflight_still_work(tmp_path, deny_unsafe_io):
 def test_remote_base_cannot_bypass_raw_value_check(tmp_path, deny_unsafe_io):
     settings = Settings(tmp_path)
     with pytest.raises(ValueError, match="Network|device"):
-        settings.input_path("m.k", base=Path(REMOTE[0]).parent)
+        # Forward separators preserve a UNC base on both Windows and POSIX;
+        # a backslash-only string has parent '.' on POSIX.
+        settings.input_path("m.k", base=Path(REMOTE[1]).parent)
     assert deny_unsafe_io == []
