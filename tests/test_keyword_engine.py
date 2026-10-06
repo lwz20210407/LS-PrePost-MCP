@@ -323,7 +323,7 @@ def test_save_in_place_writes_backup_once(deck_dir: Path) -> None:
 
 def _deny_replace(monkeypatch, name: str, times: int) -> list[float]:
     """Make ``os.replace`` onto ``name`` fail like a Windows reader holding it; return the backoff."""
-    replace, delays, left = os.replace, [], [times]
+    replace, sleep, delays, left = os.replace, persist.time.sleep, [], [times]
 
     def flaky(source, destination):
         if Path(destination).name == name and left[0]:
@@ -333,8 +333,12 @@ def _deny_replace(monkeypatch, name: str, times: int) -> list[float]:
             raise error
         replace(source, destination)
 
+    def backoff(delay):
+        delays.append(delay)
+        sleep(delay)  # A real Windows reader may add another sharing denial after the injected ones.
+
     monkeypatch.setattr(persist.os, "replace", flaky)
-    monkeypatch.setattr(persist.time, "sleep", delays.append)
+    monkeypatch.setattr(persist.time, "sleep", backoff)
     return delays
 
 
@@ -343,7 +347,9 @@ def test_atomic_write_retries_brief_windows_sharing_denials(tmp_path: Path, monk
     target.write_bytes(b"old")
     delays = _deny_replace(monkeypatch, "a.k", 2)
     persist.atomic_write(target, b"new")
-    assert target.read_bytes() == b"new" and delays == [0.02, 0.04]
+    assert target.read_bytes() == b"new"
+    assert delays[:2] == [0.02, 0.04]
+    assert delays == list(persist.SHARING_DELAYS[:len(delays)])
     assert [p.name for p in tmp_path.iterdir()] == ["a.k"]
 
 
@@ -438,3 +444,19 @@ def test_diff_lists_only_changed_lines(deck_dir: Path) -> None:
     diff = deck.diff()
     changed = [line for line in diff.splitlines() if line[:1] in "+-" and line[:3] not in ("+++", "---")]
     assert changed == ["-         1         1         1", "+         1         1         5"]
+
+
+def test_sharing_retry_schedule_is_exact_without_filesystem_interference(monkeypatch):
+    calls, delays = [], []
+
+    def operation():
+        calls.append(None)
+        if len(calls) <= 2:
+            error = PermissionError("injected sharing denial")
+            error.winerror = 5
+            raise error
+        return "saved"
+
+    monkeypatch.setattr(persist.time, "sleep", delays.append)
+    assert persist._retry_sharing(operation) == "saved"
+    assert len(calls) == 3 and delays == [0.02, 0.04]
