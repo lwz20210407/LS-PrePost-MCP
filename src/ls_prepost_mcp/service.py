@@ -121,7 +121,7 @@ class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, Model
                               'fclose(fp);\n}\nmain();\n')
             commands.append(nc.run_script("probe.scl", "scl"))
         if action != "scl_probe":
-            commands.append(nc.run_script(bootstrap))
+            commands.append(nc.run_script(bootstrap if graphics else bootstrap.name))
         if export:
             # Some Windows builds prepend a temporary basename and cannot save
             # an absolute drive path. The bootstrap pins cwd to this owned job.
