@@ -475,6 +475,7 @@ class EngineeringTools:
             )
 
         job_dir = Path(job_result["job_directory"]).name if job_result.get("job_directory") else None
+        err = job_result.get("error")
         res_obj = JobResult(
             contract="JobResult/v1",
             operation="check_energy",
@@ -485,6 +486,7 @@ class EngineeringTools:
             artifacts=tuple(clean_artifacts),
             checks=tuple(checks),
             warnings=tuple(summary_data.get("warnings", []) if isinstance(summary_data, dict) else []),
+            error=err if job_result.get("status") == "failed" and err else None,
         )
         return res_obj.model_dump(mode="json")
 

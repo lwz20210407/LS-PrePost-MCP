@@ -443,8 +443,8 @@ def read_binout_matsum(path: str | Path) -> dict[int, dict[str, np.ndarray]]:
     except ResultsError:
         if p.is_file():
             use_mpp = False
-            _, Binout, _ = _lasso()
             try:
+                _, Binout, _ = _lasso()
                 single_binout = Binout(str(p))
             except Exception:
                 return {}

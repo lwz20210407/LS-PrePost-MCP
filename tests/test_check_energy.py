@@ -357,6 +357,7 @@ def test_service_check_energy_jobresult_v1(tmp_path):
 
 def test_bolt_b_explicit_glstat_vs_binout_corpus():
     """P0-1 (b): Compare hu-shuhan Bolt_B_Explicit glstat vs binout over 1000 states (rel diff <= 1e-5)."""
+    pytest.importorskip("lasso")
     root = corpus_root()
     if root is None:
         pytest.skip("Corpus directory not found")
@@ -406,6 +407,7 @@ def test_eight_public_ascii_glstat_corpus():
 
 def test_pyansys_heart_corpus_missing_hourglass():
     """P0-2 (b): pyansys-heart binout (set 5) missing hourglass_energy triggers warning and None."""
+    pytest.importorskip("lasso")
     root = corpus_root()
     if root is None:
         pytest.skip("Corpus directory not found")
@@ -440,6 +442,7 @@ def test_hemi_draw_and_genex_closure_corpus():
 
 def test_node997_plade_matsum_binout_consistency_corpus():
     """P1-3: node997 Plade BB ASCII matsum and binout part results match."""
+    pytest.importorskip("lasso")
     root = corpus_root()
     if root is None:
         pytest.skip("Corpus directory not found")

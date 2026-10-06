@@ -324,6 +324,7 @@ def test_pendulum_secforc_corpus():
 
 def test_binout_forces_secforc_corpus():
     """P0-4 (c): binout_forces (binout_matsum) parses secforc correctly."""
+    pytest.importorskip("lasso")
     root = corpus_root()
     if root is None:
         pytest.skip("Corpus directory not found")
