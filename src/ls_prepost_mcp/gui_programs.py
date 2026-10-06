@@ -1,6 +1,7 @@
 """Execute an explicitly prepared program bundle in the current owned GUI."""
 
 import json
+import re
 import uuid
 from pathlib import Path
 
@@ -17,6 +18,21 @@ def context_directory(value):
     # Keyword inventory may change from a filename to its parent after native
     # meshing/save; d3plot normally reports the directory already.
     return path.parent if path.is_file() else path
+
+
+def declared_save_context(before, contract, content):
+    """Recognize initial model creation and a literal single-command Save As.
+
+    A nonempty arbitrary script still requires the explicit context option;
+    callers always verify the unique owned keyword artifact and native source.
+    """
+    if contract["language"] == "cfile" and before.get("counts", {}).get("nodes") == 0:
+        return True
+    if contract["language"] != "command":
+        return False
+    match = re.fullmatch(r'\s*save\s+keyword\s+"([^"\r\n]+)"\s*', content.decode("utf8"), re.I)
+    return bool(match and any(item["kind"] == "keyword" and item["name"] == match[1]
+                              for item in contract["outputs"]))
 
 
 def execute_prepared(service, sid, prepared_id, expected_hash, contract, content, dependencies,
@@ -83,7 +99,8 @@ def execute_prepared(service, sid, prepared_id, expected_hash, contract, content
             atomic_json(directory / "after.json", after)
             if context_directory(after.get("model_directory")) != context_directory(before["data"].get("model_directory")):
                 candidates = [directory / item["name"] for item in contract["outputs"] if item["kind"] == "keyword"]
-                if not allow_owned_output_context or len(candidates) != 1 or meta["model_kind"] != "keyword":
+                permitted = allow_owned_output_context or declared_save_context(before["data"], contract, content)
+                if not permitted or len(candidates) != 1 or meta["model_kind"] != "keyword":
                     raise ValueError("Program replaced the current model context; use dedicated open/reset tools")
                 adopted_output = candidates[0]
                 check_artifact(adopted_output, "keyword")
