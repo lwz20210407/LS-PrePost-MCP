@@ -27,15 +27,40 @@ class IncludeRef:
     repeated: bool = False
     name_line: int | None = None  # 1-based line of the file-name card
     error: str | None = None  # set only when the deck records unreadable includes
-    error_kind: str | None = None  # "unreadable" | "limit" | "network_path"
+    error_kind: str | None = None  # "unreadable" | "limit" | "network_path" | "reference_limit"
 
 
 class IncludeLimit(ValueError):
     """More include files than the deck's ``max_files``."""
 
 
+class ReferenceLimit(ValueError):
+    """More include references than the deck's ``max_references`` (counted as :func:`walk` describes)."""
+
+
+def reference_budget(value: object) -> int | None:
+    """Validate a ``max_references`` argument: None (no limit) or an integer >= 0."""
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ValueError(f"max_references must be None or an integer >= 0, not {value!r}")
+    return value
+
+
 def walk(deck: KeywordDeck, source: SourceFile, stack: list[str]) -> None:
-    """Load every include reachable from ``source`` (depth first, in reading order)."""
+    """Load every include reachable from ``source`` (depth first, in reading order).
+
+    Every file name of an include keyword (and every ``*INCLUDE_PATH`` directory) adds one to
+    ``deck.reference_count`` each time it is read in reading order: a repeated include also adds
+    what its file counted when first walked, because LS-DYNA reads that file again. Repeated files
+    are not walked again, so a name that only resolves on a later reading (a search directory
+    added in between) is modelled as on the first one. With ``deck.max_references`` set, the
+    reference that takes the count over the limit is recorded (or raised) and the walk stops:
+    nothing after it is handed to the access guard, resolved, stat'ed or read. A name that is
+    itself over the limit is not either; a repeated include that only goes over through its
+    file's references has already been resolved, but its file is not expanded again.
+    """
+    start = deck.reference_count
     for block in source.keyword_blocks():
         if block.name == "*KEYWORD" and source is deck.main:
             deck.format = deck_format(block.keyword.extra if block.keyword else "")
@@ -44,6 +69,10 @@ def walk(deck: KeywordDeck, source: SourceFile, stack: list[str]) -> None:
             continue
         for name, lines in file_names(block.name, block.data()):
             line = block.line_number + lines[0] if lines else None
+            if not _count(deck, 1):  # before any file-system access for this name
+                _stop(deck, IncludeRef(source, block, kind, name, Resolution(None, "reference_limit"),
+                                       name_line=line), listed=False)
+                return
             if is_network(name) and (not deck.network or access.active()):
                 # A UNC name in an untrusted deck would make Windows contact (and authenticate to)
                 # the named host; record it without touching the file system.
@@ -85,6 +114,11 @@ def walk(deck: KeywordDeck, source: SourceFile, stack: list[str]) -> None:
             child = deck.files.get(key)
             if child is not None and key in deck._parents:
                 ref.child, ref.repeated = child, True
+                # Not on the stack, so its first walk has finished and its count is known.
+                if not _count(deck, deck._expanded[key]):
+                    ref.child = None  # not expanded again by iter_blocks either
+                    _stop(deck, ref, listed=True)
+                    return
                 deck.warnings.append(f"{name!r} is included more than once; LS-DYNA reads it each time")
                 continue
             if child is None:
@@ -104,6 +138,29 @@ def walk(deck: KeywordDeck, source: SourceFile, stack: list[str]) -> None:
             ref.child = child
             deck._parents[key] = identity(source.path)
             walk(deck, child, stack + [key])
+            if deck.reference_stop is not None:
+                return
+    deck._expanded[identity(source.path)] = deck.reference_count - start
+
+
+def _count(deck: KeywordDeck, references: int) -> bool:
+    """Add ``references`` to the deck's count; False once the count is over ``max_references``."""
+    deck.reference_count += references
+    return deck.max_references is None or deck.reference_count <= deck.max_references
+
+
+def _stop(deck: KeywordDeck, ref: IncludeRef, *, listed: bool) -> None:
+    """Raise :class:`ReferenceLimit`, or record ``ref`` as the ``reference_limit`` stop when the deck
+    records unreadable includes (``listed``: ``ref`` is already in ``deck.includes``)."""
+    message = (f"More than {deck.max_references} include references: {deck.reference_count} counted when "
+               "reading stopped (each name counts every time it is read, repeated and unresolved ones too)")
+    if not deck.record_unreadable:
+        raise ReferenceLimit(message)
+    ref.error, ref.error_kind = message, "reference_limit"
+    if not listed:
+        deck.includes.append(ref)
+    deck.reference_stop = ref
+    deck.warnings.append(f"Include reference limit reached at {deck._where(ref.block)}: {message}")
 
 
 def iter_blocks(deck: KeywordDeck, source: SourceFile, stack: list[str]) -> Iterator[Block]:
