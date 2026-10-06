@@ -48,10 +48,10 @@ def test_native_queue_rejects_overload_without_late_execution(native_case, pytes
     owner = psutil.Process(ready["pid"])
     requests = []
     try:
-        for number in range(3):
+        for number in range(4):
             ident = uuid.uuid4().hex
             directory = root / "requests" / ident
-            directory.mkdir()
+            directory.mkdir(parents=True)
             script = directory / "probe.py"
             text = "import json,time\nfrom pathlib import Path\n"
             if number == 0:
@@ -76,7 +76,11 @@ def test_native_queue_rejects_overload_without_late_execution(native_case, pytes
             wait_for_file(pending / "complete.json")
             assert json.loads((pending / "complete.json").read_text())["ok"] is True
         notify_and_wait_for_receiver(ready, ident)
-        time.sleep(0.2)
+        # A completed barrier proves the application drained notifications; do
+        # not rely on a short sleep to detect an incorrectly replayed request.
+        notify_and_wait_for_receiver(ready, requests[3][0])
+        wait_for_file(requests[3][1] / "complete.json")
+        assert json.loads((requests[3][1] / "complete.json").read_text())["ok"] is True
         assert not never.exists() and not (directory / "queue-started.json").exists()
     finally:
         release.touch()
