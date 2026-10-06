@@ -125,7 +125,7 @@ def _compact(text: str) -> str:
     return _EXP.sub(lambda m: "e" + ("-" if m.group(1) == "-" else "") + m.group(2), text)
 
 
-def format_value(value: object, width: int, kind: str = "auto") -> tuple[str, bool]:
+def format_value(value: object, width: int, kind: str = "auto", symmetric: bool = False) -> tuple[str, bool]:
     """Format ``value`` for a field of ``width`` characters.
 
     Returns the text and whether it reads back exactly. Strings (titles, ``&param``
@@ -153,14 +153,16 @@ def format_value(value: object, width: int, kind: str = "auto") -> tuple[str, bo
     for candidate in (shortest, _compact(shortest)):
         if len(candidate) <= width:
             return candidate, True
-    # Rounded values keep a column for the sign whatever their sign, so v and -v get the same
-    # digits (otherwise a positive value keeps one digit more and mirror pairs come out unequal).
+    # With ``symmetric`` (coordinates) a rounded value keeps a column for the sign whatever its
+    # sign, so v and -v get the same digits (otherwise a positive value keeps one digit more and
+    # mirror pairs come out unequal); other fields use the full width.
     sign = "-" if number < 0 else ""
-    for precision in range(width - 1, 0, -1):
+    room = width - 1 if symmetric or sign else width
+    for precision in range(room, 0, -1):
         candidate = _compact(f"{abs(number):.{precision}g}")
-        if "." not in candidate and "e" not in candidate and len(candidate) < width - 1:
+        if "." not in candidate and "e" not in candidate and len(candidate) < room:
             candidate += "."
-        if len(candidate) <= width - 1:
+        if len(candidate) <= room:
             return sign + candidate, float(sign + candidate) == number
     raise FieldError(f"{number} cannot be represented in {width} characters")
 

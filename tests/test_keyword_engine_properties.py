@@ -55,9 +55,19 @@ def test_missing_and_unknown_parameters_are_refused(tmp_path: Path) -> None:
 
 
 def test_unset_fields_stay_blank_for_dependent_defaults() -> None:
-    """R17 Vol I *HOURGLASS: QB and QW default to QM; PyDYNA would write 0.1 for both."""
+    """R17 Vol I *HOURGLASS: QB and QW default to QM; PyDYNA would write 0.1 for both. Q1/Q2 keep
+    their nonzero defaults explicitly, IBQ (default 0) stays blank."""
     text = card_text("*HOURGLASS", {"hgid": 1, "ihq": 4, "qm": 0.05})
-    assert text.splitlines()[-1].rstrip() == "         1         4      0.05"
+    assert text.splitlines()[-1].rstrip() == "         1         4      0.05                 1.5      0.06"
+
+
+def test_nonzero_defaults_are_written_and_given_values_keep_their_digits() -> None:
+    """R11 reads a blank *MAT_ELASTIC_PERI GT as 0 (every bond breaks); PyDYNA writes 5 digits."""
+    text = card_text("*MAT_ELASTIC_PERI", {"mid": 1, "ro": 2200.0, "e": 1.79998e12})
+    cells = text.splitlines()[-1]
+    assert cells[20:30].strip() == "1.79998e12" and cells[30:40].strip() == "1e+20" and cells[40:50].strip() == "1e+20"
+    deck_value = card_text("*MAT_ELASTIC", {"mid": 1, "ro": 7.8e-9, "e": 201955937667.92})
+    assert "2.01956e11" in deck_value
 
 
 def test_eos_section_hourglass_and_parts(tmp_path: Path) -> None:

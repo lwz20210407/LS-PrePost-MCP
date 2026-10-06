@@ -42,7 +42,7 @@ def _plan_rows(deck: KeywordDeck, block: Block, rows: RowMap, updates: dict[int,
             slot = FieldSlot(0, offset, width, token if is_free_format(line) else None)
             if field_expression(read_text(line, slot)) is not None:
                 raise FieldError(f"{_where(block)} row {key}: {name} is a parameter expression; not changed")
-            text, exact = format_value(value, width, kind)
+            text, exact = format_value(value, width, kind, symmetric=kind == "float")
             if not exact:
                 worst = max(worst, abs(float(text) - float(value)))
             edits[index] = write_text(line, slot, text)
@@ -306,7 +306,7 @@ def write_mesh(deck: KeywordDeck, keyword: str, block: Block, node_ids: np.ndarr
     if len(str(last)) > 8:
         raise FieldError("New IDs need more than 8 digits; use a long-format deck")
     newline = block.file.newline()
-    node_rows = [[str(int(n))] + [format_value(float(v), 16, "float")[0] for v in point]
+    node_rows = [[str(int(n))] + [format_value(float(v), 16, "float", symmetric=True)[0] for v in point]
                  for n, point in zip(node_ids, points)]
     element_rows = [[str(int(e)), str(int(pid))] + [str(int(n)) for n in row]
                     for e, pid, row in zip(element_ids, pids, conn)]

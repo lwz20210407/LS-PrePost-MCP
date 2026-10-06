@@ -6,7 +6,7 @@ import warnings
 from typing import TYPE_CHECKING
 
 from .blocks import Block, SourceFile, make_blocks
-from .fields import FieldError, write_text
+from .fields import FieldError, format_value, parse_number, read_text, write_text
 from .layouts import Unsupported
 from .schema import _pydyna_class
 from .schema import layout as block_layout
@@ -39,21 +39,51 @@ def card_text(keyword: str, fields: dict[str, object], options: list[str] | None
                 raise FieldError(f"{keyword} has no field {name!r}")
             setattr(card, key, value)
         text = card.write()
-    return _blank_unset("\n".join(line.rstrip() for line in text.splitlines()) + "\n", fields)
+    return _settle_fields("\n".join(line.rstrip() for line in text.splitlines()) + "\n", base, fields)
 
 
-def _blank_unset(text: str, fields: dict[str, object]) -> str:
-    """Blank every numeric cell the caller did not set, so LS-DYNA applies its own defaults.
+# Fields whose LS-DYNA default is another field's value. They stay blank so the solver derives
+# them; PyDYNA's written static default would override the derived one. *HOURGLASS QB, QW = QM
+# (R17 Vol I); the others from the PyDYNA help texts ("default = SFS1", ...).
+DERIVED_DEFAULTS = {
+    "*HOURGLASS": {"qb", "qb_vdc", "qw"},
+    "*MAT_029": {"sfs2", "sft2"}, "*MAT_FORCE_LIMITED": {"sfs2", "sft2"},
+    "*MAT_139": {"yms2", "ymt2"}, "*MAT_MODIFIED_FORCE_LIMITED": {"yms2", "ymt2"},
+    "*SENSOR_SWITCH_SHELL_TO_VENT": {"c23v"},
+}
 
-    PyDYNA writes its static defaults, but some LS-DYNA defaults depend on other fields: on
-    *HOURGLASS, QB and QW default to QM (R17 Vol I), and PyDYNA's written 0.1 would override a
-    given QM. A blank field is read as the default (R11 Vol I, General Card Format).
+
+def _is_zero(text: str) -> bool:
+    try:
+        return parse_number(text) in (None, 0)
+    except FieldError:
+        return False
+
+
+def _settle_fields(text: str, base: str, fields: dict[str, object]) -> str:
+    """Rewrite PyDYNA's card text field by field.
+
+    * Given numbers are written with the engine's formatter, with as many digits as the field
+      holds (PyDYNA keeps five in a 10-column field, so 1.79998e12 came out as 1.8e12).
+    * Numeric fields the caller did not set keep PyDYNA's default when it is nonzero, written
+      out: a blank is read as 0, and R11 does not always replace 0 by the manual default (a
+      blank *MAT_ELASTIC_PERI GT breaks every bond at the first step).
+    * Zero defaults and :data:`DERIVED_DEFAULTS` are left blank.
     """
     block = make_blocks(text, "\n")[0]
-    given = {name.lower() for name in fields}
+    given = {name.lower(): value for name, value in fields.items()}
+    derived = DERIVED_DEFAULTS.get(base, set())
     for info in block_layout(block, {}).fields:
-        if info.name not in given and info.kind != "str":
-            block.lines[info.slot.line] = write_text(block.lines[info.slot.line], info.slot, "")
+        if info.kind == "str":
+            continue
+        line = block.lines[info.slot.line]
+        if info.name in given:
+            value = given[info.name]
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                block.lines[info.slot.line] = write_text(line, info.slot,
+                                                         format_value(value, info.slot.width, info.kind)[0])
+        elif info.name in derived or _is_zero(read_text(line, info.slot).strip()):
+            block.lines[info.slot.line] = write_text(line, info.slot, "")
     return "".join(line.rstrip() + "\n" for line in block.lines)
 
 
