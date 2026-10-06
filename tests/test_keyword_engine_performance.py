@@ -66,3 +66,15 @@ def test_a_malformed_row_still_gets_the_full_check(tmp_path: Path, bad: str) -> 
     block = [b for b in deck.iter_blocks() if b.name == "*INITIAL_VELOCITY_NODE"][0]
     with pytest.raises(schema.Unsupported):
         deck.layout(block)
+
+
+def test_diff_preview_of_a_huge_change_is_a_correct_prefix(tmp_path: Path) -> None:
+    from ls_prepost_mcp.domain.model import persist
+
+    old = [f"line {i}\n" for i in range(30000)]
+    new = [f"edited {i}\n" for i in range(30000)] + [f"added {i}\n" for i in range(20000)]
+    lines, partial = persist._unified(old, new, "a", "b", window=persist.PREVIEW_LINES, with_flag=True)
+    assert partial
+    full = list(difflib.unified_diff(old, new, fromfile="a", tofile="b"))
+    # the hunk header counts the previewed window; the body is the start of the full diff body
+    assert lines[3:3000] == full[3:3000]

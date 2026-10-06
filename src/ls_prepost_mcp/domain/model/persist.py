@@ -31,14 +31,42 @@ def diff(deck: KeywordDeck) -> str:
     return "".join(parts)
 
 
+def diff_preview(deck: KeywordDeck, limit: int) -> tuple[str, bool]:
+    """The first ``limit`` characters of :func:`diff` and whether anything was cut.
+
+    A change region of more than PREVIEW_LINES lines (clean_coordinates over 564000 nodes plus a
+    564000-line insert: about 210 s of difflib) is diffed only over its first PREVIEW_LINES lines
+    on each side; that preview is what the caller keeps anyway.
+    """
+    parts: list[str] = []
+    cut, size = False, 0
+    files = modified_files(deck)
+    for number, source in enumerate(files, 1):
+        lines, partial = _unified(split_lines(source.original_text()), split_lines(source.text()),
+                                  str(source.path), str(source.path) + " (edited)", window=PREVIEW_LINES,
+                                  with_flag=True)
+        parts.extend(lines)
+        size += sum(map(len, lines))
+        cut = cut or partial
+        if size > limit:
+            cut = cut or number < len(files)
+            break
+    text = "".join(parts)
+    return text[:limit], cut or len(text) > limit
+
+
+PREVIEW_LINES = 5000
 _HUNK = re.compile(r"^@@ -(\d+)(,\d+)? \+(\d+)(,\d+)? @@")
 
 
-def _unified(old: list[str], new: list[str], fromfile: str, tofile: str, context: int = 3) -> list[str]:
+def _unified(old: list[str], new: list[str], fromfile: str, tofile: str, context: int = 3,
+             window: int | None = None, with_flag: bool = False) -> list[str] | tuple[list[str], bool]:
     """``difflib.unified_diff`` of the part between the common first and last lines, renumbered.
 
     Edits touch a few blocks of large decks; difflib over the whole of a 564000-line file took
     about 220 s, the trimmed middle takes milliseconds. Output equals difflib's on the full lists.
+    With ``window`` only the first ``window`` lines of each side of the change region are diffed
+    (a preview; ``with_flag`` also returns whether it was cut).
     """
     head, limit = 0, min(len(old), len(new))
     while head < limit and old[head] == new[head]:
@@ -47,14 +75,18 @@ def _unified(old: list[str], new: list[str], fromfile: str, tofile: str, context
     while tail < limit - head and old[len(old) - 1 - tail] == new[len(new) - 1 - tail]:
         tail += 1
     start, keep = max(0, head - context), max(0, tail - context)
-    lines = list(difflib.unified_diff(old[start:len(old) - keep], new[start:len(new) - keep],
-                                      fromfile=fromfile, tofile=tofile, n=context))
+    old_part, new_part = old[start:len(old) - keep], new[start:len(new) - keep]
+    partial = window is not None and max(len(old_part), len(new_part)) > window
+    if partial:
+        old_part, new_part = old_part[:window], new_part[:window]
+    lines = list(difflib.unified_diff(old_part, new_part, fromfile=fromfile, tofile=tofile, n=context))
 
     def shift(match: re.Match) -> str:  # empty ranges (",0") name the line before: the same shift applies
         a, b, c, d = match.groups()
         return f"@@ -{int(a) + start}{b or ''} +{int(c) + start}{d or ''} @@"
 
-    return [_HUNK.sub(shift, line) if line.startswith("@@") else line for line in lines]
+    renumbered = [_HUNK.sub(shift, line) if line.startswith("@@") else line for line in lines]
+    return (renumbered, partial) if with_flag else renumbered
 
 
 def _relocation_plan(deck: KeywordDeck, out_dir: Path) -> tuple[dict[Path, Path], list[str]]:

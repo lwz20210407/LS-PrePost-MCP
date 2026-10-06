@@ -26,6 +26,7 @@ from . import (
     loads,
     materials,
     mesh,
+    persist,
     quality,
     renumber,
     sets,
@@ -360,9 +361,9 @@ def edit_deck(path: str, edits: list[dict], *, output_dir: str | None = None, in
                         "description": c.description, "exact": c.exact} for c in changes)
     after = deck.references(check_mesh)
     new_dangling = [d for d in after.dangling() if (d["kind"], d["id"]) not in dangling_before]
-    diff = deck.diff()
-    result = {"status": "succeeded", "changes": applied, "summaries": summaries, "diff": diff[:MAX_DIFF],
-              "diff_truncated": len(diff) > MAX_DIFF, "new_dangling": new_dangling[:200],
+    diff, truncated = persist.diff_preview(deck, MAX_DIFF)
+    result = {"status": "succeeded", "changes": applied, "summaries": summaries, "diff": diff,
+              "diff_truncated": truncated, "new_dangling": new_dangling[:200],
               "modified_files": [str(f.path) for f in deck.modified_files()], "warnings": deck.warnings,
               "written": False}
     if new_dangling and not allow_new_dangling:
