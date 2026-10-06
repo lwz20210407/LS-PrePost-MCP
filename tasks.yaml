@@ -100,7 +100,7 @@ milestones:
       - L3 后处理 8 题至少 7 题成功
   - id: M3
     name: 前处理任务包
-    tasks: [P01, P02, P03, P04, P05, P06, P08, P09, P10, P11, G03]
+    tasks: [P01, P02, P03, P04, P05, P06, P08, P09, P10, P11, P12, G03]
     infrastructure: [I07]
     exit:
       - 本里程碑任务全部 done
@@ -347,6 +347,30 @@ tasks:
       - 不覆盖输入文件；输出路径在 job 目录或用户显式指定位置
 
   # ============================ 后处理 ============================
+  - id: P12
+    group: pre
+    title: 运动副与刚体连接
+    story: 在曲柄与机架之间建转动铰并加转动电机，连杆与滑块之间建转动铰，滑块与导轨之间建移动副，检查刚体归属与过约束
+    ui_entry: ["FEM > Model and Part > Create Entity"]
+    release: v0.5
+    milestone: M3
+    layer: T1
+    owner: claude
+    target_tools: [create_entities, check_model]
+    depends_on: [P04]
+    status: partial
+    existing: [create_entities, check_model]
+    gaps:
+      - 九类运动副（球铰、转动、圆柱、平面、万向、移动、锁定、转动电机、移动电机）由 add_joint 写出；两侧可为刚体 Part（额外节点）、已有节点刚体，或由所选节点新建的节点刚体
+      - 证据在 docs/decisions/evidence/p12：R11 解析解算例；5 个官方示例删除原运动副后重建，4 个逐值相同、1 个动能差 1e-6；真实模型检查的误报已清零
+      - 由所选节点新建节点刚体（变形体一侧）只有单元测试，尚无 R11 算例
+      - 未做：*CONSTRAINED_JOINT_STIFFNESS（限位、摩擦）的创建；齿轮、齿条、滑轮、螺旋、等速、HARMONIC 只登记，不做几何检查；LSPP 原生重开核对（P11）
+    acceptance:
+      - 九类运动副各一个配方，节点对按 R17 Vol I *CONSTRAINED_JOINT 的规则放置，两侧刚体归属正确，引用检查通过
+      - 每类运动副的 R11 算例与解析解或官方示例一致，运动学量误差小于 1%
+      - 检查在公开与本地真实模型上没有误报，能检出节点不重合、两侧刚体不一致、两侧同一刚体、过约束
+      - 原生重开后 Joint 定义读回一致
+
   - id: Q01
     group: post
     title: 结果概览

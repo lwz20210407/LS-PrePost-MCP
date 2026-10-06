@@ -16,7 +16,7 @@ from .core.contracts import Artifact, CheckResult, JobResult
 from .jobs import atomic_json
 
 BACKEND = "keyword-engine"
-CREATE_OPS = frozenset({"create_set", "add_boundary", "add_contact", "add_part", "set_part"})
+CREATE_OPS = frozenset({"create_set", "add_boundary", "add_contact", "add_joint", "add_part", "set_part"})
 
 
 def _jsonable(value: object) -> object:
@@ -84,8 +84,16 @@ class ModelTargetTools:
         return self._edit("edit_keywords", model, edits, None, allow_new_dangling)
 
     def create_entities(self, model: str, entities: list[dict]) -> dict:
-        """P04-P06: sets (ids / select / selector), boundary conditions and loads (add_boundary with a
-        declared unit system), contacts (add_contact recipes) and parts (add_part / set_part)."""
+        """P04-P06, P12: sets (ids / select / selector), boundary conditions and loads (add_boundary with a
+        declared unit system), contacts (add_contact recipes), parts (add_part / set_part) and joints.
+
+        Joint: {"op": "add_joint", "kind": "revolute", "a": {"part": 1}, "b": {"part": 2},
+        "origin": [0, 0, 0], "axis": [0, 1, 0]}. kind: spherical, revolute, cylindrical, planar,
+        universal (second_axis), translational, locking, rotational_motor / translational_motor
+        (motor = {"curve": {"points": [[t, v], ...]} or {"lcid": n}, "type": "velocity"}). A side is a
+        rigid part {"part": pid}, an existing {"nodal_rigid_body": pid} or nodes of a deformable part
+        ({"nodes": [...]}, {"select": {...}}, {"selector": {...}}), held by a new nodal rigid body.
+        Optional: length, reference / third_point, jid, title, rps, damp, failure, local."""
         return self._edit("create_entities", model, entities, CREATE_OPS, False)
 
     def mesh_ops(self, model: str, operations: list[dict]) -> dict:
