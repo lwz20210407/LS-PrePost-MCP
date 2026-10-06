@@ -113,7 +113,7 @@ def arguments(case, schema, supplied, directory, executable):
     values["--workspace"] = str(directory)
     if "--executable" in flags and case.variant != "file":
         if not executable:
-            raise ValueError("Set --native-executable or LSPP_EXECUTABLE")
+            raise ValueError("Set --native-executable, LSPP_ENGINE_EXECUTABLE or LSPP_EXECUTABLE")
         values["--executable"] = str(executable)
     if "--output" in flags:
         values["--output"] = str(directory / "native-results.json")
@@ -245,6 +245,31 @@ def pytest_addoption(parser):
     group.addoption("--remote-timeout", type=float, default=2700)
 
 
+def execution_identity(root=ROOT):
+    """Bind native evidence to actual Git HEAD and source bytes, including edits."""
+    files = {}
+    for folder in ("src", "tools", "tests"):
+        for path in sorted((root / folder).rglob("*")):
+            if path.is_file() and path.suffix in (".py", ".json", ".yaml", ".cfile", ".scl", ".mac"):
+                files[path.relative_to(root).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
+    for name in ("pyproject.toml", "uv.lock"):
+        if (root / name).is_file():
+            files[name] = hashlib.sha256((root / name).read_bytes()).hexdigest()
+    head, dirty = None, None
+    try:
+        top = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], cwd=root,
+                                      stderr=subprocess.DEVNULL, text=True).strip()
+        if Path(top).resolve() == root.resolve():
+            head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
+            dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=root))
+    except (OSError, subprocess.CalledProcessError):
+        pass
+    digest = hashlib.sha256(json.dumps(files, sort_keys=True).encode()).hexdigest()
+    return dict(actual_git_head=head, working_tree_dirty=dirty, source_snapshot_sha256=digest,
+                source_files=files, python_version=sys.version,
+                scope="Actual runner checkout; null Git fields mean unavailable, never a guessed PR revision")
+
+
 def pytest_configure(config):
     config.addinivalue_line("markers", "gui: requires an operator-approved visible GUI window")
     config.addinivalue_line("markers", "remote: requires an operator-confirmed UU disconnection window")
@@ -263,6 +288,8 @@ def pytest_configure(config):
             raise pytest.UsageError("Remote timeout must be positive")
         root.mkdir(parents=True, exist_ok=False)
         config._native_root = root
+        (root / "execution-context.json").write_text(
+            json.dumps(execution_identity(), ensure_ascii=False, indent=2), encoding="utf8")
         if config.option.basetemp is None:
             config.option.basetemp = str(root / "pytest")
 
@@ -285,7 +312,9 @@ def acceptance_case(request, pytestconfig):
     if case.gui and not pytestconfig.getoption("--native-gui"):
         unavailable("Requires an operator-approved --native-gui window")
     native_inputs = request.getfixturevalue("native_inputs")
-    directory = pytestconfig._native_root / case.id
+    # Acceptance scripts create their own UUID trees. Keep our prefix short so
+    # atomic request files stay below the native Windows path limit.
+    directory = pytestconfig._native_root / hashlib.sha256(case.id.encode()).hexdigest()[:8]
     schema = parser_schema(case.script)
     try:
         argv = arguments(case, schema, native_inputs.get(case.id, {}), directory,

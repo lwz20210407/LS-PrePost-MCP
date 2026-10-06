@@ -671,7 +671,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：partial；验证：L1
 
-证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py), [docs/decisions/evidence/i01/report.md](../docs/decisions/evidence/i01/report.md)
+证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py), [docs/decisions/evidence/i01/report.md](../docs/decisions/evidence/i01/report.md), [docs/decisions/evidence/i01-followup/report.md](../docs/decisions/evidence/i01-followup/report.md)
 
 - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
 - 删除 gui_session_action 中运行时替换 _native 的做法
@@ -706,7 +706,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：partial；验证：待记录
 
-证据：[docs/decisions/evidence/i04/report.md](../docs/decisions/evidence/i04/report.md), [tools/native_regression.py](../tools/native_regression.py), [tests/test_native_acceptance.py](../tests/test_native_acceptance.py), [tests/test_native_regression.py](../tests/test_native_regression.py), [tests/test_native_remote.py](../tests/test_native_remote.py), [tests/test_native_input_preconditions.py](../tests/test_native_input_preconditions.py)
+证据：[docs/decisions/evidence/i04/report.md](../docs/decisions/evidence/i04/report.md), [docs/decisions/evidence/i04-window/report.md](../docs/decisions/evidence/i04-window/report.md), [tools/native_regression.py](../tools/native_regression.py), [tests/test_public_corpus_native.py](../tests/test_public_corpus_native.py), [tests/corpus/public_cases.json](../tests/corpus/public_cases.json), [tests/test_native_acceptance.py](../tests/test_native_acceptance.py), [tests/test_native_regression.py](../tests/test_native_regression.py), [tests/test_native_remote.py](../tests/test_native_remote.py), [tests/test_native_input_preconditions.py](../tests/test_native_input_preconditions.py)
 
 - 补测从 M0 转入的 13 个 UU 远程格（4.13/4.10 的 runc 五通道共 10 格，以及两版本 nographics 原生宏和 4.13 会话原生宏共 3 格），记录执行、PNG、MP4 结果与用户确认的断开时间窗
 - 55 个 tools/run_* 收编为 57 个带 marker 的 pytest 用例，共享 fixture
