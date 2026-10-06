@@ -1120,3 +1120,11 @@ Standard ELEMENT_MASS supported for structural preservation; mass glyph display,
 - [tools/run_workflow_acceptance.py](../tools/run_workflow_acceptance.py) — `76d528b11e2b948c224be291c9660f53cf04cc2712c5a9f29b1f87a92bd236ba`
 - [tools/run_workflow_gate_acceptance.py](../tools/run_workflow_gate_acceptance.py) — `cd6759202440b9321ea95aed7faf292b5a3a38c0183794821fba27a32325edfd`
 - [src/ls_prepost_mcp/data/capabilities.json](../src/ls_prepost_mcp/data/capabilities.json) — `bb76b2e66358b4f93338c845c218f66bddbf4121567aa058128a07c7c67112aa`
+
+## I05：Windows 索引发布的短暂共享锁
+
+不支持硬链接的文件系统使用复制后原子 rename，保留“不覆盖既有索引”的约束。
+WinError 5/32 采用最多 1.15 秒的分段退避，其他错误直接返回；超过重试上限仍失败。
+临时文件若因读句柄锁定无法清理，保留原 rename 异常，并通过日志和异常 note 给出
+残留文件路径。残留物不作为成功索引；句柄释放后由用户明确清理，不自动清扫历史文件。
+[真实 Windows 文件锁回归](../tests/test_index_publication_retry.py)覆盖两次失败后释放以及持续锁定。
