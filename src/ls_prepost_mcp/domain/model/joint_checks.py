@@ -125,15 +125,24 @@ def _element_nodes(deck: KeywordDeck, parts: set[int], found: RigidBodies) -> di
 
 def node_set_blocks(deck: KeywordDeck, unread: list[str] | None = None) -> dict[int, object]:
     """sid -> block of every *SET_NODE list set (_ADD / _GENERATE / _INTERSECT / _GENERAL are not lists)."""
-    found = {}
+    found, merged = {}, set()
     for block in deck.iter_blocks():
         if block.name.startswith("*SET_NODE") and not any(
                 t in block.name for t in ("_ADD", "_GENERATE", "_INTERSECT", "_GENERAL")):
             try:
-                found[int(deck.get(block, "sid").value)] = block
+                sid = int(deck.get(block, "sid").value)
             except (Unsupported, FieldError, KeyError, ValueError):
                 if unread is not None:
                     unread.append(f"{block.name} ({block.file.path.name}:{block.line_number})")
+                continue
+            if sid in found or sid in merged:  # _COLLECT: one set spread over several blocks
+                found.pop(sid, None)
+                if sid not in merged and unread is not None:
+                    unread.append(f"*SET_NODE {sid}: defined by several blocks (_COLLECT or a duplicate SID); "
+                                  "members not merged")
+                merged.add(sid)
+            else:
+                found[sid] = block
         elif block.name.startswith("*SET_NODE") and unread is not None:
             unread.append(f"{block.name} ({block.file.path.name}:{block.line_number}): not a member list")
     return found
