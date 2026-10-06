@@ -720,6 +720,10 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 里程碑：M1
 
+状态：partial；验证：L1
+
+证据：[src/ls_prepost_mcp/knowledge_index.py](../src/ls_prepost_mcp/knowledge_index.py), [src/ls_prepost_mcp/keyword_documentation.py](../src/ls_prepost_mcp/keyword_documentation.py), [tools/build_knowledge_index.py](../tools/build_knowledge_index.py), [tests/test_knowledge_index.py](../tests/test_knowledge_index.py)
+
 - 命令表、Scripting API、关键字定义、用户指南章节、配方、KNOWN_ISSUES 建立索引
 - 公开部分可入仓库；私有课程资料的索引在仓库外
 

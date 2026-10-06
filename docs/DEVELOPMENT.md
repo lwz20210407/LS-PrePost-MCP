@@ -102,3 +102,13 @@ I11 的 local-book 在 corpus 清单的 restricted_sources 中仅登记 ID 与�
 I08 的运行时注册表为 `src/ls_prepost_mcp/data/operations.json`；新增或迁移操作更新此处，再运行 gen_docs.py。兼容名称和 canonical operation_id 均需通过同一签名/路由验证。CI 执行 `uv run lint-imports --no-cache`；本地也使用 no-cache，避免在仓库生成缓存。
 
 import-linter 固定 2.6：2.7–2.9 的 rich>=14.2.0 与已验证 LASSO2.0.4 的 rich==13.* 冲突，保留数值后端锁定，选择可共存版本。约束使用官方的 protected/forbidden 合同（https://import-linter.readthedocs.io/en/v2.6/contract_types.html）。I02 的六个合同字段未改变。
+
+## I05 本地知识索引
+
+`tools/build_knowledge_index.py --output <新索引.sqlite>` 索引仓库命令表、已知问题、安装说明和已有工作流参考。关键字字段调用 Claude 的 `domain/model/keyword_docs`，不再自写 PyDYNA AST 解析。M3 合入前可明确传 `--keyword-provider-root <Claude工作副本>`，仅在隔离子进程中读取该实现；可重复传 `--keyword '*PART'` 选择关键字。未指定关键字时由 provider 的目录提供范围。M3 合入后可直接调用包内 provider。
+
+API、厂商用户指南和课程文本通过 `--external-sources <仓库外JSON>` 加入。该文件为对象列表，每项含 id/category/path/license，可附 version；外部文件固定为 private，不允许在配置中改为 public。类别为 command/api/keyword/user_guide/recipe/known_issue。私有文本、索引及其派生数据必须放在仓库外，不进入 Git。
+
+设置 `LSPP_KNOWLEDGE_INDEX` 后，现有 `search_knowledge` 工具直接查询该索引；category 可筛选，include_private 默认 False。未配置时保留旧来源目录搜索；不会悄悄把私有内容加进结果。字段数据单独存储于 schema_version=2 的 keyword_fields 表，保留 entity_key/option/card/field/offset/width/help/links/manual_ref/solver_status/license，并保存 provider 的字段别名。手册内容只由 provider 从 LSPP_MANUAL_INDEX 读取，含手册内容的字段强制 private。
+
+连接用 closing 显式关闭。构建写入唯一的 .partial 文件，事务提交并关闭后原子发布到尚不存在的最终路径；中断残留不会挡住重建，既有完整索引不覆盖。schema_version=1 的旧索引需另选路径重建。中文查询采用二字词候选匹配，不把所有单字/二字词用 AND 相连；混合代码查询优先用代码标识符定位。每条命中保留来源、版本和 reference_unverified；provider 的本机求解验证说明单独标注其归属。A08 的 recipe.yaml 加入后可重建，旧 JSON 工作流仍标为 legacy_workflow_template。

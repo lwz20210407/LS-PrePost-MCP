@@ -21,3 +21,5 @@
 - I01 remains partial/L1 after review; historical batch/queue tests do not certify the public Win32 path.
 - I04 native execution requires explicit opt-in; remote evidence checks are not native passes.
 - I08 routes and legacy aliases come from operations.json; run import-linter and preserve the registry.
+- I05 references stay outside Git when private; keyword fields use Claude keyword_docs, never a parallel AST parser.
+- Claude also owns domain/results/curves.py, invariants.py, lasso_backend.py and their package exports (Q07, Q04, Q01/Q05/Q06), plus model-side P01/P04 work. Reuse those implementations at integration; do not edit or duplicate them. keyword_docs provider was introduced at ce87a62; the model directory remains read-only here.

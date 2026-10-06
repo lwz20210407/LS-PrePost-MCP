@@ -911,6 +911,16 @@ infrastructure:
   - id: I05
     title: 知识库索引
     milestone: M1
+    status: partial
+    gaps:
+      - keyword_docs 的包内直接对接随 Claude 的 I07 在 M3 集成；当前仅支持显式指定其只读工作副本做离线索引
+      - 完整关键字覆盖与 A10 的二十题检索评测尚未收口，当前实测为五类关键字的 158 个字段及六类来源检索
+    verification_level: L1
+    evidence:
+      - src/ls_prepost_mcp/knowledge_index.py
+      - src/ls_prepost_mcp/keyword_documentation.py
+      - tools/build_knowledge_index.py
+      - tests/test_knowledge_index.py
     acceptance:
       - 命令表、Scripting API、关键字定义、用户指南章节、配方、KNOWN_ISSUES 建立索引
       - 公开部分可入仓库；私有课程资料的索引在仓库外
