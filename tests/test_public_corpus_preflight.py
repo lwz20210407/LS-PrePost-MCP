@@ -65,3 +65,44 @@ def test_input_limitation_stops_before_any_native_call():
         run_case({"kind": "keyword"}, (None, None, record), request)
     assert record["status"] == "input_limited" and record["checks"] == []
     assert ("native_scope", "evidence_only") in request.node.user_properties
+
+
+def test_extended_root_parent_include_has_same_tree_as_plain_path(tmp_path):
+    import os
+
+    import pytest
+
+    from tools.fetch_corpus import io_root
+
+    if os.name != "nt":
+        pytest.skip("Windows extended path semantics")
+    (tmp_path / "deck").mkdir()
+    (tmp_path / "inc").mkdir()
+    main = tmp_path / "deck/main.k"
+    main.write_text("*KEYWORD\n*INCLUDE\n../inc/child.k\n*END\n")
+    (tmp_path / "inc/child.k").write_text("*KEYWORD\n*END\n")
+    expected, _ = input_tree(main, [main], keyword=True)
+    extended = io_root(tmp_path) / "deck/main.k"
+    actual, _ = input_tree(extended, [extended], keyword=True)
+    assert actual["ok"] is True
+    assert actual == expected
+
+
+def test_source_directory_snapshot_detects_created_files_and_subdirectories(tmp_path):
+    from tools.public_corpus_preflight import directory_snapshot
+
+    main = tmp_path / "main.k"
+    main.write_text("*KEYWORD\n*END\n")
+    before = directory_snapshot([main])
+    assert before == directory_snapshot([main])
+    (tmp_path / "unexpected").mkdir()
+    (tmp_path / "unexpected/lspost.msg").write_text("native side effect")
+    assert before != directory_snapshot([main])
+
+
+def test_io_root_normalizes_dot_segments_before_extending(tmp_path):
+    from tools.fetch_corpus import io_root, plain_path
+
+    (tmp_path / "nested").mkdir()
+    assert io_root(io_root(tmp_path) / "nested" / "..") == io_root(tmp_path)
+    assert plain_path(io_root(tmp_path)) == tmp_path

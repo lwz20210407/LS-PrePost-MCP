@@ -1,14 +1,17 @@
 """I04 input-tree identities and input limitations from the shared keyword preflight."""
 
 import hashlib
+import os
 from pathlib import Path
 
 from ls_prepost_mcp.domain.model import preflight_includes
+from tools.fetch_corpus import io_root, plain_path
 
 
 def input_tree(source, family, *, keyword):
     """Return publishable metadata plus private paths used only for preservation checks."""
-    source = Path(source)
+    source = plain_path(source)
+    family = [plain_path(path) for path in family]
     if keyword:
         report = preflight_includes(source)
         files = report["files"]
@@ -44,3 +47,21 @@ def input_classification(tree):
     if tree["unsupported_native_variants"]:
         return "unsupported_native_include_variant"
     return "preflight_ok_requires_native_diagnosis"
+
+
+def directory_snapshot(paths):
+    """Private recursive name inventory; do not follow directory symlinks/junctions."""
+    roots = sorted({plain_path(path).parent for path in paths})
+    roots = [p for p in roots if not any(p != other and p.is_relative_to(other) for other in roots)]
+    snapshot = {}
+    for directory in roots:
+        io_directory = io_root(directory)
+        names = []
+        for current, folders, files in os.walk(io_directory, followlinks=False):
+            relative = Path(current).relative_to(io_directory)
+            names.extend("d:" + (relative / name).as_posix() for name in folders)
+            names.extend("f:" + (relative / name).as_posix() for name in files)
+            folders[:] = [name for name in folders if not (Path(current) / name).is_symlink()
+                          and not getattr((Path(current) / name).lstat(), "st_file_attributes", 0) & 0x400]
+        snapshot[directory] = tuple(sorted(names))
+    return snapshot
