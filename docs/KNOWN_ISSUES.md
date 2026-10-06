@@ -1192,3 +1192,9 @@ Python 异常传播前会先清理；清理失败不覆盖原始异常，普通�
 BatchEngine 和内置 Python 在作业目录运行，并非主 deck 目录。对于保留源树的只读加载，还检查作业目录相对候选：越界则拒绝；指向不同文件即拒绝，防止原生工作目录解析绕过已检查的树。会话和脚本 staging 仍要求展平输入。共享预检会读取本地树，允许目录检查是其上的原生执行准入检查，不是共享预检本身的文件读取沙箱。
 
 回归见 [边界测试](../tests/test_boundaries.py)。I01、I04 的其他原生 gap 保持不变。
+
+## I04：公开案例按 INCLUDE 预检区分输入限制
+
+公开语料运行器先调用共享 `preflight_includes`，记录 tree_sha256、版本和每个文件的 relative / role / size / sha256，随后复核完整树的原文件字节。`ok=false` 记为 input_limited，pytest 报告为 evidence_only，禁止据此声称原生通过或代码缺陷。非 keyword 结果族单独标记 tree_kind=result_family。每例另记实际 LS-PrePost 可执行文件与版本资源；预检成功本身不认证原生解析。
+
+历史 p100 的 16 passed / 84 failed 保留不改，新运行和 problems.kind/hint 分类另行追加。回归见 [公开语料测试](../tests/test_public_corpus_native.py) 和 [预检证据测试](../tests/test_public_corpus_preflight.py)。
