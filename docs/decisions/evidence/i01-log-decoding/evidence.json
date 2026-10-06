@@ -228,5 +228,15 @@
         "status": "passed"
       }
     ]
+  },
+  "historical_diff_scope": {
+    "command": "git diff 2924649 e36e0a6 --binary -- . \":!docs\" \":!tasks.yaml\"",
+    "sha256": "288f5805a97a088545694d3947c8a241c749c4611d430f9d5f8a87b4d849ea49",
+    "excluded_paths": [
+      "docs",
+      "tasks.yaml"
+    ],
+    "untracked_included": false,
+    "execution_scope_note": "Historical native execution used the old stack containing 9651d02."
   }
 }

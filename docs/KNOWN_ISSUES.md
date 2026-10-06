@@ -1171,4 +1171,7 @@ Python 异常传播前会先清理；清理失败不覆盖原始异常，普通�
 包装器现在接收实际编码、保留原始字节，并让 cfile/SCL 诊断沿用相同解码规则；
 有替换解码时保持 unverified，不把日志不确定性包装成成功。
 [生产者/消费者集成回归](../tests/test_script_session_log_contract.py)覆盖四通道、GBK/UTF-16、
-正反例和 lossy；第一轮原生失败证据留存，修复后的原生回归另行登记。
+正反例和 lossy；第一轮失败与修复后 session 运行已分别登记到
+[A01](decisions/evidence/a01/evidence.json)、[A02](decisions/evidence/a02/evidence.json)、
+[A03](decisions/evidence/a03/evidence.json)、[A04](decisions/evidence/a04/evidence.json)。
+修复后运行 revision 为干净 c68caef，包含 Draft #26；不代表当前 PR 头重新实测。
