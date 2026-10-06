@@ -306,6 +306,7 @@ def test_joint_id_and_local_option_cards(tmp_path: Path) -> None:
 
 
 def test_utf16_files_are_read_edited_and_kept_in_utf16(tmp_path: Path) -> None:
+    pytest.importorskip("ansys.dyna.core")
     text = "$ material card\r\n*MAT_ELASTIC\r\n         1    7.8e-9  210000.0       0.3\r\n*END\r\n"
     data = b"\xff\xfe" + text.encode("utf-16-le")
     (tmp_path / "m.k").write_bytes(data)
