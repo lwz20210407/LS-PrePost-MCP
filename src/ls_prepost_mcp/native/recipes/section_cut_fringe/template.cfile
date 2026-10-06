@@ -1,0 +1,7 @@
+state {{state}}
+fringe {{fringe_code}}
+pfringe
+splane create {{px}} {{py}} {{pz}} {{nx}} {{ny}} {{nz}}
+splane drawcut on
+ac
+print png "section_fringe.png" opaque enlisted "OGL1x1"

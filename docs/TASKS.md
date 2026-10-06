@@ -409,7 +409,7 @@
 
 ### Q10 截面力与剖切面
 
-状态：todo；版本：v0.6；里程碑：待排期；层：T2
+状态：partial；版本：v0.6；里程碑：待排期；层：T2
 
 在 z=10 mm 处切一刀，输出截面上的合力时程和剖面云图
 
@@ -419,6 +419,10 @@
 - 截面合力时程与 SECFORC（同截面定义）一致
 
 现有入口：无
+
+缺口：
+
+- 剖切云图真实模型抓图留待原生环境统一窗口执行
 
 ### Q11 测量
 
@@ -449,11 +453,11 @@
 - 阈值由调用者给定；未给定时只报告比例不下结论
 - 按部件（MATSUM）分解
 
-现有入口：`assess_energy_balance`, `native_energy_postprocess`
+现有入口：`assess_energy_balance`, `native_energy_postprocess`, `check_energy`
 
 缺口：
 
-- 只看 KE / IE / HG
+- 原生 GLSTAT 完整 8 项能量提取与 MATSUM 真实算例跨后端一致性留待原生环境统一执行
 
 ## 自动化
 

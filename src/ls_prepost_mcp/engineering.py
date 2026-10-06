@@ -327,6 +327,111 @@ class EngineeringTools:
             work,
         )
 
+    def check_energy(
+        self,
+        path: str,
+        units: str,
+        kinetic_ratio_limit: float | None = None,
+        hourglass_ratio_limit: float | None = None,
+        residual_ratio_limit: float | None = None,
+        sliding_ratio_limit: float | None = None,
+        include_parts: bool = True,
+    ) -> dict:
+        """Full GLSTAT energy balance, ratio screening, and MATSUM part dissipation.
+
+        Outputs kinetic, internal, hourglass, sliding, damping, eroded and external work energies
+        with balance residual and ratios. If limits are omitted, ratios are reported without asserting conclusions.
+        """
+        from .energy import (
+            calculate_energy_balance,
+            read_binout_matsum,
+            read_glstat,
+        )
+
+        source = self.settings.input_path(path)
+        sources = [source]
+
+        def work(directory):
+            glstat_data = read_glstat(source)
+            matsum_data = read_binout_matsum(source) if include_parts else None
+            calc_result = calculate_energy_balance(
+                glstat_data,
+                parts=matsum_data,
+                units=units,
+                kinetic_ratio_limit=kinetic_ratio_limit,
+                hourglass_ratio_limit=hourglass_ratio_limit,
+                residual_ratio_limit=residual_ratio_limit,
+                sliding_ratio_limit=sliding_ratio_limit,
+            )
+            summary = calc_result["summary"]
+            series_rows = calc_result["series_rows"]
+
+            csv_header = [
+                "time",
+                "total_energy",
+                "kinetic_energy",
+                "internal_energy",
+                "hourglass_energy",
+                "sliding_energy",
+                "external_work",
+                "damping_energy",
+                "eroded_energy",
+                "residual",
+                "relative_residual",
+                "ke_ratio",
+                "hg_ratio",
+            ]
+            csv_artifact = write_csv(directory / "energy_balance.csv", csv_header, series_rows)
+            artifacts = [csv_artifact]
+
+            if matsum_data and summary["parts"]:
+                part_rows = [
+                    [
+                        p["part_id"],
+                        p["peak_internal_energy"],
+                        p["final_internal_energy"],
+                        p["fraction_of_total_internal_energy"],
+                        p["peak_hourglass_energy"],
+                        p["final_hourglass_energy"],
+                        p["max_part_hourglass_ratio"],
+                        p["peak_kinetic_energy"],
+                        p["final_eroded_internal_energy"],
+                    ]
+                    for p in summary["parts"].values()
+                ]
+                part_header = [
+                    "part_id",
+                    "peak_internal_energy",
+                    "final_internal_energy",
+                    "fraction_of_total_internal_energy",
+                    "peak_hourglass_energy",
+                    "final_hourglass_energy",
+                    "max_part_hourglass_ratio",
+                    "peak_kinetic_energy",
+                    "final_eroded_internal_energy",
+                ]
+                part_artifact = write_csv(directory / "part_energy.csv", part_header, part_rows)
+                artifacts.append(part_artifact)
+
+            atomic_json(directory / "summary.json", summary)
+            artifacts.append(check_artifact(directory / "summary.json", "json"))
+
+            return summary, artifacts
+
+        return self._post_job(
+            "check_energy",
+            dict(
+                units=units,
+                kinetic_ratio_limit=kinetic_ratio_limit,
+                hourglass_ratio_limit=hourglass_ratio_limit,
+                residual_ratio_limit=residual_ratio_limit,
+                sliding_ratio_limit=sliding_ratio_limit,
+                include_parts=include_parts,
+            ),
+            sources,
+            work,
+        )
+
     def native_energy_postprocess(
         self, path: str, units: str, include_hourglass: bool = False, include_external_work: bool = False
     ) -> dict:

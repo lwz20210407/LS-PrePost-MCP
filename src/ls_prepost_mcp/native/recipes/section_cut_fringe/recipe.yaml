@@ -1,0 +1,77 @@
+schema_version: 1
+id: section_cut_fringe
+name: 截面剖切云图
+task_id: Q10
+channel: cfile
+template: template.cfile
+description: 截面剖切云图；剖切面基准位置与法向可设，原模型数值，不做单位换算或工程质量判断。
+parameters:
+  type: object
+  properties:
+    px:
+      type: number
+      default: 0.0
+      description: 剖切面基准点 X 坐标
+    py:
+      type: number
+      default: 0.0
+      description: 剖切面基准点 Y 坐标
+    pz:
+      type: number
+      default: 0.0
+      description: 剖切面基准点 Z 坐标
+    nx:
+      type: number
+      default: 1.0
+      description: 剖切面法向向量 X 分量
+    ny:
+      type: number
+      default: 0.0
+      description: 剖切面法向向量 Y 分量
+    nz:
+      type: number
+      default: 0.0
+      description: 剖切面法向向量 Z 分量
+    state:
+      type: integer
+      minimum: 1
+      default: 1
+      description: 结果状态号 (1-based)
+    fringe_code:
+      type: integer
+      minimum: 1
+      default: 1
+      description: 云图物理量编号
+  additionalProperties: false
+outputs:
+- name: section_fringe.png
+  kind: png
+expected_counts: {}
+versions_verified:
+- 4.13.4
+- 4.10.1
+execution_modes:
+  c_nographics:
+    status: verified
+    by_version:
+      4.13.4: verified
+      4.10.1: verified
+    evidence: docs/decisions/evidence/q10/report.md
+  runc:
+    status: failed
+    by_version:
+      4.13.4: failed
+      4.10.1: failed
+    evidence: docs/decisions/evidence/q10/report.md
+    scope: Version-specific recipe probes; do not generalize between versions or recipes
+l2_case: tests/test_section_cut_recipe.py::test_section_cut_fringe_recipe
+requires_model: true
+contexts:
+- batch
+tags:
+- section
+- splane
+- fringe
+- png
+- 出图
+input_kind: d3plot
