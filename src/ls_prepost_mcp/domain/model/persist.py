@@ -11,6 +11,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, TypeVar
 
+from . import access
 from .blocks import SourceFile
 from .includes import identity
 from .text import split_lines
@@ -124,6 +125,8 @@ def save_as(deck: KeywordDeck, out_dir: str | os.PathLike[str], overwrite: bool 
     for source, dest in plan.items():
         dest.parent.mkdir(parents=True, exist_ok=True)
         item = sources.get(identity(source))
+        if item is None:
+            access.require(source)  # opaque targets (*INCLUDE_BINARY, ...) are copied unread
         data = item.data() if item is not None else source.read_bytes()
         atomic_write(dest, data)
         written.append({"source": str(source), "dest": str(dest), "modified": bool(item and item.modified),

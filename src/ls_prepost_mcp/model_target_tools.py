@@ -10,6 +10,9 @@ Selections may be ``core.contracts.Selector`` objects (``"selector"`` in an edit
 from __future__ import annotations
 
 import math
+import os
+import re
+from collections.abc import Callable
 from pathlib import Path
 
 from .core.contracts import Artifact, CheckResult, JobResult
@@ -47,10 +50,11 @@ class ModelTargetTools:
         element counts, keyword counts, unread blocks). Read-only; no LS-PrePost."""
         from .domain.model.operations import inspect_deck
 
-        source = self.settings.input_path(model)
+        source = self._input(model)
         try:
-            data = inspect_deck(str(source))
-        except (ValueError, KeyError, TypeError, OSError) as error:
+            with self._guard():
+                data = inspect_deck(str(source))
+        except (ValueError, KeyError, TypeError, OSError, RecursionError) as error:
             return _result("model_info", "failed", {"model": str(source)}, error=_error(error))
         return _result("model_info", "succeeded", data, scope="keyword deck and its includes")
 
@@ -61,11 +65,12 @@ class ModelTargetTools:
         Execution succeeds when the check ran; findings are reported as checks, not as a failure."""
         from .domain.model.operations import check_deck
 
-        source = self.settings.input_path(model)
+        source = self._input(model)
         try:
-            report = check_deck(str(source), thresholds=thresholds, coincident_tol=coincident_tolerance,
-                                include_mesh=include_mesh)
-        except (ValueError, KeyError, TypeError, OSError) as error:
+            with self._guard():
+                report = check_deck(str(source), thresholds=thresholds, coincident_tol=coincident_tolerance,
+                                    include_mesh=include_mesh)
+        except (ValueError, KeyError, TypeError, OSError, RecursionError) as error:
             return _result("check_model", "failed", {"model": str(source)}, error=_error(error))
         kinds = sorted({e["kind"] for e in report["errors"]})
         checks = [CheckResult(name="objective_defects", status="failed" if report["errors"] else "passed"),
@@ -103,6 +108,20 @@ class ModelTargetTools:
 
         return self._edit("mesh_ops", model, operations, MESH_OPS, False)
 
+    def _input(self, model: str) -> Path:
+        """The main deck: a UNC or device name is refused before anything resolves it."""
+        from .domain.model.includes import is_network
+
+        if is_network(_local(str(model))):
+            raise ValueError(f"Network path {model!r} is not followed")
+        return self.settings.input_path(model)
+
+    def _guard(self) -> object:
+        """Engine-level confinement for one tool call (see ``domain.model.access``)."""
+        from .domain.model import access
+
+        return access.confined(_include_check((self.settings.workspace, *self.settings.allowed_roots)))
+
     def _edit(self, operation: str, model: str, edits: list[dict], allowed: frozenset | None,
               allow_new_dangling: bool) -> dict:
         from .domain.model.operations import edit_deck
@@ -113,12 +132,13 @@ class ModelTargetTools:
             other = sorted({e["op"] for e in edits} - allowed)
             if other:
                 raise ValueError(f"{operation} does not run {other}; allowed: {sorted(allowed)}")
-        source = self.settings.input_path(model)
+        source = self._input(model)
         directory, manifest = self.jobs.create(operation, {"model": str(source), "edits": _jsonable(edits)})
         try:
-            outcome = edit_deck(str(source), edits, output_dir=str(directory / "deck"),
-                                allow_new_dangling=allow_new_dangling)
-        except (ValueError, KeyError, TypeError, OSError) as error:
+            with self._guard():
+                outcome = edit_deck(str(source), edits, output_dir=str(directory / "deck"),
+                                    allow_new_dangling=allow_new_dangling)
+        except (ValueError, KeyError, TypeError, OSError, RecursionError) as error:
             outcome = {"status": "failed", "error": f"{type(error).__name__}: {error}", "written": False}
         data = {k: outcome.get(k) for k in ("changes", "summaries", "diff", "diff_truncated", "new_dangling",
                                             "modified_files", "failed_edit", "applied_before_failure")
@@ -146,6 +166,47 @@ class ModelTargetTools:
                              scope="input deck unchanged; edited copy in the job directory")
         atomic_json(directory / "job.json", {**manifest, "status": result["status"], "result": result})
         return result
+
+
+_EXTENDED_DRIVE = re.compile(r"^[\\/]{2}\?[\\/][A-Za-z]:[\\/]")
+
+
+def _local(text: str) -> str:
+    r"""An extended-length drive path (``\\?\C:\...``, either separator) without its prefix.
+
+    Every other ``\\?\`` or ``\\.\`` form (``UNC``, ``GLOBALROOT\Device\Mup``, devices) is returned
+    unchanged, so :func:`is_network` refuses it before anything resolves it.
+    """
+    return text[4:] if _EXTENDED_DRIVE.match(text) else text
+
+
+def _include_check(roots: tuple[Path, ...]) -> Callable[[Path], None]:
+    """Refuse a UNC or device name, or a path outside ``roots``, before the engine stats or reads it.
+
+    The test is lexical first, so a refused path is not probed (its existence is not revealed);
+    an existing path inside a root must also resolve inside one (links and junctions).
+    """
+    from .domain.model.access import OutsideRoots
+    from .domain.model.includes import is_network
+
+    bases = {Path(os.path.abspath(root)) for root in roots}
+    for root in roots:
+        try:
+            bases.add(root.resolve())
+        except OSError:
+            continue
+
+    def check(path: Path) -> None:
+        text = _local(str(path))
+        if is_network(text):
+            raise OutsideRoots(f"Network path {str(path)!r} is not followed")
+        lexical = Path(os.path.normpath(os.path.abspath(text)))
+        if not any(lexical.is_relative_to(base) for base in bases):
+            raise OutsideRoots(f"{str(path)!r} is outside the allowed roots")
+        if os.path.lexists(lexical) and not any(lexical.resolve().is_relative_to(base) for base in bases):
+            raise OutsideRoots(f"{str(path)!r} leads outside the allowed roots")
+
+    return check
 
 
 def _error(error: Exception) -> dict:

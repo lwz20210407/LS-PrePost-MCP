@@ -63,11 +63,25 @@ def _styled_cell(old: str, value: str, width: int, align: str) -> str:
     return value.ljust(width)
 
 
+def single_line(text: str, what: str = "text") -> str:
+    """``text`` unchanged when it has no line break or NUL; inserted text that holds one could add
+    cards or keywords (an ``*INCLUDE``, a ``*CONTROL_...``) to the deck."""
+    if any(ch in text for ch in ("\r", "\n", "\x00")):
+        raise FieldError(f"{what} {text!r} may not contain line breaks or NUL")
+    return text
+
+
 def write_text(line: str, slot: FieldSlot, value: str, align: str = "right") -> str:
     """Replace one field, leaving every other character and the line ending unchanged.
 
     The new value follows the alignment of the old one, so only the value itself changes.
+    A value may not hold a line break or NUL (it would add cards or keywords, e.g. an ``*INCLUDE``),
+    nor, in a comma-separated line, a comma (it would shift the following fields).
     """
+    if any(ch in value for ch in ("\r", "\n", "\x00")):
+        raise FieldError(f"{value!r}: field values may not contain line breaks or NUL")
+    if slot.token is not None and "," in value:
+        raise FieldError(f"{value!r}: a comma inside a comma-separated field would shift the following fields")
     text, end = body(line), ending(line)
     if slot.token is not None:
         tokens = text.split(",")
