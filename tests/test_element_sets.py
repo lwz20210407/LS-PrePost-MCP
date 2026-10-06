@@ -7,6 +7,7 @@ from ls_prepost_mcp.service import Service
 
 @pytest.mark.parametrize("kind", ["shell", "solid", "beam"])
 def test_more_than_eight_sparse_members_and_domain_specific_header(tmp_path, kind):
+    pytest.importorskip("ansys.dyna.core")
     members = [11, 23, 48, 55, 69, 80, 110, 201, 501, 987]
     text, attrs = element_set_fragment(kind, 41, "Multirow", members)
     path = tmp_path / "set.k"
@@ -20,6 +21,7 @@ def test_more_than_eight_sparse_members_and_domain_specific_header(tmp_path, kin
 
 
 def test_same_sid_is_separate_across_node_part_and_element_set_domains(tmp_path):
+    pytest.importorskip("ansys.dyna.core")
     path = tmp_path / "domains.k"
     text = "*KEYWORD\n*SET_NODE_LIST\n41\n1\n*SET_PART_LIST\n41\n1\n"
     for kind in ("shell", "solid", "beam"):
@@ -33,6 +35,7 @@ def test_same_sid_is_separate_across_node_part_and_element_set_domains(tmp_path)
     "kind, header", [("shell", "41,0.1,0.2,0.3,0.4"), ("solid", "41,CESE,3"), ("beam", "41")]
 )
 def test_existing_native_headers_are_read_without_node_header_assumptions(tmp_path, kind, header):
+    pytest.importorskip("ansys.dyna.core")
     keyword = {"shell": "SET_SHELL_LIST", "solid": "SET_SOLID", "beam": "SET_BEAM"}[kind]
     path = tmp_path / "set.k"
     path.write_text(f"*KEYWORD\n*{keyword}\n{header}\n1001,2002,0\n*END\n")
@@ -46,6 +49,7 @@ def test_existing_native_headers_are_read_without_node_header_assumptions(tmp_pa
 
 @pytest.mark.parametrize("keyword", ["SET_SHELL_LIST_GENERATE", "SET_SOLID_GENERATE", "SET_BEAM_COLLECT"])
 def test_other_variants_remain_explicitly_unresolved(tmp_path, keyword):
+    pytest.importorskip("ansys.dyna.core")
     path = tmp_path / "variant.k"
     path.write_text(f"*KEYWORD\n*{keyword}\n41\n1,9\n*END\n")
     result = inspect_cards(path)
@@ -54,6 +58,7 @@ def test_other_variants_remain_explicitly_unresolved(tmp_path, keyword):
 
 @pytest.mark.parametrize("kind", ["shell", "solid", "beam"])
 def test_wrong_domain_and_duplicate_sid_reject_before_import(tmp_path, monkeypatch, kind):
+    pytest.importorskip("ansys.dyna.core")
     path = tmp_path / "before.k"
     fragment, _ = element_set_fragment(kind, 41, "Before", [10])
     path.write_text(fragment)
@@ -72,6 +77,7 @@ def test_wrong_domain_and_duplicate_sid_reject_before_import(tmp_path, monkeypat
 
 
 def test_adding_a_set_preserves_unrelated_element_sets(tmp_path):
+    pytest.importorskip("ansys.dyna.core")
     base, _ = element_set_fragment("shell", 1, "Existing", [101])
     new, attrs = element_set_fragment("solid", 1, "Added", [202])
     p = tmp_path / "before.k"

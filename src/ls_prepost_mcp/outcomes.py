@@ -1,6 +1,8 @@
 """Shared workflow-boundary outcome contract; execution and check verdicts are separate."""
 
-from dataclasses import asdict, dataclass
+from pydantic import ValidationError
+
+from .core.contracts import Artifact, CheckResult, JobResult
 
 CHECK_PATHS = {
     "check_gui_shell_quality": ("verification", "passed_checks"),
@@ -26,32 +28,51 @@ def result_value(result, path):
     return value
 
 
-@dataclass(frozen=True)
-class OperationOutcome:
-    action: str
-    execution_status: str
-    execution_accepted: bool
-    stage: str
-    check_status: str
-    check_path: tuple | None
-    backend: str | None
-    scope: str | None
-
-    def to_dict(self):
-        return asdict(self)
-
-
-def normalize_outcome(action, result):
-    """Project existing results without overwriting them or inferring physical validity."""
-    status = result.get("status") if isinstance(result, dict) else None
-    status = status if isinstance(status, str) else "missing_or_invalid"
+def normalize_outcome(action, result) -> JobResult:
+    """Convert legacy envelopes once at the operation boundary, not in gates."""
+    if isinstance(result, dict) and result.get("contract") == "JobResult/v1":
+        result = JobResult.model_validate(result)
+    if isinstance(result, JobResult):
+        job = JobResult.model_validate(result)
+        if job.operation != action:
+            raise ValueError("JobResult operation does not match dispatched action")
+        expected_stage = "preparation" if action in PREPARATION_ACTIONS else "execution"
+        if job.stage != expected_stage:
+            raise ValueError("JobResult stage does not match dispatched action")
+        if action in CHECK_PATHS and not any(check.name == "quality" for check in job.checks):
+            job = JobResult.model_validate(
+                {
+                    **job.model_dump(),
+                    "checks": (
+                        *job.checks,
+                        CheckResult(name="quality", status="missing", source_path=CHECK_PATHS[action]),
+                    ),
+                }
+            )
+        return job
+    raw = result if isinstance(result, dict) else {}
+    legacy_status = raw.get("status")
     prepared = action in PREPARATION_ACTIONS
+    status = (
+        legacy_status
+        if isinstance(legacy_status, str)
+        and legacy_status in {"succeeded", "failed", "partial", "unverified"}
+        else "unverified"
+    )
+    if prepared:
+        status = (
+            "succeeded"
+            if legacy_status == "prepared"
+            else "failed"
+            if legacy_status == "failed"
+            else "unverified"
+        )
     path = CHECK_PATHS.get(action)
-    check = "not_reported"
+    checks = []
     if path is not None:
         try:
-            value = result_value(result, path)
-            check = (
+            value = result_value(raw, path)
+            verdict = (
                 "passed"
                 if value is True
                 else "failed"
@@ -61,25 +82,75 @@ def normalize_outcome(action, result):
                 else "invalid"
             )
         except KeyError:
-            check = "missing"
+            verdict = "missing"
+        checks.append(CheckResult(name="quality", status=verdict, source_path=path))
 
     def metadata(name):
         for candidate in (("verification", name), ("data", name), (name,)):
             try:
-                value = result_value(result, candidate)
-                if isinstance(value, str):
+                value = result_value(raw, candidate)
+                if isinstance(value, str) and value.strip():
                     return value
             except KeyError:
                 pass
         return None
 
-    return OperationOutcome(
-        action,
-        status,
-        status == ("prepared" if prepared else "succeeded"),
-        "preparation" if prepared else "execution",
-        check,
-        path,
-        metadata("backend"),
-        metadata("scope"),
+    try:
+        artifacts = []
+        for artifact in raw.get("artifacts", []):
+            sha, size = artifact.get("sha256"), artifact.get("size")
+            artifacts.append(
+                Artifact(
+                    path=artifact["path"],
+                    kind=artifact.get("kind", "unknown"),
+                    sha256=sha,
+                    size_bytes=size,
+                    verification="verified"
+                    if artifact.get("validated") is True and sha is not None and size is not None
+                    else "unverified",
+                    metadata={
+                        key: value
+                        for key, value in artifact.items()
+                        if key not in {"path", "kind", "sha256", "size"}
+                    },
+                )
+            )
+        return JobResult(
+            operation=action,
+            status=status,
+            stage="preparation" if prepared else "execution",
+            job_id=raw.get("job_id"),
+            backend=metadata("backend"),
+            scope=metadata("scope"),
+            data={} if raw.get("data") is None else raw["data"],
+            artifacts=artifacts,
+            checks=checks,
+            warnings=raw.get("warnings", []),
+            error=raw.get("error"),
+            comparison_data=raw,
+        )
+    except (ValidationError, ValueError, TypeError, KeyError, AttributeError) as exc:
+        return JobResult(
+            operation=action,
+            status="unverified",
+            checks=checks,
+            comparison_data=raw,
+            warnings=["Legacy result does not satisfy JobResult"],
+            error=dict(type="LegacyContractError", message=str(exc)),
+        )
+
+
+def describe_outcome(result: JobResult):
+    """Keep the existing outcomes.json projection while gates use JobResult."""
+    legacy = result.comparison_data
+    status = result.status if legacy is None else legacy.get("status")
+    return dict(
+        action=result.operation,
+        execution_status=status if isinstance(status, str) else "missing_or_invalid",
+        execution_accepted=result.execution_accepted,
+        stage=result.stage,
+        check_status=result.check_status,
+        check_path=result.checks[0].source_path if result.checks else None,
+        backend=result.backend,
+        scope=result.scope,
     )

@@ -10,7 +10,9 @@ import math
 import re
 from pathlib import Path
 
+from .core.native_log import native_errors, read_delta
 from .jobs import atomic_json, check_artifact, fingerprint, now
+from .native import commands as nc
 from .native_results import stage
 from .program_bundle import (
     capture_dependencies,
@@ -20,14 +22,10 @@ from .program_bundle import (
     validate_script_references,
     write_dependencies,
 )
-from .runner import execute
+from .runner import execute, failure_message
 
 LANGUAGES = {"command": "cfile", "cfile": "cfile", "scl": "scl", "python": "py"}
 PLACEHOLDER = re.compile(r"\{\{([A-Za-z][A-Za-z0-9_]*)\}\}")
-NATIVE_ERROR = re.compile(
-    r"^\s*(?:\*+\s*)?(?:invalid(?:\s+[A-Za-z][\w-]*){0,3}\s+command\b|error while compiling\b|error occurred in parsing script\b|syntax error\b|runtime error\b)",
-    re.IGNORECASE,
-)
 RESERVED = {
     "program.cfile",
     "program.scl",
@@ -66,10 +64,6 @@ def numeric_parameters(values):
         ):
             raise ValueError("Macro parameters must be finite named numbers, not code or paths")
     return values
-
-
-def native_errors(text):
-    return [line.strip() for line in text.splitlines() if NATIVE_ERROR.search(line)][:30]
 
 
 def render(code, parameters):
@@ -189,7 +183,10 @@ class ProgramTools:
             "prepare_native_program", dict(language=language, parameters=params)
         )
         program = directory / ("program." + LANGUAGES[language])
-        program.write_text(rendered, encoding="utf8")
+        if language in ("command", "cfile"):
+            nc.write_cfile(program, rendered)
+        else:
+            program.write_text(rendered, encoding="utf8")
         if native_macro is not None:
             (directory / "source.mac").write_text(code, encoding="utf8")
             (directory / "bound.mac").write_text(bound_macro, encoding="utf8")
@@ -286,16 +283,16 @@ class ProgramTools:
             commands = ["new"]
             if source:
                 commands.append(
-                    'openc d3plot "d3plot"' if file_type == "d3plot" else 'open keyword "input_data"'
+                    nc.open_model("d3plot", "d3plot", openc=True) if file_type == "d3plot" else nc.open_model("input_data")
                 )
             if language in ("command", "cfile"):
                 commands.append(content.decode("utf8"))
             elif language == "scl":
-                commands.append("runscript program.scl")
+                commands.append(nc.run_script("program.scl", "scl"))
             else:
                 wrapper = python_wrapper(directory, [item["name"] for item, _ in captured])
                 (directory / "bootstrap.py").write_text(wrapper, encoding="utf8")
-                commands.append("runpython bootstrap.py")
+                commands.append(nc.run_script("bootstrap.py"))
             (directory / "complete.scl").write_text(
                 "/*LS-SCRIPT*/\ndefine:\nvoid main(void){\nFILE *fp;\nInt n,e,s;\n"
                 'n=SCLGetDataCenterInt("num_nodes");\ne=SCLGetDataCenterInt("num_elements");\n'
@@ -303,15 +300,15 @@ class ProgramTools:
                 'fprintf(fp,"%d %d %d\\n",n,e,s);\nfclose(fp);\n}\nmain();\n',
                 encoding="ascii",
             )
-            commands += ["runscript complete.scl", "exit"]
+            commands += [nc.run_script("complete.scl", "scl"), "exit"]
             command_file = directory / "commands.cfile"
-            command_file.write_text("\n".join(commands) + "\n", encoding="utf8")
+            nc.write_cfile(command_file, commands)
             manifest.update(status="running", started_at=now())
             atomic_json(directory / "job.json", manifest)
             process = execute(exe, command_file, directory, timeout=self.settings.timeout, graphics=graphics)
             manifest["process"] = process
-            if process["timed_out"] or process["returncode"] != 0:
-                raise RuntimeError("Native program process failed or timed out")
+            if process.get("engine_status") == "failed" or process["timed_out"] or process["returncode"] != 0:
+                raise RuntimeError(failure_message(process, "Native program process failed or timed out"))
             diagnostics = []
             for log in (directory / "lspost.msg", directory / "stdout.log", directory / "stderr.log"):
                 if log.exists():
@@ -394,9 +391,7 @@ class ProgramTools:
             if meta.get("managed_fringe") is not None:
                 meta["managed_fringe"]["status"] = "changed_by_raw_command"
             if log.exists():
-                with log.open("rb") as stream:
-                    stream.seek(offset)
-                    diagnostics = native_errors(stream.read().decode("utf8", errors="replace"))
+                diagnostics = native_errors(read_delta(log, offset, existed=True))
                 if diagnostics:
                     result.update(
                         status="failed",

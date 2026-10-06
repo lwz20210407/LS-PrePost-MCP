@@ -6,6 +6,7 @@ from importlib.metadata import version
 from pathlib import Path
 
 from .jobs import fingerprint
+from .native.versions import dependency_supported
 
 
 def ids(values, name, maximum=100000):
@@ -19,7 +20,7 @@ def ids(values, name, maximum=100000):
 def selected_database(path, states, fields):
     import numpy as np
     from lasso.dyna import D3plot
-    if version("lasso-python") != "2.0.4":
+    if not dependency_supported("lasso-python", version("lasso-python")):
         raise RuntimeError("Result layout is verified against LASSO 2.0.4")
     ids(states, "states", 10000)
     # Read only time metadata first, then only selected states/fields.

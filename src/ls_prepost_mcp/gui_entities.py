@@ -6,6 +6,7 @@ from pathlib import Path
 from pydantic import StrictInt
 
 from .config import command_path
+from .core.validation import integer
 from .deck_backend import api
 from .entity_cards import (
     DOFS,
@@ -64,7 +65,6 @@ class GuiEntityTools:
                               entity_ids: list[StrictInt] | None = None, selection_job: str | None = None,
                               mode: str = "create") -> dict:
         """Create native node/part/shell/solid/beam explicit-list sets from user IDs or a successful same-domain/session selection job (one source only). Reject stale models, empty/wrong-domain members and same-domain SID collisions. replace_members currently supports node/part only, preserving DA/solver/ITS; element-set replacement needs consumer impact analysis. Import a bounded keyword fragment in the visible GUI; verify cards, full mesh/state/display and unrelated cards. Max20000 members; no Generate/General/Add/Collect, Include, discrete/seatbelt or complete panel certification. Recorded result dependencies preserve selection-to-set replay."""
-        from .service import integer
 
         if entity_type not in ("node", "part", "shell", "solid", "beam"):
             raise ValueError("Entity set type must be node, part, shell, solid or beam")
@@ -162,7 +162,6 @@ class GuiEntityTools:
     def inspect_gui_entity_sets(self, session_id: str, entity_type: str,
                                 set_id: StrictInt | None = None, offset: StrictInt = 0, limit: StrictInt = 1000) -> dict:
         """Query native-export node/part/shell/solid/beam explicit-list or segment sets with titles/counts and domain-specific attributes; optional SID returns paged user IDs or oriented segment tuples. Temporary native export and scene checks preserve dirty/checkpoint ownership. Other variants are reported unresolved, never silently treated as empty or expanded."""
-        from .service import integer
 
         if entity_type not in ("node", "part", "segment", "shell", "solid", "beam"):
             raise ValueError("Set type must be node, part, shell, solid, beam or segment")
@@ -220,7 +219,6 @@ class GuiEntityTools:
                        node_set_id: StrictInt | None = None, node_ids: list[StrictInt] | None = None,
                        coordinate_system: StrictInt = 0) -> dict:
         """Create native SPC_SET or SPC_NODE_ID with explicit six binary DOFs [X,Y,Z,RX,RY,RZ] and coordinate-system ID (0=global). Exactly one node-set SID or explicit node-ID list. For node lists allocate consecutive constraint IDs starting at constraint_id in sorted node-ID order (one native card per node); return the mapping. Check targets, coordinate reference, all allocated IDs and overlapping SPC DOFs; unresolved SPC/motion cards reject. Verify native cards and unchanged mesh/display. No rigid/material/solver constraint compatibility, prescribed nonzero motion or arbitrary set expansion certification."""
-        from .service import integer
 
         integer(constraint_id, "constraint_id")
         integer(coordinate_system, "coordinate_system", 0)

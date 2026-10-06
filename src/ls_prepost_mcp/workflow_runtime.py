@@ -7,13 +7,12 @@ same route is used by the executor so a preview cannot choose a different API.
 import inspect
 import json
 from dataclasses import dataclass
-from pathlib import Path
 from typing import get_type_hints
 
 from pydantic import TypeAdapter
 
+from .operation_registry import WORKFLOW_ACTIONS, WORKFLOW_ALIASES, domain_for, resolve_operation
 from .outcomes import CHECK_PATHS
-from .sessions import NATIVE_ACTIONS
 
 
 @dataclass(frozen=True)
@@ -63,27 +62,21 @@ class OperationRoute:
 
 
 def operation_route(service, action, session_id):
-    from .workflows import GUI_ACTIONS, WORKFLOW_ACTIONS
-
     if action not in WORKFLOW_ACTIONS:
         raise ValueError("Unsupported workflow action")
-    if session_id and action in {"execute_native_program", "run_native_macro", "extract_native_binout_curve"}:
-        return OperationRoute(action, action, "session", ("session_id",))
-    aliases = {
-        "new_model": "reset_gui_session",
-        "open_model": "open_in_gui_session",
-        "checkpoint": "checkpoint_gui_session",
-    }
-    if action in aliases or action in GUI_ACTIONS:
+    if action in WORKFLOW_ALIASES:
         if not session_id:
             raise ValueError("Action requires a persistent GUI session")
-        return OperationRoute(action, aliases.get(action, action), "session", ("session_id",))
-    if action in NATIVE_ACTIONS and session_id:
-        implicit = ["model", "d3plot", "file_type"]
-        if action in {"extract_native_fields", "extract_native_stress"}:
-            implicit.append("path")
-        return OperationRoute(action, action, "session_native", tuple(implicit))
-    return OperationRoute(action, action, "service")
+        return OperationRoute(action, WORKFLOW_ALIASES[action], "session", ("session_id",))
+    record = resolve_operation(action)
+    if record.session_route == "session":
+        if not session_id:
+            raise ValueError("Action requires a persistent GUI session")
+        return OperationRoute(action, record.name, "session", record.implicit_arguments)
+    if session_id and record.session_route in ("native", "optional"):
+        return OperationRoute(action, record.name, "session_native" if record.session_route == "native" else "session",
+                              record.implicit_arguments)
+    return OperationRoute(action, record.name, "service")
 
 
 def bind_static(value, parameters, previous, dependencies, deferred, location):
@@ -177,10 +170,6 @@ def compile_workflow(service, workflow, parameters=None, session_id=None):
     except (ValueError, TypeError) as exc:
         error(exc)
         return report
-    plan = json.loads(
-        Path(__file__).with_name("data").joinpath("development_plan.json").read_text(encoding="utf8")
-    )
-    owners = {tool: module["id"] for module in plan["modules"] for tool in module["current_tools"]}
     previous = set()
     for step in steps:
         ident, action = step["id"], step["action"]
@@ -194,7 +183,7 @@ def compile_workflow(service, workflow, parameters=None, session_id=None):
         )
         try:
             route = operation_route(service, action, session_id)
-            entry.update(module=owners.get(route.method), route=route.kind, method=route.method)
+            entry.update(module=domain_for(route.method), route=route.kind, method=route.method)
             dependencies = set()
             arguments = bind_static(
                 step.get("arguments", {}), params, previous, dependencies, entry["deferred_bindings"], []

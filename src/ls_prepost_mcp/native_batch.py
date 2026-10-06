@@ -5,9 +5,10 @@ import shutil
 from pathlib import Path
 
 from .jobs import atomic_json, check_artifact, fingerprint, now
+from .native import commands as nc
 from .native_results import STRESS_KEYS
 from .post_backend import write_csv
-from .runner import execute
+from .runner import execute, failure_message
 from .stress import CONVENTIONS, NULLABLE, stress_metrics
 
 FIELDS = {
@@ -69,7 +70,7 @@ def read_native_xy(path):
     return rows
 
 
-def run_case(settings, jobs, source: Path, units: str):
+def run_case(settings, jobs, source: Path, units: str, *, renderer=None):
     directory, manifest = jobs.create("native_postprocess_case", {"source": str(source), "units": units})
     manifest.update(backend="lsprepost", executable=fingerprint(settings.native_executable()), checks=[])
     created_copies = []
@@ -88,7 +89,7 @@ def run_case(settings, jobs, source: Path, units: str):
             shutil.copyfile(p, target)
             created_copies.append(target)
         (directory / "extract.scl").write_text(batch_script(), encoding="ascii")
-        commands = ['new', 'openc d3plot "d3plot"', 'runscript extract.scl']
+        commands = ['new', nc.open_model("d3plot", "d3plot", openc=True), nc.run_script("extract.scl", "scl")]
         curves = []
         if (directory / "glstat").exists():
             for component in (1, 2):
@@ -119,12 +120,12 @@ def run_case(settings, jobs, source: Path, units: str):
                                  'xyplot 1 savefile xypair "%s.xy" 1 all' % name, 'deletewin 1']
                     curves.append(name)
         commands += ['exit']
-        (directory / "commands.cfile").write_text('\n'.join(commands)+'\n', encoding="ascii")
+        nc.write_cfile(directory / "commands.cfile", commands)
         result = execute(settings.native_executable(), directory / "commands.cfile", directory,
                          timeout=settings.timeout, graphics=False)
         manifest["process"] = result
-        if result["returncode"] != 0 or result["timed_out"]:
-            raise RuntimeError("Native batch process failed/timed out")
+        if result.get("engine_status") == "failed" or result["returncode"] != 0 or result["timed_out"]:
+            raise RuntimeError(failure_message(result, "Native batch process failed/timed out"))
         nodes, solids, shells, states = map(int, (directory / "inventory.txt").read_text().split())
         manifest["counts"] = dict(nodes=nodes, solids=solids, shells=shells, states=states)
         field_rows = {}
@@ -177,8 +178,9 @@ def run_case(settings, jobs, source: Path, units: str):
         try:
             # Native graphics has a different startup/cwd behavior. Use the
             # verified Python bridge in a separate owned job while staging lives.
-            from .service import Service
-            image_job = Service(settings).render_snapshot(str(directory/'d3plot'), 'd3plot', state=states, fringe_code=9)
+            if renderer is None:
+                raise ValueError("A native renderer callback is required")
+            image_job = renderer(str(directory/'d3plot'), 'd3plot', state=states, fringe_code=9)
             manifest['image_job_id'] = image_job['job_id']
             if image_job['status'] != 'succeeded':
                 raise ValueError(str(image_job.get('error')))

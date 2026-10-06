@@ -1,6 +1,5 @@
 """Typed operations shared by the MCP server, CLI and native smoke tests."""
 import json
-import math
 import os
 import re
 import subprocess
@@ -8,8 +7,10 @@ from pathlib import Path
 
 from pydantic import StrictInt
 
-from .config import Settings, command_path
+from .config import Settings
+from .core.validation import integer, numbers, unit_label
 from .dpf_tools import DpfTools
+from .engine.context import NativeContext
 from .engineering import EngineeringTools
 from .fringe_presentation import averaging_command
 from .gui_boundaries import GuiBoundaryTools
@@ -29,48 +30,35 @@ from .installation_assets import InstallationTools
 from .jobs import Jobs, atomic_json, check_artifact, fingerprint, now
 from .keyword_tools import KeywordTools
 from .mesh_tools import MeshTools
+from .native import commands as nc
+from .native.bundle import stage_bridge
+from .native.commands import VIEWS
+from .native.versions import profile, require_installation
 from .post_tools import PostTools
 from .pre_tools import PreTools
 from .programs import ProgramTools
 from .results import lasso_vectors, open_binout
-from .runner import decode, execute
+from .runner import decode, execute, failure_message
 from .sessions import SessionTools
 from .workflow_sweeps import WorkflowSweepTools
 from .workflows import WorkflowTools
-
-VIEWS = {"isometric": "isometric x", "top": "top", "bottom": "bottom", "front": "front",
-         "back": "back", "left": "left", "right": "right"}
-
-
-def integer(value: int, name: str, minimum: int = 1, maximum: int = 2_000_000_000) -> int:
-    if isinstance(value, bool) or not isinstance(value, int) or not minimum <= value <= maximum:
-        raise ValueError(f"{name} must be an integer in {minimum}..{maximum}")
-    return value
-
-
-def numbers(values, length: int, name: str, positive: bool = False) -> list[float]:
-    if len(values) != length:
-        raise ValueError(f"{name} requires {length} numbers")
-    converted = [float(v) for v in values]
-    if not all(math.isfinite(v) and (not positive or v > 0) for v in converted):
-        raise ValueError(f"Invalid {name}")
-    return converted
-
-
-def unit_label(units: str) -> str:
-    if not isinstance(units, str) or not units.strip() or len(units) > 100:
-        raise ValueError("An explicit unit-system label is required; no units are inferred")
-    return units.strip()
 
 
 class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools):
     def __init__(self, settings: Settings):
         self.settings = settings
         self.jobs = Jobs(settings.workspace)
+        self._native_context = NativeContext()
 
     def _native(self, action: str, parameters: dict, model: str | None = None,
                 file_type: str = "keyword", graphics: bool = False,
                 artifacts: tuple[tuple[str, str], ...] = (), export: bool = False) -> dict:
+        executor = self._native_context.executor
+        if executor is not None:
+            if model is not None:
+                raise ValueError("Session operations cannot load a batch input")
+            return executor(action=action, parameters=parameters, file_type=file_type,
+                            artifacts=artifacts, export=export)
         exe = self.settings.native_executable()
         if file_type not in ("keyword", "d3plot"):
             raise ValueError("file_type must be keyword or d3plot")
@@ -90,7 +78,7 @@ class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools
         atomic_json(directory / "request.json", request)
         if source:
             manifest["input"] = fingerprint(source)
-        bridge = Path(__file__).with_name("embedded.py").resolve()
+        bridge = stage_bridge(directory)
         bootstrap = directory / "bootstrap.py"
         bootstrap.write_text("import os, runpy\nos.chdir(" + repr(str(directory)) + ")\n"
                              "bridge = runpy.run_path(" + repr(str(bridge)) + ")\n"
@@ -98,31 +86,30 @@ class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools
                              + repr(str(directory / "response.json")) + ")\n", encoding="utf-8")
         commands = ["new"]
         if source and action == "scl_probe":
-            opener = "openc" if file_type == "d3plot" else "open"
-            commands.append(f"{opener} {file_type} {command_path(source)}")
+            commands.append(nc.open_model(source, file_type, openc=file_type == "d3plot"))
         if action == "scl_probe":
             script = directory / "probe.scl"
             script.write_text('/*LS-SCRIPT*/\ndefine:\nvoid main(void)\n{\nInt n;\nFILE *fp;\n'
                               'n = SCLGetDataCenterInt("num_nodes");\n'
                               'fp = fopen("scl_nodes.txt", "w");\nfprintf(fp, "%d\\n", n);\n'
                               'fclose(fp);\n}\nmain();\n', encoding="ascii")
-            commands.append("runscript probe.scl")
+            commands.append(nc.run_script("probe.scl", "scl"))
         if action != "scl_probe":
-            commands.append("runpython " + command_path(bootstrap))
+            commands.append(nc.run_script(bootstrap))
         if export:
             # Some Windows builds prepend a temporary basename and cannot save
             # an absolute drive path. The bootstrap pins cwd to this owned job.
-            commands.append('save keyword "model.k"')
+            commands.append(nc.save_keyword("model.k"))
         commands.append("exit")
         cfile = directory / "commands.cfile"
-        cfile.write_text("\n".join(commands) + "\n", encoding="utf-8")
+        nc.write_cfile(cfile, commands)
         manifest.update(status="running", started_at=now(), execution_mode="graphics" if graphics else "nographics")
         atomic_json(directory / "job.json", manifest)
         try:
             process = execute(exe, cfile, directory, timeout=self.settings.timeout, graphics=graphics)
             manifest["process"] = process
-            if process["timed_out"] or process["returncode"] != 0:
-                raise RuntimeError(f"LS-PrePost process failed: returncode={process['returncode']}, timeout={process['timed_out']}")
+            if process.get("engine_status") == "failed" or process["timed_out"] or process["returncode"] != 0:
+                raise RuntimeError(failure_message(process, f"LS-PrePost process failed: returncode={process['returncode']}, timeout={process['timed_out']}"))
             reply_path = directory / "response.json"
             if action == "scl_probe":
                 count = int((directory / "scl_nodes.txt").read_text().strip())
@@ -162,6 +149,7 @@ class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools
         """List configured executables only; file existence is not a compatibility test."""
         return {"default": str(self.settings.executable) if self.settings.executable else None,
                 "profiles": [{"version": k, "executable": str(v), "exists": v.is_file(),
+                              "capabilities": profile(v),
                               "verification": "Call an explicit probe; existence does not prove compatibility"}
                              for k, v in self.settings.profiles.items()]}
 
@@ -175,6 +163,7 @@ class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools
                    "create_solid_box", "translate_mesh_nodes", "move_elements_to_part", "extrude_shell_part",
                    "rotate_mesh_nodes", "create_solid_sphere", "native_tensile_postprocess", "native_energy_postprocess",
                    "execute_native_program", "run_native_macro"}
+        require_installation(version=version)
         if version not in self.settings.profiles:
             raise ValueError("Unknown installation profile")
         if action not in allowed:

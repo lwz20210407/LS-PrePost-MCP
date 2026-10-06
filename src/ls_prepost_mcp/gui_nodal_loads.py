@@ -6,6 +6,7 @@ from pydantic import StrictFloat, StrictInt
 
 from .boundary_cards import inspect_boundary_cards, verify_boundary_delta
 from .config import command_path
+from .core.validation import integer
 from .deck_backend import api
 from .entity_cards import check_motion_conflicts, inspect_cards, set_members
 from .gui_boundaries import require_unit
@@ -36,7 +37,6 @@ class GuiNodalLoadTools:
         allow_superposition: bool = False,
     ) -> dict:
         """Create native LOAD_NODE_POINT/SET with a new or existing curve. Choose global x/y/z force or rx/ry/rz moment and explicit units. distribution='per_node' applies curve*scale to EACH node (SET stays linked); 'total_equal' divides by current membership and writes POINT records, freezing nodes so later set edits cannot change total. Exactly one node_set_id/node_ids/selection_job. Overlapping global same-DOF nodal loads require allow_superposition; local/follower ambiguity rejects. Existing prescribed motion/SPC is reported, not silently removed. No solver, rigid/follower/local frames or rotational eligibility certification. Native import/save, mesh/display/card verification and recording replay included."""
-        from .service import integer
 
         integer(curve_id, "curve_id")
         if axis not in LOAD_AXES or distribution not in ("per_node", "total_equal"):

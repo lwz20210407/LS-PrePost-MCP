@@ -1,9 +1,9 @@
 """Finite native Binout reads in the current GUI, independent of displayed model."""
 
-from .config import scl_command_path
+from .core.native_log import native_errors, read_delta
 from .jobs import atomic_json
 from .model_context import LOAD_ERROR
-from .programs import native_errors
+from .native import commands as nc
 
 
 def binout_executor(service, session_id):
@@ -24,7 +24,7 @@ def binout_executor(service, session_id):
                 session_id,
                 "inspect_model",
                 dict(include_display_scope=True),
-                native_commands=["runscript " + scl_command_path(directory / "binout.scl")],
+                native_commands=[nc.run_script(directory / "binout.scl", "scl")],
             )
             manifest["native_request"] = {k: v for k, v in result.items() if k != "data"}
             if result["status"] != "succeeded":
@@ -45,9 +45,7 @@ def binout_executor(service, session_id):
                     manager.save(session_id, current)
                     raise ValueError("Binout read changed or could not verify GUI " + key)
             if log.exists():
-                with log.open("rb") as f:
-                    f.seek(offset)
-                    text = f.read().decode("utf8", errors="replace")
+                text = read_delta(log, offset, existed=True)
                 (directory / "native-binout.log").write_text(text, encoding="utf8")
                 if native_errors(text) or any(LOAD_ERROR.search(line) for line in text.splitlines()):
                     raise ValueError("Native Binout log reports an error")

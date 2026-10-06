@@ -4,8 +4,8 @@ import json
 import uuid
 from pathlib import Path
 
-from .config import command_path, scl_command_path
 from .jobs import atomic_json, check_artifact, now
+from .native import commands as nc
 from .program_bundle import checked_dependencies, identity, python_wrapper, write_dependencies
 
 
@@ -20,7 +20,7 @@ def context_directory(value):
 
 def execute_prepared(service, sid, prepared_id, expected_hash, contract, content, dependencies,
                      *, journal_action="execute_native_program", journal_parameters=None):
-    from .programs import native_errors
+    from .core.native_log import native_errors, read_delta
 
     manager = service._session_manager()
     if identity(content, contract) != expected_hash:
@@ -53,15 +53,15 @@ def execute_prepared(service, sid, prepared_id, expected_hash, contract, content
         atomic_json(directory / "before.json", before["data"])
         cwd = directory / "cwd.py"
         cwd.write_text("import os\nos.chdir(" + repr(str(directory)) + ")\n", encoding="utf8")
-        commands = ["runpython " + command_path(cwd)]
+        commands = [nc.run_script(cwd)]
         if contract["language"] in ("command", "cfile"):
-            commands.append("openc command " + command_path(directory / contract["program"]) + " nodialog")
+            commands.append(nc.run_script(directory / contract["program"], "cfile"))
         elif contract["language"] == "scl":
-            commands.append("runscript " + scl_command_path(directory / contract["program"]))
+            commands.append(nc.run_script(directory / contract["program"], "scl"))
         else:
             wrapper = directory / "gui-python.py"
             wrapper.write_text(python_wrapper(directory, [item["name"] for item, _ in dependencies]), encoding="utf8")
-            commands.append("runpython " + command_path(wrapper))
+            commands.append(nc.run_script(wrapper))
         atomic_json(directory / "commands.json", commands)
         log = manager.directory(sid) / "lspost.msg"
         offset = log.stat().st_size if log.exists() else 0
@@ -76,9 +76,7 @@ def execute_prepared(service, sid, prepared_id, expected_hash, contract, content
                 raise ValueError("Program replaced the current model context; use dedicated open/reset tools")
             diagnostics = []
             if log.exists():
-                with log.open("rb") as stream:
-                    stream.seek(offset)
-                    text = stream.read().decode("utf8", errors="replace")
+                text = read_delta(log, offset, existed=True)
                 (directory / "native.log").write_text(text, encoding="utf8")
                 diagnostics = native_errors(text)
             if diagnostics:

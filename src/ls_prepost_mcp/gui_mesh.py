@@ -8,7 +8,9 @@ import numpy as np
 from pydantic import StrictFloat, StrictInt
 
 from .config import command_path
+from .core.validation import integer, numbers, unit_label
 from .jobs import atomic_json, check_artifact
+from .native import commands as nc
 
 
 class ReadOnlyScopeMismatch(ValueError):
@@ -277,7 +279,6 @@ class GuiMeshTools:
     ) -> dict:
         """Read the current GUI mesh and calculate explicit geometric quality metrics. This is native readback plus geometry math, not LS-PrePost's complete Model Checking panel."""
         from .mesh_quality import quality
-        from .service import unit_label
 
         unit_label(units)
         if (
@@ -461,15 +462,14 @@ class GuiMeshTools:
 
     def merge_gui_duplicate_nodes(self, session_id: str, tolerance: float, units: str) -> dict:
         """Native Duplicate Nodes in the same visible GUI; keep lower ID/coordinates, disable element cleanup, verify remapping and preserve a checkpoint. Does not certify all keyword references."""
-        from .service import unit_label
 
         unit_label(units)
         if not math.isfinite(tolerance) or tolerance <= 0:
             raise ValueError("Positive finite merge tolerance required")
         commands = [
             "pall",
-            "genselect clear",
-            "genselect target node",
+            nc.selection('clear'),
+            nc.selection_target('node'),
             "dupnode open 1",
             "dupnode keepnode 1",
             "dupnode keepcenter off",
@@ -502,7 +502,6 @@ class GuiMeshTools:
     ) -> dict:
         """Reverse all or explicit shell normals through native GUI commands; verify reversed connectivity and preserve every unselected element. Native material/coordinate semantics remain separate review scope."""
         from .post_backend import ids
-        from .service import unit_label
 
         unit_label(units)
         if shell_ids is not None:
@@ -510,15 +509,15 @@ class GuiMeshTools:
         selected = None if shell_ids is None else set(shell_ids)
         commands = [
             "pall",
-            "genselect clear",
-            "genselect target shell",
+            nc.selection('clear'),
+            nc.selection_target('shell'),
         ]
         commands += (
-            ["genselect whole"]
+            [nc.selection('whole')]
             if selected is None
-            else ["genselect shell add shell %d" % uid for uid in sorted(selected)]
+            else [nc.selection_add('shell', uid, 'shell') for uid in sorted(selected)]
         )
-        commands += ["normal reverse", "genselect clear"]
+        commands += ["normal reverse", nc.selection('clear')]
 
         def precheck(state):
             if "mesh_digest" in state:
@@ -547,18 +546,17 @@ class GuiMeshTools:
     ) -> dict:
         """Translate explicit nodes through the same visible GUI native command stream; read back selected/unselected coordinates and preserve a pre-edit checkpoint."""
         from .post_backend import ids
-        from .service import numbers, unit_label
 
         ids(node_ids, "node_ids", 10000)
         offset = numbers(offset, 3, "offset")
         unit_label(units)
         selected = set(node_ids)
-        commands = ["pall", "genselect clear", "genselect target node", "genselect transfer 0"]
-        commands += ["genselect node add node %d" % uid for uid in node_ids]
+        commands = ["pall", nc.selection('clear'), nc.selection_target('node'), nc.selection_transfer(0)]
+        commands += [nc.selection_add('node', uid, 'node') for uid in node_ids]
         commands += [
             "translate_model " + " ".join(map(str, offset)),
             "translate_model accept",
-            "genselect clear",
+            nc.selection('clear'),
         ]
 
         def precheck(state):
@@ -580,7 +578,6 @@ class GuiMeshTools:
     ) -> dict:
         """Rotate selected nodes around a global axis through a center in the same visible GUI; verifies all coordinates and topology, with a checkpoint before editing."""
         from .post_backend import ids
-        from .service import numbers, unit_label
 
         ids(node_ids, "node_ids", 10000)
         if axis not in ("x", "y", "z"):
@@ -602,12 +599,12 @@ class GuiMeshTools:
             )
             return result + center
 
-        commands = ["pall", "genselect clear", "genselect target node", "genselect transfer 0"]
-        commands += ["genselect node add node %d" % uid for uid in node_ids]
+        commands = ["pall", nc.selection('clear'), nc.selection_target('node'), nc.selection_transfer(0)]
+        commands += [nc.selection_add('node', uid, 'node') for uid in node_ids]
         commands += [
             "rotate_model " + " ".join(map(str, center)) + " %s %s" % (axis, angle),
             "rotate_model accept 0 0 0",
-            "genselect clear",
+            nc.selection('clear'),
         ]
 
         def precheck(state):
@@ -626,7 +623,6 @@ class GuiMeshTools:
 
     def create_gui_nodes(self, session_id: str, nodes: list[dict], units: str) -> dict:
         """Create explicit user-ID nodes by importing a generated NODE fragment into the same visible GUI; existing coordinates/connectivity remain verified unchanged."""
-        from .service import integer, numbers, unit_label
 
         unit_label(units)
         if not isinstance(nodes, list) or not 1 <= len(nodes) <= 1000:
@@ -676,7 +672,6 @@ class GuiMeshTools:
         """Import explicit tri/quad shells or hex8 solids into an existing native GUI part. Check coordinates, connectivity, IDs and nondegenerate geometry; no material/section inference."""
         from .mesh_quality import element_metrics
         from .post_backend import ids
-        from .service import integer, unit_label
 
         unit_label(units)
         integer(part_id, "part_id")

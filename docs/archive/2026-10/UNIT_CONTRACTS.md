@@ -40,6 +40,6 @@
 
 ## 完整工程配方
 
-[declared_unit_tensile.json](../examples/workflows/declared_unit_tensile.json) 将力曲线统一到 N/s，将两条位移曲线统一到 mm/s 后相减，再按显式 mm² 面积、mm 标距和符号构造工程应力/应变及外功。它不自动辨认载荷方向、真实截面变化或颈缩。
+[declared_unit_tensile.json](../../../examples/workflows/declared_unit_tensile.json) 将力曲线统一到 N/s，将两条位移曲线统一到 mm/s 后相减，再按显式 mm² 面积、mm 标距和符号构造工程应力/应变及外功。它不自动辨认载荷方向、真实截面变化或颈缩。
 
 `tools/run_engineering_unit_acceptance.py --workspace <output>` 使用新生成的合成 CSV，跑通 kN/ms 力、cm/s 移动端和 mm/ms 参考端的混合输入；应力、应变和 1.8 J 功与解析真值一致。将力误标为 MPa 时，工作流在转换步骤停止。原输入字节保持不变。该验收在 CI 运行，不启动 LS-PrePost，不构成原生软件或真实材料响应认证。

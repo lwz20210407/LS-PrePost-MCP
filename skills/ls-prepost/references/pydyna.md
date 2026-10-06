@@ -1,6 +1,6 @@
 # Version-aligned PyDYNA routing
 
-The supported dependency is 0.12.1. The website's six entry cards are documentation sections, not six functional modules. Review [integration analysis](../../../docs/PYDYNA_INTEGRATION.md) for source/version findings and incomplete workflows.
+The supported dependency is 0.12.1. The website's six entry cards are documentation sections, not six functional modules. Review [integration analysis](../../../docs/archive/2026-10/PYDYNA_INTEGRATION.md) for source/version findings and incomplete workflows.
 
 Use `describe_pydyna_keyword` to inspect a real class. `compose_keyword_deck` takes `cards=[{class_name, fields, options?}]`; tables are lists of column/value objects, series are flat lists. Do not pass raw scripts or copied tutorial text. Unknown names are errors, including the `elfrom` typo found in some upstream examples. Use `elform` only where the schema actually exposes it.
 

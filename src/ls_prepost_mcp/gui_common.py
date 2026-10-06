@@ -8,13 +8,14 @@ from pathlib import Path
 import numpy as np
 from pydantic import StrictInt
 
-from .config import command_path
+from .core.native_log import native_errors, read_delta
+from .core.validation import unit_label
 from .gui_controls import wait_for_gui_state
 from .gui_mesh import ReadOnlyScopeMismatch, verify_mesh_digest
 from .gui_selection import part_visibility
 from .jobs import atomic_json, check_artifact
+from .native import commands as nc
 from .post_backend import ids
-from .programs import native_errors
 
 COUNTS = {"distance": 2, "height": 2, "angle3": 3, "angle4": 4, "circle3": 3}
 
@@ -75,7 +76,6 @@ class GuiCommonTools:
     def measure_gui_geometry(self, session_id: str, measurement: str, node_ids: list[StrictInt], units: str,
                              axis: str = "z", state: StrictInt | None = None, capture: bool = False) -> dict:
         """Native common pre/post coordinate/distance/axis-height/3-node or 4-node angle/3-node circle query. Keyword uses reference geometry; d3plot requires explicit state and uses native state coordinates. Global axes0 and scale1 requested; numeric output is independently checked. Native measurement/Identify overlays remain; optional PNG. Targets the active managed model. Projected angle values are not interpreted; full F4/F5 panels remain broader."""
-        from .service import unit_label
 
         unit_label(units)
         if measurement not in {*COUNTS, "coordinates"} or axis not in "xyz" or len(axis) != 1:
@@ -97,7 +97,7 @@ class GuiCommonTools:
                 raise ValueError("Keyword geometry has reference coordinates; omit state")
             if state is not None:
                 settled, _ = wait_for_gui_state(manager, session_id, state, self.settings.timeout,
-                                                native_commands=["anim stop", "state %d" % state])
+                                                native_commands=[nc.animation('stop'), nc.state(state)])
                 if settled["status"] != "succeeded":
                     return settled
             baseline = manager.dispatch(session_id, "gui_mesh_digest", {})
@@ -140,9 +140,7 @@ class GuiCommonTools:
                     if (part_visibility(baseline["data"]) != part_visibility(after["data"]) or
                             baseline["data"]["current_state"] != after["data"]["current_state"]):
                         raise ReadOnlyScopeMismatch("Measurement changed native state/part visibility")
-                    with log.open("rb") as stream:
-                        stream.seek(offset)
-                        text = stream.read().decode("utf8", errors="replace")
+                    text = read_delta(log, offset, existed=True)
                     (directory/"native.log").write_text(text, encoding="utf8")
                     if native_errors(text):
                         raise ValueError("Native measurement reported command errors")
@@ -156,7 +154,7 @@ class GuiCommonTools:
                                     verification="Native numeric query plus independent coordinate geometry; complete reference mesh preserved")
                     if capture:
                         image = manager.dispatch(session_id, "inspect_model", {}, native_commands=[
-                            "print png "+command_path(directory/"measurement.png")+' opaque enlisted "OGL1x1"'])
+                            nc.print_png(directory/"measurement.png")])
                         if image["status"] != "succeeded":
                             raise ValueError("Native measurement image failed")
                         result["artifacts"].append(check_artifact(directory/"measurement.png", "png"))

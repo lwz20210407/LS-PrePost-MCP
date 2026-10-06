@@ -14,6 +14,7 @@ from .gui_selection import part_visibility
 from .gui_visibility import CODES, flags, transitions
 from .jobs import atomic_json, check_artifact, now
 from .media_validation import movie_validators, validate_mp4
+from .native import commands as nc
 from .post_backend import ids
 
 
@@ -62,7 +63,7 @@ def export_field_movie(service, sid, states, color_range, fps, width, height):
         domain = definition["domain"]
         if domain not in ("solid", "shell") or definition.get("validity_policy") != "alive":
             raise ValueError("Per-state field movies require a verified physical solid/shell fringe")
-        baseline = manager.dispatch(sid, "gui_mesh_digest", {}, native_commands=["anim stop"])
+        baseline = manager.dispatch(sid, "gui_mesh_digest", {}, native_commands=[nc.animation('stop')])
         if baseline["status"] != "succeeded":
             return baseline
         before = baseline["data"]
@@ -107,7 +108,7 @@ def export_field_movie(service, sid, states, color_range, fps, width, height):
                 # selected parts, not the current static Blank subset. Reset on
                 # every frame so late-state deletion never leaks to earlier frames.
                 ready, _ = wait_for_gui_state(manager, sid, state, service.settings.timeout,
-                    native_commands=["anim stop", "state %d" % state, "unblank all %d" % CODES[domain], "genselect clear"])
+                    native_commands=[nc.animation('stop'), nc.state(state), "unblank all %d" % CODES[domain], nc.selection('clear')])
                 checked(ready)
                 rendered = render(state, color_range)
                 png = Path(rendered["job_directory"]) / "fringe.png"
@@ -136,7 +137,7 @@ def export_field_movie(service, sid, states, color_range, fps, width, height):
         finally:
             try:
                 checked(wait_for_gui_state(manager, sid, original, service.settings.timeout,
-                    native_commands=["anim stop", "state %d" % original])[0])
+                    native_commands=[nc.animation('stop'), nc.state(original)])[0])
                 if old_flags is not None:
                     visible = checked(manager.dispatch(sid, "gui_mesh_digest", dict(visibility_readback=True), native_commands=reveal))
                     current_flags = flags(visible["data"], visible["job_directory"])
@@ -144,7 +145,7 @@ def export_field_movie(service, sid, states, color_range, fps, width, height):
                         native_commands=transitions(domain, current_flags, old_flags)))
                     if flags(restored["data"], restored["job_directory"]) != old_flags:
                         raise ValueError("Original native Blank flags could not be restored")
-                checked(manager.dispatch(sid, "inspect_model", {}, native_commands=restore_parts + ["genselect clear"]))
+                checked(manager.dispatch(sid, "inspect_model", {}, native_commands=restore_parts + [nc.selection('clear')]))
                 restoration = render(original, managed["color_range"])
                 after = checked(manager.dispatch(sid, "gui_mesh_digest", {}))["data"]
                 verify_mesh_digest(before, after)

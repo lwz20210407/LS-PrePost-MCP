@@ -4,18 +4,17 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .native.commands import quoted_path
+from .native.versions import require_installation
+
 
 def command_path(path: Path) -> str:
-    value = path.as_posix()
-    if any(c in value for c in '\"\r\n\x00'):
-        raise ValueError("Path contains characters unsupported by the command-file grammar")
-    return '"' + value + '"'
+    return quoted_path(path, "posix")
 
 
 def scl_command_path(path: Path) -> str:
     """Native Windows SCL resolves slash-style drive paths against its open-folder preference."""
-    command_path(path)  # Shared quoting/control-character validation.
-    return '"' + str(path) + '"'
+    return quoted_path(path, "native")
 
 
 @dataclass(frozen=True)
@@ -64,6 +63,7 @@ class Settings:
     def native_executable(self) -> Path:
         if self.executable is None or not self.executable.is_file():
             raise ValueError("LSPP_EXECUTABLE must point to an installed LS-PrePost executable")
+        require_installation(self.executable)
         return self.executable
 
     def check_keyword_includes(self, path: Path, seen: set[Path] | None = None) -> None:

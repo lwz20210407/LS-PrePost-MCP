@@ -4,12 +4,12 @@ import json
 import re
 import shutil
 
-from .config import scl_command_path
 from .field_contracts import ELEMENT_SCALARS, FieldSpec, ResultSelection, SamplingSpec
 from .jobs import atomic_json, fingerprint, now
+from .native import commands as nc
 from .post_backend import ids, write_csv
 from .result_validity import load_physical_validity, reject_adaptive_family, scalar_statistics, validity_scope
-from .runner import execute
+from .runner import execute, failure_message
 from .stress import CONVENTIONS, NULLABLE, native_mises_matches, stress_metrics
 
 STRESS_KEYS = ["stress_x", "stress_y", "stress_z", "stress_xy", "stress_yz", "stress_zx"]
@@ -53,8 +53,8 @@ def finish_native(settings, jobs, action, parameters, source, build, parse, fami
             process = execute(settings.native_executable(), directory / "commands.cfile", directory,
                               timeout=settings.timeout, graphics=False)
             manifest["process"] = process
-            if process["returncode"] != 0 or process["timed_out"]:
-                raise RuntimeError("Native result export failed or timed out")
+            if process.get("engine_status") == "failed" or process["returncode"] != 0 or process["timed_out"]:
+                raise RuntimeError(failure_message(process, "Native result export failed or timed out"))
         data, artifacts = parse(directory)
         if [fingerprint(p) for p in sources] != before:
             raise ValueError("Original inputs changed during native export")
@@ -130,8 +130,8 @@ def native_fields(settings, jobs, source, domain, entity_ids, states, fields, in
             atomic_json(directory / "physical-validity.json", validity["report"])
         output = directory / "native.csv" if in_memory else "native.csv"
         (directory / "extract.scl").write_text(field_script(domain, entity_ids, states, fields, ipt, output), encoding="utf8")
-        commands = ('runscript ' + scl_command_path(directory / "extract.scl") + '\n') if in_memory else 'new\nopenc d3plot "d3plot"\nrunscript extract.scl\nexit\n'
-        (directory / "commands.cfile").write_text(commands, encoding="utf8")
+        commands = [nc.run_script(directory / "extract.scl", "scl")] if in_memory else ["new", nc.open_model("d3plot", "d3plot", openc=True), nc.run_script("extract.scl", "scl"), "exit"]
+        nc.write_cfile(directory / "commands.cfile", commands)
         return validity.get("report")
     def parse(directory):
         with (directory / "native.csv").open(newline="", encoding="utf8") as f:
@@ -201,7 +201,7 @@ def native_ascii(settings, jobs, source, database, component, entity_id, units):
     def build(directory):
         selector = str(component) + (" " + str(entity_id) if entity_id is not None else "")
         commands = 'new\nascii %s open "input_data" 0\nascii %s plot %s\nxyplot 1 savefile xypair "curve.xy" 1 all\nexit\n' % (database, database, selector)
-        (directory / "commands.cfile").write_text(commands, encoding="ascii")
+        nc.write_cfile(directory / "commands.cfile", commands)
     def parse(directory):
         rows = []
         with (directory / "curve.xy").open(encoding="utf8", errors="replace") as f:
@@ -259,7 +259,7 @@ def native_binout(settings, jobs, source, branch, quantity, entity_id, units, ex
                    'fclose(fp);\nSCLBinoutClose(h);\nfree(t);\nfree(v);\n}\nmain();\n') % (
                        enum, enum, quantity_enum, json.dumps((directory/'native.csv').as_posix()))
         (directory/'binout.scl').write_text(script, encoding='ascii')
-        (directory/'commands.cfile').write_text('new\nrunscript binout.scl\nexit\n', encoding='ascii')
+        nc.write_cfile(directory/'commands.cfile', ["new", nc.run_script("binout.scl", "scl"), "exit"])
     def parse(directory):
         import math
 

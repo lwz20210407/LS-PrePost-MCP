@@ -6,6 +6,7 @@ from .gui_mesh import verify_mesh_digest
 from .gui_selection import part_visibility
 from .gui_visibility import flags, transitions
 from .jobs import atomic_json
+from .native import commands as nc
 from .result_validity import load_physical_validity, reject_adaptive_family
 
 
@@ -38,7 +39,7 @@ def physical_fringe_scope(service, manager, session_id, meta, domain, state, tim
     physical.check_time(state, time_value)
     original_parts = part_visibility(before)
     reveal = ["+m " + pid for pid, active in original_parts.items() if not active]
-    restore = ["-m " + pid for pid, active in original_parts.items() if not active] + ["genselect clear"]
+    restore = ["-m " + pid for pid, active in original_parts.items() if not active] + [nc.selection('clear')]
     report = physical.describe(physical.user_ids.tolist(), [state])
     atomic_json(directory / "physical-validity.json", report)
     try:

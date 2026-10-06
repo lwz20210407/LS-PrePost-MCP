@@ -6,8 +6,11 @@ from pathlib import Path
 
 from pydantic import StrictFloat
 
+from .core.validation import integer, numbers
 from .fringe_presentation import averaging_command
 from .jobs import atomic_json
+from .native import commands as nc
+from .native.commands import VIEWS
 
 
 def camera_commands(zoom_scale=None, pan_xy=None, rotation_xyz_degrees=None):
@@ -84,7 +87,6 @@ class GuiControls:
         rotation_xyz_degrees: list[StrictFloat] | None = None,
     ) -> dict:
         """Set native GUI view/display/projection/overlays/state/fringe; optionally capture PNG. zoom_scale and pan_xy are ABSOLUTE native view settings, not multipliers/deltas or model-coordinate edits. Incremental global X/Y/Z view rotations run in that order, before optional center-fit; zoom/pan follow fit. Last nonzero rotation step remains in native toolbar settings. Preserve model/result titles unless explicitly toggled. Defaults retain the current camera."""
-        from .service import VIEWS, integer, numbers
 
         rotations, after_fit = camera_commands(zoom_scale, pan_xy, rotation_xyz_degrees)
         commands = []
@@ -133,7 +135,7 @@ class GuiControls:
             integer(fringe_code, "fringe_code", 1, 9999)
             if manager.read(session_id)["model_kind"] != "d3plot":
                 raise ValueError("Fringe requires a result session")
-            commands += ["fringe " + str(fringe_code), "pfringe"]
+            commands += [nc.fringe(fringe_code), nc.plot_fringe()]
         commands.extend(rotations)
         if center:
             commands.append("ac")
@@ -151,7 +153,7 @@ class GuiControls:
                 "gui_display",
                 p,
                 artifacts=(("snapshot.png", "png"),) if p["capture"] else (),
-                native_commands=["anim stop", "state %d" % state] if state is not None else (),
+                native_commands=[nc.animation('stop'), nc.state(state)] if state is not None else (),
             )
             if state is not None and result["status"] == "succeeded":
                 initial_request = result["job_directory"]
@@ -230,7 +232,6 @@ class GuiControls:
         direction: str = "forward",
     ) -> dict:
         """Start/stop native animation with explicit bounds and direction in a persistent result session."""
-        from .service import integer
 
         if operation not in ("start", "stop") or direction not in ("forward", "backward", "cycle"):
             raise ValueError("Invalid animation operation/direction")

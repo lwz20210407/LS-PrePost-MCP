@@ -3,11 +3,13 @@
 import math
 import re
 
+from .core.native_log import native_errors, read_delta
+from .core.validation import unit_label
 from .field_contracts import EntitySelection
 from .gui_mesh import check_same_nodes, check_same_parts, mesh_index
 from .gui_selection import available_ids, part_visibility
 from .jobs import atomic_json, check_artifact
-from .programs import native_errors
+from .native import commands as nc
 from .windows_transport import WindowsCommandTransport
 
 # Observed from 4.13.4 Model Checking / Solid / Check command recordings.
@@ -61,7 +63,6 @@ def verified_failed_ids(values, count, registry):
 
 
 def check_solids(service, session_id, checks, units, capture_failed_ids=False):
-    from .service import unit_label
 
     unit_label(units)
     if type(capture_failed_ids) is not bool:
@@ -127,9 +128,9 @@ def check_solids(service, session_id, checks, units, capture_failed_ids=False):
                 "inspect_model",
                 {},
                 native_commands=[
-                    "genselect clear",
-                    "genselect target element",
-                    "genselect save 0",
+                    nc.selection('clear'),
+                    nc.selection_target('element'),
+                    nc.selection_buffer('save', 0),
                 ],
             )
             if cleared["status"] != "succeeded":
@@ -144,9 +145,7 @@ def check_solids(service, session_id, checks, units, capture_failed_ids=False):
                 raise RuntimeError("Native solid quality request failed")
             if any(result["data"]["counts"].get(k) != state["counts"].get(k) for k in ("nodes", "elements")):
                 raise ValueError("Model counts changed during solid checking")
-            with log.open("rb") as stream:
-                stream.seek(offset)
-                text = stream.read().decode("utf8", errors="replace")
+            text = read_delta(log, offset, existed=True)
             controls = [
                 r
                 for r in transport.inspect_controls()
@@ -166,11 +165,11 @@ def check_solids(service, session_id, checks, units, capture_failed_ids=False):
                         "gui_mesh_state",
                         {},
                         native_commands=[
-                            "genselect clear",
-                            "genselect target element",
-                            "genselect save 0",
+                            nc.selection('clear'),
+                            nc.selection_target('element'),
+                            nc.selection_buffer('save', 0),
                             "elemcheck savetogen",
-                            "genselect load 0",
+                            nc.selection_buffer('load', 0),
                         ],
                     )
                     if captured["status"] != "succeeded":
@@ -195,7 +194,7 @@ def check_solids(service, session_id, checks, units, capture_failed_ids=False):
                     native_report=check_artifact(path, "text"),
                 )
             )
-        return (["genselect clear"] if capture_failed_ids else []) + [
+        return ([nc.selection('clear')] if capture_failed_ids else []) + [
             "-m " + pid for pid, active in part_visibility(state).items() if not active
         ]
 

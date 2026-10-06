@@ -1,0 +1,55 @@
+# 历史文档
+
+本目录保留历史证据与原始范围；规划、旧进度台账及看板已停用。当前任务与退出标准只读根目录 tasks.yaml。
+
+- [2026-10/ARCHITECTURE.md](2026-10/ARCHITECTURE.md)：LS-PrePost-MCP 产品与工程顶层设计；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/BACKENDS.md](2026-10/BACKENDS.md)：Python后端与语义合同；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/BACKLOG_REVIEW_2026-10-01.md](2026-10/BACKLOG_REVIEW_2026-10-01.md)：待开发与待增强清单（2026-10-01）；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/BOUNDARY_CONDITIONS.md](2026-10/BOUNDARY_CONDITIONS.md)：Segment压力与无反射边界；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/COMMON_OPERATIONS_COVERAGE.md](2026-10/COMMON_OPERATIONS_COVERAGE.md)：F1–F10 and common pre/post operations；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/COVERAGE.md](2026-10/COVERAGE.md)：资料覆盖不等于功能覆盖；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/DELIVERY_PLAN.md](2026-10/DELIVERY_PLAN.md)：先搭框架、优先前后处理与参数化；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/DPF_INTEGRATION.md](2026-10/DPF_INTEGRATION.md)：DPF–LS-DYNA integration；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/ENTITY_CREATION.md](2026-10/ENTITY_CREATION.md)：选择与 Entity Creation 完整流程；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/FEATURE_GAP_AUDIT_v0.2.0.md](2026-10/FEATURE_GAP_AUDIT_v0.2.0.md)：v0.2.0 功能与界面缺口盘点；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/FIELD_MOVIES.md](2026-10/FIELD_MOVIES.md)：Physical-field animations from native frames；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/GUI_CAMERA.md](2026-10/GUI_CAMERA.md)：Native view controls；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/GUI_MEASUREMENTS.md](2026-10/GUI_MEASUREMENTS.md)：Native common geometry measurement；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/GUI_VISIBILITY.md](2026-10/GUI_VISIBILITY.md)：Native entity visibility；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/GUI_WORKFLOWS.md](2026-10/GUI_WORKFLOWS.md)：可见 GUI 工作流（持续扩展）；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/MASS_PRESERVATION.md](2026-10/MASS_PRESERVATION.md)：含标准质量单元模型的保真操作；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/MCP_TOOL_PROFILES.md](2026-10/MCP_TOOL_PROFILES.md)：MCP 工具暴露模式；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/MODEL_REPLACEMENT.md](2026-10/MODEL_REPLACEMENT.md)：显式模型替换与失败保护；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/MODEL_SCALE.md](2026-10/MODEL_SCALE.md)：Model size and verification scope；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/NATIVE_KNOWN_ISSUES.md](2026-10/NATIVE_KNOWN_ISSUES.md)：当前原生限制与失败证据；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/NATIVE_MEDIA.md](2026-10/NATIVE_MEDIA.md)：Native presentation outputs；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/NATIVE_PROGRAMS.md](2026-10/NATIVE_PROGRAMS.md)：原始 command、cfile、SCL、Python 与宏；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/NODAL_LOADS.md](2026-10/NODAL_LOADS.md)：节点、节点集力与力矩；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/NODE_REPLACEMENT.md](2026-10/NODE_REPLACEMENT.md)：Node replacement and reference repair；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/POSTPROCESSING.md](2026-10/POSTPROCESSING.md)：后处理：执行范围与结果含义；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/PRESCRIBED_MOTION.md](2026-10/PRESCRIBED_MOTION.md)：选择驱动的规定运动；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/PROGRAM_BUNDLES.md](2026-10/PROGRAM_BUNDLES.md)：Declared native script bundles and GUI execution；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/PROGRESS.md](2026-10/PROGRESS.md)：开发进度口径与实时面板；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/PUBLIC_TEST_CORPUS.md](2026-10/PUBLIC_TEST_CORPUS.md)：Public development fixtures；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/PYDYNA_INTEGRATION.md](2026-10/PYDYNA_INTEGRATION.md)：PyDYNA 六个文档板块与迁移合同；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/REQUESTS_AND_PRIORITIES.md](2026-10/REQUESTS_AND_PRIORITIES.md)：从首次需求到当前的开发总清单；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/RESULT_CONTRACTS.md](2026-10/RESULT_CONTRACTS.md)：结果选择与取值位置合同；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/RESULT_VALIDITY.md](2026-10/RESULT_VALIDITY.md)：Per-state physical deletion and retained extrema；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/REVIEW_RESPONSE_2026-10-03.md](2026-10/REVIEW_RESPONSE_2026-10-03.md)：外部架构评审的逐项处理；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/ROADMAP.md](2026-10/ROADMAP.md)：常用功能建设路线；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/SEGMENT_SETS.md](2026-10/SEGMENT_SETS.md)：选择驱动的原生 Segment 集；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/SESSION_RECOVERY.md](2026-10/SESSION_RECOVERY.md)：Correlated completion and saved-model recovery；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/SOURCE_ADOPTION.md](2026-10/SOURCE_ADOPTION.md)：资料转化状态：服务产品流程，不代替顶层设计；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/SOURCES.md](2026-10/SOURCES.md)：来源吸收与验收追踪；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/TOPOLOGY_SELECTION.md](2026-10/TOPOLOGY_SELECTION.md)：Native shell adjacency and feature propagation；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/TUTORIAL_INTEGRATION.md](2026-10/TUTORIAL_INTEGRATION.md)：图文、代码、视频到可执行功能；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/UI_AUDIT_POST_GAPS.md](2026-10/UI_AUDIT_POST_GAPS.md)：后处理界面与代码差距：实机审计增补；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/UNIT_CONTRACTS.md](2026-10/UNIT_CONTRACTS.md)：显式单位转换与曲线对齐；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/VERIFICATION.md](2026-10/VERIFICATION.md)：Implementation verification；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/WORKFLOW_FRAMEWORK.md](2026-10/WORKFLOW_FRAMEWORK.md)：Workflow planning, execution and parameter studies；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/WORKFLOW_GATES.md](2026-10/WORKFLOW_GATES.md)：工作流执行结果与质量门槛；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [2026-10/WORKFLOWS_v0.3.md](2026-10/WORKFLOWS_v0.3.md)：v0.3：可验证的常用流程；已归档，证据由 KNOWN_ISSUES 索引，旧计划不再执行。
+- [release_progress.json](2026-10/release_progress.json)：旧进度台账，停用。
+- [progress_dashboard.py](2026-10/progress_dashboard.py)：旧看板，停用且不再作为开发入口。
+
+- [test_progress_dashboard.py](2026-10/test_progress_dashboard.py)：旧看板专用测试随看板停用归档。

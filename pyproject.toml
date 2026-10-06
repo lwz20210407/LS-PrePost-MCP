@@ -18,6 +18,14 @@ dpf = ["ansys-dpf-core==0.16.1"]
 pydyna = ["ansys-dyna-core==0.12.1"]
 dev = ["pytest>=8,<10", "ruff>=0.11"]
 
+[dependency-groups]
+dev = [
+    "pytest>=8,<10",
+    "ruff>=0.11",
+    "pyyaml>=6,<7",
+    "import-linter==2.6",
+]
+
 [project.scripts]
 ls-prepost-mcp = "ls_prepost_mcp.server:main"
 lspp = "ls_prepost_mcp.cli:main"
@@ -31,7 +39,8 @@ packages = ["src/ls_prepost_mcp"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
+markers = ["native: opt-in execution against an installed LS-PrePost"]
 
 [tool.ruff]
 target-version = "py311"
@@ -39,3 +48,24 @@ line-length = 110
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.importlinter]
+root_package = "ls_prepost_mcp"
+
+[[tool.importlinter.contracts]]
+name = "Only entrypoints may import Service"
+type = "protected"
+protected_modules = ["ls_prepost_mcp.service"]
+allowed_importers = ["ls_prepost_mcp.cli", "ls_prepost_mcp.server"]
+
+[[tool.importlinter.contracts]]
+name = "Execution foundations do not import orchestration"
+type = "forbidden"
+source_modules = ["ls_prepost_mcp.core", "ls_prepost_mcp.engine", "ls_prepost_mcp.native", "ls_prepost_mcp.operation_registry"]
+forbidden_modules = ["ls_prepost_mcp.service", "ls_prepost_mcp.server", "ls_prepost_mcp.compact_server", "ls_prepost_mcp.sessions", "ls_prepost_mcp.workflows", "ls_prepost_mcp.workflow_runtime"]
+
+[[tool.importlinter.contracts]]
+name = "Core has no engine or native dependencies"
+type = "forbidden"
+source_modules = ["ls_prepost_mcp.core"]
+forbidden_modules = ["ls_prepost_mcp.engine", "ls_prepost_mcp.native", "ls_prepost_mcp.operation_registry"]
