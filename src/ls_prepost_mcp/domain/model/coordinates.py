@@ -1,21 +1,32 @@
-"""Tiny coordinate round-off: detection, and the move-far-and-back cleanup used in LS-PrePost.
+"""Tiny coordinate round-off: detection, one-pass cleanup, and the LS-PrePost move-far-and-back.
 
-Noise is a coordinate that differs from a value it should equal by far less than the model
-size (``rel_tol`` x size, default 1e-9): a near-zero value (0 < |x| <= tol), a broken mirror
-pair (0 < |x + y| <= tol) or a split plane (distinct values closer than tol). Translating
-there and back is a common source, because x + d - d is not x in floating point.
+Noise is a coordinate that differs from a value it should equal by far less than the model size
+(tol = ``rel_tol`` x size, default 1e-9, at least 4096 ulp of the largest coordinate): a
+near-zero value (0 < |x| <= tol), a broken mirror pair (0 < |x + y| <= tol) or a split plane
+(distinct values closer than tol). Sources: translating there and back (x + d - d is not x),
+cos/sin, CAD exports with float32-level noise.
 
-The cleanup follows the LS-PrePost practice (Transform: move along the noisy direction by a
-very large D, then back). In double precision x + D - D rounds x to a multiple of ulp(D): noise
-below half a grid step disappears, +x/-x pairs become exactly symmetric and near-zero values
-become 0. Every other coordinate also moves by at most half a grid step; that bound and the
-largest actual change are reported. The shift is computed once in memory and written once,
-so no intermediate text rounding is added.
+Detection and cleanup work per axis on the magnitudes |x| (signs together, so mirror pairs are
+handled with planes): sorted magnitudes chained by gaps <= tol form a cluster, a one-dimensional
+single-linkage that has no grid and therefore no values straddling a grid point. A cluster is
+noise when it holds several magnitudes or reaches 0; one wider than SNAP_SPAN x tol is left
+alone. On a dense axis (expected chance pairs n^2 tol / R >= 1, e.g. an unstructured mesh with a
+million distinct coordinates) a cluster also needs evidence (it reaches 0, holds both signs, a
+member is shared by two or more nodes, or it spans at most 4096 ulp); the others are reported as
+rejected, not changed.
 
-Quantising cannot join two values that land on either side of a grid point (Cubit meshes with
-float32-level noise left such split planes). Values whose magnitudes chain within the tolerance
-are therefore snapped to the shortest decimal inside the chain (or 0), signs kept, before the
-shift; the shifted values get a second snap, since the shift can bring two close values together.
+The cleanup gives every member of a noisy cluster the decimal with the fewest significant digits
+inside the cluster's range (0 when it reaches 0, written as +0.0), with its own sign: one pass is
+enough (the gaps to other values stay above tol), mirror pairs become exact, values outside
+clusters keep their bytes. This follows the open-source mesh libraries (VTK, trimesh, CGAL,
+OpenFOAM, SMESH, ...: neighbourhood queries, no global quantisation); see the research note of
+2026-10-06 in temp/20261006-node-tolerance-research.
+
+:func:`quantize_coordinates` keeps the LS-PrePost practice (Transform: move along the noisy
+direction by a very large D, then back): x + D - D rounds every value of the axis to a binary
+grid of ulp(D). It rewrites clean values too (3.3 -> 3.2999999970197678 on a coarse grid) and
+cannot join values on either side of a grid point, so it is an explicit operation, not the
+default cleanup.
 """
 from __future__ import annotations
 
@@ -32,42 +43,70 @@ if TYPE_CHECKING:
     from .deck import KeywordDeck
 
 AXES = "xyz"
+SNAP_SPAN = 1000  # x tol (1e-6 of the model size): a chain of gaps <= tol this wide is still round-off
+ULP_FLOOR = 4096  # tol >= this many ulp of the largest coordinate; also the "pure arithmetic" span
 
 
-def _mirror_partners(unique: np.ndarray, tol: float) -> tuple[np.ndarray, np.ndarray]:
-    """Positive values and negative values that form near-but-not-exact mirror pairs."""
-    positive = unique[unique > tol]
-    magnitudes = np.sort(-unique[unique < -tol])
-    if not positive.size or not magnitudes.size:
-        return np.empty(0), np.empty(0)
-    exact = np.isin(positive, magnitudes)
-    near = np.searchsorted(magnitudes, positive)
-    hits_pos, hits_neg = [], []
-    for candidate in (near - 1, near):
-        valid = (candidate >= 0) & (candidate < magnitudes.size)
-        partner = magnitudes[np.clip(candidate, 0, magnitudes.size - 1)]
-        gap = np.abs(positive - partner)
-        hit = valid & ~exact & (gap > 0) & (gap <= tol)
-        hits_pos.append(positive[hit])
-        hits_neg.append(-partner[hit])
-    return np.unique(np.concatenate(hits_pos)), np.unique(np.concatenate(hits_neg))
+def _tolerance(xyz: np.ndarray, rel_tol: float) -> tuple[float, float]:
+    size = float(np.ptp(xyz, axis=0).max()) or float(np.abs(xyz).max()) or 1.0
+    return size, max(rel_tol * size, ULP_FLOOR * math.ulp(float(np.abs(xyz).max()) or 1.0))
+
+
+def _cleanest(low: float, high: float) -> float:
+    """The decimal with the fewest significant digits inside [low, high]."""
+    middle = (low + high) / 2
+    for digits in range(1, 18):
+        candidate = float(f"{middle:.{digits}g}")
+        if low <= candidate <= high:
+            return candidate
+    return middle
+
+
+def _axis_clusters(values: np.ndarray, tol: float) -> dict:
+    """Clusters of one axis: per unique magnitude its target (NaN = untouched) and the summary."""
+    magnitudes, inverse, counts = np.unique(np.abs(values), return_inverse=True, return_counts=True)
+    positive = np.zeros(magnitudes.size, dtype=bool)
+    negative = np.zeros(magnitudes.size, dtype=bool)
+    positive[inverse[~np.signbit(values)]] = True
+    negative[inverse[np.signbit(values)]] = True
+    target = np.full(magnitudes.size, np.nan)
+    summary = {"near_zero": 0, "split_values": 0, "broken_mirror_pairs": 0, "rejected_clusters": 0,
+               "max_deviation": 0.0}
+    if not magnitudes.size:
+        return {"magnitudes": magnitudes, "inverse": inverse, "target": target, **summary}
+    span_range = float(magnitudes[-1] - magnitudes[0]) or 1.0
+    dense = magnitudes.size ** 2 * tol / span_range >= 1.0
+    breaks = np.flatnonzero(np.diff(magnitudes) > tol) + 1
+    for start, end in zip(np.concatenate([[0], breaks]), np.concatenate([breaks, [magnitudes.size]])):
+        low, high = float(magnitudes[start]), float(magnitudes[end - 1])
+        zero = low <= tol and high > 0
+        if end - start < 2 and not zero:
+            continue
+        if high - low > SNAP_SPAN * tol:
+            summary["rejected_clusters"] += 1
+            continue
+        both = bool(positive[start:end].any() and negative[start:end].any())
+        evidence = zero or both or bool((counts[start:end] >= 2).any()) or high - low <= ULP_FLOOR * math.ulp(high)
+        if dense and not evidence:
+            summary["rejected_clusters"] += 1
+            continue
+        target[start:end] = 0.0 if zero else _cleanest(low, high)
+        nonzero = magnitudes[start:end] > 0
+        summary["near_zero"] += int(counts[start:end][nonzero & (magnitudes[start:end] <= tol)].sum()) if zero else 0
+        summary["split_values"] += sum(int(sign[start:end].sum()) for sign in (positive, negative)
+                                       if sign[start:end].sum() >= 2)
+        summary["broken_mirror_pairs"] += int(both and end - start >= 2)
+        summary["max_deviation"] = max(summary["max_deviation"], high - low if not zero else high)
+    return {"magnitudes": magnitudes, "inverse": inverse, "target": target, **summary}
 
 
 def _axis_noise(values: np.ndarray, tol: float) -> tuple[np.ndarray, dict]:
-    """Mask of noisy nodes on one axis and its summary."""
-    near_zero = (values != 0) & (np.abs(values) <= tol)
-    unique = np.unique(values)
-    gaps = np.diff(unique)
-    close = np.flatnonzero(gaps <= tol)
-    split = np.union1d(unique[close], unique[close + 1])
-    mirror_pos, mirror_neg = _mirror_partners(unique, tol)
-    mask = near_zero | np.isin(values, split) | np.isin(values, mirror_pos) | np.isin(values, mirror_neg)
-    deviations = [np.abs(values[near_zero]).max() if near_zero.any() else 0.0, gaps[close].max() if close.size else 0.0]
-    if mirror_pos.size:
-        deviations.append(float(np.max([np.min(np.abs(p + mirror_neg)) for p in mirror_pos])))
-    return mask, {"near_zero": int(near_zero.sum()), "split_values": int(split.size),
-                  "broken_mirror_pairs": int(mirror_pos.size), "nodes": int(mask.sum()),
-                  "max_deviation": float(max(deviations))}
+    """Mask of noisy nodes on one axis (members of a noisy cluster) and its summary."""
+    clusters = _axis_clusters(values, tol)
+    mask = ~np.isnan(clusters["target"][clusters["inverse"]])
+    summary = {k: clusters[k] for k in ("near_zero", "split_values", "broken_mirror_pairs", "rejected_clusters",
+                                        "max_deviation")}
+    return mask, {**summary, "nodes": int(mask.sum())}
 
 
 def coordinate_noise(deck: KeywordDeck, rel_tol: float = 1e-9, max_report: int = 20) -> dict:
@@ -75,8 +114,7 @@ def coordinate_noise(deck: KeywordDeck, rel_tol: float = 1e-9, max_report: int =
     ids, xyz = nodes(deck)
     if not ids.size:
         return {"nodes": 0, "noisy_axes": [], "nodes_affected": 0, "axes": {}}
-    size = float(np.ptp(xyz, axis=0).max()) or float(np.abs(xyz).max()) or 1.0
-    tol = rel_tol * size
+    size, tol = _tolerance(xyz, rel_tol)
     axes, any_noise = {}, np.zeros(ids.size, dtype=bool)
     for i, axis in enumerate(AXES):
         mask, summary = _axis_noise(xyz[:, i], tol)
@@ -85,6 +123,74 @@ def coordinate_noise(deck: KeywordDeck, rel_tol: float = 1e-9, max_report: int =
     return {"nodes": int(ids.size), "model_size": size, "tolerance": tol,
             "noisy_axes": [axis for axis in AXES if axes[axis]["nodes"]], "nodes_affected": int(any_noise.sum()),
             "axes": axes}
+
+
+def _rewrite(deck: KeywordDeck, axes: str, new_values, description: str) -> tuple[int, float]:
+    """Write ``new_values(axis, column) -> column`` for the given axes, changed rows only."""
+    plans, changed, biggest = [], 0, 0.0
+    for block in deck.blocks("*NODE"):
+        keys, xyz = _node_block(deck, block)
+        updates: dict[int, dict[str, object]] = {}
+        for i, axis in enumerate(AXES):
+            if axis not in axes:
+                continue
+            column = xyz[:, i]
+            moved = new_values(axis, column)
+            differs = (moved != column) | (np.signbit(moved) != np.signbit(column))
+            for row in np.flatnonzero(differs):
+                updates.setdefault(int(keys[row]), {})[axis] = float(moved[row])
+                biggest = max(biggest, abs(float(moved[row] - column[row])))
+        if updates:
+            edits, _ = _plan_rows(deck, block, deck.layout(block).rows, updates, "float")
+            plans.append((block, edits))
+            changed += len(updates)
+    _apply(deck, plans, description)
+    return changed, biggest
+
+
+def _axes(before: dict, axes: str | None) -> str:
+    axes = axes if axes is not None else "".join(before["noisy_axes"])
+    if set(axes) - set(AXES):
+        raise FieldError("axes must be letters from 'xyz'")
+    return axes
+
+
+def clean_coordinates(deck: KeywordDeck, axes: str | None = None, rel_tol: float = 1e-9) -> dict:
+    """Give every member of a noisy cluster its cluster value (sign kept); one pass, idempotent.
+
+    ``axes`` defaults to the axes where :func:`coordinate_noise` finds noise. Only coordinates in
+    noisy clusters change, by at most the cluster span; everything else keeps its bytes.
+    """
+    before = coordinate_noise(deck, rel_tol)
+    axes = _axes(before, axes)
+    if not axes:
+        return {"axes": "", "changed_nodes": 0, "noise_before": before, "note": "no coordinate noise found"}
+    tol = before["tolerance"]
+    _, all_xyz = nodes(deck)
+    maps, snapped, rejected = {}, {}, {}
+    for i, axis in enumerate(AXES):
+        if axis in axes:
+            clusters = _axis_clusters(all_xyz[:, i], tol)
+            keep = ~np.isnan(clusters["target"])
+            maps[axis] = (clusters["magnitudes"][keep], clusters["target"][keep])
+            snapped[axis] = int(np.count_nonzero(clusters["magnitudes"][keep] != clusters["target"][keep]))
+            rejected[axis] = clusters["rejected_clusters"]
+
+    def new_values(axis: str, column: np.ndarray) -> np.ndarray:
+        old, new = maps[axis]
+        if not old.size:
+            return column
+        magnitude = np.abs(column)
+        where = np.clip(np.searchsorted(old, magnitude), 0, old.size - 1)
+        hit = old[where] == magnitude
+        out = column.copy()
+        out[hit] = np.where(np.signbit(column[hit]) & (new[where[hit]] != 0), -new[where[hit]], new[where[hit]])
+        return out
+
+    changed, biggest = _rewrite(deck, axes, new_values, f"clean coordinate round-off ({axes}: snap clusters)")
+    return {"axes": axes, "tolerance": tol, "snapped_values": snapped, "rejected_clusters": rejected,
+            "max_change": biggest, "changed_nodes": changed, "noise_before": before,
+            "noise_after": coordinate_noise(deck, rel_tol)}
 
 
 def _magnitude(largest: float, deviation: float, tol: float) -> float:
@@ -106,20 +212,19 @@ def _one_binade(shift: float, largest: float) -> bool:
     return math.frexp(shift - largest)[1] == math.frexp(shift + largest)[1]
 
 
-def clean_coordinates(deck: KeywordDeck, axes: str | None = None, magnitude: float | None = None,
-                      rel_tol: float = 1e-9) -> dict:
-    """Move the noisy axes by ``magnitude`` and back (x + D - D), writing only changed coordinates.
+def quantize_coordinates(deck: KeywordDeck, axes: str | None = None, magnitude: float | None = None,
+                         rel_tol: float = 1e-9) -> dict:
+    """LS-PrePost move-far-and-back: every coordinate of ``axes`` becomes x + D - D.
 
-    ``axes`` defaults to the axes where :func:`coordinate_noise` finds noise; ``magnitude``
-    defaults to 1.5 x a power of two chosen from the detected deviation (see :func:`_magnitude`);
-    a given magnitude whose x + D range straddles a power of two is refused.
+    Rounds all values of the axes (clean ones too) to the binary grid ulp(D); use it to make a
+    model insensitive to a later translate-and-back, not as the round-off cleanup. ``magnitude``
+    defaults to 1.5 x a power of two chosen from the detected deviation; a magnitude whose x + D
+    range straddles a power of two is refused (it would round + and - values on different grids).
     """
     before = coordinate_noise(deck, rel_tol)
-    axes = axes if axes is not None else "".join(before["noisy_axes"])
+    axes = _axes(before, axes)
     if not axes:
-        return {"axes": "", "changed_nodes": 0, "noise_before": before, "note": "no coordinate noise found"}
-    if set(axes) - set(AXES):
-        raise FieldError("axes must be letters from 'xyz'")
+        return {"axes": "", "changed_nodes": 0, "noise_before": before, "note": "no axes given and no noise found"}
     _, all_xyz = nodes(deck)
     largest = float(np.abs(all_xyz).max())
     deviation = max(before["axes"][axis]["max_deviation"] for axis in axes)
@@ -131,89 +236,11 @@ def clean_coordinates(deck: KeywordDeck, axes: str | None = None, magnitude: flo
         raise FieldError(f"magnitude {shift:g} +/- {largest:g} straddles a power of two, so positive and negative "
                          f"coordinates would be rounded on different grids (mirror pairs broken); use e.g. "
                          f"{suggestion:g}")
-    tol = before["tolerance"]
-    maps, snapped = {}, {}
-    for i, axis in enumerate(AXES):
-        if axis in axes:
-            unique = np.unique(all_xyz[:, i])
-            first = _snapped(unique, (unique + shift) - shift, *_snap_map(unique, tol))  # clusters, then the shift
-            final = _snapped(first, first, *_snap_map(first, tol))  # pairs the shift itself brought together
-            maps[axis] = (unique, final)
-            snapped[axis] = int(np.count_nonzero(final != (unique + shift) - shift))
-    plans, changed, biggest = [], 0, 0.0
-    for block in deck.blocks("*NODE"):
-        keys, xyz = _node_block(deck, block)
-        updates: dict[int, dict[str, object]] = {}
-        for i, axis in enumerate(AXES):
-            if axis not in axes:
-                continue
-            column = xyz[:, i]
-            unique, final = maps[axis]
-            moved = final[np.searchsorted(unique, column)]
-            for row in np.flatnonzero(moved != column):
-                updates.setdefault(int(keys[row]), {})[axis] = float(moved[row])
-                biggest = max(biggest, abs(float(moved[row] - column[row])))
-        if updates:
-            edits, _ = _plan_rows(deck, block, deck.layout(block).rows, updates, "float")
-            plans.append((block, edits))
-            changed += len(updates)
-    _apply(deck, plans, f"clean coordinate round-off ({axes}: move {shift:g} and back, then snap clusters)")
+    changed, biggest = _rewrite(deck, axes, lambda axis, column: (column + shift) - shift,
+                                f"quantize coordinates ({axes}: move {shift:g} and back)")
     return {"axes": axes, "magnitude": shift, "grid_step": math.ulp(shift), "bound": math.ulp(shift) / 2,
-            "snapped_values": snapped,
             "max_change": biggest, "changed_nodes": changed, "noise_before": before,
             "noise_after": coordinate_noise(deck, rel_tol)}
 
 
-SNAP_SPAN = 1000  # x tol (1e-6 of the model size): a chain of gaps <= tol this wide is still round-off
-
-
-def _cleanest(low: float, high: float, tol: float) -> float:
-    """The decimal with the fewest significant digits inside [low - tol, high + tol] (0 if reachable)."""
-    if low <= tol:
-        return 0.0
-    middle = (low + high) / 2
-    for digits in range(1, 18):
-        candidate = float(f"{middle:.{digits}g}")
-        if low - tol <= candidate <= high + tol:
-            return candidate
-    return middle
-
-
-def _snap_map(values: np.ndarray, tol: float) -> tuple[np.ndarray, np.ndarray]:
-    """Magnitudes to replace and their replacements.
-
-    Quantising cannot join two values that fall on either side of a grid point. Here |x| values
-    chained by gaps <= tol form a cluster (signs together, so mirror pairs stay exact) that takes
-    the shortest decimal within its range (4.702 rather than 4.70200000000001; -0.254 for a
-    float32-noisy group around it), or 0 when it reaches 0. No real mesh has distinct node
-    coordinates closer than 1e-9 of its size, so such chains are round-off; chains wider than
-    SNAP_SPAN x tol are still left alone.
-    """
-    magnitudes = np.unique(np.abs(values))
-    if magnitudes.size < 2 and not (magnitudes.size and 0 < magnitudes[0] <= tol):
-        return np.empty(0), np.empty(0)
-    breaks = np.flatnonzero(np.diff(magnitudes) > tol) + 1
-    old, new = [], []
-    for group in np.split(magnitudes, breaks):
-        if group[-1] - group[0] > SNAP_SPAN * tol or (group.size == 1 and group[0] > tol):
-            continue
-        target = _cleanest(float(group[0]), float(group[-1]), tol)
-        old.extend(float(value) for value in group)  # the target too, so the shift does not move it
-        new.extend([target] * group.size)
-    order = np.argsort(old)
-    return np.asarray(old)[order], np.asarray(new)[order]
-
-
-def _snapped(keys: np.ndarray, base: np.ndarray, old: np.ndarray, new: np.ndarray) -> np.ndarray:
-    """``base``, except where |key| is in a cluster: there the value of the cluster, with the sign of key."""
-    if not old.size:
-        return base
-    magnitude = np.abs(keys)
-    where = np.clip(np.searchsorted(old, magnitude), 0, old.size - 1)
-    hit = old[where] == magnitude
-    out = base.copy()
-    out[hit] = np.sign(keys[hit]) * new[where[hit]]
-    return out
-
-
-__all__ = ["clean_coordinates", "coordinate_noise"]
+__all__ = ["SNAP_SPAN", "clean_coordinates", "coordinate_noise", "quantize_coordinates"]

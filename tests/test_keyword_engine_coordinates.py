@@ -1,12 +1,16 @@
-"""Tiny coordinate round-off: detection and the move-far-and-back cleanup."""
-import math
+"""Tiny coordinate round-off: detection, the one-pass cluster cleanup, the move-far-and-back quantisation."""
 from pathlib import Path
 
 import numpy as np
 import pytest
 
 from ls_prepost_mcp.domain.model import FieldError, KeywordDeck
-from ls_prepost_mcp.domain.model.coordinates import clean_coordinates, coordinate_noise
+from ls_prepost_mcp.domain.model.coordinates import (
+    SNAP_SPAN,
+    clean_coordinates,
+    coordinate_noise,
+    quantize_coordinates,
+)
 from ls_prepost_mcp.domain.model.geometry import nodes
 from ls_prepost_mcp.domain.model.mesh import translate_nodes
 from ls_prepost_mcp.domain.model.operations import check_deck, edit_deck
@@ -34,7 +38,7 @@ def test_detects_mirror_zero_and_plane_noise(tmp_path: Path) -> None:
 def test_cleanup_restores_exact_values_and_leaves_clean_rows(tmp_path: Path) -> None:
     deck = _deck(tmp_path, NOISY)
     result = clean_coordinates(deck)
-    assert result["axes"] == "xy" and result["changed_nodes"] == 2 and result["max_change"] < result["bound"]
+    assert result["axes"] == "xy" and result["changed_nodes"] == 2 and result["max_change"] < 1e-12
     assert result["noise_after"]["nodes_affected"] == 0
     lines = deck.main.text().splitlines()
     assert lines[3] == "       2            10.0             0.0             0.0"
@@ -42,7 +46,8 @@ def test_cleanup_restores_exact_values_and_leaves_clean_rows(tmp_path: Path) -> 
     assert clean_coordinates(deck)["changed_nodes"] == 0
 
 
-def test_cleanup_removes_translate_there_and_back_noise(tmp_path: Path) -> None:
+def test_quantize_makes_a_translate_there_and_back_invisible(tmp_path: Path) -> None:
+    """The LS-PrePost practice, kept as quantize_coordinates: both copies land on the same grid."""
     rng = np.random.default_rng(7)
     rows = [tuple(f"{v:.6f}" for v in rng.uniform(-50, 50, 3)) for _ in range(40)]
     (tmp_path / "a").mkdir()
@@ -53,7 +58,7 @@ def test_cleanup_removes_translate_there_and_back_noise(tmp_path: Path) -> None:
     translate_nodes(moved, ids, (-1.0e3 - 0.1, 0.0, 0.0))
     assert not np.array_equal(nodes(original)[1], nodes(moved)[1])  # round-off was introduced
     for deck in (original, moved):
-        clean_coordinates(deck, axes="xyz", magnitude=1.5 * 2.0 ** 20)
+        quantize_coordinates(deck, axes="xyz", magnitude=1.5 * 2.0 ** 20)
     assert np.array_equal(nodes(original)[1], nodes(moved)[1])
 
 
@@ -76,7 +81,6 @@ def test_cleanup_keeps_mirror_pairs_exact(tmp_path: Path) -> None:
     assert coordinate_noise(deck)["nodes_affected"] > 0
     result = clean_coordinates(deck)
     assert result["noise_after"]["nodes_affected"] == 0
-    assert result["magnitude"] / 2.0 ** math.floor(math.log2(result["magnitude"])) == 1.5
     xs = nodes(deck)[1][:, 0]
     assert set(xs.tolist()) == set((-xs).tolist()) and 0.0 in xs.tolist()
 
@@ -84,7 +88,7 @@ def test_cleanup_keeps_mirror_pairs_exact(tmp_path: Path) -> None:
 def test_power_of_two_magnitude_straddling_a_binade_is_refused(tmp_path: Path) -> None:
     deck = _deck(tmp_path, NOISY)
     with pytest.raises(FieldError, match="straddles a power of two"):
-        clean_coordinates(deck, axes="xy", magnitude=2.0 ** 20)
+        quantize_coordinates(deck, axes="xy", magnitude=2.0 ** 20)
 
 
 def test_values_straddling_a_grid_point_are_snapped_together(tmp_path: Path) -> None:
@@ -109,8 +113,6 @@ def test_float32_noise_chain_snaps_to_the_cleanest_decimal(tmp_path: Path) -> No
 
 
 def test_a_chain_wider_than_the_snap_span_is_left_alone(tmp_path: Path) -> None:
-    from ls_prepost_mcp.domain.model.coordinates import SNAP_SPAN
-
     size = 1000.0
     tol = 1e-9 * size
     steps = int(1.2 * SNAP_SPAN)
@@ -118,3 +120,30 @@ def test_a_chain_wider_than_the_snap_span_is_left_alone(tmp_path: Path) -> None:
     deck = _deck(tmp_path, rows)
     result = clean_coordinates(deck, axes="x")
     assert result["snapped_values"]["x"] == 0
+
+
+def test_one_pass_is_idempotent_and_leaves_clean_values_alone(tmp_path: Path) -> None:
+    rows = [("3.3", "0.0", "0.0"), ("12.509547", "1.0", "0.0"), ("4.702", "2.0", "0.0"),
+            ("4.7020000000004", "3.0", "0.0"), ("-1e-13", "4.0", "0.0")]
+    deck = _deck(tmp_path, rows)
+    result = clean_coordinates(deck)
+    xs = nodes(deck)[1][:, 0]
+    assert xs.tolist() == [3.3, 12.509547, 4.702, 4.702, 0.0] and not np.signbit(xs[4])  # +0.0, not -0.0
+    assert result["changed_nodes"] == 2 and clean_coordinates(deck)["changed_nodes"] == 0
+    lines = deck.main.text().splitlines()
+    assert lines[2].endswith("3.3             0.0             0.0") and "-0.0" not in deck.main.text()
+
+
+def test_a_dense_axis_changes_only_clusters_with_evidence(tmp_path: Path) -> None:
+    """100000 random coordinates: about n^2 tol / R = 10 chance pairs closer than tol are not noise."""
+    rng = np.random.default_rng(3)
+    values = rng.uniform(0.0, 1.0, 100000)
+    rows = [(f"{v:.15f}"[:16], "0.0", "0.0") for v in values] + [("0.5", "0.0", "1.0"), ("-0.5000000000001", "0.0", "1.0")]
+    deck = _deck(tmp_path, rows)
+    before = nodes(deck)[1][:, 0].copy()
+    report = coordinate_noise(deck)["axes"]["x"]
+    assert report["rejected_clusters"] > 0 and report["broken_mirror_pairs"] == 1
+    result = clean_coordinates(deck, axes="x")
+    after = nodes(deck)[1][:, 0]
+    assert result["changed_nodes"] == 1 and after[-1] == -0.5  # only the evidenced mirror pair
+    assert np.array_equal(after[:-1], before[:-1])

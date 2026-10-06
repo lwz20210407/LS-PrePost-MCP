@@ -175,7 +175,8 @@ def _create_set(deck: KeywordDeck, edit: dict) -> Change:
 
 
 MESH_OPS = {"transform_nodes", "copy_elements", "array_elements", "offset_shells", "renumber",
-            "merge_duplicate_nodes", "delete_elements", "reverse_elements", "unify_shell_normals", "clean_coordinates"}
+            "merge_duplicate_nodes", "delete_elements", "reverse_elements", "unify_shell_normals", "clean_coordinates",
+            "quantize_coordinates"}
 PROPERTY_OPS = {"add_material": "material", "add_eos": "eos", "add_section": "section", "add_hourglass": "hourglass"}
 SUMMARY_OPS = MESH_OPS | set(PROPERTY_OPS) | {"add_boundary", "set_control", "add_part", "set_part", "add_contact"}
 
@@ -244,7 +245,9 @@ def _mesh_op(deck: KeywordDeck, edit: dict) -> dict:
     """P08 operations; each returns its own summary (changes are recorded by the deck)."""
     op = edit["op"]
     if op == "clean_coordinates":
-        return coordinates.clean_coordinates(deck, edit.get("axes"), edit.get("magnitude"), edit.get("rel_tol", 1e-9))
+        return coordinates.clean_coordinates(deck, edit.get("axes"), edit.get("rel_tol", 1e-9))
+    if op == "quantize_coordinates":
+        return coordinates.quantize_coordinates(deck, edit.get("axes"), edit.get("magnitude"), edit.get("rel_tol", 1e-9))
     if op == "transform_nodes":
         ids = _ids(deck, edit, "node")
         if "reflect" in edit:
@@ -330,7 +333,8 @@ def edit_deck(path: str, edits: list[dict], *, output_dir: str | None = None, in
     Mesh ops (P08, summaries in ``summaries``): transform_nodes (translate / rotate / reflect /
     matrix), copy_elements, array_elements (count + step transform), offset_shells (distance,
     copy?, part_id?), renumber (mapping or first/last/start), merge_duplicate_nodes,
-    delete_elements, reverse_elements, unify_shell_normals, clean_coordinates (axes?, magnitude?);
+    delete_elements, reverse_elements, unify_shell_normals, clean_coordinates (axes?; one-pass cluster snap),
+    quantize_coordinates (axes?, magnitude?; LS-PrePost move-far-and-back);
     targets by ``ids`` or ``select``.
     Setup ops: add_boundary (P05; ``kind`` from loads.KINDS, ``units`` required) and set_control
     (P10; ``recipe`` from controls.RECIPES or ascii, ``params``). Property ops (P03, ``units``
@@ -423,7 +427,7 @@ def check_deck(path: str, include_paths: tuple[str, ...] = (), thresholds: dict 
             if noise["nodes_affected"]:
                 warnings.append(f"{noise['nodes_affected']} nodes have coordinate round-off below "
                                 f"{noise['tolerance']:.3g} on axes {''.join(noise['noisy_axes'])}; "
-                                "clean_coordinates moves them far and back")
+                                "clean_coordinates snaps them to one value per cluster")
     result["errors"] = errors
     result["unchecked"] = unchecked
     result["complete"] = not unchecked  # ok=True only means no defect was found in what was read
