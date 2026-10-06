@@ -131,10 +131,10 @@ tasks:
     layer: T1
     target_tools: [open_model, model_info]
     status: partial
-    existing: [inspect_model, inspect_keyword_deck, list_parts, list_nodes, inspect_gui_mesh]
+    existing: [inspect_model, inspect_keyword_deck, list_parts, list_nodes, inspect_gui_mesh, model_info]
     gaps:
-      - 读取入口分散在 6 个工具，返回格式各异
-      - 不输出 Include 树、材料/截面/Part 关联、集合清单
+      - model_info（关键字引擎）已输出 Include 树与 Part/材料/截面/集合关联；与 LSPP Keyword Manager 的原生读回对比未做
+      - 30 万单元 60 s 验收只在私有语料上测过（49 万单元 inspect 21.6 s），记录不在仓库
     acceptance:
       - corpus:include_contact 上返回部件/材料/截面/集合/单元类型计数，与 LSPP Keyword Manager 读回一致
       - 返回 Include 树（文件、相对路径、层级），与源文件结构一致
@@ -151,12 +151,12 @@ tasks:
     layer: T1
     target_tools: [edit_keywords]
     depends_on: [I07]
-    status: todo
-    existing: [update_keyword_fields, update_keyword_table_row, compose_keyword_deck]
+    status: partial
+    existing: [update_keyword_fields, update_keyword_table_row, compose_keyword_deck, edit_keywords]
     gaps:
-      - model_deck.py 遇到 *INCLUDE / *PARAMETER 直接拒绝
-      - PyDYNA 路线整 deck 重写，注释与格式丢失；只能改唯一匹配的卡
-      - 不能向已有模型追加卡片
+      - edit_keywords 已覆盖改字段 / 插卡 / 删卡 / PARAMETER，Include 结构与未改字节保持（单元测试）
+      - 保存后 LSPP 原生重开核对未做（原生侧，见 P11）
+      - corpus:include_contact 的验收用例依赖语料，CI 中跳过
     acceptance:
       - corpus:include_contact 上改一张卡的一个字段，保存后只有该卡所在文件变化，其余文件字节级不变
       - 被改文件中未改动的卡逐字节不变（含注释、空行、字段宽度）
@@ -176,10 +176,10 @@ tasks:
     target_tools: [edit_keywords, run_recipe]
     depends_on: [P02]
     status: partial
-    existing: [create_elastic_material, update_elastic_material, move_elements_to_part]
+    existing: [create_elastic_material, update_elastic_material, move_elements_to_part, edit_keywords]
     gaps:
-      - 只支持 MAT_001
-      - 不能设置 Part 的 SECID / MID / EOSID / HGID
+      - 六个材料族与两个 EOS 已有引擎配方（edit_keywords 的 add_material / add_eos / add_section），Part 关联 add_part / set_part 已有；尚未登记为 run_recipe 的 T2 配方
+      - 保存后 LSPP 原生重开核对未做（原生侧，见 P11）
     acceptance:
       - 常用材料族 MAT_001/003/015/020/024/098 及 EOS 至少各一个配方，字段名来自关键字定义
       - Part 关联修改后引用检查通过，原生重开后 Part Data 读回一致
@@ -196,10 +196,11 @@ tasks:
     target_tools: [create_entities]
     depends_on: [G03]
     status: partial
-    existing: [create_gui_entity_set, create_gui_segment_set, create_node_set_by_box, inspect_gui_entity_sets]
+    existing: [create_gui_entity_set, create_gui_segment_set, create_node_set_by_box, inspect_gui_entity_sets, create_entities]
     gaps:
-      - 只有显式 LIST 集合；没有 GENERATE / ADD
-      - 选择器只在参考坐标；实体外表面传播未认证
+      - 不生成 *_GENERATE / *_ADD 集合
+      - Selector 适配不支持按特征角的外表面和变形构型
+      - 保存重开核对未做（原生侧）
     acceptance:
       - 节点 / 单元 / Part / Segment 集合可由 Selector（ID、Part、盒、球、平面、外表面）生成
       - 集合成员与 Selector 独立计算结果逐 ID 一致
@@ -217,9 +218,10 @@ tasks:
     target_tools: [create_entities]
     depends_on: [P04]
     status: partial
-    existing: [create_gui_spc, create_gui_prescribed_motion, create_gui_segment_pressure, create_gui_nonreflecting_boundary, create_gui_nodal_load]
+    existing: [create_gui_spc, create_gui_prescribed_motion, create_gui_segment_pressure, create_gui_nonreflecting_boundary, create_gui_nodal_load, create_entities]
     gaps:
-      - 节点力 / 力矩已有（09b207e），缺重力（LOAD_BODY）、初速度、刚性墙、CNRB
+      - 九类边界与载荷已有配方（create_entities / add_boundary）；R11 求解核对记录不在仓库
+      - 保存后 LSPP 原生重开核对未做（原生侧，见 P11）
     acceptance:
       - SPC、规定运动、节点力、Segment 压力、重力、初速度、刚性墙、CNRB、无反射边界各有一个 L2 用例
       - 曲线（DEFINE_CURVE）与载荷引用正确，单位由调用者声明
@@ -235,8 +237,11 @@ tasks:
     layer: T1+T2
     target_tools: [create_entities, check_model]
     depends_on: [P04]
-    status: todo
-    existing: []
+    status: partial
+    existing: [create_entities]
+    gaps:
+      - 五类接触配方已有（create_entities / add_contact）；原生 Contact Check 初始穿透报告未接
+      - 引擎的几何穿透估算 check_contacts 未接成工具
     acceptance:
       - AUTOMATIC_SURFACE_TO_SURFACE、AUTOMATIC_SINGLE_SURFACE、ERODING_SURFACE_TO_SURFACE、TIED_SURFACE_TO_SURFACE_OFFSET、AUTOMATIC_NODES_TO_SURFACE 各一个配方
       - 主从面可用 Part / Part 集 / Segment 集指定，引用检查通过
@@ -271,11 +276,11 @@ tasks:
     target_tools: [mesh_ops]
     depends_on: [G03]
     status: partial
-    existing: [translate_gui_nodes, rotate_gui_nodes, set_gui_node_coordinates, merge_gui_duplicate_nodes, reverse_gui_shell_normals, renumber_gui_entities, create_gui_nodes, create_gui_elements, replace_gui_node, translate_mesh_nodes, rotate_mesh_nodes, transform_mesh_deck, merge_duplicate_mesh_nodes, move_elements_to_part]
+    existing: [translate_gui_nodes, rotate_gui_nodes, set_gui_node_coordinates, merge_gui_duplicate_nodes, reverse_gui_shell_normals, renumber_gui_entities, create_gui_nodes, create_gui_elements, replace_gui_node, translate_mesh_nodes, rotate_mesh_nodes, transform_mesh_deck, merge_duplicate_mesh_nodes, move_elements_to_part, mesh_ops]
     gaps:
-      - GUI 与文件后端各一套，近重复工具 14 个
-      - 合并重复节点受 20,000 快照上限约束；法向只能反转不能统一；重编号只能全量
-      - 缺镜像 / 复制 / 阵列 / 偏置 / 删除单元
+      - mesh_ops 已覆盖平移 / 旋转 / 镜像 / 复制 / 阵列 / 偏置 / 合并重复节点 / 法向统一 / 按范围重编号 / 删除单元
+      - 30 万单元合并与重编号只在私有语料上测过，记录不在仓库
+      - GUI 与文件后端的近重复工具仍在（I08 别名期内）
     acceptance:
       - v0.5 范围：平移、旋转、镜像、复制、合并重复节点、法向统一、按范围重编号、删除单元（8 项）各一个 L2 用例
       - 每项：选中实体坐标/连接按预期变化，未选实体逐值不变，引用检查通过
@@ -292,10 +297,10 @@ tasks:
     layer: T1
     target_tools: [check_model]
     status: partial
-    existing: [check_gui_keywords, check_gui_shell_quality, check_gui_solid_quality, inspect_mesh_quality, inspect_gui_mesh_quality, validate_model_references]
+    existing: [check_gui_keywords, check_gui_shell_quality, check_gui_solid_quality, inspect_mesh_quality, inspect_gui_mesh_quality, validate_model_references, check_model]
     gaps:
-      - 6 个工具各管一块，返回格式不同
-      - 缺四面体 / 梁 / 厚壳质量；接触检查见 P06
+      - check_model 汇总引用 / 重复 / 质量 / 坐标舍入 / 自由格式列宽 / 规定运动曲线长度；梁与厚壳质量未覆盖
+      - 与原生 Keyword Check 的交叉核对未做
     acceptance:
       - 一次调用汇总 Keyword Check、壳/实体/四面体质量、重复节点、未引用对象、悬空引用，每条问题带实体 ID
       - 人为注入的 6 类错误全部检出；干净语料报告 0 个错误
@@ -312,8 +317,11 @@ tasks:
     layer: T2
     target_tools: [run_recipe]
     depends_on: [P02]
-    status: todo
-    existing: [instantiate_installed_template, apply_keyword_filter]
+    status: partial
+    existing: [instantiate_installed_template, apply_keyword_filter, edit_keywords]
+    gaps:
+      - 终止 / 时间步 / 沙漏 / 能量 / d3plot / 34 个 ASCII 库已有引擎配方（edit_keywords 的 set_control / add_hourglass），缺参数时拒绝；尚未登记为 run_recipe 的 T2 配方
+      - 保存后 LSPP 原生重开核对未做（原生侧，见 P11）
     acceptance:
       - CONTROL_TERMINATION / TIMESTEP / HOURGLASS / ENERGY、DATABASE_BINARY_D3PLOT、DATABASE_ASCII 常用库各有配方
       - 参数缺失时拒绝，不填默认物理值
@@ -951,8 +959,16 @@ infrastructure:
   - id: I07
     title: raw-preserving 关键字引擎
     owner: claude
-    integration: "Claude 在 claude/keyword-engine 并行开发（本地提交 a1fb96c）；M0–M2 不实现 I07、不在 src/ls_prepost_mcp/domain/model/ 创建文件；M3 合并。"
+    integration: "Claude 在 claude/keyword-engine 开发，M3 经 PR 合入 main；代码在 src/ls_prepost_mcp/domain/model/，目标工具在 model_target_tools.py。"
     milestone: M3
+    status: done
+    verification_level: L1
+    evidence:
+      - src/ls_prepost_mcp/domain/model/deck.py
+      - tests/test_keyword_engine.py
+      - tests/test_keyword_engine_formats.py
+      - tests/test_keyword_engine_parameters.py
+      - tests/test_keyword_engine_long.py
     acceptance:
       - 按块解析、Include / INCLUDE_PATH / PARAMETER 树、定点写回、字节级往返测试
       - 字段宽度取自关键字定义，不硬编码

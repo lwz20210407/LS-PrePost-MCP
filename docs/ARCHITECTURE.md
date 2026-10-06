@@ -89,7 +89,7 @@ artifact。检查聚合忽略 not_applicable；只有全体均不适用时才返
 
 ## 前处理
 
-I07 由 Claude 在 `claude/keyword-engine` 并行开发，M3 合并；M0–M2 不在本分支实现 I07，也不创建 `src/ls_prepost_mcp/domain/model/` 下的文件。归属与集成约束以 tasks.yaml 为准。
+I07 由 Claude 在 `claude/keyword-engine` 开发，M3 经 PR 合入。代码在 `src/ls_prepost_mcp/domain/model/`（关键字引擎与前处理操作）和 `domain/results/`（LASSO 读取、曲线运算、应力不变量、MPP 分片 binout、场导出）。M3 目标工具 model_info、edit_keywords、create_entities、mesh_ops、check_model 在 `model_target_tools.py`，直接返回 JobResult/v1（材料、EOS、截面、沙漏和控制卡的引擎配方是 edit_keywords 的操作；run_recipe 是 A08 的配方入口）：输入文件不改，编辑结果写入作业目录，产物带 SHA256。编辑和目标里的选择可直接给 `core.contracts.Selector`，由 `domain/model/selectors.py` 解析为用户 ID（只支持参考构型）。归属与集成约束以 tasks.yaml 为准。
 
 raw-preserving 关键字引擎按关键字块解析，保留原始字节、来源与行号，构建 INCLUDE / INCLUDE_PATH / PARAMETER 树。仅结构化目标块，字段宽度来自 PyDYNA 定义；新卡片由 PyDYNA 生成。修改定位到原文件中的原块，未修改内容逐字节不变；保存用户输入的输出副本并保持 Include 结构。最后原生重开核对计数、引用和编辑差异。解析、参数作用域与字节往返可在 CI 完整测试。原生网格修改如何回写 Include 文件需另作最小实验。
 

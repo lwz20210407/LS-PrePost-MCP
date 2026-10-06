@@ -29,6 +29,11 @@ tools:
     target: check_model
     task_id: P09
     legacy_until: v0.6
+  check_model:
+    target: check_model
+    task_id: P09
+    legacy_until: null
+    note: M3 target tool on the I07 keyword engine; returns JobResult/v1
   checkpoint_gui_session:
     target: save_model
     task_id: P11
@@ -69,6 +74,11 @@ tools:
     target: edit_keywords
     task_id: P03
     legacy_until: v0.6
+  create_entities:
+    target: create_entities
+    task_id: P04
+    legacy_until: null
+    note: M3 target tool on the I07 keyword engine; returns JobResult/v1
   create_gui_elements:
     target: mesh_ops
     task_id: P08
@@ -143,6 +153,11 @@ tools:
     target: keyword_fields
     task_id: A10
     legacy_until: v0.6
+  edit_keywords:
+    target: edit_keywords
+    task_id: P02
+    legacy_until: null
+    note: M3 target tool on the I07 keyword engine; returns JobResult/v1
   execute_gui_command:
     target: run_script
     task_id: A01
@@ -371,6 +386,16 @@ tools:
     target: mesh_ops
     task_id: P08
     legacy_until: v0.6
+  mesh_ops:
+    target: mesh_ops
+    task_id: P08
+    legacy_until: null
+    note: M3 target tool on the I07 keyword engine; returns JobResult/v1
+  model_info:
+    target: model_info
+    task_id: P01
+    legacy_until: null
+    note: M3 target tool on the I07 keyword engine; returns JobResult/v1
   move_elements_to_part:
     target: edit_keywords
     task_id: P03

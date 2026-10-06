@@ -31,6 +31,7 @@ from .installation_assets import InstallationTools
 from .jobs import Jobs, atomic_json, check_artifact, fingerprint, now
 from .keyword_tools import KeywordTools
 from .mesh_tools import MeshTools
+from .model_target_tools import ModelTargetTools
 from .native import commands as nc
 from .native.bundle import stage_bridge
 from .native.commands import VIEWS
@@ -48,7 +49,7 @@ from .workflow_sweeps import WorkflowSweepTools
 from .workflows import WorkflowTools
 
 
-class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools):
+class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, ModelTargetTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools):
     def __init__(self, settings: Settings):
         self.settings = settings
         self.jobs = Jobs(settings.workspace)

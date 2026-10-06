@@ -1,0 +1,206 @@
+"""Reading and writing single fields while keeping the rest of a line intact."""
+from __future__ import annotations
+
+import math
+import re
+from dataclasses import dataclass
+
+from .text import body, ending
+
+_EXP = re.compile(r"e([+-])0*(\d)")
+_FORTRAN_D = re.compile(r"(?<=[0-9.])[dD](?=[+-]?\d)")
+_IMPLICIT_EXP = re.compile(r"^([+-]?(?:\d+\.\d*|\.\d+|\d+))([+-]\d+)$")
+
+
+class FieldError(ValueError):
+    """A value cannot be read from or written into a field."""
+
+
+@dataclass(frozen=True)
+class FieldSlot:
+    """Where a field lives: data line index in its block plus column range or token index."""
+
+    line: int
+    offset: int
+    width: int
+    token: int | None = None  # set when the line is comma separated
+
+
+def long_spans(widths: list[int]) -> list[tuple[int, int]]:
+    """Long-format ``(offset, width)`` spans: width ``max(w, 20)``, offsets accumulate."""
+    spans, offset = [], 0
+    for width in widths:
+        wide = max(width, 20)
+        spans.append((offset, wide))
+        offset += wide
+    return spans
+
+
+def is_free_format(line: str) -> bool:
+    """LS-DYNA treats a data line containing a comma as free (comma separated) format."""
+    return "," in body(line)
+
+
+def read_text(line: str, slot: FieldSlot) -> str:
+    """Return the raw (unstripped) text of a field."""
+    text = body(line)
+    if slot.token is not None:
+        tokens = text.split(",")
+        return tokens[slot.token] if slot.token < len(tokens) else ""
+    return text[slot.offset:slot.offset + slot.width]
+
+
+def _styled_cell(old: str, value: str, width: int, align: str) -> str:
+    """New cell text that follows the alignment of the old cell (blank cells use ``align``)."""
+    padded = old.ljust(width)
+    if not padded.strip():
+        return value.rjust(width) if align == "right" else value.ljust(width)
+    lead = len(padded) - len(padded.lstrip(" "))
+    if padded[-1] != " ":
+        return value.rjust(width)  # right-anchored, the usual LS-PrePost style
+    if lead and lead + len(value) <= width:
+        return (" " * lead + value).ljust(width)  # keep the original indentation
+    return value.ljust(width)
+
+
+def write_text(line: str, slot: FieldSlot, value: str, align: str = "right") -> str:
+    """Replace one field, leaving every other character and the line ending unchanged.
+
+    The new value follows the alignment of the old one, so only the value itself changes.
+    """
+    text, end = body(line), ending(line)
+    if slot.token is not None:
+        tokens = text.split(",")
+        while len(tokens) <= slot.token:
+            tokens.append("")
+        old = tokens[slot.token]
+        lead, trail = old[:len(old) - len(old.lstrip())], old[len(old.rstrip()):] if old.strip() else ""
+        new = lead + value + trail
+        if len(new) > slot.width >= len(value) and len(old) <= slot.width:
+            # padded tokens stay within the fixed field width (R11 Vol I: free-format values must
+            # not exceed the field length): drop padding instead of widening the token
+            new = value.rjust(slot.width) if lead else value
+        tokens[slot.token] = new
+        return ",".join(tokens) + end
+    if len(value) > slot.width:
+        raise FieldError(f"{value!r} does not fit in a {slot.width}-character field")
+    if len(text) < slot.offset:
+        text += " " * (slot.offset - len(text))
+    right = text[slot.offset + slot.width:]
+    ended_inside = len(body(line)) < slot.offset + slot.width
+    cell = _styled_cell(text[slot.offset:slot.offset + slot.width], value, slot.width, align)
+    new = text[:slot.offset] + cell + right
+    if ended_inside and not right:
+        new = new.rstrip(" ")  # the old line ended inside this field: add no trailing padding
+    return new + end
+
+
+def parse_number(text: str) -> float | int | None:
+    """Parse an LS-DYNA numeric field; blank returns None.
+
+    Accepts Fortran forms: ``1.0d-3`` and exponents without a letter (``1.13000-4``,
+    ``2.1000+11``), which LS-DYNA reads as ``1.13e-4`` and ``2.1e11``.
+    """
+    stripped = text.strip()
+    if not stripped:
+        return None
+    normalized = _FORTRAN_D.sub("e", stripped)
+    try:
+        return int(normalized)
+    except ValueError:
+        pass
+    implicit = _IMPLICIT_EXP.match(normalized)
+    if implicit:
+        normalized = implicit.group(1) + "e" + implicit.group(2)
+    try:
+        return float(normalized)
+    except ValueError as error:
+        hint = ("; it contains a TAB inside a fixed-width field, which LS-DYNA R11 rejects (Error 10246, "
+                "'illegal TAB character')" if "\t" in stripped else "")
+        raise FieldError(f"Not a number: {stripped!r}{hint}") from error
+
+
+def _compact(text: str) -> str:
+    """Shorten exponents: ``7.85e-09`` -> ``7.85e-9``, ``1e+21`` -> ``1e21``."""
+    return _EXP.sub(lambda m: "e" + ("-" if m.group(1) == "-" else "") + m.group(2), text)
+
+
+def format_value(value: object, width: int, kind: str = "auto", symmetric: bool = False) -> tuple[str, bool]:
+    """Format ``value`` for a field of ``width`` characters.
+
+    Returns the text and whether it reads back exactly. Strings (titles, ``&param``
+    references) are written as given. ``kind`` is ``int``, ``float``, ``str`` or ``auto``.
+    """
+    if isinstance(value, str):
+        if len(value) > width:
+            raise FieldError(f"{value!r} does not fit in a {width}-character field")
+        return value, True
+    if isinstance(value, bool):
+        raise FieldError("Boolean values are not LS-DYNA field values")
+    if kind == "int" or (kind == "auto" and isinstance(value, int)):
+        if isinstance(value, float):
+            if not value.is_integer():
+                raise FieldError(f"{value} is not an integer")
+            value = int(value)
+        text = str(int(value))
+        if len(text) > width:
+            raise FieldError(f"{text} does not fit in a {width}-character field")
+        return text, True
+    number = float(value)
+    if not math.isfinite(number):
+        raise FieldError("Non-finite values cannot be written")
+    shortest = repr(number)
+    for candidate in (shortest, _compact(shortest)):
+        if len(candidate) <= width:
+            return candidate, True
+    # With ``symmetric`` (coordinates) a rounded value keeps a column for the sign whatever its
+    # sign, so v and -v get the same digits (otherwise a positive value keeps one digit more and
+    # mirror pairs come out unequal); other fields use the full width.
+    sign = "-" if number < 0 else ""
+    room = width - 1 if symmetric or sign else width
+    for precision in range(room, 0, -1):
+        candidate = _compact(f"{abs(number):.{precision}g}")
+        if "." not in candidate and "e" not in candidate and len(candidate) < room:
+            candidate += "."
+        if len(candidate) <= room:
+            return sign + candidate, float(sign + candidate) == number
+    raise FieldError(f"{number} cannot be represented in {width} characters")
+
+
+def _zero(token: str) -> bool:
+    try:
+        return parse_number(token) in (None, 0)
+    except FieldError:
+        return False
+
+
+def stray_text(line: str, spans: list[tuple[int, int]], long: bool = False, tolerant: bool | None = None) -> str | None:
+    """Text of ``line`` outside the fields that suggests cards matched to the wrong lines.
+
+    Fixed format: non-blank characters within the card width (80, long 160) that no span
+    covers; comma format: non-empty tokens beyond the fields. Extra trailing fields that are
+    zero or blank are tolerated on cards with three or more fields (PyDYNA lacks some newer
+    trailing fields, e.g. CID_RCF of contact card C); ID cards with one or two fields tolerate
+    nothing, because a misplaced ID card is exactly what this check has to catch. ``tolerant``
+    overrides the field-count rule (series lines such as shell layer angles are never ID cards).
+    """
+    text = body(line)
+    tolerant = len(spans) >= 3 if tolerant is None else tolerant
+    if is_free_format(line):
+        extra = [token.strip() for token in text.split(",")[len(spans):] if token.strip()]
+        if not extra or (tolerant and all(_zero(token) for token in extra)):
+            return None
+        return ",".join(extra)
+    limit = 160 if long else 80
+    end = min(max((offset + width for offset, width in spans), default=0), limit)
+    covered = [False] * limit
+    for offset, width in spans:
+        for position in range(offset, min(offset + width, limit)):
+            covered[position] = True
+    inside = "".join(ch for position, ch in enumerate(text[:end]) if not covered[position] and not ch.isspace())
+    if inside:
+        return inside
+    trailing = text[end:limit].split()
+    if not trailing or (tolerant and all(_zero(token) for token in trailing)):
+        return None
+    return " ".join(trailing)
