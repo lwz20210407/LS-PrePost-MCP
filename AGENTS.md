@@ -65,7 +65,7 @@
 
 - 所有 PR 由 Claude 审阅。Actions 额度恢复前，Claude 在“最新 main + PR”上跑本地门禁。
 - Codex、反重力、Cursor 的 PR：审阅无 P0/P1 且门禁全部通过后，由 Claude 合并。
-- Claude 自己的 PR 由用户批准后合并。
+- Claude 自己的 PR 同样在审阅无 P0/P1、门禁全部通过后由 Claude 合并，不再等用户批准（用户 2026-10-07 授权）。
 
 **进展检查与消息传递（GitHub 是唯一的消息通道）**
 
@@ -81,6 +81,7 @@ Cursor 和反重力的派发任务默认由本机的 Agent Orchestrator 作为 w
 - 完成第一个有意义的提交后就推送并开 Draft PR，运行 `ao session claim-pr <PR号>` 认领；全部满足“做完”标准后改为 Ready。
 - 审阅意见回灌：认领后，PR 上未解决的行内审阅评论由 AO 自动转给该 worker；顶层评论形式的审阅清单由 Claude 另用 `ao send` 通知 worker 去读。修改后照常推送，并在 PR 下评论新头 SHA。
 - 删除文件或目录、强推、rebase、改写历史、删除分支或 worktree、向 main 推送：在 AO 中会被拒绝（Cursor 由本机钩子拒绝）或停下等待确认（反重力由其权限规则控制）。不要换写法或换工具重试，把需要处理的对象写进 PR 正文或评论，由用户决定。
+- GitHub Actions 额度用完，2026-11-01 前 PR 上的 CI 检查都会显示失败，AO 也会把它当作 CI 失败转给 worker。这不是代码问题，不要尝试修复 CI；以本地跑完 tests.yml 的 9 步为准。
 - 测试和临时文件放在本任务的 dated scratch 目录（`F:\PythonWoking\temp\<YYYYMMDD>-<任务>\`）或 worktree 内被 git 忽略的位置；不在 `F:\PythonWoking` 根目录新建任何东西。
 
 **每个开发者被唤醒时先做这件事**（不在 AO 中工作时）
