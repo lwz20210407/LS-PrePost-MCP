@@ -436,6 +436,10 @@ def read_binout_matsum(path: str | Path) -> dict[int, dict[str, np.ndarray]]:
     if not p.exists():
         return {}
 
+    folder = p if p.is_dir() else p.parent
+    if not any(folder.glob("binout*")) and "binout" not in p.name.lower():
+        return {}
+
     use_mpp = True
     single_binout = None
     try:
