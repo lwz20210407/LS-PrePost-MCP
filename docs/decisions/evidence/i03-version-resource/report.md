@@ -26,3 +26,10 @@
 
 只读 API 依据：[GetFileVersionInfoW](https://learn.microsoft.com/en-us/windows/win32/api/winver/nf-winver-getfileversioninfow)、
 [VerQueryValueW](https://learn.microsoft.com/en-us/windows/win32/api/winver/nf-winver-verqueryvaluew)。
+
+## 第六轮重挂后的引擎补验
+
+在包含 main、进程回收、日志解码和版本资源修复的干净 c1f3fa0 提交上，
+4.13/4.10 各 6 项批处理回归通过；五入口完成模型/产物验证，无效命令仍显式失败。
+restack_runs 追加实际 revision、working_tree_dirty=false、原始报告哈希与框架执行身份。
+本轮没有 GUI/UU 运行，也没有把历史 4.8 资源检查扩写成 4.8 的引擎实测。
