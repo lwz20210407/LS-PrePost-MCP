@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 NATIVE_ERROR = re.compile(
-    r"^\s*(?:\*+\s*)?(?:invalid(?:\s+[A-Za-z][\w-]*){0,3}\s+command\b|error while compiling\b|error occurred in parsing script\b|syntax error\b|runtime error\b|output file .+ not open\s*$)",
+    r"^\s*(?:\*+\s*)?(?:invalid(?:\s+[A-Za-z][\w-]*){0,3}\s+command\b|error while compiling\b|error occurred in parsing script\b|syntax error\b|runtime error\b|error\s*-\s*include\s+file\s+.+\s+not\s+open\s*$|output file .+ not open\s*$)",
     re.IGNORECASE,
 )
 

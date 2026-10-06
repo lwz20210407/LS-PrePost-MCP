@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .cards import insert_card
-from .fields import FieldError
+from .fields import FieldError, single_line
 
 if TYPE_CHECKING:
     from .blocks import SourceFile
@@ -163,7 +163,7 @@ def add_part(deck: KeywordDeck, *, title: str, secid: int, mid: int, eosid: int 
     if pid in defined:
         raise FieldError(f"Part {pid} is already defined")
     card = [pid, fields["secid"], fields["mid"], fields["eosid"], fields["hgid"], 0, 0, fields["tmid"]]
-    block = deck.insert(f"*PART\n{title}\n" + "".join(f"{v:>10}" for v in card) + "\n", file=file)[0]
+    block = deck.insert(f"*PART\n{single_line(title, 'Part heading')}\n" + "".join(f"{v:>10}" for v in card) + "\n", file=file)[0]
     read = {name: deck.get(block, name, row=pid).value for name in fields}
     if any(int(read[name] or 0) != value for name, value in fields.items()):
         deck.delete(block, force=True)

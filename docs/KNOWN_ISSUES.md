@@ -1198,6 +1198,16 @@ BatchEngine 和内置 Python 在作业目录运行，并非主 deck 目录。对
 
 回归见 [边界测试](../tests/test_boundaries.py)。I01、I04 的其他原生 gap 保持不变。
 
+## I01：INCLUDE 漏读诊断与拒绝状态（第十一轮）
+
+4.10 按 job cwd 解析相对 INCLUDE；源目录中的相对文件不会被读入。`Error - Include File … Not open` 现纳入共享原生错误规则，使返回码为 0 的不完整模型也失败。4.13 按主 deck 目录解析，第九轮复跑日志中 include 打开失败为 0；不据此外推其它版本。回归见 [4.10 原生用例](../tests/test_native_include_failure.py)。
+
+允许目录检查先于预检内容诊断；cwd 检查拒绝后，新建作业显式记为 failed。行首空白及 *END 后的 INCLUDE 直接拒绝，不猜测不同版本的解析。带引号的文件名（例如 `"first.k"`）在共享预检中会被拒绝，属于与旧检查的兼容性变化；尚未做原生语法认证。
+
+引用总数上限由 Claude 提供共享预检接口，Codex 接入；当前 max_files 不等于引用总数上限，该项仍待接口。
+
+第十一轮 [4.10 原生证据](decisions/evidence/i01-include-diagnostics/report.md) 已登记 2 项通过（相对漏读失败、绝对路径完整读入），ce42 H0 也返回 failed。
+
 ## I04：公开案例按 INCLUDE 预检区分输入限制
 
 公开语料运行器先调用共享 `preflight_includes`，记录 tree_sha256、版本和每个文件的 relative / role / size / sha256，随后复核完整树的原文件字节。`ok=false` 记为 input_limited，pytest 报告为 evidence_only，禁止据此声称原生通过或代码缺陷。非 keyword 结果族单独标记 tree_kind=result_family。每例另记实际 LS-PrePost 可执行文件与版本资源；预检成功本身不认证原生解析。
