@@ -32,7 +32,7 @@
 
 | 开发者 | 负责范围 |
 |---|---|
-| Claude | 关键字引擎核心 `src/ls_prepost_mcp/domain/model/`；结果计算核心 `domain/results/`（曲线、LASSO 读取、MPP 分片、不变量等共享实现）与 Q05、Q06、Q07；P 系列模型侧任务；`model_target_tools.py`；`tools/l3/`（I09）；**全部 PR 的审阅与合并** |
+| Claude | 关键字引擎核心 `src/ls_prepost_mcp/domain/model/`；结果计算核心 `domain/results/`（曲线、LASSO 读取、MPP 分片、不变量等共享实现）与 Q05、Q06、Q07；P 系列模型侧任务；`model_target_tools.py`；`tools/l3/`（I09）；**Codex、反重力、Cursor 的 PR 审阅，以及全部 PR 的合并执行** |
 | Codex | M1 原生执行通道与进程生命周期等底层修复（`engine/`、`native/`、`service.py`、`config.py`、`jobs.py` 等）；**给反重力和 Cursor 下发独立任务** |
 | 反重力 | Q10 截面力与剖切面；Q12 能量平衡与部件耗散检查 `check_energy`；Codex 派发的其他任务 |
 | Cursor | Codex 派发的独立任务 |
@@ -65,9 +65,9 @@
 
 **审阅与合并**
 
-- 所有 PR 由 Claude 审阅。Actions 额度恢复前，Claude 在“最新 main + PR”上跑本地门禁。
+- Codex、反重力、Cursor 的 PR 由 Claude 审阅；Claude 的 PR 由 Codex 审阅（交叉审阅，用户 2026-10-07 确定）。Actions 额度恢复前，Claude 在“最新 main + PR”上跑本地门禁。
 - Codex、反重力、Cursor 的 PR：审阅无 P0/P1 且门禁全部通过后，由 Claude 合并。
-- Claude 自己的 PR 同样在审阅无 P0/P1、门禁全部通过后由 Claude 合并，不再等用户批准（用户 2026-10-07 授权）。
+- Claude 自己的 PR：Claude 在“最新 main + PR”的本地合并树上非交互地启动 Codex 审阅（不改文件、不联网），Codex 的结论原样以“Codex 审阅”PR 评论发布，第一行为“结论：可以合并”或“结论：不能合并”。Codex 判可以合并、且门禁全部通过后，由 Claude 执行合并，不再等用户批准（用户 2026-10-07 授权）。判不能合并时，Claude 按清单修改，推送后请 Codex 复审。交互使用的 Codex 也可以直接在 PR 下发表审阅意见，同样有效。
 
 **进展检查与消息传递（GitHub 是唯一的消息通道）**
 
