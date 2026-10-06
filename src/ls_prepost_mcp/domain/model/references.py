@@ -12,7 +12,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from . import links, lists
+from . import links, lists, set_rows
 from .blocks import Block
 from .fields import FieldError, parse_number, read_text
 from .layouts import Layout, RowMap, Unsupported
@@ -152,8 +152,10 @@ class ReferenceReport:
         return [{"kind": kind, "id": ident, **vars(site)} for kind, ident, site in self.unverified_sites]
 
     def duplicates(self) -> list[dict]:
+        """IDs defined more than once; ``*SET_..._COLLECT`` blocks sharing a SID are one merged set."""
         return [{"kind": kind, "id": ident, "sites": [vars(s) for s in sites]}
-                for kind, defs in self.definition_sites.items() for ident, sites in defs.items() if len(sites) > 1]
+                for kind, defs in self.definition_sites.items() for ident, sites in defs.items()
+                if len(sites) > 1 and not all(lists.collected(s.keyword) for s in sites)]
 
     def unused(self, kinds: tuple[str, ...] = ("section", "material", "eos", "hourglass", "curve")) -> dict:
         return {kind: sorted(self.defined.get(kind, set()) - self.referenced.get(kind, set())) for kind in kinds}
@@ -229,6 +231,8 @@ def _plans(deck: KeywordDeck, include_mesh: bool, report: ReferenceReport) -> li
             continue
         if members and not include_mesh and members in MESH_KINDS:
             members = None
+        if set_rows.is_general(base):
+            report.unchecked[block.name] += 1  # the SID is read; row IDs depend on OPTION and are not checked
         plans.append(_Plan(block, layout, tuple(definition) if definition else None,
                            _expand(refs, layout), coded, members))
     return plans
@@ -240,6 +244,8 @@ def _references(name: str, base: str, include_mesh: bool) -> list[tuple[str, str
     pairs = list(hand[0]) if hand else []
     named = {field for field, _ in pairs}
     pairs += [(field, kind) for field, kind in links.link_fields(name) if field not in named]
+    if set_rows.increment_kind(base):
+        pairs = [pair for pair in pairs if pair[0] not in ("bbeg", "bend")]  # range ends, not references
     return [(field, kind) for field, kind in pairs if include_mesh or kind not in MESH_KINDS]
 
 

@@ -5,7 +5,8 @@ Two sources are used:
 
 * built-in row specs for ``*NODE`` and plain ``*PART`` (one row per node / part);
 * PyDYNA card schemas for keywords made of plain cards, option cards (``_TITLE``,
-  ``_ID``, ``_MPP``, ...) and single card sets.
+  ``_ID``, ``_MPP``, ...) and single card sets; for ``*SET_*_GENERAL`` / ``_COLUMN`` /
+  ``_GENERATE_INCREMENT`` the PyDYNA data card is repeated per line (:mod:`set_rows`).
 
 Every PyDYNA layout is self-checked: the text found at each computed position must
 equal the value PyDYNA itself parsed. Any disagreement raises :class:`Unsupported`, so
@@ -22,7 +23,7 @@ import threading
 import warnings
 from collections.abc import Mapping
 
-from . import lists, tables, umat
+from . import lists, set_rows, tables, umat
 from .blocks import Block
 from .fields import (
     FieldError,
@@ -587,6 +588,9 @@ def layout(block: Block, lookup: Mapping[str, object], deck_format: str = "stand
         return lists.integration_shell_layout(block, long)
     if block.name == "*BOUNDARY_FLUX_SEGMENT":
         return lists.flux_segment_layout(block, long)
+    base, titled = lists.base_name(block.name)
+    if set_rows.is_row_set(base):
+        return set_rows.row_set_layout(block, _pydyna_class(base)[0], base, titled, long)
     if lists.is_list_set(block.name) or lists.is_curve(block.name):
         try:
             headers = lists.header_fields(block, long)
