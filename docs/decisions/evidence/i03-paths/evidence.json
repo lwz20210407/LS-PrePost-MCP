@@ -643,5 +643,132 @@
       "size": 73,
       "sha256": "1907aa3d80cd62b3678ed22f424312119f38a4fd3c9843da8ad8b00b0cd5d90e"
     }
-  ]
+  ],
+  "followup": {
+  "schema_version": 1,
+  "task": "I03",
+  "actual_git_revision": "8c95208815d33313a77d71b75c18be52b5cf1fd5",
+  "working_tree_dirty": true,
+  "git_diff_sha256": "a470c472e0d2c4375e11b54dbd98f8381f338c9f1d00c160da018774c1aa5d6c",
+  "patch_scope": "git diff HEAD --binary captured before both runs",
+  "suite": "i03",
+  "mode": "batch_only",
+  "runs": [
+    {
+      "version": "413",
+      "exit_code": 0,
+      "report": "413-report/report.json"
+    },
+    {
+      "version": "410",
+      "exit_code": 0,
+      "report": "410-report/report.json"
+    }
+  ],
+  "cases": {
+    "413": [
+      {
+        "case": "tests/test_native_paths_native.py::test_import_keyword_saves_and_reopens_imported_node",
+        "status": "passed",
+        "seconds": 12.688461100013228
+      },
+      {
+        "case": "tests/test_native_paths_native.py::test_xydata_open_and_export_preserve_curve_samples",
+        "status": "passed",
+        "seconds": 3.865756800005329
+      },
+      {
+        "case": "tests/test_native_paths_native.py::test_scl_utf8_comment_and_count_artifact",
+        "status": "passed",
+        "seconds": 3.6575447999930475
+      }
+    ],
+    "410": [
+      {
+        "case": "tests/test_native_paths_native.py::test_import_keyword_saves_and_reopens_imported_node",
+        "status": "passed",
+        "seconds": 19.507667400001083
+      },
+      {
+        "case": "tests/test_native_paths_native.py::test_xydata_open_and_export_preserve_curve_samples",
+        "status": "passed",
+        "seconds": 6.514852899999823
+      },
+      {
+        "case": "tests/test_native_paths_native.py::test_scl_utf8_comment_and_count_artifact",
+        "status": "passed",
+        "seconds": 6.426743800009717
+      }
+    ]
+  }
+},
+  "review_runs": [
+  {
+    "actual_git_revision": "07ea5794d2a7178e069e45fd3816f5debaf1a666",
+    "working_tree_dirty": true,
+    "git_diff_sha256": "87e67606a8f2ba4dc90d35f5f31f8d6c3c3e4c0aa1a3d5adf591078e0e0449bc",
+    "patch_scope": "git diff HEAD --binary captured before both runs",
+    "suite": "i03",
+    "mode": "batch_only",
+    "run_id": "i03paths-n2",
+    "versions": [
+      {
+        "version": "413",
+        "pytest_exit_code": 0,
+        "report_sha256": "8c29dfd43da850a9638da85421942104443bb355463d18d451a68410067663b9",
+        "cases": [
+          {
+            "case": "tests/test_native_paths_native.py::test_import_keyword_saves_and_reopens_imported_node",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 13.645828199994867,
+            "channels": null
+          },
+          {
+            "case": "tests/test_native_paths_native.py::test_xydata_open_and_export_preserve_curve_samples",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 3.7545491000055335,
+            "channels": null
+          },
+          {
+            "case": "tests/test_native_paths_native.py::test_scl_utf8_comment_and_count_artifact",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 3.912638900001184,
+            "channels": null
+          }
+        ]
+      },
+      {
+        "version": "410",
+        "pytest_exit_code": 0,
+        "report_sha256": "b5f4fe9aa34768e982d81eec8a4d6d742dc84baefb95fd6e6891b3ea9d47d747",
+        "cases": [
+          {
+            "case": "tests/test_native_paths_native.py::test_import_keyword_saves_and_reopens_imported_node",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 39.24936020000314,
+            "channels": null
+          },
+          {
+            "case": "tests/test_native_paths_native.py::test_xydata_open_and_export_preserve_curve_samples",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 8.828493299995898,
+            "channels": null
+          },
+          {
+            "case": "tests/test_native_paths_native.py::test_scl_utf8_comment_and_count_artifact",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 8.917231699990225,
+            "channels": null
+          }
+        ]
+      }
+    ]
+  }
+]
 }

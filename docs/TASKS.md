@@ -221,6 +221,28 @@
 
 - 带 Include 的模型拒绝保存
 
+### P12 运动副与刚体连接
+
+状态：partial；版本：v0.5；里程碑：M3；层：T1
+
+在曲柄与机架之间建转动铰并加转动电机，连杆与滑块之间建转动铰，滑块与导轨之间建移动副，检查刚体归属与过约束
+
+验收：
+
+- 九类运动副各一个配方，节点对按 R17 Vol I *CONSTRAINED_JOINT 的规则放置，两侧刚体归属正确，引用检查通过
+- 每类运动副的 R11 算例与解析解或官方示例一致，运动学量误差小于 1%
+- 检查在公开与本地真实模型上没有误报，能检出节点不重合、两侧刚体不一致、两侧同一刚体、过约束
+- 原生重开后 Joint 定义读回一致
+
+现有入口：`create_entities`, `check_model`
+
+缺口：
+
+- 九类运动副（球铰、转动、圆柱、平面、万向、移动、锁定、转动电机、移动电机）由 add_joint 写出；两侧可为刚体 Part（额外节点）、已有节点刚体，或由所选节点新建的节点刚体
+- 证据在 docs/decisions/evidence/p12：R11 解析解算例；5 个官方示例删除原运动副后重建，4 个逐值相同、1 个动能差 1e-6；真实模型检查的误报已清零
+- 由所选节点新建节点刚体（变形体一侧）只有单元测试，尚无 R11 算例
+- 未做：*CONSTRAINED_JOINT_STIFFNESS（限位、摩擦）的创建；齿轮、齿条、滑轮、螺旋、等速、HARMONIC 只登记，不做几何检查；LSPP 原生重开核对（P11）
+
 ## 后处理
 
 ### Q01 结果概览
@@ -437,7 +459,7 @@
 
 ### A01 命令栏 Command（单条原生命令）
 
-状态：partial；版本：v0.5；里程碑：M1；层：T1
+状态：done；版本：v0.5；里程碑：M1；层：T1
 
 执行一条 LSPP 命令，就像在左下角输入栏里敲一样，并告诉我 LSPP 返回了什么
 
@@ -450,13 +472,9 @@
 
 现有入口：`prepare_native_program`, `execute_native_program`, `execute_gui_command`, `run_on_version`
 
-缺口：
-
-- 历史 4.13 batch/session 与 4.10 batch 报告未记录实际 Git revision 和运行时未提交 diff SHA256；需带完整身份重跑并将 report.md、evidence.json 入库
-
 ### A02 cfile 命令流
 
-状态：partial；版本：v0.5；里程碑：M1；层：T1
+状态：done；版本：v0.5；里程碑：M1；层：T1
 
 运行这个 cfile，把里面的 width 换成 8 再跑一次
 
@@ -470,13 +488,9 @@
 
 现有入口：`prepare_native_program`, `execute_native_program`
 
-缺口：
-
-- 历史 A02 原生证据缺少实际 Git revision 或运行时未提交 diff SHA256；在 report.md 与 evidence.json 按身份完整入库前保持 partial，配方模式登记不替代执行证据
-
 ### A03 SCL 脚本
 
-状态：partial；版本：v0.5；里程碑：M1；层：T1
+状态：done；版本：v0.5；里程碑：M1；层：T1
 
 运行这个 SCL 脚本，读出所有节点坐标写成 CSV
 
@@ -488,13 +502,9 @@
 
 现有入口：`prepare_native_program`, `execute_native_program`, `probe_scl`
 
-缺口：
-
-- 历史原生报告未记录实际 Git revision 与运行时未提交 diff SHA256，需重新取证并将 report.md、evidence.json 入库
-
 ### A04 应用内 Python 脚本
 
-状态：partial；版本：v0.5；里程碑：M1；层：T1
+状态：done；版本：v0.5；里程碑：M1；层：T1
 
 用 LSPP 内置 Python 读出每个 Part 的单元数和最大位移
 
@@ -506,10 +516,6 @@
 - 4.13 全量、4.10 子集通过
 
 现有入口：`prepare_native_program`, `execute_native_program`
-
-缺口：
-
-- 历史原生报告未记录实际 Git revision 与运行时未提交 diff SHA256，需重新取证并将 report.md、evidence.json 入库
 
 ### A05 原生宏执行
 
@@ -723,7 +729,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：partial；验证：L2
 
-证据：[src/ls_prepost_mcp/native/commands.py](../src/ls_prepost_mcp/native/commands.py), [src/ls_prepost_mcp/native/versions.py](../src/ls_prepost_mcp/native/versions.py), [tests/test_native_commands.py](../tests/test_native_commands.py), [docs/decisions/evidence/i03/report.md](../docs/decisions/evidence/i03/report.md), [tests/test_engine_native.py](../tests/test_engine_native.py)
+证据：[src/ls_prepost_mcp/native/commands.py](../src/ls_prepost_mcp/native/commands.py), [src/ls_prepost_mcp/native/versions.py](../src/ls_prepost_mcp/native/versions.py), [tests/test_native_commands.py](../tests/test_native_commands.py), [docs/decisions/evidence/i03/report.md](../docs/decisions/evidence/i03/report.md), [docs/decisions/evidence/i03-paths/report.md](../docs/decisions/evidence/i03-paths/report.md), [tests/test_engine_native.py](../tests/test_engine_native.py)
 
 - genselect / fringe / anim 等命令只在 native/commands.py 生成，有黄金输出测试
 - 版本差异集中在能力表，src 其他位置不出现版本判断
@@ -787,6 +793,12 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 ### I09 Agent 场景评测 L3
 
 里程碑：M2-M4
+
+负责人：claude
+
+状态：partial；验证：L1
+
+证据：[tools/run_l3.py](../tools/run_l3.py), [tests/test_l3_harness.py](../tests/test_l3_harness.py), [docs/decisions/evidence/i09/report.md](../docs/decisions/evidence/i09/report.md)
 
 - 20 道自然语言任务（后处理 8、前处理 8、自动化 4），Claude 与 Codex 各跑一遍
 - 记录成功率、工具调用次数、失败原因

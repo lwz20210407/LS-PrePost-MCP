@@ -6,10 +6,10 @@ from pathlib import Path
 
 from pydantic import StrictBool
 
-from .config import command_path
 from .core.validation import unit_label
 from .gui_mesh import check_same_nodes, check_same_parts, mesh_index, shell_cycle
 from .jobs import check_artifact
+from .native import commands as nc
 from .windows_transport import WindowsCommandTransport
 
 # Recorded on Windows 4.13.4. Commands are semantic; controls are validated by caption.
@@ -140,7 +140,7 @@ class GuiQualityTools:
             transport._select_panel_tab("Model Checking", 13339, 1)
             transport._set_panel_checked("Model Checking", 11377, True, "Do not Check Contact")
             context["path"] = directory / "native-keyword-check.txt"
-            return ["modelcheck checkgeneral", "modelcheck writetofile " + command_path(context["path"])]
+            return ["modelcheck checkgeneral", nc.modelcheck_report(context["path"])]
 
         def verify(before, after):
             nodes, elements = mesh_index(before)

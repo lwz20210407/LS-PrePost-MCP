@@ -32,10 +32,17 @@
 - 4.13.4：batch 和 queue session 实测通过。
 - 4.10 / 4.8：batch 子集实测通过。
 - A01 与 I01 队列用例回归覆盖进程复用与正常关闭。
-- A02 仍为 partial：逐配方的运行模式表在 A08 配方入库时登记。
+- A02 的历史版本身份缺口已通过干净 main 9e55e9b 上重新取证关闭，见[通道证据](evidence/a02/report.md)。
   I10 的 runc 结果不能直接推断为任意用户脚本可用，也不替代尚待补测的 UU 格。
 
 私有日志、输入路径、执行输出保留在外部测试目录，不提交仓库。
 
 后续 A08 已为五个配方补齐两种模式的逐版本实测登记，见[配方报告](evidence/a08/report.md)。
-A02 因此收口为 done；4.10 的 runc 仅建盒通过，其余四个配方失败，默认仍用 c= -nographics。
+配方模式登记与本次绑定版本的通道证据齐备后，A02 恢复 done；4.10 的 runc 仅建盒通过，其余四个配方失败，默认仍用 c= -nographics。
+
+## 第六轮证据版本范围
+
+历史原生证据 revision 9e55e9b 早于 main 3ce20a3；#18 后 program.scl、complete.scl、
+selection.scl 统一由 write_scl 写为 LF。4.13/4.10 batch LF 先前已有 I03 证据，
+本轮又在干净 d7deaa1 上完成 A01–A04 的 4.13/4.10 batch，以及 A02/A03 的 4.8 batch。
+各通道 evidence.json 追加新 runs；A03 4.13 session 的 LF 写入仍待授权窗口验证。

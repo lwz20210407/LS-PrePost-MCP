@@ -4,12 +4,23 @@ Builders preserve native user IDs, zero-based buffers and one-based states.
 They validate syntax; the caller still verifies native selection/field results.
 """
 
+import json
 import math
 import os
 import re
 
 TARGETS = frozenset(("node", "element", "shell", "solid", "beam", "tshell", "part"))
 CFILE_ENCODING = "utf-8"
+SCL_ENCODING = "utf-8"
+
+
+def scl_string(path, style="posix"):
+    """SCL UTF-8 path literal; keep non-ASCII characters instead of JSON u-escapes."""
+    value = os.fspath(path)
+    if not isinstance(value, str):
+        raise ValueError("SCL path must be text")
+    choice(style, ("posix", "native"), "path style")
+    return json.dumps(value.replace("\\", "/") if style == "posix" else value, ensure_ascii=False)
 
 
 def quoted_path(path, style="posix"):
@@ -53,6 +64,32 @@ def run_script(path, language="python", style=None):
 
 def save_keyword(path, style="posix"):
     return "save keyword " + quoted_path(path, style)
+
+
+def import_keyword(path, style="posix"):
+    return "import keyword " + quoted_path(path, style)
+
+
+def open_xydata(path, style="posix"):
+    return "open xydata " + quoted_path(path, style)
+
+
+def save_xypair(path, plot_id=1, style="posix"):
+    integer(plot_id, "plot window", 1, 2147483647)
+    return "xyplot {} savefile xypair {} 1 all".format(plot_id, quoted_path(path, style))
+
+
+def modelcheck_report(path, style="posix"):
+    return "modelcheck writetofile " + quoted_path(path, style)
+
+
+def write_scl(path, source):
+    if not isinstance(source, str):
+        raise ValueError("SCL source must be text")
+    # Normalize generated source on every host; UTF-8 is emitted without a BOM.
+    source = source.replace("\r\n", "\n").replace("\r", "\n")
+    with open(path, "w", encoding=SCL_ENCODING, newline="\n") as stream:
+        stream.write(source)
 
 
 def write_cfile(path, commands):

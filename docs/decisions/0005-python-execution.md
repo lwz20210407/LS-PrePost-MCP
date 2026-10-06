@@ -15,9 +15,10 @@ dtype、内存字节数、排列顺序。验证 NPY 1/2 头、载荷长度及 ZI
 
 ## 历史原生记录与证据缺口
 
-第三轮审阅后 A04 改为 partial。以下历史结果未记录实际 Git revision
-和运行时未提交 diff SHA256，不能作为当前提交的完成证据。需以新的
-运行身份重新取证，并将去路径的 report.md、evidence.json 入库。
+第三轮审阅时 A04 曾因历史记录缺少版本身份而保留 partial。
+本次已在干净 main 9e55e9b 重新完成 4.13 batch/session 与 4.10 batch 子集，
+[新证据](evidence/a04/report.md) 带实际 revision、diff、源码/输入/报告哈希，
+据此恢复 done；原历史记录不用于补造运行身份。
 
 `tests/test_script_python_native.py` 在真实内置 Python 中调用 DataCenter
 和 LsPrePost，加载 helper.py 及子目录 JSON 文件，接收含引号/换行的数据
@@ -29,3 +30,10 @@ dtype、内存字节数、排列顺序。验证 NPY 1/2 头、载荷长度及 ZI
 - 4.10：标量 SDK + 参数/依赖/NPZ/异常子集通过，未放宽旧版向量 ABI 限制。
 - A03 的原生 SCL 坐标 CSV 与等价 DataCenter Python 输出继续作为交叉证据。
 - 原始日志、大数组和本机路径留在外部原生测试目录。
+
+## 第六轮证据版本范围
+
+历史原生证据 revision 9e55e9b 早于 main 3ce20a3；#18 后 program.scl、complete.scl、
+selection.scl 统一由 write_scl 写为 LF。4.13/4.10 batch LF 先前已有 I03 证据，
+本轮又在干净 d7deaa1 上完成 A01–A04 的 4.13/4.10 batch，以及 A02/A03 的 4.8 batch。
+各通道 evidence.json 追加新 runs；A03 4.13 session 的 LF 写入仍待授权窗口验证。

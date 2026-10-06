@@ -7,7 +7,6 @@ from pathlib import Path
 import numpy as np
 from pydantic import StrictFloat, StrictInt
 
-from .config import command_path
 from .core.validation import integer, numbers, unit_label
 from .jobs import atomic_json, check_artifact
 from .native import commands as nc
@@ -649,7 +648,7 @@ class GuiMeshTools:
                 + ["*END"]
             )
             fragment.write_text("\n".join(lines) + "\n", encoding="ascii")
-            return ["import keyword " + command_path(fragment)]
+            return [nc.import_keyword(fragment)]
 
         def verify(before, after):
             old_nodes, old_elems = mesh_index(before)
@@ -718,7 +717,7 @@ class GuiMeshTools:
                 lines.append(",".join(map(str, [eid, part_id] + expanded)))
             lines.append("*END")
             fragment.write_text("\n".join(lines) + "\n", encoding="ascii")
-            return ["import keyword " + command_path(fragment)]
+            return [nc.import_keyword(fragment)]
 
         def verify(before, after):
             old_nodes, old_elems = mesh_index(before)
