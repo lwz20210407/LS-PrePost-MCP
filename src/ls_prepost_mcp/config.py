@@ -66,33 +66,37 @@ class Settings:
         require_installation(self.executable)
         return self.executable
 
-    def check_keyword_includes(self, path: Path, seen: set[Path] | None = None) -> None:
-        """Validate plain *INCLUDE chains; explicitly reject unsupported resolution rules."""
-        seen = set() if seen is None else seen
-        if path in seen:
-            raise ValueError("Cyclic keyword include chain")
-        if len(seen) >= 100:
-            raise ValueError("Keyword include limit exceeded")
-        seen.add(path)
-        lines = path.read_text(encoding="utf-8-sig", errors="replace").splitlines()
-        pending = False
-        for raw in lines:
-            line = raw.strip()
-            if not line or line.startswith("$"):
-                continue
-            if line.startswith("*"):
-                if pending:
-                    raise ValueError("Empty *INCLUDE card")
-                keyword = line.split(",")[0].upper().split()[0]
-                if keyword.startswith("*INCLUDE"):
-                    if keyword != "*INCLUDE":
-                        raise ValueError("Only plain *INCLUDE is supported in this release: " + keyword)
-                    pending = True
-            elif pending:
-                if "&" in line or "%" in line:
-                    raise ValueError("Parameterized includes require a future resolver")
-                child = self.input_path(line.strip('\"'), base=path.parent)
-                self.check_keyword_includes(child, set(seen))
-                pending = False
-        if pending:
+    def check_keyword_includes(self, path: Path, *, native_cwd: Path | None = None) -> None:
+        """Apply native loading policy to the shared, complete INCLUDE preflight."""
+        from .domain.model import preflight_includes
+
+        source = self.input_path(str(path))
+        report = preflight_includes(source)
+        references = report["references"]
+        for ref in references:
+            if ref["keyword"] != "*INCLUDE":
+                raise ValueError("Only plain *INCLUDE is supported in this release: " + ref["keyword"])
+            if "&" in ref["name"] or "%" in ref["name"]:
+                raise ValueError("Parameterized includes require a future resolver")
+        if not report["ok"]:
+            problem = next(p for p in report["problems"] if p["severity"] == "error")
+            legacy = {"cycle": "Cyclic keyword include chain", "limit": "Keyword include limit exceeded"}
+            reason = problem.get("reason") or problem.get("hint") or "INCLUDE preflight failed"
+            raise ValueError("{}: kind={}, relative={}, name_line={}, reason={}".format(
+                legacy.get(problem["kind"], "Keyword include preflight failed"), problem["kind"],
+                problem["relative"], problem["name_line"], reason))
+        if any(p["kind"] == "empty_include" for p in report["problems"]):
             raise ValueError("Empty *INCLUDE card")
+        for entry in report["files"]:
+            self.input_path(entry["path"])
+        for ref in references:
+            for candidate in ref["candidates"]:
+                self.input_path(candidate)
+            if native_cwd is not None and not Path(ref["name"]).is_absolute():
+                # Native batches run in the job directory, not the source directory.
+                # A cwd-relative alternative must not bypass the preflight tree.
+                alternate = native_cwd / ref["name"]
+                if alternate.exists():
+                    checked = self.input_path(str(alternate))
+                    if ref["path"] is None or checked != Path(ref["path"]).resolve():
+                        raise ValueError("Native working-directory INCLUDE resolves to a different file")

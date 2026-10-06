@@ -1184,3 +1184,11 @@ Python 异常传播前会先清理；清理失败不覆盖原始异常，普通�
 [A01](decisions/evidence/a01/evidence.json)、[A02](decisions/evidence/a02/evidence.json)、
 [A03](decisions/evidence/a03/evidence.json)、[A04](decisions/evidence/a04/evidence.json)。
 修复后运行 revision 为干净 c68caef，包含 Draft #26；不代表当前 PR 头重新实测。
+
+## I01 / I04：多文件 INCLUDE 的原生加载检查（第九轮）
+
+`Settings.check_keyword_includes` 现在调用共享 `preflight_includes`，检查每张文件名卡、完整 files 列表及所有候选的允许目录。第二张卡片越界或缺失时，在启动原生进程前拒绝；错误保留 kind、relative、name_line、reason。预检默认禁止 UNC，不传 `allow_network`。普通 `*INCLUDE` 之外的原生解析策略、参数化文件名和空 INCLUDE 仍明确拒绝。
+
+BatchEngine 和内置 Python 在作业目录运行，并非主 deck 目录。对于保留源树的只读加载，还检查作业目录相对候选：越界则拒绝；指向不同文件即拒绝，防止原生工作目录解析绕过已检查的树。会话和脚本 staging 仍要求展平输入。共享预检会读取本地树，允许目录检查是其上的原生执行准入检查，不是共享预检本身的文件读取沙箱。
+
+回归见 [边界测试](../tests/test_boundaries.py)。I01、I04 的其他原生 gap 保持不变。

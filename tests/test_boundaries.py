@@ -137,3 +137,67 @@ def test_version_dispatch_preserves_global_selection(tmp_path, monkeypatch):
     assert settings.executable == default
     with pytest.raises(ValueError):
         service.run_on_version("4.8", "__getattribute__", {})
+
+
+@pytest.mark.parametrize("second", ["../private.k", "missing.k"])
+def test_every_include_filename_card_is_checked(tmp_path, second):
+    allowed = tmp_path / "allowed"
+    allowed.mkdir()
+    (tmp_path / "private.k").write_text("*KEYWORD\n*END\n")
+    (allowed / "first.k").write_text("*KEYWORD\n*END\n")
+    model = allowed / "main.k"
+    model.write_text("*KEYWORD\n*INCLUDE\nfirst.k\n" + second + "\n*END\n")
+    with pytest.raises(ValueError, match="outside|missing.*main.k.*name_line=4"):
+        Settings(allowed).check_keyword_includes(model)
+
+
+@pytest.mark.parametrize("name,message", [
+    ("&name.k", "Parameterized"), ("%name%.k", "Parameterized"),
+    ("//invalid-host/share/deck.k", "network_path"),
+])
+def test_later_include_policy_and_network_rejection(tmp_path, name, message):
+    (tmp_path / "first.k").write_text("*KEYWORD\n*END\n")
+    model = tmp_path / "main.k"
+    model.write_text("*KEYWORD\n*INCLUDE\nfirst.k\n" + name + "\n*END\n")
+    with pytest.raises(ValueError, match=message):
+        Settings(tmp_path).check_keyword_includes(model)
+
+
+@pytest.mark.parametrize("keyword", ["*INCLUDE_TRANSFORM", "*INCLUDE_PATH", "*INCLUDE_BINARY"])
+def test_preflight_does_not_expand_native_include_policy(tmp_path, keyword):
+    (tmp_path / "child.k").write_text("*KEYWORD\n*END\n")
+    model = tmp_path / "main.k"
+    model.write_text("*KEYWORD\n" + keyword + "\nchild.k\n*END\n")
+    with pytest.raises(ValueError, match="Only plain"):
+        Settings(tmp_path).check_keyword_includes(model)
+
+
+def test_unselected_preflight_candidate_must_be_allowed(tmp_path, monkeypatch):
+    from ls_prepost_mcp.domain import model as api
+    root = tmp_path / "allowed"
+    root.mkdir()
+    main = root / "main.k"
+    main.write_text("*KEYWORD\n*INCLUDE\nchild.k\n*END\n")
+    (root / "child.k").write_text("*KEYWORD\n*END\n")
+    outside = tmp_path / "outside.k"
+    outside.write_text("*KEYWORD\n*END\n")
+    report = api.preflight_includes(main)
+    report["references"][0]["candidates"].append(str(outside))
+    monkeypatch.setattr(api, "preflight_includes", lambda source: report)
+    with pytest.raises(ValueError, match="outside"):
+        Settings(root).check_keyword_includes(main)
+
+
+@pytest.mark.parametrize("allowed_alternate", [False, True])
+def test_native_cwd_alternative_cannot_bypass_preflight(tmp_path, allowed_alternate):
+    root = tmp_path / "source"
+    root.mkdir()
+    cwd = tmp_path / "job"
+    cwd.mkdir()
+    main = root / "main.k"
+    main.write_text("*KEYWORD\n*INCLUDE\nchild.k\n*END\n")
+    (root / "child.k").write_text("*KEYWORD\n*END\n")
+    (cwd / "child.k").write_text("*KEYWORD\n*INCLUDE\nprivate.k\n*END\n")
+    settings = Settings(root, allowed_roots=(cwd,) if allowed_alternate else ())
+    with pytest.raises(ValueError, match="outside|different file"):
+        settings.check_keyword_includes(main, native_cwd=cwd)
