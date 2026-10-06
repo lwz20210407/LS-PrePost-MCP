@@ -28,7 +28,8 @@ def initialized_config_for_engine_unit_tests(tmp_path,monkeypatch):
 def test_batch_clean_exit_requires_domain_verification(tmp_path, monkeypatch):
     process = MagicMock(pid=123, returncode=0)
     process.communicate.return_value = (b"", b"")
-    monkeypatch.setattr("ls_prepost_mcp.engine.batch.subprocess.Popen", lambda *a, **kw: process)
+    monkeypatch.setattr("ls_prepost_mcp.engine.batch.OwnedProcess",
+                        lambda *a, **kw: nullcontext(SimpleNamespace(process=process, mechanism="fixture")))
     result = BatchEngine().run(BatchJob(tmp_path / "lspp", tmp_path / "job.cfile", tmp_path, 1))
     assert result.status == "unverified"
     assert result.data["configuration"]["source_modified"] is False
@@ -43,7 +44,8 @@ def test_batch_error_log_overrides_zero_exit_and_never_calls_verifier(tmp_path, 
         return b"", b""
 
     process.communicate.side_effect = communicate
-    monkeypatch.setattr("ls_prepost_mcp.engine.batch.subprocess.Popen", lambda *a, **kw: process)
+    monkeypatch.setattr("ls_prepost_mcp.engine.batch.OwnedProcess",
+                        lambda *a, **kw: nullcontext(SimpleNamespace(process=process, mechanism="fixture")))
     result = BatchEngine().run(BatchJob(tmp_path / "lspp", tmp_path / "job.cfile", tmp_path, 1,
                                       verify=lambda p: pytest.fail("Cannot verify failed execution")))
     assert result.status == "failed" and result.data["returncode"] == 0

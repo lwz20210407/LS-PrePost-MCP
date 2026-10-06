@@ -61,6 +61,19 @@ def test_missing_native_error_still_returns_failed(tmp_path):
     assert result.status == "failed" and result.error["message"]
 
 
+def test_batch_preserves_cleanup_exception_notes(tmp_path, monkeypatch):
+    error = RuntimeError("Original execution error")
+    error.add_note("Owned process cleanup failed: PermissionError")
+
+    def reject(*args):
+        raise error
+
+    monkeypatch.setattr("ls_prepost_mcp.engine.batch.require_capability", reject)
+    result = BatchEngine().run(BatchJob(tmp_path / "lspp", tmp_path / "run.cfile", tmp_path, 1))
+    assert result.status == "failed" and result.error["message"] == "Original execution error"
+    assert result.warnings == ("Owned process cleanup failed: PermissionError",)
+
+
 def test_session_send_failure_preserves_uncertain_outcome(tmp_path):
     def submit():
         raise RuntimeError()

@@ -1,6 +1,5 @@
 """One isolated, owned process per batch job."""
 
-import os
 import subprocess
 import time
 
@@ -9,6 +8,7 @@ from ..core.native_log import LogCursor, decode, native_errors
 from ..native.versions import require_capability
 from .environment import native_environment
 from .jobs import BatchJob
+from .processes import OwnedProcess
 
 
 class BatchEngine:
@@ -26,26 +26,17 @@ class BatchEngine:
             env, configuration = native_environment(job.executable, job.directory, batch=True)
             process["configuration"] = configuration
             cursor = LogCursor.capture(job.directory / "lspost.msg")
-            proc = subprocess.Popen(args, cwd=job.directory, env=env, stdin=subprocess.DEVNULL,
-                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
-            process["pid"] = proc.pid
-            try:
-                stdout, stderr = proc.communicate(timeout=job.timeout)
-            except subprocess.TimeoutExpired:
-                process["timed_out"] = True
+            with OwnedProcess(args, cwd=job.directory, env=env, stdin=subprocess.DEVNULL,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE) as owned:
+                proc = owned.process
+                process.update(pid=proc.pid, process_isolation=owned.mechanism)
                 try:
-                    if os.name == "nt":
-                        subprocess.run(["taskkill", "/PID", str(proc.pid), "/T", "/F"],
-                                       capture_output=True, check=False, timeout=15,
-                                       creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
-                except (OSError, subprocess.SubprocessError) as exc:
-                    process["termination_warning"] = str(exc)
-                finally:
-                    # Always reap the direct child, including taskkill failures.
-                    proc.kill()
+                    stdout, stderr = proc.communicate(timeout=job.timeout)
+                except subprocess.TimeoutExpired:
+                    process["timed_out"] = True
+                    owned.stop()
                     stdout, stderr = proc.communicate(timeout=15)
-            process["returncode"] = proc.returncode
+                process["returncode"] = proc.returncode
             for name, content in (("stdout.log", stdout), ("stderr.log", stderr)):
                 (job.directory / name).write_text(decode(content), encoding="utf8")
             diagnostics = native_errors(cursor.read()) + native_errors(decode(stdout)) + native_errors(decode(stderr))
@@ -67,4 +58,5 @@ class BatchEngine:
             message = str(exc)
             return JobResult(operation=job.operation, job_id=job.directory.name, status="failed",
                              backend="lsprepost", data=process,
+                             warnings=getattr(exc, "__notes__", ()),
                              error=dict(type=type(exc).__name__, message=message if message.strip() else type(exc).__name__))
