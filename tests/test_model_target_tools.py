@@ -94,6 +94,14 @@ def test_failed_edits_return_failed_results_and_write_nothing(service: Service, 
     assert not list((tmp_path / "jobs" / result.job_id).glob("deck/*"))
 
 
+def test_wrongly_typed_values_return_failed_results(service: Service, tmp_path: Path) -> None:
+    # e.g. "4.77e8" sent as a string: a failed JobResult, not an exception through the MCP layer
+    result = _valid(service.edit_keywords("cube.k", [
+        {"op": "add_material", "units": "mm-t-s", "recipe": "elastic", "params": {"ro": "2.7e-9", "e": 1.0, "pr": 0.3}}]))
+    assert result.status == "failed" and "TypeError" in result.error["message"]
+    assert not list((tmp_path / "jobs" / result.job_id).glob("deck/*"))
+
+
 def test_tools_are_registered_on_the_mcp_server(service: Service) -> None:
     names = {t.name for t in asyncio.run(build_server(service.settings, "full").list_tools())}
     assert set(TOOLS) <= names

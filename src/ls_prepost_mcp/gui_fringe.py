@@ -24,7 +24,7 @@ RENDER_ELEMENT_FIELDS = ELEMENT_FIELDS | {"mean_stress", "pressure"}
 
 
 def scl_string(path):
-    return json.dumps(str(path).replace("\\", "/"), ensure_ascii=False)
+    return nc.scl_string(path)
 
 
 def context_script(parts, path):

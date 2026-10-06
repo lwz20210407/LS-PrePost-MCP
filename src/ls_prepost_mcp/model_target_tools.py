@@ -16,7 +16,7 @@ from .core.contracts import Artifact, CheckResult, JobResult
 from .jobs import atomic_json
 
 BACKEND = "keyword-engine"
-CREATE_OPS = frozenset({"create_set", "add_boundary", "add_contact", "add_part", "set_part"})
+CREATE_OPS = frozenset({"create_set", "add_boundary", "add_contact", "add_joint", "add_part", "set_part"})
 
 
 def _jsonable(value: object) -> object:
@@ -50,7 +50,7 @@ class ModelTargetTools:
         source = self.settings.input_path(model)
         try:
             data = inspect_deck(str(source))
-        except (ValueError, KeyError, OSError) as error:
+        except (ValueError, KeyError, TypeError, OSError) as error:
             return _result("model_info", "failed", {"model": str(source)}, error=_error(error))
         return _result("model_info", "succeeded", data, scope="keyword deck and its includes")
 
@@ -65,7 +65,7 @@ class ModelTargetTools:
         try:
             report = check_deck(str(source), thresholds=thresholds, coincident_tol=coincident_tolerance,
                                 include_mesh=include_mesh)
-        except (ValueError, KeyError, OSError) as error:
+        except (ValueError, KeyError, TypeError, OSError) as error:
             return _result("check_model", "failed", {"model": str(source)}, error=_error(error))
         kinds = sorted({e["kind"] for e in report["errors"]})
         checks = [CheckResult(name="objective_defects", status="failed" if report["errors"] else "passed"),
@@ -84,8 +84,16 @@ class ModelTargetTools:
         return self._edit("edit_keywords", model, edits, None, allow_new_dangling)
 
     def create_entities(self, model: str, entities: list[dict]) -> dict:
-        """P04-P06: sets (ids / select / selector), boundary conditions and loads (add_boundary with a
-        declared unit system), contacts (add_contact recipes) and parts (add_part / set_part)."""
+        """P04-P06, P12: sets (ids / select / selector), boundary conditions and loads (add_boundary with a
+        declared unit system), contacts (add_contact recipes), parts (add_part / set_part) and joints.
+
+        Joint: {"op": "add_joint", "kind": "revolute", "a": {"part": 1}, "b": {"part": 2},
+        "origin": [0, 0, 0], "axis": [0, 1, 0]}. kind: spherical, revolute, cylindrical, planar,
+        universal (second_axis), translational, locking, rotational_motor / translational_motor
+        (motor = {"curve": {"points": [[t, v], ...]} or {"lcid": n}, "type": "velocity"}). A side is a
+        rigid part {"part": pid}, an existing {"nodal_rigid_body": pid} or nodes of a deformable part
+        ({"nodes": [...]}, {"select": {...}}, {"selector": {...}}), held by a new nodal rigid body.
+        Optional: length, reference / third_point, jid, title, rps, damp, failure, local."""
         return self._edit("create_entities", model, entities, CREATE_OPS, False)
 
     def mesh_ops(self, model: str, operations: list[dict]) -> dict:
@@ -110,7 +118,7 @@ class ModelTargetTools:
         try:
             outcome = edit_deck(str(source), edits, output_dir=str(directory / "deck"),
                                 allow_new_dangling=allow_new_dangling)
-        except (ValueError, KeyError, OSError) as error:
+        except (ValueError, KeyError, TypeError, OSError) as error:
             outcome = {"status": "failed", "error": f"{type(error).__name__}: {error}", "written": False}
         data = {k: outcome.get(k) for k in ("changes", "summaries", "diff", "diff_truncated", "new_dangling",
                                             "modified_files", "failed_edit", "applied_before_failure")
