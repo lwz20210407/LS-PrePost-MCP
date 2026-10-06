@@ -69,6 +69,11 @@ def search_docs(query: str, category: str | None = None, limit: int = 10, includ
     if not isinstance(query,str) or not query.strip():
         raise ValueError("Provide a nonempty document query")
     results=search_index(configured,query,category=category,limit=limit,include_private=include_private)
+    return _reference_evidence(results)
+
+
+def _reference_evidence(results):
+    """Use the same attribution rules for text search and structured field lookup."""
     for row in results:
         row["query_expansion"]=[]
         row["evidence_level"]="source_example" if row["category"] in ("command","recipe") else "documented"
@@ -91,18 +96,24 @@ def search_docs(query: str, category: str | None = None, limit: int = 10, includ
 
 
 def keyword_fields(keyword: str, field: str | None = None, limit: int = 20, include_private: bool = False) -> list[dict]:
-    """Find indexed provider fields with card/option/columns/help/references/manual provenance; keyword prefixes and recorded field aliases are supported."""
+    """Find indexed provider fields by literal keyword prefix and exact field/alias before limiting; exact keyword first, then stable card/column order. Includes source/version/evidence."""
+    from .knowledge_index import search_index
+
+    if not isinstance(keyword, str):
+        raise ValueError("Provide a keyword name or prefix")
     key=keyword.strip().upper()
     if not key.startswith("*"):
         key="*"+key
     if not key[1:] or any(c not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-/" for c in key[1:]):
         raise ValueError("Provide a keyword name or prefix")
-    if field is not None and (not field.strip() or not all(c.isalnum() or c=="_" for c in field)):
+    if field is not None and (not isinstance(field, str) or not field.strip() or not all(c.isalnum() or c=="_" for c in field)):
         raise ValueError("Provide a field name")
-    results=search_docs(key+(" "+field if field else ""),category="keyword",limit=limit,include_private=include_private)
-    return [row for row in results if row.get("keyword_field",{}).get("entity_key","").startswith(key)
-            and (field is None or field.casefold() in [row["keyword_field"]["field"].casefold(),
-                                                      *[alias.casefold() for alias in row["keyword_field"].get("aliases",[])]])]
+    configured = os.environ.get("LSPP_KNOWLEDGE_INDEX")
+    if not configured:
+        raise ValueError("Set LSPP_KNOWLEDGE_INDEX to an external schema-v2 reference index")
+    results = search_index(configured, key + (" " + field if field else ""), category="keyword",
+                           limit=limit, include_private=include_private, keyword_filter=(key, field))
+    return _reference_evidence(results)
 
 
 def command_help(command: str, limit: int = 5) -> list[dict]:

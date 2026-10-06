@@ -132,3 +132,6 @@ I05 完整字段索引：安装 pydyna 可选依赖后，显式运行
 `--external-sources` 可追加已有的本机 API/指南清单，资料和索引保持在仓库外。
 输出 keyword_coverage 列出目录遍历数、来源字段数及 without_fields；出现提供者异常时不发布部分索引。
 字段 locator 包含列位以保留同卡同名字段，schema_version 仍为 2；旧索引可读，重建后才获得新字段身份。
+
+A10 的 keyword_fields 先按关键字前缀与字段/别名过滤，再限制数量；完整关键字优先，随后按卡片/列位排序。
+新构建的 schema-v2 索引附 keyword_lookup 辅助索引；旧索引无需迁移即可查询，但重建可改善大量字段查询的耗时。

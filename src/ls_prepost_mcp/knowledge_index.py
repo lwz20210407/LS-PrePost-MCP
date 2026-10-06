@@ -143,6 +143,7 @@ def build_index(destination, documents, fields=()):
             db.execute("CREATE TABLE documents (id TEXT PRIMARY KEY, source_id TEXT, category TEXT, title TEXT, text TEXT, locator TEXT, license TEXT, visibility TEXT, version TEXT, line_start INTEGER, line_end INTEGER, sha256 TEXT)")
             db.execute("CREATE VIRTUAL TABLE search_terms USING fts5(id UNINDEXED, terms)")
             db.execute("CREATE TABLE keyword_fields (document_id TEXT PRIMARY KEY, entity_key TEXT, option TEXT, card TEXT, field TEXT, offset INTEGER, width INTEGER, help TEXT, links TEXT, manual_ref TEXT, solver_status TEXT, license TEXT, aliases TEXT)")
+            db.execute("CREATE INDEX keyword_lookup ON keyword_fields(entity_key,field)")
             db.execute("CREATE TABLE metadata (schema_version INTEGER)")
             db.execute("INSERT INTO metadata VALUES (2)")
             seen = set()
@@ -170,13 +171,18 @@ def build_index(destination, documents, fields=()):
                 private=any(row.visibility == "private" for row in rows))
 
 
-def search_index(path, query, *, category=None, limit=10, include_private=False):
+def search_index(path, query, *, category=None, limit=10, include_private=False, keyword_filter=None):
     if not isinstance(query, str) or not query.strip() or len(query) > 1000 or type(limit) is not int or not 1 <= limit <= 50:
         raise ValueError("Provide a bounded query and limit 1..50")
     if category is not None and category not in CATEGORIES:
         raise ValueError("Unknown reference category")
     if type(include_private) is not bool:
         raise ValueError("include_private must be Boolean")
+    if keyword_filter is not None:
+        if (not isinstance(keyword_filter, tuple) or len(keyword_filter) != 2 or category != "keyword"
+                or not isinstance(keyword_filter[0], str) or not re.fullmatch(r"\*[A-Z0-9_/-]+", keyword_filter[0])
+                or keyword_filter[1] is not None and not isinstance(keyword_filter[1], str)):
+            raise ValueError("Structured keyword lookup requires a keyword prefix and optional field")
     query_terms = terms(query)
     if not query_terms:
         return []
@@ -189,15 +195,37 @@ def search_index(path, query, *, category=None, limit=10, include_private=False)
         db.row_factory = sqlite3.Row
         if db.execute("SELECT schema_version FROM metadata").fetchone()[0] != 2:
             raise ValueError("Unsupported knowledge index schema")
-        sql = "SELECT documents.*, bm25(search_terms) AS rank FROM search_terms JOIN documents ON documents.id=search_terms.id WHERE search_terms MATCH ?"
-        params = [expression]
+        if keyword_filter is None:
+            sql = "SELECT documents.*, bm25(search_terms) AS rank FROM search_terms JOIN documents ON documents.id=search_terms.id WHERE search_terms MATCH ?"
+            params = [expression]
+            order = "rank, documents.id"
+            order_params = []
+        else:
+            prefix, field_name = keyword_filter
+            # Literal prefix range: '_' is a keyword character, not LIKE's
+            # single-character wildcard. Filter before LIMIT so prose cannot
+            # crowd an explicitly requested field out of the candidate set.
+            # CROSS JOIN fixes the outer loop to fields on existing schema-v2
+            # indexes; otherwise SQLite scans/joins all documents first.
+            sql = ("SELECT documents.*, 0.0 AS rank FROM keyword_fields AS k "
+                   "CROSS JOIN documents ON documents.id=k.document_id "
+                   "WHERE k.entity_key>=? AND k.entity_key<?")
+            params = [prefix, prefix[:-1] + chr(ord(prefix[-1]) + 1)]
+            if field_name is not None:
+                sql += (" AND (lower(k.field)=? OR EXISTS (SELECT 1 FROM json_each(k.aliases) AS a "
+                        "WHERE a.type='text' AND lower(a.value)=?))")
+                params.extend([field_name.casefold(), field_name.casefold()])
+            order = ("CASE WHEN k.entity_key=? THEN 0 ELSE 1 END, k.entity_key, "
+                     "CASE WHEN json_type(k.card)='integer' THEN 0 ELSE 1 END, "
+                     "CAST(k.card AS INTEGER), k.card, coalesce(k.option,''), k.offset, k.width, k.field, documents.id")
+            order_params = [prefix]
         if category:
             sql += " AND category=?"
             params.append(category)
         if not include_private:
             sql += " AND visibility='public'"
-        sql += " ORDER BY rank, documents.id LIMIT ?"
-        rows = db.execute(sql, [*params, limit]).fetchall()
+        sql += " ORDER BY " + order + " LIMIT ?"
+        rows = db.execute(sql, [*params, *order_params, limit]).fetchall()
         fields = {row["id"]: db.execute("SELECT * FROM keyword_fields WHERE document_id=?", (row["id"],)).fetchone() for row in rows}
     results = []
     for row in rows:
