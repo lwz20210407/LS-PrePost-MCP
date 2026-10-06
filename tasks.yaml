@@ -575,11 +575,10 @@ tasks:
     layer: T1
     target_tools: [run_script]
     channel: command
-    status: partial
+    status: done
     existing: [prepare_native_program, execute_native_program, execute_gui_command, run_on_version]
-    gaps:
-      - 历史 4.13 batch/session 与 4.10 batch 报告未记录实际 Git revision 和运行时未提交 diff SHA256；需带完整身份重跑并将 report.md、evidence.json 入库
-    evidence: [tests/test_script_command_native.py, docs/decisions/0002-command-execution.md]
+    gaps: []
+    evidence: [tests/test_script_command_native.py, docs/decisions/0002-command-execution.md, docs/decisions/evidence/a01/report.md]
     acceptance:
       - 10 条代表命令（打开、选择、变换、显隐、视图、出图、保存）在 batch 与 session 两种上下文各执行一次，产物核对通过
       - 返回 LSPP 回显与报错原文（来自 lspost.msg 本次增量）
@@ -892,7 +891,7 @@ infrastructure:
     milestone: M1
     status: partial
     gaps:
-      - 主路径命令已集中；import keyword、open xydata、savefile xypair、modelcheck writetofile 的 8 模块 12 处仍待集中，SCL 脚本编码仍混用 ascii/utf8
+      - 路径命令及 SCL 写入已集中；GUI 模型检查、实体导入等调用待集中窗口原生复核，批处理的导入/XY/SCL 子集已有独立证据
       - KI-049：4.13/4.10 的 ASCII 空格 job 目录已通过批处理保存、PNG、重开；中文 job 目录仍为 gap，GUI/Movie 路径待集中窗口验证
     verification_level: L2
     evidence:
@@ -900,6 +899,7 @@ infrastructure:
       - src/ls_prepost_mcp/native/versions.py
       - tests/test_native_commands.py
       - docs/decisions/evidence/i03/report.md
+      - docs/decisions/evidence/i03-paths/report.md
       - tests/test_engine_native.py
     compatibility_notes:
       - KI-048 的 4.10 队列来源读回限制保留；版本能力表在启动前拒绝该路线。4.10 六项批处理/命令回归通过，不外推为全部会话能力通过。

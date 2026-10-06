@@ -27,7 +27,7 @@ def inspect_database(settings, jobs, source: Path) -> dict:
                   'ns=SCLGetDataCenterInt("num_states");\n'
                   'fp=fopen("counts.txt","w");\n'
                   'fprintf(fp,"%d %d %d\\n",nn,ne,ns);\nfclose(fp);\n}\nmain();\n')
-        (directory / "inventory.scl").write_text(script, encoding="ascii")
+        nc.write_scl(directory / "inventory.scl", script)
         commands = directory / "commands.cfile"
         nc.write_cfile(commands, ["new", nc.open_model("d3plot", "d3plot", openc=True), nc.run_script("inventory.scl", "scl"), "exit"])
         process = execute(settings.native_executable(), commands, directory, timeout=settings.timeout, graphics=False)
