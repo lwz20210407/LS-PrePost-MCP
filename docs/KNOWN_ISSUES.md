@@ -447,7 +447,7 @@
 - `bind_output_paths` 按完整参数 token 匹配声明输出名，尚未按命令角色区分输入和输出。同名 token 即使出现在 open 命令中，也会改写为当前 job 的路径；读取已有文件时应使用不与声明输出同名的路径。请求原文和执行副本均保留以便核对。
 - 用户提供的命令和 cfile 拥有 LS-PrePost 进程的原生权限，可以读写进程有权访问的任意路径。输出合同验证声明产物，不是脚本文件访问沙箱。
 - 单命令入口拒绝 open command / openc command（含大小写及空白变体）；命令文件须使用 cfile 通道。JobResult 包装保留已有 warnings 与 checks，partial 不会因丢失警告而退成 unverified。
-- 证据：[单命令合同回归](../tests/test_script_command.py)。A01 历史原生记录缺少提交及 diff 身份，状态为 partial，待重新取证。
+- 证据：[单命令合同回归](../tests/test_script_command.py)。A01 的旧记录缺少提交及 diff 身份；现已在干净 main 9e55e9b 重新验证并附 [A01 原生证据](decisions/evidence/a01/report.md)，据此恢复 done。
 
 ## 能力范围原文索引
 
