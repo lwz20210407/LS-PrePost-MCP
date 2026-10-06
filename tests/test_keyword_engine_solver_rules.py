@@ -28,6 +28,12 @@ def test_comma_items_wider_than_their_field_are_found(tmp_path: Path) -> None:
     assert not checked["ok"] and checked["errors"][0]["kind"] == "free_format_item_too_long"
 
 
+def test_commas_in_comment_lines_are_not_items(tmp_path: Path) -> None:
+    path = _deck(tmp_path, "$ plate (part 1) and block (part 2), mm\n" + NODES
+                 + "*MAT_ELASTIC\n$ steel, 1/2 scale\n1,7.85e-9,210000.0,0.3\n")
+    assert long_free_items(KeywordDeck.load(path)) == (0, [])
+
+
 def test_items_that_fit_and_parameters_are_not_flagged(tmp_path: Path) -> None:
     path = _deck(tmp_path, NODES + "*PARAMETER\nR youngs_modulus_ab 210000.0\n"
                  "*MAT_ELASTIC\n1,7.85e-9,&youngs_mod,0.3\n*INITIAL_VELOCITY_NODE\n1,0.0054056,2.0,3.0\n")
