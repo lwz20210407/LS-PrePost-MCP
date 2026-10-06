@@ -344,6 +344,7 @@ class EngineeringTools:
         """
         from .domain.results.energy import (
             calculate_energy_balance,
+            read_ascii_matsum,
             read_binout_matsum,
             read_glstat,
         )
@@ -353,7 +354,17 @@ class EngineeringTools:
 
         def work(directory):
             glstat_data = read_glstat(source)
-            matsum_data = read_binout_matsum(source) if include_parts else None
+            matsum_data = None
+            matsum_warning = None
+            if include_parts:
+                matsum_data = read_binout_matsum(source)
+                if not matsum_data:
+                    ascii_matsum = source.parent / "matsum"
+                    if ascii_matsum.is_file():
+                        matsum_data = read_ascii_matsum(ascii_matsum)
+                    else:
+                        matsum_warning = "未提供部件能量来源（未找到 matsum 文件）"
+
             calc_result = calculate_energy_balance(
                 glstat_data,
                 parts=matsum_data,
@@ -364,6 +375,8 @@ class EngineeringTools:
                 sliding_ratio_limit=sliding_ratio_limit,
             )
             summary = calc_result["summary"]
+            if matsum_warning:
+                summary.setdefault("warnings", []).append(matsum_warning)
             series_rows = calc_result["series_rows"]
 
             csv_header = [
@@ -390,7 +403,7 @@ class EngineeringTools:
                         p["part_id"],
                         p["peak_internal_energy"],
                         p["final_internal_energy"],
-                        p["fraction_of_total_internal_energy"],
+                        p["fraction_of_total_internal_energy"] if p["fraction_of_total_internal_energy"] is not None else 0.0,
                         p["peak_hourglass_energy"],
                         p["final_hourglass_energy"],
                         p["max_part_hourglass_ratio"],
@@ -433,25 +446,47 @@ class EngineeringTools:
         )
 
         # Enrich with JobResult/v1 and CheckResult metadata (P1-2)
+        from .core.contracts import Artifact, CheckResult, JobResult
+
         checks = []
         summary_data = job_result.get("data", {})
         if isinstance(summary_data, dict) and "checks" in summary_data:
             for check_name, check_info in summary_data["checks"].items():
-                c_status = check_info.get("status", "not_evaluated")
+                c_status = check_info.get("status")
                 if c_status not in ("passed", "failed", "not_applicable", "missing", "invalid"):
-                    c_status = "passed" if check_info.get("passed") is True else ("failed" if check_info.get("passed") is False else "not_applicable")
-                checks.append({
-                    "name": check_name,
-                    "status": c_status,
-                    "source_path": ()
-                })
+                    c_status = (
+                        "passed"
+                        if check_info.get("passed") is True
+                        else ("failed" if check_info.get("passed") is False else "not_applicable")
+                    )
+                checks.append(CheckResult(name=check_name, status=c_status, source_path=()))
 
-        job_result["contract"] = "JobResult/v1"
-        job_result["operation"] = "check_energy"
-        job_result["backend"] = "lasso-python/pure-python"
-        job_result["checks"] = checks
-        job_result["warnings"] = summary_data.get("warnings", []) if isinstance(summary_data, dict) else []
-        return job_result
+        clean_artifacts = []
+        for a in job_result.get("artifacts", []):
+            size_b = a.get("size_bytes") if a.get("size_bytes") is not None else a.get("size")
+            clean_artifacts.append(
+                Artifact(
+                    path=str(a["path"]),
+                    kind=str(a["kind"]),
+                    sha256=a.get("sha256"),
+                    size_bytes=size_b,
+                    verification="verified" if a.get("sha256") and size_b is not None else "unverified",
+                )
+            )
+
+        job_dir = Path(job_result["job_directory"]).name if job_result.get("job_directory") else None
+        res_obj = JobResult(
+            contract="JobResult/v1",
+            operation="check_energy",
+            status=job_result.get("status", "succeeded"),
+            job_id=job_dir,
+            backend="lasso-python/pure-python",
+            data=summary_data if isinstance(summary_data, dict) else {},
+            artifacts=tuple(clean_artifacts),
+            checks=tuple(checks),
+            warnings=tuple(summary_data.get("warnings", []) if isinstance(summary_data, dict) else []),
+        )
+        return res_obj.model_dump(mode="json")
 
     def native_energy_postprocess(
         self, path: str, units: str, include_hourglass: bool = False, include_external_work: bool = False

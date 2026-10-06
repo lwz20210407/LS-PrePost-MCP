@@ -11,6 +11,7 @@ from pathlib import Path
 
 import numpy as np
 
+from . import mpp_shards
 from .lasso_backend import ResultsError, _lasso
 
 
@@ -184,7 +185,7 @@ def read_ascii_secforc(path: str | Path) -> dict[int, dict]:
     # Step 3: Single-line columnar format (fallback)
     sections_single: dict[int, dict[str, list[float]]] = {}
     current_sec: int | None = None
-    section_pattern = re.compile(r"(?:cross\s*section|section)(?:\s*id)?[:\s]+(\d+)", re.IGNORECASE)
+    section_pattern = re.compile(r"^\s*(?:cross\s*section|section)(?:\s*id)?[:\s]+(\d+)", re.IGNORECASE)
 
     for line in lines:
         stripped = line.strip()
@@ -287,103 +288,71 @@ def read_ascii_secforc(path: str | Path) -> dict[int, dict]:
 
 
 def read_binout_secforc(path: str | Path, section_id: int | None = None) -> dict[int, dict]:
-    """Read secforc data from binout file or directory using lasso.
+    """Read secforc data from binout file or directory.
 
-    Directly loads through lasso's Binout, supporting non-standard file names.
+    Directly accesses through mpp_shards or single-file Binout reader without globbing.
     Returns dict mapping section_id (int) -> dict of curve arrays.
     """
-    _, Binout, _ = _lasso()
     p = Path(path)
     if not p.exists():
         raise SectionForceError(f"Path does not exist: {p}")
 
+    use_mpp = True
+    single_binout = None
     try:
-        if p.is_dir():
-            pattern = str(p / "binout*")
-            b = Binout(pattern)
+        mpp_shards.shards(p)
+    except ResultsError:
+        if p.is_file():
+            use_mpp = False
+            _, Binout, _ = _lasso()
+            try:
+                single_binout = Binout(str(p))
+            except Exception as exc:
+                raise SectionForceError(f"Failed to open binout at {path}: {exc}") from exc
         else:
-            b = Binout(str(p))
-    except Exception as exc:
-        raise SectionForceError(f"Failed to open binout at {path}: {exc}") from exc
+            raise SectionForceError(f"No binout files found at {path}")
 
-    try:
-        time_raw = b.read("secforc", "time")
-        if time_raw is None or len(time_raw) == 0:
-            raise SectionForceError(f"No secforc time array found in {path}")
-        time_arr = np.asarray(time_raw, dtype=float).reshape(-1)
-    except Exception as exc:
-        raise SectionForceError(f"Could not read secforc from {path}: {exc}") from exc
-
-    # Retrieve section IDs (no fallback to [1])
-    ids_raw = b.read("secforc", "ids")
-    if ids_raw is None:
-        ids_raw = b.read("secforc", "section_ids")
-    if ids_raw is None:
-        raise SectionForceError(f"No section IDs found in secforc database at {path}")
-
-    sec_ids = [int(sid) for sid in np.asarray(ids_raw).reshape(-1)]
-
-    if section_id is not None and section_id not in sec_ids:
-        raise SectionForceError(f"Section {section_id} not found in secforc (available IDs: {sec_ids})")
-
-    # Read quantities
-    components = (
-        "x_force",
-        "y_force",
-        "z_force",
-        "total_force",
-        "x_moment",
-        "y_moment",
-        "z_moment",
-        "total_moment",
-        "x_centroid",
-        "y_centroid",
-        "z_centroid",
-        "area",
-    )
-    raw_tables: dict[str, np.ndarray] = {}
-    for comp in components:
+    # Extract time series and IDs
+    if use_mpp:
         try:
-            val = b.read("secforc", comp)
-            if val is not None and len(val) > 0:
-                raw_tables[comp] = np.asarray(val, dtype=float)
-        except Exception:
-            pass
+            res_any = mpp_shards.read(p, "secforc", "time")
+            time_arr = np.asarray(res_any["time"], dtype=float).reshape(-1)
+        except ResultsError as exc:
+            raise SectionForceError(f"Could not read secforc time from {path}: {exc}") from exc
 
-    if "x_force" not in raw_tables or "y_force" not in raw_tables or "z_force" not in raw_tables:
-        raise SectionForceError(f"Missing force components in secforc at {path}")
+        # Read section IDs (no fallback to [1])
+        try:
+            res_fx = mpp_shards.read(p, "secforc", "x_force")
+            ids_raw = res_fx.get("ids")
+        except ResultsError:
+            ids_raw = None
 
-    results: dict[int, dict] = {}
-    for idx, sid in enumerate(sec_ids):
-        if section_id is not None and sid != section_id:
-            continue
+        if ids_raw is None or len(ids_raw) == 0:
+            raise SectionForceError(f"No section IDs found in secforc database at {path}")
+        sec_ids = [int(sid) for sid in np.asarray(ids_raw).reshape(-1)]
 
-        fx = raw_tables["x_force"]
-        fy = raw_tables["y_force"]
-        fz = raw_tables["z_force"]
+        if section_id is not None and section_id not in sec_ids:
+            raise SectionForceError(f"Section {section_id} not found in secforc (available IDs: {sec_ids})")
 
-        fx_col = fx[:, idx] if fx.ndim == 2 else fx.reshape(-1)
-        fy_col = fy[:, idx] if fy.ndim == 2 else fy.reshape(-1)
-        fz_col = fz[:, idx] if fz.ndim == 2 else fz.reshape(-1)
+        def fetch_mpp(comp: str) -> np.ndarray | None:
+            try:
+                r = mpp_shards.read(p, "secforc", comp)
+                arr = np.asarray(r["values"], dtype=float)
+                if arr.ndim == 1 and len(sec_ids) == 1:
+                    arr = arr[:, None]
+                return arr
+            except ResultsError:
+                return None
 
-        f_res = np.sqrt(fx_col**2 + fy_col**2 + fz_col**2)
+        fx_table = fetch_mpp("x_force")
+        fy_table = fetch_mpp("y_force")
+        fz_table = fetch_mpp("z_force")
+        if fx_table is None or fy_table is None or fz_table is None:
+            raise SectionForceError(f"Missing force components in secforc at {path}")
 
-        if "total_force" in raw_tables:
-            ftot = raw_tables["total_force"]
-            ftot_col = ftot[:, idx] if ftot.ndim == 2 else ftot.reshape(-1)
-        else:
-            ftot_col = f_res
+        ftot_table = fetch_mpp("total_force")
 
-        entry = {
-            "section_id": sid,
-            "time": time_arr,
-            "x_force": fx_col,
-            "y_force": fy_col,
-            "z_force": fz_col,
-            "total_force": ftot_col,
-            "resultant_force": f_res,
-        }
-
+        opt_tables: dict[str, np.ndarray | None] = {}
         for comp in (
             "x_moment",
             "y_moment",
@@ -394,33 +363,151 @@ def read_binout_secforc(path: str | Path, section_id: int | None = None) -> dict
             "z_centroid",
             "area",
         ):
-            if comp in raw_tables:
-                arr = raw_tables[comp]
-                entry[comp] = arr[:, idx] if arr.ndim == 2 else arr.reshape(-1)
+            opt_tables[comp] = fetch_mpp(comp)
 
-        if "x_moment" in entry and "y_moment" in entry and "z_moment" in entry:
-            entry["resultant_moment"] = np.sqrt(
-                entry["x_moment"] ** 2 + entry["y_moment"] ** 2 + entry["z_moment"] ** 2
-            )
+        results: dict[int, dict] = {}
+        for idx, sid in enumerate(sec_ids):
+            if section_id is not None and sid != section_id:
+                continue
 
-        results[sid] = entry
+            fx = fx_table[:, idx] if fx_table.ndim == 2 else fx_table.reshape(-1)
+            fy = fy_table[:, idx] if fy_table.ndim == 2 else fy_table.reshape(-1)
+            fz = fz_table[:, idx] if fz_table.ndim == 2 else fz_table.reshape(-1)
+            f_res = np.sqrt(fx**2 + fy**2 + fz**2)
+            ftot = ftot_table[:, idx] if ftot_table is not None and ftot_table.ndim == 2 else f_res
 
-    return results
+            entry = {
+                "section_id": sid,
+                "time": time_arr,
+                "x_force": fx,
+                "y_force": fy,
+                "z_force": fz,
+                "total_force": ftot,
+                "resultant_force": f_res,
+            }
+            for comp, arr in opt_tables.items():
+                if arr is not None:
+                    entry[comp] = arr[:, idx] if arr.ndim == 2 else arr.reshape(-1)
+
+            if "x_moment" in entry and "y_moment" in entry and "z_moment" in entry:
+                entry["resultant_moment"] = np.sqrt(
+                    entry["x_moment"] ** 2 + entry["y_moment"] ** 2 + entry["z_moment"] ** 2
+                )
+            results[sid] = entry
+        return results
+
+    else:
+        try:
+            time_raw = single_binout.read("secforc", "time")
+            if time_raw is None or len(time_raw) == 0:
+                raise SectionForceError(f"No secforc time array found in {path}")
+            time_arr = np.asarray(time_raw, dtype=float).reshape(-1)
+        except Exception as exc:
+            raise SectionForceError(f"Could not read secforc from {path}: {exc}") from exc
+
+        # Retrieve section IDs (no fallback to [1])
+        ids_raw = single_binout.read("secforc", "ids")
+        if ids_raw is None or len(ids_raw) == 0:
+            ids_raw = single_binout.read("secforc", "section_ids")
+        if ids_raw is None or len(ids_raw) == 0:
+            raise SectionForceError(f"No section IDs found in secforc database at {path}")
+
+        sec_ids = [int(sid) for sid in np.asarray(ids_raw).reshape(-1)]
+
+        if section_id is not None and section_id not in sec_ids:
+            raise SectionForceError(f"Section {section_id} not found in secforc (available IDs: {sec_ids})")
+
+        # Read quantities
+        components = (
+            "x_force",
+            "y_force",
+            "z_force",
+            "total_force",
+            "x_moment",
+            "y_moment",
+            "z_moment",
+            "total_moment",
+            "x_centroid",
+            "y_centroid",
+            "z_centroid",
+            "area",
+        )
+        raw_tables: dict[str, np.ndarray] = {}
+        for comp in components:
+            try:
+                val = single_binout.read("secforc", comp)
+                if val is not None and len(val) > 0:
+                    raw_tables[comp] = np.asarray(val, dtype=float)
+            except Exception:
+                pass
+
+        if "x_force" not in raw_tables or "y_force" not in raw_tables or "z_force" not in raw_tables:
+            raise SectionForceError(f"Missing force components in secforc at {path}")
+
+        results_single: dict[int, dict] = {}
+        for idx, sid in enumerate(sec_ids):
+            if section_id is not None and sid != section_id:
+                continue
+
+            fx = raw_tables["x_force"]
+            fy = raw_tables["y_force"]
+            fz = raw_tables["z_force"]
+
+            fx_col = fx[:, idx] if fx.ndim == 2 else fx.reshape(-1)
+            fy_col = fy[:, idx] if fy.ndim == 2 else fy.reshape(-1)
+            fz_col = fz[:, idx] if fz.ndim == 2 else fz.reshape(-1)
+
+            f_res = np.sqrt(fx_col**2 + fy_col**2 + fz_col**2)
+
+            if "total_force" in raw_tables:
+                ftot = raw_tables["total_force"]
+                ftot_col = ftot[:, idx] if ftot.ndim == 2 else ftot.reshape(-1)
+            else:
+                ftot_col = f_res
+
+            entry = {
+                "section_id": sid,
+                "time": time_arr,
+                "x_force": fx_col,
+                "y_force": fy_col,
+                "z_force": fz_col,
+                "total_force": ftot_col,
+                "resultant_force": f_res,
+            }
+
+            for comp in (
+                "x_moment",
+                "y_moment",
+                "z_moment",
+                "total_moment",
+                "x_centroid",
+                "y_centroid",
+                "z_centroid",
+                "area",
+            ):
+                if comp in raw_tables:
+                    arr = raw_tables[comp]
+                    entry[comp] = arr[:, idx] if arr.ndim == 2 else arr.reshape(-1)
+
+            if "x_moment" in entry and "y_moment" in entry and "z_moment" in entry:
+                entry["resultant_moment"] = np.sqrt(
+                    entry["x_moment"] ** 2 + entry["y_moment"] ** 2 + entry["z_moment"] ** 2
+                )
+
+            results_single[sid] = entry
+
+        return results_single
 
 
 def read_secforc(path: str | Path, section_id: int | None = None) -> dict[int, dict]:
     """Read secforc from either binout or ASCII format.
 
     Auto-detects format from path name and contents.
+    Never silently falls back to ASCII on binary decode failure.
     """
     p = Path(path)
     if p.is_dir() or "binout" in p.name.lower():
-        try:
-            return read_binout_secforc(p, section_id)
-        except Exception as e:
-            if p.is_file():
-                return read_ascii_secforc(p)
-            raise e
+        return read_binout_secforc(p, section_id)
     else:
         return read_ascii_secforc(p)
 
@@ -517,7 +604,7 @@ def compare_section_forces(
     # Check interval overlap (P1-5)
     t_start = max(float(t_tgt[0]), float(t_cmp[0]))
     t_end = min(float(t_tgt[-1]), float(t_cmp[-1]))
-    if t_start >= t_end:
+    if t_start > t_end:
         raise SectionForceError(
             f"No overlapping time interval between computed [{t_cmp[0]}, {t_cmp[-1]}] and target [{t_tgt[0]}, {t_tgt[-1]}]"
         )
@@ -526,7 +613,9 @@ def compare_section_forces(
     mask_tgt = (t_tgt >= t_start) & (t_tgt <= t_end)
     common_time = t_tgt[mask_tgt]
     if len(common_time) < 2:
-        common_time = np.linspace(t_start, t_end, 50)
+        raise SectionForceError(
+            f"Overlapping sample count ({len(common_time)}) below minimum (requires at least 2 points)"
+        )
 
     # Helper to extract and interpolate a curve
     def get_interpolated(source: dict | np.ndarray, key_names: tuple[str, ...], col_idx: int | None = None) -> np.ndarray | None:
@@ -589,6 +678,7 @@ def compare_section_forces(
         "max_relative_difference": res_force_comp["max_relative_difference"],
         "tolerance": {"rtol": rtol, "atol": atol},
         "matched": all_matched,
+        "consistent_with_secforc": all_matched,
         "components": comparisons,
     }
 

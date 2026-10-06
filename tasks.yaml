@@ -552,7 +552,7 @@ tasks:
     existing: []
     gaps:
       - 剖切云图真实模型抓图留待原生环境统一窗口执行
-    evidence: [src/ls_prepost_mcp/section.py, src/ls_prepost_mcp/native/recipes/section_cut_fringe/recipe.yaml, tests/test_section_cut_recipe.py, docs/decisions/evidence/q10/report.md]
+    evidence: [src/ls_prepost_mcp/domain/results/section.py, src/ls_prepost_mcp/native/recipes/section_cut_fringe/recipe.yaml, tests/test_section_cut_recipe.py, docs/decisions/evidence/q10/report.md]
     acceptance:
       - 剖切面位置/法向可设；剖面云图一个配方
       - 截面合力时程与 SECFORC（同截面定义）一致
@@ -589,7 +589,7 @@ tasks:
     existing: [assess_energy_balance, native_energy_postprocess, check_energy]
     gaps:
       - 原生 GLSTAT 完整 8 项能量提取与 MATSUM 真实算例跨后端一致性留待原生环境统一执行
-    evidence: [src/ls_prepost_mcp/energy.py, tests/test_check_energy.py]
+    evidence: [src/ls_prepost_mcp/domain/results/energy.py, tests/test_check_energy.py]
     acceptance:
       - 总能量、动能、内能、沙漏能、滑移能、外功、阻尼能、侵蚀能逐项输出，并给出平衡残差
       - 阈值由调用者给定；未给定时只报告比例不下结论

@@ -10,12 +10,12 @@ Evaluates:
 
 from __future__ import annotations
 
-import math
 import re
 from pathlib import Path
 
 import numpy as np
 
+from . import mpp_shards
 from .lasso_backend import ResultsError, _lasso
 
 
@@ -32,7 +32,8 @@ def read_ascii_glstat(path: str | Path) -> dict[str, np.ndarray | None]:
     """Parse LS-DYNA ASCII glstat file into dictionary of energy time arrays.
 
     Robustly handles block-formatted key...value pairs across standard LS-DYNA
-    versions, as well as legacy columnar data.
+    versions (one block per time state), as well as legacy columnar data.
+    Missing quantities remain None rather than being filled with zero.
     """
     path = Path(path)
     if not path.is_file():
@@ -51,6 +52,7 @@ def read_ascii_glstat(path: str | Path) -> dict[str, np.ndarray | None]:
     eroded_hg: list[float] = []
     te: list[float] = []
     stonewall: list[float] = []
+    spring_damper: list[float] = []
     added_mass: list[float] = []
     percent_increase: list[float] = []
 
@@ -63,6 +65,7 @@ def read_ascii_glstat(path: str | Path) -> dict[str, np.ndarray | None]:
     has_eroded = False
     has_te = False
     has_stonewall = False
+    has_spring_damper = False
     has_added_mass = False
     has_percent_increase = False
 
@@ -83,6 +86,7 @@ def read_ascii_glstat(path: str | Path) -> dict[str, np.ndarray | None]:
         eroded_hg.append(step.get("eroded_hourglass_energy", 0.0))
         te.append(step.get("total_energy", 0.0))
         stonewall.append(step.get("stonewall_energy", 0.0))
+        spring_damper.append(step.get("spring_and_damper_energy", 0.0))
         added_mass.append(step.get("added_mass", 0.0))
         percent_increase.append(step.get("percent_increase", 0.0))
 
@@ -96,6 +100,7 @@ def read_ascii_glstat(path: str | Path) -> dict[str, np.ndarray | None]:
             if match:
                 key = match.group(1).strip().lower()
                 val_str = match.group(2).replace("D", "E").replace("d", "e")
+                suffix = match.group(3).strip().lower()
                 try:
                     val = float(val_str)
                 except ValueError:
@@ -134,9 +139,12 @@ def read_ascii_glstat(path: str | Path) -> dict[str, np.ndarray | None]:
                 elif key == "total energy":
                     current_step["total_energy"] = val
                     has_te = True
-                elif "stonewall" in key or "wall#" in key:
+                elif "stonewall" in key or "wall#" in key or "wall#" in suffix:
                     current_step["stonewall_energy"] = current_step.get("stonewall_energy", 0.0) + val
                     has_stonewall = True
+                elif "spring" in key and "damper" in key:
+                    current_step["spring_and_damper_energy"] = val
+                    has_spring_damper = True
                 elif key == "added mass":
                     current_step["added_mass"] = val
                     has_added_mass = True
@@ -165,6 +173,7 @@ def read_ascii_glstat(path: str | Path) -> dict[str, np.ndarray | None]:
             "eroded_energy": ee_arr,
             "total_energy": np.asarray(te, dtype=float) if has_te else None,
             "stonewall_energy": np.asarray(stonewall, dtype=float) if has_stonewall else None,
+            "spring_and_damper_energy": np.asarray(spring_damper, dtype=float) if has_spring_damper else None,
             "added_mass": np.asarray(added_mass, dtype=float) if has_added_mass else None,
             "percent_increase": np.asarray(percent_increase, dtype=float) if has_percent_increase else None,
         }
@@ -235,43 +244,74 @@ def read_ascii_glstat(path: str | Path) -> dict[str, np.ndarray | None]:
         "eroded_energy": np.asarray(ee_list, dtype=float),
         "total_energy": np.asarray(te_list, dtype=float),
         "stonewall_energy": None,
+        "spring_and_damper_energy": None,
         "added_mass": None,
         "percent_increase": None,
     }
 
 
-def _open_binout(path: str | Path):
-    _, Binout, _ = _lasso()
-    p = Path(path)
-    if p.is_dir():
-        pattern = str(p / "binout*")
-        return Binout(pattern)
-    return Binout(str(p))
-
-
 def read_binout_glstat(path: str | Path) -> dict[str, np.ndarray | None]:
-    """Read glstat database from binout file or directory using lasso.
+    """Read glstat database from binout file or directory.
 
+    Accesses through mpp_shards.read for MPP shard awareness.
+    If path points to a non-standard single binout file, accesses directly
+    via lasso_backend reader without globbing.
     Missing quantities return None rather than being filled with zero.
     """
-    b = _open_binout(path)
-    try:
-        time_raw = b.read("glstat", "time")
-        if time_raw is None or len(time_raw) == 0:
-            raise EnergyBalanceError(f"No glstat time array in {path}")
-        time_arr = np.asarray(time_raw, dtype=float).reshape(-1)
-    except Exception as e:
-        raise EnergyBalanceError(f"Could not read glstat time from {path}") from e
+    p = Path(path)
+    if not p.exists():
+        raise EnergyBalanceError(f"glstat path not found: {p}")
 
-    def fetch(name: str) -> np.ndarray | None:
+    use_mpp = True
+    single_binout = None
+    try:
+        mpp_shards.shards(p)
+    except ResultsError:
+        if p.is_file():
+            use_mpp = False
+            _, Binout, _ = _lasso()
+            try:
+                single_binout = Binout(str(p))
+            except Exception as e:
+                raise EnergyBalanceError(f"Failed to open binout file {p}: {e}") from e
+        else:
+            raise
+
+    # Extract time series
+    time_arr: np.ndarray | None = None
+    if use_mpp:
         try:
-            val = b.read("glstat", name)
-            if val is not None and len(val) > 0:
-                arr = np.asarray(val, dtype=float).reshape(-1)
+            res = mpp_shards.read(p, "glstat", "time")
+            time_arr = np.asarray(res["time"], dtype=float).reshape(-1)
+        except ResultsError as e:
+            raise EnergyBalanceError(f"No glstat time array found in {p}: {e}") from e
+    else:
+        try:
+            t_raw = single_binout.read("glstat", "time")
+            if t_raw is None or len(t_raw) == 0:
+                raise EnergyBalanceError(f"No glstat time array in {p}")
+            time_arr = np.asarray(t_raw, dtype=float).reshape(-1)
+        except Exception as e:
+            raise EnergyBalanceError(f"Could not read glstat time from {p}: {e}") from e
+
+    def fetch(comp: str) -> np.ndarray | None:
+        if use_mpp:
+            try:
+                res = mpp_shards.read(p, "glstat", comp)
+                arr = np.asarray(res["values"], dtype=float).reshape(-1)
                 if arr.shape == time_arr.shape:
                     return arr
-        except Exception:
-            pass
+            except ResultsError:
+                return None
+        else:
+            try:
+                val = single_binout.read("glstat", comp)
+                if val is not None and len(val) > 0:
+                    arr = np.asarray(val, dtype=float).reshape(-1)
+                    if arr.shape == time_arr.shape:
+                        return arr
+            except Exception:
+                pass
         return None
 
     ke = fetch("kinetic_energy")
@@ -299,6 +339,9 @@ def read_binout_glstat(path: str | Path) -> dict[str, np.ndarray | None]:
 
     te = fetch("total_energy")
     stonewall = fetch("stonewall_energy")
+    spring_damper = fetch("spring_and_damper_energy")
+    added_mass = fetch("added_mass")
+    percent_increase = fetch("percent_increase")
 
     return {
         "time": time_arr,
@@ -311,8 +354,9 @@ def read_binout_glstat(path: str | Path) -> dict[str, np.ndarray | None]:
         "eroded_energy": ee,
         "total_energy": te,
         "stonewall_energy": stonewall,
-        "added_mass": fetch("added_mass"),
-        "percent_increase": fetch("percent_increase"),
+        "spring_and_damper_energy": spring_damper,
+        "added_mass": added_mass,
+        "percent_increase": percent_increase,
     }
 
 
@@ -365,7 +409,6 @@ def read_ascii_matsum(path: str | Path) -> dict[int, dict[str, np.ndarray]]:
                         "added_mass": [],
                     }
 
-                # Extract key=value tokens in this line
                 def get_val(key_name: str) -> float:
                     m = re.search(rf"{key_name}=\s*([+-]?\d+(?:\.\d+)?(?:[eEdD][+-]?\d+)?)", stripped, re.IGNORECASE)
                     if m:
@@ -389,49 +432,103 @@ def read_ascii_matsum(path: str | Path) -> dict[int, dict[str, np.ndarray]]:
 
 def read_binout_matsum(path: str | Path) -> dict[int, dict[str, np.ndarray]]:
     """Read matsum database from binout file or directory."""
+    p = Path(path)
+    if not p.exists():
+        return {}
+
+    use_mpp = True
+    single_binout = None
     try:
-        b = _open_binout(path)
-        time_raw = b.read("matsum", "time")
-        if time_raw is None:
-            return {}
-        time_arr = np.asarray(time_raw, dtype=float).reshape(-1)
-        ids_raw = b.read("matsum", "ids")
-        if ids_raw is None:
-            ids_raw = b.read("matsum", "mat_ids")
-        if ids_raw is None:
-            return {}
-        part_ids = [int(p) for p in np.asarray(ids_raw).reshape(-1)]
-
-        zeros = np.zeros((len(time_arr), len(part_ids)), dtype=float)
-
-        def fetch_mat(comp: str) -> np.ndarray:
+        mpp_shards.shards(p)
+    except ResultsError:
+        if p.is_file():
+            use_mpp = False
+            _, Binout, _ = _lasso()
             try:
-                v = b.read("matsum", comp)
-                if v is not None and len(v) > 0:
-                    arr = np.asarray(v, dtype=float)
-                    if arr.ndim == 1:
-                        arr = arr[:, None]
-                    if arr.shape == zeros.shape:
-                        return arr
+                single_binout = Binout(str(p))
             except Exception:
-                pass
-            return zeros
+                return {}
+        else:
+            return {}
 
-        ie_val = fetch_mat("internal_energy")
-        ke_val = fetch_mat("kinetic_energy")
-        hg_val = fetch_mat("hourglass_energy")
-        eie_val = fetch_mat("eroded_internal_energy")
+    try:
+        if use_mpp:
+            res_ie = mpp_shards.read(p, "matsum", "internal_energy")
+            time_arr = np.asarray(res_ie["time"], dtype=float)
+            part_ids = [int(x) for x in res_ie["ids"]] if res_ie.get("ids") else []
+            if not part_ids:
+                return {}
 
-        parts: dict[int, dict[str, np.ndarray]] = {}
-        for idx, pid in enumerate(part_ids):
-            parts[pid] = {
-                "time": time_arr,
-                "internal_energy": ie_val[:, idx],
-                "kinetic_energy": ke_val[:, idx],
-                "hourglass_energy": hg_val[:, idx],
-                "eroded_internal_energy": eie_val[:, idx],
-            }
-        return parts
+            def fetch_mpp(comp: str) -> np.ndarray:
+                try:
+                    res = mpp_shards.read(p, "matsum", comp)
+                    arr = np.asarray(res["values"], dtype=float)
+                    if arr.ndim == 1 and len(part_ids) == 1:
+                        arr = arr[:, None]
+                    return arr
+                except ResultsError:
+                    return np.zeros((len(time_arr), len(part_ids)), dtype=float)
+
+            ie_val = np.asarray(res_ie["values"], dtype=float)
+            if ie_val.ndim == 1 and len(part_ids) == 1:
+                ie_val = ie_val[:, None]
+            ke_val = fetch_mpp("kinetic_energy")
+            hg_val = fetch_mpp("hourglass_energy")
+            eie_val = fetch_mpp("eroded_internal_energy")
+
+            parts: dict[int, dict[str, np.ndarray]] = {}
+            for idx, pid in enumerate(part_ids):
+                parts[pid] = {
+                    "time": time_arr,
+                    "internal_energy": ie_val[:, idx],
+                    "kinetic_energy": ke_val[:, idx],
+                    "hourglass_energy": hg_val[:, idx],
+                    "eroded_internal_energy": eie_val[:, idx],
+                }
+            return parts
+
+        else:
+            t_raw = single_binout.read("matsum", "time")
+            if t_raw is None:
+                return {}
+            time_arr = np.asarray(t_raw, dtype=float).reshape(-1)
+            ids_raw = single_binout.read("matsum", "ids")
+            if ids_raw is None:
+                ids_raw = single_binout.read("matsum", "mat_ids")
+            if ids_raw is None:
+                return {}
+            part_ids = [int(x) for x in np.asarray(ids_raw).reshape(-1)]
+
+            zeros = np.zeros((len(time_arr), len(part_ids)), dtype=float)
+
+            def fetch_single(comp: str) -> np.ndarray:
+                try:
+                    v = single_binout.read("matsum", comp)
+                    if v is not None and len(v) > 0:
+                        arr = np.asarray(v, dtype=float)
+                        if arr.ndim == 1:
+                            arr = arr[:, None]
+                        if arr.shape == zeros.shape:
+                            return arr
+                except Exception:
+                    pass
+                return zeros
+
+            ie_val = fetch_single("internal_energy")
+            ke_val = fetch_single("kinetic_energy")
+            hg_val = fetch_single("hourglass_energy")
+            eie_val = fetch_single("eroded_internal_energy")
+
+            parts_res: dict[int, dict[str, np.ndarray]] = {}
+            for idx, pid in enumerate(part_ids):
+                parts_res[pid] = {
+                    "time": time_arr,
+                    "internal_energy": ie_val[:, idx],
+                    "kinetic_energy": ke_val[:, idx],
+                    "hourglass_energy": hg_val[:, idx],
+                    "eroded_internal_energy": eie_val[:, idx],
+                }
+            return parts_res
     except Exception:
         return {}
 
@@ -446,6 +543,7 @@ def read_glstat(path: str | Path) -> dict[str, np.ndarray | None]:
             if p.is_file():
                 return read_ascii_glstat(p)
             raise e
+        return read_ascii_glstat(p)
     else:
         return read_ascii_glstat(p)
 
@@ -472,8 +570,9 @@ def calculate_energy_balance(
     warnings: list[str] = []
 
     # Non-monotonic time check (P1-6)
-    if len(time) > 1 and np.any(np.diff(time) <= 0):
-        warnings.append("时间序列非严格单调递增（可能存在重启或时间步回退）")
+    time_monotonic = bool(len(time) <= 1 or np.all(np.diff(time) > 0))
+    if not time_monotonic:
+        warnings.append("时间序列非严格单调递增（检测到重启或时间步回退）")
 
     # Extract components
     def get_arr(key: str) -> np.ndarray | None:
@@ -494,6 +593,7 @@ def calculate_energy_balance(
     ee = get_arr("eroded_energy")
     te = get_arr("total_energy")
     stonewall = get_arr("stonewall_energy")
+    spring_damper = get_arr("spring_and_damper_energy")
     added_mass = get_arr("added_mass")
     percent_increase = get_arr("percent_increase")
 
@@ -517,11 +617,11 @@ def calculate_energy_balance(
 
     # If total energy is not stored, synthesize it
     if te is None:
-        te = ke_eff + ie_eff + hg_eff + se_eff + de_eff + ee_eff + stonewall_eff
+        te = ke_eff + ie_eff + hg_eff + se_eff + de_eff + stonewall_eff
 
     # Energy closure formula (P1-4):
-    # computed_total = ke + ie + hg + damping + sliding + stonewall + eroded
-    computed_total = ke_eff + ie_eff + hg_eff + de_eff + se_eff + stonewall_eff + ee_eff
+    # spring&damper is already included in IE; eroded is not included in baseline closure.
+    computed_total = ke_eff + ie_eff + hg_eff + de_eff + se_eff + stonewall_eff
     closure_diff = np.abs(te - computed_total)
     closure_denom = np.maximum(np.maximum(np.abs(te), np.abs(computed_total)), 1e-12)
     rel_closure_error = closure_diff / closure_denom
@@ -536,6 +636,13 @@ def calculate_energy_balance(
     scale = np.maximum(np.maximum(np.abs(te), np.abs(ew_eff)), 1.0)
     relative_residual = np.abs(balance_residual) / scale
     max_rel_residual = float(np.max(relative_residual))
+
+    # LS-DYNA ratio: te / (te0 + W_ext) (P2)
+    denom_lsdyna = te[0] + ew_eff
+    valid_denom_mask = np.abs(denom_lsdyna) > 1e-12
+    lsdyna_ratio = np.full_like(te, np.nan)
+    np.divide(te, denom_lsdyna, out=lsdyna_ratio, where=valid_denom_mask)
+    max_lsdyna_ratio = float(np.nanmax(lsdyna_ratio)) if np.any(valid_denom_mask) else None
 
     # Kinetic / Internal ratio
     eps = 1e-12
@@ -564,10 +671,17 @@ def calculate_energy_balance(
 
     # Part analysis & sum-of-parts discrepancy vs GLSTAT (P1-3)
     part_summaries: dict[int, dict] = {}
-    matsum_vs_glstat: dict[str, float | None] = {"max_internal_discrepancy": None, "max_relative_discrepancy": None}
+    matsum_vs_glstat: dict[str, float | None] = {
+        "sum_part_internal_energy": None,
+        "glstat_internal_energy": None,
+        "max_internal_discrepancy": None,
+        "max_relative_discrepancy": None,
+        "spring_and_damper_energy": None,
+        "unaccounted_discrepancy": None,
+    }
 
     if parts:
-        total_final_ie = float(ie[-1]) if ie is not None and len(ie) > 0 else 0.0
+        total_final_ie = float(ie[-1]) if ie is not None and len(ie) > 0 and ie[-1] > 0 else None
         sum_part_ie = np.zeros_like(time)
         for pid, pdata in parts.items():
             pie = pdata.get("internal_energy", zeros)
@@ -580,7 +694,7 @@ def calculate_energy_balance(
 
             peak_pie = float(np.max(pie)) if len(pie) else 0.0
             final_pie = float(pie[-1]) if len(pie) else 0.0
-            frac_total = float(final_pie / total_final_ie) if total_final_ie > 0 else 0.0
+            frac_total = float(final_pie / total_final_ie) if total_final_ie is not None else None
 
             peak_phg = float(np.max(phg)) if len(phg) else 0.0
             final_phg = float(phg[-1]) if len(phg) else 0.0
@@ -604,10 +718,17 @@ def calculate_energy_balance(
 
         if ie is not None and len(ie) == len(sum_part_ie):
             ie_diff = np.abs(sum_part_ie - ie)
-            matsum_vs_glstat["max_internal_discrepancy"] = float(np.max(ie_diff))
+            max_diff = float(np.max(ie_diff))
+            matsum_vs_glstat["sum_part_internal_energy"] = float(sum_part_ie[-1])
+            matsum_vs_glstat["glstat_internal_energy"] = float(ie[-1])
+            matsum_vs_glstat["max_internal_discrepancy"] = max_diff
             matsum_vs_glstat["max_relative_discrepancy"] = float(
                 np.max(ie_diff / np.maximum(np.abs(ie), eps))
             )
+            if spring_damper is not None:
+                final_sd = float(spring_damper[-1])
+                matsum_vs_glstat["spring_and_damper_energy"] = final_sd
+                matsum_vs_glstat["unaccounted_discrepancy"] = float(abs(max_diff - final_sd))
 
     # Threshold evaluation
     checks: dict[str, dict] = {}
@@ -617,13 +738,26 @@ def calculate_energy_balance(
     def eval_check(name: str, actual: float | None, limit: float | None, series: np.ndarray | None = None) -> None:
         nonlocal passed_all, any_check_performed
         if actual is None:
-            checks[name] = {
-                "threshold": limit,
-                "actual_max": None,
-                "passed": None,
-                "status": "not_applicable",
-                "exceedances": 0,
-            }
+            # Missing quantity cannot pass if limit was provided (P0-2)
+            if limit is not None:
+                passed_all = False
+                any_check_performed = True
+                checks[name] = {
+                    "threshold": limit,
+                    "actual_max": None,
+                    "passed": False,
+                    "status": "not_applicable",
+                    "exceedances": 0,
+                    "reason": f"Quantity {name} missing from database",
+                }
+            else:
+                checks[name] = {
+                    "threshold": None,
+                    "actual_max": None,
+                    "passed": None,
+                    "status": "not_applicable",
+                    "exceedances": 0,
+                }
             return
 
         if limit is None:
@@ -631,13 +765,13 @@ def calculate_energy_balance(
                 "threshold": None,
                 "actual_max": actual,
                 "passed": None,
-                "status": "not_evaluated",
+                "status": "not_applicable",
                 "exceedances": 0,
             }
             return
 
         any_check_performed = True
-        is_pass = bool(actual <= limit)
+        is_pass = bool(actual <= limit) and time_monotonic
         if not is_pass:
             passed_all = False
         exceedances = int(np.count_nonzero(series > limit)) if series is not None else (0 if is_pass else 1)
@@ -655,15 +789,17 @@ def calculate_energy_balance(
     eval_check("sliding_energy", max_sliding_ratio, sliding_ratio_limit, sliding_ratio if se is not None else None)
 
     if any_check_performed:
-        verdict = "passed" if passed_all else "exceeded"
-        passed_conclusion: bool | None = passed_all
+        verdict = "passed" if (passed_all and time_monotonic) else "exceeded"
+        passed_conclusion: bool | None = (passed_all and time_monotonic)
     else:
         verdict = "metrics_only_no_thresholds"
         passed_conclusion = None
 
-    # Negative sliding check
+    # Negative sliding check (P2)
     min_se = float(np.min(se_eff)) if len(se_eff) else 0.0
     neg_sliding = bool(min_se < -1e-6)
+    if neg_sliding:
+        warnings.append(f"检测到负滑移界面能 (最小值: {min_se:.4e})，可能存在接触穿透或刚度不足")
 
     # Mass increase summary (P1-4)
     mass_summary = {
@@ -683,16 +819,19 @@ def calculate_energy_balance(
             "max_kinetic_energy_ratio": max_ke_ratio,
             "max_hourglass_ratio": max_hg_ratio,
             "max_sliding_energy_ratio": max_sliding_ratio,
+            "max_lsdyna_energy_ratio": max_lsdyna_ratio,
         },
         "balance_residual": {
             "max_absolute_residual": float(np.max(np.abs(balance_residual))),
             "max_relative_residual": max_rel_residual,
             "final_residual": float(balance_residual[-1]),
             "final_relative_residual": float(relative_residual[-1]),
+            "residual_denominator": "max(max(|TE|, |W_ext|), 1.0)",
         },
         "energy_closure": {
             "max_relative_closure_error": max_rel_closure,
             "stonewall_included": stonewall is not None,
+            "formula": "KE + IE + HG + damping + sliding + stonewall vs Total",
         },
         "energy_budget": {
             "peak_kinetic_energy": float(np.max(ke_eff)),
