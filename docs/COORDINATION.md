@@ -12,7 +12,7 @@
 | I01 | Codex | codex/fix-native-include-diagnostics | #56（38cc02a；第十二轮审阅中） | 待审阅 | 2026-10-06 |
 | I01 | Codex | codex/fix-queue-backpressure-restack | #40（Draft） | 进行中 | 2026-10-06 |
 | I01 | Codex | codex/m1-panel-session-engine | #26（Draft） | 进行中 | 2026-10-06 |
-| Q08 | Cursor | 待创建：cursor/Q08-xyplot | [任务单 #62](https://github.com/lwz20210407/LS-PrePost-MCP/issues/62) | 进行中 | 2026-10-07 |
+| Q08 | Cursor | cursor/Q08-xyplot-render | [派发 PR #61](https://github.com/lwz20210407/LS-PrePost-MCP/pull/61) | 进行中 | 2026-10-07 |
 
 初始内容由 Claude 于 2026-10-07 按当时的分支和 PR 填写，之后由 Codex 维护。
 
