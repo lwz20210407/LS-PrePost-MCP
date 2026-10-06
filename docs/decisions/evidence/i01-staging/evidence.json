@@ -113,5 +113,211 @@
       "name": "k49-native-413c.log",
       "sha256": "d5e6aa28dec8064036b73d7a5cbb473919fda6e1ad2b9004152162820fdd37ee"
     }
-  ]
+  ],
+  "review_runs": [
+  {
+    "actual_git_revision": "c5e599da28d09b2a8cd60e6b138fed1480d79c71",
+    "working_tree_dirty": true,
+    "git_diff_sha256": "27faec74ae35170f6412dd02fd9a60b49dfcea7841270074285f3af3e6cc0a4a",
+    "patch_scope": "git diff HEAD --binary captured before both runs",
+    "suite": "i01",
+    "mode": "batch_only",
+    "run_id": "r3i01n1",
+    "versions": [
+      {
+        "version": "413",
+        "pytest_exit_code": 1,
+        "report_sha256": "685964e2ae4e369e0cb270d820faeaa67240a09e89b5ea49ae1564780be414c4",
+        "cases": [
+          {
+            "case": "tests/test_engine_native.py::test_batch_include_read_preserves_source_directory[include source]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 5.8354149999941,
+            "channels": null
+          },
+          {
+            "case": "tests/test_engine_native.py::test_batch_include_read_preserves_source_directory[\\u8f93\\u5165 \\u6a21\\u578b]",
+            "status": "failed",
+            "raw_report_status": "failed",
+            "duration_seconds": 4.448351600003662,
+            "channels": null
+          },
+          {
+            "case": "tests/test_engine_native.py::test_batch_in_place_family_keeps_original_bytes",
+            "status": "failed",
+            "raw_report_status": "failed",
+            "duration_seconds": 9.775661799998488,
+            "channels": null
+          },
+          {
+            "case": "tests/test_engine_native.py::test_path_builders_batch_unicode_and_spaces_save_png_reopen[ascii-workspace]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 12.778446900003473,
+            "channels": null
+          },
+          {
+            "case": "tests/test_engine_native.py::test_path_builders_batch_unicode_and_spaces_save_png_reopen[space folder]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 9.578571399993962,
+            "channels": null
+          },
+          {
+            "case": "tests/test_engine_native.py::test_path_builders_batch_unicode_and_spaces_save_png_reopen[\\u4e2d\\u6587 \\u7a7a\\u683c]",
+            "status": "xfail",
+            "raw_report_status": "skipped",
+            "duration_seconds": 4.069724499990116,
+            "channels": null
+          }
+        ]
+      },
+      {
+        "version": "410",
+        "pytest_exit_code": 1,
+        "report_sha256": "1db58d7823d7806a55272793594aa1648986e67a2b5d8f48e2b156e996411c0f",
+        "cases": [
+          {
+            "case": "tests/test_engine_native.py::test_batch_include_read_preserves_source_directory[include source]",
+            "status": "failed",
+            "raw_report_status": "failed",
+            "duration_seconds": 7.091591999997036,
+            "channels": null
+          },
+          {
+            "case": "tests/test_engine_native.py::test_batch_include_read_preserves_source_directory[\\u8f93\\u5165 \\u6a21\\u578b]",
+            "status": "failed",
+            "raw_report_status": "failed",
+            "duration_seconds": 5.359810300011304,
+            "channels": null
+          },
+          {
+            "case": "tests/test_engine_native.py::test_batch_in_place_family_keeps_original_bytes",
+            "status": "failed",
+            "raw_report_status": "failed",
+            "duration_seconds": 9.518460400009644,
+            "channels": null
+          },
+          {
+            "case": "tests/test_engine_native.py::test_path_builders_batch_unicode_and_spaces_save_png_reopen[ascii-workspace]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 13.75086580000061,
+            "channels": null
+          },
+          {
+            "case": "tests/test_engine_native.py::test_path_builders_batch_unicode_and_spaces_save_png_reopen[space folder]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 13.263052200010861,
+            "channels": null
+          },
+          {
+            "case": "tests/test_engine_native.py::test_path_builders_batch_unicode_and_spaces_save_png_reopen[\\u4e2d\\u6587 \\u7a7a\\u683c]",
+            "status": "xfail",
+            "raw_report_status": "skipped",
+            "duration_seconds": 5.578698199999053,
+            "channels": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "actual_git_revision": "c5e599da28d09b2a8cd60e6b138fed1480d79c71",
+    "working_tree_dirty": true,
+    "git_diff_sha256": "777209691c8f1932dc31c76633361f733b8fa71d020055e9addcb109e940418c",
+    "patch_scope": "git diff HEAD --binary captured before both runs",
+    "suite": "i01",
+    "mode": "batch_only",
+    "run_id": "r3i01n2",
+    "versions": [
+      {
+        "version": "413",
+        "pytest_exit_code": 0,
+        "report_sha256": "196c334ead24eef13404d4b22f1e08e2124c3103fbc192f623c1440830fd0444",
+        "cases": [
+          {
+            "case": "tests/test_engine_native.py::test_batch_include_read_preserves_source_directory[include source]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 4.202979499998037,
+            "channels": null
+          },
+          {
+            "case": "tests/test_engine_native.py::test_batch_include_read_preserves_source_directory[\\u8f93\\u5165 \\u6a21\\u578b]",
+            "status": "xfail",
+            "raw_report_status": "skipped",
+            "duration_seconds": 4.809221300005447,
+            "channels": null
+          },
+          {
+            "case": "tests/test_engine_native.py::test_path_builders_batch_unicode_and_spaces_save_png_reopen[ascii-workspace]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 8.005361300005461,
+            "channels": null
+          },
+          {
+            "case": "tests/test_engine_native.py::test_path_builders_batch_unicode_and_spaces_save_png_reopen[space folder]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 7.711439499995322,
+            "channels": null
+          },
+          {
+            "case": "tests/test_engine_native.py::test_path_builders_batch_unicode_and_spaces_save_png_reopen[\\u4e2d\\u6587 \\u7a7a\\u683c]",
+            "status": "xfail",
+            "raw_report_status": "skipped",
+            "duration_seconds": 3.9355299999879207,
+            "channels": null
+          }
+        ]
+      },
+      {
+        "version": "410",
+        "pytest_exit_code": 0,
+        "report_sha256": "09db2d5a62f42cdc2a2737b2ba8126c1963486d6059cbdcbf23b7ad40b11bf8b",
+        "cases": [
+          {
+            "case": "tests/test_engine_native.py::test_batch_include_read_preserves_source_directory[include source]",
+            "status": "xfail",
+            "raw_report_status": "skipped",
+            "duration_seconds": 5.83337809999648,
+            "channels": null
+          },
+          {
+            "case": "tests/test_engine_native.py::test_batch_include_read_preserves_source_directory[\\u8f93\\u5165 \\u6a21\\u578b]",
+            "status": "xfail",
+            "raw_report_status": "skipped",
+            "duration_seconds": 4.729307499990682,
+            "channels": null
+          },
+          {
+            "case": "tests/test_engine_native.py::test_path_builders_batch_unicode_and_spaces_save_png_reopen[ascii-workspace]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 13.267810699995607,
+            "channels": null
+          },
+          {
+            "case": "tests/test_engine_native.py::test_path_builders_batch_unicode_and_spaces_save_png_reopen[space folder]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 17.743197999996482,
+            "channels": null
+          },
+          {
+            "case": "tests/test_engine_native.py::test_path_builders_batch_unicode_and_spaces_save_png_reopen[\\u4e2d\\u6587 \\u7a7a\\u683c]",
+            "status": "xfail",
+            "raw_report_status": "skipped",
+            "duration_seconds": 6.683845899999142,
+            "channels": null
+          }
+        ]
+      }
+    ]
+  }
+]
 }

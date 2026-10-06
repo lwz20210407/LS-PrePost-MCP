@@ -4,6 +4,7 @@ import math
 import re
 
 from .core.native_log import native_errors, read_delta
+from .core.validation import unit_label
 from .field_contracts import EntitySelection
 from .gui_mesh import check_same_nodes, check_same_parts, mesh_index
 from .gui_selection import available_ids, part_visibility
@@ -62,7 +63,6 @@ def verified_failed_ids(values, count, registry):
 
 
 def check_solids(service, session_id, checks, units, capture_failed_ids=False):
-    from .service import unit_label
 
     unit_label(units)
     if type(capture_failed_ids) is not bool:

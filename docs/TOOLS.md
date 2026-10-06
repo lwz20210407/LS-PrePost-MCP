@@ -123,7 +123,7 @@
 | `run_workflow_sweep` | A09 | path*: string; cases*: array; outputs: union/ref; session_id: union/ref |
 | `save_gui_selection_buffer` | G03 | session_id*: string; entity_type*: string; entity_ids*: array; slot*: integer |
 | `search_commands` | A10 | query*: string; limit: integer |
-| `search_knowledge` | A10 | query*: string; limit: integer |
+| `search_knowledge` | A10 | query*: string; limit: integer; include_private: boolean; category: union/ref |
 | `search_workflows` | A10 | query*: string; limit: integer |
 | `select_gui_entities` | G03 | session_id*: string; entity_type*: string; entity_ids: union/ref; part_ids: union/ref; invert: boolean; scope: string; set_ids: union/ref |
 | `select_gui_nodes_by_box` | G03 | session_id*: string; bounds*: array; units*: string; inside: boolean; tolerance: number |

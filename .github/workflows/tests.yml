@@ -38,12 +38,15 @@ jobs:
         run: uv sync --frozen --extra dev --extra results --extra pydyna
         timeout-minutes: 8
       - run: uv run --no-sync python -m pytest -q
+      - run: uv run --no-sync lint-imports --no-cache
       - run: uv run --no-sync ruff check .
       - run: uv run --no-sync python tools/validate_tasks.py
       - run: uv run --no-sync python tools/gen_docs.py --check
       - run: uv run --no-sync python tools/validate_tool_migration.py
       - run: uv run --no-sync python tools/fetch_corpus.py --check-registry
       - run: uv run --no-sync python tools/check_doc_links.py
-      - run: uv run --no-sync python tools/run_workflow_gate_acceptance.py --workspace "${{ runner.temp }}/lspp-workflow-gates"
-      - run: uv run --no-sync python tools/run_engineering_unit_acceptance.py --workspace "${{ runner.temp }}/lspp-unit-acceptance"
-      - run: uv run --no-sync python tools/run_parameter_study_acceptance.py --workspace "${{ runner.temp }}/lspp-parameter-acceptance"
+      - name: Run migrated file acceptance and generate report
+        run: >-
+          uv run --no-sync python -m pytest tests/test_native_acceptance.py -m native
+          -k "engineering_unit or workflow_gate or parameter_study_acceptance.file"
+          --run-native --native-strict --native-output "${{ runner.temp }}/lspp-native-file"

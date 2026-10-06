@@ -58,13 +58,16 @@ def test_environment_preserves_source_and_isolates_batch_and_session(tmp_path):
     for name in ("batch", "session"):
         directory = tmp_path / name
         directory.mkdir()
-        env, config = native_environment(tmp_path / "lspp", directory, {"LSPP_CONFIG_SOURCE": str(source)})
+        env, config = native_environment(tmp_path / "lspp", directory, {"LSPP_CONFIG_SOURCE": str(source)},
+                                         batch=name == "batch")
         paths.append(env["LSTC_FILE"])
         assert env["TEMP"] == env["TMP"] == str(directory / "tmp")
         assert config["source_modified"] is False
         assert "python_home = private-runtime" in (directory / "native-config" / "lsppconf").read_text()
         copied = (directory / "native-config" / "lsppconf").read_text()
-        assert "working_directory = .\n" in copied and "filepath_workingdir = .\n" in copied
+        expected = "." if name == "batch" else directory.as_posix()
+        assert "working_directory = " + expected + "\n" in copied
+        assert "filepath_workingdir = " + expected + "\n" in copied
         assert "message_file = " + (directory / "lspost.msg").as_posix() in copied
     assert paths[0] != paths[1] and source.read_bytes() == original
 

@@ -1,6 +1,5 @@
 """Typed operations shared by the MCP server, CLI and native smoke tests."""
 import json
-import math
 import os
 import re
 import subprocess
@@ -9,6 +8,7 @@ from pathlib import Path
 from pydantic import StrictInt
 
 from .config import Settings
+from .core.validation import integer, numbers, unit_label
 from .dpf_tools import DpfTools
 from .engine.context import NativeContext
 from .engineering import EngineeringTools
@@ -32,7 +32,9 @@ from .keyword_tools import KeywordTools
 from .mesh_tools import MeshTools
 from .native import commands as nc
 from .native.bundle import stage_bridge
+from .native.commands import VIEWS
 from .native.versions import profile, require_installation
+from .native_results import exceeds_staging_limit, input_family
 from .native_results import stage as stage_native_input
 from .post_tools import PostTools
 from .pre_tools import PreTools
@@ -42,30 +44,6 @@ from .runner import decode, execute, failure_message
 from .sessions import SessionTools
 from .workflow_sweeps import WorkflowSweepTools
 from .workflows import WorkflowTools
-
-VIEWS = {"isometric": "isometric x", "top": "top", "bottom": "bottom", "front": "front",
-         "back": "back", "left": "left", "right": "right"}
-
-
-def integer(value: int, name: str, minimum: int = 1, maximum: int = 2_000_000_000) -> int:
-    if isinstance(value, bool) or not isinstance(value, int) or not minimum <= value <= maximum:
-        raise ValueError(f"{name} must be an integer in {minimum}..{maximum}")
-    return value
-
-
-def numbers(values, length: int, name: str, positive: bool = False) -> list[float]:
-    if len(values) != length:
-        raise ValueError(f"{name} requires {length} numbers")
-    converted = [float(v) for v in values]
-    if not all(math.isfinite(v) and (not positive or v > 0) for v in converted):
-        raise ValueError(f"Invalid {name}")
-    return converted
-
-
-def unit_label(units: str) -> str:
-    if not isinstance(units, str) or not units.strip() or len(units) > 100:
-        raise ValueError("An explicit unit-system label is required; no units are inferred")
-    return units.strip()
 
 
 class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools):
@@ -94,6 +72,8 @@ class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools
                                   for line in source.read_text(errors="replace").splitlines())
             if export and include_bearing:
                 raise ValueError("Native export of include-bearing models needs a staged include-tree implementation")
+        if source and file_type == "d3plot" and exceeds_staging_limit(input_family(self.settings, source, family=True)):
+            raise ValueError("Native d3plot input exceeds 1000 files / 2 GiB staging limit; read-only in-place fallback is unverified and disabled after native crashes. Use a supported reader backend or a smaller result family.")
         directory, manifest = self.jobs.create(action, parameters)
         manifest["backend"] = "lsprepost"
         manifest["executable"] = fingerprint(exe)
@@ -108,8 +88,8 @@ class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools
                 staged_sources, source_identities = stage_native_input(
                     self.settings, source, directory, family=file_type == "d3plot")
                 request["model"] = str(directory / ("d3plot" if file_type == "d3plot" else "input_data"))
-                manifest["inputs"] = source_identities
                 manifest["input_staging"] = "Owned ASCII basename; original paths and bytes remain unchanged"
+                manifest["inputs"] = source_identities
             else:
                 # Existing plain INCLUDE validation is retained. Read-only native
                 # loading uses the absolute root deck; I07 still owns tree edits.
@@ -175,7 +155,8 @@ class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools
                 manifest["artifacts"].append(check_artifact(directory / name, kind))
             if source and fingerprint(source) != manifest["input"]:
                 raise RuntimeError("Input changed during the task")
-            if staged_sources and [fingerprint(path) for path in staged_sources] != source_identities:
+            if staged_sources and [fingerprint(path) for path in input_family(
+                    self.settings, source, family=file_type == "d3plot")] != source_identities:
                 raise RuntimeError("Input family changed during the task")
             manifest["status"] = "succeeded"
         except Exception as exc:
@@ -231,7 +212,7 @@ class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools
         return inspect_database(self.settings, self.jobs, self.settings.input_path(path))
 
     def inspect_model(self, model: str, file_type: str = "keyword") -> dict:
-        """Open keyword/d3plot in a fresh native Python instance; return counts, user part IDs and state times."""
+        """Open keyword/d3plot in a fresh native Python instance; return counts, user part IDs and state times. Native d3plot staging is limited to 1000 files / 2 GiB; larger families are rejected before launch (read-only in-place fallback remains unverified)."""
         return self._native("inspect_model", {}, model, file_type)
 
     def list_nodes(self, model: str, file_type: str = "keyword", offset: int = 0, limit: int = 100) -> dict:

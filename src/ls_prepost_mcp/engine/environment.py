@@ -28,7 +28,7 @@ def locate_config(executable, environ):
     return None
 
 
-def isolate_preferences(executable, directory, environ=None):
+def isolate_preferences(executable, directory, environ=None, *, batch=False):
     """Copy existing preferences, preserve consent/Python settings and redirect only paths."""
     env = dict(os.environ if environ is None else environ)
     directory = Path(directory).resolve()
@@ -41,7 +41,7 @@ def isolate_preferences(executable, directory, environ=None):
     if len(content) > 2 * 1024 * 1024:
         raise ValueError("Native configuration exceeds 2 MiB")
     source_sha = hashlib.sha256(content).hexdigest()
-    native_cwd = "." if str(directory).isascii() else directory
+    native_cwd = "." if batch and str(directory).isascii() else directory
     overrides = {
         "session_file": directory / "lspost.cfile",
         "message_file": directory / "lspost.msg",
@@ -76,11 +76,11 @@ def isolate_preferences(executable, directory, environ=None):
     return env, metadata
 
 
-def native_environment(executable, directory, environ=None):
+def native_environment(executable, directory, environ=None, *, batch=False):
     """Shared batch/session environment, with exclusive private preferences."""
     directory = Path(directory).resolve()
     temp = directory / "tmp"
     temp.mkdir(exist_ok=True)
-    env, metadata = isolate_preferences(executable, directory, environ)
+    env, metadata = isolate_preferences(executable, directory, environ, batch=batch)
     env.update(TEMP=str(temp), TMP=str(temp))
     return env, metadata

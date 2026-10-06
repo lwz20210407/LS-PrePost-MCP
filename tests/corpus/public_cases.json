@@ -1,0 +1,1699 @@
+{
+  "schema_version": 1,
+  "task": "I04",
+  "cases": [
+    {
+      "id": "keyword-include-parameter",
+      "kind": "keyword",
+      "corpus": "include_contact",
+      "member": "",
+      "features": [
+        "nested_include",
+        "parameter"
+      ]
+    },
+    {
+      "id": "keyword-contact-pair",
+      "kind": "keyword",
+      "corpus": "include_contact_pair",
+      "member": "",
+      "features": [
+        "surface_contact"
+      ]
+    },
+    {
+      "id": "keyword-unicode-path",
+      "kind": "keyword",
+      "corpus": "keyword.4leaf321-nox321__MatNexus",
+      "member": "시뮬레이션 인풋 덱/예제/dp600-1elem-lsdyna.k",
+      "features": [
+        "unicode_path",
+        "plastic_material"
+      ]
+    },
+    {
+      "id": "keyword-mass-spring",
+      "kind": "keyword",
+      "corpus": "keyword.lsdyna-ansys-com",
+      "member": "dx__ex_17_spring_elform_0.k/ex_17_spring_elform_0.k",
+      "features": [
+        "mass",
+        "spring"
+      ]
+    },
+    {
+      "id": "keyword-thick-shell",
+      "kind": "keyword",
+      "corpus": "keyword.lsdyna-ansys-com",
+      "member": "2022_12__ex_02_thick_shell_elform_2.k/ex_02_thick_shell_elform_2.k",
+      "features": [
+        "thick_shell"
+      ]
+    },
+    {
+      "id": "keyword-quadratic-tet",
+      "kind": "keyword",
+      "corpus": "keyword.squall321__KooRemapper",
+      "member": "examples/tet10/two_tets.k",
+      "features": [
+        "tet10"
+      ]
+    },
+    {
+      "id": "keyword-utf8",
+      "kind": "keyword",
+      "corpus": "keyword.BalvinderKaurDhillon__kfile-editor",
+      "member": "samples/example.k",
+      "features": [
+        "utf8"
+      ]
+    },
+    {
+      "id": "keyword-beam-load",
+      "kind": "keyword",
+      "corpus": "keyword.lsdyna-ansys-com",
+      "member": "2022_12__ex_11_beam_elform_1.k/ex_11_beam_elform_1.k",
+      "features": [
+        "beam",
+        "loads"
+      ]
+    },
+    {
+      "id": "result-mixed-id-order",
+      "kind": "d3plot",
+      "corpus": "shell_d3plot",
+      "member": "",
+      "features": [
+        "mixed",
+        "id_order"
+      ]
+    },
+    {
+      "id": "result-solid-beam",
+      "kind": "d3plot",
+      "corpus": "result.ansys__example-data.result_files.d3plot_beam",
+      "member": "d3plot",
+      "features": [
+        "solid",
+        "beam"
+      ]
+    },
+    {
+      "id": "result-beam-integration",
+      "kind": "d3plot",
+      "corpus": "result.open-lasso-python__lasso-python.test.test_data.d3plot_beamip",
+      "member": "d3plot",
+      "features": [
+        "beam",
+        "integration_points"
+      ]
+    },
+    {
+      "id": "result-thermal-shell",
+      "kind": "d3plot",
+      "corpus": "result.open-lasso-python__lasso-python.test.test_data.d3plot_node_temperature",
+      "member": "d3plot",
+      "features": [
+        "shell",
+        "temperature"
+      ]
+    },
+    {
+      "id": "result-solid-integration",
+      "kind": "d3plot",
+      "corpus": "result.open-lasso-python__lasso-python.test.test_data.d3plot_solid_int",
+      "member": "d3plot",
+      "features": [
+        "solid",
+        "integration_points",
+        "multi_file"
+      ]
+    },
+    {
+      "id": "result-heart-mixed",
+      "kind": "d3plot",
+      "corpus": "result.ansys__pyansys-heart.tests.heart.assets.post.main",
+      "member": "d3plot",
+      "features": [
+        "solid",
+        "shell",
+        "beam"
+      ]
+    },
+    {
+      "id": "result-named-family",
+      "kind": "d3plot",
+      "corpus": "result.Renumics__mesh2vec.data.hat",
+      "member": "HAT.d3plot",
+      "features": [
+        "named_family",
+        "mixed"
+      ]
+    },
+    {
+      "id": "result-legacy-impact",
+      "kind": "d3plot",
+      "corpus": "result.kitware__vtk-testdata.Testing.Data.LSDyna.impact",
+      "member": "d3plot",
+      "features": [
+        "legacy_binary",
+        "impact"
+      ]
+    },
+    {
+      "id": "result-sph-composite",
+      "kind": "d3plot",
+      "corpus": "result.ansys__example-data.pydpf-composites.lsdyna_bird_strike",
+      "member": "d3plot",
+      "features": [
+        "sph",
+        "composite"
+      ]
+    },
+    {
+      "id": "result-implicit",
+      "kind": "d3plot",
+      "corpus": "result.NaudeConradie__Masters-Project.Models.Old.Other.LSDyna_Unit_Cell_Corner.Steel_Implicit",
+      "member": "d3plot",
+      "features": [
+        "implicit",
+        "many_states"
+      ]
+    },
+    {
+      "id": "result-zero-states",
+      "kind": "d3plot",
+      "corpus": "result.jascott4427__PILLARS-LSDyna.test_airbag",
+      "member": "d3plot",
+      "features": [
+        "incomplete",
+        "zero_states"
+      ]
+    },
+    {
+      "id": "result-ale",
+      "kind": "d3plot",
+      "corpus": "result.kitware__vtk-testdata.Testing.Data.LSDyna.ale",
+      "member": "d3plot",
+      "features": [
+        "ale",
+        "large_file"
+      ]
+    },
+    {
+      "id": "binout-forces",
+      "kind": "binout",
+      "corpus": "binout_forces",
+      "member": "",
+      "features": [
+        "rcforc",
+        "secforc"
+      ],
+      "branches": [
+        "rcforc",
+        "secforc"
+      ]
+    },
+    {
+      "id": "binout-global",
+      "kind": "binout",
+      "corpus": "result.ansys__example-data.result_files.binout",
+      "member": "binout_glstat",
+      "features": [
+        "glstat"
+      ],
+      "branches": [
+        "glstat"
+      ]
+    },
+    {
+      "id": "binout-spotweld",
+      "kind": "binout",
+      "corpus": "result.qd-cae__qd-cae-python.test",
+      "member": "binout",
+      "features": [
+        "swforc"
+      ],
+      "branches": [
+        "swforc"
+      ]
+    },
+    {
+      "id": "binout-mpp",
+      "kind": "binout",
+      "corpus": "result.hu-shuhan__editOpeniGame.test.Format_Validation_Test.lsdyna.Bolt_B_Explicit",
+      "member": "binout0000",
+      "features": [
+        "mpp",
+        "four_shards"
+      ],
+      "branches": [
+        "glstat"
+      ]
+    },
+    {
+      "id": "ascii-contact-force",
+      "kind": "ascii",
+      "corpus": "result.lsdyna-ansys-com__lspp-mini-tutorials.rcforc",
+      "member": "rcforc",
+      "features": [
+        "rcforc"
+      ],
+      "database": "rcforc",
+      "entity_id": 1,
+      "component": 1
+    },
+    {
+      "id": "ascii-section-force",
+      "kind": "ascii",
+      "corpus": "result.pranavduraisamy__helmet-fit-bayes-opt.bo-runs.run0.pendulum",
+      "member": "secforc",
+      "features": [
+        "secforc"
+      ],
+      "database": "secforc",
+      "entity_id": 1,
+      "component": 1
+    },
+    {
+      "id": "extra-result-01",
+      "kind": "d3plot",
+      "corpus": "solid_d3plot",
+      "member": "",
+      "features": [
+        "additional_result_family",
+        "solid"
+      ]
+    },
+    {
+      "id": "extra-result-02",
+      "kind": "d3plot",
+      "corpus": "result.ansys__example-data.result_files.d3plot_projectile",
+      "member": "d3plot",
+      "features": [
+        "additional_result_family",
+        "solid"
+      ]
+    },
+    {
+      "id": "extra-result-03",
+      "kind": "d3plot",
+      "corpus": "result.ansys__pyansys-heart.tests.heart.assets.post.zerop",
+      "member": "iter3.d3plot",
+      "features": [
+        "additional_result_family",
+        "shell",
+        "solid"
+      ]
+    },
+    {
+      "id": "extra-result-04",
+      "kind": "d3plot",
+      "corpus": "result.chiaraf10__uqpy_test.dyna_test_2023_03_08_01_53_113621.run_0.InputFiles",
+      "member": "d3plot",
+      "features": [
+        "additional_result_family",
+        "shell"
+      ]
+    },
+    {
+      "id": "extra-result-05",
+      "kind": "d3plot",
+      "corpus": "result.CMU-CBML__HexGen_Hex2Spline.example.rod_demo.LSDYNA_eigen_result",
+      "member": "d3eigv",
+      "features": [
+        "additional_result_family",
+        "modal",
+        "solid"
+      ]
+    },
+    {
+      "id": "extra-result-06",
+      "kind": "d3plot",
+      "corpus": "result.CMU-CBML__HexGen_Hex2Spline.example.rod_demo.LSDYNA_eigen_result",
+      "member": "d3plot",
+      "features": [
+        "additional_result_family",
+        "solid"
+      ]
+    },
+    {
+      "id": "extra-result-07",
+      "kind": "d3plot",
+      "corpus": "result.hu-shuhan__editOpeniGame.test.Format_Validation_Test.lsdyna.Bolt_B_Explicit",
+      "member": "d3plot",
+      "features": [
+        "additional_result_family",
+        "beam",
+        "shell",
+        "solid"
+      ]
+    },
+    {
+      "id": "extra-result-08",
+      "kind": "d3plot",
+      "corpus": "result.jascott4427__PILLARS-LSDyna.pillars_v2_airbag_open.keyfiles.100.30",
+      "member": "d3plot",
+      "features": [
+        "additional_result_family",
+        "beam",
+        "shell"
+      ]
+    },
+    {
+      "id": "extra-result-09",
+      "kind": "d3plot",
+      "corpus": "result.NaudeConradie__Masters-Project.Models.Old.Other.LS-PrePost_Tutorials",
+      "member": "d3plot",
+      "features": [
+        "additional_result_family",
+        "shell",
+        "solid"
+      ]
+    },
+    {
+      "id": "extra-result-10",
+      "kind": "d3plot",
+      "corpus": "result.NaudeConradie__Masters-Project.Models.Old.Other.LSDyna_Basic_Tutorials.Ex_1_Cube",
+      "member": "d3plot",
+      "features": [
+        "additional_result_family",
+        "solid"
+      ]
+    },
+    {
+      "id": "extra-result-11",
+      "kind": "d3plot",
+      "corpus": "result.NaudeConradie__Masters-Project.Models.Old.Other.LSDyna_Basic_Tutorials.Ex_2_Tensile_Test",
+      "member": "d3plot",
+      "features": [
+        "additional_result_family",
+        "shell"
+      ]
+    },
+    {
+      "id": "extra-result-12",
+      "kind": "d3plot",
+      "corpus": "result.NaudeConradie__Masters-Project.Models.Old.Other.LSDyna_Unit_Cell_Corner.Steel_Explicit",
+      "member": "d3plot",
+      "features": [
+        "additional_result_family",
+        "shell"
+      ]
+    },
+    {
+      "id": "extra-result-13",
+      "kind": "d3plot",
+      "corpus": "result.turnerjennings__dynaFEHMtools.tests",
+      "member": "d3part",
+      "features": [
+        "additional_result_family",
+        "partial_database",
+        "solid"
+      ]
+    },
+    {
+      "id": "extra-result-14",
+      "kind": "d3plot",
+      "corpus": "result.turnerjennings__dynaFEHMtools.tests",
+      "member": "d3plot",
+      "features": [
+        "additional_result_family",
+        "shell",
+        "solid"
+      ]
+    },
+    {
+      "id": "extra-result-15",
+      "kind": "d3plot",
+      "corpus": "result.zenodo__18598355.FEMU_Taylor.03_mat_CS_artificial",
+      "member": "d3plot",
+      "features": [
+        "additional_result_family",
+        "shell",
+        "solid"
+      ]
+    },
+    {
+      "id": "extra-result-16",
+      "kind": "d3plot",
+      "corpus": "result.zenodo__18598355.FEMU_Taylor.21_mat_JC_real",
+      "member": "d3plot",
+      "features": [
+        "additional_result_family",
+        "shell",
+        "solid"
+      ]
+    },
+    {
+      "id": "extra-result-17",
+      "kind": "d3plot",
+      "corpus": "result.qd-cae__qd-cae-python.test",
+      "member": "d3plot",
+      "features": [
+        "additional_result_family",
+        "shell"
+      ]
+    },
+    {
+      "id": "extra-keyword-001",
+      "kind": "keyword",
+      "corpus": "keyword.antahiap__CAE-KG-01",
+      "member": "data/key_assem.key",
+      "features": [
+        "contact",
+        "define_curve",
+        "element_mass",
+        "encoding_ascii",
+        "include",
+        "include_path",
+        "mat",
+        "parameter",
+        "section",
+        "set",
+        "size_band_1"
+      ]
+    },
+    {
+      "id": "extra-keyword-002",
+      "kind": "keyword",
+      "corpus": "keyword.Samos9877__lsdyna-agent-test",
+      "member": "rigs/geofoam_indent/rig.k",
+      "features": [
+        "boundary",
+        "contact",
+        "define_curve",
+        "element_shell",
+        "element_solid",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "set",
+        "size_band_2"
+      ]
+    },
+    {
+      "id": "extra-keyword-003",
+      "kind": "keyword",
+      "corpus": "keyword.lsdyna-ansys-com",
+      "member": "2025_03__lsprepost/CYLINDER.key",
+      "features": [
+        "boundary",
+        "contact",
+        "element_mass",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "parameter",
+        "section",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-004",
+      "kind": "keyword",
+      "corpus": "keyword.idaholab__mastodon",
+      "member": "examples/ex05a/LS_Dyna_fixed_based_input.k",
+      "features": [
+        "boundary",
+        "define_curve",
+        "element_beam",
+        "element_mass",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "set",
+        "size_band_1"
+      ]
+    },
+    {
+      "id": "extra-keyword-005",
+      "kind": "keyword",
+      "corpus": "keyword.squall321__KooRemapper",
+      "member": "examples/replace_test/tshell_result.k",
+      "features": [
+        "element_shell",
+        "element_solid",
+        "element_tshell",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-006",
+      "kind": "keyword",
+      "corpus": "keyword.Sentinel-rtc__SENTINEL-TriageTools",
+      "member": "FMH_CAE_HEAD_MODEL/Run_6.71ms/MAIN_6.71_run.key",
+      "features": [
+        "contact",
+        "element_solid",
+        "encoding_utf-8",
+        "include",
+        "mat",
+        "parameter",
+        "section",
+        "set",
+        "size_band_2"
+      ]
+    },
+    {
+      "id": "extra-keyword-007",
+      "kind": "keyword",
+      "corpus": "keyword.MattiaMontanari__ai-material-model",
+      "member": "src/D2_MAT18/03_TestNetwork/02_Cantilever/UMAT/cantilever.key",
+      "features": [
+        "boundary",
+        "define_curve",
+        "element_solid",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "set",
+        "size_band_3"
+      ]
+    },
+    {
+      "id": "extra-keyword-008",
+      "kind": "keyword",
+      "corpus": "keyword.antahiap__nrg_simRank",
+      "member": "extnd_mdl/CCSA_sample.key",
+      "features": [
+        "contact",
+        "define_curve",
+        "element_mass",
+        "encoding_ascii",
+        "include",
+        "include_path",
+        "parameter",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-009",
+      "kind": "keyword",
+      "corpus": "keyword.mkaramica__lsDyna_automation",
+      "member": "mainKey.key",
+      "features": [
+        "boundary",
+        "contact",
+        "define_curve",
+        "element_shell",
+        "element_solid",
+        "encoding_ascii",
+        "include",
+        "section",
+        "set",
+        "size_band_2"
+      ]
+    },
+    {
+      "id": "extra-keyword-010",
+      "kind": "keyword",
+      "corpus": "keyword.mjhmilla__SingleMuscleSimulationsLSDYNA",
+      "member": "SMP_R931/umat41/impedance/impedance.k",
+      "features": [
+        "boundary",
+        "define_curve",
+        "element_beam",
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "section",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-011",
+      "kind": "keyword",
+      "corpus": "keyword.node997__dyna_pladebuk",
+      "member": "Plade_300_150_4/differentmeshsizes/conv/Convergence_3/main.k",
+      "features": [
+        "boundary",
+        "define_curve",
+        "encoding_utf-8",
+        "include",
+        "parameter",
+        "section",
+        "set",
+        "size_band_1"
+      ]
+    },
+    {
+      "id": "extra-keyword-012",
+      "kind": "keyword",
+      "corpus": "keyword.squall321__KooDynaAdvanced",
+      "member": "Battery/Examples/batmac_intshort/i.k",
+      "features": [
+        "boundary",
+        "contact",
+        "define_curve",
+        "encoding_utf-8",
+        "include",
+        "mat",
+        "section",
+        "size_band_1"
+      ]
+    },
+    {
+      "id": "extra-keyword-013",
+      "kind": "keyword",
+      "corpus": "keyword.loumalouomega__meshioplusplus",
+      "member": "tests/python/meshes/lsdyna/crash_main.k",
+      "features": [
+        "element_beam",
+        "encoding_ascii",
+        "include",
+        "include_path",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-014",
+      "kind": "keyword",
+      "corpus": "keyword.LLK-LL__K-agent",
+      "member": "skills/lsdyna-kfile/templates/crash/crash.k",
+      "features": [
+        "boundary",
+        "contact",
+        "element_mass",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-015",
+      "kind": "keyword",
+      "corpus": "keyword.yannikmayerm__FE-Simulations",
+      "member": "metamodel_deviation_analysis_clinch_joints/0Data/05_springback/edited_Springback.k",
+      "features": [
+        "contact",
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "parameter",
+        "section",
+        "set",
+        "size_band_1"
+      ]
+    },
+    {
+      "id": "extra-keyword-016",
+      "kind": "keyword",
+      "corpus": "keyword.ansys__pydyna",
+      "member": "tests/testfiles/keywords/expand_test/bird_B.k",
+      "features": [
+        "boundary",
+        "element_beam",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-017",
+      "kind": "keyword",
+      "corpus": "keyword.SciMate-AI__HPC-Skills",
+      "member": "skills/hpc-ls-dyna/assets/templates/implicit-static-outline.k",
+      "features": [
+        "boundary",
+        "contact",
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "parameter",
+        "section",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-018",
+      "kind": "keyword",
+      "corpus": "keyword.WCCMS-UTAustin__MSCM-LSDyna",
+      "member": "Test Problems/Setup Input Files/biaxial_tension_MSCM1_e.k",
+      "features": [
+        "boundary",
+        "encoding_utf-8",
+        "include",
+        "mat",
+        "parameter",
+        "section",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-019",
+      "kind": "keyword",
+      "corpus": "keyword.Ice-Citron__Project-Railgun",
+      "member": "simulations/development/fp16-coordinate-variants/Modified - fp16 + 75segment100mm/i.k",
+      "features": [
+        "element_solid",
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "set",
+        "size_band_2"
+      ]
+    },
+    {
+      "id": "extra-keyword-020",
+      "kind": "keyword",
+      "corpus": "keyword.qd-cae__qd-cae-python",
+      "member": "test/keyfile.key",
+      "features": [
+        "element_beam",
+        "element_shell",
+        "encoding_ascii",
+        "include",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-021",
+      "kind": "keyword",
+      "corpus": "keyword.dynaexamples-wayback",
+      "member": "yaris_static_shock_absorber_loading__partial/000_yaris_stat_shock_absorber_loading_01.k",
+      "features": [
+        "boundary",
+        "contact",
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-022",
+      "kind": "keyword",
+      "corpus": "keyword.ansys__example-data",
+      "member": "ls-dyna/yaris_stat_shock_absorber_loading/000_yaris_stat_shock_absorber_loading_01.k",
+      "features": [
+        "boundary",
+        "contact",
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-023",
+      "kind": "keyword",
+      "corpus": "keyword.SGI-2022__HexDom-IGApipeline",
+      "member": "Ibeam_hybrid_demo/Ibeam_simulation/Ibeam_IGA.k",
+      "features": [
+        "element_solid",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "size_band_1"
+      ]
+    },
+    {
+      "id": "extra-keyword-024",
+      "kind": "keyword",
+      "corpus": "keyword.QHQIII__bl_dyna",
+      "member": "test/000_yaris_dynamic_roof_crush_01.k",
+      "features": [
+        "boundary",
+        "contact",
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-025",
+      "kind": "keyword",
+      "corpus": "keyword.openvt__vivaplus",
+      "member": "model/50F-seated/vivaplus-50F.key",
+      "features": [
+        "encoding_ascii",
+        "include",
+        "include_path",
+        "parameter",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-026",
+      "kind": "keyword",
+      "corpus": "keyword.lstc-ftp-wayback",
+      "member": "hao_sale__2bagstrim/main.k",
+      "features": [
+        "contact",
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-027",
+      "kind": "keyword",
+      "corpus": "keyword.DataAnalyticsEngineering__UMAT_2scale_LSDYNA",
+      "member": "repo_files/examples_extra/thermomech_cube/1_steadystate_fix_timestep_mat270/input.k",
+      "features": [
+        "boundary",
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "section",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-028",
+      "kind": "keyword",
+      "corpus": "keyword.Wanggs2418__ANSYS_Code",
+      "member": "code/ANSYS LS-DYNA动力分析与工程实例/demo_k_files/EX01.k",
+      "features": [
+        "boundary",
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-029",
+      "kind": "keyword",
+      "corpus": "keyword.osullivryan__vscode-lsdyna",
+      "member": "test/Bolt_A_Explicit/mainboltaexpl.k",
+      "features": [
+        "encoding_ascii",
+        "include",
+        "include_path",
+        "parameter",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-030",
+      "kind": "keyword",
+      "corpus": "keyword.zenodo__19854032",
+      "member": "simplified_model_B/Combine.key",
+      "features": [
+        "contact",
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "set",
+        "size_band_1"
+      ]
+    },
+    {
+      "id": "extra-keyword-031",
+      "kind": "keyword",
+      "corpus": "keyword.osullivryan__dynars",
+      "member": "tests/data/bolt_a_explicit/mainboltaexpl.k",
+      "features": [
+        "encoding_ascii",
+        "include",
+        "include_path",
+        "parameter",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-032",
+      "kind": "keyword",
+      "corpus": "keyword.ccsa-gmu__2020-nissan-rogue-v3",
+      "member": "2020-nissan-rogue-v3/combine.key",
+      "features": [
+        "contact",
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-033",
+      "kind": "keyword",
+      "corpus": "keyword.cmeveritt__LS-Dyna-FoldingBox",
+      "member": "Foldingbox5-Main.k",
+      "features": [
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-034",
+      "kind": "keyword",
+      "corpus": "keyword.chptx__piper",
+      "member": "share/data/model_01_separator.dyn",
+      "features": [
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-035",
+      "kind": "keyword",
+      "corpus": "keyword.jfriedlein__TRR285-LoadCaseChecker_LS-Dyna",
+      "member": "1_main.k",
+      "features": [
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "size_band_1"
+      ]
+    },
+    {
+      "id": "extra-keyword-036",
+      "kind": "keyword",
+      "corpus": "keyword.JorgeZorrilla__Crash-GeoNN",
+      "member": "data/templates/main.k",
+      "features": [
+        "contact",
+        "encoding_ascii",
+        "include",
+        "section",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-037",
+      "kind": "keyword",
+      "corpus": "keyword.zenodo__13998073",
+      "member": "PAB_Reduced_Env/Steps/Stand_PAB_Simple_Delay/25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
+      "features": [
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-038",
+      "kind": "keyword",
+      "corpus": "keyword.tonyhoVN__automated-lattice-nosecone-impact",
+      "member": "DYNA_files/original_nose_cone_star3_impact_test.k",
+      "features": [
+        "contact",
+        "encoding_ascii",
+        "include",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-039",
+      "kind": "keyword",
+      "corpus": "keyword.dynapy__dynakit",
+      "member": "example/test_project/base_000/main.key",
+      "features": [
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-040",
+      "kind": "keyword",
+      "corpus": "keyword.ansys__pyansys-heart",
+      "member": "tests/heart/assets/reference_models/strocchi2020/01/BiVentricle/k_files1/ZeroPressureMechanicsDynaWriter/main.k",
+      "features": [
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-041",
+      "kind": "keyword",
+      "corpus": "keyword.dbrizard__GSA-car-crash",
+      "member": "lsopt_car6/main_v211.k",
+      "features": [
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-042",
+      "kind": "keyword",
+      "corpus": "keyword.zenodo__14000052",
+      "member": "fe_models/Assemblies_DOE_FullFactorial_k5_f5/V0000097/V0000097.key",
+      "features": [
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-043",
+      "kind": "keyword",
+      "corpus": "keyword.evtodorov__rfsmodels",
+      "member": "plate/plate_2_20_20.k",
+      "features": [
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-044",
+      "kind": "keyword",
+      "corpus": "keyword.gradzikb__vim-lsdyna",
+      "member": "keywords/_/_master_mmkgms_template.k",
+      "features": [
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-045",
+      "kind": "keyword",
+      "corpus": "keyword.ImperialCollegeLondon__ReCoDE-brain-mesh-creation",
+      "member": "src/dependencies/simulation/run_simulation.k",
+      "features": [
+        "encoding_ascii",
+        "include",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-046",
+      "kind": "keyword",
+      "corpus": "keyword.zenodo__17788156",
+      "member": "Validation_experiment/25%H2/validation_1mm.k",
+      "features": [
+        "encoding_ascii",
+        "include",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-047",
+      "kind": "keyword",
+      "corpus": "keyword.jfriedlein__Numerical_examples_in_LS-Dyna",
+      "member": "main.k",
+      "features": [
+        "encoding_ascii",
+        "include",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-048",
+      "kind": "keyword",
+      "corpus": "keyword.lsdyna-ansys-com",
+      "member": "2025_03__splines_windows/example.key",
+      "features": [
+        "contact",
+        "define_curve",
+        "element_solid",
+        "encoding_other",
+        "include",
+        "mat",
+        "section",
+        "set",
+        "size_band_2"
+      ]
+    },
+    {
+      "id": "extra-keyword-049",
+      "kind": "keyword",
+      "corpus": "keyword.node997__dyna_pladebuk",
+      "member": "Plade_300_150_4/differentmeshsizes/conv/Convergence_1/main.k",
+      "features": [
+        "boundary",
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "section",
+        "set",
+        "size_band_3"
+      ]
+    },
+    {
+      "id": "extra-keyword-050",
+      "kind": "keyword",
+      "corpus": "keyword.Sentinel-rtc__SENTINEL-TriageTools",
+      "member": "FMH_CAE_HEAD_MODEL/Run_4.00ms/MAIN_4.00_run.key",
+      "features": [
+        "contact",
+        "element_solid",
+        "encoding_utf-8",
+        "include",
+        "mat",
+        "parameter",
+        "section",
+        "set",
+        "size_band_2"
+      ]
+    },
+    {
+      "id": "extra-keyword-051",
+      "kind": "keyword",
+      "corpus": "keyword.Samos9877__lsdyna-agent-test",
+      "member": "rigs/mat79_soil_unit/rig_template.k",
+      "features": [
+        "boundary",
+        "define_curve",
+        "element_solid",
+        "encoding_utf-8",
+        "include",
+        "parameter",
+        "section",
+        "set",
+        "size_band_1"
+      ]
+    },
+    {
+      "id": "extra-keyword-052",
+      "kind": "keyword",
+      "corpus": "keyword.antahiap__nrg_simRank",
+      "member": "extnd_mdl/CCSA_simple.key",
+      "features": [
+        "contact",
+        "define_curve",
+        "element_mass",
+        "encoding_ascii",
+        "include",
+        "include_path",
+        "parameter",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-053",
+      "kind": "keyword",
+      "corpus": "keyword.squall321__KooDynaAdvanced",
+      "member": "Battery/Examples/tshell_cylindrical/i.k",
+      "features": [
+        "boundary",
+        "define_curve",
+        "encoding_utf-8",
+        "include",
+        "mat",
+        "section",
+        "set",
+        "size_band_1"
+      ]
+    },
+    {
+      "id": "extra-keyword-054",
+      "kind": "keyword",
+      "corpus": "keyword.MattiaMontanari__ai-material-model",
+      "member": "src/D2_MAT18/01_GenerateData/SEcyclic/SR500/1x1x1_23SPos_SR500/1x1x1_23SPos_SR500.key",
+      "features": [
+        "boundary",
+        "define_curve",
+        "element_solid",
+        "encoding_ascii",
+        "include",
+        "section",
+        "size_band_2"
+      ]
+    },
+    {
+      "id": "extra-keyword-055",
+      "kind": "keyword",
+      "corpus": "keyword.Ice-Citron__Project-Railgun",
+      "member": "simulations/development/fp16-coordinate-variants/Modified fixed 6.0fp16/i.k",
+      "features": [
+        "element_shell",
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "size_band_1"
+      ]
+    },
+    {
+      "id": "extra-keyword-056",
+      "kind": "keyword",
+      "corpus": "keyword.LLK-LL__K-agent",
+      "member": "skills/lsdyna-kfile/templates/forming/forming.k",
+      "features": [
+        "boundary",
+        "contact",
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "set",
+        "size_band_1"
+      ]
+    },
+    {
+      "id": "extra-keyword-057",
+      "kind": "keyword",
+      "corpus": "keyword.squall321__KooRemapper",
+      "member": "examples/replace_test/assembled_combined_result.k",
+      "features": [
+        "boundary",
+        "contact",
+        "element_solid",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-058",
+      "kind": "keyword",
+      "corpus": "keyword.yannikmayerm__FE-Simulations",
+      "member": "metamodel_deviation_analysis_clinch_joints/0Data/08_cross_tension/3D_Clinch_Joint_Scherzugversuch.k",
+      "features": [
+        "boundary",
+        "contact",
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "section",
+        "set",
+        "size_band_1"
+      ]
+    },
+    {
+      "id": "extra-keyword-059",
+      "kind": "keyword",
+      "corpus": "keyword.SciMate-AI__HPC-Skills",
+      "member": "skills/hpc-ls-dyna/assets/templates/explicit-impact-outline.k",
+      "features": [
+        "boundary",
+        "contact",
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "parameter",
+        "section",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-060",
+      "kind": "keyword",
+      "corpus": "keyword.SGI-2022__HexDom-IGApipeline",
+      "member": "grid_hybrid_demo/grid_simulation/grid_IGA.k",
+      "features": [
+        "element_solid",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "size_band_1"
+      ]
+    },
+    {
+      "id": "extra-keyword-061",
+      "kind": "keyword",
+      "corpus": "keyword.dynaexamples-wayback",
+      "member": "yaris_dynamic_shock_absorber_loading__partial/000_yaris_dynamic_shock_abs_loading_01.k",
+      "features": [
+        "boundary",
+        "contact",
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-062",
+      "kind": "keyword",
+      "corpus": "keyword.DataAnalyticsEngineering__UMAT_2scale_LSDYNA",
+      "member": "repo_files/examples_extra/thermal_cycles/v02_stable_bead_depth/input_file.k",
+      "features": [
+        "boundary",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "parameter",
+        "section",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-063",
+      "kind": "keyword",
+      "corpus": "keyword.openvt__vivaplus",
+      "member": "model/50M-seated/vivaplus-50M.key",
+      "features": [
+        "encoding_ascii",
+        "include",
+        "include_path",
+        "parameter",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-064",
+      "kind": "keyword",
+      "corpus": "keyword.Wanggs2418__ANSYS_Code",
+      "member": "code/ANSYS LS-DYNA动力分析与工程实例/demo_k_files/demo.k",
+      "features": [
+        "boundary",
+        "contact",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-065",
+      "kind": "keyword",
+      "corpus": "keyword.ansys__pydyna",
+      "member": "tests/testfiles/run/case-keywords/projectile.k",
+      "features": [
+        "contact",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-066",
+      "kind": "keyword",
+      "corpus": "keyword.lstc-ftp-wayback",
+      "member": "hao_sale__salemerger/main.k",
+      "features": [
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-067",
+      "kind": "keyword",
+      "corpus": "keyword.chptx__piper",
+      "member": "share/data/model_01.dyn",
+      "features": [
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-068",
+      "kind": "keyword",
+      "corpus": "keyword.tonyhoVN__automated-lattice-nosecone-impact",
+      "member": "DYNA_files/lattice_nose_cone_impact_test.k",
+      "features": [
+        "contact",
+        "encoding_ascii",
+        "include",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-069",
+      "kind": "keyword",
+      "corpus": "keyword.zenodo__13998073",
+      "member": "PAB_Reduced_Env/Steps/Stand_PAB_Simple/25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
+      "features": [
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-070",
+      "kind": "keyword",
+      "corpus": "keyword.ansys__pyansys-heart",
+      "member": "tests/heart/assets/reference_models/strocchi2020/01/FullHeart/k_files1/ZeroPressureMechanicsDynaWriter/main.k",
+      "features": [
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-071",
+      "kind": "keyword",
+      "corpus": "keyword.zenodo__14000052",
+      "member": "fe_models/Assemblies_DOE_FullFactorial_k5_f5/V0000092/V0000092.key",
+      "features": [
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-072",
+      "kind": "keyword",
+      "corpus": "keyword.evtodorov__rfsmodels",
+      "member": "plate/plate_1_30_30.k",
+      "features": [
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-073",
+      "kind": "keyword",
+      "corpus": "keyword.lsdyna-ansys-com",
+      "member": "2024_09__Package_2024R2/Package_2024R2/Frequency_domain/SSD_FATIGUE_EXAMPLE/ssd_fatigue002.key",
+      "features": [
+        "boundary",
+        "define_curve",
+        "element_shell",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "set",
+        "size_band_2"
+      ]
+    },
+    {
+      "id": "extra-keyword-074",
+      "kind": "keyword",
+      "corpus": "keyword.Sentinel-rtc__SENTINEL-TriageTools",
+      "member": "FMH_CAE_HEAD_MODEL/Run_2.7ms/MAIN_2.7_run.key",
+      "features": [
+        "contact",
+        "element_solid",
+        "encoding_utf-8",
+        "include",
+        "mat",
+        "parameter",
+        "section",
+        "set",
+        "size_band_2"
+      ]
+    },
+    {
+      "id": "extra-keyword-075",
+      "kind": "keyword",
+      "corpus": "keyword.Samos9877__lsdyna-agent-test",
+      "member": "rigs/uniaxial_unconfined/rig_template.k",
+      "features": [
+        "boundary",
+        "define_curve",
+        "element_solid",
+        "encoding_utf-8",
+        "include",
+        "section",
+        "set",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-076",
+      "kind": "keyword",
+      "corpus": "keyword.MattiaMontanari__ai-material-model",
+      "member": "src/D2_MAT18/01_GenerateData/SEcyclic/SR200/1x1x1_23SPos_SR200/1x1x1_23SPos_SR200.key",
+      "features": [
+        "boundary",
+        "define_curve",
+        "element_solid",
+        "encoding_ascii",
+        "include",
+        "section",
+        "size_band_2"
+      ]
+    },
+    {
+      "id": "extra-keyword-077",
+      "kind": "keyword",
+      "corpus": "keyword.squall321__KooDynaAdvanced",
+      "member": "Battery/Examples/batmac_nail/main.k",
+      "features": [
+        "boundary",
+        "contact",
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "parameter",
+        "section",
+        "size_band_1"
+      ]
+    },
+    {
+      "id": "extra-keyword-078",
+      "kind": "keyword",
+      "corpus": "keyword.node997__dyna_pladebuk",
+      "member": "Plade_300_150_4/differentmeshsizes/conv/Convergence_7/main.k",
+      "features": [
+        "boundary",
+        "define_curve",
+        "encoding_utf-8",
+        "include",
+        "parameter",
+        "section",
+        "size_band_1"
+      ]
+    },
+    {
+      "id": "extra-keyword-079",
+      "kind": "keyword",
+      "corpus": "keyword.Ice-Citron__Project-Railgun",
+      "member": "simulations/development/fp16-coordinate-variants/Normals fixed/i.k",
+      "features": [
+        "element_solid",
+        "encoding_ascii",
+        "include",
+        "parameter",
+        "set",
+        "size_band_2"
+      ]
+    },
+    {
+      "id": "extra-keyword-080",
+      "kind": "keyword",
+      "corpus": "keyword.yannikmayerm__FE-Simulations",
+      "member": "metamodel_deviation_analysis_clinch_joints/0Data/07_shear_test/3D_Clinch_Joint_Kreuzzugversuch.k",
+      "features": [
+        "boundary",
+        "contact",
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "section",
+        "set",
+        "size_band_1"
+      ]
+    },
+    {
+      "id": "extra-keyword-081",
+      "kind": "keyword",
+      "corpus": "keyword.squall321__KooRemapper",
+      "member": "tests/test2_gaussian_small_result.k.k",
+      "features": [
+        "element_solid",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "size_band_1"
+      ]
+    },
+    {
+      "id": "extra-keyword-082",
+      "kind": "keyword",
+      "corpus": "keyword.openvt__vivaplus",
+      "member": "model/50F-standing/vivaplus-50F-standing.key",
+      "features": [
+        "encoding_ascii",
+        "include",
+        "include_path",
+        "parameter",
+        "size_band_0"
+      ]
+    },
+    {
+      "id": "extra-keyword-083",
+      "kind": "keyword",
+      "corpus": "keyword.LLK-LL__K-agent",
+      "member": "skills/lsdyna-kfile/templates/drop/drop.k",
+      "features": [
+        "boundary",
+        "contact",
+        "define_curve",
+        "encoding_ascii",
+        "include",
+        "mat",
+        "section",
+        "size_band_0"
+      ]
+    }
+  ]
+}

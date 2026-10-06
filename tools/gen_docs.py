@@ -5,9 +5,13 @@ import re
 import sys
 from pathlib import Path
 
+import yaml
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from task_catalog import ROOT, owners, read_catalog, registered_tools  # noqa: E402
 from validate_tasks import validate  # noqa: E402
+
+from ls_prepost_mcp.operation_registry import migration_map  # noqa: E402
 
 
 def cell(value):
@@ -96,6 +100,8 @@ def generate(catalog, registry):
             policy_rows.append(f"| {version[0]} | {clause.strip().rstrip('。')} |")
     policy = "\n".join(policy_rows) + "\n\n此表是验收目标；前文历史证据保留其原始范围。"
     return {
+        ROOT / "tools/tool_migration_map.yaml": yaml.safe_dump(
+            dict(schema_version=1, baseline="ce4cd51", tools=migration_map()), allow_unicode=True, sort_keys=False),
         ROOT / "docs/TASKS.md": "\n".join(task_lines).rstrip() + "\n",
         ROOT / "docs/TOOLS.md": "\n".join(tool_lines) + "\n",
         ROOT / "README.md": marked(

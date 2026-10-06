@@ -1,5 +1,6 @@
 """Visible native renumbering through validated dialog fields and native ID logs."""
 
+from .core.validation import integer
 from .gui_mesh import check_same_nodes, mesh_index
 from .native import commands as nc
 from .windows_transport import WindowsCommandTransport
@@ -94,7 +95,6 @@ class GuiRenumberTools:
         self, session_id: str, entity_type: str, start_id: int, check_references: bool = True
     ) -> dict:
         """Renumber all nodes, shells or parts through the visible Renumber dialog. Uses its native mapping log to verify coordinates/connectivity/part membership and optional scoped keyword references."""
-        from .service import integer
 
         if entity_type not in ("node", "shell", "part"):
             raise ValueError("Visible renumber currently supports nodes, shells or parts")

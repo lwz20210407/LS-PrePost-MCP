@@ -7,6 +7,7 @@ from pathlib import Path
 from pydantic import StrictBool
 
 from .config import command_path
+from .core.validation import unit_label
 from .gui_mesh import check_same_nodes, check_same_parts, mesh_index, shell_cycle
 from .jobs import check_artifact
 from .windows_transport import WindowsCommandTransport
@@ -191,7 +192,6 @@ class GuiQualityTools:
 
     def check_gui_shell_quality(self, session_id: str, thresholds: dict[str, float], units: str) -> dict:
         """Run requested native shell Element Quality checks in the visible Model Checking panel. Read minimum/maximum/violation counts and verify mesh unchanged. Status succeeded means checks executed; inspect passed_checks, not solver validity. No clean/delete/repair is performed."""
-        from .service import unit_label
 
         unit_label(units)
         if not isinstance(thresholds, dict) or not thresholds or not thresholds.keys() <= SHELL_CHECKS.keys():
