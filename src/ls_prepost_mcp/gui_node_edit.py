@@ -4,6 +4,7 @@ import math
 
 import numpy as np
 
+from .core.validation import integer, unit_label
 from .gui_mesh import check_same_parts, mesh_index, verify_mesh_digest
 from .gui_selection import part_visibility
 from .native import commands as nc
@@ -50,7 +51,6 @@ def verify_coordinates(before, after, targets, tolerance):
 
 
 def set_coordinates(service, session_id, nodes, units, tolerance):
-    from .service import integer, unit_label
 
     unit_label(units)
     if type(tolerance) not in (int, float) or not math.isfinite(tolerance) or tolerance <= 0:

@@ -1,0 +1,3 @@
+isometric x
+ac
+print png "image.png" opaque enlisted "OGL1x1"

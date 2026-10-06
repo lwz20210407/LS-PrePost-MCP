@@ -6,6 +6,7 @@ from pydantic import StrictFloat, StrictInt
 
 from .boundary_cards import inspect_boundary_cards, verify_boundary_delta
 from .config import command_path
+from .core.validation import integer
 from .deck_backend import api
 from .entity_cards import check_motion_conflicts, inspect_cards, set_members
 from .gui_boundaries import require_unit
@@ -51,7 +52,6 @@ class GuiMotionTools:
         append_to_group: bool = False,
     ) -> dict:
         """Create global NODE_ID/SET_ID prescribed displacement, velocity or acceleration on x/y/z/rx/ry/rz. Exactly one node-set SID, node-ID list or verified node selection. New curve points are [relative time,motion value] in declared deck units (radians for rotation); omit points/title to reuse an existing native curve. BIRTH shifts the curve's time origin; DEATH=0 means native1e28 default. motion_id is a grouping ID shared by this call's nodes, not required unique by LS-DYNA; explicit append_to_group allows an existing same-title group. Reject SPC/same-DOF overlap, unresolved variants and stale selection. No implicit unit conversion, rigid/local/vector/IGA variants, rotational-DOF eligibility or solver certification. Commas in motion headings are rejected because this native importer alters them."""
-        from .service import integer
 
         integer(motion_id, "motion_id")
         integer(curve_id, "curve_id")

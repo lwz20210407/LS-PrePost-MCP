@@ -7,6 +7,7 @@ import math
 import numpy as np
 from pydantic import StrictFloat, StrictInt
 
+from .core.validation import numbers, unit_label
 from .field_contracts import EntitySelection
 from .gui_mesh import (
     ReadOnlyScopeMismatch,
@@ -119,6 +120,19 @@ def verify_selection(before, after, expected, kind):
     )
 
 
+def hidden_parts_only(state):
+    """Allow the existing part reveal plan only with current native readback.
+
+    A hidden part can still contain Blank members; exact selected-ID and display
+    verification below must succeed before publishing any successful result.
+    """
+    visibility = state.get("visibility_binary") or {}
+    plan = state.get("native_selection_plan") or {}
+    return (plan.get("strategy") in ("whole", "parts")
+            and visibility.get("inactive_in_visible_parts") == 0
+            and any(not active for active in part_visibility(state).values()))
+
+
 class GuiSelectionTools:
     def _select_gui(
         self, session_id, action, arguments, kind, choose, suffix=None, on_verified=None, part_selection=None,
@@ -147,7 +161,7 @@ class GuiSelectionTools:
             if not expected <= available or len(expected) > state.get("selection_limit", 20000):
                 raise ValueError("Selection is outside the current entity registry or verification bound")
             visibility = state.get("visibility_binary")
-            if visibility and visibility.get("active_count", 0) < visibility["count"] and len(expected) > 20000 and not topology:
+            if visibility and visibility.get("active_count", 0) < visibility["count"] and len(expected) > 20000 and not topology and not hidden_parts_only(state):
                 raise ValueError("Hidden entities require exact-ID selection (20,000 selected-ID budget); narrow the scope or explicitly show entities first")
 
         def commands(state, directory):
@@ -158,7 +172,7 @@ class GuiSelectionTools:
             result = [] if topology else ["+m " + pid for pid, active in part_visibility(state).items() if not active]
             result += [nc.selection('clear'), nc.selection_target(target)]
             visibility = state.get("visibility_binary")
-            if visibility and visibility.get("active_count", 0) < visibility["count"] and not topology:
+            if visibility and visibility.get("active_count", 0) < visibility["count"] and not topology and not hidden_parts_only(state):
                 # Whole/by-part native selection omits Blank members in 4.13.
                 # Explicit IDs preserve the declared registered-entity semantics.
                 plan = None
@@ -431,7 +445,6 @@ class GuiSelectionTools:
         tolerance: float = 0.0,
     ) -> dict:
         """Select reference nodes by signed distance to a plane: band |d|<=tolerance, positive d>tolerance, or negative d<-tolerance. Normalize the supplied normal; native ID readback verifies selection."""
-        from .service import numbers, unit_label
 
         point, normal = numbers(point, 3, "point"), numbers(normal, 3, "normal")
         unit_label(units)
@@ -476,7 +489,6 @@ class GuiSelectionTools:
         self, session_id: str, bounds: list[float], units: str, inside: bool = True, tolerance: float = 0.0
     ) -> dict:
         """Select reference-coordinate nodes inside/outside an axis-aligned 3D box using native GUI readback and exact ID selection. This is a geometric predicate, not camera-space rectangle picking."""
-        from .service import numbers, unit_label
 
         box = numbers(bounds, 6, "bounds")
         unit_label(units)
@@ -519,7 +531,6 @@ class GuiSelectionTools:
         tolerance: float = 0.0,
     ) -> dict:
         """Select native GUI reference nodes by distance from a center, then verify exact selected IDs; preserve model geometry."""
-        from .service import numbers, unit_label
 
         center = numbers(center, 3, "center")
         unit_label(units)

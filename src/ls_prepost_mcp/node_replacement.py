@@ -4,6 +4,7 @@ import copy
 from collections import Counter
 from pathlib import Path
 
+from .core.validation import unit_label
 from .entity_cards import fields, inspect_cards, native_blocks
 from .gui_mesh import check_same_nodes, check_same_parts, mesh_index
 from .mesh_quality import element_metrics
@@ -171,7 +172,6 @@ def verify_references(expected, actual):
 
 def replace_node(service, sid, source, target, units):
     from .post_backend import ids
-    from .service import unit_label
 
     ids([source,target], "source/target node IDs", 2)
     unit_label(units)

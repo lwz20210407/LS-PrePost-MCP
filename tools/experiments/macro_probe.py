@@ -15,13 +15,15 @@ def run(cell, executable, lane, run_dir):
     from ls_prepost_mcp.native_config import isolate_preferences
     from ls_prepost_mcp.windows_transport import WindowsCommandTransport
 
+    kind = "d3plot" if lane == "mp4" else cell.get("file_type", "keyword")
+    if kind not in ("keyword", "d3plot"):
+        raise ValueError("Macro probe input type must be keyword or d3plot")
     directory = Path(cell["directory"])
     source = (directory / "program.mac").read_text(encoding="utf8")
     tail = ""
     if lane == "png":
         tail += 'isometric\nac\nprint png "' + str(directory / "image.png") + '" opaque enlisted "OGL1x1"\n'
     if lane == "mp4":
-        tail += 'openc d3plot "' + str(directory.parent / "fixture/d3plot") + '"\n'
         tail += (
             'anim stop\nanim first 1\nanim last 3\nanim incr 1\nmovie MP4/H264 640x480 "'
             + str(directory / "movie")
@@ -31,7 +33,10 @@ def run(cell, executable, lane, run_dir):
     macro = run_dir / "probe.mac"
     macro.write_text(source.replace("*macro end", tail + "*macro end"), encoding="utf8")
     start = run_dir / "start.cfile"
-    commands = 'open keyword "' + str(directory.parent / "fixture/input.k") + '"\n'
+    # Loading a result database from inside Macro/Exec can re-enter the native
+    # callback. Establish the test model before the macro starts instead.
+    commands = ('openc d3plot "' if kind == "d3plot" else 'open keyword "')
+    commands += str(directory.parent / "fixture" / ("d3plot" if kind == "d3plot" else "input.k")) + '"\n'
     ready = run_dir / "ready.txt"
     ready_script = run_dir / "ready.scl"
     ready_script.write_text(
@@ -50,7 +55,7 @@ def run(cell, executable, lane, run_dir):
     argv = [str(executable), "m=" + str(macro), ("runc=" if cell["mode"] == "runc" else "c=") + str(start)]
     if cell["mode"] == "nographics":
         argv.append("-nographics")
-    evidence = dict(argv=argv, preferences=preferences, source_kind="native_macro", trigger="m= load")
+    evidence = dict(argv=argv, preferences=preferences, source_kind="native_macro", trigger="m= load", input_type=kind)
     began = time.time_ns()
     with (run_dir / "stdout.log").open("wb") as out, (run_dir / "stderr.log").open("wb") as err:
         process = subprocess.Popen(

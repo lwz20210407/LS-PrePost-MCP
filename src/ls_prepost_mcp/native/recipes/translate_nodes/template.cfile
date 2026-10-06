@@ -1,0 +1,6 @@
+genselect clear
+genselect target node
+genselect whole
+translate_model {{dx}} {{dy}} {{dz}}
+translate_model accept
+save keyword "translated.k"

@@ -14,13 +14,16 @@ from .jobs import BatchJob
 class BatchEngine:
     def run(self, job: BatchJob) -> JobResult:
         start = time.monotonic()
-        args = [str(job.executable), "c=" + str(job.cfile),
-                "w=1024x768" if job.graphics else "-nographics"]
+        args = [str(job.executable), job.launch_mode + "=" + str(job.cfile)]
+        if job.launch_mode == "c":
+            args.append("w=1024x768" if job.graphics else "-nographics")
+        if job.macro_file is not None:
+            args.append("m=" + str(job.macro_file))
         process = dict(returncode=None, timed_out=False, pid=None, argv=args,
-                       cwd=str(job.directory), graphics=job.graphics)
+                       cwd=str(job.directory), graphics=job.graphics, launch_mode=job.launch_mode)
         try:
             process["capabilities"] = require_capability(job.executable, "batch")
-            env, configuration = native_environment(job.executable, job.directory)
+            env, configuration = native_environment(job.executable, job.directory, batch=True)
             process["configuration"] = configuration
             cursor = LogCursor.capture(job.directory / "lspost.msg")
             proc = subprocess.Popen(args, cwd=job.directory, env=env, stdin=subprocess.DEVNULL,
@@ -61,6 +64,7 @@ class BatchEngine:
                              scope="Process completed; domain outputs require caller verification")
         except Exception as exc:
             process["elapsed_seconds"] = round(time.monotonic() - start, 3)
+            message = str(exc)
             return JobResult(operation=job.operation, job_id=job.directory.name, status="failed",
                              backend="lsprepost", data=process,
-                             error=dict(type=type(exc).__name__, message=str(exc)))
+                             error=dict(type=type(exc).__name__, message=message if message.strip() else type(exc).__name__))

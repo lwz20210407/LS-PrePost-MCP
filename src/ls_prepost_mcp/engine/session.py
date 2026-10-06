@@ -4,7 +4,7 @@ import json
 import time
 
 from ..core.contracts import JobResult
-from ..core.native_log import LogCursor, native_errors
+from ..core.native_log import LogCursor, decode, native_errors
 from .jobs import SessionJob
 
 
@@ -12,6 +12,7 @@ class SessionEngine:
     def run(self, job: SessionJob) -> JobResult:
         complete = job.directory / "complete.json"
         submitted = False
+        cursor = None
         try:
             if complete.exists():
                 raise ValueError("Refusing stale completion before submission")
@@ -26,9 +27,20 @@ class SessionEngine:
                         raise RuntimeError("Native response correlation mismatch")
                     if type(reply.get("ok")) is not bool:
                         raise ValueError("Native response success flag is not Boolean")
-                    diagnostics = native_errors(cursor.read()) if cursor else []
+                    if cursor:
+                        raw_log = cursor.read_bytes()
+                        (job.directory / "native-session.log").write_bytes(raw_log)
+                        (job.directory / "native-session-log.json").write_text(
+                            json.dumps(dict(source=str(cursor.path), offset=cursor.offset)), encoding="utf8")
+                    diagnostics = native_errors(decode(raw_log)) if cursor else []
                     if diagnostics:
                         reply = dict(reply, ok=False, error=dict(type="NativeDiagnostics", message="; ".join(diagnostics)))
+                    if not reply["ok"]:
+                        error = dict(reply["error"]) if isinstance(reply.get("error"), dict) else {}
+                        message = error.get("message")
+                        if not isinstance(message, str) or not message.strip():
+                            error["message"] = "Native reply reported failure without a diagnostic"
+                        reply = dict(reply, error=error)
                     if job.verify is not None:
                         result = JobResult.model_validate(job.verify(reply))
                         if result.operation != job.operation or result.job_id != job.directory.name:
@@ -43,7 +55,16 @@ class SessionEngine:
                     raise TimeoutError("Native operation outcome uncertain; inspect session or restore checkpoint")
                 time.sleep(0.05)
         except Exception as exc:
+            message = str(exc)
+            log_error = None
+            if cursor is not None and submitted:
+                try:
+                    (job.directory / "native-session.log").write_bytes(cursor.read_bytes())
+                    (job.directory / "native-session-log.json").write_text(
+                        json.dumps(dict(source=str(cursor.path), offset=cursor.offset)), encoding="utf8")
+                except (OSError, ValueError) as log_exc:
+                    log_error = str(log_exc)
             return JobResult(operation=job.operation, job_id=job.directory.name, backend="lsprepost",
                              status="unverified" if submitted else "failed",
-                             data=dict(submitted=submitted, replayed=False),
-                             error=dict(type=type(exc).__name__, message=str(exc)))
+                             data=dict(submitted=submitted, replayed=False, log_error=log_error),
+                             error=dict(type=type(exc).__name__, message=message if message.strip() else type(exc).__name__))

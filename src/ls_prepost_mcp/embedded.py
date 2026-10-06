@@ -237,8 +237,8 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
             if registry_query:
                 if requested_parts is not None and pid in requested_parts:
                     filter_elements.add(eid)
-                if visibility[str(pid)]:
-                    active_elements.add(eid)
+            if visibility[str(pid)] and (registry_query or parameters.get("visibility_readback")):
+                active_elements.add(eid)
         if domain == "part" and pid in wanted_ids:
             matched.append(pid)
     domain_ids, filter_ids, active_ids, both_ids, seen_elements = set(), set(), set(), set(), set()
@@ -308,7 +308,7 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
                 if len(matched) > 20000:
                     raise ValueError("Spatial selection exceeds20000 selected nodes per operation; narrow the region. This is not a global model-size limit")
     element_count, affected_count, affected = 0, 0, []
-    display_active_count = 0
+    display_active_count, inactive_in_visible_parts = 0, 0
     visibility_path, visibility_buffer, visibility_hash = None, bytearray(), hashlib.sha256()
     if parameters.get("visibility_readback"):
         if output_directory is None:
@@ -352,6 +352,8 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
                     raise ValueError("Visibility readback exceeds one million entities")
                 display_active = int(bool(lp.check_if_element_is_active_u(uid, kind)))
                 display_active_count += display_active
+                if not display_active and uid in active_elements:
+                    inactive_in_visible_parts += 1
                 visibility_buffer.extend(struct.pack("!BqB", {"beam": 1, "shell": 2, "solid": 3}[label],
                                          uid, display_active))
                 if len(visibility_buffer) >= 40960:
@@ -497,6 +499,7 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
                             if masses else None),
         visibility_binary=(dict(format="native_display_active_v1", file="visibility.bin", record_format="!BqB",
                                count=element_count, active_count=display_active_count,
+                               inactive_in_visible_parts=inactive_in_visible_parts,
                                byte_count=element_count*10, sha256=visibility_hash.hexdigest())
                            if visibility_path else None),
         verification_scope="All reference coordinates/connectivity/part membership streamed; only requested nodes materialized",
@@ -520,15 +523,16 @@ def run(request_path, response_path):
         if request.get("safe_beam_connectivity"):
             dc = BeamSafeDataCenter(dc, job_directory)
         if request.get("model"):
-            # The application may reset cwd from GUI preferences. Load file families
-            # from their parent, then restore the owned job cwd for every artifact.
+            # In-place read-only inputs must never make the user source directory
+            # the process cwd. Staged families keep their owned input directory.
             source = request["model"]
-            os.chdir(os.path.dirname(source))
+            absolute_input = request.get("file_type") == "keyword" and request.get("absolute_keyword_path")
+            os.chdir(job_directory if absolute_input else os.path.dirname(source))
             try:
                 kind = request["file_type"]
                 load_name = (
                     source.replace("\\", "/")
-                    if kind == "keyword" and request.get("absolute_keyword_path")
+                    if absolute_input
                     else os.path.basename(source)
                 )
                 lp.execute_command(nc.open_model(load_name, kind, openc=kind == "d3plot"))
@@ -1069,13 +1073,32 @@ def run(request_path, response_path):
         elif action == "export_keyword":
             data = inventory()
         elif action == "raw_command":
-            lp.execute_command(p["command"])
+            initial = p.get("initial_node_ids")
+            if initial is not None:
+                if not set(initial).issubset(set(int(uid) for uid in sequence(get("node_ids")))):
+                    raise ValueError("Initial selection contains unknown node IDs")
+                lp.execute_command(nc.selection("clear"))
+                lp.execute_command(nc.selection_target("node"))
+                for uid in initial:
+                    lp.execute_command(nc.selection_add("node", uid))
+            actual_command = nc.bind_output_paths(p["command"], p.get("output_names", []), job_directory)
+            lp.execute_command(actual_command)
             os.chdir(job_directory)
             data = inventory()
             for key, expected in p["expected_counts"].items():
                 if data["counts"].get(key) != expected:
                     raise ValueError("Raw command count verification failed: " + key)
             data["command"] = p["command"]
+            data["executed_command"] = actual_command
+            data["part_visibility"] = ({str(int(pid)): bool(lp.check_if_part_is_active_u(int(pid))) for pid in data["part_ids"]}
+                                       if len(data["part_ids"]) <= 10000 else None)
+            count = int(get("num_selection"))
+            selected = [int(value) for value in sequence(get("selection_ids", type=0))] if 0 < count <= 10000 else [] if count == 0 else None
+            if selected is not None and len(selected) != count:
+                raise ValueError("Native selection readback is incomplete")
+            data["selection"] = dict(count=count, user_ids=selected)
+            if p.get("capture_model"):
+                lp.execute_command(nc.save_keyword(os.path.join(job_directory, "script-model.k"), style="native"))
             data["verification_scope"] = "Inventory and declared outputs only; raw command semantics are user-defined"
         elif action == "gui_measure":
             response["query_started"] = False

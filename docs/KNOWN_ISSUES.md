@@ -383,9 +383,12 @@
 
 ## KI-049 含空格/中文工作目录的原生配置解析
 
+- I01 后续修复：仅 BatchEngine 的 ASCII 路径将两个工作目录配置字段改为 `.`，绝对日志路径不变；GUI/队列保留绝对工作目录。ASCII 空格目录的保存、PNG、重开已补测。
+- 非 ASCII job 目录仍为 gap：4.13 使用相对配置的完整链路出现 `0xC0000374` 退出错误，未启用该实验路径，也未因文件已生成而标通过。非 ASCII 源文件会暂存到安全名称，与 job 目录限制分别报告。
+- 优先级：高于其余 P2；普通用户目录也可能触发，必须优先处理。
 - 现象：4.13.4 与 4.10.1 的 job 工作目录含空格或“中文 空格”时，原生未找到已暂存的 input_data，并报告 SCL parsing -2；进程仍可能返回 0。4.13 日志中的路径在空格前截断。
 - 已验证子集：ASCII 工作目录中，可暂存中文/空格源文件名并运行 PNG、keyword 保存和原生重开。
-- 处理：集中路径构建器拒绝分号、引号和控制字符；cfile 统一 UTF-8。工作目录配置的上述限制单独保留为严格 xfail，不标成 native passed。
+- 处理：集中路径构建器拒绝分号、引号和控制字符；cfile 统一 UTF-8。中文 job 目录限制保留为严格 xfail；ASCII 空格批处理目录已通过。
 - 证据：[路径原生回归](../tests/test_engine_native.py)；去路径报告随本 PR 附件保留，原始日志留在仓库外。GUI/Movie 路径仍待集中窗口。
 
 
@@ -412,6 +415,39 @@
 - 已修：旧 `partial` 结果没有 error/warnings 时，从失败检查的 reason 等信息补 warnings；仍必须有 data 或 artifact，否则按合同返回 unverified。二者都不会通过工作流执行门槛。
 - 合同约束：`JobResult(status="failed")` 的 error.message 必须是非空白字符串。字段名称和结构不变；已声明 JobResult/v1 的结果严格校验，不使用旧接口兼容补齐。
 - 原始结果保存在 comparison_data，不原地修改。证据：[旧结果与门槛回归](../tests/test_legacy_outcomes.py)。本项是纯 Python 合同修复，没有新增原生通过声明。
+## I01：批处理输入路径暂存补修
+
+公开语料暴露了非 ASCII 源路径读取失败和 Include 相对目录丢失。独立 keyword 与 d3plot 文件族现在复用已有暂存器，使用 job 内的 ASCII 名称，并核对整个原文件族身份；已有普通 Include 的只读打开使用绝对根文件路径。Include 解析能力和编辑保存仍留 I07，不实现第二套关键字引擎。
+
+- 已修：Include 打开期间 cwd 始终位于自有 job，不能切到用户源目录；离线与原生用例逐项比较源目录文件列表和字节身份。
+- 明确限制：原生 d3plot 模型检查等入口超过 1000 个文件或 2 GiB 时在创建 job、启动进程前拒绝。小型真实结果强制走原地回退的实验在 4.13/4.10 均返回访问冲突，故不交付该回退；大结果支持仍为 I01 gap，读取器通道的限制独立于此。
+- 已修：暂存之后整族文件被修改、添加或删除均导致失败。超限拒绝有模拟大文件及实际 1001 个小文件的离线回归，不声称运行过 2 GiB 原生模型。
+- 原生 gap：中文 Include 根路径在两版失败；4.10 仍从 job cwd 查找相对 Include。只有匹配已观察到的特定诊断才严格 xfail，源目录不变断言始终先执行；其他错误仍失败。
+
+证据：[输入暂存回归](../tests/test_batch_input_staging.py)；原生报告随本修复附于 [I01 路径证据](decisions/evidence/i01-staging/report.md)。
+## 2026-10-06 复审后续项（按任务归属）
+
+| 归属 | 待修事项或本轮处置 |
+|---|---|
+| I02 | 已修（#16）：旧 failed/partial 保留执行状态，从 reason/restoration_error 或失败检查补齐诊断。 |
+| I02 | 已修（#16）：failed.error.message 必须为非空白字符串；引擎空消息异常和原生失败回执补齐诊断。FieldSpec 适配层及等价测试仍为 tasks.yaml 中的 M2 gap。 |
+| I10 | ADR 0001 已改为如实说明历史证据 JSON 没有探针脚本 SHA256，未补造该字段。 |
+| I05 | 混合查询丢失中文词，例如“MPP 节点选择”；需保留两类查询词。 |
+| I05 | os.link 发布索引不适用于 FAT/exFAT 及部分网络盘；需复制到同目录临时文件并原子改名的回退。 |
+| I04 | KI-052 的短用例目录前缀在本 PR #5 补交，不属于 2f10da2 的改动。 |
+| I04 | 原生证据必须写实际 Git revision；工作树未提交时另记改动身份，不得宣称为 PR 头运行。 |
+| I03 | import keyword、open xydata、savefile xypair、modelcheck writetofile 尚有 8 模块 12 处；SCL 编码未统一。 |
+| I03 | 路径兼容性变化：quoted_path 现在在启动前拒绝分号、引号及控制字符，旧调用者可能因此获得明确 ValueError。 |
+| I01/I03 | KI-049 的空格/中文 job 工作目录问题列为最高优先级 P2；源文件路径与 job 工作目录须分别验证。 |
+| I04 | 缺少可执行文件的提示已同时列出 --native-executable、LSPP_ENGINE_EXECUTABLE 和 LSPP_EXECUTABLE。 |
+| I04 | CI 增加 ruff check .；新提交只有该 CI 步骤成功后才报告 CI Ruff 通过。既有附件中的本机 Ruff 结果不等于 CI 执行记录。 |
+
+## A01/A02 原始脚本权限与输出名绑定
+
+- `bind_output_paths` 按完整参数 token 匹配声明输出名，尚未按命令角色区分输入和输出。同名 token 即使出现在 open 命令中，也会改写为当前 job 的路径；读取已有文件时应使用不与声明输出同名的路径。请求原文和执行副本均保留以便核对。
+- 用户提供的命令和 cfile 拥有 LS-PrePost 进程的原生权限，可以读写进程有权访问的任意路径。输出合同验证声明产物，不是脚本文件访问沙箱。
+- 单命令入口拒绝 open command / openc command（含大小写及空白变体）；命令文件须使用 cfile 通道。JobResult 包装保留已有 warnings 与 checks，partial 不会因丢失警告而退成 unverified。
+- 证据：[单命令合同回归](../tests/test_script_command.py)。A01 历史原生记录缺少提交及 diff 身份，状态为 partial，待重新取证。
 
 ## 能力范围原文索引
 

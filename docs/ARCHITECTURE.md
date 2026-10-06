@@ -81,6 +81,12 @@ artifact。检查聚合忽略 not_applicable；只有全体均不适用时才返
 
 `native/versions.py` 是版本能力判断入口：4.13 主力、4.10 回归子集、4.8 尽力、4.11 排除。4.10 队列来源身份限制在进程启动前拒绝；未知安装也不能默认使用已验证队列能力。路径或配置版本仅是提示，能力报告明确标为未完成运行时验证，成功仍需实际回执与产物检查。旧 Python 向量 ABI 以及 LASSO/DPF 依赖版本的既有拒绝策略集中维护，不放宽数值验证要求。
 
+## 运行时注册与兼容别名
+
+`data/operations.json` 是运行时操作元数据，包含稳定内部 operation_id 所需的域/名称、上下文路由、工作流可用性及兼容期。`operation_registry.py` 派生 MCP 名称、会话路由与工作流白名单；旧名作为同一类型化函数的兼容别名保留到 v0.6，compact 接口同时接受稳定 operation_id。目标 T1/配方归属是迁移元数据，不据此声称尚未实现的任务已完成。
+
+运行时不再读取 development_plan.json 或 tasks.yaml；TOOLS 与 tool_migration_map.yaml 由实际 registry 生成并在 CI 核对。共用参数检查已移到 core/validation.py，Service 保留旧导出；原生批处理的渲染阶段显式接收回调，不向上构造 Service。import-linter 禁止下层导入编排层、禁止 core 依赖 engine/native，并限制只有 CLI/server 可直接导入 Service。没有忽略规则绕过这些约束。
+
 ## 前处理
 
 I07 由 Claude 在 `claude/keyword-engine` 并行开发，M3 合并；M0–M2 不在本分支实现 I07，也不创建 `src/ls_prepost_mcp/domain/model/` 下的文件。归属与集成约束以 tasks.yaml 为准。
@@ -104,6 +110,15 @@ mcp/         thin tools, profiles
 ```
 
 MCP/automation 调用 domain，domain 依赖 core/engine/native；下层不导入 service 或 MCP。I03 集中命令生成与版本差异，I04 收编原生验收脚本，import-linter 在 M1 强制依赖方向。迁移为别名后删除重复实现，不同时维护多套路由。
+
+## 知识检索边界
+
+I05 使用本地 SQLite/FTS 索引，支持代码标识符与中文词片段检索。源类别、版本、定位、行号和内容身份与文本一起保存，查询以参数绑定构造，不执行文档中的内容。公开命令表和仓库自有资料可随项目使用；外部 API/用户指南/课程资料默认私有，其索引与派生物只能在仓库外。私有命中需明确 include_private，参考记录始终带 reference_unverified 标记。
+
+schema_version=2 用独立 keyword_fields 表保存字段粒度数据，来源为 Claude 的 keyword_docs；
+I05 不再维护自己的 PyDYNA AST 解析。search_knowledge 通过 LSPP_KNOWLEDGE_INDEX 接入索引，
+包内 provider 集成仍随 M3 完成，因此 I05 保持 partial。连接显式关闭，未完成索引只写
+唯一临时文件，完整事务提交后原子发布；不会因旧半成品阻止重建。
 
 ## 版本、证据与发布
 

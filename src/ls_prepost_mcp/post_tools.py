@@ -79,7 +79,7 @@ class PostTools:
         from .native_batch import run_case
         if not isinstance(units, str) or not units.strip():
             raise ValueError("Explicit units required")
-        return run_case(self.settings, self.jobs, self.settings.input_path(path), units)
+        return run_case(self.settings, self.jobs, self.settings.input_path(path), units, renderer=self.render_snapshot)
 
     def extract_native_fields(self, path: str, entity_type: str, entity_ids: list[StrictInt],
                                states: list[StrictInt], fields: list[str], integration_point: str, units: str,

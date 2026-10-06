@@ -440,7 +440,7 @@
 
 缺口：
 
-- batch 与 session 两个入口；LSPP 回显与报错没有结构化返回
+- 历史 4.13 batch/session 与 4.10 batch 报告未记录实际 Git revision 和运行时未提交 diff SHA256；需带完整身份重跑并将 report.md、evidence.json 入库
 
 ### A02 cfile 命令流
 
@@ -460,7 +460,7 @@
 
 缺口：
 
-- 失败时不能定位到出错行
+- 历史 A02 原生证据缺少实际 Git revision 或运行时未提交 diff SHA256；在 report.md 与 evidence.json 按身份完整入库前保持 partial，配方模式登记不替代执行证据
 
 ### A03 SCL 脚本
 
@@ -476,6 +476,10 @@
 
 现有入口：`prepare_native_program`, `execute_native_program`, `probe_scl`
 
+缺口：
+
+- 历史原生报告未记录实际 Git revision 与运行时未提交 diff SHA256，需重新取证并将 report.md、evidence.json 入库
+
 ### A04 应用内 Python 脚本
 
 状态：partial；版本：v0.5；里程碑：M1；层：T1
@@ -490,6 +494,10 @@
 - 4.13 全量、4.10 子集通过
 
 现有入口：`prepare_native_program`, `execute_native_program`
+
+缺口：
+
+- 历史原生报告未记录实际 Git revision 与运行时未提交 diff SHA256，需重新取证并将 report.md、evidence.json 入库
 
 ### A05 原生宏执行
 
@@ -562,7 +570,7 @@
 
 缺口：
 
-- 现有 JSON 模板与 41 过滤器 / 7 模板没有统一格式、没有逐个回归用例
+- M1 五个示范配方已验证；v0.5 发布前仍需至少三十个配方及各自 L2，安装过滤器/模板的全量归并尚未完成
 
 ### A09 参数化批量
 
@@ -597,6 +605,10 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 - 20 条典型查询的命中率评测（前 3 条结果含正确答案的比例）记录在案
 
 现有入口：`search_commands`, `search_knowledge`, `search_workflows`, `list_pydyna_keywords`, `describe_pydyna_keyword`
+
+缺口：
+
+- 旧二十题评测受到题面专用词表调优影响，不作为完成依据；已冻结六类二十四题独立留出集，记录未经调优的结果，跨语言检索与完整来源覆盖仍需后续工作
 
 ## 通用
 
@@ -675,7 +687,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：partial；验证：L1
 
-证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py), [docs/decisions/evidence/i01/report.md](../docs/decisions/evidence/i01/report.md), [docs/decisions/evidence/i01-followup/report.md](../docs/decisions/evidence/i01-followup/report.md)
+证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py), [docs/decisions/evidence/i01/report.md](../docs/decisions/evidence/i01/report.md), [docs/decisions/evidence/i01-followup/report.md](../docs/decisions/evidence/i01-followup/report.md), [docs/decisions/evidence/i01-staging/report.md](../docs/decisions/evidence/i01-staging/report.md)
 
 - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
 - 删除 gui_session_action 中运行时替换 _native 的做法
@@ -708,13 +720,21 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 里程碑：M1
 
+状态：partial；验证：待记录
+
+证据：[docs/decisions/evidence/i04/report.md](../docs/decisions/evidence/i04/report.md), [docs/decisions/evidence/i04-window/report.md](../docs/decisions/evidence/i04-window/report.md), [tools/native_regression.py](../tools/native_regression.py), [tests/test_public_corpus_native.py](../tests/test_public_corpus_native.py), [tests/corpus/public_cases.json](../tests/corpus/public_cases.json), [tests/test_native_acceptance.py](../tests/test_native_acceptance.py), [tests/test_native_regression.py](../tests/test_native_regression.py), [tests/test_native_remote.py](../tests/test_native_remote.py), [tests/test_native_input_preconditions.py](../tests/test_native_input_preconditions.py)
+
 - 补测从 M0 转入的 13 个 UU 远程格（4.13/4.10 的 runc 五通道共 10 格，以及两版本 nographics 原生宏和 4.13 会话原生宏共 3 格），记录执行、PNG、MP4 结果与用户确认的断开时间窗
-- 52 个 tools/run_* 收编为带 marker 的 pytest，共享 fixture
+- 55 个 tools/run_* 收编为 57 个带 marker 的 pytest 用例，共享 fixture
 - 一条命令生成 Markdown 报告；私有语料通过环境变量启用
 
 ### I05 知识库索引
 
 里程碑：M1
+
+状态：partial；验证：L1
+
+证据：[src/ls_prepost_mcp/knowledge_index.py](../src/ls_prepost_mcp/knowledge_index.py), [src/ls_prepost_mcp/keyword_documentation.py](../src/ls_prepost_mcp/keyword_documentation.py), [tools/build_knowledge_index.py](../tools/build_knowledge_index.py), [tests/test_knowledge_index.py](../tests/test_knowledge_index.py)
 
 - 命令表、Scripting API、关键字定义、用户指南章节、配方、KNOWN_ISSUES 建立索引
 - 公开部分可入仓库；私有课程资料的索引在仓库外
@@ -740,6 +760,10 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 ### I08 工具迁移与别名
 
 里程碑：M1
+
+状态：done；验证：L1
+
+证据：[src/ls_prepost_mcp/operation_registry.py](../src/ls_prepost_mcp/operation_registry.py), [src/ls_prepost_mcp/data/operations.json](../src/ls_prepost_mcp/data/operations.json), [tests/test_operation_registry.py](../tests/test_operation_registry.py), [pyproject.toml](../pyproject.toml)
 
 - 全部现有工具逐一映射到 T1 工具 / 配方 / 别名 / 废弃
 - 旧名作为别名保留至 v0.6；registry 生成 TOOLS.md

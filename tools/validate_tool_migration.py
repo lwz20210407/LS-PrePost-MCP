@@ -8,6 +8,8 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from task_catalog import ROOT, read_catalog, registered_tools  # noqa: E402
 
+from ls_prepost_mcp.operation_registry import migration_map  # noqa: E402
+
 
 def main():
     catalog = read_catalog()
@@ -16,6 +18,8 @@ def main():
     ids = {t["id"] for t in catalog["tasks"] + catalog["infrastructure"]}
     targets = {name for t in catalog["tasks"] for name in t["target_tools"]}
     errors = []
+    if mapping != migration_map():
+        errors.append("migration map differs from the runtime registry; run tools/gen_docs.py")
     if set(mapping) != set(registry):
         errors.append(
             f"registry mismatch: missing={set(registry) - set(mapping)}, extra={set(mapping) - set(registry)}"
@@ -25,7 +29,7 @@ def main():
             errors.append(f"{name}: unknown target")
         if entry.get("task_id") not in ids:
             errors.append(f"{name}: unknown task_id")
-        if entry.get("legacy_until") != "v0.6":
+        if entry.get("legacy_until") != "v0.6" and not (entry.get("legacy_until") is None and entry.get("target") == name):
             errors.append(f"{name}: missing compatibility period")
     if errors:
         raise SystemExit("\n".join(errors))
