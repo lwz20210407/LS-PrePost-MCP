@@ -42,3 +42,8 @@ def test_invalid_context_does_not_establish_revision_binding(tmp_path):
     result = summarize(report)
     assert not result["revision_binding_complete"]
     assert result["missing_provenance"] == ["actual_git_head", "working_tree_dirty"]
+
+
+def test_include_oserror_is_a_reference_path_symptom():
+    assert category("check_keyword_includes\nE OSError: [WinError 123] invalid filename") == "missing_referenced_input"
+    assert category("E OSError: output file is locked") == "unclassified"

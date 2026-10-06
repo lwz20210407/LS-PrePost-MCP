@@ -18,7 +18,7 @@ def category(reason):
         return "unsupported_include_variant"
     if "Native export of include-bearing models" in reason:
         return "legacy_include_export"
-    if "FileNotFoundError" in reason and "check_keyword_includes" in reason:
+    if ("FileNotFoundError" in reason or "OSError" in reason) and "check_keyword_includes" in reason:
         return "missing_referenced_input"
     if "nonempty finite-element model" in reason:
         return "empty_native_model_needs_diagnosis"

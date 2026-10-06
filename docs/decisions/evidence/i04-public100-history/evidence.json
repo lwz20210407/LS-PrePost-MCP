@@ -16,12 +16,11 @@
   "preliminary_categories": {
     "backend_state_count_mismatch": 1,
     "unsupported_include_variant": 26,
-    "missing_referenced_input": 24,
+    "missing_referenced_input": 25,
     "legacy_include_export": 11,
     "empty_native_model_needs_diagnosis": 19,
     "native_process_failure": 1,
-    "include_validation": 1,
-    "unclassified": 1
+    "include_validation": 1
   },
   "input_preservation": {
     "reported_unchanged": 100
@@ -330,7 +329,7 @@
     {
       "case": "extra-keyword-044",
       "status": "failed",
-      "triage": "unclassified"
+      "triage": "missing_referenced_input"
     },
     {
       "case": "extra-keyword-045",

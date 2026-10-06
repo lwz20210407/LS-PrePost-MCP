@@ -8,13 +8,19 @@
 |---|---:|
 | 两后端状态数不同 | 1 |
 | 旧校验不支持的 INCLUDE 变体 | 26 |
-| 引用路径无法解析（缺文件或解析限制待确认） | 24 |
+| 引用路径无法解析（缺文件或解析限制待确认） | 25 |
 | 旧原生导出拒绝 INCLUDE | 11 |
 | 原生读入后网格为空，原因待逐例核实 | 19 |
 | 原生进程非零退出 | 1 |
 | 其它 INCLUDE 校验 | 1 |
-| unclassified | 1 |
+| unclassified | 0 |
 
 分类只描述报错表象，不能把 84 例都归为 MCP 代码缺陷，也不会把失败改记为通过或 unsupported。原始模型、输出、完整堆栈和日志均留在仓库外。
 
-可用 `python tools/triage_public_corpus.py --report <外部report.json> --output <新的外部目录>` 重建摘要；工具兼容独立身份侧文件，并显式报告缺失的 provenance。INCLUDE 接入必须保留读取前的允许目录检查，不能先加载未授权文件再事后过滤。
+可用 `python tools/triage_public_corpus.py --report <外部report.json> --output <新的外部目录>` 重建摘要；工具兼容独立身份侧文件，并显式报告缺失的 provenance。第九轮按用户确认接入共享 INCLUDE 预检，再以 files 和 references.candidates 执行原生加载的允许目录检查；共享预检会读取本地文件树，不把它宣称为文件读取沙箱。
+
+## 第九轮路径分类修正
+
+`extra-keyword-044` 的 INCLUDE 检查抛出 OSError / WinError 123，现归入引用路径类；其余 83 个失败案例及所有通过/失败判定保持不变。引用路径计数由 24 改为 25，未分类由 1 改为 0。新增回归用例在旧实现失败，修复后通过。
+
+`extra-keyword-020` 的第二个 include 含 PGP 加密块，可能与原生崩溃有关；这只是审阅中的推断，未就该假设做原生复现。后续完整树预检与带版本运行另行登记，历史报告不补造版本。
