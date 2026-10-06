@@ -440,7 +440,7 @@
 
 缺口：
 
-- batch 与 session 两个入口；LSPP 回显与报错没有结构化返回
+- 历史 4.13 batch/session 与 4.10 batch 报告未记录实际 Git revision 和运行时未提交 diff SHA256；需带完整身份重跑并将 report.md、evidence.json 入库
 
 ### A02 cfile 命令流
 

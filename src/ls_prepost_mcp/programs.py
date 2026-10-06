@@ -50,6 +50,12 @@ RESERVED = {
     "native.log",
     "stdout.log",
     "stderr.log",
+    "selection.scl",
+    "selection.txt",
+    "visibility.txt",
+    "script-model.k",
+    "native-echo.log",
+    "script-result.json",
 }
 
 
@@ -228,9 +234,15 @@ class ProgramTools:
         file_type: str = "keyword",
         graphics: bool = False,
         session_id: str | None = None,
+        capture_model: bool = False,
+        inspect_selection: bool = False,
     ) -> dict:
         """Execute a verified prepared source/dependency bundle. Without session_id, use an isolated native process and optional staged model; with session_id, use the current owned GUI and omit model. GUI scripts must retain its model context; keyword baseline is checkpointed, raw effects invalidate cached selections/fringes. Requires the prepared execution SHA256. No declared output/count contract means completed_unverified."""
         prepared = self.jobs.get(prepared_job_id)
+        if type(capture_model) is not bool or capture_model and (file_type != "keyword" or session_id is not None):
+            raise ValueError("Model capture requires an explicit keyword batch context")
+        if type(inspect_selection) is not bool:
+            raise ValueError("inspect_selection must be Boolean")
         if prepared["action"] != "prepare_native_program":
             raise ValueError("Expected a prepared native program")
         prepared_dir = self.jobs.root / prepared_job_id
@@ -243,6 +255,10 @@ class ProgramTools:
         if identity(content, contract) != expected_sha256 or contract["sha256"] != expected_sha256:
             raise ValueError("Source changed since preparation; inspect and prepare again")
         outputs, counts = output_contract(contract["outputs"]), count_contract(contract["expected_counts"])
+        if capture_model:
+            if any(item["name"] == "script-model.k" for item in outputs):
+                raise ValueError("script-model.k is reserved for the requested model snapshot")
+            outputs = [*outputs, dict(name="script-model.k", kind="keyword")]
         captured = checked_dependencies(prepared_dir, contract)
         validate_script_references(content, language, captured)
         if session_id is not None:
@@ -300,6 +316,20 @@ class ProgramTools:
                 'fprintf(fp,"%d %d %d\\n",n,e,s);\nfclose(fp);\n}\nmain();\n',
                 encoding="ascii",
             )
+            if capture_model:
+                commands.append(nc.save_keyword("script-model.k"))
+            if inspect_selection:
+                (directory / "selection.scl").write_text(
+                    '/*LS-SCRIPT*/\ndefine:\nvoid main(void){\nInt n,k,i; Int *ids=NULL; FILE *fp;\n'
+                    'n=SCLGetDataCenterInt("num_selection");\nfp=fopen("selection.txt","w");\nfprintf(fp,"%d\\n",n);\n'
+                    'if(n>0 && n<=10000){ids=malloc(n*sizeof(Int)); k=SCLGetDataCenterIntArray("selection_ids",&ids,0,0);\n'
+                    'if(k!=n){fprintf(fp,"ERROR\\n");}else{for(i=0;i<n;i=i+1){fprintf(fp,"%d\\n",ids[i]);}} free(ids);}\n'
+                    'fclose(fp);\nn=SCLGetDataCenterInt("num_validparts");\n'
+                    'fp=fopen("visibility.txt","w");fprintf(fp,"%d\\n",n);\n'
+                    'if(n>0 && n<=10000){ids=malloc(n*sizeof(Int)); k=SCLGetDataCenterIntArray("validpart_ids",&ids,0,0);\n'
+                    'if(k!=n){fprintf(fp,"ERROR\\n");}else{for(i=0;i<n;i=i+1){fprintf(fp,"%d %d\\n",ids[i],SCLCheckIfPartIsActiveU(ids[i]));}} free(ids);}\n'
+                    'fclose(fp);\n}\nmain();\n', encoding="ascii")
+                commands.append(nc.run_script("selection.scl", "scl"))
             commands += [nc.run_script("complete.scl", "scl"), "exit"]
             command_file = directory / "commands.cfile"
             nc.write_cfile(command_file, commands)
@@ -351,6 +381,19 @@ class ProgramTools:
                     scope="Completion plus declared file/count checks only; no proof of every command or physical validity",
                 ),
             )
+            if inspect_selection:
+                values = (directory / "selection.txt").read_text().split()
+                total = int(values[0])
+                selected = [int(value) for value in values[1:]] if total <= 10000 else None
+                if total < 0 or selected is not None and len(selected) != total:
+                    raise ValueError("Native selection readback is incomplete")
+                manifest["data"]["selection"] = dict(count=total, user_ids=selected)
+                values = (directory / "visibility.txt").read_text().split()
+                total = int(values[0])
+                flags = [int(value) for value in values[1:]] if total <= 10000 else None
+                if total < 0 or flags is not None and (len(flags) != total * 2 or any(v not in (0, 1) for v in flags[1::2])):
+                    raise ValueError("Native part visibility readback is incomplete")
+                manifest["data"]["part_visibility"] = None if flags is None else {str(flags[i]): bool(flags[i + 1]) for i in range(0, len(flags), 2)}
         except Exception as exc:
             manifest.update(status="failed", error=dict(type=type(exc).__name__, message=str(exc)))
         manifest.update(
@@ -366,6 +409,8 @@ class ProgramTools:
         command: str,
         outputs: list[dict] | None = None,
         expected_counts: dict | None = None,
+        initial_node_ids: list[int] | None = None,
+        capture_model: bool = False,
     ) -> dict:
         """Run one original LS-PrePost command through the owned GUI command-entry/cfile bridge. Record raw source, native inventory and explicit output checks; unspecified semantics remain unverified."""
         command, outputs, counts = (
@@ -373,14 +418,26 @@ class ProgramTools:
             output_contract(outputs),
             count_contract(expected_counts),
         )
+        if type(capture_model) is not bool:
+            raise ValueError("capture_model must be Boolean")
+        if initial_node_ids is not None:
+            if len(initial_node_ids) > 10000 or len(set(initial_node_ids)) != len(initial_node_ids):
+                raise ValueError("Initial node IDs must be unique and bounded")
+            for uid in initial_node_ids:
+                nc.selection_add("node", uid)
         manager = self._session_manager()
         with manager.lock(session_id):
             meta = manager.read(session_id)
+            if capture_model:
+                if meta["model_kind"] != "keyword":
+                    raise ValueError("Model capture requires a keyword session")
+                outputs = [*outputs, dict(name="script-model.k", kind="keyword")]
             if meta.get("bridge_protocol", 1) < 2:
                 raise ValueError("This session predates the raw-command bridge; save a checkpoint and start a new session")
             if meta["state"] == "uncertain":
                 raise ValueError("Resolve/restore the uncertain session before raw commands")
-            parameters = dict(command=command, expected_counts=counts)
+            parameters = dict(command=command, expected_counts=counts, output_names=[o["name"] for o in outputs],
+                              initial_node_ids=initial_node_ids, capture_model=capture_model)
             log = manager.directory(session_id) / "lspost.msg"
             offset = log.stat().st_size if log.exists() else 0
             result = manager.dispatch(
