@@ -1,10 +1,12 @@
 """I05 source-attributed local reference index. Indexed text is never executable."""
 
 import csv
+import errno
 import hashlib
 import json
 import os
 import re
+import shutil
 import sqlite3
 import uuid
 from contextlib import closing
@@ -16,6 +18,29 @@ from .keyword_documentation import KeywordField
 CATEGORIES = frozenset(("command", "api", "keyword", "user_guide", "recipe", "known_issue"))
 PUBLIC_LICENSES = frozenset(("MIT", "Apache-2.0", "BSD-3-Clause", "CC0-1.0"))
 REPOSITORY = Path(__file__).resolve().parents[2]
+
+
+def publish_index(partial, path):
+    """Publish complete bytes without overwriting any concurrently created index."""
+    try:
+        os.link(partial, path)
+        return
+    except OSError as exc:
+        unsupported = exc.errno in {errno.ENOSYS, errno.ENOTSUP, errno.EOPNOTSUPP}
+        unsupported = unsupported or getattr(exc, "winerror", None) in (1, 50)
+        if os.name != "nt" or not unsupported:
+            raise
+    # Windows rename refuses an existing destination, unlike POSIX rename.
+    # Keep the copy in the destination directory and close it before publication.
+    staged = path.with_name(path.name + "." + uuid.uuid4().hex + ".publish")
+    try:
+        with partial.open("rb") as source, staged.open("xb") as destination:
+            shutil.copyfileobj(source, destination)
+            destination.flush()
+            os.fsync(destination.fileno())
+        os.rename(staged, path)
+    finally:
+        staged.unlink(missing_ok=True)
 
 
 @dataclass(frozen=True)
@@ -150,7 +175,7 @@ def build_index(destination, documents, fields=()):
                                 field.help, json.dumps(field.links), json.dumps(field.manual_ref), json.dumps(field.solver_status), field.license, json.dumps(field.aliases)))
             counts = dict(db.execute("SELECT category, count(*) FROM documents GROUP BY category"))
         # Atomic no-overwrite publication also handles two concurrent builders.
-        os.link(partial, path)
+        publish_index(partial, path)
     finally:
         partial.unlink(missing_ok=True)  # Only this invocation's UUID-named partial.
     return dict(schema_version=2, documents=len(seen), keyword_fields=len(field_map), categories=counts,
@@ -169,26 +194,47 @@ def search_index(path, query, *, category=None, limit=10, include_private=False)
         return []
     latin = [value for value in query_terms if not value.startswith("zh_")]
     chinese = [value for value in query_terms if value.startswith("zh_") and len(value) == 5]
-    selected = latin or chinese or query_terms
-    expression = (" AND " if latin else " OR ").join('"' + value.replace('"', '""') + '"' for value in selected)
+    if not chinese:
+        chinese = [value for value in query_terms if value.startswith("zh_")]
+    def quote(value):
+        # Retain A10's identifier-prefix behavior without expanding query terms.
+        prefix = "*" if "_" in value and not value.startswith("zh_") else ""
+        return '"' + value.replace('"', '""') + '"' + prefix
+    latin_expression = " AND ".join(quote(value) for value in latin)
+    chinese_expression = " OR ".join(quote(value) for value in chinese)
+    mixed = bool(latin and chinese)
+    expression = ("(" + latin_expression + ") OR (" + chinese_expression + ")"
+                  if mixed else latin_expression or chinese_expression)
     uri = Path(path).resolve(strict=True).as_uri() + "?mode=ro"
     with closing(sqlite3.connect(uri, uri=True)) as db:
         db.row_factory = sqlite3.Row
         if db.execute("SELECT schema_version FROM metadata").fetchone()[0] != 2:
             raise ValueError("Unsupported knowledge index schema")
-        sql = "SELECT documents.*, bm25(search_terms) AS rank FROM search_terms JOIN documents ON documents.id=search_terms.id WHERE search_terms MATCH ?"
-        params = [expression]
+        sql = "SELECT documents.*, bm25(search_terms) AS rank"
+        params = []
+        if mixed:
+            sql += (", CASE WHEN documents.id IN (SELECT id FROM search_terms WHERE search_terms MATCH ?) THEN 0 "
+                    "WHEN documents.id IN (SELECT id FROM search_terms WHERE search_terms MATCH ?) THEN 1 "
+                    "ELSE 2 END AS query_priority")
+            params += ["(" + latin_expression + ") AND (" + chinese_expression + ")", latin_expression]
+        else:
+            sql += ", 0 AS query_priority"
+        sql += " FROM search_terms JOIN documents ON documents.id=search_terms.id WHERE search_terms MATCH ?"
+        params.append(expression)
         if category:
             sql += " AND category=?"
             params.append(category)
         if not include_private:
             sql += " AND visibility='public'"
-        sql += " ORDER BY rank, documents.id LIMIT ?"
+        sql += " ORDER BY query_priority, rank, documents.id LIMIT ?"
         rows = db.execute(sql, [*params, limit]).fetchall()
         fields = {row["id"]: db.execute("SELECT * FROM keyword_fields WHERE document_id=?", (row["id"],)).fetchone() for row in rows}
     results = []
     for row in rows:
         data = dict(row)
+        priority = data.pop("query_priority")
+        data["query_match"] = (("both", "code_only", "text_only")[priority] if mixed
+                               else "code_only" if latin else "text_only")
         text = data.pop("text")
         position = text.casefold().find(query.casefold())
         begin = max(0, position - 100) if position >= 0 else 0
