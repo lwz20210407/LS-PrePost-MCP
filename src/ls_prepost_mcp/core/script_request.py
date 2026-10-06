@@ -59,9 +59,12 @@ class ScriptRequest(Contract):
             raise ValueError("Parameter interpolation is available for cfile")
         if any(c in self.code for c in "\r\n;"):
             raise ValueError("Command requires one nonempty native line")
-        head = self.code.strip().split()[0].lower()
+        tokens = self.code.lower().split()
+        if not tokens:
+            raise ValueError("Command requires one nonempty native line")
+        head = tokens[0]
         if head in {"exit", "quit", "new", "system", "runpython", "runscript"}:
             raise ValueError("Use the dedicated lifecycle or script-language interface")
-        if self.code.strip().lower().startswith("openc command"):
+        if tokens[:2] in (["openc", "command"], ["open", "command"]):
             raise ValueError("Use the cfile language for command streams")
         return self

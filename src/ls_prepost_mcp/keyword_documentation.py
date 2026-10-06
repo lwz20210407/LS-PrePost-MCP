@@ -46,7 +46,19 @@ def keyword_fields(keywords=None, provider=None):
         except ImportError as exc:
             raise RuntimeError("Claude keyword_docs is not integrated until M3; use an authorized provider checkout for offline indexing") from exc
     if keywords is None:
-        keywords = sorted({row[0] for row in provider._catalog()})
+        public_keywords = getattr(provider, "keywords", None)
+        if public_keywords is not None:
+            keywords = public_keywords()
+        else:
+            public_catalog = getattr(provider, "catalog", None)
+            if public_catalog is not None:
+                keywords = sorted({row["keyword"] for row in public_catalog()})
+            else:
+                # Compatibility with the pre-20e471b checkout, before M3 merge.
+                legacy_catalog = getattr(provider, "_catalog", None)
+                if legacy_catalog is None:
+                    raise RuntimeError("keyword_docs provider exposes no keyword catalog")
+                keywords = sorted({row[0] for row in legacy_catalog()})
     for keyword in keywords:
         doc = provider.keyword_doc(keyword)
         for card in doc["cards"]:

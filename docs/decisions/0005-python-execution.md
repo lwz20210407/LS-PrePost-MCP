@@ -13,7 +13,11 @@ dtype、内存字节数、排列顺序。验证 NPY 1/2 头、载荷长度及 ZI
 按块读取，避免解压后的整个数组占用 MCP 内存；拒绝 pickle/object 数组。
 结构核验不等于工程数值正确性判断。
 
-## L2 证据
+## 历史原生记录与证据缺口
+
+第三轮审阅后 A04 改为 partial。以下历史结果未记录实际 Git revision
+和运行时未提交 diff SHA256，不能作为当前提交的完成证据。需以新的
+运行身份重新取证，并将去路径的 report.md、evidence.json 入库。
 
 `tests/test_script_python_native.py` 在真实内置 Python 中调用 DataCenter
 和 LsPrePost，加载 helper.py 及子目录 JSON 文件，接收含引号/换行的数据

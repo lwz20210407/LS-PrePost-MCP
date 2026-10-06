@@ -567,9 +567,10 @@ tasks:
     layer: T1
     target_tools: [run_script]
     channel: command
-    status: done
+    status: partial
     existing: [prepare_native_program, execute_native_program, execute_gui_command, run_on_version]
-    gaps: []
+    gaps:
+      - 历史 4.13 batch/session 与 4.10 batch 报告未记录实际 Git revision 和运行时未提交 diff SHA256；需带完整身份重跑并将 report.md、evidence.json 入库
     evidence: [tests/test_script_command_native.py, docs/decisions/0002-command-execution.md]
     acceptance:
       - 10 条代表命令（打开、选择、变换、显隐、视图、出图、保存）在 batch 与 session 两种上下文各执行一次，产物核对通过
@@ -609,7 +610,9 @@ tasks:
     layer: T1
     target_tools: [run_script]
     channel: scl
-    status: done
+    status: partial
+    gaps:
+      - 历史原生报告未记录实际 Git revision 与运行时未提交 diff SHA256，需重新取证并将 report.md、evidence.json 入库
     existing: [prepare_native_program, execute_native_program, probe_scl]
     evidence: [tests/test_script_scl_native.py, docs/decisions/0004-scl-execution.md]
     acceptance:
@@ -627,7 +630,9 @@ tasks:
     layer: T1
     target_tools: [run_script]
     channel: python
-    status: done
+    status: partial
+    gaps:
+      - 历史原生报告未记录实际 Git revision 与运行时未提交 diff SHA256，需重新取证并将 report.md、evidence.json 入库
     existing: [prepare_native_program, execute_native_program]
     evidence: [tests/test_script_python_native.py, docs/decisions/0005-python-execution.md]
     acceptance:
@@ -837,15 +842,14 @@ infrastructure:
     status: partial
     verification_level: L1
     gaps:
-      - 公开 Win32 会话经 SessionEngine 后缺原生证据；renumber/quality 面板路径和五个批处理兼容字典仍待完整统一
-      - 缺少用户 lsppconf 时须明确拒绝，不能用只含星号的私有配置继续运行
-      - 诊断行触发失败时须透传 engine_error.message，并登记行为变化
+      - renumber/quality 面板路径和五个批处理兼容字典仍待完整统一；公开 Win32 打开、检查点和重开已补原生证据
     evidence:
       - src/ls_prepost_mcp/engine/batch.py
       - src/ls_prepost_mcp/engine/session.py
       - tests/test_engines.py
       - tests/test_engine_native.py
       - docs/decisions/evidence/i01/report.md
+      - docs/decisions/evidence/i01-followup/report.md
     acceptance:
       - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
       - 删除 gui_session_action 中运行时替换 _native 的做法
@@ -855,6 +859,10 @@ infrastructure:
     title: 语义合同 core/contracts.py
     milestone: M1
     status: done
+    gaps:
+      - M2：core.FieldSpec 与旧 field_contracts.FieldSpec 的适配层及等价测试尚未落地
+      - P2：旧 failed/partial 缺 error/warnings 时 normalize_outcome 降为 unverified；需从 reason/restoration_error 补齐诊断
+      - P2：failed.error.message 尚未要求非空字符串，当前非空字典可绕过该约束
     evidence:
       - src/ls_prepost_mcp/core/contracts.py
       - tests/test_core_contracts.py
@@ -871,7 +879,8 @@ infrastructure:
     milestone: M1
     status: partial
     gaps:
-      - 路径命令已集中并统一 UTF-8；含空格或中文工作目录的原生回归仍失败（KI-049），GUI/Movie 路径变更待集中窗口验证
+      - 主路径命令已集中；import keyword、open xydata、savefile xypair、modelcheck writetofile 的 8 模块 12 处仍待集中，SCL 脚本编码仍混用 ascii/utf8
+      - 高优先级 P2：含空格或中文的 job 工作目录在 4.13/4.10 仍失败（KI-049），优先于其他 P2 处理
     verification_level: L2
     evidence:
       - src/ls_prepost_mcp/native/commands.py
@@ -891,14 +900,18 @@ infrastructure:
     status: partial
     evidence:
       - docs/decisions/evidence/i04/report.md
+      - docs/decisions/evidence/i04-window/report.md
       - tools/native_regression.py
+      - tests/test_public_corpus_native.py
+      - tests/corpus/public_cases.json
       - tests/test_native_acceptance.py
       - tests/test_native_regression.py
       - tests/test_native_remote.py
       - tests/test_native_input_preconditions.py
     gaps:
       - 当前 55 个 tools/run_* 入口已全部收编为 57 个 pytest 用例（保留原生/文件及 batch/GUI 变体）；CLI 参数发现已逐一验证。
-      - 已通过三个文件验收和 program_acceptance 的真实批处理验收；57 组 CLI 参数及 15 组外部输入已配置，关键输入已做原生预检；全量 GUI 与 13 个 UU 格尚待集中验收，未计为完成。
+      - 三个文件验收和 program_acceptance 批处理已有证据；集成工作副本累计 53 个 GUI 用例通过，包含待审 A02 修复，不作为 PR #5 头全量验证；13 个 UU 格等待用户断开
+      - 用户要求的公开抽样现为 126 例（首轮 26 例，新增 100 例）；新增部分尚待批量执行，输入特征不等于全部字段已验证，失败及不支持项分别保留
     acceptance:
       - 补测从 M0 转入的 13 个 UU 远程格（4.13/4.10 的 runc 五通道共 10 格，以及两版本 nographics 原生宏和 4.13 会话原生宏共 3 格），记录执行、PNG、MP4 结果与用户确认的断开时间窗
       - 55 个 tools/run_* 收编为 57 个带 marker 的 pytest 用例，共享 fixture

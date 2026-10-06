@@ -425,7 +425,7 @@
 
 ### A01 命令栏 Command（单条原生命令）
 
-状态：done；版本：v0.5；里程碑：M1；层：T1
+状态：partial；版本：v0.5；里程碑：M1；层：T1
 
 执行一条 LSPP 命令，就像在左下角输入栏里敲一样，并告诉我 LSPP 返回了什么
 
@@ -437,6 +437,10 @@
 - 4.10 回归子集通过
 
 现有入口：`prepare_native_program`, `execute_native_program`, `execute_gui_command`, `run_on_version`
+
+缺口：
+
+- 历史 4.13 batch/session 与 4.10 batch 报告未记录实际 Git revision 和运行时未提交 diff SHA256；需带完整身份重跑并将 report.md、evidence.json 入库
 
 ### A02 cfile 命令流
 
@@ -460,7 +464,7 @@
 
 ### A03 SCL 脚本
 
-状态：done；版本：v0.5；里程碑：M1；层：T1
+状态：partial；版本：v0.5；里程碑：M1；层：T1
 
 运行这个 SCL 脚本，读出所有节点坐标写成 CSV
 
@@ -472,9 +476,13 @@
 
 现有入口：`prepare_native_program`, `execute_native_program`, `probe_scl`
 
+缺口：
+
+- 历史原生报告未记录实际 Git revision 与运行时未提交 diff SHA256，需重新取证并将 report.md、evidence.json 入库
+
 ### A04 应用内 Python 脚本
 
-状态：done；版本：v0.5；里程碑：M1；层：T1
+状态：partial；版本：v0.5；里程碑：M1；层：T1
 
 用 LSPP 内置 Python 读出每个 Part 的单元数和最大位移
 
@@ -486,6 +494,10 @@
 - 4.13 全量、4.10 子集通过
 
 现有入口：`prepare_native_program`, `execute_native_program`
+
+缺口：
+
+- 历史原生报告未记录实际 Git revision 与运行时未提交 diff SHA256，需重新取证并将 report.md、evidence.json 入库
 
 ### A05 原生宏执行
 
@@ -671,7 +683,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：partial；验证：L1
 
-证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py), [docs/decisions/evidence/i01/report.md](../docs/decisions/evidence/i01/report.md)
+证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py), [docs/decisions/evidence/i01/report.md](../docs/decisions/evidence/i01/report.md), [docs/decisions/evidence/i01-followup/report.md](../docs/decisions/evidence/i01-followup/report.md)
 
 - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
 - 删除 gui_session_action 中运行时替换 _native 的做法
@@ -706,7 +718,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：partial；验证：待记录
 
-证据：[docs/decisions/evidence/i04/report.md](../docs/decisions/evidence/i04/report.md), [tools/native_regression.py](../tools/native_regression.py), [tests/test_native_acceptance.py](../tests/test_native_acceptance.py), [tests/test_native_regression.py](../tests/test_native_regression.py), [tests/test_native_remote.py](../tests/test_native_remote.py), [tests/test_native_input_preconditions.py](../tests/test_native_input_preconditions.py)
+证据：[docs/decisions/evidence/i04/report.md](../docs/decisions/evidence/i04/report.md), [docs/decisions/evidence/i04-window/report.md](../docs/decisions/evidence/i04-window/report.md), [tools/native_regression.py](../tools/native_regression.py), [tests/test_public_corpus_native.py](../tests/test_public_corpus_native.py), [tests/corpus/public_cases.json](../tests/corpus/public_cases.json), [tests/test_native_acceptance.py](../tests/test_native_acceptance.py), [tests/test_native_regression.py](../tests/test_native_regression.py), [tests/test_native_remote.py](../tests/test_native_remote.py), [tests/test_native_input_preconditions.py](../tests/test_native_input_preconditions.py)
 
 - 补测从 M0 转入的 13 个 UU 远程格（4.13/4.10 的 runc 五通道共 10 格，以及两版本 nographics 原生宏和 4.13 会话原生宏共 3 格），记录执行、PNG、MP4 结果与用户确认的断开时间窗
 - 55 个 tools/run_* 收编为 57 个带 marker 的 pytest 用例，共享 fixture

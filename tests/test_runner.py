@@ -1,7 +1,16 @@
 import subprocess
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from ls_prepost_mcp.runner import decode, execute
+
+
+@pytest.fixture(autouse=True)
+def configured_native_preferences(tmp_path, monkeypatch):
+    config = tmp_path / "user-lsppconf"
+    config.write_text("*\nconsent = YES\n")
+    monkeypatch.setenv("LSPP_CONFIG_SOURCE", str(config))
 
 
 def test_runner_owns_cwd_and_never_uses_shell(tmp_path):
