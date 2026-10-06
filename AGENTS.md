@@ -22,7 +22,7 @@
 - I04 native execution requires explicit opt-in; remote evidence checks are not native passes.
 - I08 routes and legacy aliases come from operations.json; run import-linter and preserve the registry.
 - I05 references stay outside Git when private; keyword fields use Claude keyword_docs, never a parallel AST parser.
-- Claude also owns domain/results/curves.py, invariants.py, lasso_backend.py and their package exports (Q07, Q04, Q01/Q05/Q06), plus model-side P01/P04 work. Reuse those implementations at integration; do not edit or duplicate them. keyword_docs provider was introduced at ce87a62; the model directory remains read-only here.
+- Claude also owns domain/results/curves.py, invariants.py, lasso_backend.py, mpp_shards.py and their package exports (shared by Q01/Q03–Q07; Claude implements Q05–Q07, Q01/Q03/Q04 may be dispatched), plus model-side P-series work. Reuse those implementations at integration; do not edit or duplicate them. keyword_docs provider was introduced at ce87a62; the model directory remains read-only here.
 
 ## 多 AI 协作（用户 2026-10-07 确定）
 
@@ -32,12 +32,14 @@
 
 | 开发者 | 负责范围 |
 |---|---|
-| Claude | 关键字引擎核心 `src/ls_prepost_mcp/domain/model/`；纯 Python/LASSO 结果计算 `domain/results/`（Q10、Q12 除外）；`model_target_tools.py`；`tools/l3/`；**全部 PR 的审阅与合并** |
+| Claude | 关键字引擎核心 `src/ls_prepost_mcp/domain/model/`；结果计算核心 `domain/results/`（曲线、LASSO 读取、MPP 分片、不变量等共享实现）与 Q05、Q06、Q07；P 系列模型侧任务；`model_target_tools.py`；`tools/l3/`（I09）；**全部 PR 的审阅与合并** |
 | Codex | M1 原生执行通道与进程生命周期等底层修复（`engine/`、`native/`、`service.py`、`config.py`、`jobs.py` 等）；**给反重力和 Cursor 下发独立任务** |
-| 反重力 | Q10 截面力与剖切面；Q12 能量平衡与部件耗散检查 `check_energy` |
+| 反重力 | Q10 截面力与剖切面；Q12 能量平衡与部件耗散检查 `check_energy`；Codex 派发的其他任务 |
 | Cursor | Codex 派发的独立任务 |
 
 只改自己范围内的文件。确需改动别人范围时，在 PR 正文写明原因，由该范围的负责人审阅。
+
+**可派发的结果任务（用户 2026-10-07 确定）**：Q01 结果概览、Q03 场数据提取、Q04 工程量与失效掩码，可以由 Codex 派给 Cursor 或反重力。这些任务必须复用 `domain/results` 已有的共享实现（如 `lasso_backend`、`curves`、`mpp_shards`、`invariants`），不得另写一套读取或运算代码。确需扩展共享实现时，在 PR 正文说明，由 Claude 审阅。Q05、Q06、Q07 和 P 系列不派发给其他人。
 
 **分支、提交、PR 的标识**
 
