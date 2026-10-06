@@ -237,8 +237,8 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
             if registry_query:
                 if requested_parts is not None and pid in requested_parts:
                     filter_elements.add(eid)
-                if visibility[str(pid)]:
-                    active_elements.add(eid)
+            if visibility[str(pid)] and (registry_query or parameters.get("visibility_readback")):
+                active_elements.add(eid)
         if domain == "part" and pid in wanted_ids:
             matched.append(pid)
     domain_ids, filter_ids, active_ids, both_ids, seen_elements = set(), set(), set(), set(), set()
@@ -308,7 +308,7 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
                 if len(matched) > 20000:
                     raise ValueError("Spatial selection exceeds20000 selected nodes per operation; narrow the region. This is not a global model-size limit")
     element_count, affected_count, affected = 0, 0, []
-    display_active_count = 0
+    display_active_count, inactive_in_visible_parts = 0, 0
     visibility_path, visibility_buffer, visibility_hash = None, bytearray(), hashlib.sha256()
     if parameters.get("visibility_readback"):
         if output_directory is None:
@@ -352,6 +352,8 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
                     raise ValueError("Visibility readback exceeds one million entities")
                 display_active = int(bool(lp.check_if_element_is_active_u(uid, kind)))
                 display_active_count += display_active
+                if not display_active and uid in active_elements:
+                    inactive_in_visible_parts += 1
                 visibility_buffer.extend(struct.pack("!BqB", {"beam": 1, "shell": 2, "solid": 3}[label],
                                          uid, display_active))
                 if len(visibility_buffer) >= 40960:
@@ -497,6 +499,7 @@ def scoped_mesh_state(dc, lp, parameters, output_directory=None):
                             if masses else None),
         visibility_binary=(dict(format="native_display_active_v1", file="visibility.bin", record_format="!BqB",
                                count=element_count, active_count=display_active_count,
+                               inactive_in_visible_parts=inactive_in_visible_parts,
                                byte_count=element_count*10, sha256=visibility_hash.hexdigest())
                            if visibility_path else None),
         verification_scope="All reference coordinates/connectivity/part membership streamed; only requested nodes materialized",

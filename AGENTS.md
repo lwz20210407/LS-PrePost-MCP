@@ -19,3 +19,4 @@
 - Reports use at most six Chinese lines: 完成 / 证据 / 下一项 / 待用户. Continue independent work while awaiting one batched GUI/remote window.
 - I02 adds strict core contracts and migrates workflow gates; keep the I07 integration boundary.
 - I01 remains partial/L1 after review; historical batch/queue tests do not certify the public Win32 path.
+- I04 native execution requires explicit opt-in; remote evidence checks are not native passes.

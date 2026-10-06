@@ -383,6 +383,7 @@
 
 ## KI-049 含空格/中文工作目录的原生配置解析
 
+- 优先级：高于其余 P2；普通用户目录也可能触发，必须优先处理。
 - 现象：4.13.4 与 4.10.1 的 job 工作目录含空格或“中文 空格”时，原生未找到已暂存的 input_data，并报告 SCL parsing -2；进程仍可能返回 0。4.13 日志中的路径在空格前截断。
 - 已验证子集：ASCII 工作目录中，可暂存中文/空格源文件名并运行 PNG、keyword 保存和原生重开。
 - 处理：集中路径构建器拒绝分号、引号和控制字符；cfile 统一 UTF-8。工作目录配置的上述限制单独保留为严格 xfail，不标成 native passed。
@@ -405,6 +406,23 @@
 
 - 行为：共享引擎检测到原生错误行即失败，即使 returncode=0。五个批处理调用方现在透传 engine_error.message，保留真实命令诊断，而非只报退出码和超时状态。
 - 证据：tests/test_engine_native.py 的无效命令原生负例，以及 tests/test_engines.py 的公开 Service 错误透传回归。
+
+## 2026-10-06 复审后续项（按任务归属）
+
+| 归属 | 待修事项或本轮处置 |
+|---|---|
+| I02 | 旧 failed 无 error、partial 无 warnings 会经 normalize_outcome 变成 unverified + LegacyContractError；gui_field_movie、gui_media、sessions、native_batch 的产出需适配 reason/restoration_error。 |
+| I02 | failed.error.message 仍可为空；需收紧为非空字符串。FieldSpec 适配层及等价测试已登记为 tasks.yaml 中的 M2 gap。 |
+| I10 | ADR 0001 已改为如实说明历史证据 JSON 没有探针脚本 SHA256，未补造该字段。 |
+| I05 | 混合查询丢失中文词，例如“MPP 节点选择”；需保留两类查询词。 |
+| I05 | os.link 发布索引不适用于 FAT/exFAT 及部分网络盘；需复制到同目录临时文件并原子改名的回退。 |
+| I04 | KI-052 的短用例目录前缀在本 PR #5 补交，不属于 2f10da2 的改动。 |
+| I04 | 原生证据必须写实际 Git revision；工作树未提交时另记改动身份，不得宣称为 PR 头运行。 |
+| I03 | import keyword、open xydata、savefile xypair、modelcheck writetofile 尚有 8 模块 12 处；SCL 编码未统一。 |
+| I03 | 路径兼容性变化：quoted_path 现在在启动前拒绝分号、引号及控制字符，旧调用者可能因此获得明确 ValueError。 |
+| I01/I03 | KI-049 的空格/中文 job 工作目录问题列为最高优先级 P2；源文件路径与 job 工作目录须分别验证。 |
+| I04 | 缺少可执行文件的提示已同时列出 --native-executable、LSPP_ENGINE_EXECUTABLE 和 LSPP_EXECUTABLE。 |
+| I04 | CI 增加 ruff check .；新提交只有该 CI 步骤成功后才报告 CI Ruff 通过。既有附件中的本机 Ruff 结果不等于 CI 执行记录。 |
 
 ## 能力范围原文索引
 
