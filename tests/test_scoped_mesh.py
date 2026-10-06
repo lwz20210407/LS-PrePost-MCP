@@ -197,6 +197,23 @@ def shared_parts():
     return model
 
 
+def test_bridge_distinguishes_hidden_parts_from_blank_visible_members(tmp_path):
+    from ls_prepost_mcp.gui_selection import hidden_parts_only
+
+    model = shared_parts()
+    query = dict(part_ids=[8], entity_ids=None, scope="all", invert=False)
+    hidden = snapshot(model, entity_type="node", registry_query=query,
+                      visibility_readback=True, output_directory=tmp_path)
+    assert hidden["native_selection_plan"]["strategy"] == "parts"
+    assert hidden["visibility_binary"]["inactive_in_visible_parts"] == 0
+    assert hidden_parts_only(hidden)
+    model["visible"] = {7: False, 8: True}
+    blank = snapshot(model, entity_type="node", registry_query=query,
+                     visibility_readback=True, output_directory=tmp_path)
+    assert blank["visibility_binary"]["inactive_in_visible_parts"] == 1
+    assert not hidden_parts_only(blank)
+
+
 @pytest.mark.parametrize("arguments,expected,strategy", [
     ({}, [11, 22, 33, 44, 55], "whole"),
     (dict(scope="active_parts"), [11, 22, 33], "parts"),
