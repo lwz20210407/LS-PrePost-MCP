@@ -385,6 +385,8 @@
 
 ## KI-049 含空格/中文工作目录的原生配置解析
 
+- 中文 job 目录还可能找不到已生成的 binout.scl；[binout 路径原生用例](../tests/test_scl_binout_paths_native.py)保持严格 xfail，实测范围见 [I03 SCL 字面量证据](decisions/evidence/i03-scl-literals/report.md)。
+- I03 新增显式 `LSPP_NATIVE_ALIAS_ROOT` 选项：Windows 无图形批处理通过独占 ASCII 目录联接访问原作业；模型和产物仍位于原路径，结束后校验别名身份再清理。4.10/4.13 各 7 项后台用例通过、1 项图形回调跳过，见[提交绑定证据](decisions/evidence/i03-workspace-alias/report.md)；未配置、4.8、宏及图形路径仍保留 gap，任务状态不变。配置方法见[安装说明](INSTALL.md)。
 - I01 后续修复：仅 BatchEngine 的 ASCII 路径将两个工作目录配置字段改为 `.`，绝对日志路径不变；GUI/队列保留绝对工作目录。ASCII 空格目录的保存、PNG、重开已补测。
 - 非 ASCII job 目录仍为 gap：4.13 使用相对配置的完整链路出现 `0xC0000374` 退出错误，未启用该实验路径，也未因文件已生成而标通过。非 ASCII 源文件会暂存到安全名称，与 job 目录限制分别报告。
 - 优先级：高于其余 P2；普通用户目录也可能触发，必须优先处理。
@@ -1154,6 +1156,7 @@ WinError 5/32 采用最多 1.15 秒的分段退避，其他错误直接返回；
 ## I01 批处理取消与进程树生命周期
 
 批处理现在用 Windows Job Object 管理本次进程树；正常任务结束也会终止仍存活的后代。
+POSIX 只在取消和超时时清理同一进程组；直接进程正常退出后，不清理同组遗留后代。
 持续驻留需求使用 SessionEngine。暂停启动、绑定失败拒绝执行、等待中断和宿主退出的
 实测结果及启动强杀窗口见 [生命周期回归](decisions/evidence/i01-process-lifetime/report.md)。
 Python 异常传播前会先清理；清理失败不覆盖原始异常，普通失败将清理注记放入 warnings。
@@ -1192,3 +1195,25 @@ Python 异常传播前会先清理；清理失败不覆盖原始异常，普通�
 [A01](decisions/evidence/a01/evidence.json)、[A02](decisions/evidence/a02/evidence.json)、
 [A03](decisions/evidence/a03/evidence.json)、[A04](decisions/evidence/a04/evidence.json)。
 修复后运行 revision 为干净 c68caef，包含 Draft #26；不代表当前 PR 头重新实测。
+
+## I03：普通安装名称与版本声明
+
+`lspp413`、`production` 等非版本号配置键只作为安装名称，不据此判断版本冲突。纯版本号仍与可执行文件检测结果按版本族核对；资源自身冲突及 4.11 排除不受影响。见[配置说明](INSTALL.md)和[分发回归](../tests/test_version_profile_calls.py)。
+
+## I01 / I04：多文件 INCLUDE 的原生加载检查（第九轮）
+
+`Settings.check_keyword_includes` 现在调用共享 `preflight_includes`，检查每张文件名卡、完整 files 列表及所有候选的允许目录。第二张卡片越界或缺失时，在启动原生进程前拒绝；错误保留 kind、relative、name_line、reason。预检默认禁止 UNC，不传 `allow_network`。普通 `*INCLUDE` 之外的原生解析策略、参数化文件名和空 INCLUDE 仍明确拒绝。
+
+BatchEngine 和内置 Python 在作业目录运行，并非主 deck 目录。对于保留源树的只读加载，还检查作业目录相对候选：越界则拒绝；指向不同文件即拒绝，防止原生工作目录解析绕过已检查的树。会话和脚本 staging 仍要求展平输入。共享预检会读取本地树，允许目录检查是其上的原生执行准入检查，不是共享预检本身的文件读取沙箱。
+
+回归见 [边界测试](../tests/test_boundaries.py)。I01、I04 的其他原生 gap 保持不变。
+
+## I01：INCLUDE 漏读诊断与拒绝状态（第十一轮）
+
+4.10 按 job cwd 解析相对 INCLUDE；源目录中的相对文件不会被读入。`Error - Include File … Not open` 现纳入共享原生错误规则，使返回码为 0 的不完整模型也失败。4.13 按主 deck 目录解析，第九轮复跑日志中 include 打开失败为 0；不据此外推其它版本。回归见 [4.10 原生用例](../tests/test_native_include_failure.py)。
+
+允许目录检查先于预检内容诊断；cwd 检查拒绝后，新建作业显式记为 failed。行首空白及 *END 后的 INCLUDE 直接拒绝，不猜测不同版本的解析。带引号的文件名（例如 `"first.k"`）在共享预检中会被拒绝，属于与旧检查的兼容性变化；尚未做原生语法认证。
+
+引用总数上限由 Claude 提供共享预检接口，Codex 接入；当前 max_files 不等于引用总数上限，该项仍待接口。
+
+第十一轮 [4.10 原生证据](decisions/evidence/i01-include-diagnostics/report.md) 已登记 2 项通过（相对漏读失败、绝对路径完整读入），ce42 H0 也返回 failed。

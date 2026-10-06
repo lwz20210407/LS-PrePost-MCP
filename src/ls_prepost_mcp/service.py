@@ -78,6 +78,14 @@ class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, Model
         if source and file_type == "d3plot" and exceeds_staging_limit(input_family(self.settings, source, family=True)):
             raise ValueError("Native d3plot input exceeds 1000 files / 2 GiB staging limit; read-only in-place fallback is unverified and disabled after native crashes. Use a supported reader backend or a smaller result family.")
         directory, manifest = self.jobs.create(action, parameters)
+        if include_bearing:
+            try:
+                self.settings.check_keyword_includes(source, native_cwd=directory)
+            except Exception as exc:
+                manifest.update(status="failed", finished_at=now(), job_directory=str(directory),
+                                error={"type": type(exc).__name__, "message": str(exc) or type(exc).__name__})
+                atomic_json(directory / "job.json", manifest)
+                raise
         manifest["backend"] = "lsprepost"
         manifest["executable"] = fingerprint(exe)
         manifest["native_channel"] = "scl" if action == "scl_probe" else "embedded_python"
@@ -121,7 +129,7 @@ class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, Model
                               'fclose(fp);\n}\nmain();\n')
             commands.append(nc.run_script("probe.scl", "scl"))
         if action != "scl_probe":
-            commands.append(nc.run_script(bootstrap))
+            commands.append(nc.run_script(bootstrap if graphics else bootstrap.name))
         if export:
             # Some Windows builds prepend a temporary basename and cannot save
             # an absolute drive path. The bootstrap pins cwd to this owned job.

@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .blocks import Block, SourceFile
-from .fields import FieldError
+from .fields import FieldError, single_line
 
 if TYPE_CHECKING:
     from .deck import KeywordDeck
@@ -23,7 +23,7 @@ def next_id(deck: KeywordDeck, kind: str) -> int:
 def set_text(kind: str, sid: int, items: list, title: str | None = None) -> str:
     """Keyword text of a set; segments are 4-node rows (triangles repeat the third node)."""
     keyword = SET_KINDS[kind][0] + ("_TITLE" if title else "")
-    lines = [keyword] + ([title] if title else []) + [f"{sid:>10}"]
+    lines = [keyword] + ([single_line(title, "Set title")] if title else []) + [f"{sid:>10}"]
     if kind == "segment":
         for segment in items:
             if len(segment) != 4:
