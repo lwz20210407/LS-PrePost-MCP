@@ -50,7 +50,7 @@ class ModelTargetTools:
         source = self.settings.input_path(model)
         try:
             data = inspect_deck(str(source))
-        except (ValueError, KeyError, OSError) as error:
+        except (ValueError, KeyError, TypeError, OSError) as error:
             return _result("model_info", "failed", {"model": str(source)}, error=_error(error))
         return _result("model_info", "succeeded", data, scope="keyword deck and its includes")
 
@@ -65,7 +65,7 @@ class ModelTargetTools:
         try:
             report = check_deck(str(source), thresholds=thresholds, coincident_tol=coincident_tolerance,
                                 include_mesh=include_mesh)
-        except (ValueError, KeyError, OSError) as error:
+        except (ValueError, KeyError, TypeError, OSError) as error:
             return _result("check_model", "failed", {"model": str(source)}, error=_error(error))
         kinds = sorted({e["kind"] for e in report["errors"]})
         checks = [CheckResult(name="objective_defects", status="failed" if report["errors"] else "passed"),
@@ -110,7 +110,7 @@ class ModelTargetTools:
         try:
             outcome = edit_deck(str(source), edits, output_dir=str(directory / "deck"),
                                 allow_new_dangling=allow_new_dangling)
-        except (ValueError, KeyError, OSError) as error:
+        except (ValueError, KeyError, TypeError, OSError) as error:
             outcome = {"status": "failed", "error": f"{type(error).__name__}: {error}", "written": False}
         data = {k: outcome.get(k) for k in ("changes", "summaries", "diff", "diff_truncated", "new_dangling",
                                             "modified_files", "failed_edit", "applied_before_failure")
