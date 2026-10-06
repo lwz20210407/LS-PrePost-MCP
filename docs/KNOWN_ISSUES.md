@@ -1120,3 +1120,10 @@ Standard ELEMENT_MASS supported for structural preservation; mass glyph display,
 - [tools/run_workflow_acceptance.py](../tools/run_workflow_acceptance.py) — `76d528b11e2b948c224be291c9660f53cf04cc2712c5a9f29b1f87a92bd236ba`
 - [tools/run_workflow_gate_acceptance.py](../tools/run_workflow_gate_acceptance.py) — `cd6759202440b9321ea95aed7faf292b5a3a38c0183794821fba27a32325edfd`
 - [src/ls_prepost_mcp/data/capabilities.json](../src/ls_prepost_mcp/data/capabilities.json) — `bb76b2e66358b4f93338c845c218f66bddbf4121567aa058128a07c7c67112aa`
+
+## I01 批处理取消与进程树生命周期
+
+批处理现在用 Windows Job Object 管理本次进程树；正常任务结束也会终止仍存活的后代。
+持续驻留需求使用 SessionEngine。暂停启动、绑定失败拒绝执行、等待中断和宿主退出的
+实测结果及启动强杀窗口见 [生命周期回归](decisions/evidence/i01-process-lifetime/report.md)。
+Python 异常传播前会先清理；清理失败不覆盖原始异常，普通失败将清理注记放入 warnings。
