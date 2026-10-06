@@ -9,7 +9,6 @@ import os
 import re
 import shutil
 import sqlite3
-import sys
 import time
 import uuid
 from contextlib import closing
@@ -23,9 +22,8 @@ PUBLIC_LICENSES = frozenset(("MIT", "Apache-2.0", "BSD-3-Clause", "CC0-1.0"))
 REPOSITORY = Path(__file__).resolve().parents[2]
 
 
-def _cleanup_owned_temp(path):
+def _cleanup_owned_temp(path, original):
     """Retain the primary failure if a Windows reader still holds our temp file."""
-    original = sys.exception()
     try:
         path.unlink(missing_ok=True)
     except OSError as cleanup_error:
@@ -49,6 +47,7 @@ def publish_index(partial, path):
     # Keep the copy in the destination directory and close it before publication.
     staged = path.with_name(path.name + "." + uuid.uuid4().hex + ".publish")
     created = False
+    original = None
     try:
         with partial.open("rb") as source, staged.open("xb") as destination:
             created = True
@@ -67,9 +66,12 @@ def publish_index(partial, path):
                     raise
                 time.sleep(delays[attempt])
         created = False  # The temporary name is no longer owned after rename.
+    except BaseException as exc:
+        original = exc
+        raise
     finally:
         if created:
-            _cleanup_owned_temp(staged)
+            _cleanup_owned_temp(staged, original)
 
 
 @dataclass(frozen=True)
@@ -188,6 +190,7 @@ def build_index(destination, documents, fields=()):
         raise FileExistsError(path)
     partial = path.with_name(path.name + "." + uuid.uuid4().hex + ".partial")
     created = False
+    original = None
     try:
         with partial.open("xb"):
             created = True
@@ -216,9 +219,12 @@ def build_index(destination, documents, fields=()):
             counts = dict(db.execute("SELECT category, count(*) FROM documents GROUP BY category"))
         # Atomic no-overwrite publication also handles two concurrent builders.
         publish_index(partial, path)
+    except BaseException as exc:
+        original = exc
+        raise
     finally:
         if created:
-            _cleanup_owned_temp(partial)  # Only this invocation's UUID-named partial.
+            _cleanup_owned_temp(partial, original)  # Only this invocation's UUID-named partial.
     return dict(schema_version=2, documents=len(seen), keyword_fields=len(field_map), categories=counts,
                 private=any(row.visibility == "private" for row in rows))
 

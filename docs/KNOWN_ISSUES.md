@@ -385,6 +385,7 @@
 
 ## KI-049 含空格/中文工作目录的原生配置解析
 
+- 中文 job 目录还可能找不到已生成的 binout.scl；[binout 路径原生用例](../tests/test_scl_binout_paths_native.py)保持严格 xfail，实测范围见 [I03 SCL 字面量证据](decisions/evidence/i03-scl-literals/report.md)。
 - I01 后续修复：仅 BatchEngine 的 ASCII 路径将两个工作目录配置字段改为 `.`，绝对日志路径不变；GUI/队列保留绝对工作目录。ASCII 空格目录的保存、PNG、重开已补测。
 - 非 ASCII job 目录仍为 gap：4.13 使用相对配置的完整链路出现 `0xC0000374` 退出错误，未启用该实验路径，也未因文件已生成而标通过。非 ASCII 源文件会暂存到安全名称，与 job 目录限制分别报告。
 - 优先级：高于其余 P2；普通用户目录也可能触发，必须优先处理。
