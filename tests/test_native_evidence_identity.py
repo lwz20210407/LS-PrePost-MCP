@@ -5,7 +5,7 @@ import subprocess
 
 import pytest
 
-from tools.native_regression import execution_identity
+from tools.native_regression import DIFF_COMMAND, execution_identity
 
 
 def git(root, *args):
@@ -63,6 +63,7 @@ def test_git_timeout_keeps_source_fingerprint_and_marks_revision_unavailable(tmp
 @pytest.mark.parametrize("setting,value", [
     ("diff.noprefix", "true"), ("color.ui", "always"), ("diff.mnemonicPrefix", "true"),
     ("diff.algorithm", "histogram"), ("diff.renames", "copies"),
+    ("diff.context", "1"), ("diff.interHunkContext", "20"),
 ])
 def test_patch_is_stable_across_user_git_configuration(tmp_path, setting, value):
     repo = tmp_path / "repo"
@@ -72,11 +73,16 @@ def test_patch_is_stable_across_user_git_configuration(tmp_path, setting, value)
     git(repo, "init")
     git(repo, "config", "core.autocrlf", "false")
     source = repo / "example.py"
-    source.write_bytes(b"VALUE = 1\n")
+    original = b"".join(("VALUE_%02d = %d\n" % (i, i)).encode() for i in range(40))
+    source.write_bytes(original)
     git(repo, "add", ".")
     git(repo, "-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "-m", "fixture")
-    source.write_bytes(b"VALUE = 2\n")
+    source.write_bytes(original.replace(b"VALUE_08 = 8", b"VALUE_08 = 80")
+                      .replace(b"VALUE_24 = 24", b"VALUE_24 = 240"))
     baseline = execution_identity(repo)
+    # Default Git context produces the same bytes as the historical pinned command.
+    historical_patch = git(repo, *DIFF_COMMAND[1:-2])
+    assert baseline["git_diff_sha256"] == hashlib.sha256(historical_patch).hexdigest()
     git(repo, "config", setting, value)
     current = execution_identity(repo, report_directory=report)
     patch = (report / "working-tree.patch").read_bytes()

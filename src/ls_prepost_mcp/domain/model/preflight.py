@@ -32,32 +32,43 @@ def preflight_includes(path: str | os.PathLike[str], include_paths: tuple[str, .
     and ``name_line`` the file-name card. ``missing`` has a ``hint``: ``placeholder``,
     ``absolute_path`` or ``not_found``. UNC names are not accessed (``network_path``) unless
     ``allow_network``. ``ok`` means no errors.
+
+    ``references`` lists every include reference in reading order (also those without a
+    problem): location fields as in ``problems`` plus ``kind`` (``file`` / ``path`` / ``opaque``),
+    ``path`` (resolved file, or the search directory of ``*INCLUDE_PATH``; None when
+    unresolved), ``rule`` and every existing candidate (``candidates``, normalized by
+    :func:`includes.identity`). A caller that confines input to allowed directories must check
+    ``files`` and every candidate, not only the first name of an ``*INCLUDE``.
     """
     main = Path(path)
     try:
         source = SourceFile.read(main)
     except (OSError, ValueError) as error:
-        return _report(main, [], [_problem("unreadable", _at(main.parent, main), reason=str(error))])
+        return _report(main, [], [_problem("unreadable", _at(main.parent, main), reason=str(error))], [])
     try:
         deck = KeywordDeck(source, [Path(p) for p in include_paths], max_files,
                            record_unreadable=True, network=allow_network)
     except RecursionError:
         files = [_entry(main.parent, main, "main", source.original)]
         reason = "includes nested, or parameter expressions chained, too deeply to follow"
-        return _report(main, files, [_problem("limit", _at(main.parent, main), reason=reason)])
+        return _report(main, files, [_problem("limit", _at(main.parent, main), reason=reason)], [])
     root = deck.main_dir
     files = [_entry(root, deck.main.path, "main", deck.main.original)]
     seen = {identity(deck.main.path)}
     problems: list[dict] = []
+    references: list[dict] = []
     for ref in deck.includes:
         where = _at(root, ref.parent.path, ref.block.line_number, ref.block.name, ref.name, ref.name_line)
         res = ref.resolution
         target = {"path": str(res.path)} if res is not None and res.path is not None else {}
+        directory = Path(ref.name) if Path(ref.name).is_absolute() else root / ref.name
+        resolved = str(directory) if ref.kind == "path" and not ref.error else target.get("path")
+        references.append({**where, "kind": ref.kind, "path": resolved, "rule": res.rule if res else None,
+                           "candidates": list(res.candidates) if res else []})
         if ref.error:
             problems.append(_problem(ref.error_kind or "unreadable", where, reason=ref.error, **target))
             continue
         if ref.kind == "path":
-            directory = Path(ref.name) if Path(ref.name).is_absolute() else root / ref.name
             if not _is_dir(directory):
                 problems.append(_problem("missing_search_dir", where, path=str(directory)))
             continue
@@ -94,15 +105,16 @@ def preflight_includes(path: str | os.PathLike[str], include_paths: tuple[str, .
                 hint = "placeholder" if "${" in text or "{{" in text else "no_file_card"
                 problems.append(_problem("empty_include", _at(root, loaded.path, block.line_number, block.name),
                                          hint=hint))
-    return _report(main, files, problems)
+    return _report(main, files, problems, references)
 
 
-def _report(main: Path, files: list[dict], problems: list[dict]) -> dict:
+def _report(main: Path, files: list[dict], problems: list[dict], references: list[dict]) -> dict:
     digest = hashlib.sha256("\n".join(f["sha256"] for f in files).encode("ascii")).hexdigest()
     errors = sum(p["severity"] == "error" for p in problems)
     return {"path": str(main), "ok": errors == 0, "files": files,
             "tree_sha256": digest if files else None, "tree_sha256_version": TREE_SHA256_VERSION,
-            "problems": problems, "counts": {"files": len(files), "errors": errors,
+            "problems": problems, "references": references,
+            "counts": {"files": len(files), "errors": errors,
                                              "warnings": len(problems) - errors},
             "read_only": True}
 
