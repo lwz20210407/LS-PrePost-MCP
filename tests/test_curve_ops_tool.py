@@ -66,7 +66,8 @@ def test_force_displacement_to_true_stress_strain_with_sae_600(service: Service)
     result = _run(service, [*TENSILE, {"op": "convert_units", "input": "true", "value_unit": "MPa",
                                        "output": "true_mpa"}])
     assert result["status"] == "succeeded" and result["contract"] == "JobResult/v1"
-    assert [(check["name"], check["status"]) for check in result["checks"]] == [("inputs_unchanged", "passed")]
+    assert [(check["name"], check["status"]) for check in result["checks"]] == [
+        ("inputs_unchanged", "passed"), ("artifacts_match_records", "passed")]
     steps = {s["output"]: s for s in result["data"]["steps"]}
     assert steps["force"]["operation"] == "history" and steps["force"]["input_file"]["sha256"]
     assert steps["force_f"]["parameters"]["cfc"] == 600 and steps["force_f"]["parameters"]["padding"] == "odd"
@@ -179,7 +180,8 @@ def test_read_failures_and_changed_inputs_fail_the_job(service: Service, tmp_pat
     monkeypatch.setattr(tool, "_write", tamper)
     changed = _run(service, [{"op": "differentiate", "input": "force", "output": "d"}])
     assert changed["status"] == "failed" and "changed" in changed["error"]["message"]
-    assert [(check["name"], check["status"]) for check in changed["checks"]] == [("inputs_unchanged", "failed")]
+    assert [(check["name"], check["status"]) for check in changed["checks"]] == [
+        ("inputs_unchanged", "failed"), ("artifacts_match_records", "passed")]
 
 
 def test_malformed_requests_are_refused_before_a_job(service: Service, tmp_path: Path) -> None:
@@ -201,6 +203,38 @@ def test_malformed_requests_are_refused_before_a_job(service: Service, tmp_path:
         with pytest.raises(ValueError, match=message.replace("[", r"\[").replace("]", r"\]")):
             service.curve_ops(inputs, operations)
     assert not (tmp_path / "jobs").exists()
+
+
+def test_names_differing_only_in_case_are_refused_before_a_job(service: Service, tmp_path: Path) -> None:
+    inputs = [{"name": "force", "path": "force.csv", "time_unit": "ms", "value_unit": "kN"}]
+    for operations in ([{"op": "differentiate", "input": "force", "output": "Result"},  # Result.csv, then result.csv
+                        {"op": "integrate", "input": "force", "output": "result"}],
+                       [{"op": "differentiate", "input": "force", "output": "FORCE"}]):
+        with pytest.raises(ValueError, match="differs only in case"):
+            service.curve_ops(inputs, operations)
+    assert not (tmp_path / "jobs").exists()
+    result = _run(service, [{"op": "differentiate", "input": "force", "output": "Result"},
+                            {"op": "integrate", "input": "force", "output": "result_2"}])
+    assert result["status"] == "succeeded"
+    for artifact in result["artifacts"]:  # every registered fingerprint still describes the file on disk
+        assert hashlib.sha256(Path(artifact["path"]).read_bytes()).hexdigest() == artifact["sha256"]
+    assert ("artifacts_match_records", "passed") in [(check["name"], check["status"]) for check in result["checks"]]
+
+
+def test_an_overwritten_artifact_fails_the_job(service: Service, monkeypatch) -> None:
+    write, written = tool._write, []
+
+    def overwrite(directory, name, curve):
+        artifact = write(directory, name, curve)
+        written.append(artifact.path)
+        Path(written[0]).write_text("time,value\n0,0\n1,1\n", encoding="utf-8")  # a later step clobbers the first
+        return artifact
+
+    monkeypatch.setattr(tool, "_write", overwrite)
+    result = _run(service, [{"op": "differentiate", "input": "force", "output": "a"},
+                            {"op": "integrate", "input": "force", "output": "b"}])
+    assert result["status"] == "failed" and "a.csv" in result["error"]["message"]
+    assert ("artifacts_match_records", "failed") in [(check["name"], check["status"]) for check in result["checks"]]
 
 
 def test_curve_ops_is_a_registered_mcp_tool(service: Service) -> None:

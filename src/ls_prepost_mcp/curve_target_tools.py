@@ -10,6 +10,7 @@ from __future__ import annotations
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 
 from .core.contracts import Artifact, CheckResult, JobResult
 from .jobs import atomic_json, fingerprint
@@ -81,7 +82,7 @@ def _plan(inputs: list[dict], operations: list[dict]) -> None:
         raise ValueError("Give 1..20 input curves")
     if not isinstance(operations, list) or not 1 <= len(operations) <= 50:
         raise ValueError("Give 1..50 operations")
-    names = set()
+    names: dict[str, str] = {}  # casefolded -> declared: <name>.csv must not collide on Windows
     for item in inputs:
         if not isinstance(item, dict) or not {"name", "path", "time_unit", "value_unit"} <= item.keys():
             raise ValueError("Each input needs name, path, time_unit and value_unit")
@@ -89,7 +90,7 @@ def _plan(inputs: list[dict], operations: list[dict]) -> None:
             raise ValueError(f"Unknown input keys {sorted(set(item) - INPUT_KEYS)}; allowed: {sorted(INPUT_KEYS)}")
         if not isinstance(item["path"], str):
             raise ValueError("An input path must be a string")
-        names.add(_new_name(item["name"], names))
+        _new_name(item["name"], names)
     ops = _ops()
     for index, step in enumerate(operations):
         if not isinstance(step, dict) or not isinstance(step.get("op"), str) or step["op"] not in ops:
@@ -101,16 +102,21 @@ def _plan(inputs: list[dict], operations: list[dict]) -> None:
             raise ValueError(f"Operation {index} ({step['op']}): missing {missing}, unknown "
                              f"{sorted(set(step) - allowed)}; allowed: {sorted(allowed)}")
         for key in spec.sources:
-            if not isinstance(step[key], str) or step[key] not in names:
+            if not isinstance(step[key], str) or names.get(step[key].casefold()) != step[key]:
                 raise ValueError(f"Operation {index}: curve {step[key]!r} is not defined before it")
-        names.add(_new_name(step["output"], names))
+        _new_name(step["output"], names)
 
 
-def _new_name(name: object, names: set) -> str:
-    if not isinstance(name, str) or not NAME.fullmatch(name) or RESERVED.fullmatch(name) or name in names:
+def _new_name(name: object, names: dict[str, str]) -> None:
+    """Register a curve name; names equal up to case are refused because each output is written to
+    ``<name>.csv`` and Windows file names ignore case (one file would overwrite the other)."""
+    if not isinstance(name, str) or not NAME.fullmatch(name) or RESERVED.fullmatch(name) or name in names.values():
         raise ValueError(f"Curve name {name!r} must be a new identifier (letter, then letters/digits/_; <= 64; "
                          "not a Windows device name)")
-    return name
+    if name.casefold() in names:
+        raise ValueError(f"Curve name {name!r} differs only in case from {names[name.casefold()]!r}; outputs are "
+                         "files named <name>.csv and Windows file names ignore case")
+    names[name.casefold()] = name
 
 
 class CurveTargetTools:
@@ -163,9 +169,14 @@ class CurveTargetTools:
             except OSError as failure:
                 error = error or {"type": type(failure).__name__, "message": f"An input disappeared: {failure}"}
         unchanged = before is not None and after == before
-        checks = [CheckResult(name="inputs_unchanged", status="passed" if unchanged else "failed")]
+        artifacts, rewritten = _recheck(artifacts)
+        checks = [CheckResult(name="inputs_unchanged", status="passed" if unchanged else "failed"),
+                  CheckResult(name="artifacts_match_records", status="failed" if rewritten else "passed")]
         if error is None and not unchanged:
             error = {"type": "RuntimeError", "message": "An input changed while the job ran"}
+        if error is None and rewritten:
+            error = {"type": "RuntimeError", "message": "Outputs changed after they were recorded: "
+                     + ", ".join(rewritten)}
         result = JobResult(operation="curve_ops", status="failed" if error else "succeeded", backend=BACKEND,
                            job_id=manifest["job_id"], data={"steps": steps, "curves": sorted(curves)},
                            artifacts=tuple(artifacts), checks=tuple(checks), warnings=tuple(warnings), error=error,
@@ -207,6 +218,26 @@ def _write(directory, name: str, curve) -> Artifact:
     return Artifact(path=saved["path"], kind="csv", sha256=saved["sha256"], size_bytes=saved["size"],
                     verification="verified" if saved["sha256"] else "unverified",
                     metadata={"curve": name, "columns": header, "units": meta["units"], "rows": saved["row_count"]})
+
+
+def _recheck(artifacts: list[Artifact]) -> tuple[list[Artifact], list[str]]:
+    """Fingerprint every output again at the end; one that no longer matches its record loses
+    ``verified`` and is reported, instead of describing a file that was overwritten."""
+    kept, rewritten = [], []
+    for artifact in artifacts:
+        path = Path(artifact.path)
+        try:
+            current = fingerprint(path)
+            same = current["sha256"] == artifact.sha256 and current["size"] == artifact.size_bytes
+        except OSError:
+            same = False
+        if same:
+            kept.append(artifact)
+            continue
+        rewritten.append(path.name)
+        kept.append(Artifact(path=artifact.path, kind=artifact.kind, verification="unverified",
+                             metadata={**artifact.metadata, "changed_after_writing": True}))
+    return kept, rewritten
 
 
 def _warnings(name: str, curve) -> list[str]:

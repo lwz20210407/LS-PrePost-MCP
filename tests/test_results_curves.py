@@ -123,6 +123,24 @@ def test_padding_conventions_at_the_ends() -> None:
         c.sae_filter(T, ramp, 60, t_unit="s", padding="zero")
 
 
+def test_padding_length_follows_the_digital_poles_near_nyquist() -> None:
+    fs, cutoff = 1000.0, 490.0
+    t = np.arange(1000) / fs
+    ramp = 2.0 + 3.0 * t
+    warped = math.tan(math.pi * cutoff / fs)  # analog poles over 2 fs, then the bilinear map z = (1 + s) / (1 - s)
+    poles = [warped * np.exp(1j * math.pi * (2 * k + 3) / 4) for k in range(2)]
+    radius = max(abs((1 + p) / (1 - p)) for p in poles)
+    assert radius == pytest.approx(0.95654, abs=1e-5)
+    needed = math.ceil(math.log(1e6) / -math.log(radius))  # 311 samples for the transient to fall by 1e-6
+    full = c.butterworth_filter(t, ramp, 2, cutoff, t_unit="s")
+    assert full.meta["parameters"]["padding_samples"] == needed and full.meta["parameters"]["padding_complete"]
+    assert np.allclose(full.y, ramp, rtol=0, atol=1e-5)  # the ends have settled: a straight line passes
+    short = c.butterworth_filter(t[:50], ramp[:50], 2, cutoff, t_unit="s")
+    assert short.meta["parameters"]["padding_samples"] == 49 and short.meta["parameters"]["padding_complete"] is False
+    sae = c.sae_filter(t, ramp, 230.0, t_unit="s")  # design frequency 477.8 Hz, close to the 500 Hz Nyquist
+    assert sae.meta["parameters"]["padding_complete"] and np.allclose(sae.y, ramp, rtol=0, atol=1e-5)
+
+
 @pytest.mark.parametrize("order", [1, 2, 4, 5])
 def test_butterworth_zero_phase_gain(order: int) -> None:
     cutoff = 500.0

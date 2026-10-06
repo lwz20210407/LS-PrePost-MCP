@@ -33,9 +33,10 @@ Record ends (``padding``; J211 fixes the recursion and the two passes, the end t
 module's convention and is recorded in ``meta``):
 
 * ``"odd"`` (default): the record is extended at each end by its point reflection about the end
-  sample (2 y[0] - y[k], 2 y[-1] - y[-1-k]), long enough for the slowest pole to decay by 1e-6
-  (``ceil(ln(1e6) / (2 pi f T sin(pi / 2n)))`` samples, f = f_d or f_c, at most len - 1). Constant
-  and linear signals then pass unchanged; ``padding_complete`` is false when the record is shorter.
+  sample (2 y[0] - y[k], 2 y[-1] - y[-1-k]), long enough for the slowest pole of the digital filter
+  to decay by 1e-6 (``ceil(ln(1e6) / -ln r)`` samples, r the largest pole radius, at most len - 1;
+  near Nyquist r approaches 1 and the padding grows). Constant and linear signals then pass
+  unchanged; ``padding_complete`` is false (and curve_ops warns) when the record is shorter.
 * ``"constant"``: the end values are held (every filter state starts at the end value), which is
   exact for a record that starts and ends at rest but bends a sloped end (``padding_complete`` None).
 
@@ -56,7 +57,7 @@ MAX_SAMPLES = 1_000_000
 SAE_CLASSES = (60, 180, 600, 1000)
 SAE_DESIGN_RATIO = 2.0775
 PADDINGS = ("odd", "constant")
-_DECAY = math.log(1e6)  # odd padding lasts until the slowest pole has decayed by this factor
+_DECAY = math.log(1e6)  # odd padding lasts until the slowest digital pole has decayed by this factor
 
 
 class CurveError(ValueError):
@@ -264,12 +265,20 @@ def _recursive(x: np.ndarray, b: tuple[float, float, float], a: tuple[float, flo
     return np.asarray(out)
 
 
-def _zero_phase(y: np.ndarray, sections: list, padding: object, frequency: float, dt_s: float,
-                order: int) -> tuple[np.ndarray, dict]:
+def _settling(sections: list) -> int:
+    """Samples for the slowest digital pole to decay by 1e-6: ceil(ln(1e6) / -ln r), r = max |pole|
+    over the sections (poles of z^2 - a1 z - a2), at least the two samples of input history."""
+    radius = max(float(np.abs(np.roots([1.0, -a[0], -a[1]])).max()) for _, a in sections)
+    if not radius < 1:
+        raise CurveError("The digital filter is not stable at this sampling rate")
+    return 2 if radius == 0 else max(2, math.ceil(_DECAY / -math.log(radius)))
+
+
+def _zero_phase(y: np.ndarray, sections: list, padding: object) -> tuple[np.ndarray, dict]:
     """Forward then backward pass with the given end treatment (module docstring)."""
     if padding not in PADDINGS:
         raise CurveError(f"padding must be one of {PADDINGS}")
-    needed = math.ceil(_DECAY / (2 * math.pi * frequency * dt_s * math.sin(math.pi / (2 * order))))
+    needed = _settling(sections)
     pad = min(y.size - 1, needed) if padding == "odd" else 0
     data = np.concatenate([2 * y[0] - y[pad:0:-1], y, 2 * y[-1] - y[-2:-pad - 2:-1]]) if pad else y.copy()
     for direction in (1, -1):
@@ -297,7 +306,7 @@ def sae_filter(t: object, y: object, cfc: float, *, t_unit: str, y_unit: str | N
     a0 = wa * wa / norm
     b = (a0, 2 * a0, a0)
     a = (-2 * (wa * wa - 1) / norm, (-1 + math.sqrt(2) * wa - wa * wa) / norm)
-    filtered, ends = _zero_phase(y, [(b, a)], padding, design, dt_s, 2)
+    filtered, ends = _zero_phase(y, [(b, a)], padding)
     return Curve(t, filtered, _meta(
         "sae_filter", "SAE J211/1 App. C: 2-pole Butterworth, f_d = 2.0775*CFC, w_a = tan(pi f_d T), "
         "forward + backward (phaseless 4-pole)", (t_unit, y_unit), ("time", "value"), cfc=cfc,
@@ -334,7 +343,7 @@ def butterworth_filter(t: object, y: object, order: int, cutoff_hz: float, *, t_
     dt_s = dt * _seconds(t_unit)
     if cutoff_hz >= 0.5 / dt_s:
         raise CurveError(f"cutoff {cutoff_hz:g} Hz must be below the Nyquist frequency {0.5 / dt_s:g} Hz")
-    filtered, ends = _zero_phase(y, _sections(order, cutoff_hz, 1 / dt_s), padding, cutoff_hz, dt_s, order)
+    filtered, ends = _zero_phase(y, _sections(order, cutoff_hz, 1 / dt_s), padding)
     return Curve(t, filtered, _meta(
         "butterworth_filter", "Butterworth low-pass, bilinear transform pre-warped at the cutoff, forward + "
         "backward (zero phase, |H|^2 = 1/(1 + (tan(pi f T)/tan(pi f_c T))^(2n)))", (t_unit, y_unit),
