@@ -627,11 +627,10 @@ tasks:
     layer: T1
     target_tools: [run_script]
     channel: python
-    status: partial
-    gaps:
-      - 历史原生报告未记录实际 Git revision 与运行时未提交 diff SHA256，需重新取证并将 report.md、evidence.json 入库
+    status: done
+    gaps: []
     existing: [prepare_native_program, execute_native_program]
-    evidence: [tests/test_script_python_native.py, docs/decisions/0005-python-execution.md]
+    evidence: [tests/test_script_python_native.py, docs/decisions/0005-python-execution.md, docs/decisions/evidence/a04/report.md]
     acceptance:
       - DataCenter / LsPrePost 调用；脚本参数传递；多文件依赖包
       - Python 异常返回完整栈
