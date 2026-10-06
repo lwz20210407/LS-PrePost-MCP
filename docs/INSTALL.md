@@ -40,6 +40,8 @@ $env:LSPP_TIMEOUT = '120'
 $env:LSPP_EXECUTABLES = '{"4.8":"C:/path/4.8/lsprepost.exe","4.10":"C:/path/4.10/lsprepost.exe","4.13":"C:/path/4.13/lsprepost.exe"}'
 ```
 
+配置键可以是版本号，也可以是 `production`、`lspp413` 等普通名称。只有 `4.13`、`4.13.4` 这类纯版本号会与检测到的版本族核对；普通名称不声明版本。可执行文件的资源冲突和 4.11 排除规则始终生效，名称不会绕过这些检查。
+
 MCP 客户端使用本项目虚拟环境里的 `ls-prepost-mcp` 可执行入口，或以该环境的 Python 启动 `-m ls_prepost_mcp.server`，并传入上述环境变量。服务使用 stdio；不要将调试打印写到协议 stdout。
 
 

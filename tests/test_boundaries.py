@@ -201,3 +201,11 @@ def test_native_cwd_alternative_cannot_bypass_preflight(tmp_path, allowed_altern
     settings = Settings(root, allowed_roots=(cwd,) if allowed_alternate else ())
     with pytest.raises(ValueError, match="outside|different file"):
         settings.check_keyword_includes(main, native_cwd=cwd)
+
+
+@pytest.mark.parametrize("keyword,name", [("*INCLUDE_TRANSFORM", "missing.k"), ("*INCLUDE", "%missing%.k")])
+def test_policy_failure_keeps_first_preflight_error_location(tmp_path, keyword, name):
+    main = tmp_path / "main.k"
+    main.write_text("*KEYWORD\n" + keyword + "\n" + name + "\n*END\n")
+    with pytest.raises(ValueError, match="kind=missing, relative=main.k, name_line=3, reason=not_found"):
+        Settings(tmp_path).check_keyword_includes(main)

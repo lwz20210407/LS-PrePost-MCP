@@ -31,3 +31,5 @@ A03 4.13 session 在 LF 写入下尚未补跑；A02/A03 4.8 batch 本轮已补�
 ## 第七轮：补登既有 4.13 session 原生记录
 
 干净 c68caef 上的 scl session 用例通过；实际完整 revision、空 diff 哈希、逐例状态、带 session 上下文的原始报告路径及哈希、Git blob/LF 源码身份已追加到 [evidence.json](evidence.json)。该运行使用包含 Draft #26 的集成栈，并非本次 #38 头的重新运行；此前批处理和旧会话记录原样保留。
+
+补充更正：前文“第六轮”所述 A03 4.13 session 在 LF 写入下尚未补跑，仅描述当时状态。后续 `r6-gui-window-r2-scl-session` 已在干净 `c68caef` 上通过；该集成提交包含 Draft #26，记录见 [A03 evidence.json](../a03/evidence.json)。旧运行记录保留，本次未重新运行 GUI。
