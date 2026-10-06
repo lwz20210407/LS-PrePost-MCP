@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from . import lists
 from .fields import FieldError
 from .geometry import _index, elements, exterior_segments, nodes
 from .layouts import Unsupported
@@ -27,13 +28,19 @@ ASSUMPTIONS = ["shell contact thickness = section T1 (element thickness cards an
 
 
 def _set_members(deck: KeywordDeck, prefix: str, sid: int) -> list[int]:
+    """Members of set ``sid``; ``_COLLECT`` blocks with that SID are merged."""
+    found = []
     for block in deck.blocks(prefix + "*"):
         try:
             if deck.get(block, "sid").value == sid:
-                return deck.members(block)
+                found.append(block)
         except (FieldError, KeyError):
             continue
-    raise FieldError(f"{prefix} {sid} not found")
+    if not found:
+        raise FieldError(f"{prefix} {sid} not found")
+    if len(found) > 1 and not all(lists.collected(block.name) for block in found):
+        raise FieldError(f"{prefix} {sid} is defined by {len(found)} blocks that are not all _COLLECT")
+    return [member for block in found for member in deck.members(block)]
 
 
 def _shell_thickness(deck: KeywordDeck, part: int) -> float:
