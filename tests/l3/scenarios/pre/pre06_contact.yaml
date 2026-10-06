@@ -1,0 +1,25 @@
+schema_version: 1
+id: pre06_contact
+domain: pre
+task_ids: [P06]
+title: 自动面面接触
+prompt: |
+  impact.k 里冲击块（Part 2）会撞到平板（Part 1）。
+  请在这两个部件之间定义自动面面接触（automatic surface to surface），静摩擦系数和动摩擦系数都取 0.2。
+fixtures: [impact.k, impact_mesh.k]
+model: impact.k
+checks:
+  - check: input_unchanged
+  - check: deck_consistent
+  - check: contact
+    params:
+      keyword: ["*CONTACT_AUTOMATIC_SURFACE_TO_SURFACE"]
+      parts: [[1], [2]]
+      expect: {fs: 0.2, fd: 0.2}
+oracle:
+  - tool: create_entities
+    args:
+      model: impact.k
+      entities:
+        - {op: add_contact, recipe: automatic_surface_to_surface, a: {part: 2}, b: {part: 1},
+           params: {fs: 0.2, fd: 0.2}}

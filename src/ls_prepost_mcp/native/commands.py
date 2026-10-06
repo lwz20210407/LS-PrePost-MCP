@@ -4,6 +4,7 @@ Builders preserve native user IDs, zero-based buffers and one-based states.
 They validate syntax; the caller still verifies native selection/field results.
 """
 
+import json
 import math
 import os
 import re
@@ -11,6 +12,15 @@ import re
 TARGETS = frozenset(("node", "element", "shell", "solid", "beam", "tshell", "part"))
 CFILE_ENCODING = "utf-8"
 SCL_ENCODING = "utf-8"
+
+
+def scl_string(path, style="posix"):
+    """SCL UTF-8 path literal; keep non-ASCII characters instead of JSON u-escapes."""
+    value = os.fspath(path)
+    if not isinstance(value, str):
+        raise ValueError("SCL path must be text")
+    choice(style, ("posix", "native"), "path style")
+    return json.dumps(value.replace("\\", "/") if style == "posix" else value, ensure_ascii=False)
 
 
 def quoted_path(path, style="posix"):

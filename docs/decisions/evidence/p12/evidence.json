@@ -1,0 +1,508 @@
+{
+ "schema_version": 1,
+ "task": "P12",
+ "date": "2026-10-06",
+ "solver": "LS-DYNA R11.1.0 SMP double",
+ "analytic_cases": {
+  "revolute": {
+   "solver": "normal",
+   "check_errors": 0,
+   "validation": {
+    "period": 0.7354085413916713,
+    "expected": 0.7330897671205777,
+    "period_error": 0.0031630154656248077,
+    "amplitude_deg": 5.000172788963541,
+    "radius_drift": 0.020102161901547788,
+    "axial_drift": 0.31681000000000026,
+    "pass": true
+   }
+  },
+  "revolute_wide": {
+   "solver": "normal",
+   "check_errors": 0,
+   "validation": {
+    "period": 0.7354242039449506,
+    "expected": 0.7330897671205777,
+    "period_error": 0.0031843805889448795,
+    "amplitude_deg": 5.000220125882122,
+    "radius_drift": 0.04219298162422547,
+    "axial_drift": 0.0991200000000001,
+    "pass": true
+   }
+  },
+  "spherical": {
+   "solver": "normal",
+   "check_errors": 0,
+   "validation": {
+    "distance_drift": 0.014735752455408146,
+    "max_out_of_plane": 10.969,
+    "pass": "True"
+   }
+  },
+  "spherical_twist": {
+   "solver": "normal",
+   "check_errors": 0,
+   "validation": {
+    "twist_deg": 143.23373901293314,
+    "free_spin_deg": 143.2394487827058,
+    "pass": true
+   }
+  },
+  "universal_twist": {
+   "solver": "normal",
+   "check_errors": 0,
+   "validation": {
+    "twist_deg": 0.0,
+    "free_spin_deg": 143.2394487827058,
+    "pass": true
+   }
+  },
+  "translational": {
+   "solver": "normal",
+   "check_errors": 0,
+   "validation": {
+    "along": 24.51985964174142,
+    "expected": 24.515190980999996,
+    "error": 0.0001904395011664839,
+    "perp_drift": 0.0005409451071325954,
+    "rotation_drift": 0.0003366006535938087,
+    "pass": true
+   }
+  },
+  "cylindrical": {
+   "solver": "normal",
+   "check_errors": 0,
+   "validation": {
+    "along": 24.520006148092367,
+    "expected": 24.515190980999996,
+    "perp_drift": 0.0002849081633314035,
+    "spin_rad": 1.9995989816357305,
+    "expected_spin_rad": 1.9996,
+    "pass": "True"
+   }
+  },
+  "planar": {
+   "solver": "normal",
+   "check_errors": 0,
+   "validation": {
+    "dx": -49.0402,
+    "expected_dx": -49.030381962,
+    "dy": 19.996,
+    "expected_dy": 19.996,
+    "max_dz": 0.0,
+    "pass": "True"
+   }
+  },
+  "locking": {
+   "solver": "normal",
+   "check_errors": 0,
+   "validation": {
+    "max_tip_disp": 0.46267600067432274,
+    "free_swing_scale": 441.45,
+    "pass": "True"
+   }
+  },
+  "rotational_motor": {
+   "solver": "normal",
+   "check_errors": 0,
+   "validation": {
+    "turned_rad": 1.7300009423089704,
+    "expected_rad": 3.141592653589793,
+    "error": -0.44932359695578106,
+    "pass": false
+   }
+  },
+  "rotational_motor_lmf": {
+   "solver": "normal",
+   "check_errors": 0,
+   "validation": {
+    "turned_rad": 3.1414670033892884,
+    "expected_rad": 3.141592653589793,
+    "error": -3.9995701021644514e-05,
+    "pass": true
+   }
+  },
+  "translational_motor": {
+   "solver": "normal",
+   "check_errors": 0,
+   "validation": {
+    "along": -9.978656013916286,
+    "expected_abs": 9.998,
+    "perp_drift": 3.3201089293588145e-05,
+    "pass": "True"
+   }
+  },
+  "failure": {
+   "solver": "normal",
+   "check_errors": 0,
+   "validation": {
+    "held_before": 0.0296703,
+    "drop": -196.256,
+    "expected_drop": -196.20000000000005,
+    "pass": "True"
+   }
+  },
+  "spider": {
+   "solver": "normal",
+   "check_errors": 0,
+   "validation": {
+    "period": 0.7353796238392782,
+    "expected_rigid": 0.7330897671205777,
+    "period_error": 0.0031235693381652663,
+    "amplitude_deg": 5.000065996460006,
+    "pass": true
+   }
+  }
+ },
+ "rebuild_comparisons": {
+  "planar": {
+   "joints": 1,
+   "kinds": [
+    "planar"
+   ],
+   "kinetic_energy_max_rel_diff": 0.0,
+   "max_displacement_diff": 0.0,
+   "max_displacement": 7.96772,
+   "source": "dynaexamples-wayback/examplesmanual_2007_ls-dyna_example/constrained.joint_planar.k"
+  },
+  "revolute_stop": {
+   "joints": 1,
+   "kinds": [
+    "revolute"
+   ],
+   "kinetic_energy_max_rel_diff": 0.0,
+   "max_displacement_diff": 2.68085e-20,
+   "max_displacement": 6.4738e-05,
+   "source": "dynaexamples-wayback/examplesmanual_2007_ls-dyna_example/constrained.joint_revolute.k"
+  },
+  "revo_stiff": {
+   "joints": 1,
+   "kinds": [
+    "revolute"
+   ],
+   "kinetic_energy_max_rel_diff": 0.0,
+   "max_displacement_diff": 0.0,
+   "max_displacement": 9.03841e-05,
+   "source": "dynaexamples-wayback/intro_j_day_input/revo-stiff.k"
+  },
+  "translat": {
+   "joints": 1,
+   "kinds": [
+    "translational"
+   ],
+   "kinetic_energy_max_rel_diff": 0.0,
+   "max_displacement_diff": 0.0,
+   "max_displacement": 1.61581,
+   "source": "dynaexamples-wayback/intro_j_day_input/translat.k"
+  },
+  "rev_trans": {
+   "joints": 2,
+   "kinds": [
+    "revolute",
+    "translational"
+   ],
+   "kinetic_energy_max_rel_diff": 9.33e-07,
+   "joint_force_max_abs_diff": 0.04339,
+   "joint_force_max": 6.89828,
+   "source": "lsdyna-ansys-com/2022_12__EXP_SC_JOINT_REV_TRANS.key/EXP_SC_JOINT_REV_TRANS.key"
+  }
+ },
+ "real_deck_check": {
+  "public": [
+   {
+    "joints": 14,
+    "errors": [],
+    "warnings": [
+     "joint_overconstrained",
+     "joint_overconstrained"
+    ],
+    "unverified": 0,
+    "crash": null,
+    "deck": "zenodo__19854032/simplified_model_B/BMW-TB32_r1.11.dyn"
+   },
+   {
+    "joints": 1,
+    "errors": [],
+    "warnings": [],
+    "unverified": 2,
+    "crash": null,
+    "deck": "zenodo__14000052/fe_models/Pool/BELT_PA_05th_HIII_ml_br19_sr17.k"
+   },
+   {
+    "joints": 1,
+    "errors": [],
+    "warnings": [],
+    "unverified": 2,
+    "crash": null,
+    "deck": "zenodo__14000052/fe_models/Pool/BELT_PA_50th_HIII_ml_br19_sr17.k"
+   },
+   {
+    "joints": 1,
+    "errors": [],
+    "warnings": [],
+    "unverified": 2,
+    "crash": null,
+    "deck": "zenodo__14000052/fe_models/Pool/BELT_PA_95th_HIII_ml_br19_sr17.k"
+   },
+   {
+    "joints": 1,
+    "errors": [],
+    "warnings": [],
+    "unverified": 2,
+    "crash": null,
+    "deck": "zenodo__13998073/PAB_Reduced_Env/00_INCLUDES/65_SEATBELT/BELT_PA_50th_HIII_ml_br19_sr17_simple.k"
+   },
+   {
+    "joints": 1,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "WillemJR__dynakw/test/full_files/joint_revolute.k"
+   },
+   {
+    "joints": 1,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "WillemJR__dynakw/test/full_files/joint_translational.k"
+   },
+   {
+    "joints": 4,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "QHQIII__bl_dyna/test/YarisD_V2g_ag04_rc05emin.k"
+   },
+   {
+    "joints": 0,
+    "errors": [],
+    "warnings": [],
+    "unverified": 10,
+    "crash": null,
+    "deck": "openvt__vivaplus/model/common/vivaplus-joints.k"
+   },
+   {
+    "joints": 2,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "lsdyna-ansys-com/2022_12__EXP_SC_JOINT_REV_TRANS.key/EXP_SC_JOINT_REV_TRANS.key"
+   },
+   {
+    "joints": 0,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "lsdyna-ansys-com/2022_12__EXP_SC_JOINT_SCREW.key/EXP_SC_JOINT_SCREW.key"
+   },
+   {
+    "joints": 14,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "lsdyna-ansys-com/2022_12__mat_spring.belted-dummy.k/mat_spring.belted-dummy.k"
+   },
+   {
+    "joints": 2,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "lsdyna-ansys-com/2023_01__implicit_seat_pull/Seat_Pull_implicit_example.key"
+   },
+   {
+    "joints": 48,
+    "errors": [],
+    "warnings": [
+     "joint_same_body"
+    ],
+    "unverified": 0,
+    "crash": null,
+    "deck": "lsdyna-ansys-com/2023_01__positioned_dummy/positioned_dummy.k"
+   },
+   {
+    "joints": 1,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "lsdyna-ansys-com/dx__constrained.joint_planar.k/constrained.joint_planar.k"
+   },
+   {
+    "joints": 1,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "lsdyna-ansys-com/dx__constrained.joint_revolute.k/constrained.joint_revolute.k"
+   },
+   {
+    "joints": 1,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "lsdyna-ansys-com/dx__revo-stiff.k/revo-stiff.k"
+   },
+   {
+    "joints": 1,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "lsdyna-ansys-com/dx__translat.k/translat.k"
+   },
+   {
+    "joints": 4,
+    "errors": [],
+    "warnings": [],
+    "unverified": 5,
+    "crash": null,
+    "deck": "lsdyna-ansys-com/LSDYNA_Explicit_Technical_Guide_v1.6/EX08_VEHICLE_INITIALIZATION_FOR_CRASH/barrier_with_delay_30ms.k"
+   },
+   {
+    "joints": 2,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "lsdyna-ansys-com/2024_09__Package_2024R2/Package_2024R2/Examples/geo_rotodyn.key"
+   },
+   {
+    "joints": 48,
+    "errors": [],
+    "warnings": [
+     "joint_same_body"
+    ],
+    "unverified": 0,
+    "crash": null,
+    "deck": "dynapy__dynakit/example/test_project/base_000/LSTC.50thRigidFE.PostFeb28.WithBeltVehicleModelTemplate.k"
+   },
+   {
+    "joints": 2,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "dynapy__dynakit/example/test_project/base_000/VehicleEnvironment.TemplateWithPitchDropYawPulse_KJL.k"
+   },
+   {
+    "joints": 1,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "dynaexamples-wayback/examplesmanual_2007_ls-dyna_example/constrained.joint_planar.k"
+   },
+   {
+    "joints": 1,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "dynaexamples-wayback/examplesmanual_2007_ls-dyna_example/constrained.joint_revolute.k"
+   },
+   {
+    "joints": 14,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "dynaexamples-wayback/examplesmanual_2007_ls-dyna_example/mat_spring.belted-dummy.k"
+   },
+   {
+    "joints": 1,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "dynaexamples-wayback/intro_j_day_input/revo-stiff.k"
+   },
+   {
+    "joints": 1,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "dynaexamples-wayback/intro_j_day_input/translat.k"
+   },
+   {
+    "joints": 0,
+    "errors": [
+     "joint_nodes_not_coincident",
+     "joint_nodes_not_coincident"
+    ],
+    "warnings": [],
+    "unverified": 2,
+    "crash": null,
+    "deck": "chptx__piper/share/data/model_01_file_01.k"
+   },
+   {
+    "joints": 0,
+    "errors": [
+     "joint_nodes_not_coincident",
+     "joint_nodes_not_coincident"
+    ],
+    "warnings": [],
+    "unverified": 2,
+    "crash": null,
+    "deck": "chptx__piper/share/data/model_01_file_01_separator.k"
+   },
+   {
+    "joints": 30,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "ccsa-gmu__2020-nissan-rogue-v3/2020-nissan-rogue-v3/rogue-v3.key"
+   },
+   {
+    "joints": 0,
+    "errors": [],
+    "warnings": [],
+    "unverified": 10,
+    "crash": null,
+    "deck": "ansys__example-data/ls-dyna/yaris_stat_shock_absorber_loading/YarisD_V2g_shock_abs_load_01.k"
+   },
+   {
+    "joints": 38,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "ansyshelp-ansys-com__doc-assets/4_1_Post_Occupant_injury/belted.k"
+   },
+   {
+    "joints": 0,
+    "errors": [],
+    "warnings": [],
+    "unverified": 0,
+    "crash": null,
+    "deck": "akaszynski__lsdyna-mesh-reader/src/lsdyna_mesh_reader/examples/EXP_SC_JOINT_SCREW.key"
+   }
+  ],
+  "local_counts": {
+   "decks": 47,
+   "joints": 702,
+   "decks_with_errors": 2,
+   "decks_with_warnings": 2,
+   "crash": 0
+  },
+  "decks_using_kind": {
+   "REVOLUTE": 64,
+   "SPHERICAL": 24,
+   "TRANSLATIONAL": 13,
+   "LOCKING": 2,
+   "PLANAR": 2,
+   "ROTATIONAL_MOTOR": 1,
+   "CYLINDRICAL": 3,
+   "UNIVERSAL": 1
+  }
+ }
+}
