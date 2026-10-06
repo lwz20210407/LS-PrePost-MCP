@@ -1,7 +1,7 @@
 {
   "task": "I04",
-  "run_id": "review11-public100-final-batch",
-  "actual_git_revision": "53f6072ca54bc2f7c3a6bfa887450dacd78c3d93",
+  "run_id": "r9-public100-batch",
+  "actual_git_revision": "19303f7792784108a807a9d6eb00c58b5c2d241a",
   "working_tree_dirty": false,
   "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames -U3 --inter-hunk-context=0",
@@ -11,30 +11,23 @@
     "excluded_paths": [],
     "untracked_included": false
   },
-  "source_snapshot_sha256": "af72c4339fb2583fa27b71fbf8d36fab4524b47f62adfa92f4953cf406c20db9",
-  "report": "../20261007-lspp-review11/public100-final-batch-report/report.json",
-  "report_sha256": "e10e6fab79e7fa6701f578e3fbf08ba745daf3f47d363e2df8fd414f6332a064",
+  "source_snapshot_sha256": "3835233eede221e60ed352e35506de6873f99075ec571bad6849c23f4b59eef9",
+  "report": "r9-public100-batch-report/report.json",
+  "report_sha256": "93e62e3a0003720e355aa44fdac518a26ddbb12816997602c3897c9e9b80b601",
   "test_source_identities": [
     {
       "path": "tests/test_public_corpus_native.py",
-      "revision": "53f6072ca54bc2f7c3a6bfa887450dacd78c3d93",
-      "git_blob_id": "afe61c5f2ddb8dd950a19a01b3c05a583332091d",
-      "sha256_lf": "da1d38887878ddcdb2f9326240ec5540e37a398955a418add35337e6d4733cb4",
-      "newline_basis": "Git blob normalized CRLF to LF"
+      "revision": "19303f7792784108a807a9d6eb00c58b5c2d241a",
+      "git_blob_id": "071a2dbfd33dc7e45486d2154e0ac7426c40d029",
+      "sha256_lf": "4bfd94df4171e91761b27fe21eb4083753e5775c4889d8717c8ffe5b6bdf016b",
+      "newline_basis": "Git blob bytes normalized CRLF to LF"
     },
     {
       "path": "tools/public_corpus_preflight.py",
-      "revision": "53f6072ca54bc2f7c3a6bfa887450dacd78c3d93",
-      "git_blob_id": "95980df7cfa0f83ca64dc4b3516f67e5b3334b16",
-      "sha256_lf": "76e791e96892a82ba9378a062c0d4d09f664d5eed483b7dcf71658b35567a961",
-      "newline_basis": "Git blob normalized CRLF to LF"
-    },
-    {
-      "path": "tools/fetch_corpus.py",
-      "revision": "53f6072ca54bc2f7c3a6bfa887450dacd78c3d93",
-      "git_blob_id": "8188e670602212d406360ecb39102e078b956870",
-      "sha256_lf": "27a6e8b3ad49dcf1eec932fb2ca3c6807b5d43248534e185427468e50303b887",
-      "newline_basis": "Git blob normalized CRLF to LF"
+      "revision": "19303f7792784108a807a9d6eb00c58b5c2d241a",
+      "git_blob_id": "24950e82003c732b427dadc064dedd6c1b6456b8",
+      "sha256_lf": "fc3733115f011e3bd4f6fe7698e2d4576dbdbe56c435ac713e12371bc2af08f3",
+      "newline_basis": "Git blob bytes normalized CRLF to LF"
     }
   ],
   "exit_code": 1,
@@ -52,12 +45,12 @@
   },
   "outcomes": {
     "passed": 16,
-    "failed": 45,
-    "evidence_only": 39
+    "failed": 34,
+    "evidence_only": 50
   },
   "failure_categories": {
-    "legacy_include_export": 29,
-    "unsupported_native_include_variant": 14,
+    "legacy_include_export": 24,
+    "unsupported_native_include_variant": 8,
     "native_process_failure": 1,
     "backend_state_count_mismatch": 1
   },
@@ -69,16 +62,57 @@
     "missing_file": 17,
     "path_form": 8
   },
+  "classification_comparison": [
+    {
+      "previous": "missing_file",
+      "current": "input_not_found",
+      "count": 17
+    },
+    {
+      "previous": "other",
+      "current": "input_not_found",
+      "count": 5
+    },
+    {
+      "previous": "other",
+      "current": "input_unreadable",
+      "count": 1
+    },
+    {
+      "previous": "other",
+      "current": "preflight_ok_requires_native_diagnosis",
+      "count": 25
+    },
+    {
+      "previous": "path_form",
+      "current": "input_absolute_path",
+      "count": 2
+    },
+    {
+      "previous": "path_form",
+      "current": "input_not_found",
+      "count": 6
+    },
+    {
+      "previous": "unsupported_variant",
+      "current": "input_not_found",
+      "count": 19
+    },
+    {
+      "previous": "unsupported_variant",
+      "current": "unsupported_native_include_variant",
+      "count": 8
+    }
+  ],
   "cases": [
     {
       "case": "extra-keyword-001",
       "corpus": "keyword.antahiap__CAE-KG-01",
       "member": "data/key_assem.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0006961000035516918,
+      "seconds": 0.0005985000170767307,
       "input_tree": {
         "ok": false,
         "tree_sha256": "dc22276dea4f625f86f5ec9f3bd42387893c88a5f4733bed0e04d534e532ffc2",
@@ -234,8 +268,6 @@
           "*INCLUDE_PATH",
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "key_assem.key",
         "files": [
           {
             "relative": "key_assem.key",
@@ -253,9 +285,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "f86e93349644f93e655d0a491f7a3d2d1fbc98385be85c89749372c9e9a8a9f1",
       "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -266,10 +295,9 @@
       "corpus": "keyword.Samos9877__lsdyna-agent-test",
       "member": "rigs/geofoam_indent/rig.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0004864000075031072,
+      "seconds": 0.0005455999926198274,
       "input_tree": {
         "ok": false,
         "tree_sha256": "7bf0efb06d5fec4d5bb0dc734e7ecc43b5b299e2ce9fe1af298fc51467c533bd",
@@ -286,8 +314,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "rig.k",
         "files": [
           {
             "relative": "rig.k",
@@ -299,9 +325,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "8efe0429cd22337aaf1b0f172a39eca04e734ac5a7ccae545aede28471ad7b8b",
       "failure_category": null,
       "review_group": "missing_file",
       "historical_symptom": "missing_referenced_input",
@@ -312,10 +335,9 @@
       "corpus": "keyword.lsdyna-ansys-com",
       "member": "2025_03__lsprepost/CYLINDER.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.00030519999563694,
+      "seconds": 0.0005483000131789595,
       "input_tree": {
         "ok": false,
         "tree_sha256": "c09462e50ef8dbb67ebdc98e189d393fea08d76355f35074793184b816686231",
@@ -334,8 +356,6 @@
         "unsupported_native_variants": [
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "CYLINDER.key",
         "files": [
           {
             "relative": "CYLINDER.key",
@@ -353,9 +373,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "439f8f035ba5ebad954525effe1f0167db4bb3c7f22f9a4c37c7212ab6fc804b",
       "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -366,10 +383,9 @@
       "corpus": "keyword.idaholab__mastodon",
       "member": "examples/ex05a/LS_Dyna_fixed_based_input.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 18.814474199985852,
+      "seconds": 12.622636300016893,
       "input_tree": {
         "ok": true,
         "tree_sha256": "2c677768882a30043d692692637e85a8b57ba00a73b9c2b819064f34fb642ab8",
@@ -377,8 +393,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "LS_Dyna_fixed_based_input.k",
         "files": [
           {
             "relative": "LS_Dyna_fixed_based_input.k",
@@ -396,9 +410,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "65808865e7458c55e6eeba0261b5763900cc807211f0c6c5bebf10c5ccc71737",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "legacy_include_export",
@@ -409,10 +420,9 @@
       "corpus": "keyword.squall321__KooRemapper",
       "member": "examples/replace_test/tshell_result.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0005887000006623566,
+      "seconds": 0.0005879999953322113,
       "input_tree": {
         "ok": false,
         "tree_sha256": "a46711572122a8003a3639d3666850c8709236b2b5884017b0677ff66f4ba32c",
@@ -429,8 +439,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "tshell_result.k",
         "files": [
           {
             "relative": "tshell_result.k",
@@ -442,9 +450,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "123fd97d32401b845e9baf30678c37d9ee4a47a85f90ce4257138fb1ec28aa04",
       "failure_category": null,
       "review_group": "missing_file",
       "historical_symptom": "missing_referenced_input",
@@ -455,55 +460,51 @@
       "corpus": "keyword.Sentinel-rtc__SENTINEL-TriageTools",
       "member": "FMH_CAE_HEAD_MODEL/Run_6.71ms/MAIN_6.71_run.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
-      "status": "failed",
-      "case_status": "failed",
-      "seconds": 0.07794299998204224,
+      "status": "evidence_only",
+      "case_status": "input_limited",
+      "seconds": 0.0005929000035393983,
       "input_tree": {
-        "ok": true,
-        "tree_sha256": "96cd009f324a9dd6f063caf25d04ea9f3942ef6948381101f0534388681752f1",
+        "ok": false,
+        "tree_sha256": "613a9d706e2458b336427dd2675a373435619944d4d3af533017bb6b854686c7",
         "tree_sha256_version": 1,
         "tree_kind": "keyword_include_tree",
-        "problems": [],
+        "problems": [
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "MAIN_6.71_run.key",
+            "name_line": 42,
+            "keyword": "*INCLUDE_TRANSFORM"
+          }
+        ],
         "unsupported_native_variants": [
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "Run_6.71ms/MAIN_6.71_run.key",
         "files": [
           {
-            "relative": "Run_6.71ms/MAIN_6.71_run.key",
+            "relative": "MAIN_6.71_run.key",
             "role": "main",
             "size": 321597,
             "sha256": "1bf01665dabf6d3293656b57442c939fc978290763fe7579996fdd254f081c99"
-          },
-          {
-            "relative": "FMH/FMH_VALIDATED_SENTINEL_2025_06_20a.KEY",
-            "role": "include",
-            "size": 3886456,
-            "sha256": "402db3bdf77f54621efcee8c7a1d11cdf438601c63ed7fc6c1fb3ea38a44e7ac"
           }
         ]
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 2,
-      "source_directory_listing_sha256": "9716a39809a7aa6a219b4535aad43f55449c82f3bfa85e351066d84f1647b928",
-      "failure_category": "unsupported_native_include_variant",
+      "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
-      "preflight_category": "unsupported_native_include_variant"
+      "preflight_category": "input_not_found"
     },
     {
       "case": "extra-keyword-007",
       "corpus": "keyword.MattiaMontanari__ai-material-model",
       "member": "src/D2_MAT18/03_TestNetwork/02_Cantilever/UMAT/cantilever.key",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 27.55633890000172,
+      "seconds": 17.16664270000183,
       "input_tree": {
         "ok": true,
         "tree_sha256": "bf26cd39b0192a987173340b5c5740051acace9c37f21da63b67713280daf7da",
@@ -511,8 +512,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "cantilever.key",
         "files": [
           {
             "relative": "cantilever.key",
@@ -530,9 +529,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "1c3a7ac8fad687a624bb89be97b82da79b2656ed039841c7cb727abd8f4d42a7",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "legacy_include_export",
@@ -543,10 +539,9 @@
       "corpus": "keyword.antahiap__nrg_simRank",
       "member": "extnd_mdl/CCSA_sample.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0005917999951634556,
+      "seconds": 0.0004296999832149595,
       "input_tree": {
         "ok": false,
         "tree_sha256": "2dfdabfe29a4cd9cc81b7e65f82397716db43a9341e20f584de41b349cf9c332",
@@ -598,8 +593,6 @@
           "*INCLUDE_PATH_RELATIVE",
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "CCSA_sample.key",
         "files": [
           {
             "relative": "CCSA_sample.key",
@@ -611,9 +604,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "c3829c51e81a196abd54f99fb12de70c7569770ed6c41e35c81a450839b02111",
       "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -624,10 +614,9 @@
       "corpus": "keyword.mkaramica__lsDyna_automation",
       "member": "mainKey.key",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 13.203614699974423,
+      "seconds": 11.880400900001405,
       "input_tree": {
         "ok": true,
         "tree_sha256": "4553c985756ef876415d1a847ea5d95cf44488f8e5ddff94094b90578aa86fb7",
@@ -635,8 +624,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "mainKey.key",
         "files": [
           {
             "relative": "mainKey.key",
@@ -666,9 +653,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "bc891c7084082d426395b78f621ed5523143a2fc13ac761237b5f17a7e774bea",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "legacy_include_export",
@@ -679,10 +663,9 @@
       "corpus": "keyword.mjhmilla__SingleMuscleSimulationsLSDYNA",
       "member": "SMP_R931/umat41/impedance/impedance.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 13.930749399994966,
+      "seconds": 11.767543800000567,
       "input_tree": {
         "ok": true,
         "tree_sha256": "7bcc61d1ea8c6935293afa73719d277e07ce041df8f8bb027cf590597800c18f",
@@ -690,8 +673,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "impedance.k",
         "files": [
           {
             "relative": "impedance.k",
@@ -709,9 +690,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "a5c024b8033a7d9e457b66bf1505629379e90884a06aaba92a3b1cb28cd40ede",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "legacy_include_export",
@@ -722,10 +700,9 @@
       "corpus": "keyword.node997__dyna_pladebuk",
       "member": "Plade_300_150_4/differentmeshsizes/conv/Convergence_3/main.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0004191999905742705,
+      "seconds": 0.0005151999939698726,
       "input_tree": {
         "ok": false,
         "tree_sha256": "139755ba4a3cc89ef154b5a87ef076d45c0fe7055bf1c80bfea38e5a86a6844e",
@@ -742,8 +719,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "main.k",
         "files": [
           {
             "relative": "main.k",
@@ -761,9 +736,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "8c4c4fe04040739452162ab8ad753fa3c99e04fc19835a0579fa851bab45a368",
       "failure_category": null,
       "review_group": "missing_file",
       "historical_symptom": "missing_referenced_input",
@@ -774,10 +746,9 @@
       "corpus": "keyword.squall321__KooDynaAdvanced",
       "member": "Battery/Examples/batmac_intshort/i.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 12.667314099991927,
+      "seconds": 11.780096300004516,
       "input_tree": {
         "ok": true,
         "tree_sha256": "eda8dde6405565f164edfbaa46afa8b008037763ae839236480de89cd69ddc42",
@@ -785,8 +756,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "i.k",
         "files": [
           {
             "relative": "i.k",
@@ -822,9 +791,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "5370206a1d80cac5d53d541fe48ebdb06ae4f420b32dd42bc2120ce350ec7c42",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
@@ -835,10 +801,9 @@
       "corpus": "keyword.loumalouomega__meshioplusplus",
       "member": "tests/python/meshes/lsdyna/crash_main.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0004726999904960394,
+      "seconds": 0.0005387999990489334,
       "input_tree": {
         "ok": false,
         "tree_sha256": "277e40d522c277408f5994723e2f259fdcb897d6d5c32975128af4a247ee4863",
@@ -857,8 +822,6 @@
         "unsupported_native_variants": [
           "*INCLUDE_PATH"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "crash_main.k",
         "files": [
           {
             "relative": "crash_main.k",
@@ -888,9 +851,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "590ddf48084b42fba4c13083f1298293106d5e0f0da2c13d29dcd238919d1a8d",
       "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -901,10 +861,9 @@
       "corpus": "keyword.LLK-LL__K-agent",
       "member": "skills/lsdyna-kfile/templates/crash/crash.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 14.552479800011497,
+      "seconds": 11.842546800005948,
       "input_tree": {
         "ok": true,
         "tree_sha256": "be3b4d75db98ae6cd9db6afb2a0cbc60babfe7e08d7a61c683e76d865db8f117",
@@ -912,8 +871,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "crash.k",
         "files": [
           {
             "relative": "crash.k",
@@ -931,9 +888,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "f9a2f7bae2779f23f9f50640da1fb73b2782789a5ab983a021185338b1bc3bb8",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
@@ -944,10 +898,9 @@
       "corpus": "keyword.yannikmayerm__FE-Simulations",
       "member": "metamodel_deviation_analysis_clinch_joints/0Data/05_springback/edited_Springback.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0006078000005800277,
+      "seconds": 0.000542099995072931,
       "input_tree": {
         "ok": false,
         "tree_sha256": "5d61ab73b576408afc89df08587423f15178eccba303083cbcab0d7673990499",
@@ -964,8 +917,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "edited_Springback.k",
         "files": [
           {
             "relative": "edited_Springback.k",
@@ -977,9 +928,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "20b8850322e9e181a37b9c271a06244e53f24103df5323198b5f577f5d184278",
       "failure_category": null,
       "review_group": "missing_file",
       "historical_symptom": "missing_referenced_input",
@@ -990,10 +938,9 @@
       "corpus": "keyword.ansys__pydyna",
       "member": "tests/testfiles/keywords/expand_test/bird_B.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0005705000075977296,
+      "seconds": 0.0005424999981187284,
       "input_tree": {
         "ok": false,
         "tree_sha256": "04303642f5d794b837f643a88c373c1d886b23345bff85227bd0f172599fd6b2",
@@ -1010,8 +957,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "bird_B.k",
         "files": [
           {
             "relative": "bird_B.k",
@@ -1029,9 +974,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "bd3059d77c3209d81ec9917f5b1eb640ba44a4fa9767f22eba3385b673339613",
       "failure_category": null,
       "review_group": "path_form",
       "historical_symptom": "missing_referenced_input",
@@ -1042,10 +984,9 @@
       "corpus": "keyword.SciMate-AI__HPC-Skills",
       "member": "skills/hpc-ls-dyna/assets/templates/implicit-static-outline.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0007520999934058636,
+      "seconds": 0.0005698000022675842,
       "input_tree": {
         "ok": false,
         "tree_sha256": "01239e8838656477cc8c7912d01913ca8a46a1d765711c4d6e8f8732ab06228f",
@@ -1062,8 +1003,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "implicit-static-outline.k",
         "files": [
           {
             "relative": "implicit-static-outline.k",
@@ -1075,9 +1014,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "98329651714a2bcc4ffc4370cdc1c9b72e3b569d7ec2143eb556577723928211",
       "failure_category": null,
       "review_group": "missing_file",
       "historical_symptom": "missing_referenced_input",
@@ -1088,10 +1024,9 @@
       "corpus": "keyword.WCCMS-UTAustin__MSCM-LSDyna",
       "member": "Test Problems/Setup Input Files/biaxial_tension_MSCM1_e.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 11.95494399999734,
+      "seconds": 12.011828799993964,
       "input_tree": {
         "ok": true,
         "tree_sha256": "88195727e5a9011697bb5107ad972275f6782166f56f879574169e0a777b119a",
@@ -1099,8 +1034,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "biaxial_tension_MSCM1_e.k",
         "files": [
           {
             "relative": "biaxial_tension_MSCM1_e.k",
@@ -1130,9 +1063,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "105cd22f1e31ff387df9986ac78028a23c16da42b5fa070aa922fe0a2b6cd270",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
@@ -1143,10 +1073,9 @@
       "corpus": "keyword.Ice-Citron__Project-Railgun",
       "member": "simulations/development/fp16-coordinate-variants/Modified - fp16 + 75segment100mm/i.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 15.041797600017162,
+      "seconds": 13.29723080000258,
       "input_tree": {
         "ok": true,
         "tree_sha256": "dd6796332e0e364c8fe210deaa89f78417e580626b487e158f79a339a5f11983",
@@ -1154,8 +1083,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "i.k",
         "files": [
           {
             "relative": "i.k",
@@ -1191,9 +1118,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "10bd7b1c3018f6aee7399e53e8e05fec496be56bf7c018e5728ba63ce81a6488",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "legacy_include_export",
@@ -1204,10 +1128,9 @@
       "corpus": "keyword.qd-cae__qd-cae-python",
       "member": "test/keyfile.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0006103000196162611,
+      "seconds": 0.0005659999733325094,
       "input_tree": {
         "ok": false,
         "tree_sha256": "096cbced5cab7829207ba44cd8065c01015118ca3ff37a3cea1e93f669519698",
@@ -1224,8 +1147,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "keyfile.key",
         "files": [
           {
             "relative": "keyfile.key",
@@ -1243,9 +1164,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "1f8a58ac76abf353105117bce82397feb78a4cc643be4b653331ee8e50cb86d3",
       "failure_category": null,
       "review_group": "other",
       "historical_symptom": "native_process_failure",
@@ -1256,10 +1174,9 @@
       "corpus": "keyword.dynaexamples-wayback",
       "member": "yaris_static_shock_absorber_loading__partial/000_yaris_stat_shock_absorber_loading_01.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0006099000165704638,
+      "seconds": 0.0005698000022675842,
       "input_tree": {
         "ok": false,
         "tree_sha256": "f7c934336ac6e51b365b3a5d306d4d10b4eb5401e5760c248de5c2ac9fe93e84",
@@ -1278,8 +1195,6 @@
         "unsupported_native_variants": [
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "000_yaris_stat_shock_absorber_loading_01.k",
         "files": [
           {
             "relative": "000_yaris_stat_shock_absorber_loading_01.k",
@@ -1303,9 +1218,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "6c3f328bac0f36c9d9f6a602ddb1fd83b46c30f4dc3a99b4619be3a0fbb872ce",
       "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -1316,10 +1228,9 @@
       "corpus": "keyword.ansys__example-data",
       "member": "ls-dyna/yaris_stat_shock_absorber_loading/000_yaris_stat_shock_absorber_loading_01.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 3.2874204000108875,
+      "seconds": 3.468710999994073,
       "input_tree": {
         "ok": true,
         "tree_sha256": "46ee358dadeb21800eee9a8724b78e340a72520812111ab278a9a2b59a7b5a88",
@@ -1329,8 +1240,6 @@
         "unsupported_native_variants": [
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "000_yaris_stat_shock_absorber_loading_01.k",
         "files": [
           {
             "relative": "000_yaris_stat_shock_absorber_loading_01.k",
@@ -1366,9 +1275,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "00fc24c9a99fbf07970f1669a29713df4ac7e963061589bf43080d3b67c8de9b",
       "failure_category": "unsupported_native_include_variant",
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -1379,10 +1285,9 @@
       "corpus": "keyword.SGI-2022__HexDom-IGApipeline",
       "member": "Ibeam_hybrid_demo/Ibeam_simulation/Ibeam_IGA.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.000434900022810325,
+      "seconds": 0.000614099990343675,
       "input_tree": {
         "ok": false,
         "tree_sha256": "409efa41eba924ffd403c3348540fa90d9aeca282639146033e01cf8ee30674f",
@@ -1401,8 +1306,6 @@
         "unsupported_native_variants": [
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "Ibeam_IGA.k",
         "files": [
           {
             "relative": "Ibeam_IGA.k",
@@ -1414,9 +1317,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "563df6d0b84340ebaea90ea016a917da3fbbdd6ae184e52949ede301faca91e9",
       "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -1427,10 +1327,9 @@
       "corpus": "keyword.QHQIII__bl_dyna",
       "member": "test/000_yaris_dynamic_roof_crush_01.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 1.8752937999961432,
+      "seconds": 1.8723954999877606,
       "input_tree": {
         "ok": true,
         "tree_sha256": "f5bdefd59f22f69e7bd8e52d14db22a709f834598f292a00059399ad05e56ccd",
@@ -1440,8 +1339,6 @@
         "unsupported_native_variants": [
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "000_yaris_dynamic_roof_crush_01.k",
         "files": [
           {
             "relative": "000_yaris_dynamic_roof_crush_01.k",
@@ -1471,9 +1368,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "3863a40461def7dfd5c56b62e2bd4d37ba1743f08b3586a3ee521d7de3af3ae7",
       "failure_category": "unsupported_native_include_variant",
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -1484,151 +1378,193 @@
       "corpus": "keyword.openvt__vivaplus",
       "member": "model/50F-seated/vivaplus-50F.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
-      "status": "failed",
-      "case_status": "failed",
-      "seconds": 3.2392896999954246,
+      "status": "evidence_only",
+      "case_status": "input_limited",
+      "seconds": 0.0005194999976083636,
       "input_tree": {
-        "ok": true,
-        "tree_sha256": "75b64a66a1e2bcd35017f5164813eaa5f67728d13c9b9c6ced828c6ae0721ecd",
+        "ok": false,
+        "tree_sha256": "1f8803f1a412fc3b57cfbc0b6e1134f9b852a07615de7b4a2c83fb1b64e2cc18",
         "tree_sha256_version": 1,
         "tree_kind": "keyword_include_tree",
-        "problems": [],
+        "problems": [
+          {
+            "kind": "missing_search_dir",
+            "hint": null,
+            "severity": "warning",
+            "relative": "vivaplus-50F.key",
+            "name_line": 71,
+            "keyword": "*INCLUDE_PATH"
+          },
+          {
+            "kind": "missing_search_dir",
+            "hint": null,
+            "severity": "warning",
+            "relative": "vivaplus-50F.key",
+            "name_line": 73,
+            "keyword": "*INCLUDE_PATH"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F.key",
+            "name_line": 84,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F.key",
+            "name_line": 86,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F.key",
+            "name_line": 88,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F.key",
+            "name_line": 90,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F.key",
+            "name_line": 92,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F.key",
+            "name_line": 94,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F.key",
+            "name_line": 96,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F.key",
+            "name_line": 98,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F.key",
+            "name_line": 100,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F.key",
+            "name_line": 102,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F.key",
+            "name_line": 104,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F.key",
+            "name_line": 106,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F.key",
+            "name_line": 108,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F.key",
+            "name_line": 110,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F.key",
+            "name_line": 112,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F.key",
+            "name_line": 114,
+            "keyword": "*INCLUDE"
+          }
+        ],
         "unsupported_native_variants": [
           "*INCLUDE_PATH"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "50F-seated/vivaplus-50F.key",
         "files": [
           {
-            "relative": "50F-seated/vivaplus-50F.key",
+            "relative": "vivaplus-50F.key",
             "role": "main",
             "size": 3910,
             "sha256": "b6809b1ad6d0ffbcc2b9b66d1a79f52c23dd96db41305b8227c22b220cc65533"
           },
           {
-            "relative": "50F-seated/vivaplus_50F-seated_nodes.k",
+            "relative": "vivaplus_50F-seated_nodes.k",
             "role": "include",
             "size": 41326863,
             "sha256": "62895276a4fb9620c928e98a689c5bceaba8f03c15421d5e9bfde49e35225d2a"
-          },
-          {
-            "relative": "common/vivaplus-joints.k",
-            "role": "include",
-            "size": 33657,
-            "sha256": "2294ac569bfa4da6f43a202f6b3a249ec0ee5ebb8bb59652f46b2b7902c6e9bb"
-          },
-          {
-            "relative": "common/vivaplus-elements.k",
-            "role": "include",
-            "size": 58930539,
-            "sha256": "f5b9df260cd1d3db4bd2d4db4b4cef90aa448cf697cd9e169f7f102057363edb"
-          },
-          {
-            "relative": "common/vivaplus-materials.k",
-            "role": "include",
-            "size": 586096,
-            "sha256": "f14ef78bdb2a792ed9d2be01bf82f0a0a93ca811313f5f8cab0ff62b13d5a4b8"
-          },
-          {
-            "relative": "common/vivaplus-constraineds-contacts.k",
-            "role": "include",
-            "size": 763036,
-            "sha256": "4b46e5ccc5813734686b69a8c4f215565cc1e80aa181ade815926ff38fc2dabe"
-          },
-          {
-            "relative": "common/vivaplus-10-Head.k",
-            "role": "include",
-            "size": 41335,
-            "sha256": "ce5d7e16ad54535364b209f205ca872a20dd9c2423399a968e17105e22cabb94"
-          },
-          {
-            "relative": "common/vivaplus-20-Neck.k",
-            "role": "include",
-            "size": 111255,
-            "sha256": "0ac6c3b32a8981d46edffd4fe67be602a3b7f6ed7142343aa119a2aafd05e8b0"
-          },
-          {
-            "relative": "common/vivaplus-22-Neck-Muscles.k",
-            "role": "include",
-            "size": 204047,
-            "sha256": "66381b2b5f32a10674e06163dccb01cea022e5b10426fff8040cf855f540c8b7"
-          },
-          {
-            "relative": "common/vivaplus-30-Upper-Extremity.k",
-            "role": "include",
-            "size": 52205,
-            "sha256": "f8ba6d47718f1eb41a4f920688e2dd154a8710deca75e9d800af0c890b999954"
-          },
-          {
-            "relative": "common/vivaplus-40-Thorax.k",
-            "role": "include",
-            "size": 126804,
-            "sha256": "298b6b8f691f52f39406dcd896d2be0989ccde76f0951af742b27b452966bf51"
-          },
-          {
-            "relative": "common/vivaplus-50-Abdomen.k",
-            "role": "include",
-            "size": 79261,
-            "sha256": "52b06cfee428701747071fba7453c69edc6e9c556f84e77dd9bc9ee45c797cb4"
-          },
-          {
-            "relative": "common/vivaplus-60-Pelvis.k",
-            "role": "include",
-            "size": 23540,
-            "sha256": "7b291c29a116baa2f0bd35836d577087043146d15c34ddd962d3adf6490e807c"
-          },
-          {
-            "relative": "common/vivaplus-70-Lower-Extremity.k",
-            "role": "include",
-            "size": 73969,
-            "sha256": "9dc5e573a50e9120664beee5f32fb5d94ca92d3383b15d572e7ebee85dd6e724"
-          },
-          {
-            "relative": "common/vivaplus-90-outputs-nodes.k",
-            "role": "include",
-            "size": 80416,
-            "sha256": "b8bd4a782b16a40bb0cff37631bde3b787a1603c25158f54fc1384f48d1e81c6"
-          },
-          {
-            "relative": "common/vivaplus-91-output-settings.k",
-            "role": "include",
-            "size": 2560,
-            "sha256": "89e561831a5e54952bc6968980e32768d570cb5dd4800a2ddf31316eb5ca4d5a"
-          },
-          {
-            "relative": "common/vivaplus-92-outputs-elements.k",
-            "role": "include",
-            "size": 7934,
-            "sha256": "69be6058398cdd166da3387da7276cd5dc1b35c43279dae1408db9b1035f06be"
-          },
-          {
-            "relative": "common/vivaplus-constraineds-landmarks.k",
-            "role": "include",
-            "size": 861916,
-            "sha256": "15580070ee93e50bf08648a1651e46f902fd289049db8a8bbac9c7d85b672431"
           }
         ]
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 2,
-      "source_directory_listing_sha256": "f3ab9b1b965febeaa153dfdec5206c7ec93366c8cef321caa2708105d60f2fdf",
-      "failure_category": "unsupported_native_include_variant",
+      "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
-      "preflight_category": "unsupported_native_include_variant"
+      "preflight_category": "input_not_found"
     },
     {
       "case": "extra-keyword-026",
       "corpus": "keyword.lstc-ftp-wayback",
       "member": "hao_sale__2bagstrim/main.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 0.00882600000477396,
+      "seconds": 0.01250919999438338,
       "input_tree": {
         "ok": true,
         "tree_sha256": "d63e5452824bad439c38c25893eb5645a9979033b73d65747064ad8e40dbc691",
@@ -1647,8 +1583,6 @@
         "unsupported_native_variants": [
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "main.k",
         "files": [
           {
             "relative": "main.k",
@@ -1684,9 +1618,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "9f299b3bd751e5061d05ba0f3d38e1b4dadc677a5bac9481650cbd399f03178e",
       "failure_category": "unsupported_native_include_variant",
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -1697,10 +1628,9 @@
       "corpus": "keyword.DataAnalyticsEngineering__UMAT_2scale_LSDYNA",
       "member": "repo_files/examples_extra/thermomech_cube/1_steadystate_fix_timestep_mat270/input.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 11.987838900007773,
+      "seconds": 14.294442400016123,
       "input_tree": {
         "ok": true,
         "tree_sha256": "51e1cc5efd1ae189bdefa406fa284075c5baf5ed0c46d4a683b49ef6c748e464",
@@ -1708,8 +1638,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "input.k",
         "files": [
           {
             "relative": "input.k",
@@ -1739,9 +1667,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "58c3328b3223656d19f444e6a10207203d83ed3b6cfeb240e4f9b752b59ee9b4",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
@@ -1752,10 +1677,9 @@
       "corpus": "keyword.Wanggs2418__ANSYS_Code",
       "member": "code/ANSYS LS-DYNA动力分析与工程实例/demo_k_files/EX01.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.000302400003420189,
+      "seconds": 0.0005954999942332506,
       "input_tree": {
         "ok": false,
         "tree_sha256": "3374d59cc97fe97179f97904e8b2be179f1d263bf1f2fb448dea73aec5a57b54",
@@ -1772,8 +1696,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "EX01.k",
         "files": [
           {
             "relative": "EX01.k",
@@ -1785,9 +1707,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "8eb05450a83806d5afa4d77b52fa33b4650a4ad7e3cf71b29270f372290fdb2d",
       "failure_category": null,
       "review_group": "missing_file",
       "historical_symptom": "missing_referenced_input",
@@ -1798,10 +1717,9 @@
       "corpus": "keyword.osullivryan__vscode-lsdyna",
       "member": "test/Bolt_A_Explicit/mainboltaexpl.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.00048510002670809627,
+      "seconds": 0.0005908999883104116,
       "input_tree": {
         "ok": false,
         "tree_sha256": "8aa6f37823b5f3f0c1331c861c01b13f4c7a3e29006642711f4ea5f72c2c26ba",
@@ -1809,11 +1727,11 @@
         "tree_kind": "keyword_include_tree",
         "problems": [
           {
-            "kind": "repeated",
-            "hint": null,
-            "severity": "warning",
-            "relative": "mainboltaexpl.k",
-            "name_line": 81,
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "submodels/loading/prescribed_motion.k",
+            "name_line": 7,
             "keyword": "*INCLUDE"
           },
           {
@@ -1836,8 +1754,6 @@
         "unsupported_native_variants": [
           "*INCLUDE_PATH_RELATIVE"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "mainboltaexpl.k",
         "files": [
           {
             "relative": "mainboltaexpl.k",
@@ -1879,9 +1795,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "6c6b725a7f001c90e2c8ef09c539984edac6c68782be7c496d0dde49ce3e244d",
       "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -1892,10 +1805,9 @@
       "corpus": "keyword.zenodo__19854032",
       "member": "simplified_model_B/Combine.key",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 0.5121205000032205,
+      "seconds": 0.5432487000070978,
       "input_tree": {
         "ok": true,
         "tree_sha256": "41672a0b205a4fd1d181e323a4d10122d5d58cf17f63f3d4923cc282ffe0e5b6",
@@ -1905,8 +1817,6 @@
         "unsupported_native_variants": [
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "Combine.key",
         "files": [
           {
             "relative": "Combine.key",
@@ -1930,9 +1840,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "2637e2b8114efea3b34bbc644dc3f7c74aea22efbdd5afdf7aca3bfa60f92ece",
       "failure_category": "unsupported_native_include_variant",
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -1943,10 +1850,9 @@
       "corpus": "keyword.osullivryan__dynars",
       "member": "tests/data/bolt_a_explicit/mainboltaexpl.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0007445999945048243,
+      "seconds": 0.0007381000032182783,
       "input_tree": {
         "ok": false,
         "tree_sha256": "4cbecee8939bb5b5e0e5bc68a09aa11bcdfed921af8a4448f819054e21445047",
@@ -1954,11 +1860,11 @@
         "tree_kind": "keyword_include_tree",
         "problems": [
           {
-            "kind": "repeated",
-            "hint": null,
-            "severity": "warning",
-            "relative": "mainboltaexpl.k",
-            "name_line": 83,
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "submodels/loading/prescribed_motion.k",
+            "name_line": 7,
             "keyword": "*INCLUDE"
           },
           {
@@ -1981,8 +1887,6 @@
         "unsupported_native_variants": [
           "*INCLUDE_PATH_RELATIVE"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "mainboltaexpl.k",
         "files": [
           {
             "relative": "mainboltaexpl.k",
@@ -2024,9 +1928,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "6c6b725a7f001c90e2c8ef09c539984edac6c68782be7c496d0dde49ce3e244d",
       "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -2037,10 +1938,9 @@
       "corpus": "keyword.ccsa-gmu__2020-nissan-rogue-v3",
       "member": "2020-nissan-rogue-v3/combine.key",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 9.321986099996138,
+      "seconds": 11.272904100012966,
       "input_tree": {
         "ok": true,
         "tree_sha256": "fd9969cf573ebdc44d4a66875435e5bd2da6edee66240ff068b116a08b989d88",
@@ -2050,8 +1950,6 @@
         "unsupported_native_variants": [
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "combine.key",
         "files": [
           {
             "relative": "combine.key",
@@ -2081,9 +1979,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "7471eee0179b4bd7cd461faf6143c55743bc311815bb352a13963cf68a0e1e52",
       "failure_category": "unsupported_native_include_variant",
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -2094,10 +1989,9 @@
       "corpus": "keyword.cmeveritt__LS-Dyna-FoldingBox",
       "member": "Foldingbox5-Main.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 12.19043149999925,
+      "seconds": 14.02115529999719,
       "input_tree": {
         "ok": true,
         "tree_sha256": "6e304c534141e4981cefc9ba5232094019d540be5fe9ce0508f11b676ea0a273",
@@ -2105,8 +1999,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "Foldingbox5-Main.k",
         "files": [
           {
             "relative": "Foldingbox5-Main.k",
@@ -2136,9 +2028,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "0c2ff4473ad9d3ee055d15f803dd3275e0acd316f366c98309a23c7bd6e8f653",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
@@ -2149,10 +2038,9 @@
       "corpus": "keyword.chptx__piper",
       "member": "share/data/model_01_separator.dyn",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 12.643987699993886,
+      "seconds": 11.332083999994211,
       "input_tree": {
         "ok": true,
         "tree_sha256": "78b8b614566063500aeaed1fb850e36d07f45bc34aee2475bf8395352971a980",
@@ -2160,8 +2048,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "model_01_separator.dyn",
         "files": [
           {
             "relative": "model_01_separator.dyn",
@@ -2179,9 +2065,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "70edee2806e8a3bceb0b492e98f3e7bd0650cf5d286e1e71c6a4586b6090efac",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "legacy_include_export",
@@ -2192,10 +2075,9 @@
       "corpus": "keyword.jfriedlein__TRR285-LoadCaseChecker_LS-Dyna",
       "member": "1_main.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0005519000114873052,
+      "seconds": 0.0006041000015102327,
       "input_tree": {
         "ok": false,
         "tree_sha256": "aae7e70abcfeaca25f31e754962fc017e32e50ccf6da6929215828c449a25eb6",
@@ -2214,8 +2096,6 @@
         "unsupported_native_variants": [
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "1_main.k",
         "files": [
           {
             "relative": "1_main.k",
@@ -2365,9 +2245,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "faaaef9d32b61b6bf45cf77709bff714a37a2755da54d3e6b51689ebab3cc01a",
       "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "include_validation",
@@ -2378,10 +2255,9 @@
       "corpus": "keyword.JorgeZorrilla__Crash-GeoNN",
       "member": "data/templates/main.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0004022000066470355,
+      "seconds": 0.0005471000040415674,
       "input_tree": {
         "ok": false,
         "tree_sha256": "e796dc72176d4dce8bd457476f93f9b1892d933d07d401508d94b4f0d09ac3aa",
@@ -2414,8 +2290,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "main.k",
         "files": [
           {
             "relative": "main.k",
@@ -2427,9 +2301,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "8bad188e18ec960148842effddab87adf83f903a975dfd563105e4976c5a7a33",
       "failure_category": null,
       "review_group": "path_form",
       "historical_symptom": "missing_referenced_input",
@@ -2440,89 +2311,97 @@
       "corpus": "keyword.zenodo__13998073",
       "member": "PAB_Reduced_Env/Steps/Stand_PAB_Simple_Delay/25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
-      "status": "failed",
-      "case_status": "failed",
-      "seconds": 28.760941499989713,
+      "status": "evidence_only",
+      "case_status": "input_limited",
+      "seconds": 0.0004852999991271645,
       "input_tree": {
-        "ok": true,
-        "tree_sha256": "8ede98fcb712a7e0ab2206e574207f368374060efe5d7ddcd16e748eaa4ac6d6",
+        "ok": false,
+        "tree_sha256": "603530fe4c68b86871ab6fe6a018cdf53cf73c8d914e80d27c3513c550bfc1ae",
         "tree_sha256_version": 1,
         "tree_kind": "keyword_include_tree",
-        "problems": [],
+        "problems": [
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
+            "name_line": 120,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
+            "name_line": 126,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
+            "name_line": 132,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
+            "name_line": 139,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
+            "name_line": 147,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
+            "name_line": 152,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
+            "name_line": 157,
+            "keyword": "*INCLUDE"
+          }
+        ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "Steps/Stand_PAB_Simple_Delay/25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
         "files": [
           {
-            "relative": "Steps/Stand_PAB_Simple_Delay/25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
+            "relative": "25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
             "role": "main",
             "size": 5372,
             "sha256": "de942b850a95ebba4cfa41a56ddf0f586ee3cbbd011703321d789380fac9f581"
-          },
-          {
-            "relative": "00_INCLUDES/67_PAB/FAB_PA_withInner_withLiner_infl60_coarse_shrinked_mod.k",
-            "role": "include",
-            "size": 1060999,
-            "sha256": "03e978902737b4411ad2e7f9e5cbf73c8445a05181c19eef55ec39a36c636242"
-          },
-          {
-            "relative": "00_INCLUDES/10_BIW/BIW_simple_noIntru_half.k",
-            "role": "include",
-            "size": 2985851,
-            "sha256": "712408094a9321c82ab95c1021ce697faca62122b52c1766005e861f62e6260e"
-          },
-          {
-            "relative": "00_INCLUDES/16_DASH/DASHBOARD.k",
-            "role": "include",
-            "size": 480227,
-            "sha256": "72245055eb3003c9f16df148e040fa77c2cdd791d9cc7daab77e70d535bd09e4"
-          },
-          {
-            "relative": "00_INCLUDES/80_MATERIALS/Materials_DB_Accord_004.k",
-            "role": "include",
-            "size": 117956,
-            "sha256": "f74ae1173df94621d46ab10298b4b10326a79bc579b18199d1566d8011944df4"
-          },
-          {
-            "relative": "00_INCLUDES/99_MOTION/MOTION_FIX.k",
-            "role": "include",
-            "size": 8334,
-            "sha256": "4ae8dcbd5eb94dac6b0788f0271dfdeca05db33c1c56b53150bb65a19923e77c"
-          },
-          {
-            "relative": "00_INCLUDES/70_CONTACTS/92_Contact_12_06302017_V01_mod_8_reduced.k",
-            "role": "include",
-            "size": 2735,
-            "sha256": "74ae85891d2b74d39d9927f12ca92a6c14e45418c97fa38cc150cce964bd8a28"
-          },
-          {
-            "relative": "00_INCLUDES/98_CONTROL_CARDS/98_Control_card_003_05302017.k",
-            "role": "include",
-            "size": 6343,
-            "sha256": "892fbaafa9d03d6da956a42ccc4b1372040e7f3cceadd53d3a7a995d4841eba1"
           }
         ]
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 8,
-      "source_directory_listing_sha256": "e6a6a8119d1679616b176759fbc656faa9293bab9d5fa784e1d0e1a15a505cc7",
-      "failure_category": "legacy_include_export",
+      "failure_category": null,
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
-      "preflight_category": "preflight_ok_requires_native_diagnosis"
+      "preflight_category": "input_not_found"
     },
     {
       "case": "extra-keyword-038",
       "corpus": "keyword.tonyhoVN__automated-lattice-nosecone-impact",
       "member": "DYNA_files/original_nose_cone_star3_impact_test.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 0.08742490000440739,
+      "seconds": 0.09270549999200739,
       "input_tree": {
         "ok": true,
         "tree_sha256": "b9a23c3ec93738035d20f59ec8d35c174632376aebfce829c05cee3c62f28520",
@@ -2533,8 +2412,6 @@
           "*INCLUDE_AUTO_OFFSET",
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "original_nose_cone_star3_impact_test.k",
         "files": [
           {
             "relative": "original_nose_cone_star3_impact_test.k",
@@ -2576,9 +2453,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "e4de43a0ff7c36e1662c9691a33a234a62484296b89681d3012cd046f562cca4",
       "failure_category": "unsupported_native_include_variant",
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -2589,10 +2463,9 @@
       "corpus": "keyword.dynapy__dynakit",
       "member": "example/test_project/base_000/main.key",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 17.33333700001822,
+      "seconds": 17.271704500017222,
       "input_tree": {
         "ok": true,
         "tree_sha256": "b48d76fce02c913f8dcf4bd9de1b16dbc3b5e94f6d4668a2643bdfaf3cf53006",
@@ -2600,8 +2473,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "main.key",
         "files": [
           {
             "relative": "main.key",
@@ -2643,9 +2514,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "c6aaf31f680c6c91b027c128ed359b413c462154395a7c9920e3fa8d57845c8a",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
@@ -2656,10 +2524,9 @@
       "corpus": "keyword.ansys__pyansys-heart",
       "member": "tests/heart/assets/reference_models/strocchi2020/01/BiVentricle/k_files1/ZeroPressureMechanicsDynaWriter/main.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0005743999790865928,
+      "seconds": 0.0006436000112444162,
       "input_tree": {
         "ok": false,
         "tree_sha256": "a8386eae240781e744f882d273ed3bc577a643501d1a01c22aaf97a03adbd192",
@@ -2684,8 +2551,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "main.k",
         "files": [
           {
             "relative": "main.k",
@@ -2733,9 +2598,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "ae1b96c38d7735276323f059d04719bcb49bff8aa387054e5b862ee86269de9f",
       "failure_category": null,
       "review_group": "path_form",
       "historical_symptom": "missing_referenced_input",
@@ -2746,10 +2608,9 @@
       "corpus": "keyword.dbrizard__GSA-car-crash",
       "member": "lsopt_car6/main_v211.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 11.3735827000055,
+      "seconds": 11.220217299996875,
       "input_tree": {
         "ok": true,
         "tree_sha256": "cc02f87b9d9b8cc3ee9f4a1a4ca522ab502954ddcc45a4dff0d364b02ab700f0",
@@ -2757,8 +2618,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "main_v211.k",
         "files": [
           {
             "relative": "main_v211.k",
@@ -2776,9 +2635,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "8d6a9691c495190e6d03b789de7d932f3e1d3e2d977f69572dfcad824b6ecfe0",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "legacy_include_export",
@@ -2789,119 +2645,137 @@
       "corpus": "keyword.zenodo__14000052",
       "member": "fe_models/Assemblies_DOE_FullFactorial_k5_f5/V0000097/V0000097.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
-      "status": "failed",
-      "case_status": "failed",
-      "seconds": 42.20478529998218,
+      "status": "evidence_only",
+      "case_status": "input_limited",
+      "seconds": 0.00045070002670399845,
       "input_tree": {
-        "ok": true,
-        "tree_sha256": "c99aa0edaa0624f914c2b7152768c99d8de0ffacb90cb269e995831c3c6dfb4c",
+        "ok": false,
+        "tree_sha256": "bc81f9bd919088fd886fd31bd135059147ec2743ef9d67214eb41e4e783e63ef",
         "tree_sha256_version": 1,
         "tree_kind": "keyword_include_tree",
-        "problems": [],
+        "problems": [
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000097.key",
+            "name_line": 18,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000097.key",
+            "name_line": 19,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000097.key",
+            "name_line": 20,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000097.key",
+            "name_line": 21,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000097.key",
+            "name_line": 22,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000097.key",
+            "name_line": 23,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000097.key",
+            "name_line": 24,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000097.key",
+            "name_line": 25,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000097.key",
+            "name_line": 27,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000097.key",
+            "name_line": 28,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000097.key",
+            "name_line": 29,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000097.key",
+            "name_line": 31,
+            "keyword": "*INCLUDE"
+          }
+        ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "Assemblies_DOE_FullFactorial_k5_f5/V0000097/V0000097.key",
         "files": [
           {
-            "relative": "Assemblies_DOE_FullFactorial_k5_f5/V0000097/V0000097.key",
+            "relative": "V0000097.key",
             "role": "main",
             "size": 984,
             "sha256": "f6b9d6cee6331e77430027f09fa33b680800b984509d06d9a746fbb405bbf804"
-          },
-          {
-            "relative": "Pool/DATABASE_CONTROL.k",
-            "role": "include",
-            "size": 6942,
-            "sha256": "c8b4124309f6e4cd8bbdf099d9452e3353c5b5a2ab827bd4b4d1f76c1be97741"
-          },
-          {
-            "relative": "Pool/MATERIALS.k",
-            "role": "include",
-            "size": 100513,
-            "sha256": "50b605a9243ed2e32de928abb0599f722c9d303b2413880220542ccb95e7c773"
-          },
-          {
-            "relative": "Pool/MOTION_SIMPLE.k",
-            "role": "include",
-            "size": 8621,
-            "sha256": "26b4c273d928a572228b47f819feb9522e192c6f97eb7957c17b1a7d3e5c0ec5"
-          },
-          {
-            "relative": "Pool/DATA_NHTSA_FULL_FRONTAL_COG_PARA.k",
-            "role": "include",
-            "size": 10452,
-            "sha256": "8e91f6f0a128f458cfd005603e1c9117424bcb781fb22f74d83a35ed2faf2399"
-          },
-          {
-            "relative": "Pool/BIW.k",
-            "role": "include",
-            "size": 1143226,
-            "sha256": "2e80c055dd3fd137ca3f0c4a3598a3cac488275264b4b6c3558aee1089a59d0a"
-          },
-          {
-            "relative": "Pool/DASHBOARD.k",
-            "role": "include",
-            "size": 480227,
-            "sha256": "72245055eb3003c9f16df148e040fa77c2cdd791d9cc7daab77e70d535bd09e4"
-          },
-          {
-            "relative": "Pool/CARPET_PA.k",
-            "role": "include",
-            "size": 110042,
-            "sha256": "5e46517232eb378b45a7e4cc76bae5b2887fdf497de1c9c3b5b9ecd39886f298"
-          },
-          {
-            "relative": "Pool/FAB_PA_withInner_withLiner_infl60_coarse_shrinked.k",
-            "role": "include",
-            "size": 1060843,
-            "sha256": "7d34359736af5baa01330ce6302b1c903d0444dd34cfc1e5efe493c3dac1870d"
-          },
-          {
-            "relative": "Pool/SEAT_PA_05th_HIII_ml_br19_sr17.k",
-            "role": "include",
-            "size": 77339,
-            "sha256": "a048a280ca210ce3a3658c7a6ac668de5ff0a497e5ded43ab602ba74ba424988"
-          },
-          {
-            "relative": "Pool/BELT_PA_05th_HIII_ml_br19_sr17.k",
-            "role": "include",
-            "size": 93695,
-            "sha256": "473d5cddb7b7a5c6a1502b45ec43f0c618e497210733725c7e15834c6e743008"
-          },
-          {
-            "relative": "Pool/DUMMY_05th_HIII_FAST_PA_ml_br19_sr17.k",
-            "role": "include",
-            "size": 337428,
-            "sha256": "0f73830dee8c8e71005b24bdb0263394ac1247ebd09bf2acd0b85028e73058bf"
-          },
-          {
-            "relative": "Pool/INTER_CONTACTS.k",
-            "role": "include",
-            "size": 15071,
-            "sha256": "28a47b6eb928374a420190c21837ccea4a97c6ebebee6d9ca3d21d04226857e8"
           }
         ]
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 2,
-      "source_directory_listing_sha256": "af33488d78b04ba60eac457e8f49880f1d38a5502a25eaf156e2f1872d2fc712",
-      "failure_category": "legacy_include_export",
+      "failure_category": null,
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
-      "preflight_category": "preflight_ok_requires_native_diagnosis"
+      "preflight_category": "input_not_found"
     },
     {
       "case": "extra-keyword-043",
       "corpus": "keyword.evtodorov__rfsmodels",
       "member": "plate/plate_2_20_20.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 26.386272599978838,
+      "seconds": 10.222440300014568,
       "input_tree": {
         "ok": true,
         "tree_sha256": "c84b47129338a3bce6eaf5a896404fd53ab242f34c5fc9814c42f0ab121ed8d9",
@@ -2909,8 +2783,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "plate_2_20_20.k",
         "files": [
           {
             "relative": "plate_2_20_20.k",
@@ -2952,9 +2824,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "3d337e5a609643506793cc078fee67b2bc27a9a434d2c08b1fc736c30acc5318",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
@@ -2965,10 +2834,9 @@
       "corpus": "keyword.gradzikb__vim-lsdyna",
       "member": "keywords/_/_master_mmkgms_template.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.00032500000088475645,
+      "seconds": 0.0004659999976865947,
       "input_tree": {
         "ok": false,
         "tree_sha256": "100eeaf7c0dc96f1e4a473b3320668b23df8fa178657c0589413a808f42da481",
@@ -2985,8 +2853,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "_master_mmkgms_template.k",
         "files": [
           {
             "relative": "_master_mmkgms_template.k",
@@ -2998,9 +2864,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "904e47b8b04a567ef5df3dd748d6ee57658ee4b5a61356de5be7a8a06fa965c1",
       "failure_category": null,
       "review_group": "path_form",
       "historical_symptom": "unclassified",
@@ -3011,10 +2874,9 @@
       "corpus": "keyword.ImperialCollegeLondon__ReCoDE-brain-mesh-creation",
       "member": "src/dependencies/simulation/run_simulation.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0004709000058937818,
+      "seconds": 0.000477899971883744,
       "input_tree": {
         "ok": false,
         "tree_sha256": "67d323ab2beafc2c237c4d6b96e675b94203b8e04a9ec6811b8d23b5130c3c65",
@@ -3031,8 +2893,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "run_simulation.k",
         "files": [
           {
             "relative": "run_simulation.k",
@@ -3074,9 +2934,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "23d817a77fb705e48d58f20d96d2d5a0ed7a98875a712169c211720372517574",
       "failure_category": null,
       "review_group": "missing_file",
       "historical_symptom": "missing_referenced_input",
@@ -3087,10 +2944,9 @@
       "corpus": "keyword.zenodo__17788156",
       "member": "Validation_experiment/25%H2/validation_1mm.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 0.6436842999828514,
+      "seconds": 0.6970071000105236,
       "input_tree": {
         "ok": true,
         "tree_sha256": "8fec308f489bf877074defc55d7006651bd9dbdac5004496b652b4ce5cb607b4",
@@ -3100,8 +2956,6 @@
         "unsupported_native_variants": [
           "*INCLUDE_AUTO_OFFSET"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "validation_1mm.k",
         "files": [
           {
             "relative": "validation_1mm.k",
@@ -3125,9 +2979,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "f9c85cfb743d48ce3d3ae6975a751c57b5cca3ad50b8652fe99c02b20162ddf9",
       "failure_category": "unsupported_native_include_variant",
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -3138,10 +2989,9 @@
       "corpus": "keyword.jfriedlein__Numerical_examples_in_LS-Dyna",
       "member": "main.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0003575999871827662,
+      "seconds": 0.0004931000003125519,
       "input_tree": {
         "ok": false,
         "tree_sha256": "1ce9f2cec2efbc860d8bfd3f43113a2dad3824e77fe285ba0a06739cc065aacc",
@@ -3174,8 +3024,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "main.k",
         "files": [
           {
             "relative": "main.k",
@@ -3193,9 +3041,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "50886193c049e4be3d410359304028c09454ba334c6fe6bdf562c9675fc3a8e1",
       "failure_category": null,
       "review_group": "path_form",
       "historical_symptom": "missing_referenced_input",
@@ -3206,10 +3051,9 @@
       "corpus": "keyword.lsdyna-ansys-com",
       "member": "2025_03__splines_windows/example.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.000513700011651963,
+      "seconds": 0.0004887999966740608,
       "input_tree": {
         "ok": false,
         "tree_sha256": "b5c45d83390986d1d131161ffe0b9061d09f8623ef87f5b7a87809f75aece4ba",
@@ -3236,8 +3080,6 @@
         "unsupported_native_variants": [
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "example.key",
         "files": [
           {
             "relative": "example.key",
@@ -3249,9 +3091,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "cebdc34f9194dfa6ca8f367538742591946a57664b20c3c3ab0800e67c540222",
       "failure_category": null,
       "review_group": "missing_file",
       "historical_symptom": "missing_referenced_input",
@@ -3262,10 +3101,9 @@
       "corpus": "keyword.node997__dyna_pladebuk",
       "member": "Plade_300_150_4/differentmeshsizes/conv/Convergence_1/main.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 38.02768820000347,
+      "seconds": 16.029497400013497,
       "input_tree": {
         "ok": true,
         "tree_sha256": "18c2b98f002476d698115dad8d1549ddea0812a555a80e9091d47b448216fbc2",
@@ -3273,8 +3111,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "main.k",
         "files": [
           {
             "relative": "main.k",
@@ -3298,9 +3134,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "7b53ffb7a3b4a5f20dcd907116efe945ba331d104866f9c08042b939824ac6a2",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
@@ -3311,55 +3144,51 @@
       "corpus": "keyword.Sentinel-rtc__SENTINEL-TriageTools",
       "member": "FMH_CAE_HEAD_MODEL/Run_4.00ms/MAIN_4.00_run.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
-      "status": "failed",
-      "case_status": "failed",
-      "seconds": 0.15537679998669773,
+      "status": "evidence_only",
+      "case_status": "input_limited",
+      "seconds": 0.0005522999854292721,
       "input_tree": {
-        "ok": true,
-        "tree_sha256": "c097724762a7c8552eed197680b96cf524785a477c215544802131176a185038",
+        "ok": false,
+        "tree_sha256": "bd578165cd8aebb0addedb25eadd0b1df7fe0daf00d532c8b73e9d2773af38b3",
         "tree_sha256_version": 1,
         "tree_kind": "keyword_include_tree",
-        "problems": [],
+        "problems": [
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "MAIN_4.00_run.key",
+            "name_line": 43,
+            "keyword": "*INCLUDE_TRANSFORM"
+          }
+        ],
         "unsupported_native_variants": [
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "Run_4.00ms/MAIN_4.00_run.key",
         "files": [
           {
-            "relative": "Run_4.00ms/MAIN_4.00_run.key",
+            "relative": "MAIN_4.00_run.key",
             "role": "main",
             "size": 321597,
             "sha256": "e36bc668faa66cee3f66147e609e61adba3650995e49c3141d16264f62bb752b"
-          },
-          {
-            "relative": "FMH/FMH_VALIDATED_SENTINEL_2025_06_20a.KEY",
-            "role": "include",
-            "size": 3886456,
-            "sha256": "402db3bdf77f54621efcee8c7a1d11cdf438601c63ed7fc6c1fb3ea38a44e7ac"
           }
         ]
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 2,
-      "source_directory_listing_sha256": "ff5515e65a667f24b54f6a7bfe908aa8d51916915dd085e9f5657dee7f76e2b5",
-      "failure_category": "unsupported_native_include_variant",
+      "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
-      "preflight_category": "unsupported_native_include_variant"
+      "preflight_category": "input_not_found"
     },
     {
       "case": "extra-keyword-051",
       "corpus": "keyword.Samos9877__lsdyna-agent-test",
       "member": "rigs/mat79_soil_unit/rig_template.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0006190999993123114,
+      "seconds": 0.0005161999724805355,
       "input_tree": {
         "ok": false,
         "tree_sha256": "db211938651e9fb7c8fb23497ce734f2fb44083d844c3c765c56ccd157804e4f",
@@ -3376,8 +3205,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "rig_template.k",
         "files": [
           {
             "relative": "rig_template.k",
@@ -3389,9 +3216,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "b8360959652a475be6d8f2ae004a2ae532981c751cb78677ab85be229436136c",
       "failure_category": null,
       "review_group": "missing_file",
       "historical_symptom": "missing_referenced_input",
@@ -3402,10 +3226,9 @@
       "corpus": "keyword.antahiap__nrg_simRank",
       "member": "extnd_mdl/CCSA_simple.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.000586600013775751,
+      "seconds": 0.00046690000453963876,
       "input_tree": {
         "ok": false,
         "tree_sha256": "c67728ccafc9953f8510ce1f4228fe9eb4acf96c160ccd4882a4c4e436ef99e2",
@@ -3457,8 +3280,6 @@
           "*INCLUDE_PATH_RELATIVE",
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "CCSA_simple.key",
         "files": [
           {
             "relative": "CCSA_simple.key",
@@ -3470,9 +3291,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "c3829c51e81a196abd54f99fb12de70c7569770ed6c41e35c81a450839b02111",
       "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -3483,10 +3301,9 @@
       "corpus": "keyword.squall321__KooDynaAdvanced",
       "member": "Battery/Examples/tshell_cylindrical/i.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 20.695542700006627,
+      "seconds": 9.929901600000449,
       "input_tree": {
         "ok": true,
         "tree_sha256": "42cc54626a6e069effec9ccde03a31d26a7ec6269ffc10d718b89b8fb1c963a5",
@@ -3494,8 +3311,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "i.k",
         "files": [
           {
             "relative": "i.k",
@@ -3513,9 +3328,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "b1c13e3e2c90d568b0e29b706f590dad00a9c6995112fd3a41b22d6f9555fcef",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
@@ -3526,10 +3338,9 @@
       "corpus": "keyword.MattiaMontanari__ai-material-model",
       "member": "src/D2_MAT18/01_GenerateData/SEcyclic/SR500/1x1x1_23SPos_SR500/1x1x1_23SPos_SR500.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.000584100023843348,
+      "seconds": 0.0005015000060666353,
       "input_tree": {
         "ok": false,
         "tree_sha256": "440abc2e49d9c94eddd9346d73c338daf46a2a8ca372e661b63f2b9ed2e2365b",
@@ -3546,8 +3357,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "1x1x1_23SPos_SR500.key",
         "files": [
           {
             "relative": "1x1x1_23SPos_SR500.key",
@@ -3559,9 +3368,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "997ecc308b90a7b41b88fdf145b264576956b3efb784751831d548c17ce08958",
       "failure_category": null,
       "review_group": "path_form",
       "historical_symptom": "missing_referenced_input",
@@ -3572,10 +3378,9 @@
       "corpus": "keyword.Ice-Citron__Project-Railgun",
       "member": "simulations/development/fp16-coordinate-variants/Modified fixed 6.0fp16/i.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 14.736383300012676,
+      "seconds": 14.298339300003136,
       "input_tree": {
         "ok": true,
         "tree_sha256": "3cb456d1f7f82acbf4fc1d5fe98a4993bf0ab92e8d1e0afcb0cffd720c7f3803",
@@ -3583,8 +3388,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "i.k",
         "files": [
           {
             "relative": "i.k",
@@ -3620,9 +3423,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "10bd7b1c3018f6aee7399e53e8e05fec496be56bf7c018e5728ba63ce81a6488",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "legacy_include_export",
@@ -3633,10 +3433,9 @@
       "corpus": "keyword.LLK-LL__K-agent",
       "member": "skills/lsdyna-kfile/templates/forming/forming.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 13.839071700000204,
+      "seconds": 20.14672290001181,
       "input_tree": {
         "ok": true,
         "tree_sha256": "f222f1b84dfcec76d7feeacfd13787bb315686950554bdda34182e7c95331c27",
@@ -3644,8 +3443,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "forming.k",
         "files": [
           {
             "relative": "forming.k",
@@ -3681,9 +3478,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "2d9a4e03556424b42c83bb0b119cf5d741f20b82462b82ea50c3b71cab142785",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
@@ -3694,10 +3488,9 @@
       "corpus": "keyword.squall321__KooRemapper",
       "member": "examples/replace_test/assembled_combined_result.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.00042100000428035855,
+      "seconds": 0.0005851999740116298,
       "input_tree": {
         "ok": false,
         "tree_sha256": "c25a1a942cf224d908e17cc844a82d74d3e42fcbb8e160481feacced994d7927",
@@ -3714,8 +3507,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "assembled_combined_result.k",
         "files": [
           {
             "relative": "assembled_combined_result.k",
@@ -3727,9 +3518,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "123fd97d32401b845e9baf30678c37d9ee4a47a85f90ce4257138fb1ec28aa04",
       "failure_category": null,
       "review_group": "missing_file",
       "historical_symptom": "missing_referenced_input",
@@ -3740,10 +3528,9 @@
       "corpus": "keyword.yannikmayerm__FE-Simulations",
       "member": "metamodel_deviation_analysis_clinch_joints/0Data/08_cross_tension/3D_Clinch_Joint_Scherzugversuch.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.00031480001052841544,
+      "seconds": 0.0005268999957479537,
       "input_tree": {
         "ok": false,
         "tree_sha256": "9732c548df1f705d17c45a8efea89d7e46cf3fdb4546373d97bb82a56361ce3c",
@@ -3776,8 +3563,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "3D_Clinch_Joint_Scherzugversuch.k",
         "files": [
           {
             "relative": "3D_Clinch_Joint_Scherzugversuch.k",
@@ -3789,9 +3574,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "c486768b341e03b3f0c8605cb36c9c0f07fd4226068d9cb82585a2b118a2a7bd",
       "failure_category": null,
       "review_group": "missing_file",
       "historical_symptom": "missing_referenced_input",
@@ -3802,10 +3584,9 @@
       "corpus": "keyword.SciMate-AI__HPC-Skills",
       "member": "skills/hpc-ls-dyna/assets/templates/explicit-impact-outline.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0002826999989338219,
+      "seconds": 0.0005216000135987997,
       "input_tree": {
         "ok": false,
         "tree_sha256": "f831157c49c8123b92561289ce4d8acab78ae0345ac1a9869ab610ac11095c09",
@@ -3822,8 +3603,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "explicit-impact-outline.k",
         "files": [
           {
             "relative": "explicit-impact-outline.k",
@@ -3835,9 +3614,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "98329651714a2bcc4ffc4370cdc1c9b72e3b569d7ec2143eb556577723928211",
       "failure_category": null,
       "review_group": "missing_file",
       "historical_symptom": "missing_referenced_input",
@@ -3848,10 +3624,9 @@
       "corpus": "keyword.SGI-2022__HexDom-IGApipeline",
       "member": "grid_hybrid_demo/grid_simulation/grid_IGA.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0003210000286344439,
+      "seconds": 0.0005065999866928905,
       "input_tree": {
         "ok": false,
         "tree_sha256": "105ff828faf73256f4aa83679c1c4dbfe58f6b563119ec32c53bc259d5ab15b0",
@@ -3870,8 +3645,6 @@
         "unsupported_native_variants": [
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "grid_IGA.k",
         "files": [
           {
             "relative": "grid_IGA.k",
@@ -3883,9 +3656,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "8555ab0897be1ec1b6124bea8c53d64f0a0e9edda1894baf84d294416adfbf6e",
       "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -3896,10 +3666,9 @@
       "corpus": "keyword.dynaexamples-wayback",
       "member": "yaris_dynamic_shock_absorber_loading__partial/000_yaris_dynamic_shock_abs_loading_01.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0003288000007160008,
+      "seconds": 0.0005041999975219369,
       "input_tree": {
         "ok": false,
         "tree_sha256": "4a7f3ed8466db91051b05b7056921bcff688dbb75e22ec4bac6609b7f727f4e9",
@@ -3918,8 +3687,6 @@
         "unsupported_native_variants": [
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "000_yaris_dynamic_shock_abs_loading_01.k",
         "files": [
           {
             "relative": "000_yaris_dynamic_shock_abs_loading_01.k",
@@ -3943,9 +3710,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "e9c2119857e3e51a0cac380e24647ef529cfe0804193ef100ee8864fd0493bf1",
       "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -3956,10 +3720,9 @@
       "corpus": "keyword.DataAnalyticsEngineering__UMAT_2scale_LSDYNA",
       "member": "repo_files/examples_extra/thermal_cycles/v02_stable_bead_depth/input_file.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 37.746733700012555,
+      "seconds": 43.15578940001433,
       "input_tree": {
         "ok": true,
         "tree_sha256": "757a6ed10b1ef83d05bbae8cd4f543f2ad079b3241959ba842a44a1511300e74",
@@ -3967,8 +3730,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "input_file.k",
         "files": [
           {
             "relative": "input_file.k",
@@ -3992,9 +3753,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "3bbab907fcf471150a41ffbe2fa19570396c610aa45329a44d3dfa1e1047edfa",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
@@ -4005,151 +3763,193 @@
       "corpus": "keyword.openvt__vivaplus",
       "member": "model/50M-seated/vivaplus-50M.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
-      "status": "failed",
-      "case_status": "failed",
-      "seconds": 1.8760192999907304,
+      "status": "evidence_only",
+      "case_status": "input_limited",
+      "seconds": 0.0005119999987073243,
       "input_tree": {
-        "ok": true,
-        "tree_sha256": "60062359319cf2a7e443097bb9fa2affae726ef9420f6d8aa0e19364e043ef7f",
+        "ok": false,
+        "tree_sha256": "e2b8753385e36ff40136e24f89db2ffa376e6312ab18c7b60869ef76347d3d84",
         "tree_sha256_version": 1,
         "tree_kind": "keyword_include_tree",
-        "problems": [],
+        "problems": [
+          {
+            "kind": "missing_search_dir",
+            "hint": null,
+            "severity": "warning",
+            "relative": "vivaplus-50M.key",
+            "name_line": 71,
+            "keyword": "*INCLUDE_PATH"
+          },
+          {
+            "kind": "missing_search_dir",
+            "hint": null,
+            "severity": "warning",
+            "relative": "vivaplus-50M.key",
+            "name_line": 73,
+            "keyword": "*INCLUDE_PATH"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50M.key",
+            "name_line": 84,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50M.key",
+            "name_line": 86,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50M.key",
+            "name_line": 88,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50M.key",
+            "name_line": 90,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50M.key",
+            "name_line": 92,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50M.key",
+            "name_line": 94,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50M.key",
+            "name_line": 96,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50M.key",
+            "name_line": 98,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50M.key",
+            "name_line": 100,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50M.key",
+            "name_line": 102,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50M.key",
+            "name_line": 104,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50M.key",
+            "name_line": 106,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50M.key",
+            "name_line": 108,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50M.key",
+            "name_line": 110,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50M.key",
+            "name_line": 112,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50M.key",
+            "name_line": 114,
+            "keyword": "*INCLUDE"
+          }
+        ],
         "unsupported_native_variants": [
           "*INCLUDE_PATH"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "50M-seated/vivaplus-50M.key",
         "files": [
           {
-            "relative": "50M-seated/vivaplus-50M.key",
+            "relative": "vivaplus-50M.key",
             "role": "main",
             "size": 3940,
             "sha256": "af33689e45971c8fa95ea784e1ef78a2758663b510e33b14cf0cee2ed65f6d32"
           },
           {
-            "relative": "50M-seated/vivaplus_50M-seated_nodes.k",
+            "relative": "vivaplus_50M-seated_nodes.k",
             "role": "include",
             "size": 41242441,
             "sha256": "8cf6b0321c0112c55547f3b9935a8c97297d9770b3048594f8fdc235c31a4307"
-          },
-          {
-            "relative": "common/vivaplus-joints.k",
-            "role": "include",
-            "size": 33657,
-            "sha256": "2294ac569bfa4da6f43a202f6b3a249ec0ee5ebb8bb59652f46b2b7902c6e9bb"
-          },
-          {
-            "relative": "common/vivaplus-elements.k",
-            "role": "include",
-            "size": 58930539,
-            "sha256": "f5b9df260cd1d3db4bd2d4db4b4cef90aa448cf697cd9e169f7f102057363edb"
-          },
-          {
-            "relative": "common/vivaplus-materials.k",
-            "role": "include",
-            "size": 586096,
-            "sha256": "f14ef78bdb2a792ed9d2be01bf82f0a0a93ca811313f5f8cab0ff62b13d5a4b8"
-          },
-          {
-            "relative": "common/vivaplus-constraineds-contacts.k",
-            "role": "include",
-            "size": 763036,
-            "sha256": "4b46e5ccc5813734686b69a8c4f215565cc1e80aa181ade815926ff38fc2dabe"
-          },
-          {
-            "relative": "common/vivaplus-10-Head.k",
-            "role": "include",
-            "size": 41335,
-            "sha256": "ce5d7e16ad54535364b209f205ca872a20dd9c2423399a968e17105e22cabb94"
-          },
-          {
-            "relative": "common/vivaplus-20-Neck.k",
-            "role": "include",
-            "size": 111255,
-            "sha256": "0ac6c3b32a8981d46edffd4fe67be602a3b7f6ed7142343aa119a2aafd05e8b0"
-          },
-          {
-            "relative": "common/vivaplus-22-Neck-Muscles.k",
-            "role": "include",
-            "size": 204047,
-            "sha256": "66381b2b5f32a10674e06163dccb01cea022e5b10426fff8040cf855f540c8b7"
-          },
-          {
-            "relative": "common/vivaplus-30-Upper-Extremity.k",
-            "role": "include",
-            "size": 52205,
-            "sha256": "f8ba6d47718f1eb41a4f920688e2dd154a8710deca75e9d800af0c890b999954"
-          },
-          {
-            "relative": "common/vivaplus-40-Thorax.k",
-            "role": "include",
-            "size": 126804,
-            "sha256": "298b6b8f691f52f39406dcd896d2be0989ccde76f0951af742b27b452966bf51"
-          },
-          {
-            "relative": "common/vivaplus-50-Abdomen.k",
-            "role": "include",
-            "size": 79261,
-            "sha256": "52b06cfee428701747071fba7453c69edc6e9c556f84e77dd9bc9ee45c797cb4"
-          },
-          {
-            "relative": "common/vivaplus-60-Pelvis.k",
-            "role": "include",
-            "size": 23540,
-            "sha256": "7b291c29a116baa2f0bd35836d577087043146d15c34ddd962d3adf6490e807c"
-          },
-          {
-            "relative": "common/vivaplus-70-Lower-Extremity.k",
-            "role": "include",
-            "size": 73969,
-            "sha256": "9dc5e573a50e9120664beee5f32fb5d94ca92d3383b15d572e7ebee85dd6e724"
-          },
-          {
-            "relative": "common/vivaplus-90-outputs-nodes.k",
-            "role": "include",
-            "size": 80416,
-            "sha256": "b8bd4a782b16a40bb0cff37631bde3b787a1603c25158f54fc1384f48d1e81c6"
-          },
-          {
-            "relative": "common/vivaplus-91-output-settings.k",
-            "role": "include",
-            "size": 2560,
-            "sha256": "89e561831a5e54952bc6968980e32768d570cb5dd4800a2ddf31316eb5ca4d5a"
-          },
-          {
-            "relative": "common/vivaplus-92-outputs-elements.k",
-            "role": "include",
-            "size": 7934,
-            "sha256": "69be6058398cdd166da3387da7276cd5dc1b35c43279dae1408db9b1035f06be"
-          },
-          {
-            "relative": "common/vivaplus-constraineds-landmarks.k",
-            "role": "include",
-            "size": 861916,
-            "sha256": "15580070ee93e50bf08648a1651e46f902fd289049db8a8bbac9c7d85b672431"
           }
         ]
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 2,
-      "source_directory_listing_sha256": "cddd56718f1c5ee29e0cbc41a758216911c4bbec34c62a151ffe38ab7a37eff0",
-      "failure_category": "unsupported_native_include_variant",
+      "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
-      "preflight_category": "unsupported_native_include_variant"
+      "preflight_category": "input_not_found"
     },
     {
       "case": "extra-keyword-064",
       "corpus": "keyword.Wanggs2418__ANSYS_Code",
       "member": "code/ANSYS LS-DYNA动力分析与工程实例/demo_k_files/demo.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 15.110140500008129,
+      "seconds": 17.93853700000909,
       "input_tree": {
         "ok": true,
         "tree_sha256": "eeb9a587bc3eac4021415743441723ebe912ac2f59e8f986d3d0bc87ef69bd2c",
@@ -4157,8 +3957,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "demo.k",
         "files": [
           {
             "relative": "demo.k",
@@ -4176,9 +3974,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "8eb05450a83806d5afa4d77b52fa33b4650a4ad7e3cf71b29270f372290fdb2d",
       "failure_category": "native_process_failure",
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
@@ -4189,10 +3984,9 @@
       "corpus": "keyword.ansys__pydyna",
       "member": "tests/testfiles/run/case-keywords/projectile.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 15.477728900004877,
+      "seconds": 10.817625299998326,
       "input_tree": {
         "ok": true,
         "tree_sha256": "5ca9bbb3af79b2d4ca0ead5cdab837492deb31ebd8577a3e024f5778c0f2f1f9",
@@ -4200,8 +3994,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "projectile.k",
         "files": [
           {
             "relative": "projectile.k",
@@ -4219,9 +4011,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "31a6e2320fe37fa1ca0ad4041bcf330e926d8c6c7454bb9c442e4d19675ce8a7",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
@@ -4232,10 +4021,9 @@
       "corpus": "keyword.lstc-ftp-wayback",
       "member": "hao_sale__salemerger/main.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 0.010529999999562278,
+      "seconds": 0.00644060000195168,
       "input_tree": {
         "ok": true,
         "tree_sha256": "055cdbb6960795cd321802803c3a4cbb9f3bfc46c4e53d20df67012ee91ec6ad",
@@ -4245,8 +4033,6 @@
         "unsupported_native_variants": [
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "main.k",
         "files": [
           {
             "relative": "main.k",
@@ -4270,9 +4056,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "4c09acbe14e399116c997d01d5578b70fd74c7d3c3da81634d33e73bceea907e",
       "failure_category": "unsupported_native_include_variant",
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -4283,10 +4066,9 @@
       "corpus": "keyword.chptx__piper",
       "member": "share/data/model_01.dyn",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 26.27629910001997,
+      "seconds": 10.508947199996328,
       "input_tree": {
         "ok": true,
         "tree_sha256": "649ce729ce394e2cc30afe2d90c2275d05be277770d2eef900c74715f497367b",
@@ -4294,8 +4076,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "model_01.dyn",
         "files": [
           {
             "relative": "model_01.dyn",
@@ -4313,9 +4093,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "70edee2806e8a3bceb0b492e98f3e7bd0650cf5d286e1e71c6a4586b6090efac",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "legacy_include_export",
@@ -4326,10 +4103,9 @@
       "corpus": "keyword.tonyhoVN__automated-lattice-nosecone-impact",
       "member": "DYNA_files/lattice_nose_cone_impact_test.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.00045250001130625606,
+      "seconds": 0.0003237999917473644,
       "input_tree": {
         "ok": false,
         "tree_sha256": "e21047f7d5c08cb1eb35b8614f39dda58d52d4a9c2265219ddbbd2f04b9c1ee6",
@@ -4348,8 +4124,6 @@
         "unsupported_native_variants": [
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "lattice_nose_cone_impact_test.k",
         "files": [
           {
             "relative": "lattice_nose_cone_impact_test.k",
@@ -4379,9 +4153,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "e4de43a0ff7c36e1662c9691a33a234a62484296b89681d3012cd046f562cca4",
       "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
@@ -4392,89 +4163,97 @@
       "corpus": "keyword.zenodo__13998073",
       "member": "PAB_Reduced_Env/Steps/Stand_PAB_Simple/25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
-      "status": "failed",
-      "case_status": "failed",
-      "seconds": 47.36649960000068,
+      "status": "evidence_only",
+      "case_status": "input_limited",
+      "seconds": 0.000523900002008304,
       "input_tree": {
-        "ok": true,
-        "tree_sha256": "4e69d03a24bf76728d09753e7f098fdc8fd1c33eaabeecd9f220626daa4ba1a5",
+        "ok": false,
+        "tree_sha256": "8619d02b323202fc61ad716ad58aabc85c77f73177975f3cbcf262ccd8fb3cb4",
         "tree_sha256_version": 1,
         "tree_kind": "keyword_include_tree",
-        "problems": [],
+        "problems": [
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
+            "name_line": 120,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
+            "name_line": 126,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
+            "name_line": 132,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
+            "name_line": 139,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
+            "name_line": 147,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
+            "name_line": 152,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
+            "name_line": 157,
+            "keyword": "*INCLUDE"
+          }
+        ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "Steps/Stand_PAB_Simple/25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
         "files": [
           {
-            "relative": "Steps/Stand_PAB_Simple/25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
+            "relative": "25_50_NHTSA_FULL_FRONTAL-ACCORD_Full_model.key",
             "role": "main",
             "size": 5372,
             "sha256": "74dd30840080bf00d50e958651061ee2fca2cad9ccf362bbbec690b853609c0d"
-          },
-          {
-            "relative": "00_INCLUDES/67_PAB/FAB_PA_withInner_withLiner_infl60_coarse_shrinked_mod.k",
-            "role": "include",
-            "size": 1060999,
-            "sha256": "03e978902737b4411ad2e7f9e5cbf73c8445a05181c19eef55ec39a36c636242"
-          },
-          {
-            "relative": "00_INCLUDES/10_BIW/BIW_simple_noIntru_half.k",
-            "role": "include",
-            "size": 2985851,
-            "sha256": "712408094a9321c82ab95c1021ce697faca62122b52c1766005e861f62e6260e"
-          },
-          {
-            "relative": "00_INCLUDES/16_DASH/DASHBOARD.k",
-            "role": "include",
-            "size": 480227,
-            "sha256": "72245055eb3003c9f16df148e040fa77c2cdd791d9cc7daab77e70d535bd09e4"
-          },
-          {
-            "relative": "00_INCLUDES/80_MATERIALS/Materials_DB_Accord_004.k",
-            "role": "include",
-            "size": 117956,
-            "sha256": "f74ae1173df94621d46ab10298b4b10326a79bc579b18199d1566d8011944df4"
-          },
-          {
-            "relative": "00_INCLUDES/99_MOTION/MOTION_FIX.k",
-            "role": "include",
-            "size": 8334,
-            "sha256": "4ae8dcbd5eb94dac6b0788f0271dfdeca05db33c1c56b53150bb65a19923e77c"
-          },
-          {
-            "relative": "00_INCLUDES/70_CONTACTS/92_Contact_12_06302017_V01_mod_8_reduced.k",
-            "role": "include",
-            "size": 2735,
-            "sha256": "74ae85891d2b74d39d9927f12ca92a6c14e45418c97fa38cc150cce964bd8a28"
-          },
-          {
-            "relative": "00_INCLUDES/98_CONTROL_CARDS/98_Control_card_003_05302017.k",
-            "role": "include",
-            "size": 6343,
-            "sha256": "892fbaafa9d03d6da956a42ccc4b1372040e7f3cceadd53d3a7a995d4841eba1"
           }
         ]
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 8,
-      "source_directory_listing_sha256": "e6a6a8119d1679616b176759fbc656faa9293bab9d5fa784e1d0e1a15a505cc7",
-      "failure_category": "legacy_include_export",
+      "failure_category": null,
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
-      "preflight_category": "preflight_ok_requires_native_diagnosis"
+      "preflight_category": "input_not_found"
     },
     {
       "case": "extra-keyword-070",
       "corpus": "keyword.ansys__pyansys-heart",
       "member": "tests/heart/assets/reference_models/strocchi2020/01/FullHeart/k_files1/ZeroPressureMechanicsDynaWriter/main.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.00068299999111332,
+      "seconds": 0.0003212000010535121,
       "input_tree": {
         "ok": false,
         "tree_sha256": "212a1376fcd9fb1005c83f40d460755ca31432947ce2960d1b487a13f20d7678",
@@ -4499,8 +4278,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "main.k",
         "files": [
           {
             "relative": "main.k",
@@ -4548,9 +4325,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "ae1b96c38d7735276323f059d04719bcb49bff8aa387054e5b862ee86269de9f",
       "failure_category": null,
       "review_group": "path_form",
       "historical_symptom": "missing_referenced_input",
@@ -4561,119 +4335,137 @@
       "corpus": "keyword.zenodo__14000052",
       "member": "fe_models/Assemblies_DOE_FullFactorial_k5_f5/V0000092/V0000092.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
-      "status": "failed",
-      "case_status": "failed",
-      "seconds": 28.810316699993564,
+      "status": "evidence_only",
+      "case_status": "input_limited",
+      "seconds": 0.0005775000026915222,
       "input_tree": {
-        "ok": true,
-        "tree_sha256": "ef5f13d5b5876eeaf19d1b6081d92518078ad0cd1d24943d18e96b68cafc4366",
+        "ok": false,
+        "tree_sha256": "6dc4764cf9c030c09ac71afc19867ff550b88f77dacd202472adb41fc37b5423",
         "tree_sha256_version": 1,
         "tree_kind": "keyword_include_tree",
-        "problems": [],
+        "problems": [
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000092.key",
+            "name_line": 18,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000092.key",
+            "name_line": 19,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000092.key",
+            "name_line": 20,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000092.key",
+            "name_line": 21,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000092.key",
+            "name_line": 22,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000092.key",
+            "name_line": 23,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000092.key",
+            "name_line": 24,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000092.key",
+            "name_line": 25,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000092.key",
+            "name_line": 27,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000092.key",
+            "name_line": 28,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000092.key",
+            "name_line": 29,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "V0000092.key",
+            "name_line": 31,
+            "keyword": "*INCLUDE"
+          }
+        ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "Assemblies_DOE_FullFactorial_k5_f5/V0000092/V0000092.key",
         "files": [
           {
-            "relative": "Assemblies_DOE_FullFactorial_k5_f5/V0000092/V0000092.key",
+            "relative": "V0000092.key",
             "role": "main",
             "size": 984,
             "sha256": "c381fc9c78af03a43fdbf3a532c8d17dd867358de294f3fc54fb748fd87b05e8"
-          },
-          {
-            "relative": "Pool/DATABASE_CONTROL.k",
-            "role": "include",
-            "size": 6942,
-            "sha256": "c8b4124309f6e4cd8bbdf099d9452e3353c5b5a2ab827bd4b4d1f76c1be97741"
-          },
-          {
-            "relative": "Pool/MATERIALS.k",
-            "role": "include",
-            "size": 100513,
-            "sha256": "50b605a9243ed2e32de928abb0599f722c9d303b2413880220542ccb95e7c773"
-          },
-          {
-            "relative": "Pool/MOTION_SIMPLE.k",
-            "role": "include",
-            "size": 8621,
-            "sha256": "26b4c273d928a572228b47f819feb9522e192c6f97eb7957c17b1a7d3e5c0ec5"
-          },
-          {
-            "relative": "Pool/DATA_NHTSA_FULL_FRONTAL_COG_PARA.k",
-            "role": "include",
-            "size": 10452,
-            "sha256": "8e91f6f0a128f458cfd005603e1c9117424bcb781fb22f74d83a35ed2faf2399"
-          },
-          {
-            "relative": "Pool/BIW.k",
-            "role": "include",
-            "size": 1143226,
-            "sha256": "2e80c055dd3fd137ca3f0c4a3598a3cac488275264b4b6c3558aee1089a59d0a"
-          },
-          {
-            "relative": "Pool/DASHBOARD.k",
-            "role": "include",
-            "size": 480227,
-            "sha256": "72245055eb3003c9f16df148e040fa77c2cdd791d9cc7daab77e70d535bd09e4"
-          },
-          {
-            "relative": "Pool/CARPET_PA.k",
-            "role": "include",
-            "size": 110042,
-            "sha256": "5e46517232eb378b45a7e4cc76bae5b2887fdf497de1c9c3b5b9ecd39886f298"
-          },
-          {
-            "relative": "Pool/FAB_PA_withInner_withLiner_infl60_coarse_shrinked.k",
-            "role": "include",
-            "size": 1060843,
-            "sha256": "7d34359736af5baa01330ce6302b1c903d0444dd34cfc1e5efe493c3dac1870d"
-          },
-          {
-            "relative": "Pool/SEAT_PA_05th_HIII_ml_br19_sr17.k",
-            "role": "include",
-            "size": 77339,
-            "sha256": "a048a280ca210ce3a3658c7a6ac668de5ff0a497e5ded43ab602ba74ba424988"
-          },
-          {
-            "relative": "Pool/BELT_PA_05th_HIII_ml_br19_sr17.k",
-            "role": "include",
-            "size": 93695,
-            "sha256": "473d5cddb7b7a5c6a1502b45ec43f0c618e497210733725c7e15834c6e743008"
-          },
-          {
-            "relative": "Pool/DUMMY_05th_HIII_FAST_PA_ml_br19_sr17.k",
-            "role": "include",
-            "size": 337428,
-            "sha256": "0f73830dee8c8e71005b24bdb0263394ac1247ebd09bf2acd0b85028e73058bf"
-          },
-          {
-            "relative": "Pool/INTER_CONTACTS.k",
-            "role": "include",
-            "size": 15071,
-            "sha256": "28a47b6eb928374a420190c21837ccea4a97c6ebebee6d9ca3d21d04226857e8"
           }
         ]
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 2,
-      "source_directory_listing_sha256": "475757f9af0496a79596f798b7ae908a367062a8412c8620701d15255c7ce257",
-      "failure_category": "legacy_include_export",
+      "failure_category": null,
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
-      "preflight_category": "preflight_ok_requires_native_diagnosis"
+      "preflight_category": "input_not_found"
     },
     {
       "case": "extra-keyword-072",
       "corpus": "keyword.evtodorov__rfsmodels",
       "member": "plate/plate_1_30_30.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 12.844766500027617,
+      "seconds": 10.127078199991956,
       "input_tree": {
         "ok": true,
         "tree_sha256": "32cfb2fb97461ce89bafbac7d30bd7f1d1930ded010ee814849a46ace62b3c62",
@@ -4681,8 +4473,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "plate_1_30_30.k",
         "files": [
           {
             "relative": "plate_1_30_30.k",
@@ -4724,9 +4514,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "3d337e5a609643506793cc078fee67b2bc27a9a434d2c08b1fc736c30acc5318",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
@@ -4737,104 +4524,99 @@
       "corpus": "keyword.lsdyna-ansys-com",
       "member": "2024_09__Package_2024R2/Package_2024R2/Frequency_domain/SSD_FATIGUE_EXAMPLE/ssd_fatigue002.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
-      "status": "failed",
-      "case_status": "failed",
-      "seconds": 14.940338500018697,
+      "status": "evidence_only",
+      "case_status": "input_limited",
+      "seconds": 0.0005560999852605164,
       "input_tree": {
-        "ok": true,
-        "tree_sha256": "4300d439b570741f9af2d5bc202844f306d800d93c15976f6492735d28d0b07d",
+        "ok": false,
+        "tree_sha256": "6dfd1c98857eafc3181b27e492a80f6d0630ab673e6e5fd00833fe72d650a533",
         "tree_sha256_version": 1,
         "tree_kind": "keyword_include_tree",
-        "problems": [],
+        "problems": [
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "ssd_fatigue002.key",
+            "name_line": 7,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "ssd_fatigue002.key",
+            "name_line": 47,
+            "keyword": "*INCLUDE"
+          }
+        ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "Frequency_domain/SSD_FATIGUE_EXAMPLE/ssd_fatigue002.key",
         "files": [
           {
-            "relative": "Frequency_domain/SSD_FATIGUE_EXAMPLE/ssd_fatigue002.key",
+            "relative": "ssd_fatigue002.key",
             "role": "main",
             "size": 436014,
             "sha256": "52486050779ce34880c511033b13e95d198b25b9ac31801ce8f1e3d09a7bb646"
-          },
-          {
-            "relative": "INCLUDE_FILES/control_cards_linear.key",
-            "role": "include",
-            "size": 3714,
-            "sha256": "01ed9569959b40914c2792f6a10d52b45c5f4994cb455dde64628f94d6b31374"
-          },
-          {
-            "relative": "INCLUDE_FILES/database_cards_static.key",
-            "role": "include",
-            "size": 1748,
-            "sha256": "811384740f48e2076d99b3c16b43adeb3ea5595ba19399d4adb0e81b5c03ad7f"
           }
         ]
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 2,
-      "source_directory_listing_sha256": "bad8d2c68972d117f5e3121253c0d287b646bc0171b4535aa90bbdf2a3014a4a",
-      "failure_category": "legacy_include_export",
+      "failure_category": null,
       "review_group": "other",
       "historical_symptom": "legacy_include_export",
-      "preflight_category": "preflight_ok_requires_native_diagnosis"
+      "preflight_category": "input_not_found"
     },
     {
       "case": "extra-keyword-074",
       "corpus": "keyword.Sentinel-rtc__SENTINEL-TriageTools",
       "member": "FMH_CAE_HEAD_MODEL/Run_2.7ms/MAIN_2.7_run.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
-      "status": "failed",
-      "case_status": "failed",
-      "seconds": 0.07833859999664128,
+      "status": "evidence_only",
+      "case_status": "input_limited",
+      "seconds": 0.00039060000563040376,
       "input_tree": {
-        "ok": true,
-        "tree_sha256": "54385f3982b65259149ba04a0624f2812abe705210f44d23e6dc48968255cf1a",
+        "ok": false,
+        "tree_sha256": "cc11711f22e62995462a52685d2f6e91d5430b5366016feabf31401272edd63d",
         "tree_sha256_version": 1,
         "tree_kind": "keyword_include_tree",
-        "problems": [],
+        "problems": [
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "MAIN_2.7_run.key",
+            "name_line": 43,
+            "keyword": "*INCLUDE_TRANSFORM"
+          }
+        ],
         "unsupported_native_variants": [
           "*INCLUDE_TRANSFORM"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "Run_2.7ms/MAIN_2.7_run.key",
         "files": [
           {
-            "relative": "Run_2.7ms/MAIN_2.7_run.key",
+            "relative": "MAIN_2.7_run.key",
             "role": "main",
             "size": 321601,
             "sha256": "32af2129b6412cd5a415504e901df2ed212a7848c67fad275ab845ff9f8df83d"
-          },
-          {
-            "relative": "FMH/FMH_VALIDATED_SENTINEL_2025_06_20a.KEY",
-            "role": "include",
-            "size": 3886456,
-            "sha256": "402db3bdf77f54621efcee8c7a1d11cdf438601c63ed7fc6c1fb3ea38a44e7ac"
           }
         ]
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 2,
-      "source_directory_listing_sha256": "9551025e86df568a7d72db3fe8cd9e35a00225bc2372e6be9547e2ac5cc507f8",
-      "failure_category": "unsupported_native_include_variant",
+      "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
-      "preflight_category": "unsupported_native_include_variant"
+      "preflight_category": "input_not_found"
     },
     {
       "case": "extra-keyword-075",
       "corpus": "keyword.Samos9877__lsdyna-agent-test",
       "member": "rigs/uniaxial_unconfined/rig_template.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0004571000172290951,
+      "seconds": 0.00041909998981282115,
       "input_tree": {
         "ok": false,
         "tree_sha256": "5655511d896602d7a2efa0ee87b04c37723b7d8ad2f33ec78487867cb14d6c6f",
@@ -4851,8 +4633,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "rig_template.k",
         "files": [
           {
             "relative": "rig_template.k",
@@ -4864,9 +4644,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "b93bde7fa2528fdebf84dfef403e267f7ed5aee7d6cbbd2505ee68f04a266423",
       "failure_category": null,
       "review_group": "missing_file",
       "historical_symptom": "missing_referenced_input",
@@ -4877,10 +4654,9 @@
       "corpus": "keyword.MattiaMontanari__ai-material-model",
       "member": "src/D2_MAT18/01_GenerateData/SEcyclic/SR200/1x1x1_23SPos_SR200/1x1x1_23SPos_SR200.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.000594600016484037,
+      "seconds": 0.00042440000106580555,
       "input_tree": {
         "ok": false,
         "tree_sha256": "e06cc6293c60c2f7997274c65935b975e1e8eef9660e8ea8e9640645901078c3",
@@ -4897,8 +4673,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "1x1x1_23SPos_SR200.key",
         "files": [
           {
             "relative": "1x1x1_23SPos_SR200.key",
@@ -4910,9 +4684,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "137692dc5903b5898d366ea220daef9fde741f86b0188a9a6c3b7432b342bf64",
       "failure_category": null,
       "review_group": "path_form",
       "historical_symptom": "missing_referenced_input",
@@ -4923,10 +4694,9 @@
       "corpus": "keyword.squall321__KooDynaAdvanced",
       "member": "Battery/Examples/batmac_nail/main.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0005491999909281731,
+      "seconds": 0.0005262000195216388,
       "input_tree": {
         "ok": false,
         "tree_sha256": "072d17bdec0cb744ddf4ffc2f692848e4d38d371097e9dd542bd55aaa96919fb",
@@ -4943,8 +4713,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "main.k",
         "files": [
           {
             "relative": "main.k",
@@ -4980,9 +4748,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "6e5d7932e5883150ca985e046484949e1ac937dda4615720e47c26d1958511e4",
       "failure_category": null,
       "review_group": "missing_file",
       "historical_symptom": "missing_referenced_input",
@@ -4993,10 +4758,9 @@
       "corpus": "keyword.node997__dyna_pladebuk",
       "member": "Plade_300_150_4/differentmeshsizes/conv/Convergence_7/main.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0004360000020824373,
+      "seconds": 0.0005884999991394579,
       "input_tree": {
         "ok": false,
         "tree_sha256": "b92a1172b22f1b6fef221bb9d2a70fa550642378ff16d167b70b3ecd18af99c1",
@@ -5013,8 +4777,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "main.k",
         "files": [
           {
             "relative": "main.k",
@@ -5032,9 +4794,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "8c4c4fe04040739452162ab8ad753fa3c99e04fc19835a0579fa851bab45a368",
       "failure_category": null,
       "review_group": "missing_file",
       "historical_symptom": "missing_referenced_input",
@@ -5045,10 +4804,9 @@
       "corpus": "keyword.Ice-Citron__Project-Railgun",
       "member": "simulations/development/fp16-coordinate-variants/Normals fixed/i.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 14.915562999987742,
+      "seconds": 10.31137460001628,
       "input_tree": {
         "ok": true,
         "tree_sha256": "34417fe48d501c4cb9b1914e96dec515d64762abd475eaaf2b05ff7b8483029a",
@@ -5056,8 +4814,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "i.k",
         "files": [
           {
             "relative": "i.k",
@@ -5093,9 +4849,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "10bd7b1c3018f6aee7399e53e8e05fec496be56bf7c018e5728ba63ce81a6488",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "legacy_include_export",
@@ -5106,10 +4859,9 @@
       "corpus": "keyword.yannikmayerm__FE-Simulations",
       "member": "metamodel_deviation_analysis_clinch_joints/0Data/07_shear_test/3D_Clinch_Joint_Kreuzzugversuch.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0006358000100590289,
+      "seconds": 0.00039110000943765044,
       "input_tree": {
         "ok": false,
         "tree_sha256": "e89d5fa11f6b2ee780f7e9ca93067a994a8be3536f395d0f75ad41bfdd6e0cdc",
@@ -5142,8 +4894,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "3D_Clinch_Joint_Kreuzzugversuch.k",
         "files": [
           {
             "relative": "3D_Clinch_Joint_Kreuzzugversuch.k",
@@ -5155,9 +4905,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "7cefc0bf8ae61d0ba0d058b8d548f4b641ed2bbb1ecdc8b21f6b873360b412dd",
       "failure_category": null,
       "review_group": "missing_file",
       "historical_symptom": "missing_referenced_input",
@@ -5168,10 +4915,9 @@
       "corpus": "keyword.squall321__KooRemapper",
       "member": "tests/test2_gaussian_small_result.k.k",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
       "status": "evidence_only",
       "case_status": "input_limited",
-      "seconds": 0.0007915000023785979,
+      "seconds": 0.0004687999899033457,
       "input_tree": {
         "ok": false,
         "tree_sha256": "c52ee4cd50c3b0de15e64ae60c0702abe523e881737a0c843e3bb07d8da9889e",
@@ -5188,8 +4934,6 @@
           }
         ],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "test2_gaussian_small_result.k.k",
         "files": [
           {
             "relative": "test2_gaussian_small_result.k.k",
@@ -5201,9 +4945,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "020cf6673663c769726250b63813296c4c59c2b904b4b91fb4785a0b3f39380d",
       "failure_category": null,
       "review_group": "missing_file",
       "historical_symptom": "missing_referenced_input",
@@ -5214,151 +4955,193 @@
       "corpus": "keyword.openvt__vivaplus",
       "member": "model/50F-standing/vivaplus-50F-standing.key",
       "previous_status": "failed",
-      "previous_pr54_status": "evidence_only",
-      "status": "failed",
-      "case_status": "failed",
-      "seconds": 2.95681100001093,
+      "status": "evidence_only",
+      "case_status": "input_limited",
+      "seconds": 0.0005464999994728714,
       "input_tree": {
-        "ok": true,
-        "tree_sha256": "b98207b5b9ce93bce8f834db8f6fc45288da81ad33861693d8d49a312474f345",
+        "ok": false,
+        "tree_sha256": "6a95c83702c70e2f54d1bb24c7ad00f671206d134b4b6c93ded6353c3994f46a",
         "tree_sha256_version": 1,
         "tree_kind": "keyword_include_tree",
-        "problems": [],
+        "problems": [
+          {
+            "kind": "missing_search_dir",
+            "hint": null,
+            "severity": "warning",
+            "relative": "vivaplus-50F-standing.key",
+            "name_line": 70,
+            "keyword": "*INCLUDE_PATH"
+          },
+          {
+            "kind": "missing_search_dir",
+            "hint": null,
+            "severity": "warning",
+            "relative": "vivaplus-50F-standing.key",
+            "name_line": 72,
+            "keyword": "*INCLUDE_PATH"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F-standing.key",
+            "name_line": 83,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F-standing.key",
+            "name_line": 85,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F-standing.key",
+            "name_line": 87,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F-standing.key",
+            "name_line": 89,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F-standing.key",
+            "name_line": 91,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F-standing.key",
+            "name_line": 93,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F-standing.key",
+            "name_line": 95,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F-standing.key",
+            "name_line": 97,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F-standing.key",
+            "name_line": 99,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F-standing.key",
+            "name_line": 101,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F-standing.key",
+            "name_line": 103,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F-standing.key",
+            "name_line": 105,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F-standing.key",
+            "name_line": 107,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F-standing.key",
+            "name_line": 109,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F-standing.key",
+            "name_line": 111,
+            "keyword": "*INCLUDE"
+          },
+          {
+            "kind": "missing",
+            "hint": "not_found",
+            "severity": "error",
+            "relative": "vivaplus-50F-standing.key",
+            "name_line": 113,
+            "keyword": "*INCLUDE"
+          }
+        ],
         "unsupported_native_variants": [
           "*INCLUDE_PATH"
         ],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "50F-standing/vivaplus-50F-standing.key",
         "files": [
           {
-            "relative": "50F-standing/vivaplus-50F-standing.key",
+            "relative": "vivaplus-50F-standing.key",
             "role": "main",
             "size": 4048,
             "sha256": "42e616651d58b314630d915fc6ca98367fdf51ea5450a235824597f9694460b1"
           },
           {
-            "relative": "50F-standing/vivaplus_50F-standing_nodes.k",
+            "relative": "vivaplus_50F-standing_nodes.k",
             "role": "include",
             "size": 41242445,
             "sha256": "782a4dbf1a1af7b2a57db1971e07d3eb441f03f0c9cfaba4155261f56d0d8b04"
-          },
-          {
-            "relative": "common/vivaplus-joints.k",
-            "role": "include",
-            "size": 33657,
-            "sha256": "2294ac569bfa4da6f43a202f6b3a249ec0ee5ebb8bb59652f46b2b7902c6e9bb"
-          },
-          {
-            "relative": "common/vivaplus-elements.k",
-            "role": "include",
-            "size": 58930539,
-            "sha256": "f5b9df260cd1d3db4bd2d4db4b4cef90aa448cf697cd9e169f7f102057363edb"
-          },
-          {
-            "relative": "common/vivaplus-materials.k",
-            "role": "include",
-            "size": 586096,
-            "sha256": "f14ef78bdb2a792ed9d2be01bf82f0a0a93ca811313f5f8cab0ff62b13d5a4b8"
-          },
-          {
-            "relative": "common/vivaplus-constraineds-contacts.k",
-            "role": "include",
-            "size": 763036,
-            "sha256": "4b46e5ccc5813734686b69a8c4f215565cc1e80aa181ade815926ff38fc2dabe"
-          },
-          {
-            "relative": "common/vivaplus-10-Head.k",
-            "role": "include",
-            "size": 41335,
-            "sha256": "ce5d7e16ad54535364b209f205ca872a20dd9c2423399a968e17105e22cabb94"
-          },
-          {
-            "relative": "common/vivaplus-20-Neck.k",
-            "role": "include",
-            "size": 111255,
-            "sha256": "0ac6c3b32a8981d46edffd4fe67be602a3b7f6ed7142343aa119a2aafd05e8b0"
-          },
-          {
-            "relative": "common/vivaplus-22-Neck-Muscles.k",
-            "role": "include",
-            "size": 204047,
-            "sha256": "66381b2b5f32a10674e06163dccb01cea022e5b10426fff8040cf855f540c8b7"
-          },
-          {
-            "relative": "common/vivaplus-30-Upper-Extremity.k",
-            "role": "include",
-            "size": 52205,
-            "sha256": "f8ba6d47718f1eb41a4f920688e2dd154a8710deca75e9d800af0c890b999954"
-          },
-          {
-            "relative": "common/vivaplus-40-Thorax.k",
-            "role": "include",
-            "size": 126804,
-            "sha256": "298b6b8f691f52f39406dcd896d2be0989ccde76f0951af742b27b452966bf51"
-          },
-          {
-            "relative": "common/vivaplus-50-Abdomen.k",
-            "role": "include",
-            "size": 79261,
-            "sha256": "52b06cfee428701747071fba7453c69edc6e9c556f84e77dd9bc9ee45c797cb4"
-          },
-          {
-            "relative": "common/vivaplus-60-Pelvis.k",
-            "role": "include",
-            "size": 23540,
-            "sha256": "7b291c29a116baa2f0bd35836d577087043146d15c34ddd962d3adf6490e807c"
-          },
-          {
-            "relative": "common/vivaplus-70-Lower-Extremity.k",
-            "role": "include",
-            "size": 73969,
-            "sha256": "9dc5e573a50e9120664beee5f32fb5d94ca92d3383b15d572e7ebee85dd6e724"
-          },
-          {
-            "relative": "common/vivaplus-90-outputs-nodes.k",
-            "role": "include",
-            "size": 80416,
-            "sha256": "b8bd4a782b16a40bb0cff37631bde3b787a1603c25158f54fc1384f48d1e81c6"
-          },
-          {
-            "relative": "common/vivaplus-91-output-settings.k",
-            "role": "include",
-            "size": 2560,
-            "sha256": "89e561831a5e54952bc6968980e32768d570cb5dd4800a2ddf31316eb5ca4d5a"
-          },
-          {
-            "relative": "common/vivaplus-92-outputs-elements.k",
-            "role": "include",
-            "size": 7934,
-            "sha256": "69be6058398cdd166da3387da7276cd5dc1b35c43279dae1408db9b1035f06be"
-          },
-          {
-            "relative": "common/vivaplus-constraineds-landmarks.k",
-            "role": "include",
-            "size": 861916,
-            "sha256": "15580070ee93e50bf08648a1651e46f902fd289049db8a8bbac9c7d85b672431"
           }
         ]
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 2,
-      "source_directory_listing_sha256": "cc456c9066b92ae60ced4397ef8a22770b73493a3565dc0aab904b2e5a0bc6b9",
-      "failure_category": "unsupported_native_include_variant",
+      "failure_category": null,
       "review_group": "unsupported_variant",
       "historical_symptom": "unsupported_include_variant",
-      "preflight_category": "unsupported_native_include_variant"
+      "preflight_category": "input_not_found"
     },
     {
       "case": "extra-keyword-083",
       "corpus": "keyword.LLK-LL__K-agent",
       "member": "skills/lsdyna-kfile/templates/drop/drop.k",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 13.38856679998571,
+      "seconds": 10.670798900013324,
       "input_tree": {
         "ok": true,
         "tree_sha256": "588461ad88cca102f1f46a5760097e34bc7aceed0682b0b0e3f82aebf7f6b76b",
@@ -5366,8 +5149,6 @@
         "tree_kind": "keyword_include_tree",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "drop.k",
         "files": [
           {
             "relative": "drop.k",
@@ -5391,9 +5172,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "2423391d287b24a2e764319fdb0b5d55c944af66d8b0d179493ad394c77199ce",
       "failure_category": "legacy_include_export",
       "review_group": "other",
       "historical_symptom": "empty_native_model_needs_diagnosis",
@@ -5404,10 +5182,9 @@
       "corpus": "solid_d3plot",
       "member": "",
       "previous_status": "passed",
-      "previous_pr54_status": "passed",
       "status": "passed",
       "case_status": "succeeded",
-      "seconds": 16.293903299985686,
+      "seconds": 11.637349999975413,
       "input_tree": {
         "ok": true,
         "tree_kind": "result_family",
@@ -5415,8 +5192,6 @@
         "tree_sha256": "bfd22fb49006a3bdae3b80cb4b3a62c9cd6a8c607b482c9f20de31ee8abf09bf",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "d3plot",
         "files": [
           {
             "relative": "d3plot",
@@ -5440,9 +5215,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "2ff6fd403dd10b06b5982c0c194b51efc8fb0053220909623e37d133f24a847e",
       "failure_category": null
     },
     {
@@ -5450,10 +5222,9 @@
       "corpus": "result.ansys__example-data.result_files.d3plot_projectile",
       "member": "d3plot",
       "previous_status": "passed",
-      "previous_pr54_status": "passed",
       "status": "passed",
       "case_status": "succeeded",
-      "seconds": 12.399452299985569,
+      "seconds": 14.093088100024033,
       "input_tree": {
         "ok": true,
         "tree_kind": "result_family",
@@ -5461,8 +5232,6 @@
         "tree_sha256": "37c8707e2c58dedfcd6ee2fdbd758678b3fa14e2cd6f66534d385e336738b1a4",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "d3plot",
         "files": [
           {
             "relative": "d3plot",
@@ -5570,9 +5339,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "eb118b392a1ebb76beb4278796b31b227a1bb9221198b5575163a4891bc7bc35",
       "failure_category": null
     },
     {
@@ -5580,10 +5346,9 @@
       "corpus": "result.ansys__pyansys-heart.tests.heart.assets.post.zerop",
       "member": "iter3.d3plot",
       "previous_status": "failed",
-      "previous_pr54_status": "failed",
       "status": "failed",
       "case_status": "failed",
-      "seconds": 8.133010799996555,
+      "seconds": 7.278358900017338,
       "input_tree": {
         "ok": true,
         "tree_kind": "result_family",
@@ -5591,8 +5356,6 @@
         "tree_sha256": "f627dc7f3f4892da8dd0abad6c03424c29e1ed81adf4d86718c2f2470d294f98",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "iter3.d3plot",
         "files": [
           {
             "relative": "iter3.d3plot",
@@ -5610,9 +5373,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "ebc4f65270a758f7d5352960136b43c8fc8d3bac8ccf9df91c23951c6c088088",
       "failure_category": "backend_state_count_mismatch"
     },
     {
@@ -5620,10 +5380,9 @@
       "corpus": "result.chiaraf10__uqpy_test.dyna_test_2023_03_08_01_53_113621.run_0.InputFiles",
       "member": "d3plot",
       "previous_status": "passed",
-      "previous_pr54_status": "passed",
       "status": "passed",
       "case_status": "succeeded",
-      "seconds": 14.892789100005757,
+      "seconds": 10.778871799993794,
       "input_tree": {
         "ok": true,
         "tree_kind": "result_family",
@@ -5631,8 +5390,6 @@
         "tree_sha256": "002277daa3ba5aa36188f193177c6ecfc87f3f4774bfc546e6bcdb6bd32d17e0",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "d3plot",
         "files": [
           {
             "relative": "d3plot",
@@ -5656,9 +5413,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "c30890402c53946970013378f8b6ed43c2229dc1421e1ca7992d8822a2c04b1b",
       "failure_category": null
     },
     {
@@ -5666,10 +5420,9 @@
       "corpus": "result.CMU-CBML__HexGen_Hex2Spline.example.rod_demo.LSDYNA_eigen_result",
       "member": "d3eigv",
       "previous_status": "passed",
-      "previous_pr54_status": "passed",
       "status": "passed",
       "case_status": "succeeded",
-      "seconds": 11.410622399998829,
+      "seconds": 11.370042499998817,
       "input_tree": {
         "ok": true,
         "tree_kind": "result_family",
@@ -5677,8 +5430,6 @@
         "tree_sha256": "1f89904b3834a9477a9c7a97b7871d33811c6264460873dfc85ca6b73c2109f6",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "d3eigv",
         "files": [
           {
             "relative": "d3eigv",
@@ -5690,9 +5441,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "d1e94625a3188aaf3cbb769a76fec6334da22ae539f8585ce10d972b8e4efd69",
       "failure_category": null
     },
     {
@@ -5700,10 +5448,9 @@
       "corpus": "result.CMU-CBML__HexGen_Hex2Spline.example.rod_demo.LSDYNA_eigen_result",
       "member": "d3plot",
       "previous_status": "passed",
-      "previous_pr54_status": "passed",
       "status": "passed",
       "case_status": "succeeded",
-      "seconds": 10.340439799998421,
+      "seconds": 10.745403100008843,
       "input_tree": {
         "ok": true,
         "tree_kind": "result_family",
@@ -5711,8 +5458,6 @@
         "tree_sha256": "3444ddd73f4ba2980e2c623f411e814e3de7306a7f96bd3c8d79b6b4decaff1e",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "d3plot",
         "files": [
           {
             "relative": "d3plot",
@@ -5730,9 +5475,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "d1e94625a3188aaf3cbb769a76fec6334da22ae539f8585ce10d972b8e4efd69",
       "failure_category": null
     },
     {
@@ -5740,10 +5482,9 @@
       "corpus": "result.hu-shuhan__editOpeniGame.test.Format_Validation_Test.lsdyna.Bolt_B_Explicit",
       "member": "d3plot",
       "previous_status": "passed",
-      "previous_pr54_status": "passed",
       "status": "passed",
       "case_status": "succeeded",
-      "seconds": 13.71371799998451,
+      "seconds": 14.4892181000032,
       "input_tree": {
         "ok": true,
         "tree_kind": "result_family",
@@ -5751,8 +5492,6 @@
         "tree_sha256": "eb3b999e1846e776c880dd68fd8c05ddb090053f54c77b15b44b01ac29d780ed",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "d3plot",
         "files": [
           {
             "relative": "d3plot",
@@ -6376,9 +6115,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "67ca205dc997675195af9c5b4aa4c8f2a2aa2f50f94de95b6c19317c01545c0d",
       "failure_category": null
     },
     {
@@ -6386,10 +6122,9 @@
       "corpus": "result.jascott4427__PILLARS-LSDyna.pillars_v2_airbag_open.keyfiles.100.30",
       "member": "d3plot",
       "previous_status": "passed",
-      "previous_pr54_status": "passed",
       "status": "passed",
       "case_status": "succeeded",
-      "seconds": 11.867295799980639,
+      "seconds": 10.206326099985745,
       "input_tree": {
         "ok": true,
         "tree_kind": "result_family",
@@ -6397,8 +6132,6 @@
         "tree_sha256": "93bac55407ab1b97c41146f9a738925710fd9103e306bd0dbd874b15f8fe94d6",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "d3plot",
         "files": [
           {
             "relative": "d3plot",
@@ -6416,9 +6149,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "7cc72c741765a7d1101857c4692ab2fd977b45c4515e0b58d2694c666cd0ee4a",
       "failure_category": null
     },
     {
@@ -6426,10 +6156,9 @@
       "corpus": "result.NaudeConradie__Masters-Project.Models.Old.Other.LS-PrePost_Tutorials",
       "member": "d3plot",
       "previous_status": "passed",
-      "previous_pr54_status": "passed",
       "status": "passed",
       "case_status": "succeeded",
-      "seconds": 10.44801330001792,
+      "seconds": 11.904311200021766,
       "input_tree": {
         "ok": true,
         "tree_kind": "result_family",
@@ -6437,8 +6166,6 @@
         "tree_sha256": "6d7c35849c01411377be69711d16488f621b7bc80abb4787f66f0cef1cc1e5f1",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "d3plot",
         "files": [
           {
             "relative": "d3plot",
@@ -6462,9 +6189,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "d372a93ffa5808746b21bc8db9fcdda1de36662838a13093e450b5312d1a86e0",
       "failure_category": null
     },
     {
@@ -6472,10 +6196,9 @@
       "corpus": "result.NaudeConradie__Masters-Project.Models.Old.Other.LSDyna_Basic_Tutorials.Ex_1_Cube",
       "member": "d3plot",
       "previous_status": "passed",
-      "previous_pr54_status": "passed",
       "status": "passed",
       "case_status": "succeeded",
-      "seconds": 19.401838599995244,
+      "seconds": 11.42514740000479,
       "input_tree": {
         "ok": true,
         "tree_kind": "result_family",
@@ -6483,8 +6206,6 @@
         "tree_sha256": "c627be648b43c261f531ffbf362bcfcbb6e6de5d11fe9141df537986a28adb58",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "d3plot",
         "files": [
           {
             "relative": "d3plot",
@@ -6508,9 +6229,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "93d28e084ffdab815f4faf8b50d4e79fa495dfc3cfe668e5538f077bc3461b82",
       "failure_category": null
     },
     {
@@ -6518,10 +6236,9 @@
       "corpus": "result.NaudeConradie__Masters-Project.Models.Old.Other.LSDyna_Basic_Tutorials.Ex_2_Tensile_Test",
       "member": "d3plot",
       "previous_status": "passed",
-      "previous_pr54_status": "passed",
       "status": "passed",
       "case_status": "succeeded",
-      "seconds": 18.34846649999963,
+      "seconds": 14.46311730000889,
       "input_tree": {
         "ok": true,
         "tree_kind": "result_family",
@@ -6529,8 +6246,6 @@
         "tree_sha256": "cd61d3a1dcc0493b740ecd1477b19bcd6771c247bf89377f575a229fc07024f1",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "d3plot",
         "files": [
           {
             "relative": "d3plot",
@@ -6554,9 +6269,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "83a1220ea2c558c92c9c4107c4699f2a05e2e545503ff6413cebb295ccff2dc1",
       "failure_category": null
     },
     {
@@ -6564,10 +6276,9 @@
       "corpus": "result.NaudeConradie__Masters-Project.Models.Old.Other.LSDyna_Unit_Cell_Corner.Steel_Explicit",
       "member": "d3plot",
       "previous_status": "passed",
-      "previous_pr54_status": "passed",
       "status": "passed",
       "case_status": "succeeded",
-      "seconds": 13.721843699982855,
+      "seconds": 12.749377200001618,
       "input_tree": {
         "ok": true,
         "tree_kind": "result_family",
@@ -6575,8 +6286,6 @@
         "tree_sha256": "346bea039afa047658a8d2ec7af5f3164490a7934e9d7ca6479eb468ae461080",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "d3plot",
         "files": [
           {
             "relative": "d3plot",
@@ -6600,9 +6309,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "7997a741a96e40fcdcefed8092e17cfc22f27b1ea84bf7f5c9021ff5d699fc8b",
       "failure_category": null
     },
     {
@@ -6610,10 +6316,9 @@
       "corpus": "result.turnerjennings__dynaFEHMtools.tests",
       "member": "d3part",
       "previous_status": "passed",
-      "previous_pr54_status": "passed",
       "status": "passed",
       "case_status": "succeeded",
-      "seconds": 13.830081399995834,
+      "seconds": 11.482967999996617,
       "input_tree": {
         "ok": true,
         "tree_kind": "result_family",
@@ -6621,8 +6326,6 @@
         "tree_sha256": "6a4a908f23716aa1c127116d2cf3a7807f6d077555d2dc53a21c8025057222f6",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "d3part",
         "files": [
           {
             "relative": "d3part",
@@ -6646,9 +6349,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "145c83fe8f7ecec3d46cd2c19814ab8933ac2fc93ee2263eb8a194f35e5b0952",
       "failure_category": null
     },
     {
@@ -6656,10 +6356,9 @@
       "corpus": "result.turnerjennings__dynaFEHMtools.tests",
       "member": "d3plot",
       "previous_status": "passed",
-      "previous_pr54_status": "passed",
       "status": "passed",
       "case_status": "succeeded",
-      "seconds": 12.362320200016256,
+      "seconds": 12.917379699996673,
       "input_tree": {
         "ok": true,
         "tree_kind": "result_family",
@@ -6667,8 +6366,6 @@
         "tree_sha256": "6149c99641a6d005becb581a4ebbd87e2a0f8672b853f5553e5bb33c3268c144",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "d3plot",
         "files": [
           {
             "relative": "d3plot",
@@ -6692,9 +6389,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "145c83fe8f7ecec3d46cd2c19814ab8933ac2fc93ee2263eb8a194f35e5b0952",
       "failure_category": null
     },
     {
@@ -6702,10 +6396,9 @@
       "corpus": "result.zenodo__18598355.FEMU_Taylor.03_mat_CS_artificial",
       "member": "d3plot",
       "previous_status": "passed",
-      "previous_pr54_status": "passed",
       "status": "passed",
       "case_status": "succeeded",
-      "seconds": 14.495955399994273,
+      "seconds": 12.030013200012036,
       "input_tree": {
         "ok": true,
         "tree_kind": "result_family",
@@ -6713,8 +6406,6 @@
         "tree_sha256": "fc1f3b15fb0a2b5535b5c2afeeb16ef8260af4ee7ee194dd90903f1a7fccdd9e",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "d3plot",
         "files": [
           {
             "relative": "d3plot",
@@ -6738,9 +6429,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "b796cd36f522663b08874d2d172ee2e80b00f72f8a69d5eef78a2cf0f7c2c51a",
       "failure_category": null
     },
     {
@@ -6748,10 +6436,9 @@
       "corpus": "result.zenodo__18598355.FEMU_Taylor.21_mat_JC_real",
       "member": "d3plot",
       "previous_status": "passed",
-      "previous_pr54_status": "passed",
       "status": "passed",
       "case_status": "succeeded",
-      "seconds": 13.895679799985373,
+      "seconds": 12.855671600002097,
       "input_tree": {
         "ok": true,
         "tree_kind": "result_family",
@@ -6759,8 +6446,6 @@
         "tree_sha256": "6b1278e7e8295669326381d02603d4b08ffd890b8188eda357af9781dbc9727d",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "d3plot",
         "files": [
           {
             "relative": "d3plot",
@@ -6784,9 +6469,6 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "a6f582d299a00f7b73163752d070f53a993f4ed0058159736e5fb317123e246c",
       "failure_category": null
     },
     {
@@ -6794,10 +6476,9 @@
       "corpus": "result.qd-cae__qd-cae-python.test",
       "member": "d3plot",
       "previous_status": "passed",
-      "previous_pr54_status": "passed",
       "status": "passed",
       "case_status": "succeeded",
-      "seconds": 15.483612300013192,
+      "seconds": 11.918047799990745,
       "input_tree": {
         "ok": true,
         "tree_kind": "result_family",
@@ -6805,8 +6486,6 @@
         "tree_sha256": "32e098d97874add5a35ad40332c2cca98983130ab72d873d8e353933bf224cca",
         "problems": [],
         "unsupported_native_variants": [],
-        "files_relative_to": "common_input_directory",
-        "main_relative": "d3plot",
         "files": [
           {
             "relative": "d3plot",
@@ -6824,95 +6503,13 @@
       },
       "originals_unchanged": true,
       "input_tree_unchanged": true,
-      "source_directory_listing_unchanged": true,
-      "source_directory_count": 1,
-      "source_directory_listing_sha256": "47f8103a5210efff44cc16f20b5cb5daaa1ced2a98e9e6f4d90108aaf71a0656",
       "failure_category": null
     }
   ],
-  "classification_comparison": [
-    {
-      "previous": "missing_file",
-      "current": "input_not_found",
-      "count": 17
-    },
-    {
-      "previous": "other",
-      "current": "input_unreadable",
-      "count": 1
-    },
-    {
-      "previous": "other",
-      "current": "preflight_ok_requires_native_diagnosis",
-      "count": 30
-    },
-    {
-      "previous": "path_form",
-      "current": "input_absolute_path",
-      "count": 2
-    },
-    {
-      "previous": "path_form",
-      "current": "input_not_found",
-      "count": 6
-    },
-    {
-      "previous": "unsupported_variant",
-      "current": "input_not_found",
-      "count": 13
-    },
-    {
-      "previous": "unsupported_variant",
-      "current": "unsupported_native_include_variant",
-      "count": 14
-    }
-  ],
-  "corrected_false_input_limits": [
-    "extra-keyword-006",
-    "extra-keyword-025",
-    "extra-keyword-037",
-    "extra-keyword-042",
-    "extra-keyword-050",
-    "extra-keyword-063",
-    "extra-keyword-069",
-    "extra-keyword-071",
-    "extra-keyword-073",
-    "extra-keyword-074",
-    "extra-keyword-082"
-  ],
-  "source_directory_listings_verified": 100,
-  "historical_pr54": {
-    "evidence": "historical-19303f7.json",
-    "sha256": "f3da0d3241c2513edd54a1560c622b7493fd077b307940f833e5bc6d6fdabbbe",
-    "outcomes": {
-      "passed": 16,
-      "failed": 34,
-      "evidence_only": 50
-    },
-    "superseded_reason": "11 input limitations were false missing-file reports caused by extended-path dot segments"
-  },
-  "intermediate_run": {
-    "actual_git_revision": "acdc648d4a6b9e8d860eabf7f68f8cf17d121495",
-    "working_tree_dirty": false,
-    "report": "../20261007-lspp-review11/public100-batch-report/report.json",
-    "report_sha256": "90bcb0b073178429309e2ce2f7b7e4e33936577479735cb2b66a4cf02ecba0e5",
-    "outcomes": {
-      "passed": 16,
-      "failed": 45,
-      "evidence_only": 39
-    },
-    "note": "Path fix verified, then file locators were given an explicit common base"
-  },
-  "historical_diagnosis": {
-    "version": "4.13",
-    "relative_open_count": 42,
-    "include_open_failures_in_job_directory": 127,
-    "cause": "Root-only staging broke relative INCLUDE resolution; original job.json records do contain a version"
-  },
   "limits": [
-    "Tree hashes cover successfully read files; missing references are preserved as problems",
-    "Input-limited cases do not launch native and are not passed",
-    "Native export, unsupported variants, native crash and reader mismatch remain gaps",
-    "No GUI or remote run was performed"
+    "Input-limited cases do not launch native and are not passed; target installation is still recorded.",
+    "The tree hash identifies successfully read files; unresolved references remain explicit problems, not invented file hashes.",
+    "Legacy INCLUDE exports, native variants, one native crash and one reader state mismatch remain open.",
+    "No GUI, remote or other LS-PrePost version was run in this batch."
   ]
 }

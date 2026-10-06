@@ -1203,4 +1203,7 @@ BatchEngine 和内置 Python 在作业目录运行，并非主 deck 目录。对
 
 历史 p100 的 16 passed / 84 failed 保留不改，新运行和 problems.kind/hint 分类另行追加。回归见 [公开语料测试](../tests/test_public_corpus_native.py) 和 [预检证据测试](../tests/test_public_corpus_preflight.py)。
 
-本轮 [100 例证据](decisions/evidence/i04-public100-preflight/report.md) 已登记 16 通过、34 失败、50 输入限制。树哈希只标识实际成功读取的文件；缺失或不可读的引用保留在 problems 中，不虚构其哈希。
+第十一轮 [100 例证据](decisions/evidence/i04-public100-preflight/report.md) 已更正为 16 通过、45 失败、39 输入限制；先前 50 个限制中有 11 个来自扩展路径误判，原记录保留为历史。树哈希只标识实际成功读取的文件；缺失或不可读的引用保留在 problems 中，不虚构其哈希。
+
+
+第十一轮：预检与 Service/Settings 使用普通路径；长路径 IO 先 normpath 再增加扩展前缀，避免 `..` 被误判为缺文件。文件位置相对共同输入目录记录，并声明 main_relative；运行前后同时比较源目录文件清单，可发现新增文件。旧 p100 的 job.json 有 4.13 版本记录；其 42 次暂存相对名打开、127 次 job 目录 INCLUDE 失败已复核，旧空模型来自只暂存根 deck。

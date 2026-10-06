@@ -1,28 +1,29 @@
-# I04：100 例公开语料的 INCLUDE 预检与原生复跑
+# I04：普通路径下的完整 INCLUDE 树复跑
 
-在干净提交 `19303f7792784108a807a9d6eb00c58b5c2d241a` 上用 LS-PrePost 4.13 无图形复跑同一批 100 例：**16 passed / 34 failed / 50 evidence_only（pytest 为 xfailed）**，退出码 1。历史 **16 passed / 84 failed** 保留；50 个输入限制未启动原生，未改记通过。实际版本资源、报告哈希、源码 Git blob/LF 身份、逐例树指纹和新旧分类见 [evidence.json](evidence.json)。
+干净提交 `53f6072ca54bc2f7c3a6bfa887450dacd78c3d93` 上用 4.13 无图形重跑同一批 100 例：**16 passed / 45 failed / 39 evidence_only（pytest xfailed）**，exit=1。11 个假输入限制已恢复进入原生入口检验；它们仍有导出或变体限制，不因此标为通过。逐例状态、哈希、Git 身份见 [evidence.json](evidence.json)。
 
-100 份案例记录都有树 SHA256 / 版本、文件 relative / role / size / sha256；原始输入和预检实际读取的 INCLUDE 文件均已复核字节未变。预检错误中的缺失文件没有伪造哈希；结果族另标 tree_kind=result_family。完整日志和绝对安装路径只留在外部报告。
+预检、Service 输入及允许目录使用普通路径；低层长路径 IO 先 normpath，再加扩展前缀。文件清单显式声明 files_relative_to=common_input_directory 和 main_relative，父目录 INCLUDE 也有可定位的相对名称，不再用 null。100 例的原文件字节、已读树字节和源目录文件清单均已核对未变。
 
-剩余 34 个失败：24 个被旧原生 INCLUDE 导出入口拒绝，8 个为原生入口尚不支持的 INCLUDE 变体，1 个原生进程崩溃，1 个数值读取器状态数不一致。I04 保持 partial，不把这些统一认定为数据问题。
+## 历史勘误
 
-此前 19 个“原生读入为空”案例在本轮带版本运行中：14 个已通过原生 inventory，随后卡在 INCLUDE 导出；4 个被输入预检拦截；1 个原生崩溃。旧运行未记版本，不能据此断言旧失败的根因已经修复。
+19303f7 的 **16 / 34 / 50** 原始证据逐字节保存在 [历史记录](historical-19303f7.json)。其中 006、025、037、042、050、063、069、071、073、074、082 的缺文件结论来自运行器扩展路径错误；这 11 个不是真实输入缺失。029、031 的错误数也从 2 降为 1。
 
-## 83 个 keyword 案例的新旧分类
+先在 acdc648 修正路径后得到 16 / 45 / 39；随后补齐父目录文件相对定位，再于上述干净提交整批复跑，计数一致。两次修正运行及旧记录均保留。
 
-旧 ce28 近似分类为变体 27、缺文件 17、路径写法 8、其他 31。新分类优先采用共享预检第一条 error 的 kind/hint；因此同一案例同时有变体和缺文件时，归入输入错误。预检无 error 才报告原生变体限制或待诊断，不强行维持旧分组数量。
+旧 p100 的 **16 / 84** 保持不变。其 job.json 实际记录了 4.13；此前“没有版本”的说法已更正。复核旧日志得到 42 次按暂存相对名打开、127 次 INCLUDE 打开失败，全部发生在 job 目录：旧空模型来自只暂存根 deck，不能归咎于语料。
 
-| 旧分组 | 新预检分类 | 数量 |
+## 分类对照
+
+以下按共享预检第一条 error 的 kind/hint 分组；预检成功后仍可能受原生入口能力限制。
+
+| 旧 ce28 分组 | 当前预检分类 | 数量 |
 |---|---|---:|
 | missing_file | input_not_found | 17 |
-| other | input_not_found | 5 |
 | other | input_unreadable | 1 |
-| other | preflight_ok_requires_native_diagnosis | 25 |
+| other | preflight_ok_requires_native_diagnosis | 30 |
 | path_form | input_absolute_path | 2 |
 | path_form | input_not_found | 6 |
-| unsupported_variant | input_not_found | 19 |
-| unsupported_variant | unsupported_native_include_variant | 8 |
+| unsupported_variant | input_not_found | 13 |
+| unsupported_variant | unsupported_native_include_variant | 14 |
 
-## 可复核记录
-
-报告：`r9-public100-batch-report/report.json`；100 个 per-case JSON 均与总报告逐例对应。共享 API 默认禁止网络引用，本轮没有联网补取缺失文件，也没有修改公开语料。GUI、远程和其他版本不在本次运行内。
+剩余原生/入口失败：{"legacy_include_export": 29, "unsupported_native_include_variant": 14, "native_process_failure": 1, "backend_state_count_mismatch": 1}。I04 保持 partial；本批未覆盖 GUI、UU 或其他版本。
