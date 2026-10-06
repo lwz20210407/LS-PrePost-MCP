@@ -331,11 +331,11 @@
 - 一次请求多个实体，返回多条曲线，每条带实体 ID、分量、单位
 - 与 LASSO 读回的同一量一致（容差内）
 
-现有入口：`extract_node_history`
+现有入口：`extract_node_history`, `extract_history`
 
 缺口：
 
-- 只有节点；没有单元 / 部件 / 全局；不能批量
+- 原生 D3plot/lsreader 交叉对齐留待原生环境统一执行
 
 ### Q06 binout / ASCII 全库曲线
 
@@ -369,11 +369,11 @@
 - 滤波结果与 LSPP XYPlot 同参数滤波对比一致（L2）
 - 每次运算把公式与参数写进结果元数据
 
-现有入口：`process_curve`, `convert_history_units`, `combine_history_curves`, `build_tensile_curves`
+现有入口：`process_curve`, `convert_history_units`, `combine_history_curves`, `build_tensile_curves`, `curve_ops`
 
 缺口：
 
-- 缺 SAE / Butterworth 滤波、重采样、FFT、Cross Plot、真应力应变
+- LSPP 原生 XYPlot 导出曲线参数对齐留待原生环境统一执行
 
 ### Q08 XYPlot 出图
 
@@ -387,7 +387,11 @@
 - PNG 与同时导出的 CSV 数值一致
 - 批处理上下文可用（不依赖可见 GUI），依据 E5 结论
 
-现有入口：`export_gui_curve_plot`
+现有入口：`export_gui_curve_plot`, `render_xyplot`
+
+缺口：
+
+- 原生观察窗口双 Y 轴抓图留待原生环境统一窗口执行
 
 ### Q09 动画导出
 
@@ -431,11 +435,11 @@
 - F4 剩余常用项（面积、体积、质量、惯量、点到面距离、部件间隙）各一个用例
 - 质量类测量缺少密度或单位时拒绝
 
-现有入口：`measure_gui_geometry`, `measure_parts`
+现有入口：`measure_gui_geometry`, `measure_parts`, `measure`
 
 缺口：
 
-- F4 的 21 项中完成 6 项；缺面积、质量、惯量、间隙等
+- 原生 F4 GUI 交互拾取留待原生会话统一执行
 
 ### Q12 能量检查
 

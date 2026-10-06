@@ -409,3 +409,369 @@ class EngineeringTools:
         result["native_stage_job_ids"] = [r["job_id"] for r in stages]
         atomic_json(Path(result["job_directory"]) / "job.json", result)
         return result
+
+    def curve_ops(
+        self,
+        path: str,
+        operation: str,
+        units: str = "",
+        secondary_path: str | None = None,
+        cfc: int = 60,
+        custom_cutoff_hz: float | None = None,
+        dt: float | None = None,
+        num_points: int | None = None,
+        time_column: str | int = 1,
+        value_column: str | int = 2,
+        secondary_time_column: str | int = 1,
+        secondary_value_column: str | int = 2,
+        delimiter: str = "comma",
+        skip_rows: int = 1,
+    ) -> dict:
+        """Perform operations on numeric history curves: SAE J211/Butterworth filtering, resampling, FFT spectrum, cross plot, true stress-strain, differentiation, integration, or summary statistics."""
+        from .curve_ops import (
+            compute_fft,
+            cross_plot,
+            curve_summary,
+            differentiate_curve,
+            engineering_to_true_stress_strain,
+            integrate_curve,
+            read_curve_table,
+            resample_curve,
+            sae_j211_filter,
+        )
+
+        source = self.settings.input_path(path)
+        sources = [source]
+        secondary_source = None
+        if secondary_path:
+            secondary_source = self.settings.input_path(secondary_path)
+            sources.append(secondary_source)
+
+        def work(directory):
+            times, values, _ = read_curve_table(source, time_column, value_column, delimiter, skip_rows)
+            artifacts = []
+
+            if operation in ("filter", "sae_filter", "sae"):
+                filtered, meta = sae_j211_filter(times, values, cfc=cfc, custom_cutoff_hz=custom_cutoff_hz)
+                artifact = write_csv(directory / "curve.csv", ["time", "value"], zip(times, filtered))
+                artifacts.append(artifact)
+                summary = {
+                    "operation": "sae_filter",
+                    "filter_metadata": meta,
+                    "summary": curve_summary(times, filtered),
+                    "input_units": units,
+                    "output_units": units,
+                }
+            elif operation == "resample":
+                new_t, new_v, meta = resample_curve(times, values, dt=dt, num_points=num_points)
+                artifact = write_csv(directory / "curve.csv", ["time", "value"], zip(new_t, new_v))
+                artifacts.append(artifact)
+                summary = {
+                    "operation": "resample",
+                    "resample_metadata": meta,
+                    "summary": curve_summary(new_t, new_v),
+                    "input_units": units,
+                    "output_units": units,
+                }
+            elif operation == "fft":
+                freqs, amps, meta = compute_fft(times, values)
+                artifact = write_csv(directory / "fft.csv", ["frequency_hz", "amplitude"], zip(freqs, amps))
+                artifacts.append(artifact)
+                summary = {
+                    "operation": "fft",
+                    "fft_metadata": meta,
+                    "input_units": units,
+                }
+            elif operation == "cross_plot":
+                if not secondary_source:
+                    raise ValueError("cross_plot operation requires secondary_path for Y-curve")
+                t2, v2, _ = read_curve_table(
+                    secondary_source, secondary_time_column, secondary_value_column, delimiter, skip_rows
+                )
+                t_com, x_aln, y_aln, meta = cross_plot(times, values, t2, v2)
+                artifact = write_csv(directory / "cross_plot.csv", ["time", "x", "y"], zip(t_com, x_aln, y_aln))
+                artifacts.append(artifact)
+                summary = {
+                    "operation": "cross_plot",
+                    "cross_plot_metadata": meta,
+                    "input_units": units,
+                }
+            elif operation == "true_stress_strain":
+                if secondary_source:
+                    _, eng_stress, _ = read_curve_table(
+                        secondary_source, secondary_time_column, secondary_value_column, delimiter, skip_rows
+                    )
+                    eng_strain = values
+                else:
+                    eng_strain = times
+                    eng_stress = values
+                t_strain, t_stress, meta = engineering_to_true_stress_strain(eng_strain, eng_stress)
+                artifact = write_csv(
+                    directory / "true_stress_strain.csv",
+                    ["engineering_strain", "engineering_stress", "true_strain", "true_stress"],
+                    zip(eng_strain, eng_stress, t_strain, t_stress),
+                )
+                artifacts.append(artifact)
+                summary = {
+                    "operation": "true_stress_strain",
+                    "conversion_metadata": meta,
+                }
+            elif operation == "differentiate":
+                deriv = differentiate_curve(times, values)
+                artifact = write_csv(directory / "curve.csv", ["time", "value"], zip(times, deriv))
+                artifacts.append(artifact)
+                summary = {
+                    "operation": "differentiate",
+                    "summary": curve_summary(times, deriv),
+                    "input_units": units,
+                    "output_units": f"{units} / time" if units else "",
+                }
+            elif operation == "integrate":
+                integ = integrate_curve(times, values)
+                artifact = write_csv(directory / "curve.csv", ["time", "value"], zip(times, integ))
+                artifacts.append(artifact)
+                summary = {
+                    "operation": "integrate",
+                    "summary": curve_summary(times, integ),
+                    "input_units": units,
+                    "output_units": f"{units} * time" if units else "",
+                }
+            elif operation == "summary":
+                artifact = write_csv(directory / "curve.csv", ["time", "value"], zip(times, values))
+                artifacts.append(artifact)
+                summary = {
+                    "operation": "summary",
+                    "summary": curve_summary(times, values),
+                    "input_units": units,
+                }
+            else:
+                raise ValueError(f"Unsupported curve operation: '{operation}'")
+
+            atomic_json(directory / "summary.json", summary)
+            artifacts.append(check_artifact(directory / "summary.json", "json"))
+            return summary, artifacts
+
+        unit_label = units.strip() if (isinstance(units, str) and units.strip()) else "dimensionless"
+        return self._post_job(
+            "curve_ops",
+            dict(
+                path=str(source),
+                operation=operation,
+                units=unit_label,
+                cfc=cfc,
+                custom_cutoff_hz=custom_cutoff_hz,
+                dt=dt,
+                num_points=num_points,
+            ),
+            sources,
+            work,
+        )
+
+    def render_xyplot(
+        self,
+        path: str,
+        x_column: str | int = 1,
+        y_column: str | int = 2,
+        title: str = "XY Plot",
+        x_label: str = "X",
+        y_label: str = "Y",
+        x_unit: str = "",
+        y_unit: str = "",
+        curve_label: str = "Curve 1",
+        additional_curves: list[dict] | None = None,
+        x_range: list[float] | None = None,
+        y_range: list[float] | None = None,
+        x_scale: str = "linear",
+        y_scale: str = "linear",
+        show_grid: bool = True,
+        show_legend: bool = True,
+        width: int = 1280,
+        height: int = 720,
+    ) -> dict:
+        """Render publication-grade XYPlot of up to 10 curves in headless batch context, producing PNG and identical CSV."""
+        from .xyplot import execute_render_xyplot
+
+        source = self.settings.input_path(path)
+        sources = [source]
+        if additional_curves:
+            for item in additional_curves:
+                sources.append(self.settings.input_path(item["path"]))
+
+        def work(directory):
+            summary, files = execute_render_xyplot(
+                directory=directory,
+                path=str(source),
+                x_column=x_column,
+                y_column=y_column,
+                title=title,
+                x_label=x_label,
+                y_label=y_label,
+                x_unit=x_unit,
+                y_unit=y_unit,
+                curve_label=curve_label,
+                additional_curves=additional_curves,
+                x_range=x_range,
+                y_range=y_range,
+                x_scale=x_scale,
+                y_scale=y_scale,
+                show_grid=show_grid,
+                show_legend=show_legend,
+                width=width,
+                height=height,
+            )
+            artifacts = [
+                check_artifact(files[0], "png"),
+                check_artifact(files[1], "csv"),
+            ]
+            atomic_json(directory / "summary.json", summary)
+            artifacts.append(check_artifact(directory / "summary.json", "json"))
+            return summary, artifacts
+
+        unit_label = f"{x_unit};{y_unit}".strip(";") or "dimensionless"
+        return self._post_job(
+            "render_xyplot",
+            dict(
+                path=str(source),
+                title=title,
+                x_label=x_label,
+                y_label=y_label,
+                x_unit=x_unit,
+                y_unit=y_unit,
+                units=unit_label,
+                x_scale=x_scale,
+                y_scale=y_scale,
+            ),
+            sources,
+            work,
+        )
+
+    def extract_history(
+        self,
+        source: str,
+        entity_type: str,
+        entity_ids: list[int] | None = None,
+        quantity: str = "displacement",
+        components: list[str] | None = None,
+        units: str = "",
+    ) -> dict:
+        """Extract multi-entity time histories across node, element, part, and global modes."""
+        from .history import extract_history as run_extract_history
+
+        db_path = self.settings.input_path(source)
+
+        def work(directory):
+            summary, headers, rows = run_extract_history(
+                source=db_path,
+                entity_type=entity_type,
+                entity_ids=entity_ids,
+                quantity=quantity,
+                components=components,
+                units=units,
+            )
+            csv_path = directory / "history.csv"
+            artifacts = [write_csv(csv_path, headers, rows)]
+            atomic_json(directory / "summary.json", summary)
+            artifacts.append(check_artifact(directory / "summary.json", "json"))
+            return summary, artifacts
+
+        unit_label = units.strip() if (isinstance(units, str) and units.strip()) else "raw"
+        return self._post_job(
+            "extract_history",
+            dict(
+                source=str(db_path),
+                entity_type=entity_type,
+                entity_ids=entity_ids,
+                quantity=quantity,
+                components=components,
+                units=unit_label,
+            ),
+            [db_path],
+            work,
+        )
+
+    def measure(
+        self,
+        measurement: str,
+        model: str | None = None,
+        node_coords: list[list[float]] | None = None,
+        node_ids: list[int] | None = None,
+        nodes: dict[int, list[float]] | None = None,
+        elements: list[list[int]] | None = None,
+        part_id: int | None = None,
+        density: float | None = None,
+        thickness: float | None = None,
+        units: str = "mm",
+        density_units: str = "",
+        clearance_set1: list[list[float]] | None = None,
+        clearance_set2: list[list[float]] | None = None,
+    ) -> dict:
+        """Measure geometry or physical properties (F4 inspection tool): distance, angle, dihedral, area, volume, mass, inertia, clearance."""
+        from .measure import (
+            measure_angle,
+            measure_clearance,
+            measure_dihedral,
+            measure_distance,
+            measure_part_geometry_and_physics,
+            measure_point_to_plane_distance,
+        )
+
+        sources = []
+        if model:
+            sources.append(self.settings.input_path(model))
+
+        def work(directory):
+            if measurement == "distance":
+                if not node_coords or len(node_coords) != 2:
+                    raise ValueError("Distance measurement requires 2 coordinates")
+                res = measure_distance(node_coords[0], node_coords[1], node_ids, units=units)
+            elif measurement == "angle":
+                if not node_coords or len(node_coords) != 3:
+                    raise ValueError("Angle measurement requires 3 coordinates (p1, vertex, p3)")
+                res = measure_angle(node_coords[0], node_coords[1], node_coords[2], node_ids)
+            elif measurement == "dihedral":
+                if not node_coords or len(node_coords) != 4:
+                    raise ValueError("Dihedral measurement requires 4 coordinates")
+                res = measure_dihedral(node_coords[0], node_coords[1], node_coords[2], node_coords[3], node_ids)
+            elif measurement == "point_to_plane_distance":
+                if not node_coords or len(node_coords) != 4:
+                    raise ValueError("point_to_plane_distance requires target point and 3 plane points")
+                res = measure_point_to_plane_distance(
+                    node_coords[0], node_coords[1], node_coords[2], node_coords[3], units=units
+                )
+            elif measurement in ("area", "volume", "mass", "center_of_mass", "inertia"):
+                if not nodes or not elements:
+                    raise ValueError(f"{measurement} measurement requires nodes and elements dictionary")
+                nodes_arr = {int(k): np.asarray(v, dtype=float) for k, v in nodes.items()}
+                res = measure_part_geometry_and_physics(
+                    nodes_arr,
+                    elements,
+                    measurement=measurement,
+                    density=density,
+                    thickness=thickness,
+                    units=units,
+                    density_units=density_units,
+                    part_id=part_id,
+                )
+            elif measurement == "clearance":
+                if clearance_set1 is None or clearance_set2 is None:
+                    raise ValueError("Clearance measurement requires clearance_set1 and clearance_set2")
+                res = measure_clearance(np.asarray(clearance_set1), np.asarray(clearance_set2), units=units)
+            else:
+                raise ValueError(f"Unsupported measurement type: '{measurement}'")
+
+            atomic_json(directory / "summary.json", res)
+            artifacts = [check_artifact(directory / "summary.json", "json")]
+            return res, artifacts
+
+        unit_label = units.strip() if (isinstance(units, str) and units.strip()) else "mm"
+        return self._post_job(
+            "measure",
+            dict(
+                measurement=measurement,
+                part_id=part_id,
+                units=unit_label,
+                density=density,
+            ),
+            sources,
+            work,
+        )

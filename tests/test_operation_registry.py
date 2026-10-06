@@ -69,7 +69,8 @@ def test_every_legacy_operation_has_a_unique_runtime_id_and_compatibility_period
     # legacy operations keep their alias until v0.6; the target tools themselves (name == target) have none
     assert {r.name for r in OPERATIONS if r.legacy_until is None} == {
         "run_script", "find_recipe", "run_recipe", "search_docs", "keyword_fields", "command_help",
-        "model_info", "edit_keywords", "create_entities", "mesh_ops", "check_model"}
+        "model_info", "edit_keywords", "create_entities", "mesh_ops", "check_model",
+        "curve_ops", "render_xyplot", "extract_history", "measure"}
     with pytest.raises(ValueError):
         resolve_operation("__dict__")
 

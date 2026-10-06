@@ -39,6 +39,7 @@
 | `create_solid_sphere` | P07 | center*: array; radius*: number; divisions*: integer; units*: string; part_id: integer |
 | `create_tensile_shell_plate` | I08 | nx*: integer; ny*: integer; size*: array; thickness*: number; density*: number; young_modulus*: number; poisson_ratio*: number; displacement*: number; duration*: number; output_interval*: number; units*: string |
 | `create_workflow` | A09 | name*: string; steps*: array; defaults: union/ref |
+| `curve_ops` | Q07 | path*: string; operation*: string; units: string; secondary_path: union/ref; cfc: integer; custom_cutoff_hz: union/ref; dt: union/ref; num_points: union/ref; time_column: union/ref; value_column: union/ref; secondary_time_column: union/ref; secondary_value_column: union/ref; delimiter: string; skip_rows: integer |
 | `describe_installed_template` | A08 | template_id*: string |
 | `describe_pydyna_keyword` | A10 | class_name*: string |
 | `edit_keywords` | P02, P03, P10 | model*: string; edits*: array; allow_new_dangling: boolean |
@@ -55,6 +56,7 @@
 | `extract_d3plot_field` | Q03 | path*: string; field*: string; states*: array; units*: string; entity_ids: union/ref; component_indices: union/ref; validity_policy: string |
 | `extract_d3plot_nodal` | Q03 | path*: string; node_ids*: array; quantity*: string; states*: array; units*: string |
 | `extract_d3plot_stress` | Q03 | path*: string; element_type*: string; element_ids*: array; states*: array; integration_point*: integer; units*: string; relative_tolerance: number; validity_policy: string |
+| `extract_history` | Q05 | source*: string; entity_type*: string; entity_ids: union/ref; quantity: string; components: union/ref; units: string |
 | `extract_lsreader_nodal` | Q03 | path*: string; node_ids*: array; quantity*: string; states*: array; units*: string |
 | `extract_native_ascii_curve` | Q06 | path*: string; database*: string; component*: integer; units*: string; entity_id: union/ref |
 | `extract_native_binout_curve` | Q06 | path*: string; branch*: string; quantity*: string; units*: string; entity_id: union/ref; session_id: union/ref |
@@ -95,6 +97,7 @@
 | `list_parts` | P01 | model*: string; file_type: string; limit: integer |
 | `list_pydyna_keywords` | A10 | query: string; offset: integer; limit: integer |
 | `load_gui_selection_buffer` | G03 | session_id*: string; slot*: integer |
+| `measure` | Q11 | measurement*: string; model: union/ref; node_coords: union/ref; node_ids: union/ref; nodes: union/ref; elements: union/ref; part_id: union/ref; density: union/ref; thickness: union/ref; units: string; density_units: string; clearance_set1: union/ref; clearance_set2: union/ref |
 | `measure_gui_geometry` | Q11 | session_id*: string; measurement*: string; node_ids*: array; units*: string; axis: string; state: union/ref; capture: boolean |
 | `measure_parts` | Q11 | model*: string; part_ids*: array |
 | `merge_duplicate_mesh_nodes` | P08 | model*: string; tolerance*: number; units*: string; native_check: boolean |
@@ -116,6 +119,7 @@
 | `recover_gui_session` | I08 | session_id*: string |
 | `render_gui_field` | Q02 | session_id*: string; entity_type*: string; field*: string; state*: integer; units*: string; integration_point: string; part_ids: union/ref; color_range: union/ref; averaging: string; validity_policy: string |
 | `render_snapshot` | Q02 | model*: string; file_type: string; view: string; state: union/ref; fringe_code: union/ref; averaging: string |
+| `render_xyplot` | Q08 | path*: string; x_column: union/ref; y_column: union/ref; title: string; x_label: string; y_label: string; x_unit: string; y_unit: string; curve_label: string; additional_curves: union/ref; x_range: union/ref; y_range: union/ref; x_scale: string; y_scale: string; show_grid: boolean; show_legend: boolean; width: integer; height: integer |
 | `renumber_gui_entities` | P08 | session_id*: string; entity_type*: string; start_id*: integer; check_references: boolean |
 | `replace_gui_model` | I08 | session_id*: string; path*: string; file_type: string; expected_empty: boolean |
 | `replace_gui_node` | P08 | session_id*: string; source_node_id*: integer; target_node_id*: integer; units*: string |

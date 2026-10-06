@@ -153,7 +153,11 @@
     {"name": "edit_keywords", "domain": "model", "target": "edit_keywords", "task_id": "P02", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
     {"name": "create_entities", "domain": "model", "target": "create_entities", "task_id": "P04", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
     {"name": "mesh_ops", "domain": "mesh", "target": "mesh_ops", "task_id": "P08", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
-    {"name": "check_model", "domain": "checks", "target": "check_model", "task_id": "P09", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"}
+    {"name": "check_model", "domain": "checks", "target": "check_model", "task_id": "P09", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
+    {"name": "curve_ops", "domain": "results", "target": "curve_ops", "task_id": "Q07", "legacy_until": null, "note": "SAE J211/Butterworth filtering, resampling, FFT spectrum, cross plot, and stress-strain; returns JobResult"},
+    {"name": "render_xyplot", "domain": "results", "target": "render_xyplot", "task_id": "Q08", "legacy_until": null, "note": "Multi-curve headless batch XYPlot rendering and synchronous CSV export; returns JobResult"},
+    {"name": "extract_history", "domain": "results", "target": "extract_history", "task_id": "Q05", "legacy_until": null, "note": "Multi-entity time-history extraction across node, element, part, and global modes; returns JobResult"},
+    {"name": "measure", "domain": "results", "target": "measure", "task_id": "Q11", "legacy_until": null, "note": "F4 geometry and physics measurements (distance, angle, dihedral, area, volume, mass, inertia, clearance); returns JobResult"}
   ],
   "workflow_aliases": {"new_model": "reset_gui_session", "open_model": "open_in_gui_session", "checkpoint": "checkpoint_gui_session"}
 }

@@ -456,9 +456,10 @@ tasks:
     layer: T1
     target_tools: [extract_history]
     status: partial
-    existing: [extract_node_history]
+    existing: [extract_node_history, extract_history]
+    evidence: [src/ls_prepost_mcp/history.py, tests/test_extract_history.py]
     gaps:
-      - 只有节点；没有单元 / 部件 / 全局；不能批量
+      - 原生 D3plot/lsreader 交叉对齐留待原生环境统一执行
     acceptance:
       - 节点、单元、部件、全局四种模式各一个用例
       - 一次请求多个实体，返回多条曲线，每条带实体 ID、分量、单位
@@ -494,9 +495,10 @@ tasks:
     layer: T1
     target_tools: [curve_ops]
     status: partial
-    existing: [process_curve, convert_history_units, combine_history_curves, build_tensile_curves]
+    existing: [process_curve, convert_history_units, combine_history_curves, build_tensile_curves, curve_ops]
+    evidence: [src/ls_prepost_mcp/curve_ops.py, tests/test_curve_ops.py]
     gaps:
-      - 缺 SAE / Butterworth 滤波、重采样、FFT、Cross Plot、真应力应变
+      - LSPP 原生 XYPlot 导出曲线参数对齐留待原生环境统一执行
     acceptance:
       - 单位换算、相对量、力-位移、工程/真应力应变、微分、积分、重采样、SAE/Butterworth 滤波、FFT、Cross Plot 各有 L1 用例（对解析解）
       - 滤波结果与 LSPP XYPlot 同参数滤波对比一致（L2）
@@ -512,7 +514,10 @@ tasks:
     layer: T1
     target_tools: [render_xyplot]
     status: partial
-    existing: [export_gui_curve_plot]
+    existing: [export_gui_curve_plot, render_xyplot]
+    evidence: [src/ls_prepost_mcp/xyplot.py, tests/test_render_xyplot.py]
+    gaps:
+      - 原生观察窗口双 Y 轴抓图留待原生环境统一窗口执行
     acceptance:
       - 最多 10 条曲线同图；图例、坐标轴标题与范围、对数轴可设
       - PNG 与同时导出的 CSV 数值一致
@@ -562,9 +567,10 @@ tasks:
     layer: T1+T2
     target_tools: [measure]
     status: partial
-    existing: [measure_gui_geometry, measure_parts]
+    existing: [measure_gui_geometry, measure_parts, measure]
+    evidence: [src/ls_prepost_mcp/measure.py, tests/test_measure.py]
     gaps:
-      - F4 的 21 项中完成 6 项；缺面积、质量、惯量、间隙等
+      - 原生 F4 GUI 交互拾取留待原生会话统一执行
     acceptance:
       - F4 剩余常用项（面积、体积、质量、惯量、点到面距离、部件间隙）各一个用例
       - 质量类测量缺少密度或单位时拒绝
