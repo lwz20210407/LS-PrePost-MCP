@@ -29,6 +29,7 @@ from . import (
     quality,
     renumber,
     sets,
+    solver_rules,
 )
 from .deck import Change, KeywordDeck
 from .fields import FieldError
@@ -395,7 +396,15 @@ def check_deck(path: str, include_paths: tuple[str, ...] = (), thresholds: dict 
     duplicates = report.duplicates()
     if duplicates:
         errors.append({"kind": "duplicate_ids", "count": len(duplicates), "sample": duplicates[:50]})
+    too_long, sample = solver_rules.long_free_items(deck)
+    if too_long:
+        errors.append({"kind": "free_format_item_too_long", "count": too_long, "sample": sample,
+                       "message": "comma-separated values must fit the field width (R11 Error 10459)"})
     warnings = list(deck.warnings)
+    for short in solver_rules.short_motion_curves(deck):
+        warnings.append(f"{short['keyword']} ({short['file']}:{short['line']}) uses curve {short['lcid']}, which ends "
+                        f"at {short['curve_end']:g} but the motion is active until {short['active_until']:g}; past "
+                        "the last point R11 takes the prescribed value as 0 (extend the curve)")
     if report.unverified_count:
         warnings.append(f"{report.unverified_count} references to {', '.join(sorted(report.unverified_kinds))} IDs "
                         "could not be verified because a defining block was not read")
