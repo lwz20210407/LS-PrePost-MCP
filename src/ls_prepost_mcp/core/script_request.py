@@ -13,7 +13,7 @@ class ScriptOutput(Contract):
 
 
 class ScriptRequest(Contract):
-    language: Literal["command", "cfile"]
+    language: Literal["command", "cfile", "scl"]
     code: Text
     context: Literal["batch", "session"] = "batch"
     session_id: str | None = None
@@ -38,6 +38,10 @@ class ScriptRequest(Contract):
         if self.language == "cfile":
             if self.initial_node_ids is not None or self.capture_model:
                 raise ValueError("Cfile declares its own selection and output commands")
+            return self
+        if self.language == "scl":
+            if self.parameters or self.initial_node_ids is not None or self.capture_model:
+                raise ValueError("SCL declares its own data and outputs")
             return self
         if self.parameters:
             raise ValueError("Parameter interpolation is available for cfile")

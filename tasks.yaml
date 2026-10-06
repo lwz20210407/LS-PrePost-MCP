@@ -611,7 +611,10 @@ tasks:
     target_tools: [run_script]
     channel: scl
     status: partial
+    gaps:
+      - 历史原生报告未记录实际 Git revision 与运行时未提交 diff SHA256，需重新取证并将 report.md、evidence.json 入库
     existing: [prepare_native_program, execute_native_program, probe_scl]
+    evidence: [tests/test_script_scl_native.py, docs/decisions/0004-scl-execution.md]
     acceptance:
       - 读写数组并输出 CSV；结果与 A04 的同等 Python 任务一致
       - 编译错误明确失败并返回行号
