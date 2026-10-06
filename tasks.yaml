@@ -847,6 +847,8 @@ infrastructure:
     verification_level: L1
     gaps:
       - renumber/quality 面板路径和五个批处理兼容字典仍待完整统一；公开 Win32 打开、检查点和重开已补原生证据
+      - 原生 d3plot 输入超过 1000 文件或 2 GiB 时在启动前明确拒绝；两版原地只读回退实验均崩溃，暂不提供该回退
+      - 从 job 目录绝对路径读取 Include 时，中文根路径在 4.13/4.10 仍失败，4.10 的相对 Include 仍从 job cwd 解析；不得切到用户目录绕过
     evidence:
       - src/ls_prepost_mcp/engine/batch.py
       - src/ls_prepost_mcp/engine/session.py
@@ -854,6 +856,7 @@ infrastructure:
       - tests/test_engine_native.py
       - docs/decisions/evidence/i01/report.md
       - docs/decisions/evidence/i01-followup/report.md
+      - docs/decisions/evidence/i01-staging/report.md
     acceptance:
       - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
       - 删除 gui_session_action 中运行时替换 _native 的做法
@@ -884,7 +887,7 @@ infrastructure:
     status: partial
     gaps:
       - 主路径命令已集中；import keyword、open xydata、savefile xypair、modelcheck writetofile 的 8 模块 12 处仍待集中，SCL 脚本编码仍混用 ascii/utf8
-      - 高优先级 P2：含空格或中文的 job 工作目录在 4.13/4.10 仍失败（KI-049），优先于其他 P2 处理
+      - KI-049：4.13/4.10 的 ASCII 空格 job 目录已通过批处理保存、PNG、重开；中文 job 目录仍为 gap，GUI/Movie 路径待集中窗口验证
     verification_level: L2
     evidence:
       - src/ls_prepost_mcp/native/commands.py

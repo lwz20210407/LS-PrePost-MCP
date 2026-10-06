@@ -23,7 +23,7 @@ class BatchEngine:
                        cwd=str(job.directory), graphics=job.graphics, launch_mode=job.launch_mode)
         try:
             process["capabilities"] = require_capability(job.executable, "batch")
-            env, configuration = native_environment(job.executable, job.directory)
+            env, configuration = native_environment(job.executable, job.directory, batch=True)
             process["configuration"] = configuration
             cursor = LogCursor.capture(job.directory / "lspost.msg")
             proc = subprocess.Popen(args, cwd=job.directory, env=env, stdin=subprocess.DEVNULL,

@@ -10,6 +10,7 @@ import pytest
 
 from ls_prepost_mcp.config import Settings
 from ls_prepost_mcp.native import commands as nc
+from ls_prepost_mcp.native.versions import installation_version
 from ls_prepost_mcp.service import Service
 from ls_prepost_mcp.sessions import Sessions
 
@@ -56,6 +57,41 @@ def test_five_batch_callers_use_isolated_engine(native_case, caller):
     assert process["engine_status"] == "unverified"  # Domain checks above provide the success verdict.
     assert process["configuration"]["source_modified"] is False
     assert "-nographics" in process["argv"]
+
+
+class NativeIncludeReadError(RuntimeError):
+    pass
+
+
+@pytest.mark.parametrize("folder", ["include source", pytest.param("输入 模型", marks=pytest.mark.xfail(
+    strict=True, raises=NativeIncludeReadError, reason="I01 gap: native Unicode INCLUDE root was not opened"))])
+def test_batch_include_read_preserves_source_directory(native_case, tmp_path, folder, request):
+    service, fixture = native_case
+    if folder.isascii() and installation_version(service.settings.native_executable()) == "4.10":
+        request.node.add_marker(pytest.mark.xfail(strict=True, raises=NativeIncludeReadError,
+            reason="I01 gap: 4.10 resolves relative INCLUDE from job cwd instead of root deck directory"))
+    original = tmp_path / folder
+    original.mkdir()
+    lines = (fixture / "input.k").read_text(encoding="utf8").splitlines()
+    child = "\n".join(line for line in lines if line.strip().upper() not in ("*KEYWORD", "*END")) + "\n"
+    (original / "child.k").write_text(child, encoding="utf8")
+    model = original / "main.k"
+    model.write_text("*KEYWORD\n*INCLUDE\nchild.k\n*END\n", encoding="utf8")
+    before = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in original.iterdir()}
+    reader = Service(Settings(tmp_path / "work", service.settings.native_executable(), (original,), timeout=60))
+    result = reader.inspect_model(str(model))
+    after = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in original.iterdir()}
+    assert after == before, "Native read added or modified files in the user input directory"
+    if result["status"] == "failed":
+        message = result.get("bridge_error", {}).get("message")
+        if not folder.isascii() and message == "There is no d3plot data!":
+            raise NativeIncludeReadError("Native Unicode INCLUDE root did not load; source directory unchanged")
+        log = Path(result["job_directory"]) / "lspost.msg"
+        if folder.isascii() and installation_version(service.settings.native_executable()) == "4.10" and log.is_file():
+            if "Error - Include File child.k Not open" in log.read_text(encoding="utf8", errors="replace"):
+                raise NativeIncludeReadError("Native 4.10 relative INCLUDE unresolved; source directory unchanged")
+    assert result["status"] == "succeeded", result
+    assert result["data"]["counts"]["nodes"] == 8
 
 
 def test_queue_session_reuses_pid_and_never_uses_win32(native_case, monkeypatch):
@@ -122,9 +158,9 @@ class NativeWorkingDirectoryError(AssertionError):
     pass
 
 
-@pytest.mark.parametrize("workspace_name", ["ascii-workspace",
-    pytest.param("space folder", marks=pytest.mark.xfail(strict=True, raises=NativeWorkingDirectoryError, reason="KI-049 native working-directory preference truncates spaces")),
-    pytest.param("中文 空格", marks=pytest.mark.xfail(strict=True, raises=NativeWorkingDirectoryError, reason="KI-049 native working-directory preference cannot resolve this Unicode/spaced root"))])
+@pytest.mark.parametrize("workspace_name", ["ascii-workspace", "space folder",
+    pytest.param("中文 空格", marks=pytest.mark.xfail(strict=True, raises=NativeWorkingDirectoryError,
+        reason="KI-049: non-ASCII job roots remain unsupported; relative preferences are not safe on 4.13"))])
 def test_path_builders_batch_unicode_and_spaces_save_png_reopen(native_case, workspace_name):
     service, source = native_case
     service = Service(replace(service.settings, workspace=service.settings.workspace / workspace_name))

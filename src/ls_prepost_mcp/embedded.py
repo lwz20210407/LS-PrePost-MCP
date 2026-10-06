@@ -523,15 +523,16 @@ def run(request_path, response_path):
         if request.get("safe_beam_connectivity"):
             dc = BeamSafeDataCenter(dc, job_directory)
         if request.get("model"):
-            # The application may reset cwd from GUI preferences. Load file families
-            # from their parent, then restore the owned job cwd for every artifact.
+            # In-place read-only inputs must never make the user source directory
+            # the process cwd. Staged families keep their owned input directory.
             source = request["model"]
-            os.chdir(os.path.dirname(source))
+            absolute_input = request.get("file_type") == "keyword" and request.get("absolute_keyword_path")
+            os.chdir(job_directory if absolute_input else os.path.dirname(source))
             try:
                 kind = request["file_type"]
                 load_name = (
                     source.replace("\\", "/")
-                    if kind == "keyword" and request.get("absolute_keyword_path")
+                    if absolute_input
                     else os.path.basename(source)
                 )
                 lp.execute_command(nc.open_model(load_name, kind, openc=kind == "d3plot"))
