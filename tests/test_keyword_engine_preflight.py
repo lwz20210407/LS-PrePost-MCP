@@ -185,3 +185,27 @@ def test_unreadable_main_deck_is_a_report_not_an_exception(tmp_path: Path) -> No
     report = preflight_includes(tmp_path / "absent.k")
     assert not report["ok"] and report["files"] == [] and report["tree_sha256"] is None
     assert _kinds(report) == [("unreadable", "error")]
+
+
+def test_references_list_every_name_including_later_lines_of_one_include(tmp_path: Path) -> None:
+    # A confinement check that reads only the first name of an *INCLUDE would miss "outside.k".
+    (tmp_path / "outside.k").write_bytes(b"*NODE\n")
+    main = _deck(tmp_path / "job", {"main.k": "*INCLUDE_PATH\nlib\n*INCLUDE\na.k\n../outside.k\n",
+                                    "a.k": "*PART\n", "lib/x.k": "*NODE\n"})
+    report = preflight_includes(main)
+    refs = report["references"]
+    assert [(r["keyword"], r["kind"], r["name"], r["line"], r["name_line"]) for r in refs] == [
+        ("*INCLUDE_PATH", "path", "lib", 1, 2), ("*INCLUDE", "file", "a.k", 3, 4),
+        ("*INCLUDE", "file", "../outside.k", 3, 5)]
+    assert Path(refs[0]["path"]) == tmp_path / "job" / "lib" and refs[0]["rule"] is None
+    assert Path(refs[2]["path"]).resolve() == (tmp_path / "outside.k").resolve() and refs[2]["rule"] == "including_dir"
+    assert [f["relative"] for f in report["files"]] == ["main.k", "a.k", None]
+
+
+def test_references_keep_every_candidate_and_unresolved_names(tmp_path: Path) -> None:
+    main = _deck(tmp_path, {"main.k": "*INCLUDE\nsub/a.k\n*INCLUDE\nnone.k\n", "sub/a.k": "*INCLUDE\nb.k\n",
+                            "sub/b.k": "*NODE\n", "b.k": "*PART\n"})
+    refs = {r["name"]: r for r in preflight_includes(main)["references"]}
+    assert len(refs["b.k"]["candidates"]) == 2 and refs["b.k"]["rule"] == "including_dir"
+    assert (refs["none.k"]["path"], refs["none.k"]["rule"], refs["none.k"]["candidates"]) == (None, "missing", [])
+    assert preflight_includes(tmp_path / "absent.k")["references"] == []
