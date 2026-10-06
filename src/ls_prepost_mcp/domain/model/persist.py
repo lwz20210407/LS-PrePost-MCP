@@ -4,6 +4,7 @@ from __future__ import annotations
 import difflib
 import hashlib
 import os
+import re
 import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -25,9 +26,35 @@ def diff(deck: KeywordDeck) -> str:
     """Unified diff of every modified file."""
     parts: list[str] = []
     for source in modified_files(deck):
-        parts.extend(difflib.unified_diff(split_lines(source.original_text()), split_lines(source.text()),
-                                          fromfile=str(source.path), tofile=str(source.path) + " (edited)"))
+        parts.extend(_unified(split_lines(source.original_text()), split_lines(source.text()),
+                              str(source.path), str(source.path) + " (edited)"))
     return "".join(parts)
+
+
+_HUNK = re.compile(r"^@@ -(\d+)(,\d+)? \+(\d+)(,\d+)? @@")
+
+
+def _unified(old: list[str], new: list[str], fromfile: str, tofile: str, context: int = 3) -> list[str]:
+    """``difflib.unified_diff`` of the part between the common first and last lines, renumbered.
+
+    Edits touch a few blocks of large decks; difflib over the whole of a 564000-line file took
+    about 220 s, the trimmed middle takes milliseconds. Output equals difflib's on the full lists.
+    """
+    head, limit = 0, min(len(old), len(new))
+    while head < limit and old[head] == new[head]:
+        head += 1
+    tail = 0
+    while tail < limit - head and old[len(old) - 1 - tail] == new[len(new) - 1 - tail]:
+        tail += 1
+    start, keep = max(0, head - context), max(0, tail - context)
+    lines = list(difflib.unified_diff(old[start:len(old) - keep], new[start:len(new) - keep],
+                                      fromfile=fromfile, tofile=tofile, n=context))
+
+    def shift(match: re.Match) -> str:  # empty ranges (",0") name the line before: the same shift applies
+        a, b, c, d = match.groups()
+        return f"@@ -{int(a) + start}{b or ''} +{int(c) + start}{d or ''} @@"
+
+    return [_HUNK.sub(shift, line) if line.startswith("@@") else line for line in lines]
 
 
 def _relocation_plan(deck: KeywordDeck, out_dir: Path) -> tuple[dict[Path, Path], list[str]]:

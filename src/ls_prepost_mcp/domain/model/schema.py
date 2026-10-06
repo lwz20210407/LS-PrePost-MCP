@@ -493,12 +493,49 @@ def _pydyna_layout(block: Block, lookup: Mapping[str, object], long: bool = Fals
             raise
     # Several instances of the keyword cards follow one keyword line (e.g. many vectors).
     result = Layout(block.name, key="instance", source="pydyna")
+    count = len(data) // size
+    templates: dict[bool, list[FieldInfo]] = {}  # free format? -> fields of a fully self-checked row
     for number, begin in enumerate(range(0, len(data), size), 1):
-        infos, missing = _chunk_fields(cls, block, lookup, data[begin:begin + size], long, omit=omit)
+        chunk = data[begin:begin + size]
+        if size == 1 and number % SELF_CHECK_EVERY and number != count:
+            fast = _from_template(templates.get(is_free_format(chunk[0][1])), chunk[0], long)
+            if fast is not None:
+                result.rows[number] = fast
+                continue
+        infos, missing = _chunk_fields(cls, block, lookup, chunk, long, omit=omit)
         if missing:
             raise Unsupported(f"Instance {number} of {block.name} has a different card count")
+        if size == 1:
+            templates[is_free_format(chunk[0][1])] = infos
         result.rows[number] = infos
     return result
+
+
+# One-line instances (*INITIAL_VELOCITY_NODE with 564000 rows): PyDYNA parsing every row took
+# about 400 s per layout. Rows shaped like an already self-checked row (same format, no parameter
+# reference, no text outside its fields) reuse its field positions; every SELF_CHECK_EVERY-th row
+# and the last row still get the full PyDYNA self-check.
+SELF_CHECK_EVERY = 1000
+
+
+def _from_template(template: list[FieldInfo] | None, row: tuple[int, str], long: bool) -> list[FieldInfo] | None:
+    if not template:
+        return None
+    index, line = row
+    if "&" in body(line):
+        return None
+    spans = [(info.slot.offset, info.slot.width) for info in template]
+    if stray_text(line, spans, long, None):
+        return None
+    infos = [FieldInfo(info.name, info.kind, FieldSlot(index, info.slot.offset, info.slot.width, info.slot.token),
+                       info.card, info.default) for info in template]
+    for info in infos:  # every numeric cell must read as a number, as the full self-check requires
+        if info.kind != "str":
+            try:
+                parse_number(read_text(line, info.slot).strip())
+            except FieldError:
+                return None
+    return infos
 
 
 def _title_layout(block: Block) -> Layout:
