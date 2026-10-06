@@ -1,0 +1,536 @@
+{
+  "task": "I04",
+  "report_sha256": "0cf4b196dbf670628b6616f173874919e777774ff4e517fb5e84bbca50acb0ee",
+  "actual_git_revision": "c991f9df3b5637dc180a65f13016e184d98c0f9d",
+  "working_tree_dirty": true,
+  "git_diff_sha256": null,
+  "source_snapshot_sha256": "ab850a1f4e6d5ccf12e8a94ba843a481ed9a36cf09ba18d451696ebda5939106",
+  "missing_provenance": [
+    "git_diff_sha256"
+  ],
+  "revision_binding_complete": false,
+  "outcomes": {
+    "passed": 16,
+    "failed": 84
+  },
+  "preliminary_categories": {
+    "backend_state_count_mismatch": 1,
+    "unsupported_include_variant": 26,
+    "missing_referenced_input": 24,
+    "legacy_include_export": 11,
+    "empty_native_model_needs_diagnosis": 19,
+    "native_process_failure": 1,
+    "include_validation": 1,
+    "unclassified": 1
+  },
+  "input_preservation": {
+    "reported_unchanged": 100
+  },
+  "cases": [
+    {
+      "case": "extra-result-01",
+      "status": "passed",
+      "triage": null
+    },
+    {
+      "case": "extra-result-02",
+      "status": "passed",
+      "triage": null
+    },
+    {
+      "case": "extra-result-03",
+      "status": "failed",
+      "triage": "backend_state_count_mismatch"
+    },
+    {
+      "case": "extra-result-04",
+      "status": "passed",
+      "triage": null
+    },
+    {
+      "case": "extra-result-05",
+      "status": "passed",
+      "triage": null
+    },
+    {
+      "case": "extra-result-06",
+      "status": "passed",
+      "triage": null
+    },
+    {
+      "case": "extra-result-07",
+      "status": "passed",
+      "triage": null
+    },
+    {
+      "case": "extra-result-08",
+      "status": "passed",
+      "triage": null
+    },
+    {
+      "case": "extra-result-09",
+      "status": "passed",
+      "triage": null
+    },
+    {
+      "case": "extra-result-10",
+      "status": "passed",
+      "triage": null
+    },
+    {
+      "case": "extra-result-11",
+      "status": "passed",
+      "triage": null
+    },
+    {
+      "case": "extra-result-12",
+      "status": "passed",
+      "triage": null
+    },
+    {
+      "case": "extra-result-13",
+      "status": "passed",
+      "triage": null
+    },
+    {
+      "case": "extra-result-14",
+      "status": "passed",
+      "triage": null
+    },
+    {
+      "case": "extra-result-15",
+      "status": "passed",
+      "triage": null
+    },
+    {
+      "case": "extra-result-16",
+      "status": "passed",
+      "triage": null
+    },
+    {
+      "case": "extra-result-17",
+      "status": "passed",
+      "triage": null
+    },
+    {
+      "case": "extra-keyword-001",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-002",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-003",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-004",
+      "status": "failed",
+      "triage": "legacy_include_export"
+    },
+    {
+      "case": "extra-keyword-005",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-006",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-007",
+      "status": "failed",
+      "triage": "legacy_include_export"
+    },
+    {
+      "case": "extra-keyword-008",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-009",
+      "status": "failed",
+      "triage": "legacy_include_export"
+    },
+    {
+      "case": "extra-keyword-010",
+      "status": "failed",
+      "triage": "legacy_include_export"
+    },
+    {
+      "case": "extra-keyword-011",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-012",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    },
+    {
+      "case": "extra-keyword-013",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-014",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    },
+    {
+      "case": "extra-keyword-015",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-016",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-017",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-018",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    },
+    {
+      "case": "extra-keyword-019",
+      "status": "failed",
+      "triage": "legacy_include_export"
+    },
+    {
+      "case": "extra-keyword-020",
+      "status": "failed",
+      "triage": "native_process_failure"
+    },
+    {
+      "case": "extra-keyword-021",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-022",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-023",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-024",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-025",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-026",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-027",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    },
+    {
+      "case": "extra-keyword-028",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-029",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-030",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-031",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-032",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-033",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    },
+    {
+      "case": "extra-keyword-034",
+      "status": "failed",
+      "triage": "legacy_include_export"
+    },
+    {
+      "case": "extra-keyword-035",
+      "status": "failed",
+      "triage": "include_validation"
+    },
+    {
+      "case": "extra-keyword-036",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-037",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    },
+    {
+      "case": "extra-keyword-038",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-039",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    },
+    {
+      "case": "extra-keyword-040",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-041",
+      "status": "failed",
+      "triage": "legacy_include_export"
+    },
+    {
+      "case": "extra-keyword-042",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    },
+    {
+      "case": "extra-keyword-043",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    },
+    {
+      "case": "extra-keyword-044",
+      "status": "failed",
+      "triage": "unclassified"
+    },
+    {
+      "case": "extra-keyword-045",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-046",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-047",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-048",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-049",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    },
+    {
+      "case": "extra-keyword-050",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-051",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-052",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-053",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    },
+    {
+      "case": "extra-keyword-054",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-055",
+      "status": "failed",
+      "triage": "legacy_include_export"
+    },
+    {
+      "case": "extra-keyword-056",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    },
+    {
+      "case": "extra-keyword-057",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-058",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-059",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-060",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-061",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-062",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    },
+    {
+      "case": "extra-keyword-063",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-064",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    },
+    {
+      "case": "extra-keyword-065",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    },
+    {
+      "case": "extra-keyword-066",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-067",
+      "status": "failed",
+      "triage": "legacy_include_export"
+    },
+    {
+      "case": "extra-keyword-068",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-069",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    },
+    {
+      "case": "extra-keyword-070",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-071",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    },
+    {
+      "case": "extra-keyword-072",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    },
+    {
+      "case": "extra-keyword-073",
+      "status": "failed",
+      "triage": "legacy_include_export"
+    },
+    {
+      "case": "extra-keyword-074",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-075",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-076",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-077",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-078",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-079",
+      "status": "failed",
+      "triage": "legacy_include_export"
+    },
+    {
+      "case": "extra-keyword-080",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-081",
+      "status": "failed",
+      "triage": "missing_referenced_input"
+    },
+    {
+      "case": "extra-keyword-082",
+      "status": "failed",
+      "triage": "unsupported_include_variant"
+    },
+    {
+      "case": "extra-keyword-083",
+      "status": "failed",
+      "triage": "empty_native_model_needs_diagnosis"
+    }
+  ],
+  "scope": "Historical reported verdicts. Categories are preliminary symptoms, not code-defect counts. Preservation covers only the inputs registered by that run, not an inferred full INCLUDE tree.",
+  "report": "p100/report.json",
+  "execution_context": "p100/execution-context.json",
+  "execution_context_sha256": "bdaff30fadd89ea5c226a1d114d4e441fe01b45bb3ecc9b8f679c65dd98507a9",
+  "revision_in_current_history": true
+}
