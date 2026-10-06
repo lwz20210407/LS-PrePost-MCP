@@ -251,6 +251,7 @@ class ProgramTools:
         capture_model: bool = False,
         inspect_selection: bool = False,
         allow_owned_output_context: bool = False,
+        launch_mode: str = "c",
     ) -> dict:
         """Execute a verified prepared source/dependency bundle. Without session_id, use an isolated native process and optional staged model; with session_id, use the current owned GUI and omit model. GUI scripts must retain its model context; keyword baseline is checkpointed, raw effects invalidate cached selections/fringes. Requires the prepared execution SHA256. No declared output/count contract means completed_unverified."""
         prepared = self.jobs.get(prepared_job_id)
@@ -260,6 +261,8 @@ class ProgramTools:
             raise ValueError("inspect_selection must be Boolean")
         if type(allow_owned_output_context) is not bool:
             raise ValueError("allow_owned_output_context must be Boolean")
+        if launch_mode not in ("c", "runc") or session_id is not None and launch_mode != "c":
+            raise ValueError("Choose c/runc for batch; session has no launch mode")
         if prepared["action"] != "prepare_native_program":
             raise ValueError("Expected a prepared native program")
         prepared_dir = self.jobs.root / prepared_job_id
@@ -353,7 +356,7 @@ class ProgramTools:
             nc.write_cfile(command_file, commands)
             manifest.update(status="running", started_at=now())
             atomic_json(directory / "job.json", manifest)
-            process = execute(exe, command_file, directory, timeout=self.settings.timeout, graphics=graphics)
+            process = execute(exe, command_file, directory, timeout=self.settings.timeout, graphics=graphics, launch_mode=launch_mode)
             manifest["process"] = process
             if process.get("engine_status") == "failed" or process["timed_out"] or process["returncode"] != 0:
                 raise RuntimeError(failure_message(process, "Native program process failed or timed out"))
@@ -502,40 +505,8 @@ class ProgramTools:
         expected_counts: dict | None = None,
         dependencies: list[dict] | None = None,
     ) -> dict:
-        """Save a command/cfile/SCL/Python macro with numeric {{name}} entry parameters, explicit outputs and frozen dependency assets. Does not execute or install global LS-PrePost menu/shortcut macros."""
-        if not isinstance(name, str) or not name.strip() or len(name) > 120 or language not in LANGUAGES:
-            raise ValueError("Invalid macro name/language")
-        if (
-            not isinstance(code, str)
-            or not code.strip()
-            or len(code.encode("utf8")) > 1024 * 1024
-            or "\x00" in code
-        ):
-            raise ValueError("Expected nonempty macro source up to 1 MiB")
-        render(code, numeric_parameters(defaults))
-        definition = dict(
-            schema_version=1,
-            kind="native_macro",
-            name=name,
-            language=language,
-            code=code,
-            defaults=defaults,
-            outputs=output_contract(outputs),
-            expected_counts=count_contract(expected_counts),
-        )
-        directory, manifest = self.jobs.create("create_native_macro", dict(name=name, language=language))
-        captured = capture_dependencies(self.settings, dependencies, definition["outputs"])
-        write_dependencies(directory / "assets", captured)
-        definition["dependencies"] = [item for item, _ in captured]
-        atomic_json(directory / "macro.json", definition)
-        manifest.update(
-            status="succeeded",
-            job_directory=str(directory),
-            artifacts=[check_artifact(directory / "macro.json", "json")],
-            finished_at=now(),
-        )
-        atomic_json(directory / "job.json", manifest)
-        return manifest
+        """Legacy JSON recipe alias retained through v0.6; not a native .mac interface."""
+        return self._create_recipe_legacy(name, language, code, defaults, outputs, expected_counts, dependencies)
 
     def run_native_macro(
         self,
@@ -546,38 +517,5 @@ class ProgramTools:
         graphics: bool = False,
         session_id: str | None = None,
     ) -> dict:
-        """Instantiate a selected macro with its frozen assets and numeric entry parameters; use an isolated native process or an explicit current GUI session_id. Retains macro/bundle identities and native evidence. GUI recordings retain the macro parameter call rather than expanding its internal execution steps."""
-        source = self.settings.input_path(path)
-        macro = json.loads(source.read_text(encoding="utf8"))
-        if macro.get("schema_version") != 1 or macro.get("kind") != "native_macro":
-            raise ValueError("Unsupported native macro")
-        parameters = numeric_parameters(parameters or {})
-        if set(parameters) - macro["defaults"].keys():
-            raise ValueError("Unknown macro parameters")
-        checked_dependencies(source.parent / "assets", macro)
-        prepared = self.prepare_native_program(
-            macro["language"],
-            code=macro["code"],
-            parameters={**macro["defaults"], **parameters},
-            outputs=macro["outputs"],
-            expected_counts=macro["expected_counts"],
-            dependencies=[dict(path=str(source.parent / "assets" / item["name"]), name=item["name"])
-                          for item in macro.get("dependencies", [])],
-        )
-        if session_id is not None:
-            if model is not None:
-                raise ValueError("GUI macros use the current model; omit model")
-            from .gui_programs import execute_prepared
-
-            folder = self.jobs.root / prepared["job_id"]
-            contract = json.loads((folder / "contract.json").read_text(encoding="utf8"))
-            result = execute_prepared(self, session_id, prepared["job_id"], prepared["data"]["sha256"], contract,
-                (folder / contract["program"]).read_bytes(), checked_dependencies(folder, contract),
-                journal_action="run_native_macro", journal_parameters=dict(path=path, parameters=parameters))
-        else:
-            result = self.execute_native_program(
-                prepared["job_id"], prepared["data"]["sha256"], model, file_type, graphics
-            )
-        result["macro_source"] = fingerprint(source)
-        atomic_json(Path(result["job_directory"]) / "job.json", result)
-        return result
+        """Legacy JSON recipe alias retained through v0.6; not a native .mac interface."""
+        return self._run_recipe_legacy(path, parameters, model, file_type, graphics, session_id)

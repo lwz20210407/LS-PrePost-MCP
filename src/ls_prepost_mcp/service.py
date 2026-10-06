@@ -7,6 +7,7 @@ from pathlib import Path
 
 from pydantic import StrictInt
 
+from .automation.recipes import RecipeTools
 from .config import Settings
 from .core.validation import integer, numbers, unit_label
 from .dpf_tools import DpfTools
@@ -45,7 +46,7 @@ from .workflow_sweeps import WorkflowSweepTools
 from .workflows import WorkflowTools
 
 
-class Service(ScriptTools, PostTools, PreTools, KeywordTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools):
+class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools):
     def __init__(self, settings: Settings):
         self.settings = settings
         self.jobs = Jobs(settings.workspace)

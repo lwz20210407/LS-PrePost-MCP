@@ -25,11 +25,14 @@ class BatchJob:
     operation: str = "native_batch"
     verify: Callable[[dict], JobResult] | None = None
     macro_file: Path | None = None
+    launch_mode: str = "c"
 
     def __post_init__(self):
         check_timeout(self.timeout)
         if type(self.graphics) is not bool:
             raise ValueError("graphics must be Boolean")
+        if self.launch_mode not in ("c", "runc") or self.launch_mode == "runc" and self.graphics:
+            raise ValueError("Choose c or runc; runc has no visible graphics mode")
         for name in ("executable", "cfile", "directory"):
             object.__setattr__(self, name, Path(getattr(self, name)).resolve())
         if not self.cfile.is_relative_to(self.directory):

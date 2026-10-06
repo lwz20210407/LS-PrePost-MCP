@@ -40,12 +40,13 @@ class ScriptTools:
                    model: str | None = None, file_type: Literal["keyword", "d3plot"] = "keyword",
                    outputs: list[ScriptOutput] | None = None, expected_counts: dict[str, int] | None = None,
                    capture_model: bool = False, initial_node_ids: list[StrictInt] | None = None,
-                   parameters: dict | None = None, dependencies: list[ScriptDependency] | None = None) -> dict:
+                   parameters: dict | None = None, dependencies: list[ScriptDependency] | None = None,
+                   launch_mode: Literal["c", "runc"] = "c") -> dict:
         """Run native command/cfile/SCL/embedded Python in batch or the specified session. Return JobResult, request-scoped native log and checked outputs. Python receives PARAMETERS as JSON data and frozen dependency files; arrays return NPZ paths/shape/dtype. Scripts use native permissions."""
         request = ScriptRequest(language=language, code=code, context=context, session_id=session_id, model=model,
                                 file_type=file_type, outputs=outputs or [], expected_counts=expected_counts or {},
                                 capture_model=capture_model, initial_node_ids=initial_node_ids, parameters=parameters or {},
-                                dependencies=dependencies or [])
+                                dependencies=dependencies or [], launch_mode=launch_mode)
         declared = output_contract([value.model_dump() for value in request.outputs])
         counts = count_contract(request.expected_counts)
         opened = re.fullmatch(r'\s*(?:open|openc)\s+(keyword|d3plot)\s+(.+?)(?:\s+nodialog)?\s*', code, re.I)
@@ -58,7 +59,8 @@ class ScriptTools:
                                                    dependencies=[d.model_dump() for d in request.dependencies])
             result = self.execute_native_program(prepared["job_id"], prepared["data"]["sha256"], model=model,
                                                  file_type=file_type, session_id=session_id,
-                                                 allow_owned_output_context=context == "session" and language == "cfile")
+                                                 allow_owned_output_context=context == "session" and language == "cfile",
+                                                 launch_mode=launch_mode)
             directory = Path(result["job_directory"])
             if context == "session":
                 native_dir = Path(result.get("native_request", {}).get("job_directory", directory))
@@ -73,7 +75,7 @@ class ScriptTools:
             prepared = self.prepare_native_program("cfile" if setup else language, code="\n".join([*setup, code]), outputs=declared, expected_counts=counts)
             result = self.execute_native_program(prepared["job_id"], prepared["data"]["sha256"], model=model,
                                                  file_type=file_type, graphics=False, capture_model=capture_model,
-                                                 inspect_selection=True)
+                                                 inspect_selection=True, launch_mode=launch_mode)
             directory = Path(result["job_directory"])
             log = directory / "lspost.msg"
             log_meta = {}
@@ -126,7 +128,7 @@ class ScriptTools:
                                 scope="Native completion and explicit file/count contracts; raw command semantics remain caller-verified")
         except (OSError, ValueError) as exc:
             outcome = JobResult(operation="run_script", status="failed" if normalized.status == "failed" else "unverified",
-                                backend="lsprepost", artifacts=normalized.artifacts,
+                                job_id=normalized.job_id or result.get("request_id"), backend="lsprepost", artifacts=normalized.artifacts,
                                 warnings=normalized.warnings, checks=normalized.checks,
                                 error=normalized.error or dict(type=type(exc).__name__, message=str(exc)),
                                 data={**normalized.data, "context": context, "language": language,

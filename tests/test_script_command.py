@@ -74,6 +74,7 @@ def test_failed_execution_remains_failed_when_native_log_is_missing(tmp_path, mo
         status="failed", job_id="j", job_directory=str(tmp_path), error=dict(message="Native crashed")))
     result = service.run_script("command", "top")
     assert result["status"] == "failed" and result["error"]["message"] == "Native crashed"
+    assert result["job_id"] == "j"
 
 
 def test_declared_outputs_bind_exact_tokens_preserving_native_windows_paths():

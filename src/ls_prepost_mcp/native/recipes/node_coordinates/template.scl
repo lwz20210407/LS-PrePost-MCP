@@ -1,0 +1,17 @@
+/*LS-SCRIPT*/
+define:
+void main(void){
+Int n,i,k; Int *ids=NULL; Float *x=NULL,*y=NULL,*z=NULL,*sums=NULL; FILE *fp;
+n=SCLGetDataCenterInt("num_nodes");
+ids=malloc(n*sizeof(Int)); x=malloc(n*sizeof(Float)); y=malloc(n*sizeof(Float)); z=malloc(n*sizeof(Float));
+sums=malloc(n*sizeof(Float));
+k=SCLGetDataCenterIntArray("node_ids",&ids,0,0);
+k=SCLGetDataCenterFloatArray("node_x",NODE,0,&x);
+k=SCLGetDataCenterFloatArray("node_y",NODE,0,&y);
+k=SCLGetDataCenterFloatArray("node_z",NODE,0,&z);
+fp=fopen("nodes.csv","w"); fprintf(fp,"id,x,y,z,sum\n");
+for(i=0;i<n;i=i+1){sums[i]=x[i]+y[i]+z[i];}
+for(i=0;i<n;i=i+1){fprintf(fp,"%d,%.9g,%.9g,%.9g,%.9g\n",ids[i],x[i],y[i],z[i],sums[i]);}
+fclose(fp); free(ids);free(x);free(y);free(z);free(sums);
+}
+main();
