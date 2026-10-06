@@ -188,6 +188,9 @@ def run_codex(scenario: Scenario, workspace: Workspace, profile: str, command: s
             "-c", f"mcp_servers.{SERVER}.args={json.dumps(server['args'])}",
             "-c", f"mcp_servers.{SERVER}.env={env_table}",
             "-c", f'mcp_servers.{SERVER}.default_tools_approval_mode="approve"',  # exec cannot ask
+            # without it a slow server start leaves the session without lspp tools and the model answers
+            # anyway (seen under load: 4 of 8 runs with zero lspp calls); required fails the run instead
+            "-c", f"mcp_servers.{SERVER}.required=true",
             "-c", f"mcp_servers.{SERVER}.startup_timeout_sec=120",
             "-c", f"mcp_servers.{SERVER}.tool_timeout_sec=600"]
     if model:
