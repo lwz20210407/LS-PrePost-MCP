@@ -591,7 +591,8 @@ tasks:
     status: partial
     existing: [prepare_native_program, execute_native_program]
     gaps:
-      - 失败时不能定位到出错行
+      - 逐配方的 runc= / c= -nographics 适用性登记随 A08 配方入库收口；当前统一入口默认 c= -nographics
+    evidence: [tests/test_script_cfile_native.py, docs/decisions/0003-cfile-execution.md]
     acceptance:
       - 多行 cfile 建模 → 保存 → 重开，batch 与 session 各一次
       - 数值与字符串参数替换（字符串参数禁止注入路径分隔符以外的命令）

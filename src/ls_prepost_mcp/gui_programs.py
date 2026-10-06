@@ -1,10 +1,12 @@
 """Execute an explicitly prepared program bundle in the current owned GUI."""
 
 import json
+import re
 import uuid
 from pathlib import Path
 
 from .jobs import atomic_json, check_artifact, now
+from .model_context import LOAD_ERROR, verify_loaded_model
 from .native import commands as nc
 from .program_bundle import checked_dependencies, identity, python_wrapper, write_dependencies
 
@@ -18,13 +20,30 @@ def context_directory(value):
     return path.parent if path.is_file() else path
 
 
+def declared_save_context(before, contract, content):
+    """Recognize initial model creation and a literal single-command Save As.
+
+    A nonempty arbitrary script still requires the explicit context option;
+    callers always verify the unique owned keyword artifact and native source.
+    """
+    if contract["language"] == "cfile" and before.get("counts", {}).get("nodes") == 0:
+        return True
+    if contract["language"] != "command":
+        return False
+    match = re.fullmatch(r'\s*save\s+keyword\s+"([^"\r\n]+)"\s*', content.decode("utf8"), re.I)
+    return bool(match and any(item["kind"] == "keyword" and item["name"] == match[1]
+                              for item in contract["outputs"]))
+
+
 def execute_prepared(service, sid, prepared_id, expected_hash, contract, content, dependencies,
-                     *, journal_action="execute_native_program", journal_parameters=None):
+                     *, journal_action="execute_native_program", journal_parameters=None, allow_owned_output_context=False):
     from .core.native_log import native_errors, read_delta
 
     manager = service._session_manager()
     if identity(content, contract) != expected_hash:
         raise ValueError("Prepared program execution identity changed")
+    if allow_owned_output_context and contract["language"] != "cfile":
+        raise ValueError("Owned output context applies only to cfile")
     parameters = dict(prepared_job_id=prepared_id, expected_sha256=expected_hash)
     with manager.lock(sid):
         meta = service._visible_mesh_session(sid, manager, allow_results=True)
@@ -55,7 +74,12 @@ def execute_prepared(service, sid, prepared_id, expected_hash, contract, content
         cwd.write_text("import os\nos.chdir(" + repr(str(directory)) + ")\n", encoding="utf8")
         commands = [nc.run_script(cwd)]
         if contract["language"] in ("command", "cfile"):
-            commands.append(nc.run_script(directory / contract["program"], "cfile"))
+            execution_source = "\n".join(nc.bind_output_paths(line, [o["name"] for o in contract["outputs"]], str(directory))
+                                         for line in content.decode("utf8").splitlines()) + "\n"
+            executed = directory / "execution.cfile"
+            nc.write_cfile(executed, execution_source)
+            result["executed_source"] = execution_source
+            commands.append(nc.run_script(executed, "cfile"))
         elif contract["language"] == "scl":
             commands.append(nc.run_script(directory / contract["program"], "scl"))
         else:
@@ -65,6 +89,7 @@ def execute_prepared(service, sid, prepared_id, expected_hash, contract, content
         atomic_json(directory / "commands.json", commands)
         log = manager.directory(sid) / "lspost.msg"
         offset = log.stat().st_size if log.exists() else 0
+        adopted_output = None
         try:
             native = manager.dispatch(sid, "inspect_model", {}, native_commands=commands)
             result["native_request"] = {k:v for k,v in native.items() if k != "data"}
@@ -73,12 +98,19 @@ def execute_prepared(service, sid, prepared_id, expected_hash, contract, content
             after = native["data"]
             atomic_json(directory / "after.json", after)
             if context_directory(after.get("model_directory")) != context_directory(before["data"].get("model_directory")):
-                raise ValueError("Program replaced the current model context; use dedicated open/reset tools")
+                candidates = [directory / item["name"] for item in contract["outputs"] if item["kind"] == "keyword"]
+                permitted = allow_owned_output_context or declared_save_context(before["data"], contract, content)
+                if not permitted or len(candidates) != 1 or meta["model_kind"] != "keyword":
+                    raise ValueError("Program replaced the current model context; use dedicated open/reset tools")
+                adopted_output = candidates[0]
+                check_artifact(adopted_output, "keyword")
+                verify_loaded_model(dict(model=str(adopted_output), file_type="keyword"), after)
             diagnostics = []
             if log.exists():
                 text = read_delta(log, offset, existed=True)
                 (directory / "native.log").write_text(text, encoding="utf8")
                 diagnostics = native_errors(text)
+                diagnostics.extend(line.strip() for line in text.splitlines() if LOAD_ERROR.search(line))
             if diagnostics:
                 raise ValueError("Native program diagnostics: " + "; ".join(diagnostics))
             if contract["language"] == "python":
@@ -98,7 +130,18 @@ def execute_prepared(service, sid, prepared_id, expected_hash, contract, content
                                     scope="Declared file/count checks only; arbitrary program semantics and physical validity are not inferred"))
         except Exception as exc:
             result.update(status="failed", error=dict(type=type(exc).__name__, message=str(exc)), artifacts=[])
+            active = manager.read(sid).get("active_request")
+            if active and "native_request" not in result:
+                result["native_request"] = dict(job_directory=str(manager.directory(sid) / "requests" / active))
         current = manager.read(sid)
+        if result["status"] != "failed" and adopted_output:
+            from .resident_models import remember_model
+            remember_model(current)
+            current.update(source=str(adopted_output), staged_model=str(adopted_output),
+                           last_checkpoint=str(adopted_output), last_verified_source=None,
+                           last_list_source=None, native_export_aliases=[], managed_fringe=None,
+                           fringe_storage={}, reset_recovery_source=None, reset_rollback_checkpoint=None)
+            remember_model(current)
         current.update(dirty=current["model_kind"] == "keyword" or current.get("dirty", False),
                        model_generation=uuid.uuid4().hex, selection_buffers={}, entity_visibility_last=None)
         if current.get("managed_fringe") is not None:

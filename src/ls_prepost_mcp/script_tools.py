@@ -9,6 +9,7 @@ from pydantic import StrictInt
 
 from .core.contracts import Artifact, JobResult
 from .core.native_log import native_errors
+from .core.script_parameters import cfile_diagnostics, render_cfile
 from .core.script_request import ScriptOutput, ScriptRequest
 from .jobs import atomic_json, fingerprint
 from .native import commands as nc
@@ -34,21 +35,36 @@ def log_result(path, directory, *, source=None, offset=0):
 
 
 class ScriptTools:
-    def run_script(self, language: Literal["command"], code: str,
+    def run_script(self, language: Literal["command", "cfile"], code: str,
                    context: Literal["batch", "session"] = "batch", session_id: str | None = None,
                    model: str | None = None, file_type: Literal["keyword", "d3plot"] = "keyword",
                    outputs: list[ScriptOutput] | None = None, expected_counts: dict[str, int] | None = None,
-                   capture_model: bool = False, initial_node_ids: list[StrictInt] | None = None) -> dict:
+                   capture_model: bool = False, initial_node_ids: list[StrictInt] | None = None,
+                   parameters: dict | None = None) -> dict:
         """Run one native command in explicit batch/session context; return JobResult and this request's native log. File/count contracts are explicit; no inferred engineering verdict. Scripts use native permissions."""
         request = ScriptRequest(language=language, code=code, context=context, session_id=session_id, model=model,
                                 file_type=file_type, outputs=outputs or [], expected_counts=expected_counts or {},
-                                capture_model=capture_model, initial_node_ids=initial_node_ids)
+                                capture_model=capture_model, initial_node_ids=initial_node_ids, parameters=parameters or {})
         declared = output_contract([value.model_dump() for value in request.outputs])
         counts = count_contract(request.expected_counts)
         opened = re.fullmatch(r'\s*(?:open|openc)\s+(keyword|d3plot)\s+(.+?)(?:\s+nodialog)?\s*', code, re.I)
         if context == "session" and opened and (declared or initial_node_ids is not None or capture_model):
             raise ValueError("Open command cannot declare output files, an initial selection or a snapshot")
-        if context == "batch":
+        rendered = render_cfile(code, request.parameters) if language == "cfile" else code
+        if language == "cfile":
+            prepared = self.prepare_native_program(language, code=rendered, outputs=declared, expected_counts=counts)
+            result = self.execute_native_program(prepared["job_id"], prepared["data"]["sha256"], model=model,
+                                                 file_type=file_type, session_id=session_id,
+                                                 allow_owned_output_context=context == "session")
+            directory = Path(result["job_directory"])
+            if context == "session":
+                native_dir = Path(result.get("native_request", {}).get("job_directory", directory))
+                log = native_dir / "native-session.log"
+                metadata = native_dir / "native-session-log.json"
+                log_meta = json.loads(metadata.read_text(encoding="utf8")) if metadata.is_file() else {}
+            else:
+                log, log_meta = directory / "lspost.msg", {}
+        elif context == "batch":
             setup = [] if initial_node_ids is None else [nc.selection("clear"), nc.selection_target("node"),
                                                        *[nc.selection_add("node", uid) for uid in initial_node_ids]]
             prepared = self.prepare_native_program("cfile" if setup else language, code="\n".join([*setup, code]), outputs=declared, expected_counts=counts)
@@ -78,13 +94,17 @@ class ScriptTools:
             status, error = normalized.status, normalized.error
             if echo["errors"]:
                 status, error = "failed", dict(type="NativeDiagnostics", message="Native command reported errors", raw=echo["errors"])
+            extra = {}
+            if language == "cfile":
+                text = log.read_text(encoding="utf8", errors="replace")
+                extra = dict(rendered_source=rendered, diagnostics=cfile_diagnostics(result.get("executed_source", rendered), text))
             outcome = JobResult(operation="run_script", job_id=normalized.job_id or result.get("request_id"),
                                 status=status, backend="lsprepost", artifacts=normalized.artifacts,
                                 warnings=normalized.warnings, checks=normalized.checks,
                                 evidence=(*normalized.evidence, artifact), error=error,
                                 data=dict(**normalized.data, language=language, context=context,
                                           requested_source=code, native_echo=echo,
-                                          command_staging=result.get("command_staging")),
+                                          command_staging=result.get("command_staging"), **extra),
                                 scope="Native completion and explicit file/count contracts; raw command semantics remain caller-verified")
         except (OSError, ValueError) as exc:
             outcome = JobResult(operation="run_script", status="failed" if normalized.status == "failed" else "unverified",

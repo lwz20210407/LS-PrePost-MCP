@@ -144,6 +144,17 @@ def test_log_suffix_excludes_old_errors_and_detects_truncation(tmp_path):
         read_delta(path, -1)
 
 
+def test_session_exit_retains_only_its_native_error_suffix(tmp_path):
+    log = tmp_path / "lspost.msg"
+    log.write_bytes(b"old request\n")
+    def submit():
+        with log.open("ab") as stream:
+            stream.write(b"invalid_current\nInvalid command invalid_current!\n")
+    result = SessionEngine().run(SessionJob("script", tmp_path, 1, submit, lambda: False, log=log))
+    assert result.status == "unverified" and result.data["submitted"]
+    assert (tmp_path / "native-session.log").read_bytes() == b"invalid_current\nInvalid command invalid_current!\n"
+
+
 def test_context_isolation_and_reset_after_exception():
     context = NativeContext()
     first, second = object(), object()
