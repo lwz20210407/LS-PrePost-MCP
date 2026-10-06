@@ -567,11 +567,10 @@ tasks:
     layer: T1
     target_tools: [run_script]
     channel: command
-    status: partial
+    status: done
     existing: [prepare_native_program, execute_native_program, execute_gui_command, run_on_version]
-    gaps:
-      - 历史 4.13 batch/session 与 4.10 batch 报告未记录实际 Git revision 和运行时未提交 diff SHA256；需带完整身份重跑并将 report.md、evidence.json 入库
-    evidence: [tests/test_script_command_native.py, docs/decisions/0002-command-execution.md]
+    gaps: []
+    evidence: [tests/test_script_command_native.py, docs/decisions/0002-command-execution.md, docs/decisions/evidence/a01/report.md]
     acceptance:
       - 10 条代表命令（打开、选择、变换、显隐、视图、出图、保存）在 batch 与 session 两种上下文各执行一次，产物核对通过
       - 返回 LSPP 回显与报错原文（来自 lspost.msg 本次增量）
