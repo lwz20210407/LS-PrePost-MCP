@@ -176,7 +176,7 @@ class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, Model
         """List configured executables only; file existence is not a compatibility test."""
         return {"default": str(self.settings.executable) if self.settings.executable else None,
                 "profiles": [{"version": k, "executable": str(v), "exists": v.is_file(),
-                              "capabilities": profile(v),
+                              "capabilities": profile(v, version=k),
                               "verification": "Call an explicit probe; existence does not prove compatibility"}
                              for k, v in self.settings.profiles.items()]}
 
@@ -193,6 +193,7 @@ class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, Model
         require_installation(version=version)
         if version not in self.settings.profiles:
             raise ValueError("Unknown installation profile")
+        require_installation(self.settings.profiles[version], version=version)
         if action not in allowed:
             raise ValueError("Action cannot be dispatched through the version selector")
         scoped = Service(Settings(self.settings.workspace, self.settings.profiles[version],

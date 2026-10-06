@@ -25,3 +25,7 @@ DataCenter/LsPrePost、JSON 参数、多文件依赖、百万行 NPZ 与完整�
 以区别 batch/session，legacy_report 保留原值。源码指纹改为 Git blob 的 LF 规范化 SHA256，
 每轮附 blob ID 与口径；原 CRLF checkout 哈希保存在 legacy_checkout_test_source_sha256。
 A03 4.13 session 在 LF 写入下尚未补跑；A02/A03 4.8 batch 本轮已补跑通过。
+
+## 第七轮：补登既有 4.13 session 原生记录
+
+干净 c68caef 上的 python session 用例通过；实际完整 revision、空 diff 哈希、逐例状态、带 session 上下文的原始报告路径及哈希、Git blob/LF 源码身份已追加到 [evidence.json](evidence.json)。该运行使用包含 Draft #26 的集成栈，并非本次 #38 头的重新运行；此前批处理和旧会话记录原样保留。

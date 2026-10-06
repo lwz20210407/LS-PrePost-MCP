@@ -197,7 +197,7 @@ def test_prepared_scl_uses_shared_writer_and_matching_identity(tmp_path):
 
 def test_staged_bridge_loads_without_the_host_package(tmp_path):
     bridge = stage_bridge(tmp_path)
-    for filename in ("bridge.py", "native_commands.py", "native_versions.py"):
+    for filename in ("bridge.py", "native_commands.py", "native_versions.py", "native__version_resource.py"):
         ast.parse((tmp_path / filename).read_text(encoding="utf8"), feature_version=(3, 6))
     program = "import json,runpy; b=runpy.run_path({!r}); print(json.dumps([b['nc'].selection_add('node',91),b['nv'].profile(version='4.10')['policy']]))".format(str(bridge))
     result = subprocess.run([sys.executable, "-I", "-B", "-c", program], cwd=tmp_path,
@@ -215,6 +215,9 @@ def test_runtime_version_comparisons_stay_in_capability_table():
                 expression = ast.unparse(node)
                 if any(token in expression for token in ("version_info", "version('lasso-python')", "client_version")):
                     offenders.append((source.name, node.lineno))
+            if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                    and node.func.attr == "meet_version" and any(isinstance(arg, ast.Constant) for arg in node.args)):
+                offenders.append((source.name, node.lineno))
     assert offenders == []
 
 

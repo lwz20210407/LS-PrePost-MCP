@@ -5,7 +5,7 @@ import time
 from contextlib import nullcontext
 
 from ..core.contracts import JobResult
-from ..core.native_log import LogCursor, decode, native_errors
+from ..core.native_log import LogCursor, decode_with_info, native_errors
 from ..native.versions import require_capability
 from .environment import native_environment
 from .jobs import BatchJob
@@ -49,9 +49,21 @@ class BatchEngine:
                         owned.stop()
                         stdout, stderr = proc.communicate(timeout=15)
                     process["returncode"] = proc.returncode
-                for name, content in (("stdout.log", stdout), ("stderr.log", stderr)):
-                    (job.directory / name).write_text(decode(content), encoding="utf8")
-                diagnostics = native_errors(cursor.read()) + native_errors(decode(stdout)) + native_errors(decode(stderr))
+                streams = (("stdout.log", stdout), ("stderr.log", stderr))
+                for name, content in streams:
+                    (job.directory / (name + ".raw")).write_bytes(content)
+                decoded = []
+                process["log_decoding"] = {}
+                for name, content in streams:
+                    text, info = decode_with_info(content)
+                    (job.directory / name).write_text(text, encoding="utf8")
+                    process["log_decoding"][name] = dict(info, raw_file=name + ".raw")
+                    decoded.append(text)
+                log_text, log_info = cursor.decode_with_info(cursor.read_bytes())
+                process["log_decoding"]["lspost.msg"] = log_info
+                if any(info["lossy"] for info in process["log_decoding"].values()):
+                    raise UnicodeError("Native logs required replacement decoding; inspect raw bytes and LSPP_NATIVE_LOG_ENCODING")
+                diagnostics = native_errors(log_text) + [error for text in decoded for error in native_errors(text)]
                 process["diagnostics"] = diagnostics
                 process["elapsed_seconds"] = round(time.monotonic() - start, 3)
                 if process["timed_out"] or proc.returncode != 0 or diagnostics:
