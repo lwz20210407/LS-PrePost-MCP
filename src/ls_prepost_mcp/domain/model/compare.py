@@ -69,7 +69,10 @@ def _snapshot(deck: KeywordDeck, include_mesh: bool) -> dict:
             if rule and rule[0] in record:
                 ident = _ident(str(record[rule[0]]), lookup) if record[rule[0]] is not None else None
                 if ident is not None:
-                    by_id[rule[1]][ident] = record
+                    if lists.collected(block.name):
+                        record = {**record, "collect": True}
+                    earlier = by_id[rule[1]].get(ident)
+                    by_id[rule[1]][ident] = record if earlier is None else _merge_definitions(earlier, record)
                     continue
             if row is None or layout.key == "row":
                 by_keyword[block.name].append(record)
@@ -77,6 +80,19 @@ def _snapshot(deck: KeywordDeck, include_mesh: bool) -> dict:
                 by_keyword[block.name].append({"row": row, **record})
     parameters = {r.definition.name.lower(): r.definition.value for r in deck.parameters}
     return {"by_id": by_id, "by_keyword": by_keyword, "unchecked": dict(unchecked), "parameters": parameters}
+
+
+def _merge_definitions(earlier: dict, record: dict) -> dict:
+    """Several blocks define one ID: ``_COLLECT`` sets merge their members, anything else is a
+    duplicate. Every block's own fields are kept, so no difference between decks is hidden."""
+    def own(r: dict) -> tuple:
+        return tuple(sorted((k, v) for k, v in r.items() if k not in ("members", "collect")))
+
+    merged = {"collect": bool(earlier.get("collect")) and bool(record.get("collect")),
+              "blocks": earlier.get("blocks", (own(earlier),)) + (own(record),)}
+    if "members" in earlier or "members" in record:
+        merged["members"] = tuple(sorted(earlier.get("members", ()) + record.get("members", ())))
+    return merged
 
 
 def _same(a: object, b: object, rel: float, abs_tol: float) -> bool:

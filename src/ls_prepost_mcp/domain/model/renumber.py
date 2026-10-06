@@ -6,7 +6,7 @@ surfaces of the matching type. The operation is refused, with nothing changed, w
 cannot be complete or exact:
 
 * a block that may refer to the kind cannot be read;
-* a ``*SET_*_GENERATE`` range contains an affected ID;
+* a ``*SET_*_GENERATE`` or ``_GENERATE_INCREMENT`` range contains an old or new affected ID;
 * an affected reference is written as a parameter expression;
 * a new ID collides with a kept ID or does not fit its field.
 
@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from . import links, lists, references
+from . import links, lists, references, set_rows
 from .fields import FieldError, FieldSlot, format_value, is_free_format, read_text, write_text
 from .geometry import _where, elements, nodes
 from .layouts import RowMap, Unsupported
@@ -45,6 +45,8 @@ def _may_refer(name: str, kind: str) -> bool:
     *FREQUENCY_DOMAIN_ACOUSTIC_FEM PID). Unruled ``lc..`` fields are taken as curves only.
     """
     base = lists.base_name(name)[0]
+    if set_rows.is_general(base):  # rows name nodes, elements, parts, boxes or sets depending on OPTION
+        return kind in set_rows.GENERAL_KINDS
     if base.startswith(("*SET_", "*CONTACT_")) or not recognized(name):
         return True
     definition = _rule(base, DEFINITIONS)
@@ -134,7 +136,12 @@ def _plan(deck: KeywordDeck, kind: str, mapping: dict[int, int], definitions: bo
     """Line edits and member-list rewrites for ``mapping`` (refuses when incomplete)."""
     report = ReferenceReport()
     plans = references._plans(deck, True, report)  # elements refer to parts, so always scan the mesh
-    problems = [f"{name} x{count} cannot be read" for name, count in report.unchecked.items() if _may_refer(name, kind)]
+    problems = [f"{name} x{count} " + ("holds OPTION-dependent row IDs that are not checked"
+                                       if set_rows.is_general(lists.base_name(name)[0]) else "cannot be read")
+                for name, count in report.unchecked.items() if _may_refer(name, kind)]
+    # An old ID inside a range leaves the set; a new ID inside one joins it. Merged nodes are kept
+    # IDs that already exist, so only the removed ones count.
+    affected = set(mapping) | (set(mapping.values()) if definitions else set())
     line_plans, member_plans, cells = [], [], 0
     for plan in plans:
         block, layout = plan.block, plan.layout
@@ -205,12 +212,31 @@ def _plan(deck: KeywordDeck, kind: str, mapping: dict[int, int], definitions: bo
         base = lists.base_name(block.name)[0]
         if lists.RANGE_KINDS.get(base) == kind:
             for first, last in lists.ranges(block, deck._long(block)):
-                if any(first <= ident <= last for ident in mapping):
+                if any(first <= ident <= last for ident in affected):
                     problems.append(f"{_where(block)}: range {first}-{last} contains an affected ID")
+        if set_rows.increment_kind(base) == kind:
+            _increment_ranges(deck, block, layout, affected, problems)
     if problems:
         shown = "; ".join(problems[:20]) + (f"; ... {len(problems) - 20} more" if len(problems) > 20 else "")
         raise FieldError(f"Cannot change {kind} IDs completely: {shown}")
     return line_plans, member_plans, cells
+
+
+def _increment_ranges(deck: KeywordDeck, block: Block, layout: object, affected: set[int], problems: list) -> None:
+    """``*SET_*_GENERATE_INCREMENT``: refuse when an old or new ID lies inside a BBEG-BEND range."""
+    if layout is None:
+        problems.append(f"{_where(block)}: ranges cannot be read")
+        return
+    for key in layout.rows:
+        try:
+            first, last, step = (int(deck.get(block, name, row=key).value or 0) for name in ("bbeg", "bend", "incr"))
+        except (FieldError, TypeError, ValueError):
+            problems.append(f"{_where(block)} row {key}: range cannot be read")
+            continue
+        low, high = min(first, last), max(first, last)
+        members = [i for i in affected if low <= i <= high and (step <= 0 or first > last or (i - first) % step == 0)]
+        if members:
+            problems.append(f"{_where(block)} row {key}: range {first}-{last} step {step} contains an affected ID")
 
 
 def _apply(deck: KeywordDeck, line_plans: list, member_plans: list, description: str) -> None:
