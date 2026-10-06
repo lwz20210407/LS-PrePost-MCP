@@ -73,6 +73,11 @@ def identity(path: Path) -> str:
     return os.path.normcase(os.path.abspath(path))
 
 
+def is_network(name: str) -> bool:
+    """UNC and device names (``\\\\host\\share``, ``//host/share``, ``\\\\?\\``, ``\\\\.\\``)."""
+    return name.startswith(("\\\\", "//"))
+
+
 def resolve(name: str, including_dir: Path, main_dir: Path, search_dirs: list[Path]) -> Resolution:
     """Resolve an include name.
 
