@@ -247,7 +247,7 @@ def pytest_addoption(parser):
 
 DIFF_COMMAND = ["git", "-c", "core.quotepath=true", "diff", "HEAD", "--binary", "--no-ext-diff",
                 "--no-color", "--no-textconv", "--src-prefix=a/", "--dst-prefix=b/",
-                "--diff-algorithm=myers", "--no-renames"]
+                "--diff-algorithm=myers", "--no-renames", "-U3", "--inter-hunk-context=0"]
 
 
 def execution_identity(root=ROOT, report_directory=None):
