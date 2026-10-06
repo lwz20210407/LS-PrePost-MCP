@@ -1,6 +1,5 @@
 """Native SCL/command-file exports. Only staged copies are opened by LS-PrePost."""
 import csv
-import json
 import re
 import shutil
 
@@ -98,13 +97,13 @@ def field_script(domain, entity_ids, states, fields, ipt, output_path="native.cs
     point_guard = ''
     if domain == 'solid' and ipt.isdigit() and int(ipt) > 0:
         point_guard = ('if(SCLGetDataCenterInt("is_full_integrated")!=1){fp=fopen('
-                       + json.dumps(str(output_path).replace('\\', '/'), ensure_ascii=False)
+                       + nc.scl_string(output_path)
                        + ',"w");if(fp!=NULL){fprintf(fp,"ERROR_SOLID_POINT_UNAVAILABLE\\n");fclose(fp);}return;}\n')
     return ('/*LS-SCRIPT*/\ndefine:\nvoid main(void)\n{\nInt ne,ns,n,j,uid;\nFILE *fp;\nFloat *times=NULL;\n'
             + declarations + '\n' + point_guard + 'ne=SCLGetDataCenterInt("' + counter + '");\nns=SCLGetDataCenterInt("num_states");\n'
             'if(ne<=0 || ns<=0) return;\ntimes=malloc(ns*sizeof(Float));\n'
             'n=SCLGetDataCenterFloatArray("state_times",0,0,&times);\nif(n!=ns) return;\n'
-            + allocations + '\nfp=fopen(' + json.dumps(str(output_path).replace('\\', '/'), ensure_ascii=False) + ',"w");\nfprintf(fp,"state,time,entity_id,'
+            + allocations + '\nfp=fopen(' + nc.scl_string(output_path) + ',"w");\nfprintf(fp,"state,time,entity_id,'
             + ",".join(fields) + '\\n");\n' + "\n".join(body) + '\nfclose(fp);\n' + frees + '\nfree(times);\n}\nmain();\n')
 
 
@@ -257,7 +256,8 @@ def native_binout(settings, jobs, source, branch, quantity, entity_id, units, ex
         script = ('/*LS-SCRIPT*/\ndefine:\nvoid main(void){\nchar *h;\nBINOUT_Parameter p;\nInt n,ok,i,ni,found;\n'
                   'Int *uids=NULL;\nFloat *t=NULL;\nFloat *v=NULL;\nFILE *fp;\n'
                   'SCLBinoutInit(&p);\np.id=%d;\nh=SCLBinoutOpen(%s);\nif(h==NULL)return;\n' %
-                  (entity_id or 0, json.dumps(str(directory/'input_data'))))
+                  # KI-017: SCLBinoutOpen requires native Windows separators.
+                  (entity_id or 0, nc.scl_string(directory/'input_data', style="native")))
         if branch in ('nodout', 'matsum'):
             script += ('ok=SCLBinoutReadInt(h,%s_NUM_ID,&ni,&p);\nif(ok==0 || ni<=0 || ni>10000000){SCLBinoutClose(h);return;}\n'
                        'uids=malloc(ni*sizeof(Int));\nok=SCLBinoutReadIntArray(h,%s_IDS,&uids,&p);\n'
@@ -270,7 +270,7 @@ def native_binout(settings, jobs, source, branch, quantity, entity_id, units, ex
                    'fp=fopen(%s,"w");\nif(fp==NULL){free(t);free(v);SCLBinoutClose(h);return;}\nfprintf(fp,"time,value\\n");\n'
                    'for(i=0;i<n;i=i+1)fprintf(fp,"%%.17g,%%.17g\\n",t[i],v[i]);\n'
                    'fclose(fp);\nSCLBinoutClose(h);\nfree(t);\nfree(v);\n}\nmain();\n') % (
-                       enum, enum, quantity_enum, json.dumps((directory/'native.csv').as_posix()))
+                       enum, enum, quantity_enum, nc.scl_string(directory/'native.csv'))
         nc.write_scl(directory/'binout.scl', script)
         nc.write_cfile(directory/'commands.cfile', ["new", nc.run_script("binout.scl", "scl"), "exit"])
     def parse(directory):
