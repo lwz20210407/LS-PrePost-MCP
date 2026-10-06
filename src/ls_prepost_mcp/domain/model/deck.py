@@ -50,11 +50,12 @@ class KeywordDeck:
     """An LS-DYNA keyword deck loaded with all include files, editable without reformatting."""
 
     def __init__(self, main: SourceFile, search_dirs: list[Path], max_files: int = 5000,
-                 record_unreadable: bool = False, network: bool = True) -> None:
+                 record_unreadable: bool = False, network: bool = True, max_references: int | None = None) -> None:
         self.main = main
         self.main_dir = main.path.parent
         self.files: dict[str, SourceFile] = {identity(main.path): main}
         self.max_files = max_files
+        self.max_references = tree.reference_budget(max_references)
         self.record_unreadable = record_unreadable
         self.network = network
         self.base_search_dirs = list(search_dirs)
@@ -64,15 +65,19 @@ class KeywordDeck:
 
     @classmethod
     def load(cls, path: str | os.PathLike[str], include_paths: tuple[str, ...] = (), max_files: int = 5000,
-             record_unreadable: bool = False) -> KeywordDeck:
+             record_unreadable: bool = False, *, max_references: int | None = None) -> KeywordDeck:
         """Load ``path`` and every include file it references (read-only on disk).
 
         An include that cannot be read as keyword text, or one beyond ``max_files``, raises
         unless ``record_unreadable`` is set; then it is skipped and recorded on its reference.
         Constructed directly with ``network=False``, UNC include names are recorded and never
         accessed (used by :func:`preflight.preflight_includes` for untrusted decks).
+        ``max_references`` (None: no limit) bounds ``reference_count``, counted as described in
+        :func:`tree.walk`; past it loading raises :class:`tree.ReferenceLimit`, or with
+        ``record_unreadable`` records a ``reference_limit`` reference and stops reading.
         """
-        return cls(SourceFile.read(Path(path)), [Path(p) for p in include_paths], max_files, record_unreadable)
+        return cls(SourceFile.read(Path(path)), [Path(p) for p in include_paths], max_files, record_unreadable,
+                   max_references=max_references)
 
     # ------------------------------------------------------------------ structure
     def _rebuild(self) -> None:
@@ -82,6 +87,9 @@ class KeywordDeck:
         self.warnings: list[str] = []
         self.format = "standard"
         self._parents: dict[str, str] = {}
+        self.reference_count = 0  # include references in LS-DYNA reading order, see tree.walk
+        self.reference_stop: IncludeRef | None = None  # the reference over max_references, if recorded
+        self._expanded: dict[str, int] = {}  # references read for one inclusion of a walked file
         self._walk(self.main, [identity(self.main.path)])
         for source in {id(f): f for f in [self.main, *self.files.values()]}.values():
             if source.wide:

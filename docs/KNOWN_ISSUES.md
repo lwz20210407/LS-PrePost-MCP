@@ -1204,7 +1204,7 @@ BatchEngine 和内置 Python 在作业目录运行，并非主 deck 目录。对
 
 允许目录检查先于预检内容诊断；cwd 检查拒绝后，新建作业显式记为 failed。行首空白及 *END 后的 INCLUDE 直接拒绝，不猜测不同版本的解析。带引号的文件名（例如 `"first.k"`）在共享预检中会被拒绝，属于与旧检查的兼容性变化；尚未做原生语法认证。
 
-引用总数上限由 Claude 提供共享预检接口，Codex 接入；当前 max_files 不等于引用总数上限，该项仍待接口。
+引用总数上限：共享预检接口已提供（#70），待 Codex 接入。`preflight_includes(..., max_references=N)` 按读取顺序计数：每个 INCLUDE 类文件名及 `*INCLUDE_PATH` 目录每被读一次记一次，重复引用连同其文件首次读取时计入的引用再记一次，缺失、不可读、UNC、循环引用同样计入。超限的那条报 `reference_limit`（带 `counted`、`limit`），读取在此停止：其后的引用不再交给访问守卫，也不做 resolve/stat/读取；超限名称本身同样不访问，只有“重复引用因文件内引用而超限”时该名称已在计数前解析，但不再展开其文件。默认不限制；原生准入路径（`Settings.check_keyword_includes`）尚未传入上限，max_files 仍不等于引用总数上限。
 
 第十一轮 [4.10 原生证据](decisions/evidence/i01-include-diagnostics/report.md) 已登记 2 项通过（相对漏读失败、绝对路径完整读入），ce42 H0 也返回 failed。
 
