@@ -111,6 +111,16 @@ def repository_documents(root=REPOSITORY):
             title = " ".join((row["Command"], row["Variant"])).strip()
             yield Document("library-cfile-support", "command", title, " ".join(row.values()),
                            "repo://src/ls_prepost_mcp/data/commands.tsv", "Apache-2.0", "public", "catalog", number, number)
+    from .native import commands as native_commands
+    revision = "sha256:" + hashlib.sha256(Path(native_commands.__file__).read_bytes()).hexdigest()
+    examples = (("save_keyword", native_commands.save_keyword("model.k"), "保存当前关键字模型"),
+                ("print_png", native_commands.print_png("image.png"), "导出 PNG 图片"),
+                ("open_model", native_commands.open_model("model.k"), "打开关键字模型"),
+                ("run_script", native_commands.run_script("program.scl","scl"), "执行 SCL 文件"))
+    for builder,example,description in examples:
+        yield Document("native-command-builders", "command", example, description + "\n" + example +
+                       "\nSource example only; consult recipe/version evidence before execution.",
+                       "repo://src/ls_prepost_mcp/native/commands.py#" + builder, "MIT", "public", revision)
     for relative, category in (("docs/KNOWN_ISSUES.md", "known_issue"), ("docs/INSTALL.md", "user_guide")):
         yield from chunks(root / relative, source_id=relative, category=category, license="MIT", visibility="public",
                           locator="repo://" + relative)
@@ -237,9 +247,18 @@ def search_index(path, query, *, category=None, limit=10, include_private=False)
                                else "code_only" if latin else "text_only")
         text = data.pop("text")
         position = text.casefold().find(query.casefold())
+        if position < 0:
+            for token in sorted((value for value in query_terms if not value.startswith("zh_")),key=len,reverse=True):
+                position=text.casefold().find(token)
+                if position >= 0:
+                    break
         begin = max(0, position - 100) if position >= 0 else 0
         data["snippet"] = text[begin:begin + 600]
         data.update(status="reference_unverified", executable=False, private=data["visibility"] == "private")
+        if data["category"] == "recipe":
+            proof = recipe_verification(text)
+            if proof:
+                data["recipe_verification"] = proof
         if fields[data["id"]] is not None:
             data.pop("line_start")
             data.pop("line_end")  # Structured provider fields have card/columns, not invented source lines.
@@ -250,3 +269,31 @@ def search_index(path, query, *, category=None, limit=10, include_private=False)
             data["keyword_field"] = field
         results.append(data)
     return results
+
+
+def recipe_verification(text):
+    """Extract attributed version/mode claims from indexed YAML, never execute it."""
+    import yaml
+
+    if len(text) > 1024 * 1024:
+        return None
+    try:
+        recipe = yaml.safe_load(text)
+    except yaml.YAMLError:
+        return None
+    if not isinstance(recipe, dict):
+        return None
+    versions = recipe.get("versions_verified")
+    if not isinstance(versions, list) or not all(isinstance(v, str) and v.strip() for v in versions):
+        return None
+    modes = recipe.get("execution_modes")
+    scoped = {}
+    if isinstance(modes, dict):
+        for name, details in modes.items():
+            by_version = details.get("by_version") if isinstance(details, dict) else None
+            if name in ("c_nographics", "runc") and isinstance(by_version, dict):
+                scoped[name] = {version: state for version, state in by_version.items()
+                                if isinstance(version, str) and state in ("verified", "failed", "unverified")}
+    case = recipe.get("l2_case")
+    return dict(versions_verified=versions, execution_modes=scoped,
+                l2_case=case if isinstance(case, str) and case.strip() else None)
