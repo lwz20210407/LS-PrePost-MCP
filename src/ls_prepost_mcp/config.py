@@ -73,18 +73,22 @@ class Settings:
         source = self.input_path(str(path))
         report = preflight_includes(source)
         references = report["references"]
-        for ref in references:
-            if ref["keyword"] != "*INCLUDE":
-                raise ValueError("Only plain *INCLUDE is supported in this release: " + ref["keyword"])
-            if "&" in ref["name"] or "%" in ref["name"]:
-                raise ValueError("Parameterized includes require a future resolver")
+        failure = ""
         if not report["ok"]:
             problem = next(p for p in report["problems"] if p["severity"] == "error")
             legacy = {"cycle": "Cyclic keyword include chain", "limit": "Keyword include limit exceeded"}
             reason = problem.get("reason") or problem.get("hint") or "INCLUDE preflight failed"
-            raise ValueError("{}: kind={}, relative={}, name_line={}, reason={}".format(
+            failure = "{}: kind={}, relative={}, name_line={}, reason={}".format(
                 legacy.get(problem["kind"], "Keyword include preflight failed"), problem["kind"],
-                problem["relative"], problem["name_line"], reason))
+                problem["relative"], problem["name_line"], reason)
+        details = "; " + failure if failure else ""
+        for ref in references:
+            if ref["keyword"] != "*INCLUDE":
+                raise ValueError("Only plain *INCLUDE is supported in this release: " + ref["keyword"] + details)
+            if "&" in ref["name"] or "%" in ref["name"]:
+                raise ValueError("Parameterized includes require a future resolver" + details)
+        if failure:
+            raise ValueError(failure)
         if any(p["kind"] == "empty_include" for p in report["problems"]):
             raise ValueError("Empty *INCLUDE card")
         for entry in report["files"]:
