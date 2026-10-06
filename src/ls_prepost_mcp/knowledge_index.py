@@ -117,7 +117,10 @@ def build_index(destination, documents, fields=()):
     for field in fields:
         if not isinstance(field, KeywordField):
             raise ValueError("Keyword fields must come from the keyword_docs adapter")
-        locator = "keyword_docs://" + field.entity_key + "/" + str(field.card) + "/" + str(field.option) + "/" + field.field
+        # Repeated names on one card can occupy distinct columns (e.g. VAR).
+        # Keep both occurrences; contradictory definitions at one slot still fail.
+        locator = ("keyword_docs://" + field.entity_key + "/" + str(field.card) + "/" + str(field.option)
+                   + "/" + field.field + "/" + str(field.offset) + ":" + str(field.width))
         if locator in field_map and field_map[locator] != field:
             raise ValueError("Provider returned conflicting field identities")
         text = field.help + "\n" + json.dumps(dict(aliases=field.aliases, links=field.links, manual_ref=field.manual_ref), ensure_ascii=False)

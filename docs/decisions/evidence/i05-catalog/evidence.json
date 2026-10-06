@@ -1,0 +1,504 @@
+{
+  "task": "I05",
+  "scan": {
+    "requested_keywords": 3171,
+    "completed_keywords": 3171,
+    "same_name_different_column_keywords": 34,
+    "raw_field_records": 66902,
+    "provider_errors": 0
+  },
+  "runs": [
+    {
+      "provenance": {
+        "actual_git_revision": "9651d02c687f68a2698e1c258cddfb3ea5c4795a",
+        "working_tree_dirty": true,
+        "git_diff_sha256": "53b252788f2b154be939a4bd2095d008cbea2780ab3a3c0b966d12b8d127bdba",
+        "baseline_exit": 1,
+        "full_build_exit": 0,
+        "seconds": 54.953000000008615,
+        "manual_index_configured": false,
+        "source_sha256": {
+          "src/ls_prepost_mcp/keyword_documentation.py": "105312dc8700fb2e88a20783471a063a05b237869f8ad101d988c142a63b4f47",
+          "src/ls_prepost_mcp/knowledge_index.py": "fc9b2b2caebd47c620a0eedd5ff02ac2c8cf1ab45343834911e3e370f99c14d1",
+          "tools/build_knowledge_index.py": "eeec98bc452105d474dd5b040b80b122202f308c91422568b294cfe4de346c43"
+        }
+      },
+      "build": {
+        "schema_version": 2,
+        "documents": 68245,
+        "keyword_fields": 66900,
+        "categories": {
+          "command": 1250,
+          "keyword": 66900,
+          "known_issue": 76,
+          "recipe": 15,
+          "user_guide": 4
+        },
+        "private": false,
+        "keyword_coverage": {
+          "requested_keywords": 3171,
+          "completed_keywords": 3171,
+          "field_records": 66902,
+          "without_fields": [
+            "*CASE_BEGIN",
+            "*CASE_END",
+            "*CHANGE_RIGIDWALL_GEOMETRIC",
+            "*CHANGE_RIGIDWALL_PLANAR",
+            "*CHANGE_VELOCITY_ZERO",
+            "*COMMENT",
+            "*CONTROL_CR_MPP_DECOMPOSITION_FLAG_STRESS_STRAIN_CURVE",
+            "*CONTROL_CR_MPP_MATERIAL_MODEL_DRIVER",
+            "*CONTROL_DEBUG",
+            "*CONTROL_EXPLOSIVE_SHADOW",
+            "*CONTROL_MPP_DECOMPOSITION_AUTOMATIC",
+            "*CONTROL_MPP_DECOMPOSITION_BAGREF",
+            "*CONTROL_MPP_DECOMPOSITION_CHECK_SPEED",
+            "*CONTROL_MPP_DECOMPOSITION_DISABLE_UNREF_CURVES",
+            "*CONTROL_MPP_DECOMPOSITION_DISTRIBUTE_ALE_ELEMENT",
+            "*CONTROL_MPP_DECOMPOSITION_DISTRIBUTE_ALE_ELEMENTS",
+            "*CONTROL_MPP_DECOMPOSITION_DISTRIBUTE_SPH_ELEMENT",
+            "*CONTROL_MPP_DECOMPOSITION_DISTRIBUTE_SPH_ELEMENTS",
+            "*CONTROL_MPP_DECOMPOSITION_NODISTRIBUTE_DES_ELEMENTS",
+            "*CONTROL_MPP_DECOMPOSITION_SHOW",
+            "*CONTROL_MPP_IO_BINOUTONLY",
+            "*CONTROL_MPP_IO_LSTC_REDUCE",
+            "*CONTROL_MPP_IO_NOBEAMOUT",
+            "*CONTROL_MPP_IO_NOD3DUMP",
+            "*CONTROL_MPP_IO_NODUMP",
+            "*CONTROL_MPP_IO_NOFULL",
+            "*CONTROL_MPP_IO_SWAPBYTES",
+            "*CONTROL_STRUCTURED",
+            "*CONTROL_STRUCTURED_TERM",
+            "*INITIAL_STRAIN_SHELL",
+            "*INITIAL_STRESS_SHELL",
+            "*INTERFACE_SPG_1",
+            "*INTERFACE_SPG_2",
+            "*LOAD_SPCFORC",
+            "*LOAD_THERMAL_D3PLOT",
+            "*LOAD_THERMAL_TOPAZ",
+            "*PARAMETER",
+            "*PARAMETER_LOCAL"
+          ]
+        }
+      },
+      "readback": {
+        "integrity": "ok",
+        "field_count": 66900,
+        "keywords_with_fields": 3133,
+        "orphan_fields": 0,
+        "duplicate_slots": 0,
+        "index_sha256": "d0c6193e6ca94132486b5cf2fff5f41957e77c2da108deab01eae8fcacdec2e3",
+        "probes": [
+          {
+            "keyword": "*ALE_BURN_SWITCH_MMG",
+            "field": "var",
+            "matches": [
+              {
+                "entity_key": "*ALE_BURN_SWITCH_MMG",
+                "card": 3,
+                "option": null,
+                "field": "var",
+                "offset": 20,
+                "width": 10
+              },
+              {
+                "entity_key": "*ALE_BURN_SWITCH_MMG",
+                "card": 3,
+                "option": null,
+                "field": "var",
+                "offset": 40,
+                "width": 10
+              },
+              {
+                "entity_key": "*ALE_BURN_SWITCH_MMG",
+                "card": 3,
+                "option": null,
+                "field": "var",
+                "offset": 10,
+                "width": 10
+              },
+              {
+                "entity_key": "*ALE_BURN_SWITCH_MMG",
+                "card": 3,
+                "option": null,
+                "field": "var",
+                "offset": 50,
+                "width": 10
+              },
+              {
+                "entity_key": "*ALE_BURN_SWITCH_MMG",
+                "card": 3,
+                "option": null,
+                "field": "var",
+                "offset": 0,
+                "width": 10
+              },
+              {
+                "entity_key": "*ALE_BURN_SWITCH_MMG",
+                "card": 3,
+                "option": null,
+                "field": "var",
+                "offset": 30,
+                "width": 10
+              },
+              {
+                "entity_key": "*ALE_BURN_SWITCH_MMG",
+                "card": 3,
+                "option": null,
+                "field": "var",
+                "offset": 60,
+                "width": 10
+              },
+              {
+                "entity_key": "*ALE_BURN_SWITCH_MMG",
+                "card": 3,
+                "option": null,
+                "field": "var",
+                "offset": 70,
+                "width": 10
+              }
+            ]
+          },
+          {
+            "keyword": "*CONTROL_IMPLICIT_INERTIA_RELIEF",
+            "field": "mode1",
+            "matches": [
+              {
+                "entity_key": "*CONTROL_IMPLICIT_INERTIA_RELIEF",
+                "card": 1,
+                "option": null,
+                "field": "mode1",
+                "offset": 50,
+                "width": 10
+              },
+              {
+                "entity_key": "*CONTROL_IMPLICIT_INERTIA_RELIEF",
+                "card": 1,
+                "option": null,
+                "field": "mode1",
+                "offset": 0,
+                "width": 10
+              },
+              {
+                "entity_key": "*CONTROL_IMPLICIT_INERTIA_RELIEF",
+                "card": 1,
+                "option": null,
+                "field": "mode1",
+                "offset": 60,
+                "width": 10
+              },
+              {
+                "entity_key": "*CONTROL_IMPLICIT_INERTIA_RELIEF",
+                "card": 1,
+                "option": null,
+                "field": "mode1",
+                "offset": 30,
+                "width": 10
+              },
+              {
+                "entity_key": "*CONTROL_IMPLICIT_INERTIA_RELIEF",
+                "card": 1,
+                "option": null,
+                "field": "mode1",
+                "offset": 70,
+                "width": 10
+              },
+              {
+                "entity_key": "*CONTROL_IMPLICIT_INERTIA_RELIEF",
+                "card": 1,
+                "option": null,
+                "field": "mode1",
+                "offset": 40,
+                "width": 10
+              }
+            ]
+          },
+          {
+            "keyword": "*DATABASE_ALE_OPERATION",
+            "field": "var",
+            "matches": [
+              {
+                "entity_key": "*DATABASE_ALE_OPERATION",
+                "card": 2,
+                "option": null,
+                "field": "var",
+                "offset": 0,
+                "width": 10
+              },
+              {
+                "entity_key": "*DATABASE_ALE_OPERATION",
+                "card": 2,
+                "option": null,
+                "field": "var",
+                "offset": 20,
+                "width": 10
+              },
+              {
+                "entity_key": "*DATABASE_ALE_OPERATION",
+                "card": 2,
+                "option": null,
+                "field": "var",
+                "offset": 10,
+                "width": 10
+              },
+              {
+                "entity_key": "*DATABASE_ALE_OPERATION",
+                "card": 2,
+                "option": null,
+                "field": "var",
+                "offset": 50,
+                "width": 10
+              },
+              {
+                "entity_key": "*DATABASE_ALE_OPERATION",
+                "card": 2,
+                "option": null,
+                "field": "var",
+                "offset": 40,
+                "width": 10
+              },
+              {
+                "entity_key": "*DATABASE_ALE_OPERATION",
+                "card": 2,
+                "option": null,
+                "field": "var",
+                "offset": 60,
+                "width": 10
+              },
+              {
+                "entity_key": "*DATABASE_ALE_OPERATION",
+                "card": 2,
+                "option": null,
+                "field": "var",
+                "offset": 70,
+                "width": 10
+              },
+              {
+                "entity_key": "*DATABASE_ALE_OPERATION",
+                "card": 2,
+                "option": null,
+                "field": "var",
+                "offset": 30,
+                "width": 10
+              }
+            ]
+          },
+          {
+            "keyword": "*CONTACT_AUTOMATIC_SURFACE_TO_SURFACE_TIED_WELD",
+            "field": "tprmi",
+            "matches": [
+              {
+                "entity_key": "*CONTACT_AUTOMATIC_SURFACE_TO_SURFACE_TIED_WELD",
+                "card": 4,
+                "option": null,
+                "field": "tprmi",
+                "offset": 50,
+                "width": 10
+              },
+              {
+                "entity_key": "*CONTACT_AUTOMATIC_SURFACE_TO_SURFACE_TIED_WELD",
+                "card": 4,
+                "option": null,
+                "field": "tprmi",
+                "offset": 70,
+                "width": 10
+              },
+              {
+                "entity_key": "*CONTACT_AUTOMATIC_SURFACE_TO_SURFACE_TIED_WELD",
+                "card": 4,
+                "option": null,
+                "field": "tprmi",
+                "offset": 40,
+                "width": 10
+              },
+              {
+                "entity_key": "*CONTACT_AUTOMATIC_SURFACE_TO_SURFACE_TIED_WELD",
+                "card": 4,
+                "option": null,
+                "field": "tprmi",
+                "offset": 60,
+                "width": 10
+              }
+            ]
+          },
+          {
+            "keyword": "*MAT_ELASTIC",
+            "field": "e",
+            "matches": [
+              {
+                "entity_key": "*MAT_ELASTIC",
+                "card": 0,
+                "option": null,
+                "field": "e",
+                "offset": 20,
+                "width": 10
+              },
+              {
+                "entity_key": "*MAT_ELASTIC_FLUID",
+                "card": 0,
+                "option": null,
+                "field": "e",
+                "offset": 20,
+                "width": 10
+              },
+              {
+                "entity_key": "*MAT_ELASTIC_VISCOPLASTIC_THERMAL",
+                "card": 0,
+                "option": null,
+                "field": "e",
+                "offset": 20,
+                "width": 10
+              },
+              {
+                "entity_key": "*MAT_ELASTIC_PERI",
+                "card": 0,
+                "option": null,
+                "field": "e",
+                "offset": 20,
+                "width": 10
+              },
+              {
+                "entity_key": "*MAT_ELASTIC_PERI_LAMINATE",
+                "card": 0,
+                "option": null,
+                "field": "e",
+                "offset": 20,
+                "width": 10
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "provenance": {
+        "actual_git_revision": "9651d02c687f68a2698e1c258cddfb3ea5c4795a",
+        "working_tree_dirty": true,
+        "git_diff_sha256": "53b252788f2b154be939a4bd2095d008cbea2780ab3a3c0b966d12b8d127bdba",
+        "build_exit": 0,
+        "seconds": 56.09399999999732,
+        "external_sources": [
+          "local-scripting-api",
+          "local-user-guide"
+        ],
+        "external_sources_manifest_sha256": "27a818d087b57a355ae250460d185bcbf60a7996929048741a5b16d95a360684",
+        "manual_index_configured": false
+      },
+      "build": {
+        "schema_version": 2,
+        "documents": 68597,
+        "keyword_fields": 66900,
+        "categories": {
+          "api": 68,
+          "command": 1250,
+          "keyword": 66900,
+          "known_issue": 76,
+          "recipe": 15,
+          "user_guide": 288
+        },
+        "private": true,
+        "keyword_coverage": {
+          "requested_keywords": 3171,
+          "completed_keywords": 3171,
+          "field_records": 66902,
+          "without_fields": [
+            "*CASE_BEGIN",
+            "*CASE_END",
+            "*CHANGE_RIGIDWALL_GEOMETRIC",
+            "*CHANGE_RIGIDWALL_PLANAR",
+            "*CHANGE_VELOCITY_ZERO",
+            "*COMMENT",
+            "*CONTROL_CR_MPP_DECOMPOSITION_FLAG_STRESS_STRAIN_CURVE",
+            "*CONTROL_CR_MPP_MATERIAL_MODEL_DRIVER",
+            "*CONTROL_DEBUG",
+            "*CONTROL_EXPLOSIVE_SHADOW",
+            "*CONTROL_MPP_DECOMPOSITION_AUTOMATIC",
+            "*CONTROL_MPP_DECOMPOSITION_BAGREF",
+            "*CONTROL_MPP_DECOMPOSITION_CHECK_SPEED",
+            "*CONTROL_MPP_DECOMPOSITION_DISABLE_UNREF_CURVES",
+            "*CONTROL_MPP_DECOMPOSITION_DISTRIBUTE_ALE_ELEMENT",
+            "*CONTROL_MPP_DECOMPOSITION_DISTRIBUTE_ALE_ELEMENTS",
+            "*CONTROL_MPP_DECOMPOSITION_DISTRIBUTE_SPH_ELEMENT",
+            "*CONTROL_MPP_DECOMPOSITION_DISTRIBUTE_SPH_ELEMENTS",
+            "*CONTROL_MPP_DECOMPOSITION_NODISTRIBUTE_DES_ELEMENTS",
+            "*CONTROL_MPP_DECOMPOSITION_SHOW",
+            "*CONTROL_MPP_IO_BINOUTONLY",
+            "*CONTROL_MPP_IO_LSTC_REDUCE",
+            "*CONTROL_MPP_IO_NOBEAMOUT",
+            "*CONTROL_MPP_IO_NOD3DUMP",
+            "*CONTROL_MPP_IO_NODUMP",
+            "*CONTROL_MPP_IO_NOFULL",
+            "*CONTROL_MPP_IO_SWAPBYTES",
+            "*CONTROL_STRUCTURED",
+            "*CONTROL_STRUCTURED_TERM",
+            "*INITIAL_STRAIN_SHELL",
+            "*INITIAL_STRESS_SHELL",
+            "*INTERFACE_SPG_1",
+            "*INTERFACE_SPG_2",
+            "*LOAD_SPCFORC",
+            "*LOAD_THERMAL_D3PLOT",
+            "*LOAD_THERMAL_TOPAZ",
+            "*PARAMETER",
+            "*PARAMETER_LOCAL"
+          ]
+        }
+      },
+      "readback": {
+        "integrity": "ok",
+        "index_sha256": "7843f5bfec2fbf83196b5553fa6b02888c2102db556603c7cca205ec89d38d0d",
+        "smoke_queries": [
+          {
+            "category": "command",
+            "query": "genselect",
+            "result_count": 3,
+            "source_ids": [
+              "library-cfile-support"
+            ]
+          },
+          {
+            "category": "api",
+            "query": "get_data",
+            "result_count": 2,
+            "source_ids": [
+              "local-scripting-api"
+            ]
+          },
+          {
+            "category": "keyword",
+            "query": "MAT_ELASTIC",
+            "result_count": 3,
+            "source_ids": [
+              "keyword_docs:*MAT_ELASTIC"
+            ]
+          },
+          {
+            "category": "user_guide",
+            "query": "view",
+            "result_count": 3,
+            "source_ids": [
+              "local-user-guide"
+            ]
+          },
+          {
+            "category": "recipe",
+            "query": "shell",
+            "result_count": 1,
+            "source_ids": [
+              "examples/workflows/visible_gui_quality_gate.json"
+            ]
+          },
+          {
+            "category": "known_issue",
+            "query": "KI",
+            "result_count": 3,
+            "source_ids": [
+              "docs/KNOWN_ISSUES.md"
+            ]
+          }
+        ],
+        "private_filter_verified": true,
+        "scope": "Six-category presence and attribution smoke; not held-out retrieval quality"
+      }
+    }
+  ]
+}
