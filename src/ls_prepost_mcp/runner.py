@@ -14,6 +14,6 @@ def failure_message(process, fallback):
     return message if isinstance(message,str) and message.strip() else fallback
 
 
-def execute(executable: Path, cfile: Path, directory: Path, *, timeout: float, graphics: bool) -> dict:
-    result = BatchEngine().run(BatchJob(executable, cfile, directory, timeout, graphics))
+def execute(executable: Path, cfile: Path, directory: Path, *, timeout: float, graphics: bool, launch_mode="c") -> dict:
+    result = BatchEngine().run(BatchJob(executable, cfile, directory, timeout, graphics, launch_mode=launch_mode))
     return dict(result.data, engine_status=result.status, engine_error=result.error)

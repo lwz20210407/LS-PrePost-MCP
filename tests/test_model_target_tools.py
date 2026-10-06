@@ -13,7 +13,7 @@ from ls_prepost_mcp.service import Service
 
 pytest.importorskip("ansys.dyna.core")
 
-TOOLS = ("model_info", "edit_keywords", "create_entities", "mesh_ops", "run_recipe", "check_model")
+TOOLS = ("model_info", "edit_keywords", "create_entities", "mesh_ops", "check_model")
 CORNERS = [(0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0), (0, 0, 1), (1, 0, 1), (1, 1, 1), (0, 1, 1)]
 
 
@@ -80,9 +80,9 @@ def test_scoped_tools_and_selectors(service: Service) -> None:
     assert created.status == "succeeded"
     moved = _valid(service.mesh_ops("cube.k", [{"op": "transform_nodes", "translate": [0, 0, 1.0], "selector": top}]))
     assert moved.status == "succeeded" and moved.data["summaries"][0]["nodes"] == 4
-    recipe = _valid(service.run_recipe("cube.k", [{"op": "set_control", "recipe": "termination",
-                                                   "params": {"endtim": 1e-3}}]))
-    assert recipe.status == "succeeded"
+    control = _valid(service.edit_keywords("cube.k", [{"op": "set_control", "recipe": "termination",
+                                                       "params": {"endtim": 1e-3}}]))
+    assert control.status == "succeeded" and "*CONTROL_TERMINATION" in Path(control.artifacts[0].path).read_text()
     with pytest.raises(ValueError, match="does not run"):
         service.mesh_ops("cube.k", [{"op": "add_material", "units": "mm-t-s", "recipe": "elastic", "params": {}}])
 

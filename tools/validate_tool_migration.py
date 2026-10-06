@@ -29,7 +29,7 @@ def main():
             errors.append(f"{name}: unknown target")
         if entry.get("task_id") not in ids:
             errors.append(f"{name}: unknown task_id")
-        if entry.get("legacy_until") != "v0.6" and not (entry.get("legacy_until") is None and entry["target"] == name):
+        if entry.get("legacy_until") != "v0.6" and not (entry.get("legacy_until") is None and entry.get("target") == name):
             errors.append(f"{name}: missing compatibility period")  # target tools themselves have none
     if errors:
         raise SystemExit("\n".join(errors))

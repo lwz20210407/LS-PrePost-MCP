@@ -112,3 +112,12 @@ API、厂商用户指南和课程文本通过 `--external-sources <仓库外JSON
 设置 `LSPP_KNOWLEDGE_INDEX` 后，现有 `search_knowledge` 工具直接查询该索引；category 可筛选，include_private 默认 False。未配置时保留旧来源目录搜索；不会悄悄把私有内容加进结果。字段数据单独存储于 schema_version=2 的 keyword_fields 表，保留 entity_key/option/card/field/offset/width/help/links/manual_ref/solver_status/license，并保存 provider 的字段别名。手册内容只由 provider 从 LSPP_MANUAL_INDEX 读取，含手册内容的字段强制 private。
 
 连接用 closing 显式关闭。构建写入唯一的 .partial 文件，事务提交并关闭后原子发布到尚不存在的最终路径；中断残留不会挡住重建，既有完整索引不覆盖。schema_version=1 的旧索引需另选路径重建。中文查询采用二字词候选匹配，不把所有单字/二字词用 AND 相连；混合代码查询优先用代码标识符定位。每条命中保留来源、版本和 reference_unverified；provider 的本机求解验证说明单独标注其归属。A08 的 recipe.yaml 加入后可重建，旧 JSON 工作流仍标为 legacy_workflow_template。
+
+## A08 配方库
+
+内置配方位于 src/ls_prepost_mcp/native/recipes。find_recipe 按关键词、任务 ID 或通道筛选；
+run_recipe 传入配方 ID、参数及输入模型。默认 launch_mode=c，显式 runc 不回退；适用范围
+见各 recipe.yaml 的 execution_modes.by_version。未知参数在启动前拒绝，运行后保持源身份校验。
+旧 JSON 模板通过同一模块的兼容读取器运行，默认不作为已验证 T2；include_candidates=true
+可发现它们。旧名字保留至 v0.6。五配方的真实版本证据见[ADR 0007](decisions/0007-recipes.md)。
+

@@ -1,0 +1,22 @@
+[
+  {"id":"C01","category":"command","query":"如何选择节点","title":"genselect target node"},
+  {"id":"C02","category":"command","query":"保存关键字模型","text":"save"},
+  {"id":"C03","category":"command","query":"导出图片 PNG","text":"png"},
+  {"id":"C04","category":"command","query":"如何切换 state","title":"state"},
+  {"id":"A05","category":"api","query":"SCLGetDataCenterInt 返回类型","text":"SCLGetDataCenterInt"},
+  {"id":"A06","category":"api","query":"get_data 如何取变量","text":"get_data"},
+  {"id":"A07","category":"api","query":"SCLGetDataCenterFloatArray 数组接口","text":"SCLGetDataCenterFloatArray"},
+  {"id":"A08","category":"api","query":"SCLCheckIfPartIsActiveU 显隐","text":"SCLCheckIfPartIsActiveU"},
+  {"id":"K09","category":"keyword","query":"*MAT_ELASTIC 弹性模量","field":"e"},
+  {"id":"K10","category":"keyword","query":"*MAT_ELASTIC 泊松比","field":"pr"},
+  {"id":"K11","category":"keyword","query":"*MAT_024 屈服应力","field":"sigy"},
+  {"id":"K12","category":"keyword","query":"*PART 材料编号","field":"mid"},
+  {"id":"K13","category":"keyword","query":"*CONTACT_ERODING SFS 接触刚度","field":"sfsa"},
+  {"id":"G14","category":"user_guide","query":"command file","text":"command"},
+  {"id":"G15","category":"user_guide","query":"*INCLUDE","text":"include"},
+  {"id":"R16","category":"recipe","query":"Block Mesher 盒体","locator":"box_mesh"},
+  {"id":"R17","category":"recipe","query":"节点平移配方","locator":"translate_nodes"},
+  {"id":"R18","category":"recipe","query":"SCL 坐标 CSV","locator":"node_coordinates"},
+  {"id":"I19","category":"known_issue","query":"连续 genselect add 是否覆盖","title":"KI-046"},
+  {"id":"I20","category":"known_issue","query":"工作目录有中文和空格为什么打不开","title":"KI-049"}
+]

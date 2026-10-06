@@ -20,7 +20,7 @@ class Operation:
     mutation: bool = False
     gui_transform: bool = False
     session_path: bool = False
-    legacy_until: str = "v0.6"
+    legacy_until: str | None = "v0.6"
     note: str | None = None
 
     @property

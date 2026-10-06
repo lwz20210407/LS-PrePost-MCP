@@ -7,6 +7,7 @@ from pathlib import Path
 
 from pydantic import StrictInt
 
+from .automation.recipes import RecipeTools
 from .config import Settings
 from .core.validation import integer, numbers, unit_label
 from .dpf_tools import DpfTools
@@ -35,17 +36,20 @@ from .native import commands as nc
 from .native.bundle import stage_bridge
 from .native.commands import VIEWS
 from .native.versions import profile, require_installation
+from .native_results import exceeds_staging_limit, input_family
+from .native_results import stage as stage_native_input
 from .post_tools import PostTools
 from .pre_tools import PreTools
 from .programs import ProgramTools
 from .results import lasso_vectors, open_binout
 from .runner import decode, execute, failure_message
+from .script_tools import ScriptTools
 from .sessions import SessionTools
 from .workflow_sweeps import WorkflowSweepTools
 from .workflows import WorkflowTools
 
 
-class Service(PostTools, PreTools, KeywordTools, ModelTargetTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools):
+class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, ModelTargetTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools):
     def __init__(self, settings: Settings):
         self.settings = settings
         self.jobs = Jobs(settings.workspace)
@@ -64,11 +68,15 @@ class Service(PostTools, PreTools, KeywordTools, ModelTargetTools, SessionTools,
         if file_type not in ("keyword", "d3plot"):
             raise ValueError("file_type must be keyword or d3plot")
         source = self.settings.input_path(model) if model else None
+        include_bearing = False
         if source and file_type == "keyword":
             self.settings.check_keyword_includes(source)
-            if export and any(line.strip().upper().startswith("*INCLUDE")
-                              for line in source.read_text(errors="replace").splitlines()):
+            include_bearing = any(line.strip().upper().startswith("*INCLUDE")
+                                  for line in source.read_text(errors="replace").splitlines())
+            if export and include_bearing:
                 raise ValueError("Native export of include-bearing models needs a staged include-tree implementation")
+        if source and file_type == "d3plot" and exceeds_staging_limit(input_family(self.settings, source, family=True)):
+            raise ValueError("Native d3plot input exceeds 1000 files / 2 GiB staging limit; read-only in-place fallback is unverified and disabled after native crashes. Use a supported reader backend or a smaller result family.")
         directory, manifest = self.jobs.create(action, parameters)
         manifest["backend"] = "lsprepost"
         manifest["executable"] = fingerprint(exe)
@@ -76,9 +84,26 @@ class Service(PostTools, PreTools, KeywordTools, ModelTargetTools, SessionTools,
         request = {"job_id": manifest["job_id"], "action": action, "parameters": parameters,
                    "job_directory": str(directory), "model": str(source) if source else None,
                    "file_type": file_type}
-        atomic_json(directory / "request.json", request)
+        staged_sources, source_identities = [], []
         if source:
             manifest["input"] = fingerprint(source)
+            if not include_bearing:
+                staged_sources, source_identities = stage_native_input(
+                    self.settings, source, directory, family=file_type == "d3plot")
+                request["model"] = str(directory / ("d3plot" if file_type == "d3plot" else "input_data"))
+                manifest["input_staging"] = "Owned ASCII basename; original paths and bytes remain unchanged"
+                manifest["inputs"] = source_identities
+            else:
+                # Existing plain INCLUDE validation is retained. Read-only native
+                # loading uses the absolute root deck; I07 still owns tree edits.
+                native_source = str(source)
+                if native_source.startswith("\\\\?\\UNC\\"):
+                    native_source = "\\\\" + native_source[8:]
+                elif native_source.startswith("\\\\?\\"):
+                    native_source = native_source[4:]
+                request["model"] = native_source
+            request["absolute_keyword_path"] = file_type == "keyword" and include_bearing
+        atomic_json(directory / "request.json", request)
         bridge = stage_bridge(directory)
         bootstrap = directory / "bootstrap.py"
         bootstrap.write_text("import os, runpy\nos.chdir(" + repr(str(directory)) + ")\n"
@@ -87,7 +112,7 @@ class Service(PostTools, PreTools, KeywordTools, ModelTargetTools, SessionTools,
                              + repr(str(directory / "response.json")) + ")\n", encoding="utf-8")
         commands = ["new"]
         if source and action == "scl_probe":
-            commands.append(nc.open_model(source, file_type, openc=file_type == "d3plot"))
+            commands.append(nc.open_model(request["model"], file_type, openc=file_type == "d3plot"))
         if action == "scl_probe":
             script = directory / "probe.scl"
             script.write_text('/*LS-SCRIPT*/\ndefine:\nvoid main(void)\n{\nInt n;\nFILE *fp;\n'
@@ -133,6 +158,9 @@ class Service(PostTools, PreTools, KeywordTools, ModelTargetTools, SessionTools,
                 manifest["artifacts"].append(check_artifact(directory / name, kind))
             if source and fingerprint(source) != manifest["input"]:
                 raise RuntimeError("Input changed during the task")
+            if staged_sources and [fingerprint(path) for path in input_family(
+                    self.settings, source, family=file_type == "d3plot")] != source_identities:
+                raise RuntimeError("Input family changed during the task")
             manifest["status"] = "succeeded"
         except Exception as exc:
             manifest.update(status="failed", error={"type": type(exc).__name__, "message": str(exc)})
@@ -187,7 +215,7 @@ class Service(PostTools, PreTools, KeywordTools, ModelTargetTools, SessionTools,
         return inspect_database(self.settings, self.jobs, self.settings.input_path(path))
 
     def inspect_model(self, model: str, file_type: str = "keyword") -> dict:
-        """Open keyword/d3plot in a fresh native Python instance; return counts, user part IDs and state times."""
+        """Open keyword/d3plot in a fresh native Python instance; return counts, user part IDs and state times. Native d3plot staging is limited to 1000 files / 2 GiB; larger families are rejected before launch (read-only in-place fallback remains unverified)."""
         return self._native("inspect_model", {}, model, file_type)
 
     def list_nodes(self, model: str, file_type: str = "keyword", offset: int = 0, limit: int = 100) -> dict:

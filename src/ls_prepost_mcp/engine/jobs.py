@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Protocol, TypeVar
 
 from ..core.contracts import JobResult
+from ..native.commands import quoted_path
 
 
 def check_timeout(timeout):
@@ -23,15 +24,26 @@ class BatchJob:
     graphics: bool = False
     operation: str = "native_batch"
     verify: Callable[[dict], JobResult] | None = None
+    macro_file: Path | None = None
+    launch_mode: str = "c"
 
     def __post_init__(self):
         check_timeout(self.timeout)
         if type(self.graphics) is not bool:
             raise ValueError("graphics must be Boolean")
+        if self.launch_mode not in ("c", "runc") or self.launch_mode == "runc" and self.graphics:
+            raise ValueError("Choose c or runc; runc has no visible graphics mode")
         for name in ("executable", "cfile", "directory"):
             object.__setattr__(self, name, Path(getattr(self, name)).resolve())
         if not self.cfile.is_relative_to(self.directory):
             raise ValueError("Command file must belong to the job directory")
+        if self.macro_file is not None:
+            # Validate native grammar, retaining a raw argv element: subprocess
+            # quotes it for the OS; literal quotes would change the m= value.
+            quoted_path(self.macro_file)
+            object.__setattr__(self, "macro_file", Path(self.macro_file).resolve())
+            if not self.macro_file.is_relative_to(self.directory) or not self.macro_file.is_file():
+                raise ValueError("Native macro file must exist inside the job directory")
 
 
 @dataclass(frozen=True)

@@ -1,0 +1,41 @@
+schema_version: 1
+id: model_inventory
+name: Python 原生模型计数
+task_id: A08
+channel: python
+template: template.py
+description: Python 原生模型计数；原模型数值，不做单位换算或工程质量判断。
+parameters:
+  type: object
+  properties: {}
+  additionalProperties: false
+outputs:
+- name: inventory.json
+  kind: json
+expected_counts: {}
+versions_verified:
+- 4.13.4
+- 4.10.1
+execution_modes:
+  c_nographics:
+    status: verified
+    by_version:
+      4.13.4: verified
+      4.10.1: verified
+    evidence: docs/decisions/evidence/a08/report.md
+  runc:
+    status: unverified
+    by_version:
+      4.13.4: verified
+      4.10.1: failed
+    evidence: docs/decisions/evidence/a08/report.md
+    scope: Version-specific recipe probes; do not generalize between versions or recipes
+l2_case: tests/test_recipes_native.py::test_builtin_recipe[model_inventory]
+requires_model: true
+contexts:
+- batch
+tags:
+- inventory
+- counts
+- 模型计数
+input_kind: keyword

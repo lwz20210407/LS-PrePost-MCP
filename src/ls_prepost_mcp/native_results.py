@@ -20,13 +20,25 @@ NODE_FIELDS = {"disp_x", "disp_y", "disp_z", "disp_magnitude", "velo_x", "velo_y
                "accel_x", "accel_y", "accel_z", "state_node_x", "state_node_y", "state_node_z"}
 
 
-def stage(settings, source, directory, family=False):
+STAGING_FILE_LIMIT = 1000
+STAGING_BYTE_LIMIT = 2 * 1024**3
+
+
+def input_family(settings, source, family=False):
     sources = [source]
     if family:
         sources += sorted(p for p in source.parent.iterdir()
                           if re.fullmatch(re.escape(source.name) + r"\d+", p.name))
-    sources = [settings.input_path(str(p)) for p in sources]
-    if len(sources) > 1000 or sum(p.stat().st_size for p in sources) > 2*1024**3:
+    return [settings.input_path(str(p)) for p in sources]
+
+
+def exceeds_staging_limit(sources):
+    return len(sources) > STAGING_FILE_LIMIT or sum(p.stat().st_size for p in sources) > STAGING_BYTE_LIMIT
+
+
+def stage(settings, source, directory, family=False):
+    sources = input_family(settings, source, family)
+    if exceeds_staging_limit(sources):
         raise ValueError("Native read-only staging limit: 1000 files / 2 GiB")
     before = [fingerprint(p) for p in sources]
     for p in sources:

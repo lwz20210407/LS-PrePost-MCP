@@ -58,11 +58,17 @@ def test_environment_preserves_source_and_isolates_batch_and_session(tmp_path):
     for name in ("batch", "session"):
         directory = tmp_path / name
         directory.mkdir()
-        env, config = native_environment(tmp_path / "lspp", directory, {"LSPP_CONFIG_SOURCE": str(source)})
+        env, config = native_environment(tmp_path / "lspp", directory, {"LSPP_CONFIG_SOURCE": str(source)},
+                                         batch=name == "batch")
         paths.append(env["LSTC_FILE"])
         assert env["TEMP"] == env["TMP"] == str(directory / "tmp")
         assert config["source_modified"] is False
         assert "python_home = private-runtime" in (directory / "native-config" / "lsppconf").read_text()
+        copied = (directory / "native-config" / "lsppconf").read_text()
+        expected = "." if name == "batch" else directory.as_posix()
+        assert "working_directory = " + expected + "\n" in copied
+        assert "filepath_workingdir = " + expected + "\n" in copied
+        assert "message_file = " + (directory / "lspost.msg").as_posix() in copied
     assert paths[0] != paths[1] and source.read_bytes() == original
 
 
@@ -142,6 +148,17 @@ def test_log_suffix_excludes_old_errors_and_detects_truncation(tmp_path):
         cursor.read()
     with pytest.raises(ValueError, match="offset"):
         read_delta(path, -1)
+
+
+def test_session_exit_retains_only_its_native_error_suffix(tmp_path):
+    log = tmp_path / "lspost.msg"
+    log.write_bytes(b"old request\n")
+    def submit():
+        with log.open("ab") as stream:
+            stream.write(b"invalid_current\nInvalid command invalid_current!\n")
+    result = SessionEngine().run(SessionJob("script", tmp_path, 1, submit, lambda: False, log=log))
+    assert result.status == "unverified" and result.data["submitted"]
+    assert (tmp_path / "native-session.log").read_bytes() == b"invalid_current\nInvalid command invalid_current!\n"
 
 
 def test_context_isolation_and_reset_after_exception():

@@ -1,0 +1,59 @@
+schema_version: 1
+id: box_mesh
+name: Block Mesher 盒体网格
+task_id: A08
+channel: cfile
+template: template.cfile
+description: Block Mesher 盒体网格；原模型数值，不做单位换算或工程质量判断。
+parameters:
+  type: object
+  properties:
+    width:
+      type: number
+      default: 2
+      minimum: 0.001
+      maximum: 1000000
+    height:
+      type: number
+      default: 3
+      minimum: 0.001
+      maximum: 1000000
+    depth:
+      type: number
+      default: 4
+      minimum: 0.001
+      maximum: 1000000
+  additionalProperties: false
+outputs:
+- name: box.k
+  kind: keyword
+expected_counts:
+  nodes: 8
+  elements: 1
+versions_verified:
+- 4.13.4
+- 4.10.1
+execution_modes:
+  c_nographics:
+    status: verified
+    by_version:
+      4.13.4: verified
+      4.10.1: verified
+    evidence: docs/decisions/evidence/a08/report.md
+  runc:
+    status: verified
+    by_version:
+      4.13.4: verified
+      4.10.1: verified
+    evidence: docs/decisions/evidence/a08/report.md
+    scope: Version-specific recipe probes; do not generalize between versions or recipes
+l2_case: tests/test_recipes_native.py::test_builtin_recipe[box_mesh]
+requires_model: false
+contexts:
+- batch
+tags:
+- block
+- mesher
+- box
+- 盒体
+input_kind: keyword

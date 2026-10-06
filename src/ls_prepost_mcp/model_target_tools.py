@@ -1,7 +1,8 @@
 """M3 pre-processing target tools on the raw-preserving keyword engine (I07), returning JobResult/v1.
 
-model_info (P01), edit_keywords (P02/P03), create_entities (P04-P06), mesh_ops (P08),
-run_recipe (P03/P10) and check_model (P09) are thin wrappers over ``domain.model.operations``.
+model_info (P01), edit_keywords (P02/P03/P10), create_entities (P04-P06), mesh_ops (P08) and
+check_model (P09) are thin wrappers over ``domain.model.operations``. Material / EOS / section /
+hourglass / control cards are edit_keywords ops; run_recipe is the A08 recipe tool, not defined here.
 No LS-PrePost is needed: edits are applied to the deck text, untouched bytes and the Include
 structure are kept, and the result deck is written to the job directory, never over the input.
 Selections may be ``core.contracts.Selector`` objects (``"selector"`` in an edit or target).
@@ -16,7 +17,6 @@ from .jobs import atomic_json
 
 BACKEND = "keyword-engine"
 CREATE_OPS = frozenset({"create_set", "add_boundary", "add_contact", "add_part", "set_part"})
-RECIPE_OPS = frozenset({"add_material", "add_eos", "add_section", "add_hourglass", "set_control"})
 
 
 def _jsonable(value: object) -> object:
@@ -75,10 +75,12 @@ class ModelTargetTools:
                        scope="keyword deck and its includes")
 
     def edit_keywords(self, model: str, edits: list[dict], allow_new_dangling: bool = False) -> dict:
-        """P02/P03: apply edits atomically and write the edited deck (Include structure kept) to the
+        """P02/P03/P10: apply edits atomically and write the edited deck (Include structure kept) to the
         job directory. Ops: set, set_parameter, set_members, set_points, insert (card or text),
-        delete, create_set, every create_entities / mesh_ops / run_recipe op. Nothing is written
-        when any edit fails or creates dangling references (unless allowed)."""
+        delete, create_set, every create_entities / mesh_ops op, and card recipes: add_material,
+        add_eos, add_section, add_hourglass (units required, no defaults filled in) and set_control
+        (termination, timestep, d3plot, ascii, ...). Nothing is written when any edit fails or
+        creates dangling references (unless allowed)."""
         return self._edit("edit_keywords", model, edits, None, allow_new_dangling)
 
     def create_entities(self, model: str, entities: list[dict]) -> dict:
@@ -92,11 +94,6 @@ class ModelTargetTools:
         from .domain.model.operations import MESH_OPS
 
         return self._edit("mesh_ops", model, operations, MESH_OPS, False)
-
-    def run_recipe(self, model: str, recipes: list[dict]) -> dict:
-        """P03/P10: material, EOS, section and hourglass recipes (units required, no defaults filled
-        in) and control / output recipes (termination, timestep, d3plot, ascii, ...)."""
-        return self._edit("run_recipe", model, recipes, RECIPE_OPS, False)
 
     def _edit(self, operation: str, model: str, edits: list[dict], allowed: frozenset | None,
               allow_new_dangling: bool) -> dict:
@@ -147,4 +144,4 @@ def _error(error: Exception) -> dict:
     return {"type": type(error).__name__, "message": str(error) or type(error).__name__}
 
 
-__all__ = ["CREATE_OPS", "RECIPE_OPS", "ModelTargetTools"]
+__all__ = ["CREATE_OPS", "ModelTargetTools"]

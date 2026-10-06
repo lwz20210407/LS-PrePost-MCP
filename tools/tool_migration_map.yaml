@@ -50,6 +50,10 @@ tools:
     target: curve_ops
     task_id: Q07
     legacy_until: v0.6
+  command_help:
+    target: command_help
+    task_id: A10
+    legacy_until: null
   compose_keyword_deck:
     target: edit_keywords
     task_id: P02
@@ -238,6 +242,10 @@ tools:
     target: recipe
     task_id: P07
     legacy_until: v0.6
+  find_recipe:
+    target: find_recipe
+    task_id: A08
+    legacy_until: null
   get_element_connectivity:
     target: query_entities
     task_id: G04
@@ -322,6 +330,10 @@ tools:
     target: recipe
     task_id: P10
     legacy_until: v0.6
+  keyword_fields:
+    target: keyword_fields
+    task_id: A10
+    legacy_until: null
   list_capabilities:
     target: search_docs
     task_id: A10
@@ -492,9 +504,12 @@ tools:
     legacy_until: v0.6
   run_recipe:
     target: run_recipe
-    task_id: P03
+    task_id: A08
     legacy_until: null
-    note: M3 target tool on the I07 keyword engine; returns JobResult/v1
+  run_script:
+    target: run_script
+    task_id: A01
+    legacy_until: null
   run_workflow:
     target: run_sweep
     task_id: A09
@@ -511,6 +526,10 @@ tools:
     target: command_help
     task_id: A10
     legacy_until: v0.6
+  search_docs:
+    target: search_docs
+    task_id: A10
+    legacy_until: null
   search_knowledge:
     target: search_docs
     task_id: A10
