@@ -4,10 +4,13 @@ import csv
 import errno
 import hashlib
 import json
+import logging
 import os
 import re
 import shutil
 import sqlite3
+import sys
+import time
 import uuid
 from contextlib import closing
 from dataclasses import asdict, dataclass
@@ -18,6 +21,18 @@ from .keyword_documentation import KeywordField
 CATEGORIES = frozenset(("command", "api", "keyword", "user_guide", "recipe", "known_issue"))
 PUBLIC_LICENSES = frozenset(("MIT", "Apache-2.0", "BSD-3-Clause", "CC0-1.0"))
 REPOSITORY = Path(__file__).resolve().parents[2]
+
+
+def _cleanup_owned_temp(path):
+    """Retain the primary failure if a Windows reader still holds our temp file."""
+    original = sys.exception()
+    try:
+        path.unlink(missing_ok=True)
+    except OSError as cleanup_error:
+        message = "Index temporary file could not be removed; retained at {}: {}".format(path, cleanup_error)
+        logging.getLogger(__name__).warning(message)
+        if original is not None:
+            original.add_note(message)
 
 
 def publish_index(partial, path):
@@ -40,11 +55,21 @@ def publish_index(partial, path):
             shutil.copyfileobj(source, destination)
             destination.flush()
             os.fsync(destination.fileno())
-        os.rename(staged, path)
+        # Antivirus/indexers can briefly hold a non-delete-sharing read handle.
+        # Total backoff is 1.15 s; no replacement and no retry of other failures.
+        delays = (0.05, 0.1, 0.2, 0.4, 0.4)
+        for attempt in range(len(delays) + 1):
+            try:
+                os.rename(staged, path)
+                break
+            except PermissionError as exc:
+                if getattr(exc, "winerror", None) not in (5, 32) or attempt == len(delays):
+                    raise
+                time.sleep(delays[attempt])
         created = False  # The temporary name is no longer owned after rename.
     finally:
         if created:
-            staged.unlink(missing_ok=True)
+            _cleanup_owned_temp(staged)
 
 
 @dataclass(frozen=True)
@@ -193,7 +218,7 @@ def build_index(destination, documents, fields=()):
         publish_index(partial, path)
     finally:
         if created:
-            partial.unlink(missing_ok=True)  # Only this invocation's UUID-named partial.
+            _cleanup_owned_temp(partial)  # Only this invocation's UUID-named partial.
     return dict(schema_version=2, documents=len(seen), keyword_fields=len(field_map), categories=counts,
                 private=any(row.visibility == "private" for row in rows))
 
