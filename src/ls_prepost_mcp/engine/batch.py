@@ -16,6 +16,8 @@ class BatchEngine:
         start = time.monotonic()
         args = [str(job.executable), "c=" + str(job.cfile),
                 "w=1024x768" if job.graphics else "-nographics"]
+        if job.macro_file is not None:
+            args.append("m=" + str(job.macro_file))
         process = dict(returncode=None, timed_out=False, pid=None, argv=args,
                        cwd=str(job.directory), graphics=job.graphics)
         try:

@@ -95,6 +95,21 @@ def test_unknown_parameters_and_non_macro_selector_rejected(tmp_path):
         Service(Settings(tmp_path)).prepare_native_program('cfile', code='front', macro_name='a')
 
 
+@pytest.mark.parametrize('body,line', [
+    ('interactive', 8),
+    ('parameter N1 1+2\nident node &N1', 8),
+    ('parameter N1 1\nparameter N1 2\nident node &N1', 9),
+    ('ident node &missing(n)', 8),
+    ('front; interactive', 8),
+    ('ident node &N1(x)', 8),
+    ('ident node &{broken', 8),
+])
+def test_macro_syntax_errors_refer_to_original_multiblock_lines(body, line):
+    source = '*macro begin first\nfront\n*macro end\n\n$ comment\n*macro begin second\n$ retained comment\n' + body + '\n*macro end'
+    with pytest.raises(ValueError, match='^line {}:'.format(line)):
+        compile_macro(source, {}, 'second')
+
+
 def test_prepared_native_macro_executes_through_existing_contract(tmp_path, monkeypatch):
     exe = tmp_path/'native.exe'
     exe.write_bytes(b'test identity')
