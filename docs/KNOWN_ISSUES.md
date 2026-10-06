@@ -1135,3 +1135,9 @@ Standard ELEMENT_MASS supported for structural preservation; mass glyph display,
 持续驻留需求使用 SessionEngine。暂停启动、绑定失败拒绝执行、等待中断和宿主退出的
 实测结果及启动强杀窗口见 [生命周期回归](decisions/evidence/i01-process-lifetime/report.md)。
 Python 异常传播前会先清理；清理失败不覆盖原始异常，普通失败将清理注记放入 warnings。
+
+## I01 日志 BOM 和非 UTF-8 诊断
+
+首行 BOM 可能导致原生错误正则漏判，强制 UTF-8 replacement 会损失系统 ANSI 中文内容。
+现保留原始字节，识别 BOM/UTF-8/本地编码，并允许 LSPP_NATIVE_LOG_ENCODING 显式覆盖无 BOM 日志；
+有损解码不作为干净日志放行。行为和实测范围见 [编码回归](decisions/evidence/i01-log-decoding/report.md)。
