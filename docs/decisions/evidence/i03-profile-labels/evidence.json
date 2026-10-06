@@ -1,0 +1,64 @@
+{
+  "task": "I03",
+  "policy": "Non-version profile keys are names, not version assertions",
+  "runs": [
+    {
+      "version": "4.10",
+      "context": "batch",
+      "actual_git_revision": "5e8c7f55db2a25bb84ea8e06bb921fd04c88bd37",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "report": "r9-profile-410-batch-report/report.json",
+      "report_sha256": "c85a892d0b9c91696dd4c73e08123b24900b1f445659e2deb3adbd3701657917",
+      "test_source_identity": {
+        "path": "tests/test_profile_alias_native.py",
+        "revision": "5e8c7f55db2a25bb84ea8e06bb921fd04c88bd37",
+        "git_blob_id": "df1ae23a00ae50e38f268edcf6e039e23272da97",
+        "sha256_lf": "22602d74010dcb5eb57410405375f4666348c0bf8a1bed3a40f0f0eb65a6b8df",
+        "newline_basis": "Git blob normalized CRLF to LF"
+      },
+      "cases": {
+        "tests/test_profile_alias_native.py::test_named_installation_profile_runs_native_inspection": {
+          "status": "passed",
+          "seconds": 10.065398700011428
+        }
+      }
+    },
+    {
+      "version": "4.13",
+      "context": "batch",
+      "actual_git_revision": "5e8c7f55db2a25bb84ea8e06bb921fd04c88bd37",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "report": "r9-profile-413-batch-report/report.json",
+      "report_sha256": "68f11a62bf1bbc0f8bbdbc29573f4645641062309465a81456f8cdac590f6512",
+      "test_source_identity": {
+        "path": "tests/test_profile_alias_native.py",
+        "revision": "5e8c7f55db2a25bb84ea8e06bb921fd04c88bd37",
+        "git_blob_id": "df1ae23a00ae50e38f268edcf6e039e23272da97",
+        "sha256_lf": "22602d74010dcb5eb57410405375f4666348c0bf8a1bed3a40f0f0eb65a6b8df",
+        "newline_basis": "Git blob normalized CRLF to LF"
+      },
+      "cases": {
+        "tests/test_profile_alias_native.py::test_named_installation_profile_runs_native_inspection": {
+          "status": "passed",
+          "seconds": 4.4314795000245795
+        }
+      }
+    }
+  ]
+}

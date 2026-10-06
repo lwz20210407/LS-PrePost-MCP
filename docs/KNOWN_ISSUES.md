@@ -1185,6 +1185,10 @@ Python 异常传播前会先清理；清理失败不覆盖原始异常，普通�
 [A03](decisions/evidence/a03/evidence.json)、[A04](decisions/evidence/a04/evidence.json)。
 修复后运行 revision 为干净 c68caef，包含 Draft #26；不代表当前 PR 头重新实测。
 
+## I03：普通安装名称与版本声明
+
+`lspp413`、`production` 等非版本号配置键只作为安装名称，不据此判断版本冲突。纯版本号仍与可执行文件检测结果按版本族核对；资源自身冲突及 4.11 排除不受影响。见[配置说明](INSTALL.md)和[分发回归](../tests/test_version_profile_calls.py)。
+
 ## I01 / I04：多文件 INCLUDE 的原生加载检查（第九轮）
 
 `Settings.check_keyword_includes` 现在调用共享 `preflight_includes`，检查每张文件名卡、完整 files 列表及所有候选的允许目录。第二张卡片越界或缺失时，在启动原生进程前拒绝；错误保留 kind、relative、name_line、reason。预检默认禁止 UNC，不传 `allow_network`。普通 `*INCLUDE` 之外的原生解析策略、参数化文件名和空 INCLUDE 仍明确拒绝。
