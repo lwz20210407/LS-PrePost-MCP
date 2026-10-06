@@ -1148,3 +1148,13 @@ Python 异常传播前会先清理；清理失败不覆盖原始异常，普通�
 固定版本写为 4.9，但两个版本字符串一致为 4.10，故保留差异并选择一致字符串。
 资源读取范围、4.11 拒绝及真实二进制改名检查见 [版本资源回归](decisions/evidence/i03-version-resource/report.md)。
 无资源/非 Windows 仍为未验证的路径提示，不将其当作完整运行时探测。
+
+## I01：队列饱和时的明确拒绝
+
+原实现吞掉 queue.Full，调用方只得到未验证的超时；没有可核对的“未接受”回执。
+现在对已认证、属于本会话且尚未开始的请求写入 QueueBusy（executed=false），并记住该 ID，
+之后重复通知不会把已拒绝请求重新执行。非法 ID 在连接前拒绝；不存在的请求目录不会令接收线程退出。
+[真实 socket 离线回归](../tests/test_queue_backpressure.py)使用可控制的应用线程，
+并非 LS-PrePost 原生验证；旧 29a8d1d 的同一饱和测试失败，修复后通过。
+[原生用例](../tests/test_queue_backpressure_native.py)已写好，须同时 --run-native 与 --native-gui，
+占用应用主线程、填满一格队列后检查拒绝及不重放；尚未运行，等待集中 GUI 窗口。
