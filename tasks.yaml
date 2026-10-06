@@ -987,7 +987,16 @@ infrastructure:
 
   - id: I09
     title: Agent 场景评测 L3
+    owner: claude
     milestone: M2-M4
+    status: partial
+    verification_level: L1
+    evidence:
+      - tools/run_l3.py
+      - tests/test_l3_harness.py
+    gaps:
+      - 框架和前处理 8 题已完成：参考解全部通过；什么都不做和 5 类典型单位/数值错误都判为失败。后处理 8 题、自动化 4 题未出（后处理工具接线后再出）
+      - Claude 与 Codex 的正式运行未完成：Codex 冒烟 1 题通过；本机独立 claude CLI 未登录
     acceptance:
       - 20 道自然语言任务（后处理 8、前处理 8、自动化 4），Claude 与 Codex 各跑一遍
       - 记录成功率、工具调用次数、失败原因

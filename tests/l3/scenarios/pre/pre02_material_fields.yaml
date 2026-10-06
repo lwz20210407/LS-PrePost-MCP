@@ -1,0 +1,30 @@
+schema_version: 1
+id: pre02_material_fields
+domain: pre
+task_ids: [P02]
+title: 修改材料参数
+prompt: |
+  impact.k 的单位制是 mm-t-s（mm、吨、秒、N、MPa）。
+  把冲击块（Part 2，名称 block）的材料改成铝：密度 2700 kg/m³，弹性模量 70 GPa，泊松比 0.33。
+  平板（Part 1）的材料不要动。
+fixtures: [impact.k, impact_mesh.k]
+model: impact.k
+checks:
+  - check: input_unchanged
+  - check: deck_consistent
+  - check: part_uses
+    params:
+      pid: 2
+      material: {keyword: "*MAT_ELASTIC", expect: {ro: 2.7e-9, e: 70000.0, pr: 0.33}, rel_tol: 1.0e-3}
+  - check: part_uses
+    params:
+      pid: 1
+      material: {keyword: "*MAT_ELASTIC", expect: {ro: 7.85e-9, e: 210000.0, pr: 0.3}}
+oracle:
+  - tool: edit_keywords
+    args:
+      model: impact.k
+      edits:
+        - {op: set, keyword: "*MAT_ELASTIC", match: {mid: 2}, field: ro, value: 2.7e-9}
+        - {op: set, keyword: "*MAT_ELASTIC", match: {mid: 2}, field: e, value: 70000.0}
+        - {op: set, keyword: "*MAT_ELASTIC", match: {mid: 2}, field: pr, value: 0.33}

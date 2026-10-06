@@ -1,0 +1,23 @@
+schema_version: 1
+id: pre04_node_set
+domain: pre
+task_ids: [P04, G03]
+title: 按几何位置建节点集
+prompt: |
+  在 impact.k 里，把平板（Part 1）底面 z = 0 上的全部节点建成一个节点集，集合编号用 10。
+fixtures: [impact.k, impact_mesh.k]
+model: impact.k
+checks:
+  - check: input_unchanged
+  - check: deck_consistent
+  - check: node_set
+    params: {sid: 10, nodes: {parts: [1], axis: z, value: 0.0}}
+oracle:
+  - tool: create_entities
+    args:
+      model: impact.k
+      entities:
+        - op: create_set
+          kind: node
+          sid: 10
+          select: {plane: {point: [0, 0, 0], normal: [0, 0, 1]}, parts: [1]}

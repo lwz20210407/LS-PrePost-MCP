@@ -1,0 +1,25 @@
+schema_version: 1
+id: pre01_inspect
+domain: pre
+task_ids: [P01]
+title: 模型检视
+prompt: |
+  工作目录里的 impact.k 是一个冲击模型（主文件，网格在 include 文件里）。
+  请告诉我：模型有几个 Part；每个 Part 的编号、名称、材料类型和截面类型；以及各自有多少个单元。
+  只需要回答，不要修改模型。
+fixtures: [impact.k, impact_mesh.k]
+model: impact.k
+checks:
+  - check: input_unchanged
+  - check: answer_contains
+    params:
+      all_of: ["plate", "block", "(?<!\\d)16(?!\\d)", "(?<!\\d)8(?!\\d)"]
+      any_of:
+        - ["mat_elastic", "elastic", "弹性"]
+        - ["section_solid", "实体"]
+oracle:
+  - tool: model_info
+    args: {model: impact.k}
+oracle_answer: >-
+  两个 Part：Part 1 plate，MAT_ELASTIC，SECTION_SOLID，16 个单元；
+  Part 2 block，MAT_ELASTIC，SECTION_SOLID，8 个单元。

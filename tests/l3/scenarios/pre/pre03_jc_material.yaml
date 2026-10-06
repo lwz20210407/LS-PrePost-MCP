@@ -1,0 +1,47 @@
+schema_version: 1
+id: pre03_jc_material
+domain: pre
+task_ids: [P03]
+title: 新建 Johnson-Cook 材料、状态方程和截面并赋给 Part
+prompt: |
+  impact.k 的单位制是 mm-t-s（mm、吨、秒、N、MPa、K）。给冲击块（Part 2）换一套新的材料定义：
+  1. 新建 Johnson-Cook 材料（MAT_015）：密度 7830 kg/m³，剪切模量 77 GPa，A = 792 MPa，B = 510 MPa，
+     n = 0.26，C = 0.014，m = 1.03，熔化温度 1793 K，室温 293 K，参考应变率 1 /s，比热 477 J/(kg·K)；
+  2. 配一个 Gruneisen 状态方程：C = 4570 m/s，S1 = 1.49，γ0 = 1.93；
+  3. 新建一个实体截面，单元算法 1。
+  然后让 Part 2 使用这套新的材料、状态方程和截面。平板（Part 1）保持不变。
+fixtures: [impact.k, impact_mesh.k]
+model: impact.k
+checks:
+  - check: input_unchanged
+  - check: deck_consistent
+  - check: part_uses
+    params:
+      pid: 2
+      material:
+        keyword: ["*MAT_JOHNSON_COOK", "*MAT_015"]
+        expect: {ro: 7.83e-9, g: 77000.0, a: 792.0, b: 510.0, n: 0.26, c: 0.014, m: 1.03, tm: 1793.0,
+                 tr: 293.0, epso: 1.0, cp: 4.77e8}
+        rel_tol: 1.0e-3
+      eos: {keyword: "*EOS_GRUNEISEN", expect: {c: 4.57e6, s1: 1.49, gamao: 1.93}, rel_tol: 1.0e-3}
+      section: {keyword: "*SECTION_SOLID", expect: {elform: 1}}
+      new: [section]
+  - check: part_uses
+    params:
+      pid: 1
+      material: {keyword: "*MAT_ELASTIC", expect: {ro: 7.85e-9, e: 210000.0, pr: 0.3}}
+      section: {keyword: "*SECTION_SOLID", expect: {elform: 1}}
+oracle:
+  - tool: edit_keywords
+    args:
+      model: impact.k
+      edits:
+        - op: add_material
+          units: mm-t-s
+          recipe: johnson_cook
+          mid: 3
+          params: {ro: 7.83e-9, g: 77000.0, a: 792.0, b: 510.0, n: 0.26, c: 0.014, m: 1.03, tm: 1793.0,
+                   tr: 293.0, epso: 1.0, cp: 4.77e8}
+        - {op: add_eos, units: mm-t-s, recipe: gruneisen, eosid: 1, params: {c: 4.57e6, s1: 1.49, gamao: 1.93}}
+        - {op: add_section, units: mm-t-s, recipe: solid, secid: 2, params: {elform: 1}}
+        - {op: set_part, pid: 2, mid: 3, eosid: 1, secid: 2}
