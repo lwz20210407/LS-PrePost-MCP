@@ -916,7 +916,7 @@ infrastructure:
     status: partial
     gaps:
       - 路径命令及 SCL 写入已集中；GUI 模型检查、实体导入等调用待集中窗口原生复核，批处理的导入/XY/SCL 子集已有独立证据
-      - KI-049：4.13/4.10 的 ASCII 空格 job 目录已通过批处理保存、PNG、重开；中文 job 目录仍为 gap，GUI/Movie 路径待集中窗口验证
+      - KI-049：4.13/4.10 的 ASCII 空格目录及显式启用 ASCII 别名的中文目录已通过无图形保存、PNG、重开和四个后台入口；未启用别名的中文目录、GUI/Movie 与 native_postprocess_case 图形回调仍待验证
     verification_level: L2
     evidence:
       - src/ls_prepost_mcp/native/commands.py
