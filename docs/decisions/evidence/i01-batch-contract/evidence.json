@@ -52,7 +52,20 @@
           "native_lane_statuses": null
         }
       },
-      "working_tree_dirty": true
+      "working_tree_dirty": true,
+      "diff_scope": {
+        "base": "cb5b769",
+        "head": "de9abce",
+        "pathspec": [
+          ".",
+          ":!docs",
+          ":!tasks.yaml",
+          ":!tests/test_keyword_engine_formats.py"
+        ],
+        "includes_untracked": false,
+        "note": "Includes the staged new batch-result test present in de9abce; excludes later documentation/tasks and the later optional-dependency test fix",
+        "reproduce": "git diff cb5b769 de9abce --binary -- . ':!docs' ':!tasks.yaml' ':!tests/test_keyword_engine_formats.py'"
+      }
     },
     {
       "version": "4.10",
@@ -104,7 +117,20 @@
           "native_lane_statuses": null
         }
       },
-      "working_tree_dirty": true
+      "working_tree_dirty": true,
+      "diff_scope": {
+        "base": "cb5b769",
+        "head": "de9abce",
+        "pathspec": [
+          ".",
+          ":!docs",
+          ":!tasks.yaml",
+          ":!tests/test_keyword_engine_formats.py"
+        ],
+        "includes_untracked": false,
+        "note": "Includes the staged new batch-result test present in de9abce; excludes later documentation/tasks and the later optional-dependency test fix",
+        "reproduce": "git diff cb5b769 de9abce --binary -- . ':!docs' ':!tasks.yaml' ':!tests/test_keyword_engine_formats.py'"
+      }
     }
   ],
   "source_sha256": {
@@ -116,5 +142,18 @@
     "src/ls_prepost_mcp/native_batch.py": "d3654064900430413e2cad32ef47d864e6f6104dfef3369d58adb11cffa19774",
     "tests/test_engine_native.py": "2fdb4925c93103e9ace89a07f0c3871b1acf25e455a4ae42bd0a0e2d1324ceff"
   },
-  "scope": "Five batch callers plus zero-exit native diagnostic failure. GUI/session/UU are not exercised."
+  "scope": "Five batch callers plus zero-exit native diagnostic failure. GUI/session/UU are not exercised.",
+  "diff_scope": {
+    "base": "cb5b769",
+    "head": "de9abce",
+    "pathspec": [
+      ".",
+      ":!docs",
+      ":!tasks.yaml",
+      ":!tests/test_keyword_engine_formats.py"
+    ],
+    "includes_untracked": false,
+    "note": "Includes the staged new batch-result test present in de9abce; excludes later documentation/tasks and the later optional-dependency test fix",
+    "reproduce": "git diff cb5b769 de9abce --binary -- . ':!docs' ':!tasks.yaml' ':!tests/test_keyword_engine_formats.py'"
+  }
 }

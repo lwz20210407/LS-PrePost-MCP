@@ -36,6 +36,7 @@ RESERVED = {
     "python-result.json",
     "bootstrap.py",
     "job.json",
+    "engine-result.json",
     "input_data",
     "d3plot",
     "contract.json",
