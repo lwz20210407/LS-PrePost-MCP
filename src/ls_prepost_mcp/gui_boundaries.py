@@ -6,12 +6,12 @@ from pydantic import StrictFloat, StrictInt
 
 from .boundary_cards import inspect_boundary_cards, verify_boundary_delta
 from .boundary_geometry import segment_normals, validate_boundary
-from .config import command_path
 from .core.validation import integer
 from .deck_backend import api
 from .entity_cards import inspect_cards
 from .gui_entities import entity_title, stable_scene
 from .jobs import atomic_json
+from .native import commands as nc
 from .units import Unit
 
 
@@ -104,7 +104,7 @@ class GuiBoundaryTools:
                         pressure_unit=pressure_unit, time_unit=time_unit, reference_segments=context["audit"],
                         convention="Positive pressure acts opposite reference normal; no solver follower response computed"))
             context["direction_report"] = str(directory / "pressure-directions.json")
-            return ["import keyword " + command_path(path)]
+            return [nc.import_keyword(path)]
 
         def postcheck(_, path, verification):
             actual = inspect_boundary_cards(path)
@@ -209,7 +209,7 @@ class GuiBoundaryTools:
             atomic_json(directory / "boundary-geometry.json", dict(**context, length_unit=length_unit,
                         solver_release=solver_release, created_boundaries=expected, created_ordered_node_sets=new_sets))
             context["report"] = str(directory / "boundary-geometry.json")
-            return ["import keyword " + command_path(path)]
+            return [nc.import_keyword(path)]
 
         def postcheck(_, path, verification):
             audit = verify_boundary_delta(baseline, inspect_boundary_cards(path, include_ordered_node_sets=dimension == 2),
