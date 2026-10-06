@@ -59,13 +59,13 @@
 
 1. 从最新 `main` 开分支。同步 `main` 只用 merge，不 rebase，不 force push。
 2. 新功能有测试；修 bug 的测试在 `main` 上失败、修复后通过。
-3. 本地跑完 `.github/workflows/tests.yml` 的全部 9 步，Python 3.11 和 3.12 都要跑；另跑一次最小依赖的 pytest。通过数写进 PR 正文。
+3. PR 的 GitHub CI 全部通过：`tests.yml` 在 Ubuntu 和 Windows × Python 3.11 和 3.12 四个组合上各跑 9 步，另有最小依赖任务。仓库已公开（2026-10-07），Actions 不再受额度限制。本地至少跑与改动相关的测试，并在 PR 正文写明跑过的命令和结果。
 4. PR 设为 Ready（非 Draft），标题带 `[开发者]`。
 5. 推送后不再改动 PR 头，等审阅结果。按审阅清单修改完后，告诉 Claude PR 号和新的头 SHA。
 
 **审阅与合并**
 
-- Codex、反重力、Cursor 的 PR 由 Claude 审阅；Claude 的 PR 由 Codex 审阅（交叉审阅，用户 2026-10-07 确定）。Actions 额度恢复前，Claude 在“最新 main + PR”上跑本地门禁。
+- Codex、反重力、Cursor 的 PR 由 Claude 审阅；Claude 的 PR 由 Codex 审阅（交叉审阅，用户 2026-10-07 确定）。门禁以 PR 的 GitHub CI 为准，要求全部通过；如果 CI 跑完后 main 又合入了与本 PR 改动文件重叠的提交，先用 merge 同步 main，等新一轮 CI 通过再合并。
 - Codex、反重力、Cursor 的 PR：审阅无 P0/P1 且门禁全部通过后，由 Claude 合并。
 - Claude 自己的 PR：Claude 在“最新 main + PR”的本地合并树上非交互地启动 Codex 审阅（不改文件、不联网），Codex 的结论原样以“Codex 审阅”PR 评论发布，第一行为“结论：可以合并”或“结论：不能合并”。Codex 判可以合并、且门禁全部通过后，由 Claude 执行合并，不再等用户批准（用户 2026-10-07 授权）。判不能合并时，Claude 按清单修改，推送后请 Codex 复审。交互使用的 Codex 也可以直接在 PR 下发表审阅意见，同样有效。
 
@@ -83,7 +83,7 @@ Cursor 和反重力的派发任务默认由本机的 Agent Orchestrator 作为 w
 - 完成第一个有意义的提交后就推送并开 Draft PR，运行 `ao session claim-pr <PR号>` 认领；全部满足“做完”标准后改为 Ready。
 - 审阅意见回灌：认领后，PR 上未解决的行内审阅评论由 AO 自动转给该 worker；顶层评论形式的审阅清单由 Claude 另用 `ao send` 通知 worker 去读。修改后照常推送，并在 PR 下评论新头 SHA。
 - 删除文件或目录、强推、rebase、改写历史、删除分支或 worktree、向 main 推送：在 AO 中会被拒绝（Cursor 由本机钩子拒绝）或停下等待确认（反重力由其权限规则控制）。不要换写法或换工具重试，把需要处理的对象写进 PR 正文或评论，由用户决定。
-- GitHub Actions 额度用完，2026-11-01 前 PR 上的 CI 检查都会显示失败，AO 也会把它当作 CI 失败转给 worker。这不是代码问题，不要尝试修复 CI；以本地跑完 tests.yml 的 9 步为准。
+- CI 失败会由 AO 转给认领该 PR 的 worker。仓库公开后 CI 恢复正常，失败就是真实问题，修复后再推送。
 - 测试和临时文件放在本任务的 dated scratch 目录（`F:\PythonWoking\temp\<YYYYMMDD>-<任务>\`）或 worktree 内被 git 忽略的位置；不在 `F:\PythonWoking` 根目录新建任何东西。
 
 **每个开发者被唤醒时先做这件事**（不在 AO 中工作时）
