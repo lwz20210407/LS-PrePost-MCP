@@ -1157,7 +1157,7 @@ Python 异常传播前会先清理；清理失败不覆盖原始异常，普通�
 [真实 socket 离线回归](../tests/test_queue_backpressure.py)使用可控制的应用线程，
 并非 LS-PrePost 原生验证；旧 29a8d1d 的同一饱和测试失败，修复后通过。
 [原生用例](../tests/test_queue_backpressure_native.py)已写好，须同时 --run-native 与 --native-gui，
-占用应用主线程、填满一格队列后检查拒绝及不重放；尚未运行，等待集中 GUI 窗口。
+占用应用主线程、填满一格队列后检查拒绝及不重放；4.13 原生已通过，含首轮探针准备失败，见 [队列证据](decisions/evidence/i01-queue/report.md)。
 
 ## A01/I01：会话日志元数据与脚本包装器的集成
 
