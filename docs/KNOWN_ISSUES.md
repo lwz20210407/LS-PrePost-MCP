@@ -1188,3 +1188,11 @@ Python 异常传播前会先清理；清理失败不覆盖原始异常，普通�
 ## I03：普通安装名称与版本声明
 
 `lspp413`、`production` 等非版本号配置键只作为安装名称，不据此判断版本冲突。纯版本号仍与可执行文件检测结果按版本族核对；资源自身冲突及 4.11 排除不受影响。见[配置说明](INSTALL.md)和[分发回归](../tests/test_version_profile_calls.py)。
+
+## I01 / I04：多文件 INCLUDE 的原生加载检查（第九轮）
+
+`Settings.check_keyword_includes` 现在调用共享 `preflight_includes`，检查每张文件名卡、完整 files 列表及所有候选的允许目录。第二张卡片越界或缺失时，在启动原生进程前拒绝；错误保留 kind、relative、name_line、reason。预检默认禁止 UNC，不传 `allow_network`。普通 `*INCLUDE` 之外的原生解析策略、参数化文件名和空 INCLUDE 仍明确拒绝。
+
+BatchEngine 和内置 Python 在作业目录运行，并非主 deck 目录。对于保留源树的只读加载，还检查作业目录相对候选：越界则拒绝；指向不同文件即拒绝，防止原生工作目录解析绕过已检查的树。会话和脚本 staging 仍要求展平输入。共享预检会读取本地树，允许目录检查是其上的原生执行准入检查，不是共享预检本身的文件读取沙箱。
+
+回归见 [边界测试](../tests/test_boundaries.py)。I01、I04 的其他原生 gap 保持不变。
