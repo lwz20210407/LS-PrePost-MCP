@@ -386,6 +386,7 @@
 ## KI-049 含空格/中文工作目录的原生配置解析
 
 - 中文 job 目录还可能找不到已生成的 binout.scl；[binout 路径原生用例](../tests/test_scl_binout_paths_native.py)保持严格 xfail，实测范围见 [I03 SCL 字面量证据](decisions/evidence/i03-scl-literals/report.md)。
+- I03 新增显式 `LSPP_NATIVE_ALIAS_ROOT` 选项：Windows 无图形批处理通过独占 ASCII 目录联接访问原作业；模型和产物仍位于原路径，结束后校验别名身份再清理。4.10/4.13 各 7 项后台用例通过、1 项图形回调跳过，见[提交绑定证据](decisions/evidence/i03-workspace-alias/report.md)；未配置、4.8、宏及图形路径仍保留 gap，任务状态不变。配置方法见[安装说明](INSTALL.md)。
 - I01 后续修复：仅 BatchEngine 的 ASCII 路径将两个工作目录配置字段改为 `.`，绝对日志路径不变；GUI/队列保留绝对工作目录。ASCII 空格目录的保存、PNG、重开已补测。
 - 非 ASCII job 目录仍为 gap：4.13 使用相对配置的完整链路出现 `0xC0000374` 退出错误，未启用该实验路径，也未因文件已生成而标通过。非 ASCII 源文件会暂存到安全名称，与 job 目录限制分别报告。
 - 优先级：高于其余 P2；普通用户目录也可能触发，必须优先处理。
