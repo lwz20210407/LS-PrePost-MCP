@@ -1158,3 +1158,21 @@ WinError 5/32 采用最多 1.15 秒的分段退避，其他错误直接返回；
 持续驻留需求使用 SessionEngine。暂停启动、绑定失败拒绝执行、等待中断和宿主退出的
 实测结果及启动强杀窗口见 [生命周期回归](decisions/evidence/i01-process-lifetime/report.md)。
 Python 异常传播前会先清理；清理失败不覆盖原始异常，普通失败将清理注记放入 warnings。
+
+## I01 日志 BOM 和非 UTF-8 诊断
+
+首行 BOM 可能导致原生错误正则漏判，强制 UTF-8 replacement 会损失系统 ANSI 中文内容。
+现保留原始字节，识别 BOM/UTF-8/本地编码，并允许 LSPP_NATIVE_LOG_ENCODING 显式覆盖无 BOM 日志；
+有损解码不作为干净日志放行。行为和实测范围见 [编码回归](decisions/evidence/i01-log-decoding/report.md)。
+
+## A01/I01：会话日志元数据与脚本包装器的集成
+
+第六轮 GUI 补验发现：SessionEngine 新增 encoding/lossy 后，run_script 的日志包装器
+仍只接受 source/offset，Command 会话在原生打开完成后抛出 TypeError。
+包装器现在接收实际编码、保留原始字节，并让 cfile/SCL 诊断沿用相同解码规则；
+有替换解码时保持 unverified，不把日志不确定性包装成成功。
+[生产者/消费者集成回归](../tests/test_script_session_log_contract.py)覆盖四通道、GBK/UTF-16、
+正反例和 lossy；第一轮失败与修复后 session 运行已分别登记到
+[A01](decisions/evidence/a01/evidence.json)、[A02](decisions/evidence/a02/evidence.json)、
+[A03](decisions/evidence/a03/evidence.json)、[A04](decisions/evidence/a04/evidence.json)。
+修复后运行 revision 为干净 c68caef，包含 Draft #26；不代表当前 PR 头重新实测。

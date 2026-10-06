@@ -1,0 +1,242 @@
+{
+  "task": "I01",
+  "baseline": {
+    "actual_git_revision": "2924649eb38b9f716dcd707a8db23b39a0fafb6a",
+    "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "working_tree_dirty": false,
+    "locale_encoding": "cp936",
+    "cases": [
+      {
+        "encoding": "utf8_bom",
+        "message_preserved": true,
+        "diagnostic_found": false
+      },
+      {
+        "encoding": "utf16_le",
+        "message_preserved": false,
+        "diagnostic_found": false
+      },
+      {
+        "encoding": "gbk",
+        "message_preserved": false,
+        "diagnostic_found": true
+      }
+    ]
+  },
+  "native": [
+    {
+      "version": "4.13",
+      "actual_git_revision": "2924649eb38b9f716dcd707a8db23b39a0fafb6a",
+      "git_diff_sha256": "288f5805a97a088545694d3947c8a241c749c4611d430f9d5f8a87b4d849ea49",
+      "exit_code": 0,
+      "report_sha256": "8c2b38e0ffa76b37cfb9e6cee972a0a57a576f98dfc8baff0089e71dbd66bc8a",
+      "cases": {
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[service]": {
+          "status": "passed",
+          "duration": 4.955680200000643
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[scl_backend]": {
+          "status": "passed",
+          "duration": 4.103171000009752
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_results]": {
+          "status": "passed",
+          "duration": 3.973982800001977
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_batch]": {
+          "status": "passed",
+          "duration": 10.510458599994308
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[programs]": {
+          "status": "passed",
+          "duration": 4.660559700001613
+        },
+        "tests/test_engine_native.py::test_native_diagnostic_is_visible_to_program_caller": {
+          "status": "passed",
+          "duration": 4.700288199994247
+        }
+      }
+    },
+    {
+      "version": "4.10",
+      "actual_git_revision": "2924649eb38b9f716dcd707a8db23b39a0fafb6a",
+      "git_diff_sha256": "288f5805a97a088545694d3947c8a241c749c4611d430f9d5f8a87b4d849ea49",
+      "exit_code": 0,
+      "report_sha256": "6a6fd8d614fc602e8de8f16579f5e5b868e6425ed6aa3f6ad2d83e160ed8a8c1",
+      "cases": {
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[service]": {
+          "status": "passed",
+          "duration": 8.170028600012301
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[scl_backend]": {
+          "status": "passed",
+          "duration": 7.418399199988926
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_results]": {
+          "status": "passed",
+          "duration": 7.105148900009226
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_batch]": {
+          "status": "passed",
+          "duration": 22.665772100008326
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[programs]": {
+          "status": "passed",
+          "duration": 6.503049100007047
+        },
+        "tests/test_engine_native.py::test_native_diagnostic_is_visible_to_program_caller": {
+          "status": "passed",
+          "duration": 6.570036899996921
+        }
+      }
+    }
+  ],
+  "encoding_tests": {
+    "actual_git_revision": "2924649eb38b9f716dcd707a8db23b39a0fafb6a",
+    "git_diff_sha256": "288f5805a97a088545694d3947c8a241c749c4611d430f9d5f8a87b4d849ea49",
+    "working_tree_dirty": true,
+    "junit_sha256": "a45a84676c2ec050b853e40b935461095243cbfc7829da72455ca05c14dd5d06",
+    "cases": [
+      {
+        "name": "test_bom_decoding_preserves_diagnostic_even_with_conflicting_override[utf-8-\\xef\\xbb\\xbf]",
+        "seconds": 0.002,
+        "status": "passed"
+      },
+      {
+        "name": "test_bom_decoding_preserves_diagnostic_even_with_conflicting_override[utf-16-le-\\xff\\xfe]",
+        "seconds": 0.005,
+        "status": "passed"
+      },
+      {
+        "name": "test_bom_decoding_preserves_diagnostic_even_with_conflicting_override[utf-16-be-\\xfe\\xff]",
+        "seconds": 0.003,
+        "status": "passed"
+      },
+      {
+        "name": "test_bom_decoding_preserves_diagnostic_even_with_conflicting_override[utf-32-le-\\xff\\xfe\\x00\\x00]",
+        "seconds": 0.004,
+        "status": "passed"
+      },
+      {
+        "name": "test_bom_decoding_preserves_diagnostic_even_with_conflicting_override[utf-32-be-\\x00\\x00\\xfe\\xff]",
+        "seconds": 0.003,
+        "status": "passed"
+      },
+      {
+        "name": "test_native_locale_fallback_does_not_use_python_utf8_preference",
+        "seconds": 0.001,
+        "status": "passed"
+      },
+      {
+        "name": "test_explicit_encoding_and_loss_are_visible",
+        "seconds": 0.002,
+        "status": "passed"
+      },
+      {
+        "name": "test_delta_keeps_file_encoding_without_replaying_old_errors[utf-8-\\xef\\xbb\\xbf]",
+        "seconds": 0.015,
+        "status": "passed"
+      },
+      {
+        "name": "test_delta_keeps_file_encoding_without_replaying_old_errors[utf-16-le-\\xff\\xfe]",
+        "seconds": 0.013,
+        "status": "passed"
+      },
+      {
+        "name": "test_delta_keeps_file_encoding_without_replaying_old_errors[utf-16-be-\\xfe\\xff]",
+        "seconds": 0.014,
+        "status": "passed"
+      },
+      {
+        "name": "test_delta_keeps_file_encoding_without_replaying_old_errors[utf-32-le-\\xff\\xfe\\x00\\x00]",
+        "seconds": 0.018,
+        "status": "passed"
+      },
+      {
+        "name": "test_delta_keeps_file_encoding_without_replaying_old_errors[utf-32-be-\\x00\\x00\\xfe\\xff]",
+        "seconds": 0.018,
+        "status": "passed"
+      },
+      {
+        "name": "test_real_batch_zero_exit_with_encoded_diagnostic_fails[utf-8-\\xef\\xbb\\xbf]",
+        "seconds": 0.172,
+        "status": "passed"
+      },
+      {
+        "name": "test_real_batch_zero_exit_with_encoded_diagnostic_fails[utf-16-le-\\xff\\xfe]",
+        "seconds": 0.201,
+        "status": "passed"
+      },
+      {
+        "name": "test_real_batch_zero_exit_with_encoded_diagnostic_fails[utf-16-be-\\xfe\\xff]",
+        "seconds": 0.222,
+        "status": "passed"
+      },
+      {
+        "name": "test_real_batch_zero_exit_with_encoded_diagnostic_fails[utf-32-le-\\xff\\xfe\\x00\\x00]",
+        "seconds": 0.25,
+        "status": "passed"
+      },
+      {
+        "name": "test_real_batch_zero_exit_with_encoded_diagnostic_fails[utf-32-be-\\x00\\x00\\xfe\\xff]",
+        "seconds": 0.334,
+        "status": "passed"
+      },
+      {
+        "name": "test_real_batch_zero_exit_with_encoded_diagnostic_fails[gbk-]",
+        "seconds": 0.328,
+        "status": "passed"
+      },
+      {
+        "name": "test_session_uses_bom_hint_for_only_this_request[utf-8-\\xef\\xbb\\xbf]",
+        "seconds": 0.029,
+        "status": "passed"
+      },
+      {
+        "name": "test_session_uses_bom_hint_for_only_this_request[utf-16-le-\\xff\\xfe]",
+        "seconds": 0.029,
+        "status": "passed"
+      },
+      {
+        "name": "test_session_uses_bom_hint_for_only_this_request[utf-16-be-\\xfe\\xff]",
+        "seconds": 0.028,
+        "status": "passed"
+      },
+      {
+        "name": "test_session_uses_bom_hint_for_only_this_request[utf-32-le-\\xff\\xfe\\x00\\x00]",
+        "seconds": 0.024,
+        "status": "passed"
+      },
+      {
+        "name": "test_session_uses_bom_hint_for_only_this_request[utf-32-be-\\x00\\x00\\xfe\\xff]",
+        "seconds": 0.022,
+        "status": "passed"
+      },
+      {
+        "name": "test_session_loss_or_bad_configuration_is_uncertain_and_preserves_raw[utf8-UnicodeError]",
+        "seconds": 0.025,
+        "status": "passed"
+      },
+      {
+        "name": "test_session_loss_or_bad_configuration_is_uncertain_and_preserves_raw[not-a-codec-LookupError]",
+        "seconds": 0.022,
+        "status": "passed"
+      },
+      {
+        "name": "test_batch_loss_preserves_both_raw_streams_and_refuses_verification",
+        "seconds": 0.217,
+        "status": "passed"
+      }
+    ]
+  },
+  "historical_diff_scope": {
+    "command": "git diff 2924649 e36e0a6 --binary -- . \":!docs\" \":!tasks.yaml\"",
+    "sha256": "288f5805a97a088545694d3947c8a241c749c4611d430f9d5f8a87b4d849ea49",
+    "excluded_paths": [
+      "docs",
+      "tasks.yaml"
+    ],
+    "untracked_included": false,
+    "execution_scope_note": "Historical native execution used the old stack containing 9651d02."
+  }
+}
