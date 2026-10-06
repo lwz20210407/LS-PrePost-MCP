@@ -266,3 +266,38 @@ def test_ten_curves_are_the_bound(tmp_path, monkeypatch):
     result = service.render_xyplot([dict(base, label=f"C{i}") for i in range(10)], "T", "u", "F", "mm", "kN")
     assert result["status"] == "succeeded" and result["data"]["curve_count"] == 10
     assert 'xyplot 1 curvelegend 10/1 "C9"' in calls[0]["cfile"]
+
+
+def test_range_policy_is_per_axis_and_y_range_is_warned(tmp_path, monkeypatch):
+    service, _ = xyplot_service(tmp_path, monkeypatch)
+    curves = three_cases(tmp_path)
+    x_only = service.render_xyplot(curves, "T", "u", "F", "mm", "kN", x_range=[0, 4])
+    assert x_only["status"] == "succeeded" and x_only["warnings"] == []
+    policy = x_only["data"]["axes"]["range_policy"]
+    assert set(policy) == {"x", "y", "readback"} and "widen" in policy["y"] and "widen" not in policy["x"]
+    with_y = service.render_xyplot(curves, "T", "u", "F", "mm", "kN", y_range=[1.3, 21.7])
+    assert with_y["status"] == "succeeded"
+    assert any("Y range may be widened" in w and "not read back" in w for w in with_y["warnings"])
+
+
+def test_curve_outside_requested_range_is_counted_and_warned(tmp_path, monkeypatch):
+    service, _ = xyplot_service(tmp_path, monkeypatch)
+    result = service.render_xyplot(three_cases(tmp_path), "T", "u", "F", "mm", "kN", x_range=[10, 20])
+    assert result["status"] == "succeeded"
+    assert [c["samples_in_requested_range"] for c in result["data"]["curves"]] == [0, 0, 0]
+    assert sum("no sample inside the requested axis ranges" in w for w in result["warnings"]) == 3
+    assert "every sample" in result["data"]["csv_scope"]
+    partial = service.render_xyplot(three_cases(tmp_path), "T", "u", "F", "mm", "kN", x_range=[1, 2],
+                                    y_range=[0, 12])
+    assert [c["samples_in_requested_range"] for c in partial["data"]["curves"]] == [1, 1, 2]
+    assert not any("no sample" in w for w in partial["warnings"])
+    unbounded = service.render_xyplot(three_cases(tmp_path), "T", "u", "F", "mm", "kN")
+    assert [c["samples_in_requested_range"] for c in unbounded["data"]["curves"]] == [4, 3, 5]
+
+
+def test_hidden_legend_does_not_report_a_legend_title(tmp_path, monkeypatch):
+    service, calls = xyplot_service(tmp_path, monkeypatch)
+    result = service.render_xyplot(three_cases(tmp_path), "T", "u", "F", "mm", "kN", legend=False,
+                                   legend_title="Hidden")
+    assert result["status"] == "succeeded" and "legendlabel" not in calls[0]["cfile"]
+    assert result["data"]["legend"] is False and result["data"]["legend_title"] is None

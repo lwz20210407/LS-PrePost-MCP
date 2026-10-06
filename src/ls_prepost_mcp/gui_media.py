@@ -80,7 +80,7 @@ class GuiMediaTools:
         legend_title: str | None = None,
         session_id: str | None = None,
     ) -> dict:
-        """Plot 1..10 explicit CSV curves {path,x_column,y_column,label,x_unit,y_unit} in one native XYPlot; export PNG, curves.csv (curve,x,y at native float32 storage) and native XY readback verified per curve against the same plot window. Default is a no-graphics batch process (no visible GUI); session_id uses that owned visible session instead and never creates one. Units must match the axis units exactly; no conversion/resampling; row order/hysteresis preserved. x_range/y_range [min,max] and x_log/y_log are sent natively; native may widen limits to tick/decade boundaries. Log axes require positive samples and limits."""
+        """Plot 1..10 explicit CSV curves {path,x_column,y_column,label,x_unit,y_unit} in one native XYPlot; export PNG, curves.csv (curve,x,y at native float32 storage) and native XY readback verified per curve against the same plot window. Default is a no-graphics batch process (no visible GUI); session_id uses that owned visible session instead and never creates one. Units must match the axis units exactly; no conversion/resampling; row order/hysteresis preserved. x_range/y_range [min,max] and x_log/y_log are sent natively: X limits display as requested, Y limits may be widened outward to tick/decade boundaries (warned; displayed extents are not read back). Ranges only affect the display: curves.csv keeps every sample, and curves with no sample in range are warned. Log axes require positive samples and limits."""
         from .gui_curves import render_xyplot
 
         return render_xyplot(self, curves, title, x_label, y_label, x_unit, y_unit, x_range, y_range, x_log, y_log,

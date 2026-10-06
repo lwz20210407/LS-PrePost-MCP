@@ -15,8 +15,14 @@ from .windows_transport import WindowsCommandTransport
 
 # Native token order is <Y scale>-<X scale>: "Lin-Log" draws a logarithmic X axis (4.13.4 batch probe).
 AXES = {(False, False): "Lin-Lin", (True, False): "Lin-Log", (False, True): "Log-Lin", (True, True): "Log-Log"}
-AXIS_RANGE_POLICY = ("Requested limits are sent to native XYPlot; it may widen them to the next tick (linear) "
-                     "or decade-like boundary (logarithmic). Rendered extents are not read back.")
+# Measured on 4.13.4 and 4.10 batch PNGs; xyplot minmaxopt 0/1/2 does not change the Y behavior.
+AXIS_RANGE_POLICY = dict(
+    x="Requested X limits are displayed as requested on linear and logarithmic axes.",
+    y="Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+    readback="Rendered axis extents are not read back.",
+)
+Y_RANGE_WARNING = "Y range may be widened by native XYPlot; the actual displayed Y range was not read back"
+CSV_SCOPE = "curves.csv holds every sample of every curve; axis ranges only affect the display"
 
 
 def plot_text(value, name, maximum):
@@ -94,6 +100,7 @@ def verify_curve_readback(path, expected_curves):
 
 
 def verify_xy_values(values, expected):
+    # save_xypair prints %.10e (11 significant digits); its rounding is at most half a unit, i.e. 5e-11 relative.
     quantized = native_plot_values(expected)
     if (
         values.shape != expected.shape
@@ -188,6 +195,47 @@ def axes_summary(options):
                 native_axes_token=AXES[options["x_log"], options["y_log"]], range_policy=AXIS_RANGE_POLICY)
 
 
+def samples_in_range(values, options):
+    inside = np.ones(len(values), dtype=bool)
+    for column, axis in ((0, "x"), (1, "y")):
+        if options[axis + "_range"] is not None:
+            low, high = options[axis + "_range"]
+            inside &= (values[:, column] >= low) & (values[:, column] <= high)
+    return int(inside.sum())
+
+
+def xyplot_data(curves, numeric, units, options, legend, legend_title, png, table, native_xy):
+    warnings = [Y_RANGE_WARNING] if options["y_range"] is not None else []
+    records = []
+    for i, curve in enumerate(curves):
+        inside = samples_in_range(curve["quantized"], options)
+        if inside == 0:
+            warnings.append(f"Curve {i + 1} ({curve['spec']['label']}) has no sample inside the requested axis "
+                            "ranges and may be absent from the PNG")
+        records.append(dict(number=i + 1, label=curve['spec']['label'], source=curve['identity'],
+                            columns=dict(x=curve['spec']['x_column'], y=curve['spec']['y_column']),
+                            numeric_verification=numeric[i], samples_in_requested_range=inside))
+    data = dict(
+        curve_count=len(curves),
+        legend=legend,
+        legend_title=legend_title if legend else None,
+        axes=axes_summary(options),
+        curves=records,
+        csv_columns=dict(curve="1-based curve number in legend order", x=units[0], y=units[1]),
+        csv_scope=CSV_SCOPE,
+        png_csv_consistency=dict(
+            same_native_plot_window=True,
+            readback_after_png=True,
+            csv_equals_native_readback="per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            png_sha256=png.get("sha256"), csv_sha256=table.get("sha256"),
+            native_xy_sha256=native_xy.get("sha256"),
+        ),
+        resampled=False,
+        source_units_inferred=False,
+    )
+    return data, warnings
+
+
 def write_combined_csv(path, curves):
     rows = [[i + 1, x, y] for i, curve in enumerate(curves) for x, y in curve["quantized"]]
     return write_csv(path, ["curve", "x", "y"], rows)
@@ -265,6 +313,8 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
             inputs=[curve['identity'] for curve in curves],
             process=meta["process"],
         )
+        if options is not None:
+            manifest["route"] = "session"
         xy = directory / ("curve_" + manifest["job_id"] + ".txt")
         xy.write_text(xy_text(curves), encoding="ascii")
         log = manager.directory(session_id) / "lspost.msg"
@@ -307,10 +357,16 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
             if any(fingerprint(curve['source']) != curve['identity'] for curve in curves):
                 raise ValueError("Source CSV changed during native plot export")
             png = check_artifact(directory / "plot.png", "png")
-            csv_artifact = write_csv(directory / "plotted.csv", ["x", "y"], quantized)
+            native_xy = check_artifact(directory / "native.xy", "text")
+            if options is None:
+                artifacts = [png, write_csv(directory / "plotted.csv", ["x", "y"], quantized), native_xy]
+                artifacts += [write_csv(directory / f'plotted-{i}.csv', ['x', 'y'], curve['quantized'])
+                              for i, curve in enumerate(curves[1:], 2)]
+            else:
+                table = write_combined_csv(directory / "curves.csv", curves)
+                artifacts = [png, table, native_xy]
             manifest.update(
-                status="succeeded",
-                artifacts=[png, csv_artifact, check_artifact(directory / "native.xy", "text")],
+                artifacts=artifacts,
                 data=dict(
                     plot_id=plot_id,
                     numeric_verification=numeric,
@@ -329,11 +385,12 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
                     existing_plot_ids=sorted(old_windows),
                 ),
             )
-            for i, curve in enumerate(curves[1:], 2):
-                manifest['artifacts'].append(write_csv(directory/f'plotted-{i}.csv', ['x','y'], curve['quantized']))
             if options is not None:
-                manifest["data"].update(axes=axes_summary(options), legend_title=legend_title)
-                manifest["artifacts"].append(write_combined_csv(directory / "curves.csv", curves))
+                data, warnings = xyplot_data(curves, numeric_curves, (x_unit, y_unit), options, legend, legend_title,
+                                             png, table, native_xy)
+                manifest["data"].update(data, visible_gui=True)
+                manifest["warnings"] += warnings
+            manifest["status"] = "succeeded"
         except Exception as exc:
             manifest.update(status="failed", error=dict(type=type(exc).__name__, message=str(exc)))
         manifest["finished_at"] = now()
@@ -405,31 +462,18 @@ def render_batch(service, curves, title, x_label, y_label, x_unit, y_unit, optio
         native_xy = check_artifact(directory / "native.xy", "text")
         table = write_combined_csv(directory / "curves.csv", curves)
         manifest["artifacts"] += [png, table, native_xy, check_artifact(directory / "commands.cfile", "text")]
+        data, warnings = xyplot_data(curves, numeric, (x_unit, y_unit), options, legend, legend_title, png, table,
+                                     native_xy)
+        manifest["warnings"] += warnings
         manifest.update(
             status="succeeded",
             data=dict(
                 plot_id=1,
-                curve_count=len(curves),
                 title=title,
                 labels=dict(x=f"{x_label} ({x_unit})", y=f"{y_label} ({y_unit})"),
                 declared_units=dict(x=x_unit, y=y_unit),
-                legend=legend,
-                legend_title=legend_title,
-                axes=axes_summary(options),
-                curves=[dict(number=i + 1, label=curve['spec']['label'], source=curve['identity'],
-                             columns=dict(x=curve['spec']['x_column'], y=curve['spec']['y_column']),
-                             numeric_verification=numeric[i]) for i, curve in enumerate(curves)],
-                csv_columns=dict(curve="1-based curve number in legend order", x=x_unit, y=y_unit),
-                png_csv_consistency=dict(
-                    same_native_plot_window=True,
-                    readback_after_png=True,
-                    csv_equals_native_readback="per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
-                    png_sha256=png.get("sha256"), csv_sha256=table.get("sha256"),
-                    native_xy_sha256=native_xy.get("sha256"),
-                ),
+                **data,
                 visible_gui=False,
-                resampled=False,
-                source_units_inferred=False,
             ),
         )
     except Exception as exc:
