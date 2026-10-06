@@ -126,7 +126,11 @@ def test_record(request):
                             env=python_environment(tmp_path),capture_output=True,text=True,timeout=30)
     assert result.returncode == 0, result.stdout + result.stderr
     data = json.loads((report/"report.json").read_text())
+    context = json.loads((report/"execution-context.json").read_text())
+    assert data["execution_context"] == {key: value for key, value in context.items() if key != "source_files"}
     row = next(iter(data["cases"].values()))
     assert row["status"] == "evidence_only" and set(row["native_lane_statuses"].values()) == {"failed"}
     markdown = (report/"report.md").read_text(encoding="utf8")
+    assert context["actual_git_head"] in markdown
+    assert context["git_diff_sha256"] in markdown
     assert "failed / failed / failed" in markdown and "| passed |" not in markdown

@@ -1,0 +1,57 @@
+{
+  "task": "I04",
+  "records": [
+    {
+      "execution_context": {
+        "actual_git_head": "de9abceb80a7602febdffeaaefda03e636cdaa90",
+        "working_tree_dirty": true,
+        "git_diff_sha256": "a57ce2b36ed9d39f1230d1a0a9b0083edf78d7ea7920f3a12ed726fe0fc6079c",
+        "git_diff_command": "git diff HEAD --binary",
+        "source_snapshot_sha256": "a298a595243280a55bd27f48222fd7f96bad53b188c1a3a123cdbbedef3c329d",
+        "python_version": "3.11.15 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:12:15) [MSC v.1942 64 bit (AMD64)]",
+        "scope": "Actual runner checkout at startup; null Git fields mean unavailable. Git diff excludes untracked files; source_files also hashes untracked source files."
+      },
+      "report_sha256": "977134f4ed6b58632e2e686aaed67aeed71ef6a8cb1fd50cb90d72c3e1f74dc3",
+      "exit_status": 1,
+      "native_started": false,
+      "cases": {
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[service]": {
+          "status": "failed",
+          "duration": 0.0008414999902015552
+        }
+      },
+      "note": "Incorrect relative fixture option; failed before native launch",
+      "source_files": {
+        "tools/native_regression.py": "573e6a120547b9174731c4e82ef8b45b9a7fb9a6df537485f55367e5c0955942",
+        "tests/test_native_evidence_identity.py": "b6958e8451db1503b73f3637f3905369acb89cc9a156af2549c8bc7d7479e027",
+        "tests/test_native_regression.py": "7a2f5b6d6a5d593942b295618c536d2a9ece168ff6eab2b3b19fd7796eadbf89"
+      }
+    },
+    {
+      "execution_context": {
+        "actual_git_head": "de9abceb80a7602febdffeaaefda03e636cdaa90",
+        "working_tree_dirty": true,
+        "git_diff_sha256": "a57ce2b36ed9d39f1230d1a0a9b0083edf78d7ea7920f3a12ed726fe0fc6079c",
+        "git_diff_command": "git diff HEAD --binary",
+        "source_snapshot_sha256": "a298a595243280a55bd27f48222fd7f96bad53b188c1a3a123cdbbedef3c329d",
+        "python_version": "3.11.15 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:12:15) [MSC v.1942 64 bit (AMD64)]",
+        "scope": "Actual runner checkout at startup; null Git fields mean unavailable. Git diff excludes untracked files; source_files also hashes untracked source files."
+      },
+      "report_sha256": "9cc54a233fc5c74dcbe7ee1e7c2d9280f0288a65780a0b2cee6b2abf0273ede8",
+      "exit_status": 0,
+      "native_started": true,
+      "cases": {
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[service]": {
+          "status": "passed",
+          "duration": 4.164694100007182
+        }
+      },
+      "note": "4.13 batch passed; pytest cache creation emitted an access warning after execution",
+      "source_files": {
+        "tools/native_regression.py": "573e6a120547b9174731c4e82ef8b45b9a7fb9a6df537485f55367e5c0955942",
+        "tests/test_native_evidence_identity.py": "b6958e8451db1503b73f3637f3905369acb89cc9a156af2549c8bc7d7479e027",
+        "tests/test_native_regression.py": "7a2f5b6d6a5d593942b295618c536d2a9ece168ff6eab2b3b19fd7796eadbf89"
+      }
+    }
+  ]
+}

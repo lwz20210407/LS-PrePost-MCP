@@ -121,3 +121,7 @@ run_recipe 传入配方 ID、参数及输入模型。默认 launch_mode=c，显�
 旧 JSON 模板通过同一模块的兼容读取器运行，默认不作为已验证 T2；include_candidates=true
 可发现它们。旧名字保留至 v0.6。五配方的真实版本证据见[ADR 0007](decisions/0007-recipes.md)。
 
+
+原生 report.md / report.json 自动附启动时的实际 Git revision、工作树状态、
+`git diff HEAD --binary` SHA256 和源码快照 SHA256；逐文件哈希见 execution-context.json。
+Git 不可用时身份字段为空。diff 不包含未跟踪文件，源码快照补充这些文件的指纹。
