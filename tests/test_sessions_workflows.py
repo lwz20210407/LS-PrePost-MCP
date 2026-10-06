@@ -102,6 +102,95 @@ def session_fixture(tmp_path, monkeypatch, state="ready"):
     return manager, sid, module
 
 
+@pytest.mark.parametrize("panel_error", [None, "exception", "diagnostic"])
+def test_panel_preparation_is_owned_by_session_engine_and_never_replayed(tmp_path, monkeypatch, panel_error):
+    manager, sid, module = session_fixture(tmp_path, monkeypatch)
+    events = []
+    original_run = module.SessionEngine.run
+
+    def run(engine, job):
+        events.append("engine")
+        return original_run(engine, job)
+
+    class Transport:
+        def __init__(self, pid):
+            assert pid == 123
+
+        def preflight(self):
+            pass
+
+        def submit(self, command):
+            events.append("native")
+            directory = next((manager.directory(sid) / "requests").iterdir())
+            atomic_json(directory / "complete.json", dict(job_id=directory.name, ok=True, data={}))
+
+    def prepare(transport, directory):
+        assert events == ["engine"]
+        assert isinstance(transport, Transport)
+        assert manager.read(sid)["active_request"] == directory.name
+        assert json.loads((directory / "request.json").read_text())["host_preparation"] is True
+        events.append("panel")
+        if panel_error == "exception":
+            raise RuntimeError()
+        if panel_error == "diagnostic":
+            (manager.directory(sid) / "lspost.msg").write_text("Invalid command panel_fault!\n")
+
+    monkeypatch.setattr(module, "WindowsCommandTransport", Transport)
+    monkeypatch.setattr(module.SessionEngine, "run", run)
+    if panel_error == "exception":
+        with pytest.raises(RuntimeError, match="RuntimeError"):
+            manager.dispatch(sid, "inspect_model", {}, _before_submit=prepare)
+        assert events == ["engine", "panel"]
+        with pytest.raises(RuntimeError, match="outstanding"):
+            manager.dispatch(sid, "inspect_model", {}, _before_submit=prepare)
+        assert events == ["engine", "panel"]
+        assert manager.read(sid)["state"] == "uncertain"
+    else:
+        result = manager.dispatch(sid, "inspect_model", {}, _before_submit=prepare)
+        assert result["status"] == ("failed" if panel_error else "succeeded")
+        assert events == ["engine", "panel", "native"]
+        if panel_error:
+            assert "panel_fault" in result["error"]["message"]
+    directory = next((manager.directory(sid) / "requests").iterdir())
+    proof = json.loads((directory / "engine-result.json").read_text())
+    assert proof["status"] == {None: "succeeded", "exception": "unverified", "diagnostic": "failed"}[panel_error]
+    assert proof["job_id"] == directory.name
+
+
+def test_panel_preparation_rejects_queue_before_any_native_action(tmp_path, monkeypatch):
+    manager, sid, module = session_fixture(tmp_path, monkeypatch)
+    meta = manager.read(sid)
+    meta["engine_transport"] = "queue"
+    manager.save(sid, meta)
+    monkeypatch.setattr(module, "WindowsCommandTransport", lambda *a: pytest.fail("Win32 construction"))
+    monkeypatch.setattr(module, "QueueTransport", lambda *a: pytest.fail("Queue construction"))
+    with pytest.raises(ValueError, match="Win32 observation session"):
+        manager.dispatch(sid, "inspect_model", {}, _before_submit=lambda *a: pytest.fail("Panel action"))
+    assert not (manager.directory(sid) / "requests").exists()
+
+
+@pytest.mark.parametrize("panel", ["renumber", "keyword", "shell", "solid"])
+def test_panel_tools_reject_queue_before_snapshot_or_selection_mutation(tmp_path, monkeypatch, panel):
+    manager, sid, module = session_fixture(tmp_path, monkeypatch)
+    meta = manager.read(sid)
+    meta.update(engine_transport="queue", bridge_protocol=4)
+    manager.save(sid, meta)
+    service = Service(manager.settings)
+    monkeypatch.setattr(service, "_session_manager", lambda: manager)
+    monkeypatch.setattr(manager, "dispatch", lambda *a, **k: pytest.fail("No snapshot or selection mutation"))
+    with pytest.raises(ValueError, match="Win32 observation session"):
+        if panel == "renumber":
+            service.renumber_gui_entities(sid, "node", 1001, check_references=False)
+        elif panel == "keyword":
+            service.check_gui_keywords(sid)
+        elif panel == "shell":
+            service.check_gui_shell_quality(sid, {"aspect_ratio": 10}, "mm")
+        else:
+            service.check_gui_solid_quality(sid,
+                [dict(metric="volume", comparison="lt", threshold=100.0)], "mm", capture_failed_ids=True)
+    assert manager.read(sid) == meta
+
+
 def test_uncertain_session_read_does_not_clear_failure(tmp_path, monkeypatch):
     manager, sid, module = session_fixture(tmp_path, monkeypatch, "uncertain")
 

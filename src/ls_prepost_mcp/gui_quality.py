@@ -130,15 +130,12 @@ class GuiQualityTools:
         """Run actual native Keyword Check with contact checking excluded, export and parse its completed report, and verify mesh unchanged. Reports warnings/errors/unreferenced/undefined separately; never auto-clean."""
         context = {}
 
-        def commands(state, directory):
-            manager = self._session_manager()
-            meta = manager.read(session_id)
-            if not meta["process_alive"]:
-                raise RuntimeError("Owned native process exited")
-            transport = WindowsCommandTransport(meta["process"]["pid"])
+        def prepare_check(state, directory, transport):
             transport.open_menu_item(["Application", "Model Checking", "General Checking"])
             transport._select_panel_tab("Model Checking", 13339, 1)
             transport._set_panel_checked("Model Checking", 11377, True, "Do not Check Contact")
+
+        def commands(state, directory):
             context["path"] = directory / "native-keyword-check.txt"
             return ["modelcheck checkgeneral", nc.modelcheck_report(context["path"])]
 
@@ -159,7 +156,8 @@ class GuiQualityTools:
             )
 
         return self._gui_mesh_edit(
-            session_id, "check_gui_keywords", {}, commands, verify, transaction_kind="inspection"
+            session_id, "check_gui_keywords", {}, commands, verify, transaction_kind="inspection",
+            prepare_native=prepare_check, requires_panel=True
         )
 
     def inspect_gui_menu(
@@ -215,12 +213,14 @@ class GuiQualityTools:
 
         def commands(state, directory):
             manager = self._session_manager()
-            meta = manager.read(session_id)
-            if not meta["process_alive"]:
-                raise RuntimeError("Owned native process exited")
-            transport = WindowsCommandTransport(meta["process"]["pid"])
-            transport.open_menu_item(["Application", "Model Checking", "General Checking"])
-            transport._select_panel_tab("Model Checking", 13339, 0)
+            panel = {}
+
+            def prepare_check(transport, job):
+                if not panel:
+                    transport.open_menu_item(["Application", "Model Checking", "General Checking"])
+                    transport._select_panel_tab("Model Checking", 13339, 0)
+                    panel["transport"] = transport
+
             for name, limit in limits.items():
                 count = (
                     counts[3] if "triangle" in name else counts[4] if "quad" in name else sum(counts.values())
@@ -232,6 +232,7 @@ class GuiQualityTools:
                     session_id,
                     "gui_mesh_state",
                     {},
+                    _before_submit=prepare_check,
                     native_commands=[
                         "elemcheck shell init",
                         f"elemcheck shell {SHELL_CHECKS[name][2]} {limit}",
@@ -239,7 +240,7 @@ class GuiQualityTools:
                 )
                 if result["status"] != "succeeded":
                     raise RuntimeError("Native quality request failed: " + name)
-                report = native_metric_row(transport.inspect_controls(), name, limit)
+                report = native_metric_row(panel["transport"].inspect_controls(), name, limit)
                 if report["violated_count"] > count:
                     raise ValueError("Native failed-element count exceeds applicable shell count")
                 reports[name] = dict(
@@ -278,4 +279,5 @@ class GuiQualityTools:
             verify,
             precheck,
             transaction_kind="inspection",
+            requires_panel=True,
         )

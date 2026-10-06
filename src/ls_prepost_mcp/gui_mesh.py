@@ -328,6 +328,8 @@ class GuiMeshTools:
         snapshot_parameters=None,
         finalize_native=None,
         prepare_snapshot=None,
+        prepare_native=None,
+        requires_panel=False,
     ):
         if transaction_kind not in ("edit", "selection", "inspection"):
             raise ValueError("Unsupported GUI transaction kind")
@@ -342,6 +344,8 @@ class GuiMeshTools:
             original_meta = self._visible_mesh_session(
                 session_id, manager, allow_results=transaction_kind == "selection"
             )
+            if requires_panel and original_meta.get("engine_transport") == "queue":
+                raise ValueError("Native panel operations require a Win32 observation session")
             if prepare_snapshot is not None:
                 # Resolve model-owned sources under the same request lock used by
                 # selection. No interleaving MCP model/set mutation is permitted.
@@ -369,6 +373,9 @@ class GuiMeshTools:
             try:
                 if callable(commands):
                     commands = commands(before, Path(baseline["job_directory"]))
+                preparation = {} if prepare_native is None else {
+                    "_before_submit": lambda transport, job: prepare_native(before, job, transport)
+                }
                 result = manager.dispatch(
                     session_id,
                     snapshot_action,
@@ -376,6 +383,7 @@ class GuiMeshTools:
                     native_commands=commands,
                     artifacts=artifacts,
                     export=mutates_model,
+                    **preparation,
                 )
                 if result["status"] == "succeeded" and finalize_native is not None:
                     result = finalize_native(before, result)

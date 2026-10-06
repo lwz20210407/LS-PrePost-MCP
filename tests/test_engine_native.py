@@ -101,6 +101,58 @@ class NativeIncludeReadError(RuntimeError):
     pass
 
 
+@pytest.mark.gui
+@pytest.mark.parametrize("panel", ["renumber_node", "renumber_shell", "renumber_part",
+                                   "keyword_check", "shell_quality", "solid_quality"])
+def test_public_panel_actions_have_correlated_engine_evidence(native_case, pytestconfig, panel):
+    if not pytestconfig.getoption("--native-gui") or os.environ.get("LSPP_ALLOW_GUI") != "1":
+        pytest.skip("Requires an authorized, unlocked GUI window and --native-gui")
+    service, fixture = native_case
+    if installation_version(service.settings.native_executable()) != "4.13":
+        pytest.skip("Panel controls are verified only against 4.13")
+    source = fixture / "input.k"
+    if panel == "solid_quality":
+        from tools.run_gui_solid_quality_acceptance import MODEL
+        source = service.settings.workspace / "panel-solids.k"
+        source.write_text(MODEL, encoding="ascii")
+    initial_hash = hashlib.sha256(source.read_bytes()).hexdigest()
+    started = service.start_gui_session()
+    sid = started["session_id"]
+    manager = service._session_manager()
+    try:
+        service.show_gui_session(sid, maximize=True)
+        opened = service.open_in_gui_session(sid, str(source))
+        assert opened["status"] == "succeeded", opened
+        if panel.startswith("renumber_"):
+            result = service.renumber_gui_entities(sid, panel.removeprefix("renumber_"), 1001)
+        elif panel == "keyword_check":
+            result = service.check_gui_keywords(sid)
+        elif panel == "shell_quality":
+            result = service.check_gui_shell_quality(sid, {"aspect_ratio": 10}, "mm")
+        else:
+            result = service.check_gui_solid_quality(sid,
+                [dict(metric="volume", comparison="lt", threshold=100.0)], "mm", capture_failed_ids=True)
+        assert result["status"] == "succeeded", result
+        prepared = []
+        for request in (manager.directory(sid) / "requests").glob("*/request.json"):
+            if json.loads(request.read_text(encoding="utf8")).get("host_preparation"):
+                proof = json.loads((request.parent / "engine-result.json").read_text(encoding="utf8"))
+                assert proof["job_id"] == request.parent.name and proof["status"] == "succeeded", proof
+                prepared.append(proof)
+        assert len(prepared) >= (2 if panel.startswith("renumber_") else 1)
+        saved = service.checkpoint_gui_session(sid)
+        assert saved["status"] == "succeeded", saved
+        reopened = service.restore_gui_checkpoint(sid)
+        assert reopened["status"] == "succeeded", reopened
+        image = service.set_gui_display(sid, view="top", center=True, capture=True)
+        assert image["status"] == "succeeded", image
+        assert any(a["kind"] == "png" and a["validated"] for a in image["artifacts"])
+        assert manager.read(sid)["process"]["pid"] == started["process"]["pid"]
+    finally:
+        assert service.close_gui_session(sid, save_checkpoint=False)["state"] == "closed"
+        assert hashlib.sha256(source.read_bytes()).hexdigest() == initial_hash
+
+
 @pytest.mark.parametrize("folder", ["include source", pytest.param("输入 模型", marks=pytest.mark.xfail(
     strict=True, raises=NativeIncludeReadError, reason="I01 gap: native Unicode INCLUDE root was not opened"))])
 def test_batch_include_read_preserves_source_directory(native_case, tmp_path, folder, request):

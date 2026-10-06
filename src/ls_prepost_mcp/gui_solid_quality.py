@@ -10,7 +10,6 @@ from .gui_mesh import check_same_nodes, check_same_parts, mesh_index
 from .gui_selection import available_ids, part_visibility
 from .jobs import atomic_json, check_artifact
 from .native import commands as nc
-from .windows_transport import WindowsCommandTransport
 
 # Observed from 4.13.4 Model Checking / Solid / Check command recordings.
 SOLID_CHECKS = {
@@ -101,10 +100,18 @@ def check_solids(service, session_id, checks, units, capture_failed_ids=False):
 
     def commands(state, directory):
         manager = service._session_manager()
-        transport = WindowsCommandTransport(manager.read(session_id)["process"]["pid"])
-        transport.open_menu_item(["Application", "Model Checking", "General Checking"])
-        transport._select_panel_tab("Model Checking", 13339, 0)
-        transport._click_panel_control("Model Checking", 10145, "Solid")
+        panel = {}
+
+        def prepare_check(transport, job):
+            if not panel:
+                transport.open_menu_item(["Application", "Model Checking", "General Checking"])
+                transport._select_panel_tab("Model Checking", 13339, 0)
+                transport._click_panel_control("Model Checking", 10145, "Solid")
+                panel["transport"] = transport
+            # Domain count parsing starts after panel setup, while the engine
+            # retains the complete setup + command diagnostic interval.
+            panel["offset"] = log.stat().st_size if log.exists() else 0
+
         if capture_failed_ids:
             # The native Save Failed operation uses Buffer1. Invalidate its
             # managed identity before dispatch, including uncertain outcomes.
@@ -139,16 +146,16 @@ def check_solids(service, session_id, checks, units, capture_failed_ids=False):
         for index, item in enumerate(normalized):
             token, dimension = SOLID_CHECKS[item["metric"]]
             command = "elemcheck solid %s %s %s" % (token, item["comparison"], item["threshold"])
-            offset = log.stat().st_size if log.exists() else 0
-            result = manager.dispatch(session_id, "inspect_model", {}, native_commands=["pall", command])
+            result = manager.dispatch(session_id, "inspect_model", {}, native_commands=["pall", command],
+                                      _before_submit=prepare_check)
             if result["status"] != "succeeded":
                 raise RuntimeError("Native solid quality request failed")
             if any(result["data"]["counts"].get(k) != state["counts"].get(k) for k in ("nodes", "elements")):
                 raise ValueError("Model counts changed during solid checking")
-            text = read_delta(log, offset, existed=True)
+            text = read_delta(log, panel["offset"], existed=True)
             controls = [
                 r
-                for r in transport.inspect_controls()
+                for r in panel["transport"].inspect_controls()
                 if r["visible"]
                 and r["class_name"] == "Button"
                 and r["control_id"] == 10336
@@ -244,4 +251,5 @@ def check_solids(service, session_id, checks, units, capture_failed_ids=False):
         verify,
         precheck,
         transaction_kind="inspection",
+        requires_panel=True,
     )
