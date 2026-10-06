@@ -55,6 +55,11 @@ def test_five_batch_callers_use_isolated_engine(native_case, caller):
     assert result["status"] == "succeeded", result
     process = result["process"]
     assert process["engine_status"] == "unverified"  # Domain checks above provide the success verdict.
+    from ls_prepost_mcp.core.contracts import JobResult
+    execution = JobResult.model_validate_json((Path(result["job_directory"]) / "engine-result.json").read_bytes())
+    assert execution.job_id == result["job_id"] and execution.operation == result["action"]
+    assert execution.status == "unverified" and execution.error is None
+    assert execution.model_dump(mode="json") == result["engine_result"]
     assert process["configuration"]["source_modified"] is False
     assert "-nographics" in process["argv"]
 

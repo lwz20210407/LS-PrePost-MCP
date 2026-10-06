@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 
 from ls_prepost_mcp.config import Settings
+from ls_prepost_mcp.core.contracts import JobResult
 from ls_prepost_mcp.field_contracts import FieldSpec, ResultSelection, SamplingSpec
 from ls_prepost_mcp.service import Service
 
@@ -105,9 +106,9 @@ def test_native_export_embeds_the_contract_and_preserves_scl_selector(tmp_path, 
         requested_ids[0] = 99
         requested_fields[0] = "stress_y"
         (directory / "native.csv").write_text("state,time,entity_id,stress_x\n1,0,42,2\n")
-        return dict(returncode=0, timed_out=False)
+        return JobResult(operation=kwargs["operation"], job_id=directory.name, status="unverified", data=dict(returncode=0, timed_out=False))
 
-    monkeypatch.setattr("ls_prepost_mcp.native_results.execute", execute)
+    monkeypatch.setattr("ls_prepost_mcp.native_results.run_batch", execute)
     result = native_fields(
         service.settings, service.jobs, source, "solid", requested_ids, [1], requested_fields, "mid", "MPa"
     )

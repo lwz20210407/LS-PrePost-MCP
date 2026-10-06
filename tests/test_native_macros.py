@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from ls_prepost_mcp.config import Settings
+from ls_prepost_mcp.core.contracts import JobResult
 from ls_prepost_mcp.native_macros import compile_macro
 from ls_prepost_mcp.service import Service
 
@@ -119,8 +120,8 @@ def test_prepared_native_macro_executes_through_existing_contract(tmp_path, monk
     def execute(executable, cfile, directory, **kwargs):
         assert (directory/'program.cfile').read_text().endswith('genselect node add node 1\n')
         (directory/'complete.txt').write_text('4 1 1')
-        return dict(returncode=0, timed_out=False)
+        return JobResult(operation=kwargs["operation"], job_id=directory.name, status="unverified", data=dict(returncode=0, timed_out=False))
 
-    monkeypatch.setattr('ls_prepost_mcp.programs.execute', execute)
+    monkeypatch.setattr('ls_prepost_mcp.programs.run_batch', execute)
     result = service.execute_native_program(prepared['job_id'], prepared['data']['sha256'])
     assert result['status'] == 'succeeded'

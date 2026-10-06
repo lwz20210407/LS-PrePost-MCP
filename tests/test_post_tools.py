@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 
 from ls_prepost_mcp.config import Settings
+from ls_prepost_mcp.core.contracts import JobResult
 from ls_prepost_mcp.post_backend import result_ids
 from ls_prepost_mcp.service import Service
 from ls_prepost_mcp.stress import NULLABLE, stress_metrics
@@ -85,8 +86,8 @@ def test_native_staging_and_missing_id_fail_closed(tmp_path, monkeypatch):
         assert (directory / "d3plot").read_bytes() == b"geometry"
         assert str(p) not in command.read_text()
         (directory / "native.csv").write_text("state,time,entity_id,stress_x\n1,0,42,2\n")
-        return {"returncode": 0, "timed_out": False}
-    monkeypatch.setattr("ls_prepost_mcp.native_results.execute", fake)
+        return JobResult(operation=kwargs["operation"], job_id=directory.name, status="unverified", data=dict(returncode=0, timed_out=False))
+    monkeypatch.setattr("ls_prepost_mcp.native_results.run_batch", fake)
     r = native_fields(s.settings, s.jobs, p, "solid", [42, 43], [1], ["stress_x"], "mid", "MPa")
     assert r["status"] == "failed"
     assert p.read_bytes() == b"geometry"

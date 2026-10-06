@@ -874,7 +874,7 @@ infrastructure:
     status: partial
     verification_level: L1
     gaps:
-      - renumber/quality 面板路径和五个批处理兼容字典仍待完整统一；公开 Win32 打开、检查点和重开已补原生证据
+      - renumber/quality 面板路径仍待完整统一；五个批处理入口已读取 JobResult，外部旧清单保留兼容输出；公开 Win32 打开、检查点和重开已补原生证据
       - 原生 d3plot 输入超过 1000 文件或 2 GiB 时在启动前明确拒绝；两版原地只读回退实验均崩溃，暂不提供该回退
       - 从 job 目录绝对路径读取 Include 时，中文根路径在 4.13/4.10 仍失败，4.10 的相对 Include 仍从 job cwd 解析；不得切到用户目录绕过
     evidence:
@@ -885,6 +885,7 @@ infrastructure:
       - docs/decisions/evidence/i01/report.md
       - docs/decisions/evidence/i01-followup/report.md
       - docs/decisions/evidence/i01-staging/report.md
+      - docs/decisions/evidence/i01-batch-contract/report.md
     acceptance:
       - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
       - 删除 gui_session_action 中运行时替换 _native 的做法

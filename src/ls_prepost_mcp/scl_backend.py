@@ -5,7 +5,7 @@ from pathlib import Path
 
 from .jobs import atomic_json, fingerprint, now
 from .native import commands as nc
-from .runner import execute, failure_message
+from .runner import record_batch_result, run_batch
 
 
 def inspect_database(settings, jobs, source: Path) -> dict:
@@ -30,10 +30,8 @@ def inspect_database(settings, jobs, source: Path) -> dict:
         nc.write_scl(directory / "inventory.scl", script)
         commands = directory / "commands.cfile"
         nc.write_cfile(commands, ["new", nc.open_model("d3plot", "d3plot", openc=True), nc.run_script("inventory.scl", "scl"), "exit"])
-        process = execute(settings.native_executable(), commands, directory, timeout=settings.timeout, graphics=False)
-        manifest["process"] = process
-        if process.get("engine_status") == "failed" or process["returncode"] != 0 or process["timed_out"]:
-            raise RuntimeError(failure_message(process, "Native SCL inventory process failed"))
+        execution = run_batch(settings.native_executable(), commands, directory, timeout=settings.timeout, graphics=False, operation=manifest["action"])
+        record_batch_result(execution, manifest, directory)
         nodes, elements, states = [int(x) for x in (directory / "counts.txt").read_text().split()]
         if min(nodes, elements, states) <= 0:
             raise ValueError("SCL inventory did not produce valid model counts")

@@ -1,4 +1,5 @@
 from ls_prepost_mcp.config import Settings
+from ls_prepost_mcp.core.contracts import JobResult
 from ls_prepost_mcp.service import Service
 
 
@@ -14,8 +15,8 @@ def test_scl_uses_owned_copies_and_requires_counts(tmp_path, monkeypatch):
         assert (directory / "d3plot").read_bytes() == b"geometry"
         assert (directory / "d3plot01").read_bytes() == b"state"
         assert not (directory / "d3plot_notes.txt").exists()
-        return {"returncode": 0, "timed_out": False}
-    monkeypatch.setattr("ls_prepost_mcp.scl_backend.execute", fake)
+        return JobResult(operation=kwargs["operation"], job_id=directory.name, status="unverified", data=dict(returncode=0, timed_out=False))
+    monkeypatch.setattr("ls_prepost_mcp.scl_backend.run_batch", fake)
     result = Service(Settings(tmp_path, exe)).inspect_d3plot_scl(str(original / "d3plot"))
     assert result["status"] == "failed"
     assert (original / "d3plot").read_bytes() == b"geometry"
