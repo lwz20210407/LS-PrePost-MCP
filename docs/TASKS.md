@@ -703,6 +703,8 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 里程碑：M1
 
+负责人：codex
+
 状态：partial；验证：L1
 
 证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py), [docs/decisions/evidence/i01/report.md](../docs/decisions/evidence/i01/report.md), [docs/decisions/evidence/i01-followup/report.md](../docs/decisions/evidence/i01-followup/report.md), [docs/decisions/evidence/i01-staging/report.md](../docs/decisions/evidence/i01-staging/report.md), [docs/decisions/evidence/i01-batch-contract/report.md](../docs/decisions/evidence/i01-batch-contract/report.md), [docs/decisions/evidence/i01-process-lifetime/report.md](../docs/decisions/evidence/i01-process-lifetime/report.md), [docs/decisions/evidence/i01-log-decoding/report.md](../docs/decisions/evidence/i01-log-decoding/report.md)
@@ -738,6 +740,8 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 里程碑：M1
 
+负责人：codex
+
 状态：partial；验证：待记录
 
 证据：[docs/decisions/evidence/i04/report.md](../docs/decisions/evidence/i04/report.md), [docs/decisions/evidence/i04-window/report.md](../docs/decisions/evidence/i04-window/report.md), [docs/decisions/evidence/i04-identity/report.md](../docs/decisions/evidence/i04-identity/report.md), [tools/native_regression.py](../tools/native_regression.py), [tests/test_public_corpus_native.py](../tests/test_public_corpus_native.py), [tests/corpus/public_cases.json](../tests/corpus/public_cases.json), [tests/test_native_acceptance.py](../tests/test_native_acceptance.py), [tests/test_native_regression.py](../tests/test_native_regression.py), [tests/test_native_remote.py](../tests/test_native_remote.py), [tests/test_native_input_preconditions.py](../tests/test_native_input_preconditions.py)
@@ -760,6 +764,8 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 ### I06 文档生成
 
 里程碑：M0
+
+负责人：codex
 
 - tools/gen_docs.py 由 tasks.yaml 与 registry 生成 TASKS.md、TOOLS.md、COMPATIBILITY.md、README 能力表
 - CI 检查生成物与源数据一致
