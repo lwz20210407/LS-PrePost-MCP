@@ -6,6 +6,12 @@ Entry points
     Main deck plus every ``*INCLUDE`` (``_PATH``, ``_TRANSFORM``/``_AUTO_OFFSET`` file card,
     ``' +'`` name continuation). Missing, cyclic, repeated and ambiguous includes become
     ``deck.warnings``; nothing on disk is modified.
+``preflight_includes(path)``
+    Read-only include check for callers that hand the deck to a native reader (LS-PrePost,
+    LS-DYNA): every file with SHA-256 plus a ``tree_sha256``, and flat problems (missing,
+    cycle, unreadable, limit, UNC name not accessed, UTF-16 text; warnings for empty include,
+    ambiguous, repeated, not followed, missing search directory). Never raises for unreadable
+    files.
 ``deck.blocks(pattern)`` / ``deck.find(pattern, **fields)``
     Blocks (and table rows) in LS-DYNA reading order; ``*SECTION_SHELL`` matches its
     ``_TITLE``/``_ID`` variants, ``*MAT_*`` is a prefix match.
@@ -63,8 +69,9 @@ import costs 15-20 s per process: call :func:`warm_up` when a server starts.
 from .blocks import Block, SourceFile
 from .deck import Change, FieldValue, IncludeRef, KeywordDeck
 from .fields import FieldError
+from .preflight import preflight_includes
 from .references import ReferencedError, ReferenceReport
 from .schema import Layout, Unsupported, warm_up
 
 __all__ = ["Block", "Change", "FieldError", "FieldValue", "IncludeRef", "KeywordDeck", "Layout", "ReferencedError", "ReferenceReport",
-           "SourceFile", "Unsupported", "warm_up"]
+           "SourceFile", "Unsupported", "preflight_includes", "warm_up"]
