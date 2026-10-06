@@ -1,5 +1,651 @@
 {
   "schema_version": 1,
+  "task": "I03-paths",
+  "kind": "retrospective_attachment",
+  "provenance": "PR #4 路径构建器修复工作树的实测：4.13.4/4.10.1 各一项通过、两项严格 xfail。通过项为 ASCII job 目录中的中文/空格输入文件名；工作目录本身含空格或中文的失败保留为 KI-049。不是 GUI/Movie 通过证据。",
+  "scope": "Existing local records; no new native run and no GUI/remote scope extension. Raw contents and absolute paths omitted.",
+  "pytest_logs": [
+    {
+      "name": "review-pr4-path-4.13-final.log",
+      "sha256": "102533f08123c9f8713fa2a249364aa492f0fb116821b4130055bb40827733a2",
+      "recorded_pytest_summary": [
+        "1 passed, 7 deselected, 2 xfailed in 45.68s"
+      ]
+    },
+    {
+      "name": "review-pr4-path-4.10-final.log",
+      "sha256": "03da7c26a8c70c72704e3f58846717d32c34d45fa0d80458d1a1ae12f2c5fd06",
+      "recorded_pytest_summary": [
+        "1 passed, 7 deselected, 2 xfailed in 58.28s"
+      ]
+    }
+  ],
+  "records": [
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/08b8628aac5245e69b513e96cccfc954/contract.json",
+      "size": 524,
+      "sha256": "effcbacdeaaebb49a1e5eb8ac1b89a870f79d1bf5f4ad918621a73b12416e47c"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/08b8628aac5245e69b513e96cccfc954/job.json",
+      "size": 1741,
+      "sha256": "b004e94f5b75a32bc1d5fa94de4c2cbbdd143c6ca6ef8129262f8ccce92e8f1f",
+      "recorded_status": "prepared"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/08b8628aac5245e69b513e96cccfc954/program.cfile",
+      "size": 73,
+      "sha256": "1907aa3d80cd62b3678ed22f424312119f38a4fd3c9843da8ad8b00b0cd5d90e"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/0ae7605c85534fd98b85c3661707a6a0/commands.cfile",
+      "size": 134,
+      "sha256": "ca1f475cf4d663a520b7bb803068bb1ed3a151528678d40952bd02364d40d22d"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/0ae7605c85534fd98b85c3661707a6a0/complete.scl",
+      "size": 269,
+      "sha256": "21552185f7d1406214d581b681f567323159d1d783ba2f74c58247b626267a2f"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/0ae7605c85534fd98b85c3661707a6a0/contract.json",
+      "size": 524,
+      "sha256": "effcbacdeaaebb49a1e5eb8ac1b89a870f79d1bf5f4ad918621a73b12416e47c"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/0ae7605c85534fd98b85c3661707a6a0/job.json",
+      "size": 4941,
+      "sha256": "a1ba3f43594e9c19670f4a4811176d6b1ab840904a930185883e10800fa9667b",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/0ae7605c85534fd98b85c3661707a6a0/lspost.cfile",
+      "size": 275,
+      "sha256": "443ba44c8353b789e16f6a16e8704458c759f5197da300e4e0d01750258f6967"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/0ae7605c85534fd98b85c3661707a6a0/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/0ae7605c85534fd98b85c3661707a6a0/program.cfile",
+      "size": 73,
+      "sha256": "1907aa3d80cd62b3678ed22f424312119f38a4fd3c9843da8ad8b00b0cd5d90e"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/0ae7605c85534fd98b85c3661707a6a0/stderr.log",
+      "size": 145,
+      "sha256": "3053188333d49683748a526850633db161faae644018bea718871287438fe540"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/0ae7605c85534fd98b85c3661707a6a0/stdout.log",
+      "size": 868,
+      "sha256": "4147331ceef943745d8bb27b1c61cce7ffe1c05a60863651b57c0c34f4da714e"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/550fe54e0c3743048e1cacc46c419d7d/bootstrap.py",
+      "size": 792,
+      "sha256": "4f7b78bac6cbcc3cc5a4a19bb0571d4522abe6e41fa4b9b6e28feec560179212"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/550fe54e0c3743048e1cacc46c419d7d/bridge.py",
+      "size": 64438,
+      "sha256": "94fb4159d595b6e11c1f9c9df0b73aa703faa879df718607513d18c655af1f79"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/550fe54e0c3743048e1cacc46c419d7d/commands.cfile",
+      "size": 194,
+      "sha256": "dadd618dbbde63d56dd5374efbca5b69cb4f73de7dfbc10a34877355cf5235e6"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/550fe54e0c3743048e1cacc46c419d7d/job.json",
+      "size": 4351,
+      "sha256": "b320a43a90d6b67d94e850281ba80b247bcad76a4a03ebbc7b7d00c934ce0e46",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/550fe54e0c3743048e1cacc46c419d7d/lspost.cfile",
+      "size": 355,
+      "sha256": "cfacaf1c864fbd8479ae128c2aaa7369b69ceefd60f90b3a9fba0ed473f99651"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/550fe54e0c3743048e1cacc46c419d7d/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/550fe54e0c3743048e1cacc46c419d7d/native_commands.py",
+      "size": 5815,
+      "sha256": "61fa7187587c2f2122b13c5b7268cb6add6df7029a1d3863d51348da142247e9"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/550fe54e0c3743048e1cacc46c419d7d/native_versions.py",
+      "size": 3229,
+      "sha256": "9c23d22dabaf505578e2c64fe8ddde6c0a2f188ed9956cdac64889fdce53350e"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/550fe54e0c3743048e1cacc46c419d7d/request.json",
+      "size": 513,
+      "sha256": "2070055b1045c1e80d12e588d3206644d6e9bfd2becf57c0b6cb3a1d00454640"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/550fe54e0c3743048e1cacc46c419d7d/response.json",
+      "size": 795,
+      "sha256": "70f7fe698e4957992d82453990f970ff98dd80379e28be4b685b49dc3db430d7",
+      "recorded_ok": true,
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/550fe54e0c3743048e1cacc46c419d7d/stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/550fe54e0c3743048e1cacc46c419d7d/stdout.log",
+      "size": 850,
+      "sha256": "3869713334071303628c10073120613e12a6d5cc597619c6757b786b9b231d26"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/12b842f19f874b3bbc2b4627c44c9caf/contract.json",
+      "size": 524,
+      "sha256": "effcbacdeaaebb49a1e5eb8ac1b89a870f79d1bf5f4ad918621a73b12416e47c"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/12b842f19f874b3bbc2b4627c44c9caf/job.json",
+      "size": 1735,
+      "sha256": "be12bda7666c858c3683159f3f6b73789e16c6090a29673b988e52f044df409d",
+      "recorded_status": "prepared"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/12b842f19f874b3bbc2b4627c44c9caf/program.cfile",
+      "size": 73,
+      "sha256": "1907aa3d80cd62b3678ed22f424312119f38a4fd3c9843da8ad8b00b0cd5d90e"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/d7cc343cb5624012aaa65b76677b4e92/commands.cfile",
+      "size": 134,
+      "sha256": "ca1f475cf4d663a520b7bb803068bb1ed3a151528678d40952bd02364d40d22d"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/d7cc343cb5624012aaa65b76677b4e92/complete.scl",
+      "size": 269,
+      "sha256": "21552185f7d1406214d581b681f567323159d1d783ba2f74c58247b626267a2f"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/d7cc343cb5624012aaa65b76677b4e92/contract.json",
+      "size": 524,
+      "sha256": "effcbacdeaaebb49a1e5eb8ac1b89a870f79d1bf5f4ad918621a73b12416e47c"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/d7cc343cb5624012aaa65b76677b4e92/job.json",
+      "size": 4036,
+      "sha256": "6ca5c4122b90ba286d8ad8adbd58ad55254b1ade310ec890a3c3f12a858bca80",
+      "recorded_status": "failed"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/d7cc343cb5624012aaa65b76677b4e92/lspost.cfile",
+      "size": 275,
+      "sha256": "27a68a58aeb6913d1e28f3b12cb79a30901f878cbb05ddae4cbd9ad67c908ff3"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/d7cc343cb5624012aaa65b76677b4e92/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/d7cc343cb5624012aaa65b76677b4e92/program.cfile",
+      "size": 73,
+      "sha256": "1907aa3d80cd62b3678ed22f424312119f38a4fd3c9843da8ad8b00b0cd5d90e"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/d7cc343cb5624012aaa65b76677b4e92/stderr.log",
+      "size": 185,
+      "sha256": "82dc48760302adb87736e7b9b639617291ec7d9d9bba3cdd436024cb68b42dab"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/d7cc343cb5624012aaa65b76677b4e92/stdout.log",
+      "size": 773,
+      "sha256": "ccd587ac4a59f557548e8de9718bc58569e924d74b827f67c350a84559d90ef8"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/4558ad3173964455a70c374cdcfa9e61/commands.cfile",
+      "size": 134,
+      "sha256": "ca1f475cf4d663a520b7bb803068bb1ed3a151528678d40952bd02364d40d22d"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/4558ad3173964455a70c374cdcfa9e61/complete.scl",
+      "size": 269,
+      "sha256": "21552185f7d1406214d581b681f567323159d1d783ba2f74c58247b626267a2f"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/4558ad3173964455a70c374cdcfa9e61/contract.json",
+      "size": 524,
+      "sha256": "effcbacdeaaebb49a1e5eb8ac1b89a870f79d1bf5f4ad918621a73b12416e47c"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/4558ad3173964455a70c374cdcfa9e61/job.json",
+      "size": 4047,
+      "sha256": "1d36b44768467ed62549648729c78d7c223c1a296ea553d37fb1e945edfa88d1",
+      "recorded_status": "failed"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/4558ad3173964455a70c374cdcfa9e61/lspost.cfile",
+      "size": 275,
+      "sha256": "138941f4096d0a8db6002de6331014f3dc9856a5bcf496330b47be0ec1f120e0"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/4558ad3173964455a70c374cdcfa9e61/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/4558ad3173964455a70c374cdcfa9e61/program.cfile",
+      "size": 73,
+      "sha256": "1907aa3d80cd62b3678ed22f424312119f38a4fd3c9843da8ad8b00b0cd5d90e"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/4558ad3173964455a70c374cdcfa9e61/stderr.log",
+      "size": 186,
+      "sha256": "ccb8bc7da9f5b9b375d58c366a9213e17638159fa5caae28a98830297fa6e903"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/4558ad3173964455a70c374cdcfa9e61/stdout.log",
+      "size": 773,
+      "sha256": "ccd587ac4a59f557548e8de9718bc58569e924d74b827f67c350a84559d90ef8"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/5b1d5d854ed94ca791f67e50062380fc/contract.json",
+      "size": 524,
+      "sha256": "effcbacdeaaebb49a1e5eb8ac1b89a870f79d1bf5f4ad918621a73b12416e47c"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/5b1d5d854ed94ca791f67e50062380fc/job.json",
+      "size": 1737,
+      "sha256": "54fd9266eeb368f074d1a89cb1f883fe28e83c70a1243bba6d8a298cc6b85e18",
+      "recorded_status": "prepared"
+    },
+    {
+      "source_set": "review-pr4-native-4.13-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/5b1d5d854ed94ca791f67e50062380fc/program.cfile",
+      "size": 73,
+      "sha256": "1907aa3d80cd62b3678ed22f424312119f38a4fd3c9843da8ad8b00b0cd5d90e"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/2567c5e01fac4f2391183705a83a55b0/bootstrap.py",
+      "size": 792,
+      "sha256": "63bc57124652761937940debad195daca81f352a4a2c4809ca6676608da7c15b"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/2567c5e01fac4f2391183705a83a55b0/bridge.py",
+      "size": 64438,
+      "sha256": "94fb4159d595b6e11c1f9c9df0b73aa703faa879df718607513d18c655af1f79"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/2567c5e01fac4f2391183705a83a55b0/commands.cfile",
+      "size": 194,
+      "sha256": "e0e78ec9e623c7d935210210e457deade052ab46816977e1871948651920210b"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/2567c5e01fac4f2391183705a83a55b0/job.json",
+      "size": 4333,
+      "sha256": "cc57b1515ebf1bf3ef5c2f736a8fc6452a45699291dd33264e52ace8fed82083",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/2567c5e01fac4f2391183705a83a55b0/lspost.cfile",
+      "size": 343,
+      "sha256": "3ebd3ba58081ba8c3b7ab17607be9fb6fbf3820f8413113c1fb9276097ff30c9"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/2567c5e01fac4f2391183705a83a55b0/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/2567c5e01fac4f2391183705a83a55b0/native_commands.py",
+      "size": 5815,
+      "sha256": "61fa7187587c2f2122b13c5b7268cb6add6df7029a1d3863d51348da142247e9"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/2567c5e01fac4f2391183705a83a55b0/native_versions.py",
+      "size": 3229,
+      "sha256": "9c23d22dabaf505578e2c64fe8ddde6c0a2f188ed9956cdac64889fdce53350e"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/2567c5e01fac4f2391183705a83a55b0/request.json",
+      "size": 513,
+      "sha256": "85ebc0d3dfddc3e02d29ff1ebec65f1c10fdddf75e3a2d0c691dc81c5a3ca347"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/2567c5e01fac4f2391183705a83a55b0/response.json",
+      "size": 755,
+      "sha256": "fa62e1f8a8e64d24a0f88b79951a96a20763b82bbb35c2eda6130b602870eb83",
+      "recorded_ok": true,
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/2567c5e01fac4f2391183705a83a55b0/stderr.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/2567c5e01fac4f2391183705a83a55b0/stdout.log",
+      "size": 848,
+      "sha256": "690fa2f36975d4fb8816b7d7a35775e40c8c5ffd3c291bab8fc7da58d98e122a"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/42690be3fb6b4419b6c5115e393cd15c/contract.json",
+      "size": 524,
+      "sha256": "effcbacdeaaebb49a1e5eb8ac1b89a870f79d1bf5f4ad918621a73b12416e47c"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/42690be3fb6b4419b6c5115e393cd15c/job.json",
+      "size": 1741,
+      "sha256": "9b546d3aedaaf4566be2b6ac7fd033f6ca09e441c49a863e3dec594c333cd07f",
+      "recorded_status": "prepared"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/42690be3fb6b4419b6c5115e393cd15c/program.cfile",
+      "size": 73,
+      "sha256": "1907aa3d80cd62b3678ed22f424312119f38a4fd3c9843da8ad8b00b0cd5d90e"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/ff2628e137cb42199313b0da838e6b91/commands.cfile",
+      "size": 134,
+      "sha256": "ca1f475cf4d663a520b7bb803068bb1ed3a151528678d40952bd02364d40d22d"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/ff2628e137cb42199313b0da838e6b91/complete.scl",
+      "size": 269,
+      "sha256": "21552185f7d1406214d581b681f567323159d1d783ba2f74c58247b626267a2f"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/ff2628e137cb42199313b0da838e6b91/contract.json",
+      "size": 524,
+      "sha256": "effcbacdeaaebb49a1e5eb8ac1b89a870f79d1bf5f4ad918621a73b12416e47c"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/ff2628e137cb42199313b0da838e6b91/job.json",
+      "size": 4962,
+      "sha256": "6d2e373368f6a5e01020ae98373e956dafc73ad18eb9dd41c4dcc87853f3f3a1",
+      "recorded_status": "succeeded",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      }
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/ff2628e137cb42199313b0da838e6b91/lspost.cfile",
+      "size": 263,
+      "sha256": "4503b24d7135d3260eb6f2db3039d60f54eb1e26726fc9c4df01e89c0cd482f0"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/ff2628e137cb42199313b0da838e6b91/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/ff2628e137cb42199313b0da838e6b91/program.cfile",
+      "size": 73,
+      "sha256": "1907aa3d80cd62b3678ed22f424312119f38a4fd3c9843da8ad8b00b0cd5d90e"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/ff2628e137cb42199313b0da838e6b91/stderr.log",
+      "size": 165,
+      "sha256": "c5f8d25f80a932b7c98d97bbc2061e286d6eb434205cb864d9044062fd325727"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico0/ascii-workspace/jobs/ff2628e137cb42199313b0da838e6b91/stdout.log",
+      "size": 866,
+      "sha256": "4b2b0f2f99c112e2318507fbc249c5dc044c2393ebddaa25985944d7708351a8"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/453fd41316d9409786387131086e7879/contract.json",
+      "size": 524,
+      "sha256": "effcbacdeaaebb49a1e5eb8ac1b89a870f79d1bf5f4ad918621a73b12416e47c"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/453fd41316d9409786387131086e7879/job.json",
+      "size": 1735,
+      "sha256": "6fd4c7ef913eb5e7a9ec6559669690322d416a9f64277925624996467d0f7013",
+      "recorded_status": "prepared"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/453fd41316d9409786387131086e7879/program.cfile",
+      "size": 73,
+      "sha256": "1907aa3d80cd62b3678ed22f424312119f38a4fd3c9843da8ad8b00b0cd5d90e"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/601f6cde23524f2294887cc8ac2a27cf/commands.cfile",
+      "size": 134,
+      "sha256": "ca1f475cf4d663a520b7bb803068bb1ed3a151528678d40952bd02364d40d22d"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/601f6cde23524f2294887cc8ac2a27cf/complete.scl",
+      "size": 269,
+      "sha256": "21552185f7d1406214d581b681f567323159d1d783ba2f74c58247b626267a2f"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/601f6cde23524f2294887cc8ac2a27cf/contract.json",
+      "size": 524,
+      "sha256": "effcbacdeaaebb49a1e5eb8ac1b89a870f79d1bf5f4ad918621a73b12416e47c"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/601f6cde23524f2294887cc8ac2a27cf/job.json",
+      "size": 4059,
+      "sha256": "1ede01c6c9dae98a7f01fc1f50bdb6ee8319d820be3bd995a1af7d829d98f1ff",
+      "recorded_status": "failed"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/601f6cde23524f2294887cc8ac2a27cf/lspost.cfile",
+      "size": 263,
+      "sha256": "9fd5e09b3b8b71130c189a472e49ee6315f86bf2b6ee5d08ef8bf66a74d9b2eb"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/601f6cde23524f2294887cc8ac2a27cf/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/601f6cde23524f2294887cc8ac2a27cf/program.cfile",
+      "size": 73,
+      "sha256": "1907aa3d80cd62b3678ed22f424312119f38a4fd3c9843da8ad8b00b0cd5d90e"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/601f6cde23524f2294887cc8ac2a27cf/stderr.log",
+      "size": 73,
+      "sha256": "99a251f92d1b8319177d0509b9fe459f1679dfe7537228622a8e6bf7f533fb13"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico1/space folder/jobs/601f6cde23524f2294887cc8ac2a27cf/stdout.log",
+      "size": 771,
+      "sha256": "671b58915fa0166a72e9e18097205b7a70691a728a93141bd4dfffec8ab6636f"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/08eb8c87ad594fdab082ea0163cbb05b/commands.cfile",
+      "size": 134,
+      "sha256": "ca1f475cf4d663a520b7bb803068bb1ed3a151528678d40952bd02364d40d22d"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/08eb8c87ad594fdab082ea0163cbb05b/complete.scl",
+      "size": 269,
+      "sha256": "21552185f7d1406214d581b681f567323159d1d783ba2f74c58247b626267a2f"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/08eb8c87ad594fdab082ea0163cbb05b/contract.json",
+      "size": 524,
+      "sha256": "effcbacdeaaebb49a1e5eb8ac1b89a870f79d1bf5f4ad918621a73b12416e47c"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/08eb8c87ad594fdab082ea0163cbb05b/job.json",
+      "size": 4067,
+      "sha256": "6a97d6d65f520b65398cc7de053b0cf67eee6ea2ab266b07fc7d058116f6c0a1",
+      "recorded_status": "failed"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/08eb8c87ad594fdab082ea0163cbb05b/lspost.cfile",
+      "size": 263,
+      "sha256": "71412427ecc5405c307aa25680beecb61ffc6faa68e0172ef662c0b9bb44a8df"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/08eb8c87ad594fdab082ea0163cbb05b/native-config/tos.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/08eb8c87ad594fdab082ea0163cbb05b/program.cfile",
+      "size": 73,
+      "sha256": "1907aa3d80cd62b3678ed22f424312119f38a4fd3c9843da8ad8b00b0cd5d90e"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/08eb8c87ad594fdab082ea0163cbb05b/stderr.log",
+      "size": 73,
+      "sha256": "d77e7d9102af03efec401acc2ccf1d74024c87fc012ea52739040ce55809eb33"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/08eb8c87ad594fdab082ea0163cbb05b/stdout.log",
+      "size": 771,
+      "sha256": "671b58915fa0166a72e9e18097205b7a70691a728a93141bd4dfffec8ab6636f"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/60472a997bae4e188e121d544fc406e2/contract.json",
+      "size": 524,
+      "sha256": "effcbacdeaaebb49a1e5eb8ac1b89a870f79d1bf5f4ad918621a73b12416e47c"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/60472a997bae4e188e121d544fc406e2/job.json",
+      "size": 1737,
+      "sha256": "46e6c3c75b0216f971380a82dd66bfed6a90a9f2d6884cfb94612e63f5694150",
+      "recorded_status": "prepared"
+    },
+    {
+      "source_set": "review-pr4-native-4.10-final",
+      "relative_path": "test_path_builders_batch_unico2/中文 空格/jobs/60472a997bae4e188e121d544fc406e2/program.cfile",
+      "size": 73,
+      "sha256": "1907aa3d80cd62b3678ed22f424312119f38a4fd3c9843da8ad8b00b0cd5d90e"
+    }
+  ],
+  "followup": {
+  "schema_version": 1,
   "task": "I03",
   "actual_git_revision": "8c95208815d33313a77d71b75c18be52b5cf1fd5",
   "working_tree_dirty": true,
@@ -55,4 +701,5 @@
       }
     ]
   }
+}
 }
