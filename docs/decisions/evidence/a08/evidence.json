@@ -448,5 +448,196 @@
     {"source_set": "a08-runc-410", "relative_path": "test_recipe_runc_capability_tr0/jobs/38dc54f29dbc447ca5201269b881bea5/stderr.log", "size": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
     {"source_set": "a08-runc-410", "relative_path": "test_recipe_runc_capability_tr0/jobs/38dc54f29dbc447ca5201269b881bea5/stdout.log", "size": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
     {"source_set": "a08-runc-410", "relative_path": "test_recipe_runc_capability_tr0/runc-result.json", "size": 3668, "sha256": "7e2f06bb7239aac3a8167bcbcf368a69421a3bd0d02a67e0eb23cdb75e23d583", "recorded_status": "failed"}
-  ]
+  ],
+  "review_runs": [
+  {
+    "actual_git_revision": "fe75f0b435b9a860d5b1397b9e6c2bce9f799eef",
+    "working_tree_dirty": true,
+    "git_diff_sha256": "7d11a984d8f504e1c852bab4e6c66979d642c79b415d1ad33a854405974b46a5",
+    "patch_scope": "git diff HEAD --binary captured before both runs",
+    "suite": "a08",
+    "mode": "batch_only",
+    "run_id": "r3a08n1",
+    "versions": [
+      {
+        "version": "413",
+        "pytest_exit_code": 0,
+        "report_sha256": "97bc668f73d133d59def7331b632a1bfdfa598d5bae4f4b701ec10c2fe50d4d5",
+        "cases": [
+          {
+            "case": "tests/test_recipes_native.py::test_builtin_recipe[box_mesh]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 11.004294400001527,
+            "channels": null
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_builtin_recipe[translate_nodes]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 10.91193599998951,
+            "channels": null
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_builtin_recipe[snapshot]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 7.4254232999956,
+            "channels": null
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_builtin_recipe[node_coordinates]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 5.1399808999995,
+            "channels": null
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_builtin_recipe[model_inventory]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 5.537038499998744,
+            "channels": null
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_recipe_runc_capability[box_mesh]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 5.746146000004956,
+            "channels": null
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_recipe_runc_capability[translate_nodes]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 5.332653599994956,
+            "channels": null
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_recipe_runc_capability[snapshot]",
+            "status": "evidence_only",
+            "raw_report_status": "evidence_only",
+            "duration_seconds": 6.478015700005926,
+            "channels": {
+              "execution": "failed"
+            }
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_recipe_runc_capability[node_coordinates]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 0.7997382999892579,
+            "channels": null
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_recipe_runc_capability[model_inventory]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 0.8428388000029372,
+            "channels": null
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_box_recipe_uses_supplied_dimensions",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 4.297244200002751,
+            "channels": null
+          }
+        ]
+      },
+      {
+        "version": "410",
+        "pytest_exit_code": 0,
+        "report_sha256": "0ab4ad6255cfbacf70a180ebbf25befcdf7e604194ccaab8ca377e7c4a167b72",
+        "cases": [
+          {
+            "case": "tests/test_recipes_native.py::test_builtin_recipe[box_mesh]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 11.781455000003916,
+            "channels": null
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_builtin_recipe[translate_nodes]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 12.966723100005765,
+            "channels": null
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_builtin_recipe[snapshot]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 7.261281099999906,
+            "channels": null
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_builtin_recipe[node_coordinates]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 7.580482599994866,
+            "channels": null
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_builtin_recipe[model_inventory]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 7.484377400003723,
+            "channels": null
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_recipe_runc_capability[box_mesh]",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 8.011482100002468,
+            "channels": null
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_recipe_runc_capability[translate_nodes]",
+            "status": "evidence_only",
+            "raw_report_status": "evidence_only",
+            "duration_seconds": 5.939532299991697,
+            "channels": {
+              "execution": "failed"
+            }
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_recipe_runc_capability[snapshot]",
+            "status": "evidence_only",
+            "raw_report_status": "evidence_only",
+            "duration_seconds": 5.583288800000446,
+            "channels": {
+              "execution": "failed"
+            }
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_recipe_runc_capability[node_coordinates]",
+            "status": "evidence_only",
+            "raw_report_status": "evidence_only",
+            "duration_seconds": 5.297244300003513,
+            "channels": {
+              "execution": "failed"
+            }
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_recipe_runc_capability[model_inventory]",
+            "status": "evidence_only",
+            "raw_report_status": "evidence_only",
+            "duration_seconds": 4.813487100007478,
+            "channels": {
+              "execution": "failed"
+            }
+          },
+          {
+            "case": "tests/test_recipes_native.py::test_box_recipe_uses_supplied_dimensions",
+            "status": "passed",
+            "raw_report_status": "passed",
+            "duration_seconds": 5.645755500008818,
+            "channels": null
+          }
+        ]
+      }
+    ]
+  }
+]
 }

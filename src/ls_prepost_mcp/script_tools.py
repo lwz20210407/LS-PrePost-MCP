@@ -120,6 +120,7 @@ class ScriptTools:
                                                        traceback=reply.get("traceback"))
             outcome = JobResult(operation="run_script", job_id=normalized.job_id or result.get("request_id"),
                                 status=status, backend="lsprepost", artifacts=normalized.artifacts,
+                                warnings=normalized.warnings, checks=normalized.checks,
                                 evidence=(*normalized.evidence, artifact), error=error,
                                 data=dict(**normalized.data, language=language, context=context,
                                           requested_source=code, native_echo=echo,
@@ -128,6 +129,7 @@ class ScriptTools:
         except (OSError, ValueError) as exc:
             outcome = JobResult(operation="run_script", status="failed" if normalized.status == "failed" else "unverified",
                                 job_id=normalized.job_id or result.get("request_id"), backend="lsprepost", artifacts=normalized.artifacts,
+                                warnings=normalized.warnings, checks=normalized.checks,
                                 error=normalized.error or dict(type=type(exc).__name__, message=str(exc)),
                                 data={**normalized.data, "context": context, "language": language,
                                       "native_echo_error": str(exc)})

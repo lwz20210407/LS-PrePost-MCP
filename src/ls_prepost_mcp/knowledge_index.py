@@ -209,6 +209,10 @@ def search_index(path, query, *, category=None, limit=10, include_private=False)
         begin = max(0, position - 100) if position >= 0 else 0
         data["snippet"] = text[begin:begin + 600]
         data.update(status="reference_unverified", executable=False, private=data["visibility"] == "private")
+        if data["category"] == "recipe":
+            proof = recipe_verification(text)
+            if proof:
+                data["recipe_verification"] = proof
         if fields[data["id"]] is not None:
             data.pop("line_start")
             data.pop("line_end")  # Structured provider fields have card/columns, not invented source lines.
@@ -219,3 +223,31 @@ def search_index(path, query, *, category=None, limit=10, include_private=False)
             data["keyword_field"] = field
         results.append(data)
     return results
+
+
+def recipe_verification(text):
+    """Extract attributed version/mode claims from indexed YAML, never execute it."""
+    import yaml
+
+    if len(text) > 1024 * 1024:
+        return None
+    try:
+        recipe = yaml.safe_load(text)
+    except yaml.YAMLError:
+        return None
+    if not isinstance(recipe, dict):
+        return None
+    versions = recipe.get("versions_verified")
+    if not isinstance(versions, list) or not all(isinstance(v, str) and v.strip() for v in versions):
+        return None
+    modes = recipe.get("execution_modes")
+    scoped = {}
+    if isinstance(modes, dict):
+        for name, details in modes.items():
+            by_version = details.get("by_version") if isinstance(details, dict) else None
+            if name in ("c_nographics", "runc") and isinstance(by_version, dict):
+                scoped[name] = {version: state for version, state in by_version.items()
+                                if isinstance(version, str) and state in ("verified", "failed", "unverified")}
+    case = recipe.get("l2_case")
+    return dict(versions_verified=versions, execution_modes=scoped,
+                l2_case=case if isinstance(case, str) and case.strip() else None)

@@ -752,5 +752,481 @@
     "keyword_fields": 195,
     "keyword_identifiers": 7
   },
-  "privacy": "No source excerpts, manual paragraphs or absolute paths; indexes remain external"
+  "privacy": "No source excerpts, manual paragraphs or absolute paths; indexes remain external",
+  "holdout": {
+  "queries": 24,
+  "hits_at_3": 12,
+  "results": [
+    {
+      "id": "HC01",
+      "category": "command",
+      "query": "动画起始帧 anim first 的用法",
+      "hit_at_3": true,
+      "first_correct_rank": 1,
+      "returned": [
+        {
+          "id": "6233dc2b52dc944ea42e241d77b01743fd0cad1dfb152c84c1bebf4f819ec111",
+          "source_id": "library-cfile-support",
+          "version": "catalog",
+          "evidence_level": "source_example"
+        }
+      ]
+    },
+    {
+      "id": "HC02",
+      "category": "command",
+      "query": "查俯视方向 top 指令",
+      "hit_at_3": true,
+      "first_correct_rank": 1,
+      "returned": [
+        {
+          "id": "7b3c4d486fe866c34df05507b467f2173f158c1db538cf9fbe02135b2933ffc2",
+          "source_id": "library-cfile-support",
+          "version": "catalog",
+          "evidence_level": "source_example"
+        },
+        {
+          "id": "4c56d1a20836e3a8172dc67cb62a80cc3e41d303f0e4360af56d227ec52ab2cb",
+          "source_id": "library-cfile-support",
+          "version": "catalog",
+          "evidence_level": "source_example"
+        },
+        {
+          "id": "c329b982fccac748334d817f449a2d47378323c6f7e8108a08908588b6cd4e0e",
+          "source_id": "library-cfile-support",
+          "version": "catalog",
+          "evidence_level": "source_example"
+        }
+      ]
+    },
+    {
+      "id": "HC03",
+      "category": "command",
+      "query": "停止播放动画的命令",
+      "hit_at_3": false,
+      "first_correct_rank": null,
+      "returned": []
+    },
+    {
+      "id": "HC04",
+      "category": "command",
+      "query": "查找按部件显示 ispart 的语法",
+      "hit_at_3": false,
+      "first_correct_rank": null,
+      "returned": []
+    },
+    {
+      "id": "HA01",
+      "category": "api",
+      "query": "SCLBinoutReadFloatArray 的数组读取接口",
+      "hit_at_3": true,
+      "first_correct_rank": 1,
+      "returned": [
+        {
+          "id": "83032f15033caa6e174b868a0667896802a520f57860238204361fb4ab046247",
+          "source_id": "local-scripting-api",
+          "version": "2024 reference; runtime compatibility unverified",
+          "evidence_level": "documented"
+        }
+      ]
+    },
+    {
+      "id": "HA02",
+      "category": "api",
+      "query": "SCLGetInternalID 如何转换用户编号",
+      "hit_at_3": true,
+      "first_correct_rank": 1,
+      "returned": [
+        {
+          "id": "90897ba844af13f4e887d6a9c9e1ab04fa3e079b1ea75ef72716ef32040185f5",
+          "source_id": "local-scripting-api",
+          "version": "2024 reference; runtime compatibility unverified",
+          "evidence_level": "documented"
+        }
+      ]
+    },
+    {
+      "id": "HA03",
+      "category": "api",
+      "query": "SCLGetUserPartIDFromUserElementID 查单元所属部件",
+      "hit_at_3": true,
+      "first_correct_rank": 1,
+      "returned": [
+        {
+          "id": "90897ba844af13f4e887d6a9c9e1ab04fa3e079b1ea75ef72716ef32040185f5",
+          "source_id": "local-scripting-api",
+          "version": "2024 reference; runtime compatibility unverified",
+          "evidence_level": "documented"
+        }
+      ]
+    },
+    {
+      "id": "HA04",
+      "category": "api",
+      "query": "SCLCalcGeomVolume 计算几何体积",
+      "hit_at_3": true,
+      "first_correct_rank": 1,
+      "returned": [
+        {
+          "id": "ef8c4128ac4a11b50676631b29a65acb5bc59e3c4c0c53f00af027709880f09a",
+          "source_id": "local-scripting-api",
+          "version": "2024 reference; runtime compatibility unverified",
+          "evidence_level": "documented"
+        }
+      ]
+    },
+    {
+      "id": "HK01",
+      "category": "keyword",
+      "query": "*MAT_ELASTIC 密度",
+      "hit_at_3": true,
+      "first_correct_rank": 1,
+      "returned": [
+        {
+          "id": "7530e14269aa09c2c0562a251ea33640143dbe85f69de162355b592b858c2e30",
+          "source_id": "keyword_docs:*MAT_ELASTIC",
+          "version": "ansys-dyna-core 0.12.1",
+          "evidence_level": "native_verified"
+        },
+        {
+          "id": "f29414ca85383e2a2dc1b233783d00e98b1bc36f4e9bee5b75052a250b21eab7",
+          "source_id": "keyword_docs:*MAT_ELASTIC",
+          "version": "ansys-dyna-core 0.12.1",
+          "evidence_level": "native_verified"
+        },
+        {
+          "id": "a5a0102fb98f2dd85e50e4914c2a08a17e911065abe9a616422eb2d8cbdc84d3",
+          "source_id": "keyword_docs:*MAT_ELASTIC",
+          "version": "ansys-dyna-core 0.12.1",
+          "evidence_level": "native_verified"
+        }
+      ]
+    },
+    {
+      "id": "HK02",
+      "category": "keyword",
+      "query": "*PART 截面属性编号",
+      "hit_at_3": false,
+      "first_correct_rank": null,
+      "returned": [
+        {
+          "id": "5f7dba4eeaaaaddd4f25d2e93111b94782b798f3ac426ac8540ad88cee720d2c",
+          "source_id": "keyword_docs:*PART",
+          "version": "ansys-dyna-core 0.12.1",
+          "evidence_level": "native_verified"
+        },
+        {
+          "id": "7177cdda00ca6e2bab458eac8ae32c18fcca65f89b48a199522c7c5789b2386d",
+          "source_id": "keyword_docs:*PART",
+          "version": "ansys-dyna-core 0.12.1",
+          "evidence_level": "native_verified"
+        },
+        {
+          "id": "8bf1820b03ce3e412db8657752d01b2588f5a0ccf67ca0437bf6e024b243a14d",
+          "source_id": "keyword_docs:*PART",
+          "version": "ansys-dyna-core 0.12.1",
+          "evidence_level": "native_verified"
+        }
+      ]
+    },
+    {
+      "id": "HK03",
+      "category": "keyword",
+      "query": "*MAT_024 硬化切线斜率",
+      "hit_at_3": false,
+      "first_correct_rank": null,
+      "returned": [
+        {
+          "id": "11e60b691a4f4a9cf933b647df327d60fa56d4d8ce6051c50a4bf3d6d9633e65",
+          "source_id": "keyword_docs:*MAT_024",
+          "version": "ansys-dyna-core 0.12.1",
+          "evidence_level": "documented"
+        },
+        {
+          "id": "43b210bcedad603dfcb855a0f199e1fd644a3fcc9b574e099b4fec3c16dee719",
+          "source_id": "keyword_docs:*MAT_024",
+          "version": "ansys-dyna-core 0.12.1",
+          "evidence_level": "documented"
+        },
+        {
+          "id": "52129654fd0d79080be066fa8bc1f5262dc55b4d1db69d7149d87b3e160262ba",
+          "source_id": "keyword_docs:*MAT_024",
+          "version": "ansys-dyna-core 0.12.1",
+          "evidence_level": "documented"
+        }
+      ]
+    },
+    {
+      "id": "HK04",
+      "category": "keyword",
+      "query": "*CONTACT_ERODING 摩擦的静态系数",
+      "hit_at_3": false,
+      "first_correct_rank": null,
+      "returned": [
+        {
+          "id": "4570d93bc73db1ff39b0e4c816413e8a836e6e0aac5d5b6c8e4f778ffc221554",
+          "source_id": "keyword_docs:*CONTACT_ERODING_SURFACE_TO_SURFACE",
+          "version": "ansys-dyna-core 0.12.1",
+          "evidence_level": "native_verified"
+        },
+        {
+          "id": "824966fe8884dea1686ee1a3c0a6fe1c26cba51cb54b25ee97e662f2f17fecda",
+          "source_id": "keyword_docs:*CONTACT_ERODING_SURFACE_TO_SURFACE",
+          "version": "ansys-dyna-core 0.12.1",
+          "evidence_level": "native_verified"
+        },
+        {
+          "id": "a525760640f5af9591273b2a55b843c8bb92c1503128e38f6d173c3538b701d2",
+          "source_id": "keyword_docs:*CONTACT_ERODING_SURFACE_TO_SURFACE",
+          "version": "ansys-dyna-core 0.12.1",
+          "evidence_level": "native_verified"
+        }
+      ]
+    },
+    {
+      "id": "HG01",
+      "category": "user_guide",
+      "query": "LSPP_ALLOWED_ROOTS 配置允许访问的目录",
+      "hit_at_3": true,
+      "first_correct_rank": 1,
+      "returned": [
+        {
+          "id": "36de2fc3cabbfeec3b0da4a9213973546418696370bc26f88adb7dbee8e181b1",
+          "source_id": "docs/INSTALL.md",
+          "version": "unspecified",
+          "evidence_level": "documented"
+        },
+        {
+          "id": "b8f3750aa57ec66f6504a0cc0c5bf5e61cbb28d5c4d7b2f6ce814cb5ed2ec798",
+          "source_id": "docs/INSTALL.md",
+          "version": "unspecified",
+          "evidence_level": "documented"
+        }
+      ]
+    },
+    {
+      "id": "HG02",
+      "category": "user_guide",
+      "query": "LSPP_TIMEOUT 等待时间如何设置",
+      "hit_at_3": true,
+      "first_correct_rank": 1,
+      "returned": [
+        {
+          "id": "b8f3750aa57ec66f6504a0cc0c5bf5e61cbb28d5c4d7b2f6ce814cb5ed2ec798",
+          "source_id": "docs/INSTALL.md",
+          "version": "unspecified",
+          "evidence_level": "documented"
+        }
+      ]
+    },
+    {
+      "id": "HG03",
+      "category": "user_guide",
+      "query": "外部 Python 环境要求什么版本",
+      "hit_at_3": true,
+      "first_correct_rank": 1,
+      "returned": [
+        {
+          "id": "d2ea1fad990fe3c4307eb9ff8b28f67dd654f48d74427dab8f618b61a1b8cfcc",
+          "source_id": "docs/INSTALL.md",
+          "version": "unspecified",
+          "evidence_level": "documented"
+        },
+        {
+          "id": "36de2fc3cabbfeec3b0da4a9213973546418696370bc26f88adb7dbee8e181b1",
+          "source_id": "docs/INSTALL.md",
+          "version": "unspecified",
+          "evidence_level": "documented"
+        },
+        {
+          "id": "b8f3750aa57ec66f6504a0cc0c5bf5e61cbb28d5c4d7b2f6ce814cb5ed2ec798",
+          "source_id": "docs/INSTALL.md",
+          "version": "unspecified",
+          "evidence_level": "documented"
+        }
+      ]
+    },
+    {
+      "id": "HG04",
+      "category": "user_guide",
+      "query": "LSPP_TOOL_PROFILE compact 有哪些入口",
+      "hit_at_3": true,
+      "first_correct_rank": 1,
+      "returned": [
+        {
+          "id": "36de2fc3cabbfeec3b0da4a9213973546418696370bc26f88adb7dbee8e181b1",
+          "source_id": "docs/INSTALL.md",
+          "version": "unspecified",
+          "evidence_level": "documented"
+        }
+      ]
+    },
+    {
+      "id": "HR01",
+      "category": "recipe",
+      "query": "按给定长宽高生成八节点六面体",
+      "hit_at_3": false,
+      "first_correct_rank": null,
+      "returned": [
+        {
+          "id": "d577f69931f20317a408cee49b9bfa508200075ad9091a61a791ee6156e84ec2",
+          "source_id": "src/ls_prepost_mcp/native/recipes/node_coordinates/recipe.yaml",
+          "version": "unspecified",
+          "evidence_level": "native_verified"
+        },
+        {
+          "id": "452248f2e1a63dec493c54c4083a07633b4a2d33427690fdaaa662bd4ebe29cf",
+          "source_id": "src/ls_prepost_mcp/native/recipes/translate_nodes/recipe.yaml",
+          "version": "unspecified",
+          "evidence_level": "native_verified"
+        }
+      ]
+    },
+    {
+      "id": "HR02",
+      "category": "recipe",
+      "query": "把当前模型的节点和单元数量写成 JSON",
+      "hit_at_3": true,
+      "first_correct_rank": 1,
+      "returned": [
+        {
+          "id": "a27468e401ae7637251c120cf92fa7f3609f9ca2d3336de2cb09aa5415fb7c7c",
+          "source_id": "src/ls_prepost_mcp/native/recipes/model_inventory/recipe.yaml",
+          "version": "unspecified",
+          "evidence_level": "native_verified"
+        }
+      ]
+    },
+    {
+      "id": "HR03",
+      "category": "recipe",
+      "query": "把全部结点位置导出表格",
+      "hit_at_3": false,
+      "first_correct_rank": null,
+      "returned": []
+    },
+    {
+      "id": "HR04",
+      "category": "recipe",
+      "query": "只想为当前姿态留一张截图",
+      "hit_at_3": false,
+      "first_correct_rank": null,
+      "returned": []
+    },
+    {
+      "id": "HI01",
+      "category": "known_issue",
+      "query": "找不到 lsppconf 时怎么办",
+      "hit_at_3": false,
+      "first_correct_rank": null,
+      "returned": []
+    },
+    {
+      "id": "HI02",
+      "category": "known_issue",
+      "query": "临时 JSON 文件路径太长",
+      "hit_at_3": false,
+      "first_correct_rank": null,
+      "returned": [
+        {
+          "id": "a56d4d030a7ea3e4e0e599ee7c7b927a0dda6e37385b89eb6bb1e6b5c2eeb3d1",
+          "source_id": "docs/KNOWN_ISSUES.md",
+          "version": "unspecified",
+          "evidence_level": "documented"
+        },
+        {
+          "id": "36ee8c37e868dec04c8b9970da5aa2ede18aa63e3874dfea8f938ba5b03e8318",
+          "source_id": "docs/KNOWN_ISSUES.md",
+          "version": "unspecified",
+          "evidence_level": "documented"
+        },
+        {
+          "id": "cb04e1297ab6c8fb17645f420693641a74740c3c0075a2326717a79c7bf38592",
+          "source_id": "docs/KNOWN_ISSUES.md",
+          "version": "unspecified",
+          "evidence_level": "documented"
+        }
+      ]
+    },
+    {
+      "id": "HI03",
+      "category": "known_issue",
+      "query": "4.10 队列的模型来源身份为何不一致",
+      "hit_at_3": false,
+      "first_correct_rank": null,
+      "returned": [
+        {
+          "id": "94a455c5ed4ea603b9e073d4a5d4a1b21a68bd2069984f296f9568c726cc33bc",
+          "source_id": "docs/KNOWN_ISSUES.md",
+          "version": "unspecified",
+          "evidence_level": "documented"
+        },
+        {
+          "id": "350263205e266a1ba43006ebe1e8b0aaca76bd30606d9ad89a4e67051b25d04a",
+          "source_id": "docs/KNOWN_ISSUES.md",
+          "version": "unspecified",
+          "evidence_level": "documented"
+        },
+        {
+          "id": "35c073cd13b66abfd012d473ce80e080204ec6e28daf862b60f41aabeaa45ad5",
+          "source_id": "docs/KNOWN_ISSUES.md",
+          "version": "unspecified",
+          "evidence_level": "documented"
+        }
+      ]
+    },
+    {
+      "id": "HI04",
+      "category": "known_issue",
+      "query": "进程退出码为零但日志有错误",
+      "hit_at_3": false,
+      "first_correct_rank": null,
+      "returned": [
+        {
+          "id": "b903580ac0c2a8c0795d4870d781b7ed9d7718d2c2547898f68099cf245262d0",
+          "source_id": "docs/KNOWN_ISSUES.md",
+          "version": "unspecified",
+          "evidence_level": "documented"
+        },
+        {
+          "id": "3b5f7cfde4c3c36995dbb7d42ea2d33f11336dc41f0bdc5de6f1039af9fa907c",
+          "source_id": "docs/KNOWN_ISSUES.md",
+          "version": "unspecified",
+          "evidence_level": "documented"
+        },
+        {
+          "id": "5cbe8304c2377e7ede0e343e4c3ff4daccb05a19bcad46af595829b9e76ad2ce",
+          "source_id": "docs/KNOWN_ISSUES.md",
+          "version": "unspecified",
+          "evidence_level": "documented"
+        }
+      ]
+    }
+  ],
+  "scope": "Fixed source-location/field/text matching; not an Agent answer-faithfulness or native-execution evaluation",
+  "queries_sha256": "2878eb0b5b7a98e92086dac69358dcfb52865aabeac8ec9e6d6a45226962c9cd",
+  "categories": [
+    "api",
+    "command",
+    "keyword",
+    "known_issue",
+    "recipe",
+    "user_guide"
+  ],
+  "index_sha256": "926bdbd508ff701a59e63bc266d42c72b82c68370b27c38644cf8ac79d3b9d42",
+  "pre_change_knowledge_sha256": "fa02cada9674c9105a3f3d6a2ed310e69b0f5fd7ea7585ac3d023807c84f8c4a",
+  "policy": "Frozen before removing old query-specific mappings; do not tune from holdout scores",
+  "actual_git_revision": "dc9dbc197c013221eeacbb8652602442676b9ba3",
+  "working_tree_dirty": true,
+  "git_diff_sha256": "93bd5b9f463f689968c96d270e946178412856f45bfef793e14c5b8ca5e99dde",
+  "include_private": true,
+  "index_scope": {
+    "command": 1250,
+    "api": 68,
+    "keyword": 195,
+    "user_guide": 288,
+    "recipe": 15,
+    "known_issue": 69
+  }
+}
 }

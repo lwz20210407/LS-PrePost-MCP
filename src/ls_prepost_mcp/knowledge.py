@@ -68,17 +68,20 @@ def search_docs(query: str, category: str | None = None, limit: int = 10, includ
         raise ValueError("Set LSPP_KNOWLEDGE_INDEX to an external schema-v2 reference index")
     if not isinstance(query,str) or not query.strip():
         raise ValueError("Provide a nonempty document query")
-    glossary={"选择节点":("genselect","target","node"),"保存关键字":("save","keyword"),
-              "导出图片":("print","png"),"弹性模量":("young","modulus"),"泊松比":("poisson",),
-              "屈服应力":("yield","stress"),"材料编号":("mid",),"接触刚度":("stiffness",),
-              "节点平移":("translate","nodes")}
-    added=[token for phrase,tokens in glossary.items() if phrase in query for token in tokens]
-    expanded=query+(" "+" ".join(added) if added else "")
-    results=search_index(configured,expanded,category=category,limit=limit,include_private=include_private)
+    results=search_index(configured,query,category=category,limit=limit,include_private=include_private)
     for row in results:
-        row["query_expansion"]=added
+        row["query_expansion"]=[]
         row["evidence_level"]="source_example" if row["category"] in ("command","recipe") else "documented"
         row["evidence_scope"]="Reference content; not an execution result"
+        recipe=row.get("recipe_verification",{})
+        verified=recipe.get("versions_verified",[])
+        modes=recipe.get("execution_modes",{})
+        if verified and recipe.get("l2_case") and any(
+                state=="verified" and version in verified for values in modes.values()
+                for version,state in values.items()):
+            row["evidence_level"]="native_verified"
+            row["evidence_scope"]="Recipe-reported verification only for listed versions and modes; not a current run"
+            row["verification_attribution"]=row["source_id"]
         proof=row.get("keyword_field",{}).get("solver_status",{})
         if proof.get("evidence")=="verified":
             row["evidence_level"]="native_verified"
