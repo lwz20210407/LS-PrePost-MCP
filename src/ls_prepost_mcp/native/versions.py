@@ -90,7 +90,7 @@ def profile(executable=None, version=None):
                                        if name.endswith("version") and _family(value)}) > 1,
                 resource_string_conflict=bool(file_family and product_family and file_family != product_family),
                 requested_version=requested,
-                configured_label_conflict=bool(version is not None and detected and requested != detected),
+                configured_label_conflict=bool(requested is not None and detected and requested != detected),
                 path_hint_version=hint, path_hint_conflict=bool(resource_family and hint and hint != detected))
 
 
