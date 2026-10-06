@@ -587,11 +587,10 @@ tasks:
     layer: T1
     target_tools: [run_script]
     channel: cfile
-    status: partial
+    status: done
     existing: [prepare_native_program, execute_native_program]
-    gaps:
-      - 历史 A02 原生证据缺少实际 Git revision 或运行时未提交 diff SHA256；在 report.md 与 evidence.json 按身份完整入库前保持 partial，配方模式登记不替代执行证据
-    evidence: [tests/test_script_cfile_native.py, docs/decisions/0003-cfile-execution.md]
+    gaps: []
+    evidence: [tests/test_script_cfile_native.py, docs/decisions/0003-cfile-execution.md, docs/decisions/evidence/a02/report.md, docs/decisions/evidence/a08/report.md]
     acceptance:
       - 多行 cfile 建模 → 保存 → 重开，batch 与 session 各一次
       - 数值与字符串参数替换（字符串参数禁止注入路径分隔符以外的命令）

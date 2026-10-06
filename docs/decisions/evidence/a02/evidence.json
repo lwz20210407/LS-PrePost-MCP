@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "task": "A02",
+  "runs": [
+    {
+      "task": "A02",
+      "version": "413",
+      "context": "batch",
+      "actual_git_revision": "9e55e9b04920932d647de219a819b01355747f29",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "report": "a02-413-report/report.json",
+      "run_id": "main-channels-batch-r1",
+      "report_sha256": "7fada72f5162fd5649cc1634bdf7c31319695fb7ff402867efdabf12572404c4",
+      "cases": [
+        "tests/test_script_cfile_native.py::test_cfile_build_save_reopen_and_failed_line[batch]"
+      ]
+    },
+    {
+      "task": "A02",
+      "version": "410",
+      "context": "batch",
+      "actual_git_revision": "9e55e9b04920932d647de219a819b01355747f29",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "report": "a02-410-report/report.json",
+      "run_id": "main-channels-batch-r1",
+      "report_sha256": "fe0f9d082e47907eb0de0cb680220a3929e2d689c1aa1668f5db69f1da310f08",
+      "cases": [
+        "tests/test_script_cfile_native.py::test_cfile_build_save_reopen_and_failed_line[batch]"
+      ]
+    },
+    {
+      "task": "A02",
+      "version": "48",
+      "context": "batch",
+      "actual_git_revision": "9e55e9b04920932d647de219a819b01355747f29",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "report": "a02-48-report/report.json",
+      "run_id": "main-channels-batch-r1",
+      "report_sha256": "309449f860f11f1bb402f38041a862de3c30051ded3f70f21fd12cd086d9ec60",
+      "cases": [
+        "tests/test_script_cfile_native.py::test_cfile_build_save_reopen_and_failed_line[batch]"
+      ]
+    },
+    {
+      "task": "A02",
+      "version": "413",
+      "context": "session",
+      "actual_git_revision": "9e55e9b04920932d647de219a819b01355747f29",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "report": "a02-413-report/report.json",
+      "run_id": "main-channels-session-r1",
+      "report_sha256": "751f8643f4cc79d86719ea7ceeb88e177bc03aa6ee2f023a8a274820a0c93fbb",
+      "cases": [
+        "tests/test_script_cfile_native.py::test_cfile_build_save_reopen_and_failed_line[session]"
+      ]
+    }
+  ],
+  "fixture_sha256": {
+    "input.k": "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43",
+    "d3plot": "08e29edab83a10901589cf5e20714bed8a019cc69a7b93e6cba08d5c231d58c1",
+    "d3plot01": "f928ad97b3293bb3b52d669ad491e4831fbdc1d9681b06ec5883b4aca2dc74b5"
+  },
+  "test_source_sha256": "7a66fdb635353487b506391e3c75084de1d616f5ca231f8ec88532f1d76bb339",
+  "scope": "参数化建盒、带空格输出名、保存重开、节点坐标及无效命令源行号。",
+  "session_window": "User-authorized unlocked desktop; owned queue sessions closed after tests"
+}

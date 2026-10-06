@@ -440,7 +440,7 @@
 
 ### A02 cfile 命令流
 
-状态：partial；版本：v0.5；里程碑：M1；层：T1
+状态：done；版本：v0.5；里程碑：M1；层：T1
 
 运行这个 cfile，把里面的 width 换成 8 再跑一次
 
@@ -453,10 +453,6 @@
 - 4.8 / 4.10 / 4.13 回归子集通过
 
 现有入口：`prepare_native_program`, `execute_native_program`
-
-缺口：
-
-- 历史 A02 原生证据缺少实际 Git revision 或运行时未提交 diff SHA256；在 report.md 与 evidence.json 按身份完整入库前保持 partial，配方模式登记不替代执行证据
 
 ### A03 SCL 脚本
 
