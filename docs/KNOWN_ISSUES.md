@@ -1148,3 +1148,12 @@ Python 异常传播前会先清理；清理失败不覆盖原始异常，普通�
 固定版本写为 4.9，但两个版本字符串一致为 4.10，故保留差异并选择一致字符串。
 资源读取范围、4.11 拒绝及真实二进制改名检查见 [版本资源回归](decisions/evidence/i03-version-resource/report.md)。
 无资源/非 Windows 仍为未验证的路径提示，不将其当作完整运行时探测。
+
+## A01/I01：会话日志元数据与脚本包装器的集成
+
+第六轮 GUI 补验发现：SessionEngine 新增 encoding/lossy 后，run_script 的日志包装器
+仍只接受 source/offset，Command 会话在原生打开完成后抛出 TypeError。
+包装器现在接收实际编码、保留原始字节，并让 cfile/SCL 诊断沿用相同解码规则；
+有替换解码时保持 unverified，不把日志不确定性包装成成功。
+[生产者/消费者集成回归](../tests/test_script_session_log_contract.py)覆盖四通道、GBK/UTF-16、
+正反例和 lossy；第一轮原生失败证据留存，修复后的原生回归另行登记。

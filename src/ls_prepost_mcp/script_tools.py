@@ -8,7 +8,7 @@ from typing import Literal
 from pydantic import StrictInt
 
 from .core.contracts import Artifact, JobResult
-from .core.native_log import native_errors
+from .core.native_log import decode, decode_with_info, native_errors
 from .core.script_parameters import cfile_diagnostics, render_cfile
 from .core.script_request import ScriptDependency, ScriptOutput, ScriptRequest
 from .jobs import atomic_json, fingerprint
@@ -17,21 +17,20 @@ from .outcomes import normalize_outcome
 from .programs import count_contract, output_contract
 
 
-def log_result(path, directory, *, source=None, offset=0):
+def log_result(path, directory, *, source=None, offset=0, encoding=None, lossy=False):
     raw = path.read_bytes()
-    try:
-        text, lossy = raw.decode("utf8"), False
-    except UnicodeDecodeError:
-        text, lossy = raw.decode("utf8", errors="replace"), True
+    text, decoding = decode_with_info(raw, encoding=encoding)
+    lossy = bool(lossy or decoding["lossy"])
     target = directory / "native-echo.log"
     target.write_bytes(raw)
     identity = fingerprint(target)
     artifact = Artifact(path=str(target), kind="native_log", sha256=identity["sha256"],
                         size_bytes=identity["size"], verification="verified",
-                        metadata=dict(source=source or str(path), offset=offset, decoding_lossy=lossy))
+                        metadata=dict(source=source or str(path), offset=offset, decoding_lossy=lossy,
+                                      encoding=decoding["encoding"]))
     return dict(source=source or str(path), offset=offset, text=text if len(text) <= 32768 else None,
                 full_text_path=str(target), inline_omitted=len(text) > 32768,
-                errors=native_errors(text), decoding_lossy=lossy), artifact
+                errors=native_errors(text), decoding_lossy=lossy, encoding=decoding["encoding"]), artifact
 
 
 class ScriptTools:
@@ -99,12 +98,14 @@ class ScriptTools:
             status, error = normalized.status, normalized.error
             if echo["errors"]:
                 status, error = "failed", dict(type="NativeDiagnostics", message="Native command reported errors", raw=echo["errors"])
+            elif echo["decoding_lossy"] and status != "failed":
+                status, error = "unverified", error or dict(type="UnicodeError", message="Native echo required replacement decoding")
             extra = {}
             if language == "cfile":
-                text = log.read_text(encoding="utf8", errors="replace")
+                text = decode(log.read_bytes(), encoding=log_meta.get("encoding"))
                 extra = dict(rendered_source=rendered, diagnostics=cfile_diagnostics(result.get("executed_source", rendered), text))
             elif language == "scl":
-                text = log.read_text(encoding="utf8", errors="replace")
+                text = decode(log.read_bytes(), encoding=log_meta.get("encoding"))
                 diagnostics = []
                 for message in native_errors(text):
                     match = re.search(r"\bline\s*(?:number\s*)?[:=]?\s*(\d+)", message, re.I)
@@ -126,7 +127,7 @@ class ScriptTools:
                                           requested_source=code, native_echo=echo,
                                           command_staging=result.get("command_staging"), **extra),
                                 scope="Native completion and explicit file/count contracts; raw command semantics remain caller-verified")
-        except (OSError, ValueError) as exc:
+        except (OSError, ValueError, LookupError) as exc:
             outcome = JobResult(operation="run_script", status="failed" if normalized.status == "failed" else "unverified",
                                 job_id=normalized.job_id or result.get("request_id"), backend="lsprepost", artifacts=normalized.artifacts,
                                 warnings=normalized.warnings, checks=normalized.checks,
