@@ -385,6 +385,7 @@
 
 ## KI-049 含空格/中文工作目录的原生配置解析
 
+- 中文 job 目录还可能找不到已生成的 binout.scl；[binout 路径原生用例](../tests/test_scl_binout_paths_native.py)保持严格 xfail，实测范围见 [I03 SCL 字面量证据](decisions/evidence/i03-scl-literals/report.md)。
 - I03 新增显式 `LSPP_NATIVE_ALIAS_ROOT` 选项：Windows 无图形批处理通过独占 ASCII 目录联接访问原作业；模型和产物仍位于原路径，结束后校验别名身份再清理。4.10/4.13 各 7 项后台用例通过、1 项图形回调跳过，见[提交绑定证据](decisions/evidence/i03-workspace-alias/report.md)；未配置、4.8、宏及图形路径仍保留 gap，任务状态不变。配置方法见[安装说明](INSTALL.md)。
 - I01 后续修复：仅 BatchEngine 的 ASCII 路径将两个工作目录配置字段改为 `.`，绝对日志路径不变；GUI/队列保留绝对工作目录。ASCII 空格目录的保存、PNG、重开已补测。
 - 非 ASCII job 目录仍为 gap：4.13 使用相对配置的完整链路出现 `0xC0000374` 退出错误，未启用该实验路径，也未因文件已生成而标通过。非 ASCII 源文件会暂存到安全名称，与 job 目录限制分别报告。
@@ -1159,3 +1160,28 @@ POSIX 只在取消和超时时清理同一进程组；直接进程正常退出�
 持续驻留需求使用 SessionEngine。暂停启动、绑定失败拒绝执行、等待中断和宿主退出的
 实测结果及启动强杀窗口见 [生命周期回归](decisions/evidence/i01-process-lifetime/report.md)。
 Python 异常传播前会先清理；清理失败不覆盖原始异常，普通失败将清理注记放入 warnings。
+
+## I01 日志 BOM 和非 UTF-8 诊断
+
+首行 BOM 可能导致原生错误正则漏判，强制 UTF-8 replacement 会损失系统 ANSI 中文内容。
+现保留原始字节，识别 BOM/UTF-8/本地编码，并允许 LSPP_NATIVE_LOG_ENCODING 显式覆盖无 BOM 日志；
+有损解码不作为干净日志放行。行为和实测范围见 [编码回归](decisions/evidence/i01-log-decoding/report.md)。
+
+## I03 路径版本提示与 Windows 资源不一致
+
+改文件名不能作为版本切换。现在 Windows 读取可执行资源并显示路径冲突；本机 4.10
+固定版本写为 4.9，但两个版本字符串一致为 4.10，故保留差异并选择一致字符串。
+资源读取范围、4.11 拒绝及真实二进制改名检查见 [版本资源回归](decisions/evidence/i03-version-resource/report.md)。
+无资源/非 Windows 仍为未验证的路径提示，不将其当作完整运行时探测。
+
+## A01/I01：会话日志元数据与脚本包装器的集成
+
+第六轮 GUI 补验发现：SessionEngine 新增 encoding/lossy 后，run_script 的日志包装器
+仍只接受 source/offset，Command 会话在原生打开完成后抛出 TypeError。
+包装器现在接收实际编码、保留原始字节，并让 cfile/SCL 诊断沿用相同解码规则；
+有替换解码时保持 unverified，不把日志不确定性包装成成功。
+[生产者/消费者集成回归](../tests/test_script_session_log_contract.py)覆盖四通道、GBK/UTF-16、
+正反例和 lossy；第一轮失败与修复后 session 运行已分别登记到
+[A01](decisions/evidence/a01/evidence.json)、[A02](decisions/evidence/a02/evidence.json)、
+[A03](decisions/evidence/a03/evidence.json)、[A04](decisions/evidence/a04/evidence.json)。
+修复后运行 revision 为干净 c68caef，包含 Draft #26；不代表当前 PR 头重新实测。

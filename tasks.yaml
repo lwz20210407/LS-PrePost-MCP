@@ -888,6 +888,7 @@ infrastructure:
       - docs/decisions/evidence/i01-staging/report.md
       - docs/decisions/evidence/i01-batch-contract/report.md
       - docs/decisions/evidence/i01-process-lifetime/report.md
+      - docs/decisions/evidence/i01-log-decoding/report.md
     acceptance:
       - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
       - 删除 gui_session_action 中运行时替换 _native 的做法
@@ -922,6 +923,8 @@ infrastructure:
       - src/ls_prepost_mcp/native/commands.py
       - src/ls_prepost_mcp/native/versions.py
       - tests/test_native_commands.py
+      - tests/test_version_resources.py
+      - docs/decisions/evidence/i03-version-resource/report.md
       - docs/decisions/evidence/i03/report.md
       - docs/decisions/evidence/i03-paths/report.md
       - tests/test_engine_native.py

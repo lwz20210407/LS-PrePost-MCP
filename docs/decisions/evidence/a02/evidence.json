@@ -159,6 +159,43 @@
         "sha256_lf": "152c6eb0bf91f40c57ec5baf09c40325161982d56689be1eeddf3ce885f2e2c7",
         "newline_basis": "Git blob bytes normalized CRLF to LF; no checkout newline conversion"
       }
+    },
+    {
+      "actual_git_revision": "c68caefbda33a66d756a92f9db3cd6aea7520f5c",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "source_snapshot_sha256": "496739a3ac28893c54a0e65c768ca530bb208c7f74fc7140b570e69e37c88396",
+      "report": "r6-gui-window-r2/cfile-session-report/report.json",
+      "report_sha256": "b80cffc3a81e3e39e466b543f10f0af2c671fa4b0d4beeb031e9b8cc3280eb46",
+      "exit_code": 0,
+      "cases": {
+        "tests/test_script_cfile_native.py::test_cfile_build_save_reopen_and_failed_line[session]": {
+          "status": "passed",
+          "seconds": 6.399113500010571
+        }
+      },
+      "test_source_identity": {
+        "path": "tests/test_script_cfile_native.py",
+        "revision": "c68caefbda33a66d756a92f9db3cd6aea7520f5c",
+        "git_blob_id": "99dce8ca88ac6834a3e7a6b5e1263516170eee5d",
+        "sha256_lf": "152c6eb0bf91f40c57ec5baf09c40325161982d56689be1eeddf3ce885f2e2c7",
+        "newline_basis": "Git blob bytes normalized CRLF to LF; no checkout newline conversion"
+      },
+      "task": "A02",
+      "version": "413",
+      "context": "session",
+      "original_report": "r6-gui-window-r2/cfile-report/report.json",
+      "report_copy": "Byte-identical context-qualified copy of original report",
+      "run_id": "r6-gui-window-r2-cfile-session",
+      "execution_contains_draft_pr26": true,
+      "execution_scope_note": "Historical integration stack includes Draft #26; this is not a native rerun of the current #38 head."
     }
   ],
   "fixture_sha256": {

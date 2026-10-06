@@ -705,7 +705,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：partial；验证：L1
 
-证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py), [docs/decisions/evidence/i01/report.md](../docs/decisions/evidence/i01/report.md), [docs/decisions/evidence/i01-followup/report.md](../docs/decisions/evidence/i01-followup/report.md), [docs/decisions/evidence/i01-staging/report.md](../docs/decisions/evidence/i01-staging/report.md), [docs/decisions/evidence/i01-batch-contract/report.md](../docs/decisions/evidence/i01-batch-contract/report.md), [docs/decisions/evidence/i01-process-lifetime/report.md](../docs/decisions/evidence/i01-process-lifetime/report.md)
+证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py), [docs/decisions/evidence/i01/report.md](../docs/decisions/evidence/i01/report.md), [docs/decisions/evidence/i01-followup/report.md](../docs/decisions/evidence/i01-followup/report.md), [docs/decisions/evidence/i01-staging/report.md](../docs/decisions/evidence/i01-staging/report.md), [docs/decisions/evidence/i01-batch-contract/report.md](../docs/decisions/evidence/i01-batch-contract/report.md), [docs/decisions/evidence/i01-process-lifetime/report.md](../docs/decisions/evidence/i01-process-lifetime/report.md), [docs/decisions/evidence/i01-log-decoding/report.md](../docs/decisions/evidence/i01-log-decoding/report.md)
 
 - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
 - 删除 gui_session_action 中运行时替换 _native 的做法
@@ -729,7 +729,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：partial；验证：L2
 
-证据：[src/ls_prepost_mcp/native/commands.py](../src/ls_prepost_mcp/native/commands.py), [src/ls_prepost_mcp/native/versions.py](../src/ls_prepost_mcp/native/versions.py), [tests/test_native_commands.py](../tests/test_native_commands.py), [docs/decisions/evidence/i03/report.md](../docs/decisions/evidence/i03/report.md), [docs/decisions/evidence/i03-paths/report.md](../docs/decisions/evidence/i03-paths/report.md), [tests/test_engine_native.py](../tests/test_engine_native.py)
+证据：[src/ls_prepost_mcp/native/commands.py](../src/ls_prepost_mcp/native/commands.py), [src/ls_prepost_mcp/native/versions.py](../src/ls_prepost_mcp/native/versions.py), [tests/test_native_commands.py](../tests/test_native_commands.py), [tests/test_version_resources.py](../tests/test_version_resources.py), [docs/decisions/evidence/i03-version-resource/report.md](../docs/decisions/evidence/i03-version-resource/report.md), [docs/decisions/evidence/i03/report.md](../docs/decisions/evidence/i03/report.md), [docs/decisions/evidence/i03-paths/report.md](../docs/decisions/evidence/i03-paths/report.md), [tests/test_engine_native.py](../tests/test_engine_native.py)
 
 - genselect / fringe / anim 等命令只在 native/commands.py 生成，有黄金输出测试
 - 版本差异集中在能力表，src 其他位置不出现版本判断

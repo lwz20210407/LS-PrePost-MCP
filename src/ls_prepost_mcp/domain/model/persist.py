@@ -5,9 +5,11 @@ import difflib
 import hashlib
 import os
 import re
+import time
 import uuid
+from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar
 
 from .blocks import SourceFile
 from .includes import identity
@@ -148,13 +150,55 @@ def save_in_place(deck: KeywordDeck, backup_suffix: str = ".orig") -> dict:
         backup = source.path.with_name(source.path.name + backup_suffix)
         atomic_write(backup, source.original)
         data = source.data()
-        atomic_write(source.path, data)
+        try:
+            atomic_write(source.path, data)
+        except OSError as exc:
+            # Only when the file still holds the backed-up bytes is this call's backup
+            # redundant; drop it then, so that a retry is not refused above.
+            try:
+                unchanged = _retry_sharing(source.path.read_bytes) == source.original
+            except OSError:
+                unchanged = False
+            if not (unchanged and _discard(backup)):
+                exc.add_note(f"{backup} was kept; it holds the bytes read before this save")
+            raise
         report.append({"path": str(source.path), "backup": str(backup), "sha256": hashlib.sha256(data).hexdigest()})
         source.original, source.modified = data, False
     return {"written": report}
 
 
+# Antivirus and indexers can briefly hold a handle that denies replacing, reading or deleting
+# a file that was just written or read (WinError 5/32/33). Total backoff 0.62 s; other errors
+# are never retried.
+SHARING_DELAYS = (0.02, 0.04, 0.08, 0.16, 0.32)
+T = TypeVar("T")
+
+
+def _retry_sharing(operation: Callable[[], T]) -> T:
+    for delay in SHARING_DELAYS:
+        try:
+            return operation()
+        except PermissionError as exc:
+            if getattr(exc, "winerror", None) not in (5, 32, 33):
+                raise
+            time.sleep(delay)
+    return operation()
+
+
+def _discard(path: Path) -> bool:
+    """Best-effort removal of a file this module created; never masks the caller's error."""
+    try:
+        _retry_sharing(lambda: path.unlink(missing_ok=True))
+    except OSError:
+        return False
+    return True
+
+
 def atomic_write(path: Path, data: bytes) -> None:
     tmp = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
-    tmp.write_bytes(data)
-    os.replace(tmp, path)
+    try:
+        tmp.write_bytes(data)
+        _retry_sharing(lambda: os.replace(tmp, path))
+    except BaseException:
+        _discard(tmp)
+        raise

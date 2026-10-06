@@ -123,3 +123,41 @@ def test_graphics_batch_retains_its_original_execution_directory(tmp_path, monke
     monkeypatch.setattr("ls_prepost_mcp.engine.batch.OwnedProcess", launch)
     result = BatchEngine().run(BatchJob(tmp_path / "lspp.exe", command, job, 1, graphics=True))
     assert result.status == "unverified" and "workspace_alias" not in result.data
+
+
+@pytest.mark.parametrize("residue", ["empty", "nonempty", "junction"])
+def test_failed_junction_creation_only_cleans_owned_empty_directory(tmp_path, monkeypatch, residue):
+    import _winapi
+    from pathlib import Path
+
+    create = _winapi.CreateJunction
+    root = tmp_path / "aliases"
+    root.mkdir()
+    job = tmp_path / "中文 作业"
+    job.mkdir()
+    (job / "keep.k").write_bytes(b"unchanged")
+    created = []
+
+    def fail(source, destination):
+        path = Path(destination)
+        created.append(path)
+        if residue == "junction":
+            create(source, destination)
+        else:
+            path.mkdir()
+            if residue == "nonempty":
+                (path / "keep.txt").write_bytes(b"keep")
+        raise PermissionError("CreateJunction denied")
+
+    monkeypatch.setattr(_winapi, "CreateJunction", fail)
+    monkeypatch.setenv("LSPP_NATIVE_ALIAS_ROOT", str(root))
+    with pytest.raises(RuntimeError, match="NTFS"):
+        with native_workspace(job):
+            pytest.fail("Creation failed before entering the native workspace")
+    assert (job / "keep.k").read_bytes() == b"unchanged"
+    if residue == "empty":
+        assert list(root.iterdir()) == []
+    elif residue == "nonempty":
+        assert (created[0] / "keep.txt").read_bytes() == b"keep"
+    else:
+        assert created[0].resolve() == job
