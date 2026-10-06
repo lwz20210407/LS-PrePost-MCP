@@ -1198,3 +1198,5 @@ BatchEngine 和内置 Python 在作业目录运行，并非主 deck 目录。对
 公开语料运行器先调用共享 `preflight_includes`，记录 tree_sha256、版本和每个文件的 relative / role / size / sha256，随后复核完整树的原文件字节。`ok=false` 记为 input_limited，pytest 报告为 evidence_only，禁止据此声称原生通过或代码缺陷。非 keyword 结果族单独标记 tree_kind=result_family。每例另记实际 LS-PrePost 可执行文件与版本资源；预检成功本身不认证原生解析。
 
 历史 p100 的 16 passed / 84 failed 保留不改，新运行和 problems.kind/hint 分类另行追加。回归见 [公开语料测试](../tests/test_public_corpus_native.py) 和 [预检证据测试](../tests/test_public_corpus_preflight.py)。
+
+本轮 [100 例证据](decisions/evidence/i04-public100-preflight/report.md) 已登记 16 通过、34 失败、50 输入限制。树哈希只标识实际成功读取的文件；缺失或不可读的引用保留在 problems 中，不虚构其哈希。
