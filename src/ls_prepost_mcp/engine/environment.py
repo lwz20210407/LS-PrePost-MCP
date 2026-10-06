@@ -33,12 +33,14 @@ def isolate_preferences(executable, directory, environ=None):
     env = dict(os.environ if environ is None else environ)
     directory = Path(directory).resolve()
     source = locate_config(executable, env)
+    if source is None:
+        raise RuntimeError("No existing LS-PrePost lsppconf found. Start this installation once to complete setup, or set LSPP_CONFIG_SOURCE to its initialized lsppconf.")
     private = directory / "native-config"
     private.mkdir(exist_ok=False)
-    content = source.read_bytes() if source else b"*\n"
+    content = source.read_bytes()
     if len(content) > 2 * 1024 * 1024:
         raise ValueError("Native configuration exceeds 2 MiB")
-    source_sha = hashlib.sha256(content).hexdigest() if source else None
+    source_sha = hashlib.sha256(content).hexdigest()
     overrides = {
         "session_file": directory / "lspost.cfile",
         "message_file": directory / "lspost.msg",
@@ -61,13 +63,11 @@ def isolate_preferences(executable, directory, environ=None):
     env["LSTC_FILE"] = str(private)
     metadata = dict(
         directory=str(private),
-        source=str(source) if source else None,
+        source=str(source),
         source_sha256=source_sha,
         source_modified=False,
         preserved_settings="Existing consent, Python home and non-path preferences are copied verbatim",
-        first_run_note=None
-        if source
-        else "No existing preferences found; native first-run setup may be required",
+        first_run_note=None,
     )
     return env, metadata
 
