@@ -15,6 +15,7 @@
 | `close_gui_session` | I08 | session_id*: string; save_checkpoint: boolean |
 | `combine_gui_selections` | G03 | session_id*: string; entity_type*: string; left_ids*: array; right_ids*: array; operation: string |
 | `combine_history_curves` | Q07 | paths*: array; operation*: string; units*: string; source_units: union/ref; time_unit: union/ref |
+| `command_help` | I08 | command*: string; limit: integer |
 | `compose_keyword_deck` | P02 | cards*: array; units*: string |
 | `compute_stress_invariants` | Q04 | stresses*: array; units*: string; relative_tolerance: number |
 | `control_gui_animation` | Q09 | session_id*: string; operation*: string; first: integer; last: integer; increment: integer; direction: string |
@@ -81,6 +82,7 @@
 | `inspect_result_validity` | Q04 | path*: string; element_type*: string; states*: array; element_ids: union/ref |
 | `inspect_workflow` | A09 | path*: string; parameters: union/ref; session_id: union/ref |
 | `instantiate_installed_template` | P10, A08 | template_id*: string; parameters*: object; units*: string; model: union/ref; native_check: boolean |
+| `keyword_fields` | I08 | keyword*: string; field: union/ref; limit: integer; include_private: boolean |
 | `list_capabilities` | I08 | 无 |
 | `list_gui_sessions` | I08 | 无 |
 | `list_installation_assets` | A08 | 无 |
@@ -126,6 +128,7 @@
 | `run_workflow_sweep` | A09 | path*: string; cases*: array; outputs: union/ref; session_id: union/ref |
 | `save_gui_selection_buffer` | G03 | session_id*: string; entity_type*: string; entity_ids*: array; slot*: integer |
 | `search_commands` | A10 | query*: string; limit: integer |
+| `search_docs` | I08 | query*: string; category: union/ref; limit: integer; include_private: boolean |
 | `search_knowledge` | A10 | query*: string; limit: integer; include_private: boolean; category: union/ref |
 | `search_workflows` | A10 | query*: string; limit: integer |
 | `select_gui_entities` | G03 | session_id*: string; entity_type*: string; entity_ids: union/ref; part_ids: union/ref; invert: boolean; scope: string; set_ids: union/ref |

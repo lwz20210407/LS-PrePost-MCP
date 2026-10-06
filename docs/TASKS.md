@@ -606,6 +606,10 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 现有入口：`search_commands`, `search_knowledge`, `search_workflows`, `list_pydyna_keywords`, `describe_pydyna_keyword`
 
+缺口：
+
+- 旧二十题评测受到题面专用词表调优影响，不作为完成依据；已冻结六类二十四题独立留出集，记录未经调优的结果，跨语言检索与完整来源覆盖仍需后续工作
+
 ## 通用
 
 ### G01 视图控制
