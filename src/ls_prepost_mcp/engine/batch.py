@@ -64,6 +64,7 @@ class BatchEngine:
                              scope="Process completed; domain outputs require caller verification")
         except Exception as exc:
             process["elapsed_seconds"] = round(time.monotonic() - start, 3)
+            message = str(exc)
             return JobResult(operation=job.operation, job_id=job.directory.name, status="failed",
                              backend="lsprepost", data=process,
-                             error=dict(type=type(exc).__name__, message=str(exc)))
+                             error=dict(type=type(exc).__name__, message=message if message.strip() else type(exc).__name__))

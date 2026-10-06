@@ -409,6 +409,12 @@
 - 行为：共享引擎检测到原生错误行即失败，即使 returncode=0。五个批处理调用方现在透传 engine_error.message，保留真实命令诊断，而非只报退出码和超时状态。
 - 证据：tests/test_engine_native.py 的无效命令原生负例，以及 tests/test_engines.py 的公开 Service 错误透传回归。
 
+## I02 审阅修复：旧返回值的失败诊断
+
+- 已修：旧 `failed` 结果缺少有效 error.message 时，从 restoration_error、reason 或嵌套 restoration 的诊断补齐；无诊断时明确记录“旧接口未提供诊断”，仍保留 failed。
+- 已修：旧 `partial` 结果没有 error/warnings 时，从失败检查的 reason 等信息补 warnings；仍必须有 data 或 artifact，否则按合同返回 unverified。二者都不会通过工作流执行门槛。
+- 合同约束：`JobResult(status="failed")` 的 error.message 必须是非空白字符串。字段名称和结构不变；已声明 JobResult/v1 的结果严格校验，不使用旧接口兼容补齐。
+- 原始结果保存在 comparison_data，不原地修改。证据：[旧结果与门槛回归](../tests/test_legacy_outcomes.py)。本项是纯 Python 合同修复，没有新增原生通过声明。
 ## I01：批处理输入路径暂存补修
 
 公开语料暴露了非 ASCII 源路径读取失败和 Include 相对目录丢失。独立 keyword 与 d3plot 文件族现在复用已有暂存器，使用 job 内的 ASCII 名称，并核对整个原文件族身份；已有普通 Include 的只读打开使用绝对根文件路径。Include 解析能力和编辑保存仍留 I07，不实现第二套关键字引擎。
@@ -423,8 +429,8 @@
 
 | 归属 | 待修事项或本轮处置 |
 |---|---|
-| I02 | 旧 failed 无 error、partial 无 warnings 会经 normalize_outcome 变成 unverified + LegacyContractError；gui_field_movie、gui_media、sessions、native_batch 的产出需适配 reason/restoration_error。 |
-| I02 | failed.error.message 仍可为空；需收紧为非空字符串。FieldSpec 适配层及等价测试已登记为 tasks.yaml 中的 M2 gap。 |
+| I02 | 已修（#16）：旧 failed/partial 保留执行状态，从 reason/restoration_error 或失败检查补齐诊断。 |
+| I02 | 已修（#16）：failed.error.message 必须为非空白字符串；引擎空消息异常和原生失败回执补齐诊断。FieldSpec 适配层及等价测试仍为 tasks.yaml 中的 M2 gap。 |
 | I10 | ADR 0001 已改为如实说明历史证据 JSON 没有探针脚本 SHA256，未补造该字段。 |
 | I05 | 混合查询丢失中文词，例如“MPP 节点选择”；需保留两类查询词。 |
 | I05 | os.link 发布索引不适用于 FAT/exFAT 及部分网络盘；需复制到同目录临时文件并原子改名的回退。 |

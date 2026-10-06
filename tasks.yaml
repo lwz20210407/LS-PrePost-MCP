@@ -876,8 +876,6 @@ infrastructure:
     status: done
     gaps:
       - M2：core.FieldSpec 与旧 field_contracts.FieldSpec 的适配层及等价测试尚未落地
-      - P2：旧 failed/partial 缺 error/warnings 时 normalize_outcome 降为 unverified；需从 reason/restoration_error 补齐诊断
-      - P2：failed.error.message 尚未要求非空字符串，当前非空字典可绕过该约束
     evidence:
       - src/ls_prepost_mcp/core/contracts.py
       - tests/test_core_contracts.py

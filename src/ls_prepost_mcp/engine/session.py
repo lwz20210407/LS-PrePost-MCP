@@ -35,6 +35,12 @@ class SessionEngine:
                     diagnostics = native_errors(decode(raw_log)) if cursor else []
                     if diagnostics:
                         reply = dict(reply, ok=False, error=dict(type="NativeDiagnostics", message="; ".join(diagnostics)))
+                    if not reply["ok"]:
+                        error = dict(reply["error"]) if isinstance(reply.get("error"), dict) else {}
+                        message = error.get("message")
+                        if not isinstance(message, str) or not message.strip():
+                            error["message"] = "Native reply reported failure without a diagnostic"
+                        reply = dict(reply, error=error)
                     if job.verify is not None:
                         result = JobResult.model_validate(job.verify(reply))
                         if result.operation != job.operation or result.job_id != job.directory.name:
@@ -49,6 +55,7 @@ class SessionEngine:
                     raise TimeoutError("Native operation outcome uncertain; inspect session or restore checkpoint")
                 time.sleep(0.05)
         except Exception as exc:
+            message = str(exc)
             log_error = None
             if cursor is not None and submitted:
                 try:
@@ -60,4 +67,4 @@ class SessionEngine:
             return JobResult(operation=job.operation, job_id=job.directory.name, backend="lsprepost",
                              status="unverified" if submitted else "failed",
                              data=dict(submitted=submitted, replayed=False, log_error=log_error),
-                             error=dict(type=type(exc).__name__, message=str(exc)))
+                             error=dict(type=type(exc).__name__, message=message if message.strip() else type(exc).__name__))

@@ -28,6 +28,34 @@ def result_value(result, path):
     return value
 
 
+def legacy_diagnostics(raw, status):
+    """Preserve a legacy failure verdict without modifying the original envelope."""
+    error = raw.get("error")
+    warnings = raw.get("warnings")
+    warnings = [] if warnings is None else warnings
+    reasons = [raw.get("restoration_error"), raw.get("reason")]
+    restoration = raw.get("restoration")
+    if isinstance(restoration, dict):
+        restored_error = restoration.get("error")
+        reasons.extend([restored_error.get("message") if isinstance(restored_error, dict) else restored_error,
+                        restoration.get("reason")])
+    reasons = [value for value in reasons if isinstance(value, str) and value.strip()]
+    if status == "failed":
+        error = dict(error) if isinstance(error, dict) else dict(message=error)
+        message = error.get("message")
+        if not isinstance(message, str) or not message.strip():
+            error["message"] = reasons[0] if reasons else "Legacy operation reported failure without a diagnostic"
+            error.setdefault("type", "LegacyExecutionError")
+    if status == "partial" and not error and not warnings:
+        checks = raw.get("checks")
+        if isinstance(checks, list):
+            reasons.extend(check["reason"] for check in checks if isinstance(check, dict)
+                           and check.get("status") == "failed" and isinstance(check.get("reason"), str)
+                           and check["reason"].strip())
+        warnings = reasons or ["Legacy operation reported partial completion; inspect comparison_data for details"]
+    return error, warnings
+
+
 def normalize_outcome(action, result) -> JobResult:
     """Convert legacy envelopes once at the operation boundary, not in gates."""
     if isinstance(result, dict) and result.get("contract") == "JobResult/v1":
@@ -96,6 +124,7 @@ def normalize_outcome(action, result) -> JobResult:
         return None
 
     try:
+        error, warnings = legacy_diagnostics(raw, status)
         artifacts = []
         for artifact in raw.get("artifacts", []):
             sha, size = artifact.get("sha256"), artifact.get("size")
@@ -125,8 +154,8 @@ def normalize_outcome(action, result) -> JobResult:
             data={} if raw.get("data") is None else raw["data"],
             artifacts=artifacts,
             checks=checks,
-            warnings=raw.get("warnings", []),
-            error=raw.get("error"),
+            warnings=warnings,
+            error=error,
             comparison_data=raw,
         )
     except (ValidationError, ValueError, TypeError, KeyError, AttributeError) as exc:

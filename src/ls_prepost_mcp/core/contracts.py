@@ -363,8 +363,12 @@ class JobResult(Contract):
     def result_consistency(self):
         if self.status == "succeeded" and self.error is not None:
             raise ValueError("Succeeded results cannot carry an execution error")
-        if self.status == "failed" and not self.error:
-            raise ValueError("Failed results require an error")
+        if self.status == "failed" and (
+            not self.error
+            or not isinstance(self.error.get("message"), str)
+            or not self.error["message"].strip()
+        ):
+            raise ValueError("Failed results require an error with a nonempty message string")
         if self.status == "partial" and (not (self.error or self.warnings) or not (self.artifacts or self.data)):
             raise ValueError("Partial results require an error or warnings and at least one artifact or data item")
         if len({check.name for check in self.checks}) != len(self.checks):
