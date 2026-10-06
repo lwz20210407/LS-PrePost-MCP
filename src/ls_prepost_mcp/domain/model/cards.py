@@ -6,7 +6,7 @@ import warnings
 from typing import TYPE_CHECKING
 
 from .blocks import Block, SourceFile, make_blocks
-from .fields import FieldError, format_value, parse_number, read_text, write_text
+from .fields import FieldError, format_value, parse_number, read_text, single_line, write_text
 from .layouts import Unsupported
 from .schema import _pydyna_class
 from .schema import layout as block_layout
@@ -34,6 +34,8 @@ def card_text(keyword: str, fields: dict[str, object], options: list[str] | None
             except Exception as error:  # PyDYNA raises different types for unknown options
                 raise FieldError(f"{keyword}: unknown option {option!r}") from error
         for name, value in fields.items():
+            if isinstance(value, str):
+                single_line(value, f"{keyword} {name}")
             key = name.lower()
             if not isinstance(getattr(type(card), key, None), property):
                 raise FieldError(f"{keyword} has no field {name!r}")

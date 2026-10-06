@@ -6,8 +6,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from . import access
 from .blocks import Block, SourceFile
-from .includes import Resolution, classify, file_names, identity, is_network, resolve
+from .includes import Resolution, classify, file_names, identity, is_network, joined, resolve
 from .text import deck_format
 
 if TYPE_CHECKING:
@@ -43,9 +44,11 @@ def walk(deck: KeywordDeck, source: SourceFile, stack: list[str]) -> None:
             continue
         for name, lines in file_names(block.name, block.data()):
             line = block.line_number + lines[0] if lines else None
-            if not deck.network and is_network(name):
+            if is_network(name) and (not deck.network or access.active()):
                 # A UNC name in an untrusted deck would make Windows contact (and authenticate to)
                 # the named host; record it without touching the file system.
+                if access.active() and not deck.record_unreadable:
+                    access.require(name)  # the guard refuses it before anything resolves the name
                 deck.includes.append(IncludeRef(source, block, kind, name, Resolution(None, "network_path"), None,
                                                 name_line=line, error="network path not accessed",
                                                 error_kind="network_path"))
@@ -53,7 +56,7 @@ def walk(deck: KeywordDeck, source: SourceFile, stack: list[str]) -> None:
                 continue
             if kind == "path":
                 directory = Path(name)
-                deck.search_dirs.append(directory if directory.is_absolute() else deck.main_dir / directory)
+                deck.search_dirs.append(directory if directory.is_absolute() else joined(deck.main_dir, directory))
                 deck.includes.append(IncludeRef(source, block, kind, name, name_line=line))
                 continue
             try:

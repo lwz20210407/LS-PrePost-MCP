@@ -5,6 +5,7 @@ import hashlib
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from . import access
 from .text import KeywordLine, decode, encode, is_comment, is_keyword, parse_keyword_line, split_lines
 
 
@@ -111,6 +112,7 @@ class SourceFile:
 
     @classmethod
     def read(cls, path: Path) -> SourceFile:
+        access.require(path)
         data = path.read_bytes()
         wide = _wide_codec(data, path)
         text = data[2:].decode(wide) if wide else decode(data)

@@ -20,7 +20,7 @@ import numpy as np
 
 from . import geometry, joint_checks, selectors, sets
 from .deck import KeywordDeck
-from .fields import FieldError, format_value
+from .fields import FieldError, format_value, single_line
 from .loads import ensure_curve
 
 KINDS = {"spherical": "SPHERICAL", "revolute": "REVOLUTE", "cylindrical": "CYLINDRICAL", "planar": "PLANAR",
@@ -182,7 +182,7 @@ def _real(value: object) -> str:
 def _card_text(kind: str, nodes: list[int], jid: int, title: str, rps: float, damp: float, motor: dict | None,
                local: dict | None, failure: dict | None) -> str:
     keyword = f"*CONSTRAINED_JOINT_{kind}_ID" + ("_LOCAL" if local else "") + ("_FAILURE" if failure else "")
-    lines = [keyword, f"{jid:>10}{title[:70]}"]
+    lines = [keyword, f"{jid:>10}{single_line(title, 'Joint title')[:70]}"]
     lines.append("".join(f"{n:>10}" if n else " " * 10 for n in nodes) + _real(rps) + _real(damp))
     if motor is not None:
         lines.append(" " * 10 + f"{motor['lcid']:>10}{motor['type']:>10}")
