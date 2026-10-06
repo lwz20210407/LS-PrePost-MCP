@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from ls_prepost_mcp.config import Settings
+from ls_prepost_mcp.core.contracts import JobResult
 from ls_prepost_mcp.programs import gui_command, native_errors, output_contract
 from ls_prepost_mcp.service import Service
 
@@ -71,18 +72,23 @@ def test_program_execution_completion_and_artifact_contracts(tmp_path, monkeypat
         if scenario != "missing_marker":
             (directory / "complete.txt").write_text("8 1 1")
         if scenario == "native_error":
-            (directory / "lspost.msg").write_text("Invalid command test_source!\n")
+            return JobResult(operation=kwargs["operation"], job_id=directory.name, status="failed",
+                error=dict(message="Invalid command test_source!"),
+                data=dict(returncode=0, timed_out=False, diagnostics=["Invalid command test_source!"]))
         if scenario == "python_error":
             (directory / "python-result.json").write_text(
                 json.dumps(dict(ok=False, error="intentional failure"))
             )
         if scenario == "bad_json":
             (directory / "result.json").write_text("not json")
-        return dict(returncode=0, timed_out=False)
+        return JobResult(operation=kwargs["operation"], job_id=directory.name, status="unverified", data=dict(returncode=0, timed_out=False))
 
-    monkeypatch.setattr("ls_prepost_mcp.programs.execute", fake_execute)
+    monkeypatch.setattr("ls_prepost_mcp.programs.run_batch", fake_execute)
     result = s.execute_native_program(p["job_id"], p["data"]["sha256"])
     assert result["status"] == expected
+    if scenario == "native_error":
+        assert result["error"]["message"] == "Invalid command test_source!"
+        assert result["native_diagnostics"] == ["Invalid command test_source!"]
 
 
 def test_native_error_detection_excludes_success_message():

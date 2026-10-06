@@ -22,7 +22,7 @@ from .program_bundle import (
     validate_script_references,
     write_dependencies,
 )
-from .runner import execute, failure_message
+from .runner import record_batch_result, run_batch
 
 LANGUAGES = {"command": "cfile", "cfile": "cfile", "scl": "scl", "python": "py"}
 PLACEHOLDER = re.compile(r"\{\{([A-Za-z][A-Za-z0-9_]*)\}\}")
@@ -356,17 +356,8 @@ class ProgramTools:
             nc.write_cfile(command_file, commands)
             manifest.update(status="running", started_at=now())
             atomic_json(directory / "job.json", manifest)
-            process = execute(exe, command_file, directory, timeout=self.settings.timeout, graphics=graphics, launch_mode=launch_mode)
-            manifest["process"] = process
-            if process.get("engine_status") == "failed" or process["timed_out"] or process["returncode"] != 0:
-                raise RuntimeError(failure_message(process, "Native program process failed or timed out"))
-            diagnostics = []
-            for log in (directory / "lspost.msg", directory / "stdout.log", directory / "stderr.log"):
-                if log.exists():
-                    diagnostics.extend(native_errors(log.read_text(encoding="utf8", errors="replace")))
-            if diagnostics:
-                manifest["native_diagnostics"] = list(dict.fromkeys(diagnostics))
-                raise RuntimeError("Native command/script diagnostics reported errors")
+            execution = run_batch(exe, command_file, directory, timeout=self.settings.timeout, graphics=graphics, launch_mode=launch_mode, operation=manifest["action"])
+            record_batch_result(execution, manifest, directory)
             if language == "python":
                 reply = json.loads((directory / "python-result.json").read_text())
                 if not reply.get("ok"):

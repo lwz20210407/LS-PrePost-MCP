@@ -42,7 +42,7 @@ from .post_tools import PostTools
 from .pre_tools import PreTools
 from .programs import ProgramTools
 from .results import lasso_vectors, open_binout
-from .runner import decode, execute, failure_message
+from .runner import decode, record_batch_result, run_batch
 from .script_tools import ScriptTools
 from .sessions import SessionTools
 from .workflow_sweeps import WorkflowSweepTools
@@ -132,10 +132,8 @@ class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, Model
         manifest.update(status="running", started_at=now(), execution_mode="graphics" if graphics else "nographics")
         atomic_json(directory / "job.json", manifest)
         try:
-            process = execute(exe, cfile, directory, timeout=self.settings.timeout, graphics=graphics)
-            manifest["process"] = process
-            if process.get("engine_status") == "failed" or process["timed_out"] or process["returncode"] != 0:
-                raise RuntimeError(failure_message(process, f"LS-PrePost process failed: returncode={process['returncode']}, timeout={process['timed_out']}"))
+            execution = run_batch(exe, cfile, directory, timeout=self.settings.timeout, graphics=graphics, operation=manifest["action"])
+            record_batch_result(execution, manifest, directory)
             reply_path = directory / "response.json"
             if action == "scl_probe":
                 count = int((directory / "scl_nodes.txt").read_text().strip())

@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from ls_prepost_mcp.config import Settings
+from ls_prepost_mcp.core.contracts import JobResult
 from ls_prepost_mcp.service import Service
 from ls_prepost_mcp.workflow_runtime import operation_route
 
@@ -41,9 +42,9 @@ def test_matsum_has_explicit_enum_id_lookup_and_valid_time_contract(tmp_path, mo
         assert "BINOUT_MATSUM_" + suffix + "," in text and "p.id=1500;" in text
         assert "if(found==0){SCLBinoutClose(h);return;}" in text
         (directory / "native.csv").write_text("time,value\n0,0\n1,2\n")
-        return dict(returncode=0, timed_out=False)
+        return JobResult(operation=kw["operation"], job_id=directory.name, status="unverified", data=dict(returncode=0, timed_out=False))
 
-    monkeypatch.setattr("ls_prepost_mcp.native_results.execute", execute)
+    monkeypatch.setattr("ls_prepost_mcp.native_results.run_batch", execute)
     r = s.extract_native_binout_curve(str(source), "matsum", quantity, "raw units", entity_id=1500)
     assert r["status"] == "succeeded" and r["data"]["entity_id"] == 1500 and r["data"]["row_count"] == 2
     assert not r["data"]["units_inferred"]
@@ -66,9 +67,9 @@ def test_missing_or_invalid_native_curve_does_not_succeed(tmp_path, monkeypatch,
     def execute(executable, cfile, directory, **kw):
         if data is not None:
             (directory / "native.csv").write_text(data)
-        return dict(returncode=0, timed_out=False)
+        return JobResult(operation=kw["operation"], job_id=directory.name, status="unverified", data=dict(returncode=0, timed_out=False))
 
-    monkeypatch.setattr("ls_prepost_mcp.native_results.execute", execute)
+    monkeypatch.setattr("ls_prepost_mcp.native_results.run_batch", execute)
     r = s.extract_native_binout_curve(str(source), "matsum", "internal_energy", "raw", entity_id=1500)
     assert r["status"] == "failed"
 
@@ -92,7 +93,7 @@ def test_visible_executor_avoids_batch_launch(tmp_path, monkeypatch):
 
     s, source = service_and_source(tmp_path)
     monkeypatch.setattr(
-        module, "execute", lambda *a, **k: pytest.fail("GUI route must not launch batch process")
+        module, "run_batch", lambda *a, **k: pytest.fail("GUI route must not launch batch process")
     )
 
     def executor(directory, manifest):

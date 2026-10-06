@@ -84,8 +84,9 @@ def test_service_reports_native_diagnostic_even_when_exit_code_is_zero(tmp_path,
     exe=tmp_path/"lspp.exe"
     exe.touch()
     service=Service(Settings(tmp_path,exe))
-    monkeypatch.setattr("ls_prepost_mcp.service.execute",lambda *a,**kw:dict(
-        returncode=0,timed_out=False,engine_status="failed",engine_error=dict(message="Invalid command actual_fault!")))
+    monkeypatch.setattr("ls_prepost_mcp.service.run_batch",lambda *a,**kw:JobResult(
+        operation=kw["operation"],job_id=a[2].name,status="failed",data=dict(returncode=0,timed_out=False),
+        error=dict(message="Invalid command actual_fault!")))
     result=service._native("probe",{})
     assert result["status"]=="failed" and result["error"]["message"]=="Invalid command actual_fault!"
 

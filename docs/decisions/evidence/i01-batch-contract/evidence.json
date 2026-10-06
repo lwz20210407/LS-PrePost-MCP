@@ -1,0 +1,120 @@
+{
+  "task": "I01",
+  "context": "batch",
+  "records": [
+    {
+      "version": "4.13",
+      "actual_git_revision": "cb5b7691827e3602db5d17459cc6926ccc7d33a7",
+      "git_diff_sha256": "382ec476adfecef0e966a14c2e4439d4413549196ba77344bb9e0754e5675b6d",
+      "exit_code": 0,
+      "report_sha256": "1944c1a9c096de1a48afe3e2722fb8dd5142e49db0c3205aade4bbe3cfdef069",
+      "cases": {
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[service]": {
+          "status": "passed",
+          "reason": "",
+          "duration": 4.480046099997708,
+          "evidence": null,
+          "native_lane_statuses": null
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[scl_backend]": {
+          "status": "passed",
+          "reason": "",
+          "duration": 3.413207000005059,
+          "evidence": null,
+          "native_lane_statuses": null
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_results]": {
+          "status": "passed",
+          "reason": "",
+          "duration": 3.36089599999832,
+          "evidence": null,
+          "native_lane_statuses": null
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_batch]": {
+          "status": "passed",
+          "reason": "",
+          "duration": 9.196238000004087,
+          "evidence": null,
+          "native_lane_statuses": null
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[programs]": {
+          "status": "passed",
+          "reason": "",
+          "duration": 4.527667999995174,
+          "evidence": null,
+          "native_lane_statuses": null
+        },
+        "tests/test_engine_native.py::test_native_diagnostic_is_visible_to_program_caller": {
+          "status": "passed",
+          "reason": "",
+          "duration": 3.9505455999897094,
+          "evidence": null,
+          "native_lane_statuses": null
+        }
+      },
+      "working_tree_dirty": true
+    },
+    {
+      "version": "4.10",
+      "actual_git_revision": "cb5b7691827e3602db5d17459cc6926ccc7d33a7",
+      "git_diff_sha256": "382ec476adfecef0e966a14c2e4439d4413549196ba77344bb9e0754e5675b6d",
+      "exit_code": 0,
+      "report_sha256": "209789821416ef467754ba3bf9d4feddd8af65de29122464184aed6c85cd916b",
+      "cases": {
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[service]": {
+          "status": "passed",
+          "reason": "",
+          "duration": 6.950618000002578,
+          "evidence": null,
+          "native_lane_statuses": null
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[scl_backend]": {
+          "status": "passed",
+          "reason": "",
+          "duration": 6.466178799993941,
+          "evidence": null,
+          "native_lane_statuses": null
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_results]": {
+          "status": "passed",
+          "reason": "",
+          "duration": 6.343271200006711,
+          "evidence": null,
+          "native_lane_statuses": null
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_batch]": {
+          "status": "passed",
+          "reason": "",
+          "duration": 23.363674699998228,
+          "evidence": null,
+          "native_lane_statuses": null
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[programs]": {
+          "status": "passed",
+          "reason": "",
+          "duration": 6.6162520999932894,
+          "evidence": null,
+          "native_lane_statuses": null
+        },
+        "tests/test_engine_native.py::test_native_diagnostic_is_visible_to_program_caller": {
+          "status": "passed",
+          "reason": "",
+          "duration": 6.426514699996915,
+          "evidence": null,
+          "native_lane_statuses": null
+        }
+      },
+      "working_tree_dirty": true
+    }
+  ],
+  "source_sha256": {
+    "src/ls_prepost_mcp/runner.py": "90111b9ebafd826b9b910b2349515fb32745c9603f33ce5cdff295e41e2628ce",
+    "src/ls_prepost_mcp/service.py": "6dba00adf46183a2b6ee1cc74d053a64b1b6525c05f49b759015642bba88c436",
+    "src/ls_prepost_mcp/programs.py": "4de60cfe31252a84b28b1d3285f748e223a2d045bc559d214f6c4b7d4ee4f404",
+    "src/ls_prepost_mcp/scl_backend.py": "90db305a08ba6dfe1d13ad471a35a516ac37f2c3b8e769d8baeb2256e0931842",
+    "src/ls_prepost_mcp/native_results.py": "d69b6e093097d584daa727934703c752c414cdad18f0b223eb4afa1bc73fb8f8",
+    "src/ls_prepost_mcp/native_batch.py": "d3654064900430413e2cad32ef47d864e6f6104dfef3369d58adb11cffa19774",
+    "tests/test_engine_native.py": "2fdb4925c93103e9ace89a07f0c3871b1acf25e455a4ae42bd0a0e2d1324ceff"
+  },
+  "scope": "Five batch callers plus zero-exit native diagnostic failure. GUI/session/UU are not exercised."
+}

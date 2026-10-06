@@ -5,6 +5,7 @@ import sys
 import pytest
 
 from ls_prepost_mcp.config import Settings
+from ls_prepost_mcp.core.contracts import JobResult
 from ls_prepost_mcp.program_bundle import python_wrapper
 from ls_prepost_mcp.service import Service
 
@@ -63,9 +64,9 @@ def test_dependency_rewrite_is_not_success_despite_completion_marker(tmp_path, m
     def execute(executable, command, directory, **kwargs):
         (directory / "helper.py").write_text("VALUE=9")
         (directory / "complete.txt").write_text("8 1 1")
-        return dict(returncode=0, timed_out=False)
+        return JobResult(operation=kwargs["operation"], job_id=directory.name, status="unverified", data=dict(returncode=0, timed_out=False))
 
-    monkeypatch.setattr("ls_prepost_mcp.programs.execute", execute)
+    monkeypatch.setattr("ls_prepost_mcp.programs.run_batch", execute)
     result = service.execute_native_program(prepared["job_id"], prepared["data"]["sha256"])
     assert result["status"] == "failed" and "Dependency changed" in result["error"]["message"]
     assert helper.read_text() == "VALUE=3"

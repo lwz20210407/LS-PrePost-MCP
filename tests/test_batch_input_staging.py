@@ -7,6 +7,7 @@ from types import SimpleNamespace
 import pytest
 
 from ls_prepost_mcp.config import Settings
+from ls_prepost_mcp.core.contracts import JobResult
 from ls_prepost_mcp.service import Service
 
 
@@ -32,9 +33,9 @@ def test_batch_stages_native_input_and_verifies_original_family(tmp_path, monkey
             assert (directory / "d3plot01").read_bytes() == b"state family"
         (directory / "response.json").write_text(json.dumps(dict(job_id=directory.name, ok=True,
                                                    data=dict(counts=dict(nodes=1)))))
-        return dict(returncode=0, timed_out=False, engine_status="unverified")
+        return JobResult(operation=kwargs["operation"], job_id=directory.name, status="unverified", data=dict(returncode=0, timed_out=False))
 
-    monkeypatch.setattr("ls_prepost_mcp.service.execute", execute)
+    monkeypatch.setattr("ls_prepost_mcp.service.run_batch", execute)
     result = service.inspect_model(str(source), kind)
     assert result["status"] == "succeeded", result
     assert result["input"]["path"] == str(source.resolve())
@@ -60,9 +61,9 @@ def test_include_read_uses_absolute_root_but_export_stays_rejected(tmp_path, mon
         assert request["absolute_keyword_path"] is True
         (directory / "response.json").write_text(json.dumps(dict(job_id=directory.name, ok=True,
                                                    data=dict(counts=dict(nodes=1)))))
-        return dict(returncode=0, timed_out=False)
+        return JobResult(operation=kwargs["operation"], job_id=directory.name, status="unverified", data=dict(returncode=0, timed_out=False))
 
-    monkeypatch.setattr("ls_prepost_mcp.service.execute", execute)
+    monkeypatch.setattr("ls_prepost_mcp.service.run_batch", execute)
     assert service.inspect_model(str(source))["status"] == "succeeded"
     assert {p.name: p.read_bytes() for p in original.iterdir()} == before
     with pytest.raises(ValueError, match="include-tree"):
@@ -94,7 +95,7 @@ def test_large_result_family_is_rejected_before_native_launch(tmp_path, monkeypa
     exe.touch()
     service = Service(Settings(tmp_path / "work", exe, (original,)))
 
-    monkeypatch.setattr("ls_prepost_mcp.service.execute", lambda *args, **kwargs: pytest.fail("Must reject before launch"))
+    monkeypatch.setattr("ls_prepost_mcp.service.run_batch", lambda *args, **kwargs: pytest.fail("Must reject before launch"))
     with pytest.raises(ValueError, match="1000 files / 2 GiB"):
         service.inspect_model(str(source), "d3plot")
     assert not service.jobs.root.exists()
@@ -122,9 +123,9 @@ def test_result_family_mutation_during_execution_is_rejected(tmp_path, monkeypat
             state.unlink()
         (directory / "response.json").write_text(json.dumps(dict(job_id=directory.name, ok=True,
                                                                   data=dict(counts=dict(nodes=8)))))
-        return dict(returncode=0, timed_out=False)
+        return JobResult(operation=kwargs["operation"], job_id=directory.name, status="unverified", data=dict(returncode=0, timed_out=False))
 
-    monkeypatch.setattr("ls_prepost_mcp.service.execute", execute)
+    monkeypatch.setattr("ls_prepost_mcp.service.run_batch", execute)
     result = service.inspect_model(str(source), "d3plot")
     assert result["status"] == "failed"
     assert "Input family changed" in result["error"]["message"]

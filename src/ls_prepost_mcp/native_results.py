@@ -9,7 +9,7 @@ from .jobs import atomic_json, fingerprint, now
 from .native import commands as nc
 from .post_backend import ids, write_csv
 from .result_validity import load_physical_validity, reject_adaptive_family, scalar_statistics, validity_scope
-from .runner import execute, failure_message
+from .runner import record_batch_result, run_batch
 from .stress import CONVENTIONS, NULLABLE, native_mises_matches, stress_metrics
 
 STRESS_KEYS = ["stress_x", "stress_y", "stress_z", "stress_xy", "stress_yz", "stress_zx"]
@@ -62,11 +62,9 @@ def finish_native(settings, jobs, action, parameters, source, build, parse, fami
         if executor is not None:
             executor(directory, manifest)
         else:
-            process = execute(settings.native_executable(), directory / "commands.cfile", directory,
-                              timeout=settings.timeout, graphics=False)
-            manifest["process"] = process
-            if process.get("engine_status") == "failed" or process["returncode"] != 0 or process["timed_out"]:
-                raise RuntimeError(failure_message(process, "Native result export failed or timed out"))
+            execution = run_batch(settings.native_executable(), directory / "commands.cfile", directory,
+                              timeout=settings.timeout, graphics=False, operation=manifest["action"])
+            record_batch_result(execution, manifest, directory)
         data, artifacts = parse(directory)
         if [fingerprint(p) for p in sources] != before:
             raise ValueError("Original inputs changed during native export")

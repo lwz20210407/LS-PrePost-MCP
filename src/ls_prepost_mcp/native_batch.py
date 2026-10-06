@@ -8,7 +8,7 @@ from .jobs import atomic_json, check_artifact, fingerprint, now
 from .native import commands as nc
 from .native_results import STRESS_KEYS
 from .post_backend import write_csv
-from .runner import execute, failure_message
+from .runner import record_batch_result, run_batch
 from .stress import CONVENTIONS, NULLABLE, stress_metrics
 
 FIELDS = {
@@ -121,11 +121,9 @@ def run_case(settings, jobs, source: Path, units: str, *, renderer=None):
                     curves.append(name)
         commands += ['exit']
         nc.write_cfile(directory / "commands.cfile", commands)
-        result = execute(settings.native_executable(), directory / "commands.cfile", directory,
-                         timeout=settings.timeout, graphics=False)
-        manifest["process"] = result
-        if result.get("engine_status") == "failed" or result["returncode"] != 0 or result["timed_out"]:
-            raise RuntimeError(failure_message(result, "Native batch process failed/timed out"))
+        execution = run_batch(settings.native_executable(), directory / "commands.cfile", directory,
+                         timeout=settings.timeout, graphics=False, operation=manifest["action"])
+        record_batch_result(execution, manifest, directory)
         nodes, solids, shells, states = map(int, (directory / "inventory.txt").read_text().split())
         manifest["counts"] = dict(nodes=nodes, solids=solids, shells=shells, states=states)
         field_rows = {}

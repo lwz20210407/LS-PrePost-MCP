@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from ls_prepost_mcp.config import Settings, command_path
+from ls_prepost_mcp.core.contracts import JobResult
 from ls_prepost_mcp.jobs import check_artifact
 from ls_prepost_mcp.service import Service
 
@@ -73,8 +74,8 @@ def test_old_output_never_satisfies_new_job(tmp_path, monkeypatch):
     def fake(exe, cfile, directory, **kwargs):
         request = json.loads((directory / "request.json").read_text())
         (directory / "response.json").write_text(json.dumps({"job_id": request["job_id"], "ok": True, "data": {}}))
-        return {"timed_out": False, "returncode": 0}
-    monkeypatch.setattr("ls_prepost_mcp.service.execute", fake)
+        return JobResult(operation=kwargs["operation"], job_id=directory.name, status="unverified", data=dict(returncode=0, timed_out=False))
+    monkeypatch.setattr("ls_prepost_mcp.service.run_batch", fake)
     service = Service(Settings(tmp_path, old))
     result = service.export_keyword(str(old))
     assert result["status"] == "failed"
@@ -85,7 +86,7 @@ def test_old_output_never_satisfies_new_job(tmp_path, monkeypatch):
 def test_native_exit_zero_without_response_fails(tmp_path, monkeypatch):
     exe = tmp_path / "fake"
     exe.touch()
-    monkeypatch.setattr("ls_prepost_mcp.service.execute", lambda *a, **k: {"timed_out": False, "returncode": 0})
+    monkeypatch.setattr("ls_prepost_mcp.service.run_batch", lambda *a, **k: JobResult(operation=k["operation"], job_id=a[2].name, status="unverified", data=dict(returncode=0, timed_out=False)))
     result = Service(Settings(tmp_path, exe)).probe_environment()
     assert result["status"] == "failed"
     assert "no response" in result["error"]["message"]
@@ -96,8 +97,8 @@ def test_response_is_bound_to_job(tmp_path, monkeypatch):
     exe.touch()
     def fake(exe, cfile, directory, **kwargs):
         (directory / "response.json").write_text(json.dumps({"job_id": "stale", "ok": True, "data": {}}))
-        return {"timed_out": False, "returncode": 0}
-    monkeypatch.setattr("ls_prepost_mcp.service.execute", fake)
+        return JobResult(operation=kwargs["operation"], job_id=directory.name, status="unverified", data=dict(returncode=0, timed_out=False))
+    monkeypatch.setattr("ls_prepost_mcp.service.run_batch", fake)
     result = Service(Settings(tmp_path, exe)).probe_environment()
     assert result["status"] == "failed"
     assert "different job" in result["error"]["message"]

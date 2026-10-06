@@ -61,7 +61,7 @@ def test_gui_scl_reuses_parser_and_never_opens_or_exits_a_model(tmp_path, monkey
 
     monkeypatch.setattr(service, "_session_manager", Manager)
     # The optional visible executor must not invoke the independent batch runner.
-    monkeypatch.setattr("ls_prepost_mcp.native_results.execute", lambda *a, **k: pytest.fail("Batch launch"))
+    monkeypatch.setattr("ls_prepost_mcp.native_results.run_batch", lambda *a, **k: pytest.fail("Batch launch"))
     result = service.gui_session_action(
         "s",
         "extract_native_fields",

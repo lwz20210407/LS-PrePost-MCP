@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 
 from ls_prepost_mcp.config import Settings
+from ls_prepost_mcp.core.contracts import JobResult
 from ls_prepost_mcp.result_validity import (
     PhysicalValidity,
     mask_from_database,
@@ -109,8 +110,8 @@ def test_native_deleted_nan_filtered_before_native_mises_comparison(tmp_path, mo
             writer.writerow(["state", "time", "entity_id", *STRESS_KEYS, "von_mises"])
             writer.writerow([2,1,7,10,0,0,0,0,0,10])
             writer.writerow([2,1,101,*(["nan"]*7)])
-        return dict(returncode=0, timed_out=False)
-    monkeypatch.setattr("ls_prepost_mcp.native_results.execute", execute)
+        return JobResult(operation=kwargs["operation"], job_id=directory.name, status="unverified", data=dict(returncode=0, timed_out=False))
+    monkeypatch.setattr("ls_prepost_mcp.native_results.run_batch", execute)
     result = Service(Settings(tmp_path / "jobs-root", exe, allowed_roots=(source.parent,))).extract_native_stress(
         str(source), "solid", [101,7], [2], "mid", "MPa", validity_policy="alive")
     assert result["status"] == "succeeded", result
