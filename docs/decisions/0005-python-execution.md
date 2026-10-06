@@ -15,9 +15,10 @@ dtype、内存字节数、排列顺序。验证 NPY 1/2 头、载荷长度及 ZI
 
 ## 历史原生记录与证据缺口
 
-第三轮审阅后 A04 改为 partial。以下历史结果未记录实际 Git revision
-和运行时未提交 diff SHA256，不能作为当前提交的完成证据。需以新的
-运行身份重新取证，并将去路径的 report.md、evidence.json 入库。
+第三轮审阅时 A04 曾因历史记录缺少版本身份而保留 partial。
+本次已在干净 main 9e55e9b 重新完成 4.13 batch/session 与 4.10 batch 子集，
+[新证据](evidence/a04/report.md) 带实际 revision、diff、源码/输入/报告哈希，
+据此恢复 done；原历史记录不用于补造运行身份。
 
 `tests/test_script_python_native.py` 在真实内置 Python 中调用 DataCenter
 和 LsPrePost，加载 helper.py 及子目录 JSON 文件，接收含引号/换行的数据

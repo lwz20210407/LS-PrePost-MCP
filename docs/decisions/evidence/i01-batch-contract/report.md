@@ -27,3 +27,15 @@ python -m pytest tests/test_engine_native.py -q -k "five_batch_callers or native
 ```
 
 I01 保持 partial/L1：重编号与质量检查面板尚未统一，大结果族和 Include 路径限制保留。
+
+## 第六轮复核：补丁范围与行为说明
+
+历史补丁范围为下列提交差异，排除 docs、tasks.yaml 和运行后才补的可选依赖跳过声明；
+包含 de9abce 中已暂存的新测试，不包含未跟踪文件。以下命令可重算上述 382ec476… 哈希：
+
+```powershell
+git diff cb5b769 de9abce --binary -- . ':!docs' ':!tasks.yaml' ':!tests/test_keyword_engine_formats.py'
+```
+
+本次变化是五个入口统一读取 JobResult，诊断写入 native_diagnostics 和 engine-result.json。
+cb5b769 的 failure_message 已优先保留引擎消息，不能把“零退出码仍显示原生错误”算作本次新增修复。

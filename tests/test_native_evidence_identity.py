@@ -3,6 +3,8 @@
 import hashlib
 import subprocess
 
+import pytest
+
 from tools.native_regression import execution_identity
 
 
@@ -56,3 +58,39 @@ def test_git_timeout_keeps_source_fingerprint_and_marks_revision_unavailable(tmp
     result = execution_identity(tmp_path)
     assert result["actual_git_head"] is None and result["git_diff_sha256"] is None
     assert result["source_files"]["src/example.py"] == hashlib.sha256(b"VALUE = 1\n").hexdigest()
+
+
+@pytest.mark.parametrize("setting,value", [
+    ("diff.noprefix", "true"), ("color.ui", "always"), ("diff.mnemonicPrefix", "true"),
+    ("diff.algorithm", "histogram"), ("diff.renames", "copies"),
+])
+def test_patch_is_stable_across_user_git_configuration(tmp_path, setting, value):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    report = tmp_path / "report"
+    report.mkdir()
+    git(repo, "init")
+    git(repo, "config", "core.autocrlf", "false")
+    source = repo / "example.py"
+    source.write_bytes(b"VALUE = 1\n")
+    git(repo, "add", ".")
+    git(repo, "-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "-m", "fixture")
+    source.write_bytes(b"VALUE = 2\n")
+    baseline = execution_identity(repo)
+    git(repo, "config", setting, value)
+    current = execution_identity(repo, report_directory=report)
+    patch = (report / "working-tree.patch").read_bytes()
+    assert current["git_diff_sha256"] == baseline["git_diff_sha256"] == hashlib.sha256(patch).hexdigest()
+    assert b"diff --git a/example.py b/example.py" in patch
+    assert current["git_diff_scope"]["excluded_paths"] == []
+    assert current["git_diff_scope"]["untracked_included"] is False
+    assert current["git_diff_patch"] == "working-tree.patch"
+
+
+def test_patch_cannot_be_saved_inside_checkout(tmp_path):
+    git(tmp_path, "init")
+    (tmp_path / "source.py").write_bytes(b"pass\n")
+    git(tmp_path, "add", ".")
+    git(tmp_path, "-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "-m", "fixture")
+    with pytest.raises(ValueError, match="outside"):
+        execution_identity(tmp_path, report_directory=tmp_path)

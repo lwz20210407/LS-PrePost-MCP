@@ -56,9 +56,23 @@ def run(root, session_id, token):
                     ident = message.get("request_id")
                     if not isinstance(ident, str) or not re.fullmatch(r"[a-f0-9]{32}", ident) or ident in seen:
                         continue
-                    pending.put_nowait(ident)
+                    directory = (root / "requests" / ident).resolve()
+                    if directory.parent != root / "requests" or not (directory / "queue-job.json").is_file():
+                        continue
+                    complete = directory / "complete.json"
+                    if complete.exists() or (directory / "queue-started.json").exists():
+                        seen.add(ident)
+                        continue
+                    try:
+                        pending.put_nowait(ident)
+                    except queue.Full:
+                        # This authenticated request was never accepted. Publish
+                        # a terminal, correlated rejection instead of a timeout.
+                        publish(complete, dict(job_id=ident, ok=False, error=dict(
+                            type="QueueBusy", message="Native queue is full; this request was not accepted",
+                            executed=False)))
                     seen.add(ident)
-            except (OSError, ValueError, queue.Full):
+            except (OSError, ValueError):
                 continue
 
     receiver = threading.Thread(target=receive, name="lspp-request-receiver", daemon=True)

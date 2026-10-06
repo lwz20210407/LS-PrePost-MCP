@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "task": "A04",
+  "runs": [
+    {
+      "task": "A04",
+      "version": "413",
+      "context": "batch",
+      "actual_git_revision": "9e55e9b04920932d647de219a819b01355747f29",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "report": "a04-413-report/report.json",
+      "run_id": "main-channels-batch-r1",
+      "report_sha256": "8ca102fd923462d8728659be472a3afdc15e9c0aa1dcbb9a5bb5d1f69162975a",
+      "cases": [
+        "tests/test_script_python_native.py::test_python_sdk_parameters_dependencies_npz_and_traceback[batch]"
+      ]
+    },
+    {
+      "task": "A04",
+      "version": "410",
+      "context": "batch",
+      "actual_git_revision": "9e55e9b04920932d647de219a819b01355747f29",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "report": "a04-410-report/report.json",
+      "run_id": "main-channels-batch-r1",
+      "report_sha256": "5d911554faef423118ac55beddede592c94ead3c313e28dcb5c72a5be633da77",
+      "cases": [
+        "tests/test_script_python_native.py::test_python_sdk_parameters_dependencies_npz_and_traceback[batch]"
+      ]
+    },
+    {
+      "task": "A04",
+      "version": "413",
+      "context": "session",
+      "actual_git_revision": "9e55e9b04920932d647de219a819b01355747f29",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "report": "a04-413-report/report.json",
+      "run_id": "main-channels-session-r1",
+      "report_sha256": "524b60c113b950eb307d5aa5a8351778dd21596a9da320e32be1836a4fe8d1b8",
+      "cases": [
+        "tests/test_script_python_native.py::test_python_sdk_parameters_dependencies_npz_and_traceback[session]"
+      ]
+    }
+  ],
+  "fixture_sha256": {
+    "input.k": "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43",
+    "d3plot": "08e29edab83a10901589cf5e20714bed8a019cc69a7b93e6cba08d5c231d58c1",
+    "d3plot01": "f928ad97b3293bb3b52d669ad491e4831fbdc1d9681b06ec5883b4aca2dc74b5"
+  },
+  "test_source_sha256": "462d619fe963020f64005390d640ed7e28f055d0382df9524bda48dcfbdfd674",
+  "scope": "DataCenter/LsPrePost、JSON 参数、多文件依赖、百万行 NPZ 与完整异常栈；4.10 使用规定子集。",
+  "session_window": "User-authorized unlocked desktop; owned queue sessions closed after tests"
+}

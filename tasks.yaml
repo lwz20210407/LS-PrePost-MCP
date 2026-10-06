@@ -575,11 +575,10 @@ tasks:
     layer: T1
     target_tools: [run_script]
     channel: command
-    status: partial
+    status: done
     existing: [prepare_native_program, execute_native_program, execute_gui_command, run_on_version]
-    gaps:
-      - 历史 4.13 batch/session 与 4.10 batch 报告未记录实际 Git revision 和运行时未提交 diff SHA256；需带完整身份重跑并将 report.md、evidence.json 入库
-    evidence: [tests/test_script_command_native.py, docs/decisions/0002-command-execution.md]
+    gaps: []
+    evidence: [tests/test_script_command_native.py, docs/decisions/0002-command-execution.md, docs/decisions/evidence/a01/report.md]
     acceptance:
       - 10 条代表命令（打开、选择、变换、显隐、视图、出图、保存）在 batch 与 session 两种上下文各执行一次，产物核对通过
       - 返回 LSPP 回显与报错原文（来自 lspost.msg 本次增量）
@@ -596,11 +595,10 @@ tasks:
     layer: T1
     target_tools: [run_script]
     channel: cfile
-    status: partial
+    status: done
     existing: [prepare_native_program, execute_native_program]
-    gaps:
-      - 历史 A02 原生证据缺少实际 Git revision 或运行时未提交 diff SHA256；在 report.md 与 evidence.json 按身份完整入库前保持 partial，配方模式登记不替代执行证据
-    evidence: [tests/test_script_cfile_native.py, docs/decisions/0003-cfile-execution.md]
+    gaps: []
+    evidence: [tests/test_script_cfile_native.py, docs/decisions/0003-cfile-execution.md, docs/decisions/evidence/a02/report.md, docs/decisions/evidence/a08/report.md]
     acceptance:
       - 多行 cfile 建模 → 保存 → 重开，batch 与 session 各一次
       - 数值与字符串参数替换（字符串参数禁止注入路径分隔符以外的命令）
@@ -618,11 +616,10 @@ tasks:
     layer: T1
     target_tools: [run_script]
     channel: scl
-    status: partial
-    gaps:
-      - 历史原生报告未记录实际 Git revision 与运行时未提交 diff SHA256，需重新取证并将 report.md、evidence.json 入库
+    status: done
+    gaps: []
     existing: [prepare_native_program, execute_native_program, probe_scl]
-    evidence: [tests/test_script_scl_native.py, docs/decisions/0004-scl-execution.md]
+    evidence: [tests/test_script_scl_native.py, docs/decisions/0004-scl-execution.md, docs/decisions/evidence/a03/report.md]
     acceptance:
       - 读写数组并输出 CSV；结果与 A04 的同等 Python 任务一致
       - 编译错误明确失败并返回行号
@@ -638,11 +635,10 @@ tasks:
     layer: T1
     target_tools: [run_script]
     channel: python
-    status: partial
-    gaps:
-      - 历史原生报告未记录实际 Git revision 与运行时未提交 diff SHA256，需重新取证并将 report.md、evidence.json 入库
+    status: done
+    gaps: []
     existing: [prepare_native_program, execute_native_program]
-    evidence: [tests/test_script_python_native.py, docs/decisions/0005-python-execution.md]
+    evidence: [tests/test_script_python_native.py, docs/decisions/0005-python-execution.md, docs/decisions/evidence/a04/report.md]
     acceptance:
       - DataCenter / LsPrePost 调用；脚本参数传递；多文件依赖包
       - Python 异常返回完整栈
@@ -766,7 +762,7 @@ tasks:
     gaps:
       - 旧二十题评测受到题面专用词表调优影响，不作为完成依据；已冻结六类二十四题独立留出集，记录未经调优的结果，跨语言检索与完整来源覆盖仍需后续工作
     existing: [search_commands, search_knowledge, search_workflows, list_pydyna_keywords, describe_pydyna_keyword]
-    evidence: [src/ls_prepost_mcp/knowledge.py, tests/test_knowledge_tools.py, docs/decisions/evidence/a10/report.md]
+    evidence: [src/ls_prepost_mcp/knowledge.py, tests/test_knowledge_tools.py, tests/test_keyword_field_lookup.py, docs/decisions/evidence/a10/report.md, docs/decisions/evidence/a10-field-lookup/report.md]
     acceptance:
       - 可检索命令手册、Scripting API、关键字字段、用户指南章节、配方、KNOWN_ISSUES 六类
       - 每条结果带来源、版本、证据等级（文档记载 / 有源码实例 / 本机验证）
@@ -854,6 +850,8 @@ infrastructure:
     status: partial
     verification_level: L1
     gaps:
+      - 队列饱和已返回关联请求的 QueueBusy 拒绝回执，真实 socket 离线回归通过；原生队列饱和与拒绝后不重放仍待集中 GUI 窗口
+      - Windows 创建暂停进程至加入 Job 之间的宿主强杀窗口尚未消除；已验证加入 Job 后的取消、超时和宿主退出回收
       - renumber/quality 已接入 SessionEngine，6 项面板原生回归尚未实测；五个批处理入口已读取 JobResult，外部旧清单保留兼容输出；公开 Win32 打开、检查点和重开已有历史证据
       - 原生 d3plot 输入超过 1000 文件或 2 GiB 时在启动前明确拒绝；两版原地只读回退实验均崩溃，暂不提供该回退
       - 从 job 目录绝对路径读取 Include 时，中文根路径在 4.13/4.10 仍失败，4.10 的相对 Include 仍从 job cwd 解析；不得切到用户目录绕过
@@ -867,6 +865,10 @@ infrastructure:
       - docs/decisions/evidence/i01-staging/report.md
       - docs/decisions/evidence/i01-batch-contract/report.md
       - docs/decisions/0009-panel-session-engine.md
+      - docs/decisions/evidence/i01-process-lifetime/report.md
+      - docs/decisions/evidence/i01-log-decoding/report.md
+      - tests/test_queue_backpressure.py
+      - tests/test_queue_backpressure_native.py
     acceptance:
       - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
       - 删除 gui_session_action 中运行时替换 _native 的做法
@@ -894,14 +896,17 @@ infrastructure:
     milestone: M1
     status: partial
     gaps:
-      - 主路径命令已集中；import keyword、open xydata、savefile xypair、modelcheck writetofile 的 8 模块 12 处仍待集中，SCL 脚本编码仍混用 ascii/utf8
+      - 路径命令及 SCL 写入已集中；GUI 模型检查、实体导入等调用待集中窗口原生复核，批处理的导入/XY/SCL 子集已有独立证据
       - KI-049：4.13/4.10 的 ASCII 空格 job 目录已通过批处理保存、PNG、重开；中文 job 目录仍为 gap，GUI/Movie 路径待集中窗口验证
     verification_level: L2
     evidence:
       - src/ls_prepost_mcp/native/commands.py
       - src/ls_prepost_mcp/native/versions.py
       - tests/test_native_commands.py
+      - tests/test_version_resources.py
+      - docs/decisions/evidence/i03-version-resource/report.md
       - docs/decisions/evidence/i03/report.md
+      - docs/decisions/evidence/i03-paths/report.md
       - tests/test_engine_native.py
     compatibility_notes:
       - KI-048 的 4.10 队列来源读回限制保留；版本能力表在启动前拒绝该路线。4.10 六项批处理/命令回归通过，不外推为全部会话能力通过。
@@ -938,14 +943,16 @@ infrastructure:
     milestone: M1
     status: partial
     gaps:
-      - keyword_docs 的包内直接对接随 Claude 的 I07 在 M3 集成；当前仅支持显式指定其只读工作副本做离线索引
-      - 全量关键字覆盖尚未收口；当前实测为七个关键字标识的 195 个字段及六类来源检索，A10 固定二十题评测已完成
+      - 已直接对接主干 keyword_docs；3171 个目录标识中 38 个未返回命名字段，须区分无字段指令与提供者未给出的布局
+      - 已构建 66900 条独立字段并完成六类来源检索冒烟；不替代 A10 的留出集质量评测，完整字段覆盖仍待上述空字段项确认
     verification_level: L1
     evidence:
       - src/ls_prepost_mcp/knowledge_index.py
       - src/ls_prepost_mcp/keyword_documentation.py
       - tools/build_knowledge_index.py
       - tests/test_knowledge_index.py
+      - tests/test_keyword_index_coverage.py
+      - docs/decisions/evidence/i05-catalog/report.md
     acceptance:
       - 命令表、Scripting API、关键字定义、用户指南章节、配方、KNOWN_ISSUES 建立索引
       - 公开部分可入仓库；私有课程资料的索引在仓库外

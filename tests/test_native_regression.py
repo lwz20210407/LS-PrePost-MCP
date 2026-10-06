@@ -131,6 +131,6 @@ def test_record(request):
     row = next(iter(data["cases"].values()))
     assert row["status"] == "evidence_only" and set(row["native_lane_statuses"].values()) == {"failed"}
     markdown = (report/"report.md").read_text(encoding="utf8")
-    assert context["actual_git_head"] in markdown
-    assert context["git_diff_sha256"] in markdown
+    assert (context["actual_git_head"] or "unavailable") in markdown
+    assert (context["git_diff_sha256"] or "unavailable") in markdown
     assert "failed / failed / failed" in markdown and "| passed |" not in markdown

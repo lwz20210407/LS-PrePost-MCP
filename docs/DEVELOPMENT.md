@@ -125,3 +125,13 @@ run_recipe 传入配方 ID、参数及输入模型。默认 launch_mode=c，显�
 原生 report.md / report.json 自动附启动时的实际 Git revision、工作树状态、
 `git diff HEAD --binary` SHA256 和源码快照 SHA256；逐文件哈希见 execution-context.json。
 Git 不可用时身份字段为空。diff 不包含未跟踪文件，源码快照补充这些文件的指纹。
+
+I05 完整字段索引：安装 pydyna 可选依赖后，显式运行
+`python tools/build_knowledge_index.py --all-keywords --output <仓库外索引路径>`。
+`--all-keywords` 与重复指定的 `--keyword` 二选一；默认不遍历完整目录。
+`--external-sources` 可追加已有的本机 API/指南清单，资料和索引保持在仓库外。
+输出 keyword_coverage 列出目录遍历数、来源字段数及 without_fields；出现提供者异常时不发布部分索引。
+字段 locator 包含列位以保留同卡同名字段，schema_version 仍为 2；旧索引可读，重建后才获得新字段身份。
+
+A10 的 keyword_fields 先按关键字前缀与字段/别名过滤，再限制数量；完整关键字优先，随后按卡片/列位排序。
+新构建的 schema-v2 索引附 keyword_lookup 辅助索引；旧索引无需迁移即可查询，但重建可改善大量字段查询的耗时。

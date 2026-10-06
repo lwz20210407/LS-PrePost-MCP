@@ -17,8 +17,8 @@
 
 ## 集中待测清单
 
-以下 6 项均未实测，使用自产模型，LS-PrePost 4.13，可见桌面保持解锁约 20 分钟。
-每项覆盖启动、打开、操作验证、关联 engine-result.json、保存重开、PNG 与关闭，
+以下 11 项待集中补验，使用自产模型，LS-PrePost 4.13，可见桌面保持解锁约 30 分钟。
+前六项覆盖启动、打开、操作验证、关联 engine-result.json、保存重开、PNG 与关闭，
 并检查原始输入字节不变。
 
 | 用例 | 状态 |
@@ -29,7 +29,17 @@
 | 原生 Keyword Check | pending |
 | 壳质量检查 | pending |
 | Hex8 实体质量及失败单元 ID 捕获 | pending |
+| A01 Command：合并后的 4.13 session | pending |
+| A02 cfile：LF 写入下的 4.13 session | pending |
+| A03 SCL：LF 写入下的 4.13 session | pending |
+| A04 Python：LF 写入下的 4.13 session | pending |
+| I01 队列饱和拒绝及重复通知不重放 | pending |
 
 入口：[test_public_panel_actions_have_correlated_engine_evidence](../../tests/test_engine_native.py)。
 运行必须同时有 `--run-native --native-gui`、`LSPP_ALLOW_GUI=1` 和用户授权窗口；
 此批不需要 UU 断开。通过后另附真实 revision/diff 指纹证据，不能用离线测试代替。
+
+第六轮接栈后，面板分支通过 merge 纳入新 #40 的引擎基础；原 #27/#29/#30/#31 的旧叠栈不再作为依赖。
+四通道分别使用 tests/test_script_command_native.py、test_script_cfile_native.py、
+test_script_scl_native.py、test_script_python_native.py 的 session 参数；队列使用
+[原生饱和用例](../../tests/test_queue_backpressure_native.py)。此前 9e55e9b 的会话结果仍只代表历史版本。

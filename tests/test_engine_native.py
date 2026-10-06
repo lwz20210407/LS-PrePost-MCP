@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import shutil
 from dataclasses import replace
 from pathlib import Path
 
@@ -15,6 +16,38 @@ from ls_prepost_mcp.service import Service
 from ls_prepost_mcp.sessions import Sessions
 
 pytestmark = pytest.mark.native
+
+
+def test_version_resources_keep_family_when_binary_is_renamed(native_case):
+    from ls_prepost_mcp.native.versions import profile, require_capability
+
+    service, _ = native_case
+    executable = service.settings.native_executable()
+    known = {"lsprepost4.13.exe": "4.13", "lsprepost4.10_x64.exe": "4.10", "lsprepost4.8_x64.exe": "4.8"}
+    if executable.name not in known or os.name != "nt":
+        pytest.skip("Version-resource fixture uses the three recorded Windows installations")
+    expected = known[executable.name]
+    before = (executable.stat().st_size, executable.stat().st_mtime_ns)
+    directory = service.settings.workspace / "version-copy"
+    directory.mkdir()
+    copy = directory / "renamed.exe"
+    shutil.copy2(executable, copy)  # Vendor binary remains in external test output, never the repository.
+    original = profile(executable)
+    assert original["version"] == expected and original["version_source"] == "file_version_resource"
+    reports = []
+    for name in ("renamed.exe", "lsprepost4.11.exe", "lsprepost4.13.exe"):
+        alias = directory / name
+        if alias != copy:
+            os.link(copy, alias)  # One physical copy for all name variants.
+        info = profile(alias)
+        assert info["version"] == expected and info["runtime_verified"] is False
+        assert info["file_version"] == original["file_version"]
+        if expected != "4.13":
+            with pytest.raises(ValueError, match="unavailable"):
+                require_capability(alias, "queue_model_identity")
+        reports.append(dict(name=name, **info))
+    assert before == (executable.stat().st_size, executable.stat().st_mtime_ns)
+    (directory / "metadata.json").write_text(json.dumps(reports, indent=2), encoding="utf8")
 
 
 @pytest.fixture

@@ -1,0 +1,195 @@
+{
+  "task": "I01",
+  "baseline": {
+    "actual_git_revision": "22ce5a59ffa4cabce153a89baa175d87d494c1e1",
+    "working_tree_dirty": false,
+    "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "alive_after_interrupt": [
+      true,
+      true
+    ],
+    "scope": "Real child tree; KeyboardInterrupt injected at communicate; baseline cleanup performed by this harness"
+  },
+  "native": [
+    {
+      "version": "4.13",
+      "actual_git_revision": "22ce5a59ffa4cabce153a89baa175d87d494c1e1",
+      "git_diff_sha256": "1cf222e986469f2ce934bb3a7f36a8b836fa0219969e33ed8a1ca686f2cb4070",
+      "exit_code": 0,
+      "report_sha256": "fd020ca5a44d9c38204037645673948cb82e58c9aa79123b6b498976373ad05b",
+      "cases": {
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[service]": {
+          "status": "passed",
+          "duration": 6.752553300000727
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[scl_backend]": {
+          "status": "passed",
+          "duration": 4.9692301000031875
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_results]": {
+          "status": "passed",
+          "duration": 5.156899599998724
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_batch]": {
+          "status": "passed",
+          "duration": 12.370578999994905
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[programs]": {
+          "status": "passed",
+          "duration": 5.094795199998771
+        },
+        "tests/test_engine_native.py::test_native_diagnostic_is_visible_to_program_caller": {
+          "status": "passed",
+          "duration": 5.036205299998983
+        }
+      }
+    },
+    {
+      "version": "4.10",
+      "actual_git_revision": "22ce5a59ffa4cabce153a89baa175d87d494c1e1",
+      "git_diff_sha256": "1cf222e986469f2ce934bb3a7f36a8b836fa0219969e33ed8a1ca686f2cb4070",
+      "exit_code": 0,
+      "report_sha256": "7e58894884370d29846b0a5905daa03728604b3d25dd686fcea984ac93138709",
+      "cases": {
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[service]": {
+          "status": "passed",
+          "duration": 10.630918999988353
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[scl_backend]": {
+          "status": "passed",
+          "duration": 8.394456199996057
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_results]": {
+          "status": "passed",
+          "duration": 8.836523400008446
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_batch]": {
+          "status": "passed",
+          "duration": 29.511986800003797
+        },
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[programs]": {
+          "status": "passed",
+          "duration": 8.069552899993141
+        },
+        "tests/test_engine_native.py::test_native_diagnostic_is_visible_to_program_caller": {
+          "status": "passed",
+          "duration": 12.581115399996634
+        }
+      }
+    }
+  ],
+  "real_process_tests": {
+    "actual_git_revision": "22ce5a59ffa4cabce153a89baa175d87d494c1e1",
+    "git_diff_sha256": "1cf222e986469f2ce934bb3a7f36a8b836fa0219969e33ed8a1ca686f2cb4070",
+    "working_tree_dirty": true,
+    "junit_sha256": "681dcd48f3e9c7ffbd86c8c1cb97b619078cdf7cf799dc305af93a6128a619a7",
+    "cases": [
+      {
+        "name": "test_owned_process_preserves_output_and_closes_pipes",
+        "seconds": 0.313,
+        "status": "passed"
+      },
+      {
+        "name": "test_engine_timeout_and_interrupt_reap_real_tree[None]",
+        "seconds": 0.718,
+        "status": "passed"
+      },
+      {
+        "name": "test_engine_timeout_and_interrupt_reap_real_tree[KeyboardInterrupt]",
+        "seconds": 0.473,
+        "status": "passed"
+      },
+      {
+        "name": "test_engine_timeout_and_interrupt_reap_real_tree[SystemExit]",
+        "seconds": 0.498,
+        "status": "passed"
+      },
+      {
+        "name": "test_failed_assignment_never_runs_the_suspended_child",
+        "seconds": 0.03,
+        "status": "passed"
+      },
+      {
+        "name": "test_normal_parent_exit_also_closes_its_lingering_child",
+        "seconds": 1.012,
+        "status": "passed"
+      },
+      {
+        "name": "test_host_abrupt_exit_kills_only_its_job",
+        "seconds": 2.097,
+        "status": "passed"
+      }
+    ]
+  },
+  "atomic_launch_probe": {
+    "python": "3.11.15",
+    "startupinfo_job_list_supported": false,
+    "scope": "IsProcessInJob returned false for a suspended child passed lpAttributeList job_list; child killed by probe"
+  },
+  "restack_runs": [
+    {
+      "version": "413",
+      "actual_git_revision": "2cdc727355fcb05f16be0a0e8786df2f9f8546a8",
+      "working_tree_dirty": false,
+      "exit_code": 0,
+      "report": "r6-lifetime-native/413-report/report.json",
+      "report_sha256": "45f96cbfb042fc9df8afaabd683af098a8619aa1003243c43dceb9260fe9af9d",
+      "cases": {
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[service]": "passed",
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[scl_backend]": "passed",
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_results]": "passed",
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_batch]": "passed",
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[programs]": "passed",
+        "tests/test_engine_native.py::test_native_diagnostic_is_visible_to_program_caller": "passed"
+      },
+      "execution_context": {
+        "actual_git_head": "2cdc727355fcb05f16be0a0e8786df2f9f8546a8",
+        "working_tree_dirty": false,
+        "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames",
+        "git_diff_patch": "working-tree.patch",
+        "git_diff_scope": {
+          "base": "HEAD",
+          "included": "All tracked staged and unstaged changes",
+          "excluded_paths": [],
+          "untracked_included": false
+        },
+        "source_snapshot_sha256": "bf3d3903290e07679083ff52ce4cca7eeb0775fe0589492b53a1d487a877dffa",
+        "python_version": "3.11.15 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:12:15) [MSC v.1942 64 bit (AMD64)]",
+        "scope": "Actual runner checkout at startup; null Git fields mean unavailable. Git diff excludes untracked files; source_files also hashes untracked source files."
+      }
+    },
+    {
+      "version": "410",
+      "actual_git_revision": "2cdc727355fcb05f16be0a0e8786df2f9f8546a8",
+      "working_tree_dirty": false,
+      "exit_code": 0,
+      "report": "r6-lifetime-native/410-report/report.json",
+      "report_sha256": "af144c54cb674901ae95cc54e12b455211b48e36ea52f7bce58e37691443cf25",
+      "cases": {
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[service]": "passed",
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[scl_backend]": "passed",
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_results]": "passed",
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[native_batch]": "passed",
+        "tests/test_engine_native.py::test_five_batch_callers_use_isolated_engine[programs]": "passed",
+        "tests/test_engine_native.py::test_native_diagnostic_is_visible_to_program_caller": "passed"
+      },
+      "execution_context": {
+        "actual_git_head": "2cdc727355fcb05f16be0a0e8786df2f9f8546a8",
+        "working_tree_dirty": false,
+        "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames",
+        "git_diff_patch": "working-tree.patch",
+        "git_diff_scope": {
+          "base": "HEAD",
+          "included": "All tracked staged and unstaged changes",
+          "excluded_paths": [],
+          "untracked_included": false
+        },
+        "source_snapshot_sha256": "bf3d3903290e07679083ff52ce4cca7eeb0775fe0589492b53a1d487a877dffa",
+        "python_version": "3.11.15 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:12:15) [MSC v.1942 64 bit (AMD64)]",
+        "scope": "Actual runner checkout at startup; null Git fields mean unavailable. Git diff excludes untracked files; source_files also hashes untracked source files."
+      }
+    }
+  ]
+}

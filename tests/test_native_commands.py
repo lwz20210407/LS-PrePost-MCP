@@ -81,7 +81,7 @@ def test_command_rejects_ambiguous_or_injectable_arguments(builder, args):
 
 def test_command_grammar_is_not_reintroduced_in_domain_modules():
     root = Path(nc.__file__).parents[1]
-    pattern = re.compile(r"^(?:genselect |anim |fringe (?:$|\d)|pfringe$|range (?:avgfrng|reversesigns|userdef) |open(?:c)? (?:keyword|d3plot|command) |print png |movie MP4/H264 |runpython |runscript |save keyword )")
+    pattern = re.compile(r"(?:^|\n)(?:genselect |anim |fringe (?:$|\d)|pfringe$|range (?:avgfrng|reversesigns|userdef) |open(?:c)? (?:keyword|d3plot|command|xydata) |print png |movie MP4/H264 |runpython |runscript |save keyword |import keyword |(?:xyplot (?:\d+|\{[^}]*\}) )?savefile xypair |modelcheck writetofile )")
     offenders = []
     for source in root.rglob("*.py"):
         if source == Path(nc.__file__) or source.name == "recording_compiler.py":
@@ -91,7 +91,7 @@ def test_command_grammar_is_not_reintroduced_in_domain_modules():
                          and isinstance(call.func, ast.Attribute) and call.func.attr in ("startswith", "endswith")
                          for arg in call.args}
         for node in ast.walk(tree):
-            if isinstance(node, ast.Constant) and isinstance(node.value, str) and pattern.match(node.value):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str) and pattern.search(node.value):
                 if id(node) not in parser_tokens:
                     offenders.append((source.name, node.lineno))
     assert offenders == []
@@ -105,6 +105,10 @@ def test_path_builders_have_one_quoted_grammar(path, tmp_path):
     assert nc.open_model(path) == "open keyword " + quoted
     assert nc.open_model(path, "d3plot", openc=True) == "openc d3plot " + quoted
     assert nc.save_keyword(path) == "save keyword " + quoted
+    assert nc.import_keyword(path) == "import keyword " + quoted
+    assert nc.open_xydata(path) == "open xydata " + quoted
+    assert nc.save_xypair(path, 3) == "xyplot 3 savefile xypair " + quoted + " 1 all"
+    assert nc.modelcheck_report(path) == "modelcheck writetofile " + quoted
     assert nc.print_png(path) == "print png " + quoted + ' opaque enlisted "OGL1x1"'
     assert nc.movie(path, 640, 480, 5) == 'movie MP4/H264 640x480 "' + path + '" 5'
     assert nc.run_script(path, "scl") == 'runscript "' + path + '"'
@@ -119,7 +123,9 @@ def test_path_builders_have_one_quoted_grammar(path, tmp_path):
 def test_every_path_builder_rejects_ambiguous_characters(path):
     calls = [lambda: nc.quoted_path(path), lambda: nc.open_model(path), lambda: nc.save_keyword(path),
              lambda: nc.print_png(path), lambda: nc.movie(path,640,480,5),
-             lambda: nc.run_script(path,"scl"), lambda: nc.run_script(path,"python"), lambda: nc.run_script(path,"cfile")]
+             lambda: nc.run_script(path,"scl"), lambda: nc.run_script(path,"python"), lambda: nc.run_script(path,"cfile"),
+             lambda: nc.import_keyword(path), lambda: nc.open_xydata(path), lambda: nc.save_xypair(path),
+             lambda: nc.modelcheck_report(path)]
     for call in calls:
         with pytest.raises(ValueError):
             call()
@@ -140,9 +146,58 @@ def test_generated_cfile_writes_use_the_shared_encoding_writer():
     assert not offenders
 
 
+def test_generated_scl_writers_use_shared_encoding():
+    root = Path(nc.__file__).parents[1]
+    offenders = []
+    for source in root.rglob("*.py"):
+        if source == Path(nc.__file__):
+            continue
+        tree = ast.parse(source.read_text(encoding="utf8"))
+        for scope in ast.walk(tree):
+            if not isinstance(scope, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            scl_names = {target.id for node in ast.walk(scope) if isinstance(node, ast.Assign)
+                         and any(isinstance(v, ast.Constant) and isinstance(v.value, str)
+                                 and v.value.endswith(".scl") for v in ast.walk(node.value))
+                         for target in node.targets if isinstance(target, ast.Name)}
+            for node in ast.walk(scope):
+                if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "write_text":
+                    value = node.func.value
+                    if (isinstance(value, ast.Name) and value.id in scl_names or
+                            any(isinstance(v, ast.Constant) and isinstance(v.value, str)
+                                and v.value.endswith(".scl") for v in ast.walk(value))):
+                        offenders.append((source.name, node.lineno))
+    assert not offenders
+
+
+@pytest.mark.parametrize("identifier", [True, False, 0, -1, "1", 1.5])
+def test_xypair_plot_window_is_a_positive_integer(identifier):
+    with pytest.raises(ValueError):
+        nc.save_xypair("curve.xy", identifier)
+
+
+def test_scl_writer_uses_bom_free_utf8_and_lf(tmp_path):
+    path = tmp_path / "生成 脚本.scl"
+    nc.write_scl(path, "/* 中文注释 */\r\ndefine:\rmain();\n")
+    assert path.read_bytes() == "/* 中文注释 */\ndefine:\nmain();\n".encode("utf8")
+
+
+def test_prepared_scl_uses_shared_writer_and_matching_identity(tmp_path):
+    import hashlib
+
+    from ls_prepost_mcp.config import Settings
+    from ls_prepost_mcp.service import Service
+
+    service = Service(Settings(tmp_path))
+    result = service.prepare_native_program("scl", code="/* 中文 */\r\nmain();\r\n")
+    path = Path(result["job_directory"]) / "program.scl"
+    assert path.read_bytes() == "/* 中文 */\nmain();\n".encode("utf8")
+    assert result["data"]["source_sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def test_staged_bridge_loads_without_the_host_package(tmp_path):
     bridge = stage_bridge(tmp_path)
-    for filename in ("bridge.py", "native_commands.py", "native_versions.py"):
+    for filename in ("bridge.py", "native_commands.py", "native_versions.py", "native__version_resource.py"):
         ast.parse((tmp_path / filename).read_text(encoding="utf8"), feature_version=(3, 6))
     program = "import json,runpy; b=runpy.run_path({!r}); print(json.dumps([b['nc'].selection_add('node',91),b['nv'].profile(version='4.10')['policy']]))".format(str(bridge))
     result = subprocess.run([sys.executable, "-I", "-B", "-c", program], cwd=tmp_path,
@@ -160,6 +215,9 @@ def test_runtime_version_comparisons_stay_in_capability_table():
                 expression = ast.unparse(node)
                 if any(token in expression for token in ("version_info", "version('lasso-python')", "client_version")):
                     offenders.append((source.name, node.lineno))
+            if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                    and node.func.attr == "meet_version" and any(isinstance(arg, ast.Constant) for arg in node.args)):
+                offenders.append((source.name, node.lineno))
     assert offenders == []
 
 

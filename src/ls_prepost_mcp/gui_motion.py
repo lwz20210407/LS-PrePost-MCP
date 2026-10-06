@@ -5,7 +5,6 @@ import math
 from pydantic import StrictFloat, StrictInt
 
 from .boundary_cards import inspect_boundary_cards, verify_boundary_delta
-from .config import command_path
 from .core.validation import integer
 from .deck_backend import api
 from .entity_cards import check_motion_conflicts, inspect_cards, set_members
@@ -14,6 +13,7 @@ from .gui_entities import entity_title, selection_source, stable_scene
 from .gui_mesh import verify_mesh_digest
 from .gui_selection import mesh_signature
 from .jobs import atomic_json
+from .native import commands as nc
 from .post_backend import ids
 
 AXES = {"x": 1, "y": 2, "z": 3, "rx": 5, "ry": 6, "rz": 7}
@@ -212,7 +212,7 @@ class GuiMotionTools:
         def commands(state, directory):
             path = directory / "prescribed-motion.k"
             fragment.export_file(str(path))
-            return ["import keyword " + command_path(path)]
+            return [nc.import_keyword(path)]
 
         def postcheck(_, path, verification):
             actual = inspect_boundary_cards(path, include_motions=True)

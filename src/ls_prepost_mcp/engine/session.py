@@ -4,7 +4,7 @@ import json
 import time
 
 from ..core.contracts import JobResult
-from ..core.native_log import LogCursor, decode, native_errors
+from ..core.native_log import LogCursor, native_errors
 from .jobs import SessionJob
 
 
@@ -30,9 +30,12 @@ class SessionEngine:
                     if cursor:
                         raw_log = cursor.read_bytes()
                         (job.directory / "native-session.log").write_bytes(raw_log)
+                        log_text, log_info = cursor.decode_with_info(raw_log)
                         (job.directory / "native-session-log.json").write_text(
-                            json.dumps(dict(source=str(cursor.path), offset=cursor.offset)), encoding="utf8")
-                    diagnostics = native_errors(decode(raw_log)) if cursor else []
+                            json.dumps(dict(source=str(cursor.path), offset=cursor.offset, **log_info)), encoding="utf8")
+                        if log_info["lossy"]:
+                            raise UnicodeError("Native session log required replacement decoding; inspect raw bytes and LSPP_NATIVE_LOG_ENCODING")
+                    diagnostics = native_errors(log_text) if cursor else []
                     if diagnostics:
                         reply = dict(reply, ok=False, error=dict(type="NativeDiagnostics", message="; ".join(diagnostics)))
                     if not reply["ok"]:
@@ -59,10 +62,12 @@ class SessionEngine:
             log_error = None
             if cursor is not None and submitted:
                 try:
-                    (job.directory / "native-session.log").write_bytes(cursor.read_bytes())
+                    raw_log = cursor.read_bytes()
+                    (job.directory / "native-session.log").write_bytes(raw_log)
+                    _, log_info = cursor.decode_with_info(raw_log)
                     (job.directory / "native-session-log.json").write_text(
-                        json.dumps(dict(source=str(cursor.path), offset=cursor.offset)), encoding="utf8")
-                except (OSError, ValueError) as log_exc:
+                        json.dumps(dict(source=str(cursor.path), offset=cursor.offset, **log_info)), encoding="utf8")
+                except (OSError, ValueError, LookupError) as log_exc:
                     log_error = str(log_exc)
             return JobResult(operation=job.operation, job_id=job.directory.name, backend="lsprepost",
                              status="unverified" if submitted else "failed",
