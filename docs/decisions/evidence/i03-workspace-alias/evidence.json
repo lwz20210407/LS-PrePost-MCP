@@ -146,6 +146,154 @@
       "skipped_scope": "native_postprocess_case invokes a graphical renderer and requires an authorized --native-gui window",
       "original_report": "r8-alias-clean-413-report/report.json",
       "report_copy": "Byte-identical context-qualified copy of the original report directory"
+    },
+    {
+      "run_id": "r9-alias-clean-410-batch",
+      "version": "4.10",
+      "context": "batch",
+      "actual_git_revision": "e4676a9fdca5f8551aad51e7b20d0a2e180f95d3",
+      "working_tree_dirty": false,
+      "report": "r9-alias-clean-410-batch-report/report.json",
+      "original_report": "r9-alias-clean-410-batch-report/report.json",
+      "report_sha256": "e7017adc06720d2002a9b6877246c2ff3bf6d9c2f217b1caa64342bb886eb6f9",
+      "test_source_identities": [
+        {
+          "path": "tests/test_native_workspace_alias_native.py",
+          "revision": "e4676a9fdca5f8551aad51e7b20d0a2e180f95d3",
+          "git_blob_id": "24b5b3c290bff1a0cc8bc52154ab8c9fa39e456e",
+          "sha256_lf": "2e65840c9af869d14970b0c911236ee42401ffa8e5acaa91394ab89c1c847610",
+          "newline_basis": "Git blob bytes normalized CRLF to LF"
+        },
+        {
+          "path": "tests/test_engine_native.py",
+          "revision": "e4676a9fdca5f8551aad51e7b20d0a2e180f95d3",
+          "git_blob_id": "6c4a73d8fb500892632fede34236e30a31a9c52e",
+          "sha256_lf": "cfc4b2de295346b420059b5cf38c20b5112026ad9d35a494b1c4a7d95418e9a4",
+          "newline_basis": "Git blob bytes normalized CRLF to LF"
+        }
+      ],
+      "exit_code": 0,
+      "cases": {
+        "tests/test_native_workspace_alias_native.py::test_alias_batch_save_png_reopen_preserves_original_workspace[ascii-workspace]": {
+          "status": "passed",
+          "seconds": 16.879734599991934
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_batch_save_png_reopen_preserves_original_workspace[space folder]": {
+          "status": "passed",
+          "seconds": 16.263955799979158
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_batch_save_png_reopen_preserves_original_workspace[\\u4e2d\\u6587 \\u7a7a\\u683c]": {
+          "status": "passed",
+          "seconds": 15.564734499988845
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_covers_batch_callers_in_unicode_workspace[service]": {
+          "status": "passed",
+          "seconds": 8.398206199984998
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_covers_batch_callers_in_unicode_workspace[scl_backend]": {
+          "status": "passed",
+          "seconds": 7.6198936000000685
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_covers_batch_callers_in_unicode_workspace[native_results]": {
+          "status": "passed",
+          "seconds": 7.484938100009458
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_covers_batch_callers_in_unicode_workspace[native_batch]": {
+          "status": "skipped",
+          "seconds": 0.00047309999354183674
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_covers_batch_callers_in_unicode_workspace[programs]": {
+          "status": "passed",
+          "seconds": 7.518251000001328
+        }
+      },
+      "includes_main_log_decoding_and_resource_versions": true,
+      "checked_jobs": 10,
+      "checked_unicode_alias_jobs": 6,
+      "skipped_scope": "native_batch graphical callback requires a separately authorized GUI window",
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames -U3 --inter-hunk-context=0",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "source_snapshot_sha256": "5cb1e7ecc3d614ba8b4619c7223c7b9af3cb461d6792e829f5a717f7ea8cfc07"
+    },
+    {
+      "run_id": "r9-alias-clean-413-batch",
+      "version": "4.13",
+      "context": "batch",
+      "actual_git_revision": "e4676a9fdca5f8551aad51e7b20d0a2e180f95d3",
+      "working_tree_dirty": false,
+      "report": "r9-alias-clean-413-batch-report/report.json",
+      "original_report": "r9-alias-clean-413-batch-report/report.json",
+      "report_sha256": "8ad016f94d5b5ac034bc7e3a2d719d8a011c7917f4a4ace8ed36f57bcc501796",
+      "test_source_identities": [
+        {
+          "path": "tests/test_native_workspace_alias_native.py",
+          "revision": "e4676a9fdca5f8551aad51e7b20d0a2e180f95d3",
+          "git_blob_id": "24b5b3c290bff1a0cc8bc52154ab8c9fa39e456e",
+          "sha256_lf": "2e65840c9af869d14970b0c911236ee42401ffa8e5acaa91394ab89c1c847610",
+          "newline_basis": "Git blob bytes normalized CRLF to LF"
+        },
+        {
+          "path": "tests/test_engine_native.py",
+          "revision": "e4676a9fdca5f8551aad51e7b20d0a2e180f95d3",
+          "git_blob_id": "6c4a73d8fb500892632fede34236e30a31a9c52e",
+          "sha256_lf": "cfc4b2de295346b420059b5cf38c20b5112026ad9d35a494b1c4a7d95418e9a4",
+          "newline_basis": "Git blob bytes normalized CRLF to LF"
+        }
+      ],
+      "exit_code": 0,
+      "cases": {
+        "tests/test_native_workspace_alias_native.py::test_alias_batch_save_png_reopen_preserves_original_workspace[ascii-workspace]": {
+          "status": "passed",
+          "seconds": 9.747936099971412
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_batch_save_png_reopen_preserves_original_workspace[space folder]": {
+          "status": "passed",
+          "seconds": 9.050607999990461
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_batch_save_png_reopen_preserves_original_workspace[\\u4e2d\\u6587 \\u7a7a\\u683c]": {
+          "status": "passed",
+          "seconds": 9.307571299985284
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_covers_batch_callers_in_unicode_workspace[service]": {
+          "status": "passed",
+          "seconds": 4.076578599982895
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_covers_batch_callers_in_unicode_workspace[scl_backend]": {
+          "status": "passed",
+          "seconds": 3.657583899999736
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_covers_batch_callers_in_unicode_workspace[native_results]": {
+          "status": "passed",
+          "seconds": 3.770346300007077
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_covers_batch_callers_in_unicode_workspace[native_batch]": {
+          "status": "skipped",
+          "seconds": 0.0004605000140145421
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_covers_batch_callers_in_unicode_workspace[programs]": {
+          "status": "passed",
+          "seconds": 3.748367300024256
+        }
+      },
+      "includes_main_log_decoding_and_resource_versions": true,
+      "checked_jobs": 10,
+      "checked_unicode_alias_jobs": 6,
+      "skipped_scope": "native_batch graphical callback requires a separately authorized GUI window",
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames -U3 --inter-hunk-context=0",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "source_snapshot_sha256": "5cb1e7ecc3d614ba8b4619c7223c7b9af3cb461d6792e829f5a717f7ea8cfc07"
     }
   ],
   "fixture_sha256": {
@@ -163,5 +311,46 @@
     "Original user configuration bytes unchanged in path matrix",
     "Outputs remain under the original job directory",
     "Owned junctions removed after headless execution"
+  ],
+  "historical_dirty_runs": [
+    {
+      "run_id": "r8-alias-all-410",
+      "report": "r8-alias-all-410-report/report.json",
+      "report_sha256": "8fd2d7bb91a3330650bb6e4e3750e089c8f96738efb226cc6e8752f298a865f8",
+      "outcomes": {
+        "passed": 3,
+        "failed": 5
+      },
+      "reason": "Initial fixture path setup failed in five cases"
+    },
+    {
+      "run_id": "r8-alias-all-410-r2",
+      "report": "r8-alias-all-410-r2-report/report.json",
+      "report_sha256": "d38165c784e5b8c400b791ba43ae66dc69b8e3217111cbba4bb1502ce7aa4378",
+      "outcomes": {
+        "passed": 7,
+        "failed": 1
+      },
+      "reason": "native_batch graphical callback failed; not rerun as headless evidence"
+    },
+    {
+      "run_id": "r8-alias-all-413",
+      "report": "r8-alias-all-413-report/report.json",
+      "report_sha256": "1847dbf00886167ae540c8132bfb939d6d21b6e473a961abba21f377cd2f0719",
+      "outcomes": {
+        "passed": 7,
+        "skipped": 1
+      },
+      "reason": "Dirty worktree exploratory run, superseded by clean runs"
+    },
+    {
+      "run_id": "r8-alias-product-410",
+      "report": "r8-alias-product-410-report/report.json",
+      "report_sha256": "fd903449ef0fd07a79dc877ca9fa4e53ec75872d984df4018553820232c1a7d5",
+      "outcomes": {
+        "passed": 3
+      },
+      "reason": "Dirty worktree product-entry probe, superseded by clean runs"
+    }
   ]
 }

@@ -28,8 +28,13 @@ def native_workspace(directory):
     alias = parent / "job"
     alias_id = None
     primary = None
+    creation_failed = False
     try:
-        CreateJunction(str(directory), str(alias))
+        try:
+            CreateJunction(str(directory), str(alias))
+        except OSError as exc:
+            creation_failed = True
+            raise RuntimeError("LSPP_NATIVE_ALIAS_ROOT 必须位于支持目录联接的本地 NTFS 卷") from exc
         alias_id = alias.lstat().st_ino
         if alias.resolve(strict=True) != directory:
             raise RuntimeError("Native execution alias resolved to a different directory")
@@ -39,6 +44,19 @@ def native_workspace(directory):
         raise
     finally:
         try:
+            if parent.stat().st_ino != parent_id:
+                raise RuntimeError("Native alias parent identity changed; refusing cleanup: " + str(parent))
+            if creation_failed:
+                try:
+                    current = alias.lstat()
+                except FileNotFoundError:
+                    pass
+                else:
+                    if (not stat.S_ISDIR(current.st_mode)
+                            or current.st_file_attributes & stat.FILE_ATTRIBUTE_REPARSE_POINT
+                            or next(alias.iterdir(), None) is not None):
+                        raise RuntimeError("Native alias creation left an unowned entry; refusing cleanup: " + str(alias))
+                    alias.rmdir()
             if alias_id is not None:
                 current = alias.lstat()
                 if (current.st_ino != alias_id or not current.st_file_attributes & stat.FILE_ATTRIBUTE_REPARSE_POINT
