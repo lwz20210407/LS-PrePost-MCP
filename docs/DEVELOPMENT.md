@@ -121,6 +121,10 @@ run_recipe 传入配方 ID、参数及输入模型。默认 launch_mode=c，显�
 旧 JSON 模板通过同一模块的兼容读取器运行，默认不作为已验证 T2；include_candidates=true
 可发现它们。旧名字保留至 v0.6。五配方的真实版本证据见[ADR 0007](decisions/0007-recipes.md)。
 
+原生 report.md / report.json 自动附启动时的实际 Git revision、工作树状态、
+`git diff HEAD --binary` SHA256 和源码快照 SHA256；逐文件哈希见 execution-context.json。
+Git 不可用时身份字段为空。diff 不包含未跟踪文件，源码快照补充这些文件的指纹。
+
 ## I09 L3 场景评测
 
 每道题是 `tests/l3/scenarios/<pre|post|auto>/<id>.yaml`：中文提示词、夹具、确定性检查和参考解（MCP 工具调用序列）。夹具是 `tools/l3/fixtures.py` 生成的合成模型，测试会重新生成并逐字节比对。判分只看最终工作区和最后回答：输入文件不能变；最终模型取最新作业目录里与输入主文件同名的那份，用关键字引擎重新读回核对。不用模型判分，也不采信代理自己的汇报。

@@ -245,7 +245,12 @@ def pytest_addoption(parser):
     group.addoption("--remote-timeout", type=float, default=2700)
 
 
-def execution_identity(root=ROOT):
+DIFF_COMMAND = ["git", "-c", "core.quotepath=true", "diff", "HEAD", "--binary", "--no-ext-diff",
+                "--no-color", "--no-textconv", "--src-prefix=a/", "--dst-prefix=b/",
+                "--diff-algorithm=myers", "--no-renames"]
+
+
+def execution_identity(root=ROOT, report_directory=None):
     """Bind native evidence to actual Git HEAD and source bytes, including edits."""
     files = {}
     for folder in ("src", "tools", "tests"):
@@ -255,19 +260,32 @@ def execution_identity(root=ROOT):
     for name in ("pyproject.toml", "uv.lock"):
         if (root / name).is_file():
             files[name] = hashlib.sha256((root / name).read_bytes()).hexdigest()
-    head, dirty = None, None
+    head, dirty, diff_sha256, patch = None, None, None, None
     try:
         top = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], cwd=root,
-                                      stderr=subprocess.DEVNULL, text=True).strip()
+                                      stderr=subprocess.DEVNULL, text=True, timeout=10).strip()
         if Path(top).resolve() == root.resolve():
-            head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
-            dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=root))
-    except (OSError, subprocess.CalledProcessError):
+            head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True, timeout=10).strip()
+            dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=root, timeout=10))
+            patch = subprocess.check_output(DIFF_COMMAND, cwd=root, timeout=10)
+            diff_sha256 = hashlib.sha256(patch).hexdigest()
+    except (OSError, subprocess.SubprocessError):
         pass
+    patch_name = None
+    if patch is not None and report_directory is not None:
+        if Path(report_directory).resolve().is_relative_to(root.resolve()):
+            raise ValueError("Working-tree patches must stay outside the repository")
+        patch_name = "working-tree.patch"
+        (Path(report_directory) / patch_name).write_bytes(patch)
     digest = hashlib.sha256(json.dumps(files, sort_keys=True).encode()).hexdigest()
-    return dict(actual_git_head=head, working_tree_dirty=dirty, source_snapshot_sha256=digest,
+    return dict(actual_git_head=head, working_tree_dirty=dirty, git_diff_sha256=diff_sha256,
+                git_diff_command=" ".join(DIFF_COMMAND), git_diff_patch=patch_name,
+                git_diff_scope=dict(base="HEAD", included="All tracked staged and unstaged changes",
+                                    excluded_paths=[], untracked_included=False),
+                source_snapshot_sha256=digest,
                 source_files=files, python_version=sys.version,
-                scope="Actual runner checkout; null Git fields mean unavailable, never a guessed PR revision")
+                scope="Actual runner checkout at startup; null Git fields mean unavailable. "
+                      "Git diff excludes untracked files; source_files also hashes untracked source files.")
 
 
 def pytest_configure(config):
@@ -275,6 +293,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "remote: requires an operator-confirmed UU disconnection window")
     config._native_rows = {}
     config._native_root = None
+    config._native_identity = None
     if config.getoption("--run-native"):
         output = config.getoption("--native-output")
         if not output:
@@ -288,8 +307,9 @@ def pytest_configure(config):
             raise pytest.UsageError("Remote timeout must be positive")
         root.mkdir(parents=True, exist_ok=False)
         config._native_root = root
+        config._native_identity = execution_identity(report_directory=root)
         (root / "execution-context.json").write_text(
-            json.dumps(execution_identity(), ensure_ascii=False, indent=2), encoding="utf8")
+            json.dumps(config._native_identity, ensure_ascii=False, indent=2), encoding="utf8")
         if config.option.basetemp is None:
             config.option.basetemp = str(root / "pytest")
 
@@ -350,8 +370,17 @@ def pytest_sessionfinish(session, exitstatus):
     for item in session.items:
         if item.get_closest_marker("native") is not None:
             rows.setdefault(item.nodeid, dict(status="not_run", reason="Interrupted before result", duration=0))
-    (root / "report.json").write_text(json.dumps(dict(exit_status=int(exitstatus), cases=rows), ensure_ascii=False, indent=2), encoding="utf8")
+    identity = {key: value for key, value in session.config._native_identity.items() if key != "source_files"}
+    (root / "report.json").write_text(json.dumps(dict(exit_status=int(exitstatus), execution_context=identity,
+        cases=rows), ensure_ascii=False, indent=2), encoding="utf8")
     lines = ["# LS-PrePost native regression", "", "Existing acceptance assertions, fresh reports and exact script hashes; skipped cases are not passes.",
+             "", "Actual Git revision: `{}`".format(identity["actual_git_head"] or "unavailable"),
+             "", "Working tree dirty: `{}`".format(identity["working_tree_dirty"]),
+             "", "Git diff SHA256 (`{}`): `{}`".format(identity["git_diff_command"], identity["git_diff_sha256"] or "unavailable"),
+             "", "Diff scope: all tracked staged/unstaged changes against HEAD; no path exclusions; untracked files excluded.",
+             "", "Raw patch: {}".format("[working-tree.patch](working-tree.patch)" if identity["git_diff_patch"] else "unavailable"),
+             "", "Source snapshot SHA256: `{}`".format(identity["source_snapshot_sha256"]),
+             "", "Identity captured at pytest startup; untracked source hashes are in [execution-context.json](execution-context.json).",
              "", "| Case | Result | Seconds | Execution / PNG / MP4 | Evidence | Detail |", "|---|---|---:|---|---|---|"]
     for name, row in sorted(rows.items()):
         detail = row["reason"].replace("|", "\\|").replace("\n", "<br>")

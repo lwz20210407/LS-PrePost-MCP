@@ -936,6 +936,7 @@ infrastructure:
     evidence:
       - docs/decisions/evidence/i04/report.md
       - docs/decisions/evidence/i04-window/report.md
+      - docs/decisions/evidence/i04-identity/report.md
       - tools/native_regression.py
       - tests/test_public_corpus_native.py
       - tests/corpus/public_cases.json
