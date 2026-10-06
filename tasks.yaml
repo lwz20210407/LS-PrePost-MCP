@@ -766,7 +766,7 @@ tasks:
     gaps:
       - 旧二十题评测受到题面专用词表调优影响，不作为完成依据；已冻结六类二十四题独立留出集，记录未经调优的结果，跨语言检索与完整来源覆盖仍需后续工作
     existing: [search_commands, search_knowledge, search_workflows, list_pydyna_keywords, describe_pydyna_keyword]
-    evidence: [src/ls_prepost_mcp/knowledge.py, tests/test_knowledge_tools.py, docs/decisions/evidence/a10/report.md]
+    evidence: [src/ls_prepost_mcp/knowledge.py, tests/test_knowledge_tools.py, tests/test_keyword_field_lookup.py, docs/decisions/evidence/a10/report.md, docs/decisions/evidence/a10-field-lookup/report.md]
     acceptance:
       - 可检索命令手册、Scripting API、关键字字段、用户指南章节、配方、KNOWN_ISSUES 六类
       - 每条结果带来源、版本、证据等级（文档记载 / 有源码实例 / 本机验证）
