@@ -2,6 +2,7 @@
 
 import math
 
+from .core.validation import integer, numbers, unit_label
 from .jobs import check_artifact
 
 
@@ -10,7 +11,6 @@ class PreTools:
         self, center: list[float], radius: float, divisions: int, units: str, part_id: int = 1
     ) -> dict:
         """Create a native solid sphere mesh; verify new node IDs and radius before exporting a k file."""
-        from .service import integer, numbers, unit_label
 
         p = dict(
             center=numbers(center, 3, "center"),
@@ -26,7 +26,6 @@ class PreTools:
     ) -> dict:
         """Rotate selected user nodes around a global X/Y/Z axis through center, verify selected/unselected coordinates and save a new deck."""
         from .post_backend import ids
-        from .service import numbers, unit_label
 
         ids(node_ids, "node_ids", 10000)
         if axis not in ("x", "y", "z"):
@@ -42,7 +41,6 @@ class PreTools:
 
     def extrude_shell_part(self, model: str, part_id: int, length: float, layers: int, units: str) -> dict:
         """Native shell-drag extrusion of a single planar XY shell part along +Z. Retains source shells, creates solids, verifies extent/counts and saves a new k file."""
-        from .service import integer, numbers, unit_label
 
         p = dict(
             part_id=integer(part_id, "part_id"),
@@ -63,7 +61,6 @@ class PreTools:
         element_start: int = 1,
     ) -> dict:
         """Create a native structured hexahedral box mesh, verify node/solid counts and save a new k file; no material/analysis inferred."""
-        from .service import integer, numbers, unit_label
 
         if len(divisions) != 3:
             raise ValueError("Three mesh divisions required")
@@ -84,7 +81,6 @@ class PreTools:
     def translate_mesh_nodes(self, model: str, node_ids: list[int], offset: list[float], units: str) -> dict:
         """Translate explicitly selected user nodes through native LS-PrePost; verify all selected/unselected coordinates and save a new k file."""
         from .post_backend import ids
-        from .service import numbers, unit_label
 
         ids(node_ids, "node_ids", 10000)
         p = dict(node_ids=node_ids, offset=numbers(offset, 3, "offset"), units=unit_label(units))
@@ -95,7 +91,6 @@ class PreTools:
     ) -> dict:
         """Reassign selected element user IDs to a native part and save a new k file. Does not configure target material/section."""
         from .post_backend import ids
-        from .service import integer
 
         if element_type not in ("shell", "solid", "beam"):
             raise ValueError("Unsupported element type")
@@ -122,7 +117,6 @@ class PreTools:
     ) -> dict:
         """Select reference nodes inside [xmin,ymin,zmin,xmax,ymax,zmax] and write a fresh standalone deck with SET_NODE_LIST; original preserved."""
         from .model_deck import add_box_set
-        from .service import integer, numbers
 
         integer(set_id, "set_id")
         box = numbers(bounds, 6, "bounds")
@@ -159,7 +153,6 @@ class PreTools:
         """Native shell mesh -> PyDYNA material/section/sets/BCs/smooth displacement ramp/output cards -> native reopen. Explicit planar test deck; no solver/quasi-static certification."""
         from .deck_backend import material_values
         from .model_deck import complete_tensile_plate
-        from .service import numbers, unit_label
 
         material = material_values(density, young_modulus, poisson_ratio)
         numbers([thickness, duration, output_interval], 3, "thickness/duration/output_interval", True)

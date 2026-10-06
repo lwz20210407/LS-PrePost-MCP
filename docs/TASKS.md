@@ -745,6 +745,10 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 里程碑：M1
 
+状态：done；验证：L1
+
+证据：[src/ls_prepost_mcp/operation_registry.py](../src/ls_prepost_mcp/operation_registry.py), [src/ls_prepost_mcp/data/operations.json](../src/ls_prepost_mcp/data/operations.json), [tests/test_operation_registry.py](../tests/test_operation_registry.py), [pyproject.toml](../pyproject.toml)
+
 - 全部现有工具逐一映射到 T1 工具 / 配方 / 别名 / 废弃
 - 旧名作为别名保留至 v0.6；registry 生成 TOOLS.md
 

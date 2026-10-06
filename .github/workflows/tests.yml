@@ -38,6 +38,7 @@ jobs:
         run: uv sync --frozen --extra dev --extra results --extra pydyna
         timeout-minutes: 8
       - run: uv run --no-sync python -m pytest -q
+      - run: uv run --no-sync lint-imports --no-cache
       - run: uv run --no-sync ruff check .
       - run: uv run --no-sync python tools/validate_tasks.py
       - run: uv run --no-sync python tools/gen_docs.py --check

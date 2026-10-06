@@ -1,6 +1,5 @@
 """Typed operations shared by the MCP server, CLI and native smoke tests."""
 import json
-import math
 import os
 import re
 import subprocess
@@ -9,6 +8,7 @@ from pathlib import Path
 from pydantic import StrictInt
 
 from .config import Settings
+from .core.validation import integer, numbers, unit_label
 from .dpf_tools import DpfTools
 from .engine.context import NativeContext
 from .engineering import EngineeringTools
@@ -32,6 +32,7 @@ from .keyword_tools import KeywordTools
 from .mesh_tools import MeshTools
 from .native import commands as nc
 from .native.bundle import stage_bridge
+from .native.commands import VIEWS
 from .native.versions import profile, require_installation
 from .post_tools import PostTools
 from .pre_tools import PreTools
@@ -41,30 +42,6 @@ from .runner import decode, execute, failure_message
 from .sessions import SessionTools
 from .workflow_sweeps import WorkflowSweepTools
 from .workflows import WorkflowTools
-
-VIEWS = {"isometric": "isometric x", "top": "top", "bottom": "bottom", "front": "front",
-         "back": "back", "left": "left", "right": "right"}
-
-
-def integer(value: int, name: str, minimum: int = 1, maximum: int = 2_000_000_000) -> int:
-    if isinstance(value, bool) or not isinstance(value, int) or not minimum <= value <= maximum:
-        raise ValueError(f"{name} must be an integer in {minimum}..{maximum}")
-    return value
-
-
-def numbers(values, length: int, name: str, positive: bool = False) -> list[float]:
-    if len(values) != length:
-        raise ValueError(f"{name} requires {length} numbers")
-    converted = [float(v) for v in values]
-    if not all(math.isfinite(v) and (not positive or v > 0) for v in converted):
-        raise ValueError(f"Invalid {name}")
-    return converted
-
-
-def unit_label(units: str) -> str:
-    if not isinstance(units, str) or not units.strip() or len(units) > 100:
-        raise ValueError("An explicit unit-system label is required; no units are inferred")
-    return units.strip()
 
 
 class Service(PostTools, PreTools, KeywordTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools):

@@ -20,3 +20,4 @@
 - I02 adds strict core contracts and migrates workflow gates; keep the I07 integration boundary.
 - I01 remains partial/L1 after review; historical batch/queue tests do not certify the public Win32 path.
 - I04 native execution requires explicit opt-in; remote evidence checks are not native passes.
+- I08 routes and legacy aliases come from operations.json; run import-linter and preserve the registry.

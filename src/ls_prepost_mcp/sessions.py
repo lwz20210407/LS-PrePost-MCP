@@ -26,41 +26,9 @@ from .native import commands as nc
 from .native.bundle import stage_bridge
 from .native.versions import require_capability
 from .native_connectivity import beam_connectivity_prelude
+from .operation_registry import GUI_BATCH_ACTIONS, MUTATIONS, NATIVE_ACTIONS
 from .outcomes import normalize_outcome
 from .windows_transport import WindowsCommandTransport
-
-NATIVE_ACTIONS = {
-    "extract_native_fields",
-    "extract_native_stress",
-    "create_solid_sphere",
-    "rotate_mesh_nodes",
-    "inspect_model",
-    "list_nodes",
-    "list_parts",
-    "get_element_connectivity",
-    "render_snapshot",
-    "create_shell_plate",
-    "create_solid_box",
-    "translate_mesh_nodes",
-    "move_elements_to_part",
-    "extrude_shell_part",
-    "export_keyword",
-    "extract_nodal_results",
-    "extract_node_history",
-    "measure_parts",
-}
-MUTATIONS = {
-    "create_solid_sphere",
-    "rotate_mesh_nodes",
-    "create_shell_plate",
-    "create_solid_box",
-    "translate_mesh_nodes",
-    "move_elements_to_part",
-    "extrude_shell_part",
-}
-
-# Batch-native validation does not certify the persistent GUI execution path.
-GUI_BATCH_ACTIONS = {"rotate_mesh_nodes", "translate_mesh_nodes"}
 
 # These kernels validate their own result before publishing the correlated
 # completion. Native-command + readback requests still need their host-side

@@ -4,6 +4,7 @@ import math
 
 import numpy as np
 
+from .core.validation import numbers, unit_label
 from .jobs import atomic_json, check_artifact
 from .mesh_quality import from_deck, quality
 from .model_deck import load_standalone
@@ -19,7 +20,6 @@ class MeshTools:
         min_scaled_jacobian: float = 0.2,
     ) -> dict:
         """Check standard linear shell/solid/beam geometry, report true IDs, orphan nodes and unsupported topologies. Does not claim full native Model Checking."""
-        from .service import unit_label
 
         unit_label(units)
         if (
@@ -69,7 +69,6 @@ class MeshTools:
     ) -> dict:
         """Translate/rotate/scale mesh coordinates in a new deck, then quality-check and optionally reopen in LS-PrePost. Coordinate systems and load vectors are not rotated."""
         from .deck_backend import api
-        from .service import numbers
 
         if operation not in ("translate", "rotate", "scale"):
             raise ValueError("Unsupported transform")

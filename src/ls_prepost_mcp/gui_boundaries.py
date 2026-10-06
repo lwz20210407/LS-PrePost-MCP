@@ -7,6 +7,7 @@ from pydantic import StrictFloat, StrictInt
 from .boundary_cards import inspect_boundary_cards, verify_boundary_delta
 from .boundary_geometry import segment_normals, validate_boundary
 from .config import command_path
+from .core.validation import integer
 from .deck_backend import api
 from .entity_cards import inspect_cards
 from .gui_entities import entity_title, stable_scene
@@ -40,7 +41,6 @@ class GuiBoundaryTools:
                                      arrival_time: StrictFloat = 0.0, load_id: StrictInt | None = None,
                                      load_title: str | None = None, curve_usage: str = "transient") -> dict:
         """Create DEFINE_CURVE plus LOAD_SEGMENT_SET or its named ID variant in the current visible keyword model. Points are [time,pressure] already in explicitly declared deck units, not converted or inferred. Strict increasing time, finite values, SID/curve-table-function namespace/load-ID collisions and duplicate set pressure are checked. Positive pressure acts opposite the reference segment normal; normals and curve readback are recorded.2D edges require supported XY continuum boundary formulations12..15. Native import/readback preserves existing mesh/display/cards. No solver run, follower-load response or complete load-conflict certification."""
-        from .service import integer
 
         integer(segment_set_id, "segment_set_id")
         integer(curve_id, "curve_id")
@@ -131,7 +131,6 @@ class GuiBoundaryTools:
                                           dilatational: bool = True, shear: bool = True,
                                           node_set_start_id: StrictInt | None = None) -> dict:
         """Create native nonreflecting conditions on unique exterior linear-solid faces or counterclockwise XY continuum edges(SECTION_SHELL13/14/15). Explicit solver target11..16 is separate from LSPP version.2D R14+ uses negative Segment SID;2D R11..13 requires node_set_start_id and emits one ordered two-node set per edge, preserving native endpoint order, with both wave families enabled.3D permits either face winding. Reject overlapping conditions, reversed2D/interior faces, ID collisions and unsupported variants. AD/AS zero means enabled. Native card/geometry checks are not solver absorption, material, dynamic-relaxation or stability certification."""
-        from .service import integer
 
         integer(segment_set_id, "segment_set_id")
         integer(solver_release, "solver_release", 11, 16)

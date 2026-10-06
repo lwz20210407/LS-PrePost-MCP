@@ -98,3 +98,7 @@ execution / PNG / MP4 状态。普通 pytest 即使设置安装路径环境变�
 
 
 I11 的 local-book 在 corpus 清单的 restricted_sources 中仅登记 ID 与相对路径；默认 catalog 校验不展开书籍内容。书籍文件、索引、图像、数值结果及其他派生数据始终只保留本机仓库外，不提交、不公开。
+
+I08 的运行时注册表为 `src/ls_prepost_mcp/data/operations.json`；新增或迁移操作更新此处，再运行 gen_docs.py。兼容名称和 canonical operation_id 均需通过同一签名/路由验证。CI 执行 `uv run lint-imports --no-cache`；本地也使用 no-cache，避免在仓库生成缓存。
+
+import-linter 固定 2.6：2.7–2.9 的 rich>=14.2.0 与已验证 LASSO2.0.4 的 rich==13.* 冲突，保留数值后端锁定，选择可共存版本。约束使用官方的 protected/forbidden 合同（https://import-linter.readthedocs.io/en/v2.6/contract_types.html）。I02 的六个合同字段未改变。

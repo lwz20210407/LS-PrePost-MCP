@@ -934,6 +934,13 @@ infrastructure:
   - id: I08
     title: 工具迁移与别名
     milestone: M1
+    status: done
+    verification_level: L1
+    evidence:
+      - src/ls_prepost_mcp/operation_registry.py
+      - src/ls_prepost_mcp/data/operations.json
+      - tests/test_operation_registry.py
+      - pyproject.toml
     acceptance:
       - 全部现有工具逐一映射到 T1 工具 / 配方 / 别名 / 废弃
       - 旧名作为别名保留至 v0.6；registry 生成 TOOLS.md

@@ -7,6 +7,7 @@ import math
 import numpy as np
 from pydantic import StrictFloat, StrictInt
 
+from .core.validation import numbers, unit_label
 from .field_contracts import EntitySelection
 from .gui_mesh import (
     ReadOnlyScopeMismatch,
@@ -444,7 +445,6 @@ class GuiSelectionTools:
         tolerance: float = 0.0,
     ) -> dict:
         """Select reference nodes by signed distance to a plane: band |d|<=tolerance, positive d>tolerance, or negative d<-tolerance. Normalize the supplied normal; native ID readback verifies selection."""
-        from .service import numbers, unit_label
 
         point, normal = numbers(point, 3, "point"), numbers(normal, 3, "normal")
         unit_label(units)
@@ -489,7 +489,6 @@ class GuiSelectionTools:
         self, session_id: str, bounds: list[float], units: str, inside: bool = True, tolerance: float = 0.0
     ) -> dict:
         """Select reference-coordinate nodes inside/outside an axis-aligned 3D box using native GUI readback and exact ID selection. This is a geometric predicate, not camera-space rectangle picking."""
-        from .service import numbers, unit_label
 
         box = numbers(bounds, 6, "bounds")
         unit_label(units)
@@ -532,7 +531,6 @@ class GuiSelectionTools:
         tolerance: float = 0.0,
     ) -> dict:
         """Select native GUI reference nodes by distance from a center, then verify exact selected IDs; preserve model geometry."""
-        from .service import numbers, unit_label
 
         center = numbers(center, 3, "center")
         unit_label(units)
