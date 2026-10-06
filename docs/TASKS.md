@@ -495,6 +495,10 @@
 
 现有入口：`prepare_native_program`, `execute_native_program`
 
+缺口：
+
+- 历史原生报告未记录实际 Git revision 与运行时未提交 diff SHA256，需重新取证并将 report.md、evidence.json 入库
+
 ### A05 原生宏执行
 
 状态：partial；版本：v0.5；里程碑：M1；层：T1

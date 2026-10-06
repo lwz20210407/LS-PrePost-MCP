@@ -99,7 +99,7 @@
 | `native_tensile_postprocess` | I08 | force_path*: string; nodout_path*: string; force_database*: string; force_component*: integer; force_entity_id*: integer; top_node*: integer; bottom_node*: integer; displacement_component*: integer; area*: number; gauge_length*: number; force_unit*: string; length_unit*: string; time_unit*: string; force_sign: integer; displacement_sign: integer |
 | `open_in_gui_session` | I08 | session_id*: string; path*: string; file_type: string; discard: boolean; expected_empty: boolean |
 | `parameterize_workflow` | A07 | path*: string; bindings*: array |
-| `prepare_native_program` | A01, A02, A03, A04, A05 | language*: string; code: union/ref; path: union/ref; parameters: union/ref; outputs: union/ref; expected_counts: union/ref; dependencies: union/ref; macro_name: union/ref |
+| `prepare_native_program` | A01, A02, A03, A04, A05 | language*: string; code: union/ref; path: union/ref; parameters: union/ref; outputs: union/ref; expected_counts: union/ref; dependencies: union/ref; macro_name: union/ref; script_parameters: union/ref |
 | `probe_dpf_runtime` | I08 | 无 |
 | `probe_environment` | I08 | 无 |
 | `probe_scl` | A03 | model*: string |
@@ -119,7 +119,7 @@
 | `rotate_mesh_nodes` | P08 | model*: string; node_ids*: array; axis*: string; angle*: number; center*: array; units*: string |
 | `run_native_macro` | A08 | path*: string; parameters: union/ref; model: union/ref; file_type: string; graphics: boolean; session_id: union/ref |
 | `run_on_version` | A01 | version*: string; action*: string; parameters*: object |
-| `run_script` | I08 | language*: string; code*: string; context: string; session_id: union/ref; model: union/ref; file_type: string; outputs: union/ref; expected_counts: union/ref; capture_model: boolean; initial_node_ids: union/ref; parameters: union/ref |
+| `run_script` | I08 | language*: string; code*: string; context: string; session_id: union/ref; model: union/ref; file_type: string; outputs: union/ref; expected_counts: union/ref; capture_model: boolean; initial_node_ids: union/ref; parameters: union/ref; dependencies: union/ref |
 | `run_workflow` | A09 | path*: string; parameters: union/ref; session_id: union/ref |
 | `run_workflow_sweep` | A09 | path*: string; cases*: array; outputs: union/ref; session_id: union/ref |
 | `save_gui_selection_buffer` | G03 | session_id*: string; entity_type*: string; entity_ids*: array; slot*: integer |
