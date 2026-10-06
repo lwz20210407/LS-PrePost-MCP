@@ -1,9 +1,9 @@
 name: tests
-# Actions minutes are limited on this private repository (Windows jobs count double), so:
+# The repository is public (2026-10-07), so standard runners are not metered:
 # - pushes run only on main; a branch with a pull request is tested once, by the pull request;
 # - draft pull requests are not tested until they are marked ready for review;
-# - pull requests run two jobs that still cover both systems and both Python versions;
-#   pushes to main and manual runs (workflow_dispatch) run the full four-job matrix.
+# - every run uses the full four-job matrix (Ubuntu and Windows, Python 3.11 and 3.12) plus a
+#   minimal-dependency job (dev extra only) that replaces the former local-only check.
 on:
   push:
     branches: [main]
@@ -20,9 +20,11 @@ jobs:
     if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     strategy:
       matrix:
-        include: ${{ fromJSON(github.event_name == 'pull_request'
-          && '[{"os":"ubuntu-latest","python":"3.11"},{"os":"windows-latest","python":"3.12"}]'
-          || '[{"os":"ubuntu-latest","python":"3.11"},{"os":"ubuntu-latest","python":"3.12"},{"os":"windows-latest","python":"3.11"},{"os":"windows-latest","python":"3.12"}]') }}
+        include:
+          - {os: ubuntu-latest, python: "3.11"}
+          - {os: ubuntu-latest, python: "3.12"}
+          - {os: windows-latest, python: "3.11"}
+          - {os: windows-latest, python: "3.12"}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     env:
@@ -64,3 +66,35 @@ jobs:
           uv run --no-sync python -m pytest tests/test_native_acceptance.py -m native
           -k "engineering_unit or workflow_gate or parameter_study_acceptance.file"
           --run-native --native-strict --native-output "${{ runner.temp }}/lspp-native-file"
+
+  minimal-deps:
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      UV_PYTHON: "3.12"
+      UV_PYTHON_DOWNLOADS: never
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Historical source blobs are part of native evidence provenance.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Configure isolated environment paths
+        shell: python
+        run: |
+          import os
+          from pathlib import Path
+          root = Path(os.environ["RUNNER_TEMP"])
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as stream:
+              stream.write("UV_CACHE_DIR=" + str(root / "lspp-uv-cache") + "\n")
+              stream.write("UV_PROJECT_ENVIRONMENT=" + str(root / "lspp-min-env") + "\n")
+      - name: Install pinned uv
+        run: >-
+          python -m pip install --disable-pip-version-check --only-binary=:all: uv==0.11.16
+        timeout-minutes: 5
+      - name: Install minimal locked dependencies (dev extra only)
+        run: uv sync --frozen --extra dev
+        timeout-minutes: 8
+      - run: uv run --no-sync python -m pytest -q
