@@ -1,0 +1,22 @@
+schema_version: 1
+id: pre07_mesh_array
+domain: pre
+task_ids: [P08]
+title: 网格阵列复制
+prompt: |
+  impact.k 中，把冲击块（Part 2）沿 x 方向再复制出两个，间距 15 mm：
+  第一个副本整体在 x 方向平移 15 mm，第二个平移 30 mm；原来的冲击块位置不变。
+  副本沿用 Part 2 即可。
+fixtures: [impact.k, impact_mesh.k]
+model: impact.k
+checks:
+  - check: input_unchanged
+  - check: deck_consistent
+  - check: solid_copies
+    params: {part: 2, offsets: [[15.0, 0.0, 0.0], [30.0, 0.0, 0.0]]}
+oracle:
+  - tool: mesh_ops
+    args:
+      model: impact.k
+      operations:
+        - {op: array_elements, keyword: "*ELEMENT_SOLID", select: {parts: [2]}, count: 2, translate: [15.0, 0.0, 0.0]}

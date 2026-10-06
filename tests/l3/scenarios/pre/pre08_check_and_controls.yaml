@@ -1,0 +1,38 @@
+schema_version: 1
+id: pre08_check_and_controls
+domain: pre
+task_ids: [P09, P10]
+title: 提交前检查修复与控制输出设置
+prompt: |
+  impact_broken.k（单位制 mm-t-s：mm、吨、秒）准备提交计算。
+  请先检查模型有没有会导致计算出错的问题，有的话修好（不要改网格和材料参数）。
+  然后设置：计算终止时间 0.2 ms；每 0.01 ms 输出一次 d3plot；输出 glstat 和 matsum，输出间隔也是 0.01 ms。
+fixtures: [impact_broken.k, impact_mesh.k]
+model: impact_broken.k
+checks:
+  - check: input_unchanged
+  - check: deck_consistent
+  - check: part_uses
+    params:
+      pid: 2
+      section: {keyword: "*SECTION_SOLID"}
+      material: {keyword: "*MAT_ELASTIC", expect: {ro: 7.85e-9, e: 200000.0, pr: 0.29}}
+  - check: field
+    params: {keyword: "*CONTROL_TERMINATION", expect: {endtim: 2.0e-4}, count: 1}
+  - check: field
+    params: {keyword: "*DATABASE_BINARY_D3PLOT", expect: {dt: 1.0e-5}, count: 1}
+  - check: field
+    params: {keyword: "*DATABASE_GLSTAT", expect: {dt: 1.0e-5}, count: 1}
+  - check: field
+    params: {keyword: "*DATABASE_MATSUM", expect: {dt: 1.0e-5}, count: 1}
+oracle:
+  - tool: check_model
+    args: {model: impact_broken.k}
+  - tool: edit_keywords
+    args:
+      model: impact_broken.k
+      edits:
+        - {op: set, keyword: "*PART", match: {pid: 2}, field: secid, value: 1}
+        - {op: set_control, recipe: termination, params: {endtim: 2.0e-4}}
+        - {op: set_control, recipe: d3plot, params: {dt: 1.0e-5}}
+        - {op: set_control, recipe: ascii, params: {names: [glstat, matsum], dt: 1.0e-5}}

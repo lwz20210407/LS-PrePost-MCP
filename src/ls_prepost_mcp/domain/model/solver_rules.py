@@ -18,7 +18,7 @@ from .layouts import RowMap, Unsupported
 from .lists import is_curve
 from .parameters import field_expression
 from .schema import _pydyna_class
-from .text import body
+from .text import body, is_comment
 
 if TYPE_CHECKING:
     from .blocks import Block
@@ -60,7 +60,7 @@ def long_free_items(deck: KeywordDeck, limit: int = 50) -> tuple[int, list[dict]
     """
     found: list[dict] = []
     for block in deck.iter_blocks():
-        comma = {i for i, line in enumerate(block.lines[1:], 1) if "," in body(line)}
+        comma = {i for i, line in enumerate(block.lines[1:], 1) if not is_comment(line) and "," in body(line)}
         if not comma:
             continue
         try:

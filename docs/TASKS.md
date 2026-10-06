@@ -772,6 +772,12 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 里程碑：M2-M4
 
+负责人：claude
+
+状态：partial；验证：L1
+
+证据：[tools/run_l3.py](../tools/run_l3.py), [tests/test_l3_harness.py](../tests/test_l3_harness.py), [docs/decisions/evidence/i09/report.md](../docs/decisions/evidence/i09/report.md)
+
 - 20 道自然语言任务（后处理 8、前处理 8、自动化 4），Claude 与 Codex 各跑一遍
 - 记录成功率、工具调用次数、失败原因
 
