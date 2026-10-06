@@ -11,7 +11,7 @@
 | `check_gui_keywords` | P09 | session_id*: string |
 | `check_gui_shell_quality` | P09 | session_id*: string; thresholds*: object; units*: string |
 | `check_gui_solid_quality` | P09 | session_id*: string; checks*: array; units*: string; capture_failed_ids: boolean |
-| `check_model` | P09 | model*: string; thresholds: union/ref; coincident_tolerance: union/ref; include_mesh: boolean |
+| `check_model` | P09, P12 | model*: string; thresholds: union/ref; coincident_tolerance: union/ref; include_mesh: boolean |
 | `checkpoint_gui_session` | P11 | session_id*: string |
 | `close_gui_session` | I08 | session_id*: string; save_checkpoint: boolean |
 | `combine_gui_selections` | G03 | session_id*: string; entity_type*: string; left_ids*: array; right_ids*: array; operation: string |
@@ -22,7 +22,7 @@
 | `control_gui_animation` | Q09 | session_id*: string; operation*: string; first: integer; last: integer; increment: integer; direction: string |
 | `convert_history_units` | Q07 | path*: string; value_unit*: string; output_value_unit*: string; time_unit*: string; output_time_unit*: string; time_column: string; value_column: string |
 | `create_elastic_material` | P03 | material_id*: integer; density*: number; young_modulus*: number; poisson_ratio*: number; units*: string |
-| `create_entities` | P04, P05, P06 | model*: string; entities*: array |
+| `create_entities` | P04, P05, P06, P12 | model*: string; entities*: array |
 | `create_gui_elements` | P08 | session_id*: string; element_type*: string; part_id*: integer; elements*: array; units*: string |
 | `create_gui_entity_set` | P04 | session_id*: string; entity_type*: string; set_id*: integer; title*: string; entity_ids: union/ref; selection_job: union/ref; mode: string |
 | `create_gui_nodal_load` | P05 | session_id*: string; axis*: string; curve_id*: integer; time_unit*: string; value_unit*: string; distribution*: string; node_set_id: union/ref; node_ids: union/ref; selection_job: union/ref; points: union/ref; curve_title: union/ref; scale: number; allow_superposition: boolean |
