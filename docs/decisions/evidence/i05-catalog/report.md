@@ -8,7 +8,9 @@
 ## 发现与修复
 
 旧代码用 `*ALE_BURN_SWITCH_MMG` 实际复现 conflicting field identities。
-完整目录中 34 个关键字出现同卡同名、不同列位的字段；索引身份原先未包含列位。
+完整目录中 34 个关键字的旧 locator 冲突：32 个为同卡同名不同列位，2 个为完全重复记录。
+后两者为 *MAT_217_ANIS 与 *MAT_ANISOTROPIC_ELASTIC_PHASE_CHANGE 的卡 8 字段 xp2；
+索引身份原先未包含列位。
 修复后 locator 纳入 offset/width，同槽矛盾定义仍拒绝，完全相同记录去重。
 数据库结构维持 schema_version=2；旧索引继续可读，重建才获得新的字段身份。
 
@@ -27,3 +29,10 @@ I05 保持 partial。六类冒烟不是 A10 留出集质量评测，未使用留
 这次没有执行 LS-DYNA/LS-PrePost；字段来源和提供者记载的 solver_status 不等同于本次原生实测。
 
 索引、手册原文及派生文本保留在仓库外。仓库仅附汇总、公共字段列位和指纹；未使用 local-book。
+
+## 第六轮复核
+
+历史 53b25278… 补丁包含源码/测试/工具，排除 docs、tasks.yaml，不包含未跟踪文件。
+复算命令：`git diff 9651d02 d6f64fa --binary -- . ':!docs' ':!tasks.yaml'`。
+重挂分支只 cherry-pick d6f64fa，不包含 Draft #26 的面板改动。
+新增重复字段回归确认完全相同的两个输入只生成一条字段和一条 keyword 文档。

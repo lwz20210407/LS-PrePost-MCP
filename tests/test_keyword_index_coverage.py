@@ -37,6 +37,16 @@ def test_same_slot_conflicting_definition_still_rejects_publication(tmp_path):
     assert not path.exists()
 
 
+def test_exact_duplicate_field_creates_one_field_and_one_document(tmp_path):
+    path = tmp_path / "index.sqlite"
+    result = build_index(path, [], [field(), field()])
+    assert result["keyword_fields"] == 1
+    assert result["documents"] == 1 and result["categories"] == {"keyword": 1}
+    with closing(sqlite3.connect(path)) as db:
+        assert db.execute("SELECT count(*) FROM keyword_fields").fetchone()[0] == 1
+        assert db.execute("SELECT count(*) FROM documents WHERE category='keyword'").fetchone()[0] == 1
+
+
 def test_complete_provider_reports_fieldless_keywords_and_deduplicates_requests():
     calls = []
 

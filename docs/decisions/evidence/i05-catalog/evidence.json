@@ -3,9 +3,15 @@
   "scan": {
     "requested_keywords": 3171,
     "completed_keywords": 3171,
-    "same_name_different_column_keywords": 34,
+    "same_name_different_column_keywords": 32,
     "raw_field_records": 66902,
-    "provider_errors": 0
+    "provider_errors": 0,
+    "old_locator_collision_keywords": 34,
+    "exact_duplicate_keywords": 2,
+    "exact_duplicate_keyword_names": [
+      "*MAT_217_ANIS",
+      "*MAT_ANISOTROPIC_ELASTIC_PHASE_CHANGE"
+    ]
   },
   "runs": [
     {
@@ -500,5 +506,16 @@
         "scope": "Six-category presence and attribution smoke; not held-out retrieval quality"
       }
     }
-  ]
+  ],
+  "historical_diff_scope": {
+    "base": "9651d02",
+    "head": "d6f64fa",
+    "command": "git diff 9651d02 d6f64fa --binary -- . ':!docs' ':!tasks.yaml'",
+    "excluded_paths": [
+      "docs",
+      "tasks.yaml"
+    ],
+    "untracked_included": false,
+    "sha256": "53b252788f2b154be939a4bd2095d008cbea2780ab3a3c0b966d12b8d127bdba"
+  }
 }
