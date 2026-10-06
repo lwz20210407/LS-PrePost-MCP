@@ -30,3 +30,10 @@ dtype、内存字节数、排列顺序。验证 NPY 1/2 头、载荷长度及 ZI
 - 4.10：标量 SDK + 参数/依赖/NPZ/异常子集通过，未放宽旧版向量 ABI 限制。
 - A03 的原生 SCL 坐标 CSV 与等价 DataCenter Python 输出继续作为交叉证据。
 - 原始日志、大数组和本机路径留在外部原生测试目录。
+
+## 第六轮证据版本范围
+
+历史原生证据 revision 9e55e9b 早于 main 3ce20a3；#18 后 program.scl、complete.scl、
+selection.scl 统一由 write_scl 写为 LF。4.13/4.10 batch LF 先前已有 I03 证据，
+本轮又在干净 d7deaa1 上完成 A01–A04 的 4.13/4.10 batch，以及 A02/A03 的 4.8 batch。
+各通道 evidence.json 追加新 runs；A03 4.13 session 的 LF 写入仍待授权窗口验证。

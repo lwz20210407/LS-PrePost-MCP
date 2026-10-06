@@ -10,12 +10,20 @@
       "working_tree_dirty": false,
       "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "exit_code": 0,
-      "report": "a04-413-report/report.json",
+      "report": "main-channels-batch-r1/a04-413-report/report.json",
       "run_id": "main-channels-batch-r1",
       "report_sha256": "8ca102fd923462d8728659be472a3afdc15e9c0aa1dcbb9a5bb5d1f69162975a",
       "cases": [
         "tests/test_script_python_native.py::test_python_sdk_parameters_dependencies_npz_and_traceback[batch]"
-      ]
+      ],
+      "legacy_report": "a04-413-report/report.json",
+      "test_source_identity": {
+        "path": "tests/test_script_python_native.py",
+        "revision": "9e55e9b04920932d647de219a819b01355747f29",
+        "git_blob_id": "145b0e5e65224a705e157b10e68bba5c64241850",
+        "sha256_lf": "2bea106225e75f9d1256d72672ba42f59e56993d7a87b10153d58db7115f54d5",
+        "newline_basis": "Git blob bytes normalized CRLF to LF; no checkout newline conversion"
+      }
     },
     {
       "task": "A04",
@@ -25,12 +33,20 @@
       "working_tree_dirty": false,
       "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "exit_code": 0,
-      "report": "a04-410-report/report.json",
+      "report": "main-channels-batch-r1/a04-410-report/report.json",
       "run_id": "main-channels-batch-r1",
       "report_sha256": "5d911554faef423118ac55beddede592c94ead3c313e28dcb5c72a5be633da77",
       "cases": [
         "tests/test_script_python_native.py::test_python_sdk_parameters_dependencies_npz_and_traceback[batch]"
-      ]
+      ],
+      "legacy_report": "a04-410-report/report.json",
+      "test_source_identity": {
+        "path": "tests/test_script_python_native.py",
+        "revision": "9e55e9b04920932d647de219a819b01355747f29",
+        "git_blob_id": "145b0e5e65224a705e157b10e68bba5c64241850",
+        "sha256_lf": "2bea106225e75f9d1256d72672ba42f59e56993d7a87b10153d58db7115f54d5",
+        "newline_basis": "Git blob bytes normalized CRLF to LF; no checkout newline conversion"
+      }
     },
     {
       "task": "A04",
@@ -40,12 +56,64 @@
       "working_tree_dirty": false,
       "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "exit_code": 0,
-      "report": "a04-413-report/report.json",
+      "report": "main-channels-session-r1/a04-413-report/report.json",
       "run_id": "main-channels-session-r1",
       "report_sha256": "524b60c113b950eb307d5aa5a8351778dd21596a9da320e32be1836a4fe8d1b8",
       "cases": [
         "tests/test_script_python_native.py::test_python_sdk_parameters_dependencies_npz_and_traceback[session]"
-      ]
+      ],
+      "legacy_report": "a04-413-report/report.json",
+      "test_source_identity": {
+        "path": "tests/test_script_python_native.py",
+        "revision": "9e55e9b04920932d647de219a819b01355747f29",
+        "git_blob_id": "145b0e5e65224a705e157b10e68bba5c64241850",
+        "sha256_lf": "2bea106225e75f9d1256d72672ba42f59e56993d7a87b10153d58db7115f54d5",
+        "newline_basis": "Git blob bytes normalized CRLF to LF; no checkout newline conversion"
+      }
+    },
+    {
+      "task": "A04",
+      "version": "413",
+      "context": "batch",
+      "actual_git_revision": "d7deaa16c660ac6bcb7952ccbc04bb75e9270847",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "report": "r6-main-channels-batch/a04-413-batch-report/report.json",
+      "run_id": "r6-main-channels-batch",
+      "report_sha256": "c89374c043ab8ea23c503001a780431f7e6be36251589514fe39112ed9be4ff9",
+      "cases": [
+        "tests/test_script_python_native.py::test_python_sdk_parameters_dependencies_npz_and_traceback[batch]"
+      ],
+      "test_source_identity": {
+        "path": "tests/test_script_python_native.py",
+        "revision": "d7deaa16c660ac6bcb7952ccbc04bb75e9270847",
+        "git_blob_id": "145b0e5e65224a705e157b10e68bba5c64241850",
+        "sha256_lf": "2bea106225e75f9d1256d72672ba42f59e56993d7a87b10153d58db7115f54d5",
+        "newline_basis": "Git blob bytes normalized CRLF to LF; no checkout newline conversion"
+      }
+    },
+    {
+      "task": "A04",
+      "version": "410",
+      "context": "batch",
+      "actual_git_revision": "d7deaa16c660ac6bcb7952ccbc04bb75e9270847",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "report": "r6-main-channels-batch/a04-410-batch-report/report.json",
+      "run_id": "r6-main-channels-batch",
+      "report_sha256": "3eafd6abf94e2cb9acaeb6099ab584e8afc12bb5ba2860e04e129e80e4f98d8d",
+      "cases": [
+        "tests/test_script_python_native.py::test_python_sdk_parameters_dependencies_npz_and_traceback[batch]"
+      ],
+      "test_source_identity": {
+        "path": "tests/test_script_python_native.py",
+        "revision": "d7deaa16c660ac6bcb7952ccbc04bb75e9270847",
+        "git_blob_id": "145b0e5e65224a705e157b10e68bba5c64241850",
+        "sha256_lf": "2bea106225e75f9d1256d72672ba42f59e56993d7a87b10153d58db7115f54d5",
+        "newline_basis": "Git blob bytes normalized CRLF to LF; no checkout newline conversion"
+      }
     }
   ],
   "fixture_sha256": {
@@ -53,7 +121,16 @@
     "d3plot": "08e29edab83a10901589cf5e20714bed8a019cc69a7b93e6cba08d5c231d58c1",
     "d3plot01": "f928ad97b3293bb3b52d669ad491e4831fbdc1d9681b06ec5883b4aca2dc74b5"
   },
-  "test_source_sha256": "462d619fe963020f64005390d640ed7e28f055d0382df9524bda48dcfbdfd674",
+  "test_source_sha256": "2bea106225e75f9d1256d72672ba42f59e56993d7a87b10153d58db7115f54d5",
   "scope": "DataCenter/LsPrePost、JSON 参数、多文件依赖、百万行 NPZ 与完整异常栈；4.10 使用规定子集。",
-  "session_window": "User-authorized unlocked desktop; owned queue sessions closed after tests"
+  "session_window": "User-authorized unlocked desktop; owned queue sessions closed after tests",
+  "legacy_checkout_test_source_sha256": "462d619fe963020f64005390d640ed7e28f055d0382df9524bda48dcfbdfd674",
+  "test_source_identity": {
+    "path": "tests/test_script_python_native.py",
+    "revision": "9e55e9b04920932d647de219a819b01355747f29",
+    "git_blob_id": "145b0e5e65224a705e157b10e68bba5c64241850",
+    "sha256_lf": "2bea106225e75f9d1256d72672ba42f59e56993d7a87b10153d58db7115f54d5",
+    "newline_basis": "Git blob bytes normalized CRLF to LF; no checkout newline conversion"
+  },
+  "revision_scope_note": "Historical 9e55e9b runs predate main 3ce20a3 and the #18 write_scl LF change. New batch runs use clean d7deaa1. Session LF reruns were not performed in this batch."
 }
