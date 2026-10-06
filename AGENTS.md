@@ -72,9 +72,18 @@
 Claude 每 30 分钟检查一次分支、PR 和看板：
 - 有新 PR 就审阅。审阅结论和修改清单以 **PR 评论**发布，不再另发文件。
 - 分支有新提交但还没开 PR，就提醒该开发者提交 PR。
-- 有开发者空闲时，Claude 用本机命令行非交互地启动一次 Codex 来派发任务。这个 Codex 在单独的工作树里运行，只改 `tasks.yaml`、看板和生成的 `docs/TASKS.md`，并写一份派发说明。它会以 `codex/dispatch-<开发者>-<时间>` 分支提交派发 PR，PR 正文就是给该开发者的任务说明；Claude 核对后合并，派发即生效。交互使用的 Codex 也可以手动派发，同样只走看板和派发 PR。同一开发者在看板上有进行中、待审阅或审阅退回的任务时，不再派发。
+- 有开发者空闲时，Claude 用本机命令行非交互地启动一次 Codex 来派发任务。这个 Codex 在单独的工作树里运行，只改 `tasks.yaml`、看板和生成的 `docs/TASKS.md`，并写一份派发说明。它会以 `codex/dispatch-<开发者>-<时间>` 分支提交派发 PR，PR 正文就是给该开发者的任务说明；Claude 核对后合并，派发即生效。交互使用的 Codex 也可以手动派发，同样只走看板和派发 PR。同一开发者在看板上有进行中、待审阅或审阅退回的任务时，不再派发。派发 PR 合并后，Claude 在 Agent Orchestrator 中启动该开发者的 worker（见下一节），不再需要用户转发唤醒口令。
 
-**每个开发者被唤醒时先做这件事**
+**在 Agent Orchestrator（AO）中运行（用户 2026-10-07 部署）**
+
+Cursor 和反重力的派发任务默认由本机的 Agent Orchestrator 作为 worker 运行：Cursor 用 `cursor-agent`，反重力用 `agy`。每个任务有独立的 worktree 和分支，由 AO 管理。IDE 里已经开始的工作可以在 IDE 中做完。
+- worker 的启动说明只有一行，内容是派发 PR 的编号；完整任务说明以派发 PR 正文为准，worker 自己用 `gh pr view` 读取。
+- 完成第一个有意义的提交后就推送并开 Draft PR，运行 `ao session claim-pr <PR号>` 认领；全部满足“做完”标准后改为 Ready。
+- 审阅意见回灌：认领后，PR 上未解决的行内审阅评论由 AO 自动转给该 worker；顶层评论形式的审阅清单由 Claude 另用 `ao send` 通知 worker 去读。修改后照常推送，并在 PR 下评论新头 SHA。
+- 删除文件或目录、强推、rebase、改写历史、删除分支或 worktree、向 main 推送：在 AO 中会被拒绝（Cursor 由本机钩子拒绝）或停下等待确认（反重力由其权限规则控制）。不要换写法或换工具重试，把需要处理的对象写进 PR 正文或评论，由用户决定。
+- 测试和临时文件放在本任务的 dated scratch 目录（`F:\PythonWoking\temp\<YYYYMMDD>-<任务>\`）或 worktree 内被 git 忽略的位置；不在 `F:\PythonWoking` 根目录新建任何东西。
+
+**每个开发者被唤醒时先做这件事**（不在 AO 中工作时）
 
 1. 拉取最新 `main`，读看板 `docs/COORDINATION.md`。
 2. 看自己名下打开的 PR 的评论：有审阅意见就按清单修改，改完在 PR 下评论新头 SHA。
