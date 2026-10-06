@@ -6,7 +6,7 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 from .dpf_fields import RESULTS, field_spec, flatten_fields, result_contract, time_axis
-from .native.versions import dependency_supported
+from .native.versions import DPF_SERVER_MINIMUM, dependency_supported
 
 
 def runtime_info(server_path=None):
@@ -52,8 +52,8 @@ def execute(request):
         timeout=min(request["timeout"], 30),
     )
     try:
-        if not server.meet_version("7.1"):
-            raise ValueError("This client requires a compatible DPF Server7.1 or later; see DPF_INTEGRATION.md")
+        if not server.meet_version(DPF_SERVER_MINIMUM):
+            raise ValueError("This client requires a compatible DPF Server" + DPF_SERVER_MINIMUM + " or later; see DPF_INTEGRATION.md")
         runtime.update(server_started=True, server_version=str(server.version))
         sources = dpf.DataSources(server=server)
         sources.set_result_file_path(request["path"], key=request["file_type"])
