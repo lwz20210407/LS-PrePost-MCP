@@ -1141,3 +1141,12 @@ Python 异常传播前会先清理；清理失败不覆盖原始异常，普通�
 首行 BOM 可能导致原生错误正则漏判，强制 UTF-8 replacement 会损失系统 ANSI 中文内容。
 现保留原始字节，识别 BOM/UTF-8/本地编码，并允许 LSPP_NATIVE_LOG_ENCODING 显式覆盖无 BOM 日志；
 有损解码不作为干净日志放行。行为和实测范围见 [编码回归](decisions/evidence/i01-log-decoding/report.md)。
+
+## A01/I01：会话日志元数据与脚本包装器的集成
+
+第六轮 GUI 补验发现：SessionEngine 新增 encoding/lossy 后，run_script 的日志包装器
+仍只接受 source/offset，Command 会话在原生打开完成后抛出 TypeError。
+包装器现在接收实际编码、保留原始字节，并让 cfile/SCL 诊断沿用相同解码规则；
+有替换解码时保持 unverified，不把日志不确定性包装成成功。
+[生产者/消费者集成回归](../tests/test_script_session_log_contract.py)覆盖四通道、GBK/UTF-16、
+正反例和 lossy；第一轮原生失败证据留存，修复后的原生回归另行登记。
