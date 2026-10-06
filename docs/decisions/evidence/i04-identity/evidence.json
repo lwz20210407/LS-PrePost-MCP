@@ -9,7 +9,22 @@
         "git_diff_command": "git diff HEAD --binary",
         "source_snapshot_sha256": "a298a595243280a55bd27f48222fd7f96bad53b188c1a3a123cdbbedef3c329d",
         "python_version": "3.11.15 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:12:15) [MSC v.1942 64 bit (AMD64)]",
-        "scope": "Actual runner checkout at startup; null Git fields mean unavailable. Git diff excludes untracked files; source_files also hashes untracked source files."
+        "scope": "Actual runner checkout at startup; null Git fields mean unavailable. Git diff excludes untracked files; source_files also hashes untracked source files.",
+        "historical_diff_scope": {
+          "base": "de9abce",
+          "head": "fb701f2",
+          "command": "git diff --diff-filter=M de9abce fb701f2 --binary -- . ':!docs' ':!tasks.yaml'",
+          "excluded_paths": [
+            "docs",
+            "tasks.yaml"
+          ],
+          "diff_filter": "M",
+          "untracked_included": false,
+          "untracked_at_execution": [
+            "tests/test_native_evidence_identity.py"
+          ],
+          "note": "Historical source_files contains the then-untracked test; the historical patch does not."
+        }
       },
       "report_sha256": "977134f4ed6b58632e2e686aaed67aeed71ef6a8cb1fd50cb90d72c3e1f74dc3",
       "exit_status": 1,
@@ -35,7 +50,22 @@
         "git_diff_command": "git diff HEAD --binary",
         "source_snapshot_sha256": "a298a595243280a55bd27f48222fd7f96bad53b188c1a3a123cdbbedef3c329d",
         "python_version": "3.11.15 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:12:15) [MSC v.1942 64 bit (AMD64)]",
-        "scope": "Actual runner checkout at startup; null Git fields mean unavailable. Git diff excludes untracked files; source_files also hashes untracked source files."
+        "scope": "Actual runner checkout at startup; null Git fields mean unavailable. Git diff excludes untracked files; source_files also hashes untracked source files.",
+        "historical_diff_scope": {
+          "base": "de9abce",
+          "head": "fb701f2",
+          "command": "git diff --diff-filter=M de9abce fb701f2 --binary -- . ':!docs' ':!tasks.yaml'",
+          "excluded_paths": [
+            "docs",
+            "tasks.yaml"
+          ],
+          "diff_filter": "M",
+          "untracked_included": false,
+          "untracked_at_execution": [
+            "tests/test_native_evidence_identity.py"
+          ],
+          "note": "Historical source_files contains the then-untracked test; the historical patch does not."
+        }
       },
       "report_sha256": "9cc54a233fc5c74dcbe7ee1e7c2d9280f0288a65780a0b2cee6b2abf0273ede8",
       "exit_status": 0,
@@ -53,5 +83,20 @@
         "tests/test_native_regression.py": "7a2f5b6d6a5d593942b295618c536d2a9ece168ff6eab2b3b19fd7796eadbf89"
       }
     }
-  ]
+  ],
+  "historical_diff_scope": {
+    "base": "de9abce",
+    "head": "fb701f2",
+    "command": "git diff --diff-filter=M de9abce fb701f2 --binary -- . ':!docs' ':!tasks.yaml'",
+    "excluded_paths": [
+      "docs",
+      "tasks.yaml"
+    ],
+    "diff_filter": "M",
+    "untracked_included": false,
+    "untracked_at_execution": [
+      "tests/test_native_evidence_identity.py"
+    ],
+    "note": "Historical source_files contains the then-untracked test; the historical patch does not."
+  }
 }

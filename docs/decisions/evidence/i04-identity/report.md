@@ -16,3 +16,18 @@ Git 超时，以及 remote evidence_only 在报告中继续保留各通道失败
 
 Git 不可用时字段明确为空，不猜测 PR 头。diff 不含 untracked 文件，因此同时记录
 源码快照；报告中的身份是启动时快照，不是对运行期间外部修改的监控。
+
+## 第六轮复核：可复算范围
+
+历史 a57ce2b… 补丁只含当时已跟踪的修改；新测试 test_native_evidence_identity.py
+当时未跟踪，只有 source_files 记录其指纹。可复算命令：
+
+```powershell
+git diff --diff-filter=M de9abce fb701f2 --binary -- . ':!docs' ':!tasks.yaml'
+```
+
+本轮开始，框架明确固定 quotepath、前缀、颜色、diff 算法、重命名和外部转换选项，
+在仓库外报告目录保存原始 working-tree.patch。execution-context.json 和 report.json
+记录完整命令、HEAD 基线及范围：包含所有已跟踪 staged/unstaged 修改，无路径排除；
+未跟踪源码只计入 source_files。私有路径可能出现在补丁里，补丁不提交仓库。
+Git 不可用的源码副本仍生成报告，revision/diff 显示 unavailable。
