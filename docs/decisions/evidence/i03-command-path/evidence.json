@@ -1,0 +1,289 @@
+{
+  "task": "I03",
+  "dispatch": 83,
+  "scope": "UTF-8 cfile, relative dependency filenames in ASCII job roots; existing program output contract keeps ASCII filenames with spaces.",
+  "fixture": {
+    "id": "M0 synthetic eight-node three-shell fixture",
+    "sha256": {
+      "d3plot": "08e29edab83a10901589cf5e20714bed8a019cc69a7b93e6cba08d5c231d58c1",
+      "d3plot01": "f928ad97b3293bb3b52d669ad491e4831fbdc1d9681b06ec5883b4aca2dc74b5",
+      "input.k": "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43",
+      "lspost.db": "7624672942d9e80e99a1193aa72b68cede6cfdc7a1b367595bac4b231fe05923",
+      "lspost1.db": "805bcb7eb6269744a63bd50b5370ed9198c2fdcf4f3223ca139ac559502643ab"
+    }
+  },
+  "runs": [
+    {
+      "family": "4.13",
+      "exit_code": 1,
+      "counts": {
+        "passed": 4,
+        "failed": 2
+      },
+      "actual_git_revision": "e41cf65551274c496f0bb1802f952d1a30e024b2",
+      "working_tree_dirty": true,
+      "git_diff_sha256": "de3296b6e89d7a272baa66ba1a04dd49c301df142fd120e52158fc84fbcd0732",
+      "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames -U3 --inter-hunk-context=0",
+      "source_snapshot_sha256": "5fc2a9433a678883500b0ec4ba746310001e64640334981921ec3c2625527a43",
+      "source_file_sha256": {
+        "tests/test_native_commands.py": "5b4b00b3fd5e5c7be4d06814bb0cde6e88e839d3509f1cd13a78b863da726cd3",
+        "tests/test_native_paths_native.py": "3eb63db659cab3da5298db93a1ece637e1efe599789101efa6a2bd3fee47c34c",
+        "src/ls_prepost_mcp/native/commands.py": "d67218e9cb15db5b304be7bbfe966ba4c2d23840e6885c02fa7dc7795f93546f",
+        "src/ls_prepost_mcp/native/versions.py": "20d58f56d0b4f55c49bb4965d41b48e1644acc0f2c359afb4eb4173d135bba14"
+      },
+      "report_sha256": "cbf049336626c5fecb2821b980abbd72bdfd215887930cea07ee4845df780de8",
+      "cases": {
+        "tests/test_native_paths_native.py::test_import_keyword_saves_and_reopens_imported_node[spaces]": {
+          "status": "passed",
+          "seconds": 28.17610089999971
+        },
+        "tests/test_native_paths_native.py::test_import_keyword_saves_and_reopens_imported_node[unicode]": {
+          "status": "failed",
+          "seconds": 3.687031200000092
+        },
+        "tests/test_native_paths_native.py::test_xydata_open_and_export_preserve_curve_samples[spaces]": {
+          "status": "passed",
+          "seconds": 3.489765499999976
+        },
+        "tests/test_native_paths_native.py::test_xydata_open_and_export_preserve_curve_samples[unicode]": {
+          "status": "failed",
+          "seconds": 3.4691540999997414
+        },
+        "tests/test_native_paths_native.py::test_scl_dependency_path_preserves_count_and_job_identity[spaces]": {
+          "status": "passed",
+          "seconds": 3.408514600000217
+        },
+        "tests/test_native_paths_native.py::test_scl_dependency_path_preserves_count_and_job_identity[unicode]": {
+          "status": "passed",
+          "seconds": 3.479327999999896
+        }
+      },
+      "jobs": [
+        {
+          "id": "09e459c8201b47a895db93bdd8687bdc",
+          "status": "succeeded",
+          "family": "4.13",
+          "file_version": "4.13.0.1",
+          "version_source": "file_version_resource",
+          "job_manifest_sha256": "49429221775c88548c373e56c4b173e0edf15d2f9da4e243fbf4c2a3c9257b22"
+        },
+        {
+          "id": "317ba20bf17d422f899ad3ac73d197aa",
+          "status": "succeeded",
+          "family": "4.13",
+          "file_version": "4.13.0.1",
+          "version_source": "file_version_resource",
+          "job_manifest_sha256": "a00680c215f9aa8129dad12b8d7b9f7196f2d58b21a4071377e532de36535892"
+        },
+        {
+          "id": "942cc2e6d9bb4df4b6cc9e6ad4d1a998",
+          "status": "succeeded",
+          "family": "4.13",
+          "file_version": "4.13.0.1",
+          "version_source": "file_version_resource",
+          "job_manifest_sha256": "3fd4a25dc910337a0104b505d95fe47bab2e08407862f7cf2c87b44ade1e45d6"
+        },
+        {
+          "id": "912cf53ea2fc494f842ab7a9c9f6df46",
+          "status": "failed",
+          "family": "4.13",
+          "file_version": "4.13.0.1",
+          "version_source": "file_version_resource",
+          "job_manifest_sha256": "66712c228a25d18ce882bf19ca351f8de312889afbb1c947ed9c01d08ec8501d"
+        },
+        {
+          "id": "cbaaf384000e4fbf8a5888bc6874dc19",
+          "status": "succeeded",
+          "family": "4.13",
+          "file_version": "4.13.0.1",
+          "version_source": "file_version_resource",
+          "job_manifest_sha256": "d6820355121ead90b713fc9de9d887bbc2ff7baf3163009a3b6037bbeb9e33ab"
+        },
+        {
+          "id": "00a7770cd859472f84105273d26df62d",
+          "status": "succeeded",
+          "family": "4.13",
+          "file_version": "4.13.0.1",
+          "version_source": "file_version_resource",
+          "job_manifest_sha256": "b882658a7b1f9772b013c7d74b998921375760849b54035425b662e6e005f198"
+        },
+        {
+          "id": "3235554ecf984498b22b92d3f6d8115e",
+          "status": "succeeded",
+          "family": "4.13",
+          "file_version": "4.13.0.1",
+          "version_source": "file_version_resource",
+          "job_manifest_sha256": "b76d2266f291e3648565e1a70a206a63bb28b17fa526026120871e8b220efdd7"
+        },
+        {
+          "id": "520d786b783e4574a736cc5ef9f7ad43",
+          "status": "failed",
+          "family": "4.13",
+          "file_version": "4.13.0.1",
+          "version_source": "file_version_resource",
+          "job_manifest_sha256": "9cb785729e0f615af3100f79ee5a3d6e0eeadb516b35401fe324bcd72c2b7955"
+        }
+      ],
+      "checks": {
+        "source_fixture_unchanged": true,
+        "source_configuration_unchanged": true,
+        "all_process_cwd_ascii_owned_job": true,
+        "headless_only": true,
+        "no_remaining_native_process": true
+      }
+    },
+    {
+      "family": "4.10",
+      "exit_code": 1,
+      "counts": {
+        "passed": 3,
+        "failed": 3
+      },
+      "actual_git_revision": "e41cf65551274c496f0bb1802f952d1a30e024b2",
+      "working_tree_dirty": true,
+      "git_diff_sha256": "de3296b6e89d7a272baa66ba1a04dd49c301df142fd120e52158fc84fbcd0732",
+      "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames -U3 --inter-hunk-context=0",
+      "source_snapshot_sha256": "5fc2a9433a678883500b0ec4ba746310001e64640334981921ec3c2625527a43",
+      "source_file_sha256": {
+        "tests/test_native_commands.py": "5b4b00b3fd5e5c7be4d06814bb0cde6e88e839d3509f1cd13a78b863da726cd3",
+        "tests/test_native_paths_native.py": "3eb63db659cab3da5298db93a1ece637e1efe599789101efa6a2bd3fee47c34c",
+        "src/ls_prepost_mcp/native/commands.py": "d67218e9cb15db5b304be7bbfe966ba4c2d23840e6885c02fa7dc7795f93546f",
+        "src/ls_prepost_mcp/native/versions.py": "20d58f56d0b4f55c49bb4965d41b48e1644acc0f2c359afb4eb4173d135bba14"
+      },
+      "report_sha256": "bf6f59575edbe0431df0e95beceb52f16a1c305e6c925319ea93cb26af89e46d",
+      "cases": {
+        "tests/test_native_paths_native.py::test_import_keyword_saves_and_reopens_imported_node[spaces]": {
+          "status": "passed",
+          "seconds": 28.15477400000009
+        },
+        "tests/test_native_paths_native.py::test_import_keyword_saves_and_reopens_imported_node[unicode]": {
+          "status": "failed",
+          "seconds": 6.1833730000003015
+        },
+        "tests/test_native_paths_native.py::test_xydata_open_and_export_preserve_curve_samples[spaces]": {
+          "status": "passed",
+          "seconds": 6.946520999999848
+        },
+        "tests/test_native_paths_native.py::test_xydata_open_and_export_preserve_curve_samples[unicode]": {
+          "status": "failed",
+          "seconds": 9.489081899999746
+        },
+        "tests/test_native_paths_native.py::test_scl_dependency_path_preserves_count_and_job_identity[spaces]": {
+          "status": "passed",
+          "seconds": 10.75829849999991
+        },
+        "tests/test_native_paths_native.py::test_scl_dependency_path_preserves_count_and_job_identity[unicode]": {
+          "status": "failed",
+          "seconds": 6.6465894999996635
+        }
+      },
+      "jobs": [
+        {
+          "id": "4d403ff01db340b7ac430c23f08dd5c5",
+          "status": "succeeded",
+          "family": "4.10",
+          "file_version": "4.10.0.1",
+          "version_source": "file_version_resource",
+          "job_manifest_sha256": "969968be74b435def7edadaba62c8f40267527ff638781ebb3faf838a52dc681"
+        },
+        {
+          "id": "9e227fbaeab04946ba7163fc6b8cbabc",
+          "status": "succeeded",
+          "family": "4.10",
+          "file_version": "4.10.0.1",
+          "version_source": "file_version_resource",
+          "job_manifest_sha256": "88dd84c0c2ee5cbf20b556ea79b5b9b1d574735ac2def43d4f359a66be623e84"
+        },
+        {
+          "id": "f0dfeeaad6664968b8b28ca880f6a4b8",
+          "status": "succeeded",
+          "family": "4.10",
+          "file_version": "4.10.0.1",
+          "version_source": "file_version_resource",
+          "job_manifest_sha256": "981c8c3a4059d7952021d9acc4f8358cdde7f54e1856e0eb801f3baeabe1291d"
+        },
+        {
+          "id": "41c2cede1a7f418fa58058ea58e07ec3",
+          "status": "failed",
+          "family": "4.10",
+          "file_version": "4.10.0.1",
+          "version_source": "file_version_resource",
+          "job_manifest_sha256": "2bb634e470db3c57c12d865ff9735be9c825eac6fa617b5ea7c96139f64180ca"
+        },
+        {
+          "id": "9a9b6f5165804887817b93007349149a",
+          "status": "succeeded",
+          "family": "4.10",
+          "file_version": "4.10.0.1",
+          "version_source": "file_version_resource",
+          "job_manifest_sha256": "6546ae690eca1bd2640e7cbec591c24e5b9a862ac6dcedf9f2d0dbf7b92c0f2a"
+        },
+        {
+          "id": "c661a961c8f547dcb78df8756397c234",
+          "status": "failed",
+          "family": "4.10",
+          "file_version": "4.10.0.1",
+          "version_source": "file_version_resource",
+          "job_manifest_sha256": "0309b8f94cf728a3dfcf0d2b97479fa78f2cb50d225810076b2439e310f10118"
+        },
+        {
+          "id": "8b9724af524247469d15cbe71264753f",
+          "status": "succeeded",
+          "family": "4.10",
+          "file_version": "4.10.0.1",
+          "version_source": "file_version_resource",
+          "job_manifest_sha256": "5bbd146e5a6655a34f6b7505253b8cf7f942be94c8f60e0193f467a1f8bdf801"
+        },
+        {
+          "id": "b1cf245c3a194194bc71b1fe2f3ce2e0",
+          "status": "failed",
+          "family": "4.10",
+          "file_version": "4.10.0.1",
+          "version_source": "file_version_resource",
+          "job_manifest_sha256": "c6d6edf9f8d018e81147839e4d8ad94d4e8b0fab151fc644c6c1112dd47d1420"
+        }
+      ],
+      "checks": {
+        "source_fixture_unchanged": true,
+        "source_configuration_unchanged": true,
+        "all_process_cwd_ascii_owned_job": true,
+        "headless_only": true,
+        "no_remaining_native_process": true
+      }
+    }
+  ],
+  "failures": [
+    {
+      "families": [
+        "4.13",
+        "4.10"
+      ],
+      "command": "import keyword",
+      "filename": "新增 节点.k",
+      "observation": "Native file open failed; declared 9-node count contract rejected."
+    },
+    {
+      "families": [
+        "4.13",
+        "4.10"
+      ],
+      "command": "open xydata",
+      "filename": "输入 曲线.txt",
+      "observation": "Native file open failed; required curve artifact missing or empty."
+    },
+    {
+      "families": [
+        "4.10"
+      ],
+      "command": "runscript",
+      "filename": "节点 计数.scl",
+      "observation": "Native parser reported -2 and could not open the script; domain execution failed."
+    }
+  ],
+  "remaining": [
+    "Unicode import/XY relative filenames in both tested families",
+    "Unicode SCL relative filename in 4.10",
+    "Non-ASCII job roots without explicit alias (KI-049)",
+    "GUI modelcheck/entity-import/Movie and native_postprocess_case graphical callback"
+  ]
+}

@@ -947,6 +947,7 @@ infrastructure:
     gaps:
       - 路径命令及 SCL 写入已集中；GUI 模型检查、实体导入等调用待集中窗口原生复核，批处理的导入/XY/SCL 子集已有独立证据
       - KI-049：4.13/4.10 的 ASCII 空格目录及显式启用 ASCII 别名的中文目录已通过无图形保存、PNG、重开和四个后台入口；未启用别名的中文目录、GUI/Movie 与 native_postprocess_case 图形回调仍待验证
+      - ASCII job 根下的 UTF-8 cfile 相对中文文件名：import keyword/open xydata 在 4.13/4.10 均失败，runscript 在 4.10 失败；空格文件名三路及 4.13 中文 SCL 通过，原生失败断言保留
     verification_level: L2
     evidence:
       - src/ls_prepost_mcp/native/commands.py
@@ -956,6 +957,7 @@ infrastructure:
       - docs/decisions/evidence/i03-version-resource/report.md
       - docs/decisions/evidence/i03/report.md
       - docs/decisions/evidence/i03-paths/report.md
+      - docs/decisions/evidence/i03-command-path/report.md
       - tests/test_engine_native.py
     compatibility_notes:
       - KI-048 的 4.10 队列来源读回限制保留；版本能力表在启动前拒绝该路线。4.10 六项批处理/命令回归通过，不外推为全部会话能力通过。
