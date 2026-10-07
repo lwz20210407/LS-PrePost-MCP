@@ -30,6 +30,24 @@ I05 保持 partial。六类冒烟不是 A10 留出集质量评测，未使用留
 
 索引、手册原文及派生文本保留在仓库外。仓库仅附汇总、公共字段列位和指纹；未使用 local-book。
 
+## 2026-10-07：38 个空字段项分类（Cursor）
+
+基线 `e41cf65`，未提交改动 `git diff HEAD --binary` SHA256 为
+`6a80db9d887f20b01e950fffb4e217318c5e9c00e9d7d723d8f1f900aa9bc52c`（计算时只含源码、测试与评审数据，
+不含本报告、证据文件和 tasks.yaml）；各源文件指纹与构建读回见
+[fieldless-review.json](fieldless-review.json)。提供者仍只读，没有执行 LS-DYNA/LS-PrePost。
+
+- 适配层按提供者返回的卡片类型记录空字段原因（无卡片、无命名字段、自由文本、SeriesCard 未给布局、
+  生成式 CardSet 布局为空），这一步只看提供者，不看手册。
+- 对照本机私有 R17 关键字手册索引逐项复核，仓库内只登记结论标签与依据类别
+  （`src/ls_prepost_mcp/data/keyword_fieldless_review.json`），不含手册原文、页码或派生文本。
+- 结论：23 项无数据卡（提供者正确）；1 项自由文本（*COMMENT）；10 项手册有字段而提供者未给布局；
+  4 项手册无独立章节，无法判定。10 项缺失布局属于 Claude 的 keyword_docs 提供者，本任务不修改、不复制。
+- 38 项现在作为公开的关键字级文档入索引，并写入 `keyword_without_fields` 表；
+  全目录 3171 个标识都可检索（66900 字段 + 38 关键字文档），schema_version 仍为 2。
+- 六类管线复验中 API 类只用一行合成私有夹具检查外部来源路径，不是 Scripting API 内容；
+  真实私有 API/用户指南在新头上的复验需要用户提供本机来源路径。
+
 ## 第六轮复核
 
 历史 53b25278… 补丁包含源码/测试/工具，排除 docs、tasks.yaml，不包含未跟踪文件。

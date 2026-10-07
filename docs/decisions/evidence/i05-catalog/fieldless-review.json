@@ -1,0 +1,960 @@
+{
+  "task": "I05",
+  "date": "2026-10-07",
+  "provenance": {
+    "base_git_revision": "e41cf65551274c496f0bb1802f952d1a30e024b2",
+    "working_tree_dirty": true,
+    "git_diff_head_binary_sha256": "6a80db9d887f20b01e950fffb4e217318c5e9c00e9d7d723d8f1f900aa9bc52c",
+    "source_sha256": {
+      "src/ls_prepost_mcp/keyword_documentation.py": "ac1784792cb7338101d1c889b8a992f9a143b96b2a8ff3519b162bb32fe71256",
+      "src/ls_prepost_mcp/knowledge_index.py": "b19f81c85a2ec99976d405672641ccdd3a2a42294214ad93b1ceca9f9965730c",
+      "tools/build_knowledge_index.py": "758d20ff5e2588950fced011d1b6462d41d45caf40dc1970f7ab9de28eb77975",
+      "src/ls_prepost_mcp/data/keyword_fieldless_review.json": "c163834e16b9ed52a59824fc19619595043e7a830665d79320303305188631f7"
+    },
+    "provider": "keyword_docs (integrated, read-only); field source ansys-dyna-core 0.12.1",
+    "manual_review": "local private R17 keyword manual index; verdict labels only, no text published",
+    "native_execution": "none"
+  },
+  "builds": {
+    "public_full_catalog": {
+      "command": "tools/build_knowledge_index.py --all-keywords --output <scratch>/public-full.sqlite",
+      "exit": 0,
+      "seconds": 36.4,
+      "result": {
+        "schema_version": 2,
+        "documents": 68294,
+        "keyword_fields": 66900,
+        "keywords_without_fields": 38,
+        "categories": {
+          "command": 1250,
+          "keyword": 66938,
+          "known_issue": 87,
+          "recipe": 15,
+          "user_guide": 4
+        },
+        "private": false
+      },
+      "readback": {
+        "index_sha256": "346d8ccd75329c303ed37a8a2fe84a2c724d00eec57d2d9c6f0b93451870e0ed",
+        "integrity": "ok",
+        "categories": {
+          "command": 1250,
+          "keyword": 66938,
+          "known_issue": 87,
+          "recipe": 15,
+          "user_guide": 4
+        },
+        "fieldless_rows": 38,
+        "fieldless_verdicts": {
+          "free_text": 1,
+          "no_data_card": 23,
+          "provider_layout_missing": 10,
+          "unconfirmed": 4
+        },
+        "fieldless_orphans": 0,
+        "fieldless_keys_with_fields": 0,
+        "distinct_keyword_ids": 3171,
+        "smoke_queries": [
+          {
+            "category": "command",
+            "query": "genselect",
+            "include_private": false,
+            "result_count": 3,
+            "top": [
+              {
+                "locator": "repo://src/ls_prepost_mcp/data/commands.tsv",
+                "visibility": "public",
+                "version": "catalog"
+              },
+              {
+                "locator": "repo://src/ls_prepost_mcp/data/commands.tsv",
+                "visibility": "public",
+                "version": "catalog"
+              }
+            ]
+          },
+          {
+            "category": "command",
+            "query": "genselect",
+            "include_private": true,
+            "result_count": 3,
+            "top": [
+              {
+                "locator": "repo://src/ls_prepost_mcp/data/commands.tsv",
+                "visibility": "public",
+                "version": "catalog"
+              },
+              {
+                "locator": "repo://src/ls_prepost_mcp/data/commands.tsv",
+                "visibility": "public",
+                "version": "catalog"
+              }
+            ]
+          },
+          {
+            "category": "api",
+            "query": "get_data",
+            "include_private": false,
+            "result_count": 0,
+            "top": []
+          },
+          {
+            "category": "api",
+            "query": "get_data",
+            "include_private": true,
+            "result_count": 0,
+            "top": []
+          },
+          {
+            "category": "keyword",
+            "query": "CONTROL_MPP_IO_NODUMP",
+            "include_private": false,
+            "result_count": 1,
+            "top": [
+              {
+                "locator": "keyword_docs://*CONTROL_MPP_IO_NODUMP",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              }
+            ]
+          },
+          {
+            "category": "keyword",
+            "query": "CONTROL_MPP_IO_NODUMP",
+            "include_private": true,
+            "result_count": 1,
+            "top": [
+              {
+                "locator": "keyword_docs://*CONTROL_MPP_IO_NODUMP",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              }
+            ]
+          },
+          {
+            "category": "keyword",
+            "query": "PARAMETER",
+            "include_private": false,
+            "result_count": 10,
+            "top": [
+              {
+                "locator": "keyword_docs://*PARAMETER_EXPRESSION/0/None/expression/10:70",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              },
+              {
+                "locator": "keyword_docs://*PARAMETER_EXPRESSION/0/None/prmr/0:10",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              }
+            ]
+          },
+          {
+            "category": "keyword",
+            "query": "PARAMETER",
+            "include_private": true,
+            "result_count": 10,
+            "top": [
+              {
+                "locator": "keyword_docs://*PARAMETER_EXPRESSION/0/None/expression/10:70",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              },
+              {
+                "locator": "keyword_docs://*PARAMETER_EXPRESSION/0/None/prmr/0:10",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              }
+            ]
+          },
+          {
+            "category": "keyword",
+            "query": "MAT_ELASTIC",
+            "include_private": false,
+            "result_count": 10,
+            "top": [
+              {
+                "locator": "keyword_docs://*MAT_ELASTIC/0/None/ro/10:10",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              },
+              {
+                "locator": "keyword_docs://*MAT_ELASTIC/1/TITLE/title/0:80",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              }
+            ]
+          },
+          {
+            "category": "keyword",
+            "query": "MAT_ELASTIC",
+            "include_private": true,
+            "result_count": 10,
+            "top": [
+              {
+                "locator": "keyword_docs://*MAT_ELASTIC/0/None/ro/10:10",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              },
+              {
+                "locator": "keyword_docs://*MAT_ELASTIC/1/TITLE/title/0:80",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              }
+            ]
+          },
+          {
+            "category": "user_guide",
+            "query": "install",
+            "include_private": false,
+            "result_count": 1,
+            "top": [
+              {
+                "locator": "repo://docs/INSTALL.md",
+                "visibility": "public",
+                "version": "unspecified"
+              }
+            ]
+          },
+          {
+            "category": "user_guide",
+            "query": "install",
+            "include_private": true,
+            "result_count": 1,
+            "top": [
+              {
+                "locator": "repo://docs/INSTALL.md",
+                "visibility": "public",
+                "version": "unspecified"
+              }
+            ]
+          },
+          {
+            "category": "recipe",
+            "query": "recipe",
+            "include_private": false,
+            "result_count": 5,
+            "top": [
+              {
+                "locator": "repo://src/ls_prepost_mcp/native/recipes/model_inventory/recipe.yaml",
+                "visibility": "public",
+                "version": "unspecified"
+              },
+              {
+                "locator": "repo://src/ls_prepost_mcp/native/recipes/snapshot/recipe.yaml",
+                "visibility": "public",
+                "version": "unspecified"
+              }
+            ]
+          },
+          {
+            "category": "recipe",
+            "query": "recipe",
+            "include_private": true,
+            "result_count": 5,
+            "top": [
+              {
+                "locator": "repo://src/ls_prepost_mcp/native/recipes/model_inventory/recipe.yaml",
+                "visibility": "public",
+                "version": "unspecified"
+              },
+              {
+                "locator": "repo://src/ls_prepost_mcp/native/recipes/snapshot/recipe.yaml",
+                "visibility": "public",
+                "version": "unspecified"
+              }
+            ]
+          },
+          {
+            "category": "known_issue",
+            "query": "KI",
+            "include_private": false,
+            "result_count": 10,
+            "top": [
+              {
+                "locator": "repo://docs/KNOWN_ISSUES.md",
+                "visibility": "public",
+                "version": "unspecified"
+              },
+              {
+                "locator": "repo://docs/KNOWN_ISSUES.md",
+                "visibility": "public",
+                "version": "unspecified"
+              }
+            ]
+          },
+          {
+            "category": "known_issue",
+            "query": "KI",
+            "include_private": true,
+            "result_count": 10,
+            "top": [
+              {
+                "locator": "repo://docs/KNOWN_ISSUES.md",
+                "visibility": "public",
+                "version": "unspecified"
+              },
+              {
+                "locator": "repo://docs/KNOWN_ISSUES.md",
+                "visibility": "public",
+                "version": "unspecified"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "six_category_pipeline": {
+      "command": "tools/build_knowledge_index.py --all-keywords --external-sources <scratch>/external.json --output <scratch>/six-full.sqlite",
+      "exit": 0,
+      "seconds": 146.0,
+      "note": "api category is a one-line synthetic private fixture that checks the external-source path only; it is not LS-PrePost Scripting API content",
+      "result": {
+        "schema_version": 2,
+        "documents": 68295,
+        "keyword_fields": 66900,
+        "keywords_without_fields": 38,
+        "categories": {
+          "api": 1,
+          "command": 1250,
+          "keyword": 66938,
+          "known_issue": 87,
+          "recipe": 15,
+          "user_guide": 4
+        },
+        "private": true
+      },
+      "readback": {
+        "index_sha256": "21f129aadb6f8abe65e0cd87382287e24c6fdef282589037f3861fb61a1ab0d8",
+        "integrity": "ok",
+        "categories": {
+          "api": 1,
+          "command": 1250,
+          "keyword": 66938,
+          "known_issue": 87,
+          "recipe": 15,
+          "user_guide": 4
+        },
+        "fieldless_rows": 38,
+        "fieldless_verdicts": {
+          "free_text": 1,
+          "no_data_card": 23,
+          "provider_layout_missing": 10,
+          "unconfirmed": 4
+        },
+        "fieldless_orphans": 0,
+        "fieldless_keys_with_fields": 0,
+        "distinct_keyword_ids": 3171,
+        "smoke_queries": [
+          {
+            "category": "command",
+            "query": "genselect",
+            "include_private": false,
+            "result_count": 3,
+            "top": [
+              {
+                "locator": "repo://src/ls_prepost_mcp/data/commands.tsv",
+                "visibility": "public",
+                "version": "catalog"
+              },
+              {
+                "locator": "repo://src/ls_prepost_mcp/data/commands.tsv",
+                "visibility": "public",
+                "version": "catalog"
+              }
+            ]
+          },
+          {
+            "category": "command",
+            "query": "genselect",
+            "include_private": true,
+            "result_count": 3,
+            "top": [
+              {
+                "locator": "repo://src/ls_prepost_mcp/data/commands.tsv",
+                "visibility": "public",
+                "version": "catalog"
+              },
+              {
+                "locator": "repo://src/ls_prepost_mcp/data/commands.tsv",
+                "visibility": "public",
+                "version": "catalog"
+              }
+            ]
+          },
+          {
+            "category": "api",
+            "query": "get_data",
+            "include_private": false,
+            "result_count": 0,
+            "top": []
+          },
+          {
+            "category": "api",
+            "query": "get_data",
+            "include_private": true,
+            "result_count": 1,
+            "top": [
+              {
+                "locator": "local://synthetic-api-fixture",
+                "visibility": "private",
+                "version": "fixture"
+              }
+            ]
+          },
+          {
+            "category": "keyword",
+            "query": "CONTROL_MPP_IO_NODUMP",
+            "include_private": false,
+            "result_count": 1,
+            "top": [
+              {
+                "locator": "keyword_docs://*CONTROL_MPP_IO_NODUMP",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              }
+            ]
+          },
+          {
+            "category": "keyword",
+            "query": "CONTROL_MPP_IO_NODUMP",
+            "include_private": true,
+            "result_count": 1,
+            "top": [
+              {
+                "locator": "keyword_docs://*CONTROL_MPP_IO_NODUMP",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              }
+            ]
+          },
+          {
+            "category": "keyword",
+            "query": "PARAMETER",
+            "include_private": false,
+            "result_count": 10,
+            "top": [
+              {
+                "locator": "keyword_docs://*PARAMETER_EXPRESSION/0/None/expression/10:70",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              },
+              {
+                "locator": "keyword_docs://*PARAMETER_EXPRESSION/0/None/prmr/0:10",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              }
+            ]
+          },
+          {
+            "category": "keyword",
+            "query": "PARAMETER",
+            "include_private": true,
+            "result_count": 10,
+            "top": [
+              {
+                "locator": "keyword_docs://*PARAMETER_EXPRESSION/0/None/expression/10:70",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              },
+              {
+                "locator": "keyword_docs://*PARAMETER_EXPRESSION/0/None/prmr/0:10",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              }
+            ]
+          },
+          {
+            "category": "keyword",
+            "query": "MAT_ELASTIC",
+            "include_private": false,
+            "result_count": 10,
+            "top": [
+              {
+                "locator": "keyword_docs://*MAT_ELASTIC/0/None/ro/10:10",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              },
+              {
+                "locator": "keyword_docs://*MAT_ELASTIC/1/TITLE/title/0:80",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              }
+            ]
+          },
+          {
+            "category": "keyword",
+            "query": "MAT_ELASTIC",
+            "include_private": true,
+            "result_count": 10,
+            "top": [
+              {
+                "locator": "keyword_docs://*MAT_ELASTIC/0/None/ro/10:10",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              },
+              {
+                "locator": "keyword_docs://*MAT_ELASTIC/1/TITLE/title/0:80",
+                "visibility": "public",
+                "version": "ansys-dyna-core 0.12.1"
+              }
+            ]
+          },
+          {
+            "category": "user_guide",
+            "query": "install",
+            "include_private": false,
+            "result_count": 1,
+            "top": [
+              {
+                "locator": "repo://docs/INSTALL.md",
+                "visibility": "public",
+                "version": "unspecified"
+              }
+            ]
+          },
+          {
+            "category": "user_guide",
+            "query": "install",
+            "include_private": true,
+            "result_count": 1,
+            "top": [
+              {
+                "locator": "repo://docs/INSTALL.md",
+                "visibility": "public",
+                "version": "unspecified"
+              }
+            ]
+          },
+          {
+            "category": "recipe",
+            "query": "recipe",
+            "include_private": false,
+            "result_count": 5,
+            "top": [
+              {
+                "locator": "repo://src/ls_prepost_mcp/native/recipes/model_inventory/recipe.yaml",
+                "visibility": "public",
+                "version": "unspecified"
+              },
+              {
+                "locator": "repo://src/ls_prepost_mcp/native/recipes/snapshot/recipe.yaml",
+                "visibility": "public",
+                "version": "unspecified"
+              }
+            ]
+          },
+          {
+            "category": "recipe",
+            "query": "recipe",
+            "include_private": true,
+            "result_count": 5,
+            "top": [
+              {
+                "locator": "repo://src/ls_prepost_mcp/native/recipes/model_inventory/recipe.yaml",
+                "visibility": "public",
+                "version": "unspecified"
+              },
+              {
+                "locator": "repo://src/ls_prepost_mcp/native/recipes/snapshot/recipe.yaml",
+                "visibility": "public",
+                "version": "unspecified"
+              }
+            ]
+          },
+          {
+            "category": "known_issue",
+            "query": "KI",
+            "include_private": false,
+            "result_count": 10,
+            "top": [
+              {
+                "locator": "repo://docs/KNOWN_ISSUES.md",
+                "visibility": "public",
+                "version": "unspecified"
+              },
+              {
+                "locator": "repo://docs/KNOWN_ISSUES.md",
+                "visibility": "public",
+                "version": "unspecified"
+              }
+            ]
+          },
+          {
+            "category": "known_issue",
+            "query": "KI",
+            "include_private": true,
+            "result_count": 10,
+            "top": [
+              {
+                "locator": "repo://docs/KNOWN_ISSUES.md",
+                "visibility": "public",
+                "version": "unspecified"
+              },
+              {
+                "locator": "repo://docs/KNOWN_ISSUES.md",
+                "visibility": "public",
+                "version": "unspecified"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "keyword_coverage": {
+    "requested_keywords": 3171,
+    "completed_keywords": 3171,
+    "field_records": 66902,
+    "without_fields_verdicts": {
+      "no_data_card": 23,
+      "provider_layout_missing": 10,
+      "free_text": 1,
+      "unconfirmed": 4
+    },
+    "without_fields": [
+      {
+        "keyword": "*CASE_BEGIN",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*CASE_END",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*CHANGE_RIGIDWALL_GEOMETRIC",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "provider_layout_missing",
+        "basis": "documented_card_fields"
+      },
+      {
+        "keyword": "*CHANGE_RIGIDWALL_PLANAR",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "provider_layout_missing",
+        "basis": "documented_card_fields"
+      },
+      {
+        "keyword": "*CHANGE_VELOCITY_ZERO",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "explicit_no_input_statement"
+      },
+      {
+        "keyword": "*COMMENT",
+        "provider_structure": "free_text_card",
+        "card_kinds": [
+          "TextCard"
+        ],
+        "verdict": "free_text",
+        "basis": "documented_free_text_card"
+      },
+      {
+        "keyword": "*CONTROL_CR_MPP_DECOMPOSITION_FLAG_STRESS_STRAIN_CURVE",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "unconfirmed",
+        "basis": "no_dedicated_section"
+      },
+      {
+        "keyword": "*CONTROL_CR_MPP_MATERIAL_MODEL_DRIVER",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "unconfirmed",
+        "basis": "no_dedicated_section"
+      },
+      {
+        "keyword": "*CONTROL_DEBUG",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*CONTROL_EXPLOSIVE_SHADOW",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*CONTROL_MPP_DECOMPOSITION_AUTOMATIC",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*CONTROL_MPP_DECOMPOSITION_BAGREF",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "provider_layout_missing",
+        "basis": "documented_optional_card_fields"
+      },
+      {
+        "keyword": "*CONTROL_MPP_DECOMPOSITION_CHECK_SPEED",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*CONTROL_MPP_DECOMPOSITION_DISABLE_UNREF_CURVES",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*CONTROL_MPP_DECOMPOSITION_DISTRIBUTE_ALE_ELEMENT",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "unconfirmed",
+        "basis": "no_dedicated_section"
+      },
+      {
+        "keyword": "*CONTROL_MPP_DECOMPOSITION_DISTRIBUTE_ALE_ELEMENTS",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "provider_layout_missing",
+        "basis": "documented_optional_card_fields"
+      },
+      {
+        "keyword": "*CONTROL_MPP_DECOMPOSITION_DISTRIBUTE_SPH_ELEMENT",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "explicit_no_input_statement"
+      },
+      {
+        "keyword": "*CONTROL_MPP_DECOMPOSITION_DISTRIBUTE_SPH_ELEMENTS",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "explicit_no_input_statement"
+      },
+      {
+        "keyword": "*CONTROL_MPP_DECOMPOSITION_NODISTRIBUTE_DES_ELEMENTS",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*CONTROL_MPP_DECOMPOSITION_SHOW",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*CONTROL_MPP_IO_BINOUTONLY",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "unconfirmed",
+        "basis": "no_dedicated_section"
+      },
+      {
+        "keyword": "*CONTROL_MPP_IO_LSTC_REDUCE",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*CONTROL_MPP_IO_NOBEAMOUT",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*CONTROL_MPP_IO_NOD3DUMP",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*CONTROL_MPP_IO_NODUMP",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*CONTROL_MPP_IO_NOFULL",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*CONTROL_MPP_IO_SWAPBYTES",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*CONTROL_STRUCTURED",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*CONTROL_STRUCTURED_TERM",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*INITIAL_STRAIN_SHELL",
+        "provider_structure": "generated_layout_not_returned",
+        "card_kinds": [
+          "CardSet (engine layout of a generated card)"
+        ],
+        "verdict": "provider_layout_missing",
+        "basis": "documented_card_fields"
+      },
+      {
+        "keyword": "*INITIAL_STRESS_SHELL",
+        "provider_structure": "generated_layout_not_returned",
+        "card_kinds": [
+          "CardSet (engine layout of a generated card)"
+        ],
+        "verdict": "provider_layout_missing",
+        "basis": "documented_card_fields"
+      },
+      {
+        "keyword": "*INTERFACE_SPG_1",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "provider_layout_missing",
+        "basis": "documented_optional_card_fields"
+      },
+      {
+        "keyword": "*INTERFACE_SPG_2",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "provider_layout_missing",
+        "basis": "documented_optional_card_fields"
+      },
+      {
+        "keyword": "*LOAD_SPCFORC",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*LOAD_THERMAL_D3PLOT",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*LOAD_THERMAL_TOPAZ",
+        "provider_structure": "no_named_fields",
+        "card_kinds": [
+          "Card"
+        ],
+        "verdict": "no_data_card",
+        "basis": "no_card_table_in_section"
+      },
+      {
+        "keyword": "*PARAMETER",
+        "provider_structure": "series_layout_not_returned",
+        "card_kinds": [
+          "SeriesCard"
+        ],
+        "verdict": "provider_layout_missing",
+        "basis": "documented_card_fields"
+      },
+      {
+        "keyword": "*PARAMETER_LOCAL",
+        "provider_structure": "series_layout_not_returned",
+        "card_kinds": [
+          "SeriesCard"
+        ],
+        "verdict": "provider_layout_missing",
+        "basis": "documented_card_fields"
+      }
+    ]
+  }
+}
