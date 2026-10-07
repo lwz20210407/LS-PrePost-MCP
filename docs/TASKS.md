@@ -722,7 +722,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：done；验证：L1
 
-证据：[src/ls_prepost_mcp/core/contracts.py](../src/ls_prepost_mcp/core/contracts.py), [tests/test_core_contracts.py](../tests/test_core_contracts.py), [tests/test_workflow_gates.py](../tests/test_workflow_gates.py), [tests/test_reference_workflow.py](../tests/test_reference_workflow.py)
+证据：[src/ls_prepost_mcp/core/contracts.py](../src/ls_prepost_mcp/core/contracts.py), [tests/test_core_contracts.py](../tests/test_core_contracts.py), [tests/test_workflow_gates.py](../tests/test_workflow_gates.py), [tests/test_reference_workflow.py](../tests/test_reference_workflow.py), [src/ls_prepost_mcp/field_contract_adapter.py](../src/ls_prepost_mcp/field_contract_adapter.py), [tests/test_field_contract_adapter.py](../tests/test_field_contract_adapter.py), [docs/decisions/evidence/i02-field-adapter/report.md](../docs/decisions/evidence/i02-field-adapter/report.md)
 
 - ModelRef、Selector、FieldSpec、CurveSpec、JobResult、Artifact 以 pydantic 定义
 - JobResult.status 只有 succeeded / failed / partial / unverified 四种
