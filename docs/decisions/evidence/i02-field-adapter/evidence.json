@@ -5,7 +5,7 @@
   "branch": "antigravity/I02-fieldspec-adapter",
   "module": "src/ls_prepost_mcp/field_contract_adapter.py",
   "test_file": "tests/test_field_contract_adapter.py",
-  "total_adapter_tests": 18,
+  "total_adapter_tests": 23,
   "status": "passed",
   "verification_level": "L1",
   "semantic_invariants": {
@@ -13,6 +13,10 @@
     "ki_049_native_solid_points_2_to_8": "rejected",
     "missing_entity_context": "rejected",
     "missing_state_context": "rejected",
+    "unrecognized_validity": "rejected",
+    "untransformed_storage_frames": "rejected_without_explicit_frame",
+    "unknown_native_components": "rejected",
+    "mismatched_quantities_and_components": "rejected_by_equivalence",
     "core_contracts_modified": false,
     "field_contracts_modified": false,
     "import_linter_broken": 0
@@ -35,6 +39,11 @@
     "tests/test_field_contract_adapter.py::test_equivalence_and_roundtrip_shell_stress": "passed",
     "tests/test_field_contract_adapter.py::test_equivalence_and_roundtrip_reader_stored_point": "passed",
     "tests/test_field_contract_adapter.py::test_describe_field_spec_mapping_audit_dict": "passed",
-    "tests/test_field_contract_adapter.py::test_stateful_adapter_with_resolvers": "passed"
+    "tests/test_field_contract_adapter.py::test_stateful_adapter_with_resolvers": "passed",
+    "tests/test_field_contract_adapter.py::test_equivalence_rejects_mismatched_quantity_and_components": "passed",
+    "tests/test_field_contract_adapter.py::test_legacy_to_core_rejects_as_stored_and_datacenter_frames_without_explicit_frame": "passed",
+    "tests/test_field_contract_adapter.py::test_equivalence_rejects_as_stored_frame_against_global": "passed",
+    "tests/test_field_contract_adapter.py::test_legacy_to_core_rejects_unrecognized_validity": "passed",
+    "tests/test_field_contract_adapter.py::test_core_to_legacy_rejects_unknown_native_component": "passed"
   }
 }

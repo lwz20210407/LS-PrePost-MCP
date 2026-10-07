@@ -35,6 +35,7 @@ from .field_contracts import (
 from .field_contracts import (
     FieldSpec as LegacyFieldSpec,
 )
+from .native_results import ELEMENT_FIELDS, NODE_FIELDS
 from .result_validity import validity_scope
 
 # Standard mapping dictionaries from (backend, domain, quantity, component) -> legacy field name
@@ -113,30 +114,52 @@ def _map_core_to_legacy_fields(
                 key = (q_lower, c.lower())
                 if key in NATIVE_NODE_MAP:
                     mapped.append(NATIVE_NODE_MAP[key])
-                elif c in ("disp_x", "disp_y", "disp_z", "disp_magnitude", "velo_x", "velo_y", "velo_z",
-                          "accel_x", "accel_y", "accel_z", "state_node_x", "state_node_y", "state_node_z"):
+                elif c in NODE_FIELDS:
                     mapped.append(c)
                 else:
-                    mapped.append(f"{q_lower}_{c}")
+                    raise ValueError(
+                        f"Unknown or unmappable component '{c}' for quantity '{quantity}' on lsprepost node domain"
+                    )
         elif q_lower in ("stress", "stress_tensor"):
             for c in components:
                 c_clean = c.lower()
                 if c_clean in NATIVE_STRESS_MAP:
                     mapped.append(NATIVE_STRESS_MAP[c_clean])
-                else:
+                elif c in ELEMENT_FIELDS and (c.startswith("stress_") or c in ("von_mises", "effective_plastic_strain")):
                     mapped.append(c)
+                else:
+                    raise ValueError(
+                        f"Unknown or unmappable stress component '{c}' for lsprepost backend"
+                    )
         elif q_lower in ("strain", "strain_tensor"):
             for c in components:
                 c_clean = c.lower()
                 if c_clean in NATIVE_STRAIN_MAP:
                     mapped.append(NATIVE_STRAIN_MAP[c_clean])
-                else:
+                elif c in ELEMENT_FIELDS and c.startswith("strain_"):
                     mapped.append(c)
+                else:
+                    raise ValueError(
+                        f"Unknown or unmappable strain component '{c}' for lsprepost backend"
+                    )
         elif q_lower in ELEMENT_SCALARS:
-            mapped.append(q_lower)
+            for c in components:
+                if c.lower() == q_lower:
+                    mapped.append(q_lower)
+                else:
+                    raise ValueError(
+                        f"Element scalar '{quantity}' does not match component '{c}'"
+                    )
         else:
             for c in components:
-                mapped.append(c)
+                if domain == "node" and c in NODE_FIELDS:
+                    mapped.append(c)
+                elif domain != "node" and c in ELEMENT_FIELDS:
+                    mapped.append(c)
+                else:
+                    raise ValueError(
+                        f"Unknown or unmappable field/component '{c}' for quantity '{quantity}' on lsprepost backend"
+                    )
     elif backend in ("lasso", "lsreader"):
         if q_lower in ("stress", "stress_tensor"):
             elem_type = domain if domain in ("shell", "solid", "tshell", "beam") else "shell"
@@ -412,6 +435,7 @@ def legacy_to_core_field_spec(
     coordinate_system_id: int | None = None,
     frame: Literal["global", "material", "local"] | None = None,
     averaging: Literal["none", "minmax", "nodal"] | None = None,
+    validity: Literal["all", "alive", "deleted"] | None = None,
     allow_unmapped_transformations: bool = True,
 ) -> core_contracts.FieldSpec:
     """Adapt a concrete legacy field_contracts.FieldSpec back to a domain core.contracts.FieldSpec.
@@ -449,19 +473,30 @@ def legacy_to_core_field_spec(
         predicate = core_contracts.IdSelection(kind="ids", ids=legacy_spec.selection.entity_ids)
 
     # Determine validity
-    val_lower = legacy_spec.validity.lower()
-    if "deleted only" in val_lower or "deleted elements only" in val_lower or val_lower == "deleted":
-        validity_val: Literal["all", "alive", "deleted"] = "deleted"
-    elif "raw stored population" in val_lower or "not requested" in val_lower or val_lower in ("all", "raw"):
-        validity_val = "all"
-    elif (
-        "positive material code=present" in val_lower
-        or "physical deletion filtering" in val_lower
-        or "alive" in val_lower
-    ):
-        validity_val = "alive"
+    if validity is not None:
+        validity_val = validity
     else:
-        validity_val = "all"
+        val_lower = legacy_spec.validity.lower()
+        if "deleted only" in val_lower or "deleted elements only" in val_lower or val_lower == "deleted":
+            validity_val = "deleted"
+        elif (
+            "raw stored population" in val_lower
+            or "not requested" in val_lower
+            or val_lower in ("all", "raw")
+            or "no explicit alive/deletion mask" in val_lower
+        ):
+            validity_val = "all"
+        elif (
+            "positive material code=present" in val_lower
+            or "physical deletion filtering" in val_lower
+            or val_lower == "alive"
+        ):
+            validity_val = "alive"
+        else:
+            raise ValueError(
+                f"Unrecognized legacy validity scope '{legacy_spec.validity}'; "
+                f"pass explicit 'validity=' or use recognized validity policy."
+            )
 
     # Deformed vs reference coordinate configuration
     if configuration == "deformed" and config_state is None:
@@ -541,12 +576,25 @@ def legacy_to_core_field_spec(
         resolved_frame = frame
     else:
         frame_lower = legacy_spec.frame.lower()
-        if "material" in frame_lower:
+        if (
+            "as_stored" in frame_lower
+            or "datacenter" in frame_lower
+            or "no coordinate transformation" in frame_lower
+        ):
+            raise ValueError(
+                f"Frame '{legacy_spec.frame}' denotes absence of transformation rather than a defined "
+                f"coordinate system (global/local/material); pass explicit 'frame=' to disambiguate."
+            )
+        elif "material" in frame_lower:
             resolved_frame = "material"
         elif "local" in frame_lower:
             resolved_frame = "local"
-        else:
+        elif "global" in frame_lower:
             resolved_frame = "global"
+        else:
+            raise ValueError(
+                f"Unrecognized legacy frame '{legacy_spec.frame}'; pass explicit 'frame=' to disambiguate."
+            )
 
     resolved_csid: int | None = coordinate_system_id
     if resolved_frame == "local" and resolved_csid is None:
@@ -557,6 +605,7 @@ def legacy_to_core_field_spec(
             raise ValueError("Local frame requires explicit coordinate_system_id")
     elif resolved_frame != "local":
         resolved_csid = None
+
 
     # 6. Map Averaging
     resolved_averaging: Literal["none", "minmax", "nodal"]
@@ -612,6 +661,38 @@ def assert_field_spec_equivalence(
     if core_domain != legacy_domain:
         raise AssertionError(
             f"Entity domain mismatch: core has '{core_domain}', legacy has '{legacy_domain}'"
+        )
+
+    # 4. Quantity and Components vs Legacy Fields
+    try:
+        expected_fields = _map_core_to_legacy_fields(
+            core_spec.backend,
+            core_domain,
+            core_spec.quantity,
+            core_spec.components,
+        )
+    except Exception as e:
+        raise AssertionError(
+            f"Cannot map core quantity '{core_spec.quantity}' and components {core_spec.components} to legacy fields: {e}"
+        ) from e
+
+    if expected_fields != legacy_spec.fields:
+        try:
+            inferred_q, _ = _infer_core_quantity_and_components(
+                legacy_spec.fields, legacy_domain
+            )
+        except Exception:
+            inferred_q = "unknown"
+
+        if core_spec.quantity.lower() != inferred_q.lower():
+            raise AssertionError(
+                f"Quantity mismatch: core quantity is '{core_spec.quantity}', but legacy fields "
+                f"{legacy_spec.fields} infer quantity '{inferred_q}'"
+            )
+        raise AssertionError(
+            f"Field / component mismatch: core quantity '{core_spec.quantity}' with components "
+            f"{core_spec.components} maps to fields {expected_fields}, but legacy spec has "
+            f"fields {legacy_spec.fields}"
         )
 
     # 4. Entity IDs
@@ -701,18 +782,25 @@ def assert_field_spec_equivalence(
         raise AssertionError(f"Unknown core sampling: {core_spec.sampling}")
 
     # 7. Coordinate System / Frame
-    if core_spec.frame == "global" and "global" not in legacy_spec.frame.lower() and "datacenter" not in legacy_spec.frame.lower() and "as_stored" not in legacy_spec.frame.lower():
+    legacy_frame_lower = legacy_spec.frame.lower()
+    if "as_stored" in legacy_frame_lower or "datacenter" in legacy_frame_lower:
+        raise AssertionError(
+            f"Frame mismatch: legacy frame '{legacy_spec.frame}' denotes lack of coordinate "
+            f"transformation rather than an explicit coordinate system; cannot equate to core '{core_spec.frame}'"
+        )
+    if core_spec.frame == "global" and "global" not in legacy_frame_lower:
         raise AssertionError(f"Frame mismatch: core is 'global', legacy is '{legacy_spec.frame}'")
-    if core_spec.frame == "material" and "material" not in legacy_spec.frame.lower():
+    if core_spec.frame == "material" and "material" not in legacy_frame_lower:
         raise AssertionError(f"Frame mismatch: core is 'material', legacy is '{legacy_spec.frame}'")
     if core_spec.frame == "local":
-        if "local" not in legacy_spec.frame.lower():
+        if "local" not in legacy_frame_lower:
             raise AssertionError(f"Frame mismatch: core is 'local', legacy is '{legacy_spec.frame}'")
         if core_spec.coordinate_system_id is not None:
             if str(core_spec.coordinate_system_id) not in legacy_spec.frame:
                 raise AssertionError(
                     f"Local coordinate system ID {core_spec.coordinate_system_id} not reflected in legacy frame '{legacy_spec.frame}'"
                 )
+
 
     # 8. Averaging
     if core_spec.averaging == "nodal" and "nodal" not in legacy_spec.averaging.lower():

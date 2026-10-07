@@ -917,13 +917,15 @@ infrastructure:
     title: 语义合同 core/contracts.py
     milestone: M1
     status: done
-    gaps:
-      - M2：core.FieldSpec 与旧 field_contracts.FieldSpec 的适配层及等价测试尚未落地
+    gaps: []
     evidence:
       - src/ls_prepost_mcp/core/contracts.py
       - tests/test_core_contracts.py
       - tests/test_workflow_gates.py
       - tests/test_reference_workflow.py
+      - src/ls_prepost_mcp/field_contract_adapter.py
+      - tests/test_field_contract_adapter.py
+      - docs/decisions/evidence/i02-field-adapter/report.md
     verification_level: L1
     acceptance:
       - ModelRef、Selector、FieldSpec、CurveSpec、JobResult、Artifact 以 pydantic 定义

@@ -149,9 +149,7 @@ def test_core_to_legacy_shell_native_layer():
     assert legacy_spec.sampling.kind == "native_shell_layer"
     assert legacy_spec.sampling.native_selector == "OUTER"
     assert legacy_spec.sampling.value == "outer"
-    assert legacy_spec.fields == (
-        "stress_x", "stress_y", "stress_z", "stress_xy", "stress_yz", "stress_zx"
-    )
+    assert legacy_spec.fields == ("stress_x", "stress_y", "stress_z", "stress_xy", "stress_yz", "stress_zx")
     assert "physical deletion filtering" in legacy_spec.validity.lower()
 
 
@@ -393,7 +391,7 @@ def test_legacy_to_core_reader_stored_point():
         averaging="none",
         validity="Raw stored population; physical deletion filtering not requested; extrema are not alive-only",
     )
-    core_spec = legacy_to_core_field_spec(legacy_spec)
+    core_spec = legacy_to_core_field_spec(legacy_spec, frame="global")
 
     assert core_spec.backend == "lasso"
     assert core_spec.units == "MPa"
@@ -499,3 +497,193 @@ def test_stateful_adapter_with_resolvers():
     assert legacy_spec.selection.entity_ids == (1001, 1002, 1003)
     assert legacy_spec.selection.states == (1, 2, 3)
     assert legacy_spec.fields == ("disp_x", "disp_y", "disp_z")
+
+
+# --- P1 and P2 Review Regression Tests ---
+
+
+def test_equivalence_rejects_mismatched_quantity_and_components():
+    """P1-85a: Equivalence must reject different physical quantities or mismatched components."""
+    # Core is stress xx, legacy is strain_x
+    core_stress = core_contracts.FieldSpec(
+        quantity="stress",
+        components=["xx"],
+        units="MPa",
+        backend="lsprepost",
+        selector=core_contracts.Selector(
+            entity_type="shell",
+            predicate=core_contracts.IdSelection(kind="ids", ids=[101]),
+            validity="all",
+        ),
+        at=core_contracts.StateIndices(kind="states", indices=[1]),
+        sampling=core_contracts.NativeLayer(kind="native_layer", layer="outer"),
+        frame="global",
+        averaging="none",
+    )
+
+    legacy_strain = LegacyFieldSpec(
+        backend="lsprepost",
+        fields=("strain_x",),
+        units="MPa",
+        selection=ResultSelection("shell", [101], [1]),
+        sampling=SamplingSpec.native("shell", "outer"),
+        frame="global",
+        averaging="none",
+        validity="all",
+    )
+
+    # Core stress xx vs legacy strain_x must be rejected
+    assert not is_field_spec_equivalent(core_stress, legacy_strain)
+    with pytest.raises(AssertionError, match="Field / component mismatch|Quantity mismatch"):
+        assert_field_spec_equivalence(core_stress, legacy_strain)
+
+    # Core stress xx vs legacy von_mises must be rejected
+    legacy_mises = LegacyFieldSpec(
+        backend="lsprepost",
+        fields=("von_mises",),
+        units="MPa",
+        selection=ResultSelection("shell", [101], [1]),
+        sampling=SamplingSpec.native("shell", "outer"),
+        frame="global",
+        averaging="none",
+        validity="all",
+    )
+    assert not is_field_spec_equivalent(core_stress, legacy_mises)
+    with pytest.raises(AssertionError, match="Field / component mismatch"):
+        assert_field_spec_equivalence(core_stress, legacy_mises)
+
+    # Core components ("xx", "yy") vs legacy fields ("stress_y", "stress_x") (order mismatch)
+    core_two_comp = core_contracts.FieldSpec(
+        quantity="stress",
+        components=["xx", "yy"],
+        units="MPa",
+        backend="lsprepost",
+        selector=core_contracts.Selector(
+            entity_type="shell",
+            predicate=core_contracts.IdSelection(kind="ids", ids=[101]),
+            validity="all",
+        ),
+        at=core_contracts.StateIndices(kind="states", indices=[1]),
+        sampling=core_contracts.NativeLayer(kind="native_layer", layer="outer"),
+        frame="global",
+        averaging="none",
+    )
+    legacy_reversed = LegacyFieldSpec(
+        backend="lsprepost",
+        fields=("stress_y", "stress_x"),
+        units="MPa",
+        selection=ResultSelection("shell", [101], [1]),
+        sampling=SamplingSpec.native("shell", "outer"),
+        frame="global",
+        averaging="none",
+        validity="all",
+    )
+    assert not is_field_spec_equivalent(core_two_comp, legacy_reversed)
+    with pytest.raises(AssertionError, match="Field / component mismatch"):
+        assert_field_spec_equivalence(core_two_comp, legacy_reversed)
+
+
+def test_legacy_to_core_rejects_as_stored_and_datacenter_frames_without_explicit_frame():
+    """P1-85b: as_stored and DataCenter frames denote lack of transformation, not global frame."""
+    legacy_as_stored = LegacyFieldSpec(
+        backend="lasso",
+        fields=("element_shell_stress",),
+        units="MPa",
+        selection=ResultSelection("shell", [201], [1]),
+        sampling=SamplingSpec.stored([1], stress=True),
+        frame="as_stored; no coordinate transformation",
+        averaging="none",
+        validity="all",
+    )
+    # Default conversion without explicit frame must be rejected
+    with pytest.raises(ValueError, match="absence of transformation rather than a defined coordinate system"):
+        legacy_to_core_field_spec(legacy_as_stored)
+
+    # Disambiguating by passing explicit frame succeeds
+    core_disambiguated = legacy_to_core_field_spec(legacy_as_stored, frame="global")
+    assert core_disambiguated.frame == "global"
+
+    legacy_datacenter = LegacyFieldSpec(
+        backend="lsprepost",
+        fields=("stress_x",),
+        units="MPa",
+        selection=ResultSelection("shell", [201], [1]),
+        sampling=SamplingSpec.native("shell", "mid"),
+        frame="native DataCenter component frame; no coordinate transformation",
+        averaging="none",
+        validity="all",
+    )
+    with pytest.raises(ValueError, match="absence of transformation rather than a defined coordinate system"):
+        legacy_to_core_field_spec(legacy_datacenter)
+
+    core_dc = legacy_to_core_field_spec(legacy_datacenter, frame="material")
+    assert core_dc.frame == "material"
+
+
+def test_equivalence_rejects_as_stored_frame_against_global():
+    """P1-85b: Equivalence must reject as_stored frame as equivalent to global."""
+    core_global = core_contracts.FieldSpec(
+        quantity="stress",
+        components=["xx", "yy", "zz", "xy", "yz", "zx"],
+        units="MPa",
+        backend="lasso",
+        selector=core_contracts.Selector(
+            entity_type="shell",
+            predicate=core_contracts.IdSelection(kind="ids", ids=[101]),
+            validity="all",
+        ),
+        at=core_contracts.StateIndices(kind="states", indices=[1]),
+        sampling=core_contracts.StoredPoint(kind="stored_point", index=1),
+        frame="global",
+        averaging="none",
+    )
+    legacy_as_stored = LegacyFieldSpec(
+        backend="lasso",
+        fields=("element_shell_stress",),
+        units="MPa",
+        selection=ResultSelection("shell", [101], [1]),
+        sampling=SamplingSpec.stored([1], stress=True),
+        frame="as_stored; no coordinate transformation",
+        averaging="none",
+        validity="all",
+    )
+    assert not is_field_spec_equivalent(core_global, legacy_as_stored)
+    with pytest.raises(AssertionError, match="Frame mismatch"):
+        assert_field_spec_equivalence(core_global, legacy_as_stored)
+
+
+def test_legacy_to_core_rejects_unrecognized_validity():
+    """P2-85a: Unrecognized validity strings must be rejected instead of falling back to 'all'."""
+    legacy_unknown_val = LegacyFieldSpec(
+        backend="lasso",
+        fields=("element_shell_stress",),
+        units="MPa",
+        selection=ResultSelection("shell", [201], [1]),
+        sampling=SamplingSpec.stored([1], stress=True),
+        frame="global",
+        averaging="none",
+        validity="material-specific failure flag only",
+    )
+    with pytest.raises(ValueError, match="Unrecognized legacy validity scope"):
+        legacy_to_core_field_spec(legacy_unknown_val)
+
+
+def test_core_to_legacy_rejects_unknown_native_component():
+    """P2-85c: Unknown component on lsprepost backend must raise ValueError."""
+    core_bad_comp = core_contracts.FieldSpec(
+        quantity="stress",
+        components=["unknown_tensor_comp"],
+        units="MPa",
+        backend="lsprepost",
+        selector=core_contracts.Selector(
+            entity_type="shell",
+            predicate=core_contracts.IdSelection(kind="ids", ids=[101]),
+            validity="all",
+        ),
+        at=core_contracts.StateIndices(kind="states", indices=[1]),
+        sampling=core_contracts.NativeLayer(kind="native_layer", layer="outer"),
+        frame="global",
+        averaging="none",
+    )
+    with pytest.raises(ValueError, match="Unknown or unmappable stress component"):
+        core_to_legacy_field_spec(core_bad_comp)
