@@ -285,7 +285,7 @@
 
 ### Q03 场数据提取
 
-状态：partial；版本：v0.5；里程碑：M2；层：T1
+状态：done；版本：v0.5；里程碑：M2；层：T1
 
 把第 20 个状态 Part 3 所有单元的应力六分量导出成 CSV
 
@@ -296,10 +296,6 @@
 - 删除单元按 Q04 掩码策略处理并在元数据中注明
 
 现有入口：`extract_native_fields`, `extract_native_stress`, `extract_d3plot_field`, `extract_d3plot_stress`, `extract_nodal_results`, `extract_d3plot_nodal`, `extract_lsreader_nodal`, `export_dpf_result`
-
-缺口：
-
-- 8 个工具按后端各一份；壳层未认证；实体积分点 2-8 原生返回错值被拒绝
 
 ### Q04 工程量与失效掩码
 
