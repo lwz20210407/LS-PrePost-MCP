@@ -79,21 +79,57 @@ def test_command_rejects_ambiguous_or_injectable_arguments(builder, args):
         builder(*args)
 
 
+def _command_literals(tree):
+    # Reassemble f-strings so dynamic fringe codes / plot IDs cannot evade the
+    # same check that covers literals, concatenation and .format() templates.
+    pattern = re.compile(r"(?:^|[\n;])[ \t]*(?:genselect\s|anim\s|fringe\s|pfringe(?:$|[\n;])|range\s+(?:avgfrng|reversesigns|userdef)\s|open(?:c)?\s+(?:keyword|d3plot|command|xydata)\s|print\s+png\s|movie\s+MP4/H264\s|runpython\s|runscript\s|save\s+keyword\s|import\s+keyword\s|(?:xyplot\s+(?:\d+|\{[^}]*\})\s+)?savefile\s+xypair\s|modelcheck\s+writetofile\s)")
+    parser_tokens = {id(node) for call in ast.walk(tree) if isinstance(call, ast.Call)
+                     and isinstance(call.func, ast.Attribute) and call.func.attr in ("startswith", "endswith")
+                     for arg in call.args for node in ast.walk(arg)}
+    docstrings = {id(scope.body[0].value) for scope in ast.walk(tree)
+                  if isinstance(scope, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+                  and scope.body and isinstance(scope.body[0], ast.Expr)
+                  and isinstance(scope.body[0].value, ast.Constant)
+                  and isinstance(scope.body[0].value.value, str)}
+    for node in ast.walk(tree):
+        if id(node) in parser_tokens | docstrings:
+            continue
+        if isinstance(node, ast.JoinedStr):
+            value = "".join(part.value if isinstance(part, ast.Constant) else "{}" for part in node.values)
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+            value = node.value
+        else:
+            continue
+        if pattern.search(value):
+            yield node.lineno
+
+
+@pytest.mark.parametrize("source", [
+    'command = f"fringe {code}"',
+    'command = "fringe " + str(code)',
+    'command = f"xyplot {plot} savefile xypair {path} 1 all"',
+    'command = "xyplot {} savefile xypair {} 1 all".format(plot, path)',
+    'command = "top; anim stop"',
+    'command = "top\\n  genselect clear"',
+    'command = "  modelcheck writetofile " + path',
+])
+def test_command_guard_detects_dynamic_and_multiline_generation(source):
+    assert list(_command_literals(ast.parse(source)))
+
+
+def test_command_guard_allows_documentation_and_parser_prefixes():
+    source = '\"\"\"fringe code documentation\"\"\"\nmatched = text.startswith(("fringe ", "anim "))'
+    assert not list(_command_literals(ast.parse(source)))
+
+
 def test_command_grammar_is_not_reintroduced_in_domain_modules():
     root = Path(nc.__file__).parents[1]
-    pattern = re.compile(r"(?:^|\n)(?:genselect |anim |fringe (?:$|\d)|pfringe$|range (?:avgfrng|reversesigns|userdef) |open(?:c)? (?:keyword|d3plot|command|xydata) |print png |movie MP4/H264 |runpython |runscript |save keyword |import keyword |(?:xyplot (?:\d+|\{[^}]*\}) )?savefile xypair |modelcheck writetofile )")
     offenders = []
     for source in root.rglob("*.py"):
         if source == Path(nc.__file__) or source.name == "recording_compiler.py":
             continue  # The recorder parses grammar, it does not generate commands.
         tree = ast.parse(source.read_text(encoding="utf8"))
-        parser_tokens = {id(arg) for call in ast.walk(tree) if isinstance(call, ast.Call)
-                         and isinstance(call.func, ast.Attribute) and call.func.attr in ("startswith", "endswith")
-                         for arg in call.args}
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Constant) and isinstance(node.value, str) and pattern.search(node.value):
-                if id(node) not in parser_tokens:
-                    offenders.append((source.name, node.lineno))
+        offenders.extend((source.name, line) for line in _command_literals(tree))
     assert offenders == []
 
 
@@ -205,19 +241,45 @@ def test_staged_bridge_loads_without_the_host_package(tmp_path):
     assert json.loads(result.stdout) == ["genselect node add node 91", "regression_subset"]
 
 
+def _version_branches(tree):
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Compare):
+            expression = ast.unparse(node)
+            native_family = any(isinstance(part, ast.Constant) and isinstance(part.value, str)
+                                and re.fullmatch(r"4\.(?:8|10|11|13)(?:\.\d+)*", part.value)
+                                for part in ast.walk(node))
+            if native_family or any(token in expression for token in (
+                    "version_info", "version('lasso-python')", "client_version")):
+                yield node.lineno
+        if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                and node.func.attr == "meet_version" and any(isinstance(arg, ast.Constant) for arg in node.args)):
+            yield node.lineno
+
+
+@pytest.mark.parametrize("source", [
+    'if installation_version(exe) == "4.10": pass',
+    'if profile["version"] in ("4.8", "4.10"): pass',
+    'if "4.13.4" != detected: pass',
+    'if sys.version_info[:2] < (3, 10): pass',
+    'if client_version != "0.16.1": pass',
+    'server.meet_version("7.1")',
+])
+def test_version_guard_detects_native_and_dependency_policy_branches(source):
+    assert list(_version_branches(ast.parse(source)))
+
+
+def test_version_guard_allows_labels_and_capability_checks():
+    tree = ast.parse('label = "4.13"\nif capabilities["batch"] is True: pass')
+    assert not list(_version_branches(tree))
+
+
 def test_runtime_version_comparisons_stay_in_capability_table():
     offenders = []
     for source in Path(nc.__file__).parents[1].rglob("*.py"):
         if source == Path(nv.__file__):
             continue
-        for node in ast.walk(ast.parse(source.read_text(encoding="utf8"))):
-            if isinstance(node, ast.Compare):
-                expression = ast.unparse(node)
-                if any(token in expression for token in ("version_info", "version('lasso-python')", "client_version")):
-                    offenders.append((source.name, node.lineno))
-            if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
-                    and node.func.attr == "meet_version" and any(isinstance(arg, ast.Constant) for arg in node.args)):
-                offenders.append((source.name, node.lineno))
+        tree = ast.parse(source.read_text(encoding="utf8"))
+        offenders.extend((source.name, line) for line in _version_branches(tree))
     assert offenders == []
 
 

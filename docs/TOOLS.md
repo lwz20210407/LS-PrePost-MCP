@@ -39,6 +39,7 @@
 | `create_solid_sphere` | P07 | center*: array; radius*: number; divisions*: integer; units*: string; part_id: integer |
 | `create_tensile_shell_plate` | I08 | nx*: integer; ny*: integer; size*: array; thickness*: number; density*: number; young_modulus*: number; poisson_ratio*: number; displacement*: number; duration*: number; output_interval*: number; units*: string |
 | `create_workflow` | A09 | name*: string; steps*: array; defaults: union/ref |
+| `curve_ops` | Q07 | inputs*: array; operations*: array |
 | `describe_installed_template` | A08 | template_id*: string |
 | `describe_pydyna_keyword` | A10 | class_name*: string |
 | `edit_keywords` | P02, P03, P10 | model*: string; edits*: array; allow_new_dangling: boolean |
@@ -55,6 +56,7 @@
 | `extract_d3plot_field` | Q03 | path*: string; field*: string; states*: array; units*: string; entity_ids: union/ref; component_indices: union/ref; validity_policy: string |
 | `extract_d3plot_nodal` | Q03 | path*: string; node_ids*: array; quantity*: string; states*: array; units*: string |
 | `extract_d3plot_stress` | Q03 | path*: string; element_type*: string; element_ids*: array; states*: array; integration_point*: integer; units*: string; relative_tolerance: number; validity_policy: string |
+| `extract_database` | Q06 | path*: string; database*: string; component*: string; units*: string; branch: union/ref; shard: union/ref; entity_ids: union/ref; time_units: string |
 | `extract_lsreader_nodal` | Q03 | path*: string; node_ids*: array; quantity*: string; states*: array; units*: string |
 | `extract_native_ascii_curve` | Q06 | path*: string; database*: string; component*: integer; units*: string; entity_id: union/ref |
 | `extract_native_binout_curve` | Q06 | path*: string; branch*: string; quantity*: string; units*: string; entity_id: union/ref; session_id: union/ref |
@@ -116,6 +118,7 @@
 | `recover_gui_session` | I08 | session_id*: string |
 | `render_gui_field` | Q02 | session_id*: string; entity_type*: string; field*: string; state*: integer; units*: string; integration_point: string; part_ids: union/ref; color_range: union/ref; averaging: string; validity_policy: string |
 | `render_snapshot` | Q02 | model*: string; file_type: string; view: string; state: union/ref; fringe_code: union/ref; averaging: string |
+| `render_xyplot` | I08 | curves*: array; title*: string; x_label*: string; y_label*: string; x_unit*: string; y_unit*: string; x_range: union/ref; y_range: union/ref; x_log: boolean; y_log: boolean; legend: boolean; legend_title: union/ref; session_id: union/ref |
 | `renumber_gui_entities` | P08 | session_id*: string; entity_type*: string; start_id*: integer; check_references: boolean |
 | `replace_gui_model` | I08 | session_id*: string; path*: string; file_type: string; expected_empty: boolean |
 | `replace_gui_node` | P08 | session_id*: string; source_node_id*: integer; target_node_id*: integer; units*: string |
@@ -145,6 +148,7 @@
 | `set_gui_entity_visibility` | G02 | session_id*: string; entity_type*: string; mode*: string; entity_ids: union/ref; capture: boolean |
 | `set_gui_node_coordinates` | P08 | session_id*: string; nodes*: array; units*: string; tolerance: number |
 | `set_gui_part_visibility` | G02 | session_id*: string; mode*: string; part_ids: union/ref |
+| `set_view` | I08 | context: string; session_id: union/ref; model: union/ref; file_type: string; view: union/ref; projection: union/ref; rotation_xyz_degrees: union/ref; zoom_scale: union/ref; pan_xy: union/ref; fit: boolean; center_on: union/ref; save_preset_name: union/ref; restore_preset_name: union/ref; capture: boolean |
 | `show_gui_session` | I08 | session_id*: string; maximize: boolean; keep_on_top: boolean |
 | `start_gui_session` | I08 | 无 |
 | `start_session_recording` | A07 | session_id*: string |
