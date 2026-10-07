@@ -647,6 +647,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 缺口：
 
 - 缺命名视图保存 / 恢复、居中到选区
+- fit（ac）在 4.13 headless perspective 下可重复但未框住全部部件，语义未证实；GUI 会话与 4.10 未测
 
 ### G02 显示控制
 

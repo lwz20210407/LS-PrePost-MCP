@@ -816,8 +816,10 @@ tasks:
     target_tools: [set_view]
     status: partial
     existing: [set_gui_display]
+    evidence: [src/ls_prepost_mcp/view_tools.py, tests/test_view_tools.py, tests/test_view_native.py, docs/decisions/evidence/g01/coverage.md, docs/decisions/evidence/g01/headless-4.13.json]
     gaps:
       - 缺命名视图保存 / 恢复、居中到选区
+      - fit（ac）在 4.13 headless perspective 下可重复但未框住全部部件，语义未证实；GUI 会话与 4.10 未测
     acceptance:
       - 标准视图、缩放、平移、绕轴旋转、fit、居中到 Selector、命名视图保存 / 恢复
       - 同一视图参数两次出图像素一致

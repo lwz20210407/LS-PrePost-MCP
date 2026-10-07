@@ -1,4 +1,5 @@
 import contextlib
+import hashlib
 import inspect
 from pathlib import Path
 
@@ -79,6 +80,8 @@ def test_set_view_is_a_registered_target_tool_with_typed_signature(tmp_path):
     dict(context="session", session_id=SESSION, view="front", projection="parallel", save_preset_name="../x"),
     dict(context="session", session_id=SESSION, restore_preset_name="x", view="front"),
     dict(context="session", session_id=SESSION, restore_preset_name="x", fit=True),
+    dict(context="session", session_id=SESSION, view="front", execute=True),
+    dict(context="batch", model="m.k", view="front", execute=1),
 ])
 def test_invalid_requests_have_no_side_effects(tmp_path, monkeypatch, arguments):
     monkeypatch.setattr(Sessions, "start", lambda *a, **k: pytest.fail("A session must never be started"))
@@ -180,3 +183,71 @@ def test_batch_prepares_a_reviewed_program_without_starting_native(tmp_path, mon
     model.write_text("*KEYWORD\n*TITLE\nchanged\n*END\n", encoding="ascii")
     with pytest.raises(ValueError, match="different model"):
         service.set_view(model=str(model), restore_preset_name="iso")
+
+
+class FakeBatch:
+    """Stands in for execute_native_program; proves orchestration only, never native rendering."""
+
+    def __init__(self, tmp_path, status="succeeded", png=True, input_sha256=None):
+        self.directory, self.status, self.png, self.input_sha256 = tmp_path / "executed", status, png, input_sha256
+        self.calls = []
+
+    def __call__(self, service, prepared_job_id, expected_sha256, **options):
+        self.calls.append((prepared_job_id, expected_sha256, options))
+        self.directory.mkdir(exist_ok=True)
+        artifacts = []
+        if self.png:
+            pixels = np.zeros((40, 40, 3), dtype=np.uint8)
+            pixels[5:15, 5:15] = 200
+            Image.fromarray(pixels).save(self.directory / "view.png")
+            artifacts.append(check_artifact(self.directory / "view.png", "png"))
+        source = service.settings.input_path(options["model"])
+        sha = self.input_sha256 or hashlib.sha256(source.read_bytes()).hexdigest()
+        return dict(job_id="x" * 32, status=self.status, artifacts=artifacts, inputs=[dict(sha256=sha)],
+                    executable=dict(sha256=None), process=dict(pid=7, returncode=0, elapsed_seconds=1.5),
+                    error=None if self.status == "succeeded" else dict(type="RuntimeError", message="native refused"))
+
+
+@pytest.fixture
+def batch_model(tmp_path, monkeypatch):
+    monkeypatch.setattr(Sessions, "start", lambda *a, **k: pytest.fail("A session must never be started"))
+    model = tmp_path / "model.k"
+    model.write_text("*KEYWORD\n*END\n", encoding="ascii")
+    return Service(Settings(tmp_path)), str(model)
+
+
+def test_batch_execute_runs_the_prepared_program_headless(batch_model, monkeypatch, tmp_path):
+    service, model = batch_model
+    fake = FakeBatch(tmp_path)
+    monkeypatch.setattr(Service, "execute_native_program", lambda self, *a, **k: fake(self, *a, **k))
+    result = service.set_view(model=model, view="front", projection="parallel", zoom_scale=2.0, execute=True,
+                              save_preset_name="front2x")
+    JobResult.model_validate(result)
+    assert result["status"] == "succeeded" and result["stage"] == "execution" and result["job_id"] == "x" * 32
+    [(prepared_job_id, sha256, options)] = fake.calls
+    execution = result["data"]["execution"]
+    assert (prepared_job_id, sha256) == (execution["prepared_job_id"], execution["prepared_sha256"])
+    assert options == dict(model=model, file_type="keyword", graphics=False, launch_mode="c")
+    assert execution["native_started"] is True and execution["graphics"] is False
+    assert result["artifacts"][0]["kind"] == "png" and result["artifacts"][0]["verification"] == "verified"
+    assert result["data"]["camera_state"] == "applied_unverified"
+    assert result["data"]["native_camera_readback"] is False
+    assert result["data"]["saved_preset"]["name"] == "front2x"
+
+
+@pytest.mark.parametrize(("options", "message"), [
+    (dict(status="failed"), "native refused"),
+    (dict(png=False), "no verified PNG"),
+    (dict(input_sha256="0" * 64), "differs from the prepared model"),
+])
+def test_batch_execute_failure_is_reported_and_saves_nothing(batch_model, monkeypatch, tmp_path, options, message):
+    service, model = batch_model
+    fake = FakeBatch(tmp_path, **options)
+    monkeypatch.setattr(Service, "execute_native_program", lambda self, *a, **k: fake(self, *a, **k))
+    result = service.set_view(model=model, view="front", projection="parallel", execute=True,
+                              save_preset_name="p")
+    JobResult.model_validate(result)
+    assert result["status"] == "failed" and result["stage"] == "execution"
+    assert message in result["error"]["message"]
+    assert result["artifacts"] == []
+    assert not (tmp_path / "view_presets").exists()
