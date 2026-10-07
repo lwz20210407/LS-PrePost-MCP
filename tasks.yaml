@@ -372,6 +372,7 @@ tasks:
       - 原生重开后 Joint 定义读回一致
 
   - id: Q01
+    owner: cursor
     group: post
     title: 结果概览
     story: 这个 d3plot 有多少个状态，时间范围多少，有哪些变量，有没有删除单元
@@ -411,6 +412,7 @@ tasks:
       - 图像中色标极值与 Q03 同一量的数据极值一致（容差内）
 
   - id: Q03
+    owner: antigravity
     group: post
     title: 场数据提取
     story: 把第 20 个状态 Part 3 所有单元的应力六分量导出成 CSV
@@ -429,6 +431,7 @@ tasks:
       - 删除单元按 Q04 掩码策略处理并在元数据中注明
 
   - id: Q04
+    owner: antigravity
     group: post
     title: 工程量与失效掩码
     story: 计算靶板所有单元的应力三轴度和 Lode 参数，排除已删除单元，找出最大值所在单元
@@ -496,7 +499,8 @@ tasks:
     status: partial
     existing: [process_curve, convert_history_units, combine_history_curves, build_tensile_curves]
     gaps:
-      - 缺 SAE / Butterworth 滤波、重采样、FFT、Cross Plot、真应力应变
+      - 滤波结果尚未与 LS-PrePost XYPlot 同参数滤波对比（L2），首尾填充约定是否与 LS-PrePost 一致未知
+      - 相对量（两条曲线相减）仍只由旧工具 combine_history_curves 提供，curve_ops 未接入
     acceptance:
       - 单位换算、相对量、力-位移、工程/真应力应变、微分、积分、重采样、SAE/Butterworth 滤波、FFT、Cross Plot 各有 L1 用例（对解析解）
       - 滤波结果与 LSPP XYPlot 同参数滤波对比一致（L2）
@@ -673,6 +677,7 @@ tasks:
       - 4.13 全量、4.10 子集通过
 
   - id: A05
+    owner: codex
     group: auto
     title: 原生宏执行
     story: 运行这个 .mac 宏，参数 N1 取 103，拾取的节点用 Part 2 顶面节点
@@ -735,6 +740,7 @@ tasks:
       - 生成的配方附带一个 L2 用例骨架
 
   - id: A08
+    owner: codex
     group: auto
     title: 配方库
     story: 有没有现成的配方能做 Block Mesher 划网格？有就用它
@@ -776,6 +782,7 @@ tasks:
       - 每组产物与参数的对应关系可追溯
 
   - id: A10
+    owner: cursor
     group: auto
     title: 知识检索
     story: LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS 字段是什么意思？
@@ -798,6 +805,7 @@ tasks:
 
   # ============================ 通用 ============================
   - id: G01
+    owner: cursor
     group: general
     title: 视图控制
     story: 换成前视图，放大 2 倍，居中到 Part 3
@@ -853,6 +861,7 @@ tasks:
       - 选择操作不改变显隐状态（回归：pall 会重置 blank 的已知坑）
 
   - id: G04
+    owner: antigravity
     group: general
     title: 实体识别 Identify
     story: 节点 1001 的坐标和它在第 30 个状态的位移是多少？属于哪个 Part？
@@ -884,6 +893,8 @@ infrastructure:
       - 原生 d3plot 输入超过 1000 文件或 2 GiB 时在启动前明确拒绝；两版原地只读回退实验均崩溃，暂不提供该回退
       - 从 job 目录绝对路径读取 Include 时，中文根路径在 4.13/4.10 仍失败，4.10 的相对 Include 仍从 job cwd 解析；不得切到用户目录绕过
       - INCLUDE 引用总数上限已接入原生准入：默认 20000，按读取顺序计数，含重复子树与未解析引用；L1 启动前拒绝回归通过，不代表 I01 全项完成
+      - 从 job 目录绝对路径读取 Include 时，中文根路径在 4.13/4.10 仍失败，4.10 的相对 Include 仍从 job cwd 解析；漏读诊断已使作业失败，不得切到用户目录绕过
+      - INCLUDE 引用总数上限：共享预检接口 preflight_includes(max_references) 已提供（#70，按读取顺序计数，含重复与未解析引用），原生准入路径尚未接入，待 Codex
     evidence:
       - src/ls_prepost_mcp/engine/batch.py
       - src/ls_prepost_mcp/engine/session.py
@@ -895,6 +906,8 @@ infrastructure:
       - docs/decisions/evidence/i01-batch-contract/report.md
       - docs/decisions/evidence/i01-process-lifetime/report.md
       - docs/decisions/evidence/i01-log-decoding/report.md
+      - docs/decisions/evidence/i01-include-diagnostics/report.md
+      - tests/test_input_path_confinement.py
       - tests/test_queue_backpressure.py
       - tests/test_queue_backpressure_native.py
       - docs/decisions/evidence/i01-queue/report.md
@@ -906,6 +919,7 @@ infrastructure:
       - 批处理与会话使用同一套配置隔离与日志读取
 
   - id: I02
+    owner: antigravity
     title: 语义合同 core/contracts.py
     milestone: M1
     status: done
@@ -923,6 +937,7 @@ infrastructure:
       - 工作流门槛只读 JobResult
 
   - id: I03
+    owner: codex
     title: 命令构建器与版本能力表
     milestone: M1
     status: partial
@@ -954,6 +969,7 @@ infrastructure:
       - docs/decisions/evidence/i04/report.md
       - docs/decisions/evidence/i04-window/report.md
       - docs/decisions/evidence/i04-identity/report.md
+      - docs/decisions/evidence/i04-public100-preflight/report.md
       - tools/native_regression.py
       - tests/test_public_corpus_native.py
       - tests/corpus/public_cases.json
@@ -964,13 +980,14 @@ infrastructure:
     gaps:
       - 当前 55 个 tools/run_* 入口已全部收编为 57 个 pytest 用例（保留原生/文件及 batch/GUI 变体）；CLI 参数发现已逐一验证。
       - 三个文件验收和 program_acceptance 批处理已有证据；集成工作副本累计 53 个 GUI 用例通过，包含待审 A02 修复，不作为 PR #5 头全量验证；13 个 UU 格等待用户断开
-      - 公开抽样为 126 例（首轮 26，新增 100）；新增 100 已执行，历史报告 16 通过 / 84 失败，dirty 基线缺 diff 哈希，不能作为当前分支通过证明；失败已初分，仍需修复或明确输入限制后重跑
+      - 公开抽样 126 例中新增 100 例的历史 c991f9d 为 16 passed / 84 failed（dirty、缺 diff 哈希）；普通路径修复后干净 53f6072 使用 4.13 重跑为 16 passed / 45 failed / 39 输入限制 evidence_only，100 份树指纹及文件清单核对齐全；19303f7 的 50 限制含 11 个路径误判，历史保留并勘误，仍缺导出、变体、崩溃及读取器差异处理
     acceptance:
       - 补测从 M0 转入的 13 个 UU 远程格（4.13/4.10 的 runc 五通道共 10 格，以及两版本 nographics 原生宏和 4.13 会话原生宏共 3 格），记录执行、PNG、MP4 结果与用户确认的断开时间窗
       - 55 个 tools/run_* 收编为 57 个带 marker 的 pytest 用例，共享 fixture
       - 一条命令生成 Markdown 报告；私有语料通过环境变量启用
 
   - id: I05
+    owner: cursor
     title: 知识库索引
     milestone: M1
     status: partial

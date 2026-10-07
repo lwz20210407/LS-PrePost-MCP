@@ -127,7 +127,7 @@ def execute_prepared(service, prepared, model, file_type, graphics, session_id, 
 class RecipeTools:
     def find_recipe(self, query: str = "", task_id: str | None = None, channel: str | None = None, limit: StrictInt = 20,
                     include_candidates: bool = False) -> list[dict]:
-        """Find bundled recipe definitions by keyword, task ID or language, including their exact verification scope."""
+        """Find recipes by keyword, task ID or language with exact verification scope. include_candidates also lists installed templates/filters as offline adapters with channel=null, real parameter contracts and explicit unsupported reasons."""
         if type(limit) is not int or not 1 <= limit <= 50:
             raise ValueError("Recipe limit must be 1..50")
         if type(include_candidates) is not bool:
@@ -151,6 +151,9 @@ class RecipeTools:
             row.update(reference=recipe.id if path.is_relative_to(ROOT) else str(path), tier="T2" if verified else "candidate")
             hits.append((score,row))
         if include_candidates:
+            from .installed_recipes import candidates
+
+            hits.extend(candidates(self, wanted, task_id, channel))
             for path in sorted(self.jobs.root.glob("*/macro.json")):
                 definition = load_legacy(path)
                 if task_id and task_id != "A08" or channel and channel != definition["language"]:
@@ -167,7 +170,11 @@ class RecipeTools:
     def run_recipe(self, recipe: str, parameters: dict | None = None, model: str | None = None,
                    file_type: Literal["keyword", "d3plot"] = "keyword", session_id: str | None = None,
                    launch_mode: Literal["c", "runc"] = "c") -> dict:
-        """Validate a recipe and execute it through the shared program engines. Accept a bundled ID or an authorized YAML/legacy JSON path; return JobResult with source identity and mode evidence."""
+        """Validate and run a bundled ID, authorized YAML/JSON path, or installed: reference. Installed templates take values, required units and Boolean native_check (default false); filters require a keyword model and no parameters. Installed adapters reject sessions/runc/d3plot. Return JobResult with source identity and verification scope."""
+        if recipe.startswith("installed:"):
+            from .installed_recipes import run
+
+            return run(self, recipe, parameters, model, file_type, session_id, launch_mode)
         bundled = bool(re.fullmatch(r"[a-z][a-z0-9_-]{0,79}", recipe)) and (ROOT/recipe/"recipe.yaml").is_file()
         path = ROOT/recipe/"recipe.yaml" if bundled else self.settings.input_path(recipe)
         if path.suffix.lower() == ".json":

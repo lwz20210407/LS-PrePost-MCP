@@ -2,7 +2,7 @@
 import json
 import os
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 from .native.commands import quoted_path
 from .native.versions import require_installation
@@ -49,9 +49,17 @@ class Settings:
                    float(os.environ.get("LSPP_TIMEOUT", "120")), profiles, os.environ.get("LSPP_DPF_PATH"))
 
     def input_path(self, value: str, *, base: Path | None = None) -> Path:
+        from .domain.model.includes import is_network
+
+        # Reject Windows network/device syntax before filesystem resolution, even
+        # on non-Windows hosts. Allowed-root checks cannot undo an earlier read.
+        if is_network(str(value)) or PureWindowsPath(value).is_reserved():
+            raise ValueError("Network and device input paths are not supported")
         p = Path(value).expanduser()
         if not p.is_absolute():
             p = (base or self.workspace) / p
+        if is_network(str(p)) or PureWindowsPath(p).is_reserved():
+            raise ValueError("Network and device input paths are not supported")
         p = p.resolve(strict=True)
         if not p.is_file():
             raise ValueError("Input must be a regular file")
