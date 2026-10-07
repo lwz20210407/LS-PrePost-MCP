@@ -42,6 +42,7 @@ from .post_tools import PostTools
 from .pre_tools import PreTools
 from .programs import ProgramTools
 from .results import lasso_vectors, open_binout
+from .results_target_tools import ResultsTargetTools
 from .runner import decode, record_batch_result, run_batch
 from .script_tools import ScriptTools
 from .sessions import SessionTools
@@ -50,7 +51,7 @@ from .workflow_sweeps import WorkflowSweepTools
 from .workflows import WorkflowTools
 
 
-class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, ModelTargetTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools, ViewTools):
+class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, ModelTargetTools, ResultsTargetTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools, ViewTools):
     def __init__(self, settings: Settings):
         self.settings = settings
         self.jobs = Jobs(settings.workspace)

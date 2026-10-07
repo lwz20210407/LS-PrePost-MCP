@@ -350,12 +350,14 @@
 - MPP 分片 binout 合并后与单机结果一致（corpus:mpp_binout）
 - LSPP 与 LASSO 结果一致（容差内）
 
-现有入口：`extract_native_binout_curve`, `extract_native_ascii_curve`, `extract_binout_curve`, `extract_binout_table`, `extract_ascii_curve`
+现有入口：`extract_database`, `extract_native_binout_curve`, `extract_native_ascii_curve`, `extract_binout_curve`, `extract_binout_table`, `extract_ascii_curve`
 
 缺口：
 
-- 原生只有 NODOUT / GLSTAT / MATSUM 部分量；ASCII 只接 6 类且要填 UI 分量编号
-- MPP 分片 binout 被拒绝
+- extract_database（LASSO，不启动 LSPP）已按存储列名读取 12 类 binout 库，自动合并同目录 MPP 分片；重复 ID（RCFORC 的 side 0/1）按存储列区分。公开 binout（Bolt_B_Explicit、pyansys-heart）的 glstat / rcforc / nodout 与 lasso 直读逐值一致
+- ASCII 文本库（glstat、rcforc 等）尚未接入 extract_database，仍走旧工具且要填 UI 分量编号；原生侧只有 NODOUT / GLSTAT / MATSUM 部分量
+- MPP 合并结果与单机结果一致性未验证：公开语料中没有同一模型的 MPP/SMP 成对算例（corpus:mpp_binout）；分片合并只有合成 LSDA 用例
+- LSPP 与 LASSO 结果对照未做（原生侧）
 
 ### Q07 曲线运算
 
@@ -369,7 +371,7 @@
 - 滤波结果与 LSPP XYPlot 同参数滤波对比一致（L2）
 - 每次运算把公式与参数写进结果元数据
 
-现有入口：`process_curve`, `convert_history_units`, `combine_history_curves`, `build_tensile_curves`
+现有入口：`curve_ops`, `process_curve`, `convert_history_units`, `combine_history_curves`, `build_tensile_curves`
 
 缺口：
 
