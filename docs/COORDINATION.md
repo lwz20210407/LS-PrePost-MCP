@@ -13,6 +13,7 @@
 | codex | 3 | A05 | codex/A05-macro-parameters | #88 Ready，CI五项通过，仍partial |
 | codex | 4 | I04 | codex/I04-public-failure-diagnostics | 本续派PR；待AO认领 |
 | codex | 5 | A08 | codex/A08-installed-recipe-integration | 安装资产配方归并；本派发发布后临时认领，由总调度启动唯一实现 worker |
+| codex | 6 | I03 | codex/I03-unicode-filename-guard | 2026-10-08 #83续派：定位#87中文依赖文件名失败，离线最小修复或明确输入限制；#87/#92/#96旧头冻结，完整验收与partial保留；本派发发布即临时认领，仅总调度最终查重启动，G01优先独占原生lease |
 | cursor | 1 | Q01 | cursor/Q01-result-overview | #84 Ready，CI五项通过，冻结待审 |
 | cursor | 2 | I05 | cursor/I05-index-source-coverage | #89 Ready，CI五项通过，仍partial |
 | cursor | 3 | A10 | cursor/A10-search-quality | AO会话23执行中 |
