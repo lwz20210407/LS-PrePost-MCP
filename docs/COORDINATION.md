@@ -16,6 +16,7 @@
 | cursor | 1 | Q01 | cursor/Q01-result-overview | #84 Ready，CI五项通过，冻结待审 |
 | cursor | 2 | I05 | cursor/I05-index-source-coverage | #89 Ready，CI五项通过，仍partial |
 | cursor | 3 | A10 | cursor/A10-search-quality | AO会话23执行中 |
+| cursor | 4 | G01 | cursor/G01-view-control | 2026-10-08 #83决策续派；完整G01保持partial，独占view_tools/view_state及专属测试；#93已交付冻结，#94登记并集保留；本派发发布即临时认领，仅总调度启动唯一Cursor worker，无GUI/UU，原生另申请lease |
 | antigravity | 1 | I02 | antigravity/I02-fieldspec-adapter | #85 Ready，CI五项通过，冻结待审 |
 | antigravity | 2 | Q03 | antigravity/Q03-field-extraction | 本地d499b0c；发布诊断阻塞已提醒处理 |
 | antigravity | 3 | G04 | antigravity/G04-entity-identify | 已派发，按队列认领 |
