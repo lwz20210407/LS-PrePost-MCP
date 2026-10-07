@@ -690,9 +690,9 @@ tasks:
     depends_on: [G03]
     status: partial
     existing: [prepare_native_program]
-    evidence: [tests/test_native_macro_transport.py, tests/test_native_macros.py, tests/test_native_macro_parameters.py, tests/test_native_macro_parameters_native.py, docs/decisions/0006-native-macro-probe.md, docs/decisions/evidence/a05/report.md]
+    evidence: [tests/test_native_macro_transport.py, tests/test_native_macros.py, tests/test_native_macro_parameters.py, tests/test_native_macro_parameters_native.py, tests/test_native_macro_review.py, docs/decisions/0006-native-macro-probe.md, docs/decisions/evidence/a05/report.md]
     gaps:
-      - 已支持有界字符串与数值绑定到 cfile；原生 Macro/Exec 的 batch/session 与五个真实教程宏仍未验收；表达式默认值、interactive 暂停、分号多命令、嵌套宏显式拒绝
+      - 已支持有界字符串与数值绑定到 cfile；两版原生记录仅作历史证据，审阅修正头未重跑；原生 Macro/Exec 的 batch/session 与五个真实教程宏仍未验收；表达式默认值、interactive 暂停、分号多命令、嵌套宏显式拒绝
       - 拾取域只接受正整数 ID，不能用选择结果绑定
       - create_native_macro / run_native_macro 实为自定义 JSON 模板，名称与原生宏混淆
     acceptance:
