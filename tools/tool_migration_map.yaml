@@ -145,6 +145,11 @@ tools:
     target: run_sweep
     task_id: A09
     legacy_until: v0.6
+  curve_ops:
+    target: curve_ops
+    task_id: Q07
+    legacy_until: null
+    note: M2 target tool on domain.results.curves; returns JobResult/v1
   describe_installed_template:
     target: find_recipe
     task_id: A08

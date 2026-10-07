@@ -369,7 +369,8 @@
 
 缺口：
 
-- 缺 SAE / Butterworth 滤波、重采样、FFT、Cross Plot、真应力应变
+- 滤波结果尚未与 LS-PrePost XYPlot 同参数滤波对比（L2），首尾填充约定是否与 LS-PrePost 一致未知
+- 相对量（两条曲线相减）仍只由旧工具 combine_history_curves 提供，curve_ops 未接入
 
 ### Q08 XYPlot 出图
 
