@@ -1,0 +1,51 @@
+{
+  "task": "I01",
+  "dispatch_pr": 80,
+  "verification_level": "L1",
+  "native_executed": false,
+  "baseline_revision": "e41cf65551274c496f0bb1802f952d1a30e024b2",
+  "source_identity": {
+    "src/ls_prepost_mcp/config.py": "9b733a17af62f43652948de153829d9c4c8a04e9c8d16fa25c43bc739352efbc",
+    "tests/test_native_include_budget.py": "1213f1b1a26ae37f2bb1559919a070a0bee9302b9c9dfaf57d3bdbd290c532d8",
+    "tests/test_boundaries.py": "3074706d536a5bf7e00831f81a979f8b51618565e0cb2985d37be0a2fb15a8fa"
+  },
+  "source_identity_encoding": "UTF-8 with LF normalized line endings",
+  "tracked_source_diff_command": [
+    "git",
+    "diff",
+    "--no-ext-diff",
+    "--no-textconv",
+    "--binary",
+    "--no-color",
+    "--unified=3",
+    "HEAD",
+    "--",
+    "src/ls_prepost_mcp/config.py",
+    "tests/test_boundaries.py"
+  ],
+  "tracked_source_diff_sha256": "be0de278a5a5dc86327796355d016aa0b5a7688b4a906a609c95322cac2f33bc",
+  "tracked_source_diff_note": "New test file is identified separately in source_identity; this diff covers the two previously tracked source/test files.",
+  "results": {
+    "baseline_final_regression": "14 failed, 2 passed in 2.46s",
+    "focused": "69 passed in 3.96s",
+    "initial_full": "37 failed, 1366 passed, 348 skipped in 251.09s (0:04:11)",
+    "initial_minimal": "37 failed, 1349 passed, 358 skipped in 228.78s (0:03:48)",
+    "full": "1403 passed, 348 skipped in 110.31s (0:01:50)",
+    "minimal": "1386 passed, 358 skipped in 103.21s (0:01:43)"
+  },
+  "initial_failures": "In-repository basetemp violated private synthetic-index confinement and Windows path-length constraints. Retested with new short external basetemp; no unrelated production changes.",
+  "validation": [
+    "ruff check . --no-cache",
+    "lint-imports --no-cache",
+    "python tools/validate_tasks.py",
+    "python tools/gen_docs.py --check",
+    "python tools/validate_tool_migration.py",
+    "python tools/fetch_corpus.py --check-registry",
+    "python tools/check_doc_links.py"
+  ],
+  "limitations": [
+    "No native process or GUI run; pre-launch boundary is tested with forbidden launch/job-creation hooks.",
+    "I01 stays partial/L1; PR #72 UNC entry guard is separate and untouched.",
+    "Raw test logs and synthetic fixtures are excluded."
+  ]
+}
