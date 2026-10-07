@@ -74,12 +74,15 @@ class Settings:
         require_installation(self.executable)
         return self.executable
 
-    def check_keyword_includes(self, path: Path, *, native_cwd: Path | None = None) -> None:
-        """Apply native loading policy to the shared, complete INCLUDE preflight."""
+    def check_keyword_includes(self, path: Path, *, native_cwd: Path | None = None,
+                               max_references: int = 20000) -> None:
+        """Apply native policy; bound expanded references (0 rejects any INCLUDE name)."""
+        if isinstance(max_references, bool) or not isinstance(max_references, int) or max_references < 0:
+            raise ValueError("max_references must be an integer >= 0")
         from .domain.model import preflight_includes
 
         source = self.input_path(str(path))
-        report = preflight_includes(source)
+        report = preflight_includes(source, max_references=max_references)
         references = report["references"]
         # Confinement errors take precedence over diagnostics about external contents.
         for entry in report["files"]:
@@ -90,7 +93,8 @@ class Settings:
         failure = ""
         if not report["ok"]:
             problem = next(p for p in report["problems"] if p["severity"] == "error")
-            legacy = {"cycle": "Cyclic keyword include chain", "limit": "Keyword include limit exceeded"}
+            legacy = {"cycle": "Cyclic keyword include chain", "limit": "Keyword include limit exceeded",
+                      "reference_limit": "Keyword include reference limit exceeded"}
             reason = problem.get("reason") or problem.get("hint") or "INCLUDE preflight failed"
             failure = "{}: kind={}, relative={}, name_line={}, reason={}".format(
                 legacy.get(problem["kind"], "Keyword include preflight failed"), problem["kind"],
