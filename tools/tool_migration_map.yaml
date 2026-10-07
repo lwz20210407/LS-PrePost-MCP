@@ -574,6 +574,12 @@ tools:
     target: set_display
     task_id: G02
     legacy_until: v0.6
+  set_view:
+    target: set_view
+    task_id: G01
+    legacy_until: null
+    note: G01 target tool; returns JobResult/v1; request presets only, Selector centering
+      unsupported
   show_gui_session:
     target: alias
     task_id: I01
