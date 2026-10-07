@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "task": "Q04",
+  "developer": "antigravity",
+  "ao_harness": "agy",
+  "ao_session": "ls-prepost-mcp-agy-3",
+  "branch": "antigravity/Q04-field-metrics",
+  "dispatch_pr": 79,
+  "status": "done",
+  "verification_level": "L1",
+  "target_tool": "extract_field",
+  "summary": "Q04 工程量与失效掩码（extract_field）实现与验证记录",
+  "acceptance_criteria": [
+    {
+      "criterion": "Mises、主应力、三轴度、Lode 参数、Lode 角、等效塑性应变在实体与壳上与独立计算一致",
+      "status": "passed",
+      "evidence": "tests/test_field_metrics.py::test_independent_calculation_match_solids, tests/test_field_metrics.py::test_independent_calculation_match_shells"
+    },
+    {
+      "criterion": "公式定义（尤其 Lode 的符号约定）写进结果元数据",
+      "status": "passed",
+      "evidence": "tests/test_field_metrics.py::test_metadata_and_lode_conventions"
+    },
+    {
+      "criterion": "掩码策略 alive / all / deleted 可选；极值附带实体 ID 与状态",
+      "status": "passed",
+      "evidence": "tests/test_field_metrics.py::test_mask_modes_and_extrema_with_id_and_state"
+    }
+  ],
+  "verified_quantities": [
+    "von_mises",
+    "mean_stress",
+    "pressure",
+    "principal_1",
+    "principal_2",
+    "principal_3",
+    "max_shear",
+    "triaxiality",
+    "lode_parameter",
+    "lode_angle_rad",
+    "lode_angle_parameter",
+    "effective_plastic_strain"
+  ],
+  "verified_families": [
+    "solid",
+    "shell"
+  ],
+  "verified_masks": [
+    "alive",
+    "all",
+    "deleted"
+  ],
+  "corpus_cases": [
+    {
+      "name": "d3plot_projectile",
+      "relative_path": "corpus/public-results/ansys__example-data/result_files/d3plot_projectile/d3plot",
+      "family": "solid",
+      "elements": 5664,
+      "deleted_at_last_state": 614,
+      "verified_test": "tests/test_field_metrics.py::test_real_corpus_solid_plate_with_deletions"
+    },
+    {
+      "name": "order_d3plot",
+      "relative_path": "corpus/public-results/open-lasso-python__lasso-python/test/test_data/order_d3plot/d3plot",
+      "family": "shell",
+      "elements": 16,
+      "verified_test": "tests/test_field_metrics.py::test_real_corpus_shell_elements"
+    }
+  ],
+  "pytest_summary": {
+    "test_file": "tests/test_field_metrics.py",
+    "passed": 9,
+    "failed": 0
+  }
+}

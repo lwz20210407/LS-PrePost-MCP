@@ -439,10 +439,14 @@ tasks:
     milestone: M2
     layer: T1
     target_tools: [extract_field]
-    status: partial
+    status: done
     existing: [compute_stress_invariants, extract_native_stress, inspect_result_validity]
-    gaps:
-      - 只有实体有原生验证；壳单元缺失
+    evidence:
+      - src/ls_prepost_mcp/field_metrics_tools.py
+      - tests/test_field_metrics.py
+      - docs/decisions/evidence/q04/report.md
+      - docs/decisions/evidence/q04/evidence.json
+    gaps: []
     acceptance:
       - Mises、主应力、三轴度、Lode 参数、Lode 角、等效塑性应变在实体与壳上与独立计算一致
       - 公式定义（尤其 Lode 的符号约定）写进结果元数据
