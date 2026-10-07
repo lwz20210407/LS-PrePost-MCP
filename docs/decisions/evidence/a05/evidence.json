@@ -1,0 +1,148 @@
+{
+  "task": "A05",
+  "date": "2026-10-07",
+  "status": "partial",
+  "scope": "Original project fixture only; not course examples or native Macro/Exec certification",
+  "fixture_id": "M0-original-eight-node-shell",
+  "fixture_sha256": {
+    "d3plot": "08e29edab83a10901589cf5e20714bed8a019cc69a7b93e6cba08d5c231d58c1",
+    "d3plot01": "f928ad97b3293bb3b52d669ad491e4831fbdc1d9681b06ec5883b4aca2dc74b5",
+    "input.k": "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43",
+    "lspost.db": "7624672942d9e80e99a1193aa72b68cede6cfdc7a1b367595bac4b231fe05923",
+    "lspost1.db": "805bcb7eb6269744a63bd50b5370ed9198c2fdcf4f3223ca139ac559502643ab"
+  },
+  "local_tests": {
+    "passed": 137,
+    "skipped": 2,
+    "baseline_new_tests_failed": 14,
+    "baseline_new_tests_passed": 30
+  },
+  "environment": {
+    "python": "3.11.15",
+    "pytest": "9.1.1",
+    "ruff": "0.16.9",
+    "mcp": "1.30.0",
+    "pydantic": "2.13.5",
+    "numpy": "2.4.6",
+    "lasso_python": "2.0.4",
+    "ansys_dyna_core": "0.12.1",
+    "import_linter": "not installed locally; CI required"
+  },
+  "native": [
+    {
+      "version": "4.13",
+      "file_version": "4.13.0.1",
+      "status": "succeeded",
+      "execution_mode": "compiled_cfile_headless_not_native_macro_exec",
+      "actual_git_head": "e41cf65551274c496f0bb1802f952d1a30e024b2",
+      "working_tree_dirty": true,
+      "git_diff_sha256": "23aebbc57c38a83214d9edb8408af26b4e46390595aa8420d3cd2fd78a08d9cb",
+      "source_snapshot_sha256": "7987666723115585663b4dc205740ae2e6a7e4246fe7f8766ab5899d2885d9fd",
+      "source_files": {
+        "src/ls_prepost_mcp/native_macros.py": "8cfcc4138c9be7223fa4b018032d561a8c0c39c309049450e171eecfff0feddb",
+        "src/ls_prepost_mcp/programs.py": "bca1e155f9873dd88684566d56baa550cdd28c04f7c2f1529a5dd2b2441bf938",
+        "tests/test_native_macro_parameters_native.py": "8d3956108a30d04de8ebf838e244ada29171bd3d88c13b77e893d2cacc18bba2",
+        "tests/test_native_macro_parameters.py": "de5c7ecf79baf4b6b34f787bca2d4c791461d6aab1fe06f8e495483ecce2f414"
+      },
+      "untracked_sources_in_snapshot": true,
+      "raw_patch_retained_outside_repository": true,
+      "returncode": 0,
+      "timed_out": false,
+      "job_id": "ce48149097144f9bab365866eef95435",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      },
+      "selection": {
+        "count": 1,
+        "user_ids": [
+          79
+        ]
+      },
+      "outputs": [
+        {
+          "name": "bound result.k",
+          "sha256": "7f289deba471419631e070f231bd7878dc5dfbba18c3f1c300e93bf93e149f98",
+          "size": 2270
+        },
+        {
+          "name": "literal default.k",
+          "sha256": "7f289deba471419631e070f231bd7878dc5dfbba18c3f1c300e93bf93e149f98",
+          "size": 2270
+        }
+      ],
+      "bundle_sha256": "42d32e7f3044e4a093a7911aab282d9d2f87566a60cbba334a9d8a9f1cca8fd4",
+      "independent_assertions": [
+        "keyword NODE/ELEMENT_SHELL/END readback",
+        "selected node user ID 79",
+        "unselected macro output absent",
+        "original .mac unchanged",
+        "fixture hashes unchanged",
+        "isolated configuration unchanged",
+        "nographics argv"
+      ],
+      "raw_result_sha256": "606f82c41ff920c6c6ad628d835b52c6d2f1d792fdfdc482e219da72dd73a7e9"
+    },
+    {
+      "version": "4.10",
+      "file_version": "4.10.0.1",
+      "status": "succeeded",
+      "execution_mode": "compiled_cfile_headless_not_native_macro_exec",
+      "actual_git_head": "e41cf65551274c496f0bb1802f952d1a30e024b2",
+      "working_tree_dirty": true,
+      "git_diff_sha256": "fb2e1cfb36cdadfacb9f73be69185cd2052b090769f98cde20b61ce2d36cb6a8",
+      "source_snapshot_sha256": "7987666723115585663b4dc205740ae2e6a7e4246fe7f8766ab5899d2885d9fd",
+      "source_files": {
+        "src/ls_prepost_mcp/native_macros.py": "8cfcc4138c9be7223fa4b018032d561a8c0c39c309049450e171eecfff0feddb",
+        "src/ls_prepost_mcp/programs.py": "bca1e155f9873dd88684566d56baa550cdd28c04f7c2f1529a5dd2b2441bf938",
+        "tests/test_native_macro_parameters_native.py": "8d3956108a30d04de8ebf838e244ada29171bd3d88c13b77e893d2cacc18bba2",
+        "tests/test_native_macro_parameters.py": "de5c7ecf79baf4b6b34f787bca2d4c791461d6aab1fe06f8e495483ecce2f414"
+      },
+      "untracked_sources_in_snapshot": true,
+      "raw_patch_retained_outside_repository": true,
+      "returncode": 0,
+      "timed_out": false,
+      "job_id": "f607be666f1e46099ec8acaa5d62277d",
+      "counts": {
+        "nodes": 8,
+        "elements": 3,
+        "states": 1
+      },
+      "selection": {
+        "count": 1,
+        "user_ids": [
+          79
+        ]
+      },
+      "outputs": [
+        {
+          "name": "bound result.k",
+          "sha256": "f72f572cf8829463a014e218989ffd6594556ebe48c7d2a65e8b47f93d6fa133",
+          "size": 2238
+        },
+        {
+          "name": "literal default.k",
+          "sha256": "f72f572cf8829463a014e218989ffd6594556ebe48c7d2a65e8b47f93d6fa133",
+          "size": 2238
+        }
+      ],
+      "bundle_sha256": "42d32e7f3044e4a093a7911aab282d9d2f87566a60cbba334a9d8a9f1cca8fd4",
+      "independent_assertions": [
+        "keyword NODE/ELEMENT_SHELL/END readback",
+        "selected node user ID 79",
+        "unselected macro output absent",
+        "original .mac unchanged",
+        "fixture hashes unchanged",
+        "isolated configuration unchanged",
+        "nographics argv"
+      ],
+      "raw_result_sha256": "4b5e700f37faf9fdbab6879bd1d699dc769a447c19bdaa064c1e47dd66b48f36"
+    }
+  ],
+  "remaining": [
+    "Native Macro/Exec batch and session",
+    "G03 Selector binding",
+    "Five permitted real tutorial macros"
+  ]
+}
