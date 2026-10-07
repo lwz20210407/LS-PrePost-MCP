@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import csv
 import re
+import struct
 from pathlib import Path
 
 from .core.contracts import Artifact, JobResult
@@ -57,7 +58,7 @@ class ResultsTargetTools:
         directory, manifest = self.jobs.create("extract_database", {"source": str(source), **parameters})
         try:
             result = self._read_database(directory, source, parameters)
-        except (ValueError, KeyError, TypeError, OSError) as error:
+        except (ValueError, KeyError, TypeError, OSError, IndexError, EOFError, struct.error) as error:
             result = _result("failed", {"database": database, "branch": branch, "component": component,
                                         "backend": BACKEND}, job_id=manifest["job_id"], error=_error(error))
         atomic_json(directory / "job.json", {**manifest, "status": result["status"], "result": result})
@@ -68,15 +69,15 @@ class ResultsTargetTools:
         ``glstat`` beside a binout must not be swapped for it silently), and every shard and size
         continuation beside it passes the same allowed-root check, so a linked shard cannot pull
         data from outside the configured roots."""
-        from .domain.results.mpp_shards import FAMILY, SHARD
+        from .domain.results.mpp_shards import SHARD, lasso_reads, shards
 
         source = self.settings.input_path(path)
         if not SHARD.fullmatch(source.name):
             raise ValueError("extract_database reads binout files (binout or binoutNNNN); ASCII "
                              f"databases are not supported by this tool: {source.name}")
-        for sibling in sorted(source.parent.iterdir()):
-            if FAMILY.fullmatch(sibling.name):
-                self.settings.input_path(str(sibling))
+        for shard in shards(source):
+            for file in lasso_reads(shard):
+                self.settings.input_path(str(file))
         return source
 
     def _database_parameters(self, database: str, component: str, units: str, branch: str | None,

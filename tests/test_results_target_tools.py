@@ -198,6 +198,23 @@ def test_a_linked_shard_outside_the_allowed_roots_is_refused(tmp_path: Path) -> 
     assert result.status == "failed" and "allowed roots" in result.error["message"]
 
 
+def test_nonstandard_continuation_is_refused_before_lasso_opens_it(tmp_path: Path) -> None:
+    # lasso opens name%[0-9][0-9]* as continuations, so binout0000%001.backup would be read.
+    _shard(tmp_path / "binout0000", "rcforc", [0.0, 1.0], ids=[1])
+    (tmp_path / "binout0000%001.backup").write_bytes(b"not lsda")
+    result = _valid(_service(tmp_path).extract_database(str(tmp_path / "binout0000"), "rcforc", "x_force", "N"))
+    assert result.status == "failed" and "continuation" in result.error["message"]
+    assert result.job_id is None
+
+
+def test_corrupt_binout_fails_as_a_recorded_job(tmp_path: Path) -> None:
+    (tmp_path / "binout").write_bytes(b"bad")
+    result = _valid(_service(tmp_path).extract_database(str(tmp_path / "binout"), "glstat", "kinetic_energy", "mJ"))
+    assert result.status == "failed" and result.job_id
+    job = json.loads((tmp_path / "jobs" / result.job_id / "job.json").read_text())
+    assert job["status"] == "failed"
+
+
 def test_tool_is_registered_on_the_mcp_server(tmp_path: Path) -> None:
     names = {t.name for t in asyncio.run(build_server(Settings(tmp_path), "full").list_tools())}
     assert "extract_database" in names
