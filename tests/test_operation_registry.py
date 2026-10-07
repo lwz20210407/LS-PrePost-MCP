@@ -70,7 +70,7 @@ def test_every_legacy_operation_has_a_unique_runtime_id_and_compatibility_period
     assert {r.name for r in OPERATIONS if r.legacy_until is None} == {
         "run_script", "find_recipe", "run_recipe", "search_docs", "keyword_fields", "command_help",
         "model_info", "edit_keywords", "create_entities", "mesh_ops", "check_model", "curve_ops",
-        "extract_database"}
+        "extract_database", "render_xyplot", "set_view"}
     with pytest.raises(ValueError):
         resolve_operation("__dict__")
 
