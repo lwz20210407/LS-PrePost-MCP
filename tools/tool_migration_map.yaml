@@ -22,7 +22,7 @@ tools:
     task_id: Q12
     legacy_until: null
     note: Full GLSTAT energy balance, ratio screening, and MATSUM part dissipation;
-      returns JobResult
+      returns JobResult/v1
   check_gui_keywords:
     target: check_model
     task_id: P09
@@ -151,6 +151,11 @@ tools:
     target: run_sweep
     task_id: A09
     legacy_until: v0.6
+  curve_ops:
+    target: curve_ops
+    task_id: Q07
+    legacy_until: null
+    note: M2 target tool on domain.results.curves; returns JobResult/v1
   describe_installed_template:
     target: find_recipe
     task_id: A08

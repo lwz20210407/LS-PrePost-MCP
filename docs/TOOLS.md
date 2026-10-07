@@ -40,6 +40,7 @@
 | `create_solid_sphere` | P07 | center*: array; radius*: number; divisions*: integer; units*: string; part_id: integer |
 | `create_tensile_shell_plate` | I08 | nx*: integer; ny*: integer; size*: array; thickness*: number; density*: number; young_modulus*: number; poisson_ratio*: number; displacement*: number; duration*: number; output_interval*: number; units*: string |
 | `create_workflow` | A09 | name*: string; steps*: array; defaults: union/ref |
+| `curve_ops` | I08 | inputs*: array; operations*: array |
 | `describe_installed_template` | A08 | template_id*: string |
 | `describe_pydyna_keyword` | A10 | class_name*: string |
 | `edit_keywords` | P02, P03, P10 | model*: string; edits*: array; allow_new_dangling: boolean |
