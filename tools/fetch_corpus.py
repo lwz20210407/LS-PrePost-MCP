@@ -24,12 +24,25 @@ def digest(path):
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
+def plain_path(path):
+    """Keep semantic/native paths ordinary; extended syntax is only for low-level IO."""
+    text = os.fspath(path)
+    if os.name == "nt":
+        prefix = chr(92) * 2 + "?" + chr(92)
+        if text.upper().startswith(prefix + "UNC" + chr(92)):
+            text = chr(92) * 2 + text[8:]
+        elif text.startswith(prefix):
+            text = text[4:]
+    return Path(os.path.normpath(text))
+
+
 def io_root(root):
-    """Use extended Windows paths before resolving long descendants/symlinks."""
-    absolute = str(root.resolve())
-    if os.name == "nt" and not absolute.startswith("\\\\?\\"):
-        absolute = "\\\\?\\UNC\\" + absolute[2:] if absolute.startswith("\\\\") else "\\\\?\\" + absolute
-    return Path(absolute)
+    """Normalize dot segments before adding Windows extended syntax for long IO paths."""
+    absolute = os.path.abspath(plain_path(Path(root).expanduser()))
+    if os.name == "nt":
+        prefix = chr(92) * 2 + "?" + chr(92)
+        absolute = prefix + "UNC" + chr(92) + absolute[2:] if absolute.startswith(chr(92) * 2) else prefix + absolute
+    return Path(absolute).resolve()
 
 
 def destination(root, relative):

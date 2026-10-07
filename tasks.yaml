@@ -952,6 +952,7 @@ infrastructure:
       - docs/decisions/evidence/i04/report.md
       - docs/decisions/evidence/i04-window/report.md
       - docs/decisions/evidence/i04-identity/report.md
+      - docs/decisions/evidence/i04-public100-preflight/report.md
       - tools/native_regression.py
       - tests/test_public_corpus_native.py
       - tests/corpus/public_cases.json
@@ -962,7 +963,7 @@ infrastructure:
     gaps:
       - 当前 55 个 tools/run_* 入口已全部收编为 57 个 pytest 用例（保留原生/文件及 batch/GUI 变体）；CLI 参数发现已逐一验证。
       - 三个文件验收和 program_acceptance 批处理已有证据；集成工作副本累计 53 个 GUI 用例通过，包含待审 A02 修复，不作为 PR #5 头全量验证；13 个 UU 格等待用户断开
-      - 公开抽样为 126 例（首轮 26，新增 100）；新增 100 已执行，历史报告 16 通过 / 84 失败，dirty 基线缺 diff 哈希，不能作为当前分支通过证明；失败已初分，仍需修复或明确输入限制后重跑
+      - 公开抽样 126 例中新增 100 例的历史 c991f9d 为 16 passed / 84 failed（dirty、缺 diff 哈希）；普通路径修复后干净 53f6072 使用 4.13 重跑为 16 passed / 45 failed / 39 输入限制 evidence_only，100 份树指纹及文件清单核对齐全；19303f7 的 50 限制含 11 个路径误判，历史保留并勘误，仍缺导出、变体、崩溃及读取器差异处理
     acceptance:
       - 补测从 M0 转入的 13 个 UU 远程格（4.13/4.10 的 runc 五通道共 10 格，以及两版本 nographics 原生宏和 4.13 会话原生宏共 3 格），记录执行、PNG、MP4 结果与用户确认的断开时间窗
       - 55 个 tools/run_* 收编为 57 个带 marker 的 pytest 用例，共享 fixture
