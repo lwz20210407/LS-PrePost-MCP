@@ -739,6 +739,7 @@ tasks:
       - 生成的配方附带一个 L2 用例骨架
 
   - id: A08
+    owner: codex
     group: auto
     title: 配方库
     story: 有没有现成的配方能做 Block Mesher 划网格？有就用它

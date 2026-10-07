@@ -12,6 +12,7 @@
 | codex | 2 | I03 | codex/I03-command-path-regression | #87 Ready，CI五项通过，仍partial |
 | codex | 3 | A05 | codex/A05-macro-parameters | #88 Ready，CI五项通过，仍partial |
 | codex | 4 | I04 | codex/I04-public-failure-diagnostics | 本续派PR；待AO认领 |
+| codex | 5 | A08 | codex/A08-installed-recipe-integration | 安装资产配方归并；本派发发布后临时认领，由总调度启动唯一实现 worker |
 | cursor | 1 | Q01 | cursor/Q01-result-overview | #84 Ready，CI五项通过，冻结待审 |
 | cursor | 2 | I05 | cursor/I05-index-source-coverage | #89 Ready，CI五项通过，仍partial |
 | cursor | 3 | A10 | cursor/A10-search-quality | AO会话23执行中 |
@@ -45,3 +46,17 @@
 ## Codex I04 续派边界
 
 I04 owner在tasks.yaml已为codex，保持原验收/状态不变。独立分支codex/I04-public-failure-diagnostics，先以#54冻结证据定位extra-keyword-064原生失败、extra-result-03后端状态数差异；新测试/诊断脚本/脱敏证据不覆盖#54旧记录。只跑经总调度串行安排的headless，用公开语料只读验证；GUI/UU继续等待新窗口。详情见本续派PR正文。
+
+## 2026-10-08 A08 安装资产配方归并续派
+
+承接冻结派发 #91（2df2f762f6a48c01ab65839956e6e53d8dd6cde0），保留 #83 及此前全部登记。其上表历史状态不覆盖后续 GitHub 交接：I04 #92 已 Ready，426f3245741e6e4912135e624f9dfbb62830350e 正式五项 CI 通过；Q03 #90 已 Ready；A10 继续原会话23，G04保留原会话25，均不重复创建。旧 Ready 头保持冻结。
+
+A08 owner 新增为 codex，验收、release、depends_on: [I01]、status: partial 和 gaps 均不变。用户在 #83 的持续续派授权允许发布即临时认领，不等 Claude 合派发；审阅与合并权不转移。唯一实现分支 `codex/A08-installed-recipe-integration`，统一 AO project `ls-prepost-mcp`；本协调 worker 不实现业务代码或启动实现 worker。
+
+核查依据：[配方模块](../src/ls_prepost_mcp/automation/recipes.py)、[安装资产 API](../src/ls_prepost_mcp/installation_assets.py)、[旧 JSON 回归](../tests/test_recipes.py)、[安装资产回归](../tests/test_workflow_foundations.py)。#13 已把 JSON 模板接入配方候选检索/执行并保留旧名，不重复迁移。真实断点是安装目录的 template.k / kwfilter txt 仅能经安装 API 使用，find_recipe 不发现安装资产，run_recipe 无安装资产引用路由。
+
+实现独占：新 `src/ls_prepost_mcp/automation/installed_recipes.py`、`src/ls_prepost_mcp/automation/recipes.py` 的安装资产接线、新 `tests/test_installed_recipes.py`、必要专属原生测试 `tests/test_installed_recipes_native.py`、`docs/decisions/evidence/a08-installed/`。复用既有 catalog/describe/instantiate/apply，不复制解析器或核心读取器；installation_assets.py、programs.py/native_macros.py（冻结 A05 #88）、service/registry、Cursor 查询与索引/schema、反重力 G04/Q03、Claude 共享核心保持只读。实现者不改本看板/owner；任务事实如需更新仅提交 A08 的真实 evidence/gaps 及生成 TASKS，原验收/release/依赖/status 不变，保留并行修改。
+
+离线先完成发现、真实候选元数据、参数/单位合同、现有执行适配和新旧结果等价测试；不把模板/过滤器假装为已验证 cfile，不以静态 alias 或元数据冒充执行。I01 已有程序引擎及安装实例化作业/可选 inspect_model 底座可复用；不依赖待完成 GUI 面板、G03 或共享计算新实现。原生 reopen 必须另向总调度申请唯一 headless lease，GUI/UU 不在本派发授权中。全量安装覆盖、30 配方各自 L2 和原有失败/未验证模式继续如实保留，不能因适配层交付宣布 A08 done。
+
+执行要求以本分支自足派发 PR 正文为准：首个有效提交开 Draft 并 claim 实现 PR；本地相关测试和静态校验，exact head 正式五项 CI 全绿后 Ready 冻结交 Claude。私有/厂商内容及派生数据留外部配置，公开仅原创夹具与脱敏证据；复用现有环境、单原生 lease，不全量本地测试、不复制语料。只 merge，不改旧头、不合 main。
