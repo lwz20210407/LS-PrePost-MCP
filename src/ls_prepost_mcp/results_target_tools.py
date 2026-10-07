@@ -49,7 +49,11 @@ class ResultsTargetTools:
         except ValueError as error:
             return _result("failed", {"database": database, "component": component, "backend": BACKEND},
                            error=_error(error))
-        source = self.settings.input_path(path)
+        try:
+            source = self._database_source(path)
+        except (ValueError, OSError) as error:
+            return _result("failed", {"database": database, "component": component, "backend": BACKEND},
+                           error=_error(error))
         directory, manifest = self.jobs.create("extract_database", {"source": str(source), **parameters})
         try:
             result = self._read_database(directory, source, parameters)
@@ -58,6 +62,22 @@ class ResultsTargetTools:
                                         "backend": BACKEND}, job_id=manifest["job_id"], error=_error(error))
         atomic_json(directory / "job.json", {**manifest, "status": result["status"], "result": result})
         return result
+
+    def _database_source(self, path: str) -> Path:
+        """The confined binout entry. Only ``binout`` / ``binoutNNNN`` files are accepted (an ASCII
+        ``glstat`` beside a binout must not be swapped for it silently), and every shard and size
+        continuation beside it passes the same allowed-root check, so a linked shard cannot pull
+        data from outside the configured roots."""
+        from .domain.results.mpp_shards import FAMILY, SHARD
+
+        source = self.settings.input_path(path)
+        if not SHARD.fullmatch(source.name):
+            raise ValueError("extract_database reads binout files (binout or binoutNNNN); ASCII "
+                             f"databases are not supported by this tool: {source.name}")
+        for sibling in sorted(source.parent.iterdir()):
+            if FAMILY.fullmatch(sibling.name):
+                self.settings.input_path(str(sibling))
+        return source
 
     def _database_parameters(self, database: str, component: str, units: str, branch: str | None,
                              shard: str | None, entity_ids: list[int] | None, time_units: str) -> dict:

@@ -89,3 +89,18 @@ def test_missing_folder_and_no_binout(tmp_path: Path) -> None:
         mpp_shards.shards(tmp_path)
     with pytest.raises(ResultsError, match="does not exist"):
         mpp_shards.shards(tmp_path / "nope" / "binout")
+
+
+def test_glob_characters_are_refused_by_the_shared_reader(tmp_path: Path) -> None:
+    folder = tmp_path / "run[1]"
+    folder.mkdir()
+    (tmp_path / "run1").mkdir()
+    f = Lsda(str(folder / "binout"), "w")
+    f.cd("/glstat/metadata", 1)
+    f.write("date", Lsda.I1, [ord(c) for c in "synthetic"])
+    f.cd("/glstat/d000001", 1)
+    f.write("time", Lsda.R8, [0.0])
+    f.write("kinetic_energy", Lsda.R8, [1.0])
+    f.close()
+    with pytest.raises(ResultsError, match="glob"):
+        mpp_shards.read(folder / "binout", "glstat", "kinetic_energy")

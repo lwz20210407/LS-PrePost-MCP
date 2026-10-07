@@ -161,6 +161,43 @@ def test_repeated_ids_without_side_are_keyed_by_stored_column(tmp_path: Path) ->
     assert {(int(r[2]), float(r[3])) for r in rows[1:] if float(r[0]) == 1.0} == {(0, 1.0), (1, 2.0)}
 
 
+def test_glob_characters_in_the_path_never_read_another_folder(tmp_path: Path) -> None:
+    # lasso globs the file name: case[1]/binout would match case1/binout. The tool must refuse
+    # instead of returning the other folder's data as a verified CSV.
+    (tmp_path / "case[1]").mkdir()
+    (tmp_path / "case1").mkdir()
+    _shard(tmp_path / "case[1]" / "binout", "glstat", [0.0, 1.0], component="kinetic_energy", scale=10.0)
+    _shard(tmp_path / "case1" / "binout", "glstat", [0.0, 1.0], component="kinetic_energy", scale=999.0)
+    result = _valid(_service(tmp_path).extract_database(str(tmp_path / "case[1]" / "binout"), "glstat",
+                                                        "kinetic_energy", "mJ"))
+    assert result.status == "failed" and "glob" in result.error["message"]
+    assert not result.artifacts
+
+
+def test_ascii_entry_is_not_swapped_for_a_binout_beside_it(tmp_path: Path) -> None:
+    _shard(tmp_path / "binout", "glstat", [0.0, 1.0], component="kinetic_energy")
+    (tmp_path / "glstat").write_text(" ascii glstat placeholder\n", encoding="utf-8")
+    result = _valid(_service(tmp_path).extract_database(str(tmp_path / "glstat"), "glstat",
+                                                        "kinetic_energy", "mJ"))
+    assert result.status == "failed" and "binout" in result.error["message"]
+    assert result.job_id is None
+
+
+def test_a_linked_shard_outside_the_allowed_roots_is_refused(tmp_path: Path) -> None:
+    workspace, outside = tmp_path / "ws", tmp_path / "outside"
+    workspace.mkdir()
+    outside.mkdir()
+    _shard(workspace / "binout0000", "rcforc", [0.0, 1.0], ids=[1])
+    _shard(outside / "binout0001", "rcforc", [2.0, 3.0], ids=[1])
+    try:
+        (workspace / "binout0001").symlink_to(outside / "binout0001")
+    except OSError:
+        pytest.skip("symbolic links are not permitted on this host")
+    result = _valid(Service(Settings(workspace)).extract_database(str(workspace / "binout0000"), "rcforc",
+                                                                  "x_force", "N"))
+    assert result.status == "failed" and "allowed roots" in result.error["message"]
+
+
 def test_tool_is_registered_on_the_mcp_server(tmp_path: Path) -> None:
     names = {t.name for t in asyncio.run(build_server(Settings(tmp_path), "full").list_tools())}
     assert "extract_database" in names
