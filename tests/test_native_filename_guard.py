@@ -61,7 +61,7 @@ def test_legacy_contract_rechecked_before_any_dispatch(tmp_path, monkeypatch, se
     with pytest.raises(ValueError, match="ASCII bundle"):
         service.execute_native_program(prepared["job_id"], prepared["data"]["sha256"], session_id=session_id)
     assert set(service.jobs.root.iterdir()) == before
-    assert json.loads((service.jobs.root / prepared["job_id"] / "contract.json").read_text())["sha256"] == prepared["data"]["sha256"]
+    assert json.loads((service.jobs.root / prepared["job_id"] / "contract.json").read_text(encoding="utf8"))["sha256"] == prepared["data"]["sha256"]
 
 
 @pytest.mark.parametrize("command", ["import keyword", "open xydata", "runscript"])
@@ -165,9 +165,9 @@ def test_identity_tampering_fails_before_filename_policy_or_execution(tmp_path, 
     prepared = service.prepare_native_program("cfile", code='runscript "数据.txt"', dependencies=[dependency(tmp_path)])
     folder = service.jobs.root / prepared["job_id"]
     if tamper == "manifest":
-        contract = json.loads((folder / "contract.json").read_text())
+        contract = json.loads((folder / "contract.json").read_text(encoding="utf8"))
         contract["dependencies"] = []
-        (folder / "contract.json").write_text(json.dumps(contract))
+        (folder / "contract.json").write_text(json.dumps(contract), encoding="utf8")
     else:
         (folder / ("program.cfile" if tamper == "program" else "数据.txt")).write_text("changed")
     before = set(service.jobs.root.iterdir())
