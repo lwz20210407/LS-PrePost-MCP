@@ -62,3 +62,9 @@ A08 owner 新增为 codex，验收、release、depends_on: [I01]、status: parti
 离线先完成发现、真实候选元数据、参数/单位合同、现有执行适配和新旧结果等价测试；不把模板/过滤器假装为已验证 cfile，不以静态 alias 或元数据冒充执行。I01 已有程序引擎及安装实例化作业/可选 inspect_model 底座可复用；不依赖待完成 GUI 面板、G03 或共享计算新实现。原生 reopen 必须另向总调度申请唯一 headless lease，GUI/UU 不在本派发授权中。全量安装覆盖、30 配方各自 L2 和原有失败/未验证模式继续如实保留，不能因适配层交付宣布 A08 done。
 
 执行要求以本分支自足派发 PR 正文为准：首个有效提交开 Draft 并 claim 实现 PR；本地相关测试和静态校验，exact head 正式五项 CI 全绿后 Ready 冻结交 Claude。私有/厂商内容及派生数据留外部配置，公开仅原创夹具与脱敏证据；复用现有环境、单原生 lease，不全量本地测试、不复制语料。只 merge，不改旧头、不合 main。
+
+## 2026-10-08 Q12 能量有效性续派
+
+| 任务 | 负责人 | 唯一实施分支 | 核实缺口与独占范围 | 启动与交接边界 |
+|---|---|---|---|---|
+| Q12 | antigravity（原 owner 保留） | `antigravity/Q12-energy-gap-followup` | 冻结 #57 `8b2a9a16d3ba83e7ac7c2bc71c1f5a35d77c23e6` 的原 MATSUM 夹具末态 HG=20/10 被读为 0/0；缺外功仍判残差 passed；间歇缺 HG 补 0 后 passed。仅 `domain/results/energy.py`、`engineering.py` 中 `check_energy` 局部及专属测试/证据；不重做已修功能 | 承接 #99 `9300252` 和最新 main `558ba69` 的全部登记；原验收、Q06 依赖、partial、gaps 不变。统一 AO project `ls-prepost-mcp`、harness `agy`、显式 model `gemini-3.8-flash-high`。发布可临时认领，尚未启动；总调度最终查重并核实 #98 同步后 exact-head 正式 PR 五项 SUCCESS，且先明确 main+#57 注册表/测试并集冲突的集成负责人。仅 merge 冻结依赖、不改 #57；共享 core、Q10、Q05–Q07/P、G01/I03/A08 保持只读；原生另申请 lease。完整复现、边界及门禁见本续派 PR 正文；审阅合并仍交 Claude |
