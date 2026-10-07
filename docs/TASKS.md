@@ -303,7 +303,7 @@
 
 ### Q04 工程量与失效掩码
 
-状态：partial；版本：v0.5；里程碑：M2；层：T1
+状态：done；版本：v0.5；里程碑：M2；层：T1
 
 计算靶板所有单元的应力三轴度和 Lode 参数，排除已删除单元，找出最大值所在单元
 
@@ -314,10 +314,6 @@
 - 掩码策略 alive / all / deleted 可选；极值附带实体 ID 与状态
 
 现有入口：`compute_stress_invariants`, `extract_native_stress`, `inspect_result_validity`
-
-缺口：
-
-- 只有实体有原生验证；壳单元缺失
 
 ### Q05 时程曲线（History）
 
