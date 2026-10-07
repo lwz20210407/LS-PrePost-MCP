@@ -1,0 +1,509 @@
+{
+ "schema": "G01HeadlessEvidence/v1",
+ "task": "G01",
+ "lease": "G01-001",
+ "date": "2026-10-08",
+ "native_version": "4.13.0.1",
+ "launch": "c= -nographics",
+ "graphics": false,
+ "gui_session": false,
+ "fixture": "M0 original synthetic keyword deck (input.k)",
+ "route": "set_view(context=batch, execute=True)",
+ "scope": "Request replay and decoded-RGBA pixel identity across fresh processes only; no camera readback, no native named view, no Selector centering",
+ "stages": [
+  {
+   "stage": "A",
+   "runs": [
+    {
+     "label": "A1",
+     "status": "succeeded",
+     "stage": "execution",
+     "camera_state": "applied_unverified",
+     "request": {
+      "view": "front",
+      "projection": "parallel",
+      "rotation_xyz_degrees": [
+       15.0,
+       0.0,
+       -30.0
+      ],
+      "zoom_scale": 2.0,
+      "pan_xy": [
+       0.1,
+       -0.05
+      ],
+      "fit": false,
+      "center_on": null
+     },
+     "commands": [
+      "front",
+      "parallel",
+      "rotang 15",
+      "rx",
+      "rotang -30",
+      "rz",
+      "zoom 2",
+      "pan 0.10000000000000001 -0.050000000000000003"
+     ],
+     "prepared_sha256": "c27f57b18e36d9fc06df7dd4469108dc59a4ebe875b06ec7a26e694e41aaade8",
+     "executed_program_sha256": "c27f57b18e36d9fc06df7dd4469108dc59a4ebe875b06ec7a26e694e41aaade8",
+     "executed_commands_cfile_sha256": "5fdebfd6cb1b5e7678bd190c09760db8f7b8b1dc5d785183a99e0b8631ca1130",
+     "source_sha256": "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43",
+     "staged_input_sha256": [
+      "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43"
+     ],
+     "argv_tail": [
+      "c=<job>",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "timed_out": false,
+     "diagnostics": [],
+     "process_isolation": "windows_job",
+     "native_counts": {
+      "nodes": 8,
+      "elements": 3,
+      "states": 1
+     },
+     "native_elapsed_seconds": 14.386,
+     "png_sha256": "8e3eb534ba83c32e21c5564a9933aa21928ea0d3275ad348b16bce583df05296",
+     "png_size_bytes": 43169,
+     "saved_preset_payload_sha256": null,
+     "restored_preset_payload_sha256": null,
+     "new_lsprepost_processes_after": 0
+    },
+    {
+     "label": "A2",
+     "status": "succeeded",
+     "stage": "execution",
+     "camera_state": "applied_unverified",
+     "request": {
+      "view": "front",
+      "projection": "parallel",
+      "rotation_xyz_degrees": [
+       15.0,
+       0.0,
+       -30.0
+      ],
+      "zoom_scale": 2.0,
+      "pan_xy": [
+       0.1,
+       -0.05
+      ],
+      "fit": false,
+      "center_on": null
+     },
+     "commands": [
+      "front",
+      "parallel",
+      "rotang 15",
+      "rx",
+      "rotang -30",
+      "rz",
+      "zoom 2",
+      "pan 0.10000000000000001 -0.050000000000000003"
+     ],
+     "prepared_sha256": "c27f57b18e36d9fc06df7dd4469108dc59a4ebe875b06ec7a26e694e41aaade8",
+     "executed_program_sha256": "c27f57b18e36d9fc06df7dd4469108dc59a4ebe875b06ec7a26e694e41aaade8",
+     "executed_commands_cfile_sha256": "5fdebfd6cb1b5e7678bd190c09760db8f7b8b1dc5d785183a99e0b8631ca1130",
+     "source_sha256": "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43",
+     "staged_input_sha256": [
+      "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43"
+     ],
+     "argv_tail": [
+      "c=<job>",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "timed_out": false,
+     "diagnostics": [],
+     "process_isolation": "windows_job",
+     "native_counts": {
+      "nodes": 8,
+      "elements": 3,
+      "states": 1
+     },
+     "native_elapsed_seconds": 13.465,
+     "png_sha256": "8e3eb534ba83c32e21c5564a9933aa21928ea0d3275ad348b16bce583df05296",
+     "png_size_bytes": 43169,
+     "saved_preset_payload_sha256": null,
+     "restored_preset_payload_sha256": null,
+     "new_lsprepost_processes_after": 0
+    }
+   ],
+   "comparisons": {
+    "A": {
+     "identical": true,
+     "same_dimensions": true,
+     "differing_pixels": 0,
+     "max_channel_delta": 0,
+     "comparison": "decoded_rgba_exact",
+     "images": [
+      {
+       "file_sha256": "8e3eb534ba83c32e21c5564a9933aa21928ea0d3275ad348b16bce583df05296",
+       "size_bytes": 43169,
+       "mode": "RGB",
+       "width": 3300,
+       "height": 2550,
+       "pixel_sha256": "fa8f20f7a2bfac0cf17f68074152e7b02bc7a8d29fbf55e7b37469ffff0e8e97"
+      },
+      {
+       "file_sha256": "8e3eb534ba83c32e21c5564a9933aa21928ea0d3275ad348b16bce583df05296",
+       "size_bytes": 43169,
+       "mode": "RGB",
+       "width": 3300,
+       "height": 2550,
+       "pixel_sha256": "fa8f20f7a2bfac0cf17f68074152e7b02bc7a8d29fbf55e7b37469ffff0e8e97"
+      }
+     ]
+    }
+   },
+   "leftover_lsprepost_processes": 0
+  },
+  {
+   "stage": "B",
+   "runs": [
+    {
+     "label": "B1",
+     "status": "succeeded",
+     "stage": "execution",
+     "camera_state": "applied_unverified",
+     "request": {
+      "view": "isometric",
+      "projection": "perspective",
+      "rotation_xyz_degrees": null,
+      "zoom_scale": null,
+      "pan_xy": null,
+      "fit": true,
+      "center_on": null
+     },
+     "commands": [
+      "isometric x",
+      "perspective",
+      "ac"
+     ],
+     "prepared_sha256": "e648cc89909db926b33c2607040a6eb1fbf1c94d3a700e9f24ae35bfb4bbd4ba",
+     "executed_program_sha256": "e648cc89909db926b33c2607040a6eb1fbf1c94d3a700e9f24ae35bfb4bbd4ba",
+     "executed_commands_cfile_sha256": "b9f66c79e50b6c59cc3792bb5ea314b999902a9dc75798ee72928192a25826af",
+     "source_sha256": "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43",
+     "staged_input_sha256": [
+      "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43"
+     ],
+     "argv_tail": [
+      "c=<job>",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "timed_out": false,
+     "diagnostics": [],
+     "process_isolation": "windows_job",
+     "native_counts": {
+      "nodes": 8,
+      "elements": 3,
+      "states": 1
+     },
+     "native_elapsed_seconds": 11.736,
+     "png_sha256": "5ccf2a8e85935b177b2796aaab2479d76c2932e47d98e084675d19c99b14b727",
+     "png_size_bytes": 59298,
+     "saved_preset_payload_sha256": null,
+     "restored_preset_payload_sha256": null,
+     "new_lsprepost_processes_after": 0
+    },
+    {
+     "label": "B2",
+     "status": "succeeded",
+     "stage": "execution",
+     "camera_state": "applied_unverified",
+     "request": {
+      "view": "isometric",
+      "projection": "perspective",
+      "rotation_xyz_degrees": null,
+      "zoom_scale": null,
+      "pan_xy": null,
+      "fit": true,
+      "center_on": null
+     },
+     "commands": [
+      "isometric x",
+      "perspective",
+      "ac"
+     ],
+     "prepared_sha256": "e648cc89909db926b33c2607040a6eb1fbf1c94d3a700e9f24ae35bfb4bbd4ba",
+     "executed_program_sha256": "e648cc89909db926b33c2607040a6eb1fbf1c94d3a700e9f24ae35bfb4bbd4ba",
+     "executed_commands_cfile_sha256": "b9f66c79e50b6c59cc3792bb5ea314b999902a9dc75798ee72928192a25826af",
+     "source_sha256": "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43",
+     "staged_input_sha256": [
+      "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43"
+     ],
+     "argv_tail": [
+      "c=<job>",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "timed_out": false,
+     "diagnostics": [],
+     "process_isolation": "windows_job",
+     "native_counts": {
+      "nodes": 8,
+      "elements": 3,
+      "states": 1
+     },
+     "native_elapsed_seconds": 6.55,
+     "png_sha256": "5ccf2a8e85935b177b2796aaab2479d76c2932e47d98e084675d19c99b14b727",
+     "png_size_bytes": 59298,
+     "saved_preset_payload_sha256": null,
+     "restored_preset_payload_sha256": null,
+     "new_lsprepost_processes_after": 0
+    }
+   ],
+   "comparisons": {
+    "B": {
+     "identical": true,
+     "same_dimensions": true,
+     "differing_pixels": 0,
+     "max_channel_delta": 0,
+     "comparison": "decoded_rgba_exact",
+     "images": [
+      {
+       "file_sha256": "5ccf2a8e85935b177b2796aaab2479d76c2932e47d98e084675d19c99b14b727",
+       "size_bytes": 59298,
+       "mode": "RGB",
+       "width": 3300,
+       "height": 2550,
+       "pixel_sha256": "4b30b32d7dad11384a100a4d6fa004bc89774044460a31432aac01da03b79b1d"
+      },
+      {
+       "file_sha256": "5ccf2a8e85935b177b2796aaab2479d76c2932e47d98e084675d19c99b14b727",
+       "size_bytes": 59298,
+       "mode": "RGB",
+       "width": 3300,
+       "height": 2550,
+       "pixel_sha256": "4b30b32d7dad11384a100a4d6fa004bc89774044460a31432aac01da03b79b1d"
+      }
+     ]
+    }
+   },
+   "leftover_lsprepost_processes": 0
+  },
+  {
+   "stage": "P",
+   "runs": [
+    {
+     "label": "P_save",
+     "status": "succeeded",
+     "stage": "execution",
+     "camera_state": "applied_unverified",
+     "request": {
+      "view": "front",
+      "projection": "parallel",
+      "rotation_xyz_degrees": [
+       15.0,
+       0.0,
+       -30.0
+      ],
+      "zoom_scale": 2.0,
+      "pan_xy": [
+       0.1,
+       -0.05
+      ],
+      "fit": false,
+      "center_on": null
+     },
+     "commands": [
+      "front",
+      "parallel",
+      "rotang 15",
+      "rx",
+      "rotang -30",
+      "rz",
+      "zoom 2",
+      "pan 0.10000000000000001 -0.050000000000000003"
+     ],
+     "prepared_sha256": "c27f57b18e36d9fc06df7dd4469108dc59a4ebe875b06ec7a26e694e41aaade8",
+     "executed_program_sha256": "c27f57b18e36d9fc06df7dd4469108dc59a4ebe875b06ec7a26e694e41aaade8",
+     "executed_commands_cfile_sha256": "5fdebfd6cb1b5e7678bd190c09760db8f7b8b1dc5d785183a99e0b8631ca1130",
+     "source_sha256": "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43",
+     "staged_input_sha256": [
+      "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43"
+     ],
+     "argv_tail": [
+      "c=<job>",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "timed_out": false,
+     "diagnostics": [],
+     "process_isolation": "windows_job",
+     "native_counts": {
+      "nodes": 8,
+      "elements": 3,
+      "states": 1
+     },
+     "native_elapsed_seconds": 4.453,
+     "png_sha256": "8e3eb534ba83c32e21c5564a9933aa21928ea0d3275ad348b16bce583df05296",
+     "png_size_bytes": 43169,
+     "saved_preset_payload_sha256": "88deaf1cf886bf289c96f9d5d6733b077361196e39378416530c78df3ad07766",
+     "restored_preset_payload_sha256": null,
+     "new_lsprepost_processes_after": 0
+    },
+    {
+     "label": "P_perturb",
+     "status": "succeeded",
+     "stage": "execution",
+     "camera_state": "applied_unverified",
+     "request": {
+      "view": "top",
+      "projection": "parallel",
+      "rotation_xyz_degrees": null,
+      "zoom_scale": 0.5,
+      "pan_xy": null,
+      "fit": false,
+      "center_on": null
+     },
+     "commands": [
+      "top",
+      "parallel",
+      "zoom 0.5"
+     ],
+     "prepared_sha256": "dd9091678912573d614546dc8e53baeb78b341855dfa51862c4d25ca7e6f0cb8",
+     "executed_program_sha256": "dd9091678912573d614546dc8e53baeb78b341855dfa51862c4d25ca7e6f0cb8",
+     "executed_commands_cfile_sha256": "ab4687d22635276026024e85819c56d4cd6db14fa0b56c706569bc4f987b9291",
+     "source_sha256": "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43",
+     "staged_input_sha256": [
+      "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43"
+     ],
+     "argv_tail": [
+      "c=<job>",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "timed_out": false,
+     "diagnostics": [],
+     "process_isolation": "windows_job",
+     "native_counts": {
+      "nodes": 8,
+      "elements": 3,
+      "states": 1
+     },
+     "native_elapsed_seconds": 15.947,
+     "png_sha256": "df2379331e5fe06a4ca244c8e6ea546ff316fabf4aa93ad6b2675e208b8ebced",
+     "png_size_bytes": 38381,
+     "saved_preset_payload_sha256": null,
+     "restored_preset_payload_sha256": null,
+     "new_lsprepost_processes_after": 0
+    },
+    {
+     "label": "P_restore",
+     "status": "succeeded",
+     "stage": "execution",
+     "camera_state": "applied_unverified",
+     "request": {
+      "view": "front",
+      "projection": "parallel",
+      "rotation_xyz_degrees": [
+       15.0,
+       0.0,
+       -30.0
+      ],
+      "zoom_scale": 2.0,
+      "pan_xy": [
+       0.1,
+       -0.05
+      ],
+      "fit": false,
+      "center_on": null
+     },
+     "commands": [
+      "front",
+      "parallel",
+      "rotang 15",
+      "rx",
+      "rotang -30",
+      "rz",
+      "zoom 2",
+      "pan 0.10000000000000001 -0.050000000000000003"
+     ],
+     "prepared_sha256": "c27f57b18e36d9fc06df7dd4469108dc59a4ebe875b06ec7a26e694e41aaade8",
+     "executed_program_sha256": "c27f57b18e36d9fc06df7dd4469108dc59a4ebe875b06ec7a26e694e41aaade8",
+     "executed_commands_cfile_sha256": "5fdebfd6cb1b5e7678bd190c09760db8f7b8b1dc5d785183a99e0b8631ca1130",
+     "source_sha256": "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43",
+     "staged_input_sha256": [
+      "fc25a7ce6896e97aaf142f53cbe47f63e96be8a716a1115ed32becfeba295c43"
+     ],
+     "argv_tail": [
+      "c=<job>",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "timed_out": false,
+     "diagnostics": [],
+     "process_isolation": "windows_job",
+     "native_counts": {
+      "nodes": 8,
+      "elements": 3,
+      "states": 1
+     },
+     "native_elapsed_seconds": 11.637,
+     "png_sha256": "8e3eb534ba83c32e21c5564a9933aa21928ea0d3275ad348b16bce583df05296",
+     "png_size_bytes": 43169,
+     "saved_preset_payload_sha256": null,
+     "restored_preset_payload_sha256": "88deaf1cf886bf289c96f9d5d6733b077361196e39378416530c78df3ad07766",
+     "new_lsprepost_processes_after": 0
+    }
+   ],
+   "comparisons": {
+    "preset_restore": {
+     "identical": true,
+     "same_dimensions": true,
+     "differing_pixels": 0,
+     "max_channel_delta": 0,
+     "comparison": "decoded_rgba_exact",
+     "images": [
+      {
+       "file_sha256": "8e3eb534ba83c32e21c5564a9933aa21928ea0d3275ad348b16bce583df05296",
+       "size_bytes": 43169,
+       "mode": "RGB",
+       "width": 3300,
+       "height": 2550,
+       "pixel_sha256": "fa8f20f7a2bfac0cf17f68074152e7b02bc7a8d29fbf55e7b37469ffff0e8e97"
+      },
+      {
+       "file_sha256": "8e3eb534ba83c32e21c5564a9933aa21928ea0d3275ad348b16bce583df05296",
+       "size_bytes": 43169,
+       "mode": "RGB",
+       "width": 3300,
+       "height": 2550,
+       "pixel_sha256": "fa8f20f7a2bfac0cf17f68074152e7b02bc7a8d29fbf55e7b37469ffff0e8e97"
+      }
+     ]
+    },
+    "perturbation_differs": {
+     "identical": false,
+     "same_dimensions": true,
+     "differing_pixels": 5031517,
+     "max_channel_delta": 255,
+     "comparison": "decoded_rgba_exact",
+     "images": [
+      {
+       "file_sha256": "8e3eb534ba83c32e21c5564a9933aa21928ea0d3275ad348b16bce583df05296",
+       "size_bytes": 43169,
+       "mode": "RGB",
+       "width": 3300,
+       "height": 2550,
+       "pixel_sha256": "fa8f20f7a2bfac0cf17f68074152e7b02bc7a8d29fbf55e7b37469ffff0e8e97"
+      },
+      {
+       "file_sha256": "df2379331e5fe06a4ca244c8e6ea546ff316fabf4aa93ad6b2675e208b8ebced",
+       "size_bytes": 38381,
+       "mode": "RGB",
+       "width": 3300,
+       "height": 2550,
+       "pixel_sha256": "6a8f8bd62423fc6f67332b7e98393e92397c6b491ccde3186c7cec35a0b95b33"
+      }
+     ]
+    }
+   },
+   "leftover_lsprepost_processes": 0
+  }
+ ]
+}

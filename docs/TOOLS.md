@@ -145,7 +145,7 @@
 | `set_gui_entity_visibility` | G02 | session_id*: string; entity_type*: string; mode*: string; entity_ids: union/ref; capture: boolean |
 | `set_gui_node_coordinates` | P08 | session_id*: string; nodes*: array; units*: string; tolerance: number |
 | `set_gui_part_visibility` | G02 | session_id*: string; mode*: string; part_ids: union/ref |
-| `set_view` | I08 | context: string; session_id: union/ref; model: union/ref; file_type: string; view: union/ref; projection: union/ref; rotation_xyz_degrees: union/ref; zoom_scale: union/ref; pan_xy: union/ref; fit: boolean; center_on: union/ref; save_preset_name: union/ref; restore_preset_name: union/ref; capture: boolean |
+| `set_view` | I08 | context: string; session_id: union/ref; model: union/ref; file_type: string; view: union/ref; projection: union/ref; rotation_xyz_degrees: union/ref; zoom_scale: union/ref; pan_xy: union/ref; fit: boolean; center_on: union/ref; save_preset_name: union/ref; restore_preset_name: union/ref; capture: boolean; execute: boolean |
 | `show_gui_session` | I08 | session_id*: string; maximize: boolean; keep_on_top: boolean |
 | `start_gui_session` | I08 | 无 |
 | `start_session_recording` | A07 | session_id*: string |
