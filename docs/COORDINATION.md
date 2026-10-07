@@ -1,54 +1,64 @@
 # 任务看板
 
-由 Codex 维护（规则见 [AGENTS.md](../AGENTS.md) 的“多 AI 协作”一节）。每行一个已派发的任务；任务的范围、验收和状态以 [tasks.yaml](../tasks.yaml) 为准，这里只记录谁在做、在哪个分支、PR 到了哪一步。
+由桌面 Codex 维护；范围、验收和完成状态以 [tasks.yaml](../tasks.yaml) 为准。2026-10-07 核对 main e41cf65。
 
-状态取值：`进行中`、`待审阅`、`审阅退回`、`已合并`、`已关闭`。
+## 顺序任务队列（持续续派）
 
-| 任务ID | 负责人 | 分支 | PR | 状态 | 派发日期 |
-|---|---|---|---|---|---|
-| Q10 | 反重力 | feat/q10-q12-postprocessing | #57（a22773e） | 待审阅 | 2026-10-06 |
-| Q12 | 反重力 | feat/q10-q12-postprocessing | #57（a22773e） | 待审阅 | 2026-10-06 |
-| I04 | Codex | codex/i04-include-tree-evidence | #54（4958783；第十二轮审阅中） | 待审阅 | 2026-10-06 |
-| I01 | Codex | codex/fix-native-include-diagnostics | #56（38cc02a；第十二轮审阅中） | 待审阅 | 2026-10-06 |
-| I01 | Codex | codex/fix-queue-backpressure-restack | #40（Draft） | 进行中 | 2026-10-06 |
-| I01 | Codex | codex/m1-panel-session-engine | #26（Draft） | 进行中 | 2026-10-06 |
-| Q08 | Cursor | cursor/Q08-xyplot-render | [派发 PR #61](https://github.com/lwz20210407/LS-PrePost-MCP/pull/61) | 进行中 | 2026-10-07 |
+用户明确要求每人认领3–4项；初始每人3项；用户随后明确要求持续有可推进任务，Codex现续派第4项I04，一个AI同时推进一项。派发PR发布后临时认领，Ready旧头冻结等待Claude审阅，禁止自行合并main。验收和release未改。统一AO项目 `ls-prepost-mcp`；具体说明见本轮 `codex/dispatch-batch-20261007` 派发PR正文。
 
-初始内容由 Claude 于 2026-10-07 按当时的分支和 PR 填写，之后由 Codex 维护。
+| 开发者 | 顺序 | 任务 | 分支 | 状态 |
+|---|---|---|---|---|
+| codex | 1 | I01 | codex/I01-atomic-process-start | #86 Ready，CI五项通过，冻结待审 |
+| codex | 2 | I03 | codex/I03-command-path-regression | #87 Ready，CI五项通过，仍partial |
+| codex | 3 | A05 | codex/A05-macro-parameters | #88 Ready，CI五项通过，仍partial |
+| codex | 4 | I04 | codex/I04-public-failure-diagnostics | 本续派PR；待AO认领 |
+| codex | 5 | A08 | codex/A08-installed-recipe-integration | 安装资产配方归并；本派发发布后临时认领，由总调度启动唯一实现 worker |
+| codex | 6 | I03 | codex/I03-unicode-filename-guard | 2026-10-08 #83续派：定位#87中文依赖文件名失败，离线最小修复或明确输入限制；#87/#92/#96旧头冻结，完整验收与partial保留；本派发发布即临时认领，仅总调度最终查重启动，G01优先独占原生lease |
+| cursor | 1 | Q01 | cursor/Q01-result-overview | #84 Ready，CI五项通过，冻结待审 |
+| cursor | 2 | I05 | cursor/I05-index-source-coverage | #89 Ready，CI五项通过，仍partial |
+| cursor | 3 | A10 | cursor/A10-search-quality | AO会话23执行中 |
+| cursor | 4 | G01 | cursor/G01-view-control | 2026-10-08 #83决策续派；完整G01保持partial，独占view_tools/view_state及专属测试；#93已交付冻结，#94登记并集保留；本派发发布即临时认领，仅总调度启动唯一Cursor worker，无GUI/UU，原生另申请lease |
+| antigravity | 1 | I02 | antigravity/I02-fieldspec-adapter | #85 Ready，CI五项通过，冻结待审 |
+| antigravity | 2 | Q03 | antigravity/Q03-field-extraction | 本地d499b0c；发布诊断阻塞已提醒处理 |
+| antigravity | 3 | G04 | antigravity/G04-entity-identify | 已派发，按队列认领 |
 
-## Cursor 首个任务：Q08
+## 已交审与保留事项
 
-派发已通过 #61 合入 main，owner 为 cursor，采用 `cursor/Q08-xyplot-render`。已观察到本地分支及独立工作树，当前头仍为基线 ab01bdc，未见实现提交；Cursor 按 #61 正文执行并在该 PR 评论报告进展。并行产生的重复任务单 #62 已关闭，不另建 `cursor/Q08-xyplot`。任务状态仍为 tasks.yaml 中的 partial，满足全部验收前不得改为 done。
+| 任务 / PR | 状态 |
+|---|---|
+| I01引用预算 / #81（998040d） | Ready；原始会话已移入统一AO项目，冻结待审 |
+| Q04 / #82（a8d59c2） | Ready；冻结待审；Q03使用新分支merge其已验证依赖，不改旧头 |
+| Q08 / #71（7a92bca） | Ready；待审，保持partial |
+| Q10/Q12 / #57（8b2a9a1） | Ready；待审，原会话已归统一项目 |
+| I01 / #26、#72 | Ready；冻结待审 |
+| I04 / #54；I03 / #76 | Ready；冻结待审，不冒充新头原生复跑 |
+| I01 / #40；#56、#64、#67、#68、#70、#74、#75 | 已合并 |
+| Q07 / #77 | Claude负责；已有Codex审阅，Claude执行合并；不抢占 |
+| Q06 / AO ls-prepost-mcp-11 | Claude的原会话保留，不转派 |
+| #63 | 已关闭，禁止复用其越界实现 |
+| #73、#78–#80 | 历史协调/派发PR保留；本派发栈接续最新队列，合并时保留最新状态 |
 
-验收标准保持 tasks.yaml 原文：
+## 并行边界与交接
 
-1. 最多 10 条曲线同图；图例、坐标轴标题与范围、对数轴可设。
-2. PNG 与同时导出的 CSV 数值一致。
-3. 批处理上下文可用（不依赖可见 GUI），依据 E5 结论。
+- Codex拥有进程/命令/宏底座；Cursor拥有Q01薄适配与I05/A10索引/检索；反重力拥有新FieldSpec适配、Q03场提取和G04识别薄适配；共享核心仍由Claude维护。
+- Q01复用原AO会话，不重复建分支。I05→A10、I02→Q03→G04按序交付；每项独立PR，未合依赖只用merge形成明确栈，不改旧Ready头。
+- GitHub是任务和审阅记录；AO只负责启动、认领与回灌。每项本地相关测试真实记录，GitHub五项CI全绿才交付；无需GUI的部分持续推进，GUI/UU另等新窗口。
+- F盘空间紧张，复用已锁定环境与语料，不复制全语料/全环境，原生进程串行，不能自行删除旧文件。看板不把待认领写成已开工。
 
-文件分工以已合入的派发 PR #61 正文为准：Q08 的 gui_curves.py、gui_media.py、专属测试与去私有信息证据；保留旧入口，必要注册仅调整 Q08 项。不得修改 Claude 的核心目录或自行扩展为 M1 底座修复，也不接手 Q10/Q12 或 Q07 数学。跨范围变更先报告并在 PR 中说明原因。遵守 D2，不能自行更换渲染后端或降低验收。
+## Codex I04 续派边界
 
-## 派发与交接通道
+I04 owner在tasks.yaml已为codex，保持原验收/状态不变。独立分支codex/I04-public-failure-diagnostics，先以#54冻结证据定位extra-keyword-064原生失败、extra-result-03后端状态数差异；新测试/诊断脚本/脱敏证据不覆盖#54旧记录。只跑经总调度串行安排的headless，用公开语料只读验证；GUI/UU继续等待新窗口。详情见本续派PR正文。
 
-GitHub 是唯一消息通道，派发说明使用派发 PR 正文，审阅与进度使用 PR 评论；分支、提交和 PR 是可核实进度，IDE 是否打开不作为已开工/已完成的证据。没有专用 IDE 消息通道时，不声称已启动对方 Agent。认领由开发者在派发 PR 评论报告分支；Codex 更新本表。其他开发者不改本看板。
+## 2026-10-08 A08 安装资产配方归并续派
 
-Cursor 或反重力报告完成时，核对双 Python 的 9 步及最小依赖、原生证据和范围；材料齐全后提醒开 Ready PR 交 Claude，冻结头。PR 合入或关闭后才派下一项，先复查最新 tasks.yaml 的 owner、依赖、当前分支文件范围，以及打开和刚合入的派发 PR；Claude 启动的非交互 Codex 也可能正在派发，发布前再次核对，已有任务不得重复；一次只派一个不冲突的任务。反重力 #57 仍待审，当前不另派新任务，也不因 Q10 原 release=v0.6 擅改它的范围。
+承接冻结派发 #91（2df2f762f6a48c01ab65839956e6e53d8dd6cde0），保留 #83 及此前全部登记。其上表历史状态不覆盖后续 GitHub 交接：I04 #92 已 Ready，426f3245741e6e4912135e624f9dfbb62830350e 正式五项 CI 通过；Q03 #90 已 Ready；A10 继续原会话23，G04保留原会话25，均不重复创建。旧 Ready 头保持冻结。
 
-## Codex 当前审阅与待办
+A08 owner 新增为 codex，验收、release、depends_on: [I01]、status: partial 和 gaps 均不变。用户在 #83 的持续续派授权允许发布即临时认领，不等 Claude 合派发；审阅与合并权不转移。唯一实现分支 `codex/A08-installed-recipe-integration`，统一 AO project `ls-prepost-mcp`；本协调 worker 不实现业务代码或启动实现 worker。
 
-- #54 4958783、#56 38cc02a 正在第十二轮审阅，保持头不动；收到审阅清单后再修。
-- I01 / 第十一轮 9b：#56 **未处理** `Settings.input_path` 在允许目录检查之前 resolve UNC 的问题；原函数顺序仍然存在。不能用 #56 的 INCLUDE 检查改进代替这一项，保留为 Codex 原生路径待办并告知审阅者。
-- I01 / 引用总数预算：按用户确认分工，Claude 增加共享 max_references，Codex 随接口接入与回归；未交付接口前不记完成。
+核查依据：[配方模块](../src/ls_prepost_mcp/automation/recipes.py)、[安装资产 API](../src/ls_prepost_mcp/installation_assets.py)、[旧 JSON 回归](../tests/test_recipes.py)、[安装资产回归](../tests/test_workflow_foundations.py)。#13 已把 JSON 模板接入配方候选检索/执行并保留旧名，不重复迁移。真实断点是安装目录的 template.k / kwfilter txt 仅能经安装 API 使用，find_recipe 不发现安装资产，run_recipe 无安装资产引用路由。
 
-## 旧分支核对
+实现独占：新 `src/ls_prepost_mcp/automation/installed_recipes.py`、`src/ls_prepost_mcp/automation/recipes.py` 的安装资产接线、新 `tests/test_installed_recipes.py`、必要专属原生测试 `tests/test_installed_recipes_native.py`、`docs/decisions/evidence/a08-installed/`。复用既有 catalog/describe/instantiate/apply，不复制解析器或核心读取器；installation_assets.py、programs.py/native_macros.py（冻结 A05 #88）、service/registry、Cursor 查询与索引/schema、反重力 G04/Q03、Claude 共享核心保持只读。实现者不改本看板/owner；任务事实如需更新仅提交 A08 的真实 evidence/gaps 及生成 TASKS，原验收/release/依赖/status 不变，保留并行修改。
 
-`codex/fix-native-version-detection` 头为 29a8d1d，比 main 多 6 个历史提交，不应把“多 6 个”直接解释为未交付功能：
+离线先完成发现、真实候选元数据、参数/单位合同、现有执行适配和新旧结果等价测试；不把模板/过滤器假装为已验证 cfile，不以静态 alias 或元数据冒充执行。I01 已有程序引擎及安装实例化作业/可选 inspect_model 底座可复用；不依赖待完成 GUI 面板、G03 或共享计算新实现。原生 reopen 必须另向总调度申请唯一 headless lease，GUI/UU 不在本派发授权中。全量安装覆盖、30 配方各自 L2 和原有失败/未验证模式继续如实保留，不能因适配层交付宣布 A08 done。
 
-- 29a8d1d 的 native/_version_resource.py、native/versions.py、dpf_worker.py 和 test_version_resources.py 与重挂提交 935ef0b 对应文件无差异；后者随 #39 合入（merge 9be385f），主干还有后续审阅修复。
-- d6f64fa、22ce5a5 在 main 有 patch-equivalent 提交，分别经 #32/#33 交付；进程与日志改动经 #37/#38 重挂后交付。
-- 9651d02 的面板迁移仍在 #26（Draft）分支历史中，不当作已经合入 main。
-- 完整旧头 29a8d1d 还被 `codex/fix-session-queue-backpressure` 指向；版本工作树无未提交文件。因此无需为旧版本分支再开重复 PR，可作为待用户决定删除的冗余分支引用。**尚未删除任何分支或工作树**，其现有检出工作树也不自动清理。
-
-## 待解决的范围冲突
-
-#63（antigravity/q05-q11-postprocessing，75b3680）包含 Q05/Q07/Q08/Q11，未见正式派发；Q08 与 #61 已派给 Cursor 的任务直接重叠，#57 又仍待审。已在 #63 与 #61 评论协调：保留提交、暂缓重叠部分合并，不修改 Q08 owner，不自动认可额外任务。Pillow 绘图路线也不能自行替代已定 D2 与 #61 验收。由 Claude 先核对范围与交接；若要改变分工或后端标准，交用户决定。此记录不是新任务派发。
+执行要求以本分支自足派发 PR 正文为准：首个有效提交开 Draft 并 claim 实现 PR；本地相关测试和静态校验，exact head 正式五项 CI 全绿后 Ready 冻结交 Claude。私有/厂商内容及派生数据留外部配置，公开仅原创夹具与脱敏证据；复用现有环境、单原生 lease，不全量本地测试、不复制语料。只 merge，不改旧头、不合 main。

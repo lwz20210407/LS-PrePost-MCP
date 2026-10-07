@@ -1,6 +1,7 @@
 """Authenticated loopback notification for the noninteractive session bridge."""
 
 import json
+import re
 import socket
 
 
@@ -17,6 +18,8 @@ class QueueTransport:
 
     def submit(self, request_id):
         self.preflight()
+        if not isinstance(request_id, str) or not re.fullmatch(r"[a-f0-9]{32}", request_id):
+            raise ValueError("Queue request ID must be a lowercase 32-character hex ID")
         message = dict(token=self.ready["token"], session_id=self.ready["session_id"], request_id=request_id)
         with socket.create_connection(("127.0.0.1", self.ready["port"]), timeout=self.timeout) as connection:
             connection.sendall(json.dumps(message).encode("utf8") + b"\n")
