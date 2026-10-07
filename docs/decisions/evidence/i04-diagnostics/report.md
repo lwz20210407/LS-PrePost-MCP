@@ -82,3 +82,27 @@ Ruff、import-linter、validate_tasks、gen_docs --check、validate_tool_migrati
 fetch_corpus --check-registry、check_doc_links、git diff --check 均通过。
 完整 Ubuntu/Windows × Python 3.11/3.12 与 minimal-deps 以 PR #92 的正式 CI 为准。
 未执行 GUI、UU、4.10、求解器；不改变 I04 原验收和其他未完成格。
+
+## Claude 审阅后修复（2026-10-08）
+
+- P1-92a：`test_engine_native.py` 的 Windows 中文 INCLUDE 参数现在直接断言启动前
+  `ValueError`、未创建作业及源目录不变；非 Windows 的严格 xfail 仅匹配
+  `NativeIncludeReadError`，4.10 ASCII 相对 INCLUDE 的既有限制保留。
+- P1-92b：KNOWN_ISSUES 同步拒绝时点、公开例 `0xC0000005`、合成例 rc=0 的失败及新测试断言。
+- P2-92c / P2-92e：KNOWN_ISSUES 明确 ASCII 根路径下非 ASCII INCLUDE 成员及
+  `*INCLUDE_PATH` 目录未验证，并登记 LASSO 尾数据未修复缺陷及 Claude 责任边界。
+- P2-92d：平台条件抽为 `_windows()`；测试只替换该条件，不替换整个 `os` 模块。
+  回归额外在输入预检中使用 `os.path` 和 `os.environ`，验证依赖仍可用。
+
+新增 [审阅回归](../../../../tests/test_public_corpus_review.py) 的 7 项检查覆盖上述清单。
+main 基线为 `c5a43e8fd2f9b0664b65c5e6dac6e225d3c3d637`：在独立 pytest 进程中加载该提交
+的 `service.py`，将原生测试和 KNOWN_ISSUES 指向该提交的只读快照，保留新增测试本身，
+结果 **5 failed / 2 passed**，失败项对应五个审阅条目；修复后 **7 passed**。
+另外两个检查在 main 和修复后都通过，确认非 Windows 已有诊断匹配没有被放宽。
+这是源码/文档回归对照，不是运行 main 的整套测试或原生验收。
+
+完整依赖 Windows Python 3.12 的相关测试（原有五个文件，加审阅回归及 test_engine_native）
+为 **46 passed / 17 skipped**；最小依赖为 **45 passed / 18 skipped**。
+`pytest tests/test_engine_native.py --collect-only -q` 修改前后均为 **15 tests collected**。
+本轮对原生测试体的调用全部打桩，未传 `--run-native`，没有新开原生窗口。
+main 仅通过 merge 同步；shared model/results 的变化仅来自已合 main，本次未编辑其实现。

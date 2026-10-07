@@ -72,10 +72,9 @@ def test_changed_source_and_added_files_are_detected(tmp_path):
 
 def test_windows_unicode_include_root_rejected_before_job_creation(tmp_path, monkeypatch):
     import importlib
-    from types import SimpleNamespace
 
     module = importlib.import_module("ls_prepost_mcp.service")
-    monkeypatch.setattr(module, "os", SimpleNamespace(name="nt"))
+    monkeypatch.setattr(module, "_windows", lambda: True)
     monkeypatch.setattr(diagnostic.Settings, "native_executable", lambda _: tmp_path / "unused.exe")
     source = write_keyword_fixture(tmp_path / "中文")
     service = diagnostic.Service(diagnostic.Settings(tmp_path / "jobs", allowed_roots=(tmp_path,)))
@@ -88,10 +87,9 @@ def test_windows_unicode_include_root_rejected_before_job_creation(tmp_path, mon
 @pytest.mark.parametrize("parent,include", [("ascii", True), ("中文", False)])
 def test_path_guard_preserves_other_native_routes(tmp_path, monkeypatch, parent, include):
     import importlib
-    from types import SimpleNamespace
 
     module = importlib.import_module("ls_prepost_mcp.service")
-    monkeypatch.setattr(module, "os", SimpleNamespace(name="nt"))
+    monkeypatch.setattr(module, "_windows", lambda: True)
     monkeypatch.setattr(diagnostic.Settings, "native_executable", lambda _: tmp_path / "unused.exe")
     source = write_keyword_fixture(tmp_path / parent)
     if not include:

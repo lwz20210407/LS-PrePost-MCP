@@ -50,6 +50,10 @@ from .workflow_sweeps import WorkflowSweepTools
 from .workflows import WorkflowTools
 
 
+def _windows():
+    return os.name == "nt"
+
+
 class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, ModelTargetTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools, ViewTools):
     def __init__(self, settings: Settings):
         self.settings = settings
@@ -74,7 +78,7 @@ class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, Model
             self.settings.check_keyword_includes(source)
             include_bearing = any(line.strip().upper().startswith("*INCLUDE")
                                   for line in source.read_text(errors="replace").splitlines())
-            if include_bearing and os.name == "nt" and not str(source).isascii():
+            if include_bearing and _windows() and not str(source).isascii():
                 raise ValueError(
                     "Non-ASCII source paths for INCLUDE-bearing keyword models are unsupported "
                     "by the Windows native batch route: the absolute-path open can fail and crash "
