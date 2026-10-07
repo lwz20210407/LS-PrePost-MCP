@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 from ls_prepost_mcp import keyword_documentation
-from ls_prepost_mcp.keyword_documentation import KeywordField, keyword_fields
+from ls_prepost_mcp.keyword_documentation import KeywordField, KeywordWithoutFields, keyword_fields
 from ls_prepost_mcp.knowledge_index import build_index, chunks, repository_documents
 
 
@@ -48,7 +48,8 @@ def main():
             documents.extend(chunks(row["path"], source_id=row["id"], category=row["category"],
                                     license=row["license"], version=row.get("version", "unspecified"),
                                     locator="local://" + row["id"]))
-    result = build_index(args.output, documents, fields)
+    fieldless = [KeywordWithoutFields(**row) for row in coverage.get("without_fields_detail", [])]
+    result = build_index(args.output, documents, fields, fieldless)
     if coverage:
         result["keyword_coverage"] = coverage
     print(json.dumps(result, ensure_ascii=False))

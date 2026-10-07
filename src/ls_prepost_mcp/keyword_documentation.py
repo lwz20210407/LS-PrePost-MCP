@@ -7,7 +7,12 @@ import re
 import sys
 from dataclasses import asdict, dataclass
 from dataclasses import field as data_field
+from functools import lru_cache
 from pathlib import Path
+
+REVIEW_PATH = Path(__file__).resolve().parent / "data" / "keyword_fieldless_review.json"
+STRUCTURES = frozenset(("no_cards", "no_named_fields", "free_text_card", "series_layout_not_returned",
+                        "generated_layout_not_returned", "layout_not_returned"))
 
 
 @dataclass(frozen=True)
@@ -39,6 +44,46 @@ class KeywordField:
             raise ValueError("Manual content cannot be marked MIT")
 
 
+@dataclass(frozen=True)
+class KeywordWithoutFields:
+    """A catalog identifier with no returned field; structure is the provider's, review is I05's."""
+
+    entity_key: str
+    version: str
+    provider_structure: str
+    card_kinds: list[str]
+    review: dict | None = None
+
+    def __post_init__(self):
+        if not self.entity_key.startswith("*") or not self.version or self.provider_structure not in STRUCTURES:
+            raise ValueError("Invalid field-less keyword identity/structure")
+        if self.review is not None and self.review.get("verdict") not in fieldless_review()["verdicts"]:
+            raise ValueError("Unknown field-less keyword verdict")
+
+    @property
+    def verdict(self):
+        return self.review["verdict"] if self.review else "unreviewed"
+
+
+@lru_cache(maxsize=1)
+def fieldless_review():
+    return json.loads(REVIEW_PATH.read_text(encoding="utf-8"))
+
+
+def provider_structure(cards):
+    """Classify why the provider's cards carried no named field, from card kinds alone."""
+    kinds = [str(card.get("kind", "Card")) for card in cards]
+    if not kinds:
+        return "no_cards"
+    if any(kind.startswith("CardSet") for kind in kinds):
+        return "generated_layout_not_returned"
+    if "SeriesCard" in kinds:
+        return "series_layout_not_returned"
+    if set(kinds) <= {"Card", "TextCard"}:
+        return "free_text_card" if "TextCard" in kinds else "no_named_fields"
+    return "layout_not_returned"
+
+
 def documentation_provider():
     try:
         return importlib.import_module("ls_prepost_mcp.domain.model.keyword_docs")
@@ -65,7 +110,8 @@ def keyword_fields(keywords=None, provider=None, *, coverage=None):
     """Yield every field; optional coverage records enumeration, never solver proof.
 
     Provider exceptions propagate. An all-keyword build must not silently publish
-    a partial catalog. Keywords with no returned fields are listed explicitly.
+    a partial catalog. Keywords with no returned fields are listed explicitly,
+    with the provider's card structure and the I05 review verdict (if any).
     """
     if provider is None:
         provider = documentation_provider()
@@ -74,7 +120,8 @@ def keyword_fields(keywords=None, provider=None, *, coverage=None):
     keywords = list(dict.fromkeys(keywords))
     if coverage is not None:
         coverage.update(requested_keywords=len(keywords), completed_keywords=0,
-                        field_records=0, without_fields=[])
+                        field_records=0, without_fields=[], without_fields_detail=[], without_fields_verdicts={})
+    reviewed = fieldless_review()["keywords"]
     for keyword in keywords:
         doc = provider.keyword_doc(keyword)
         field_count = 0
@@ -99,6 +146,13 @@ def keyword_fields(keywords=None, provider=None, *, coverage=None):
             coverage["field_records"] += field_count
             if not field_count:
                 coverage["without_fields"].append(keyword)
+                record = KeywordWithoutFields(doc.get("keyword", keyword), doc.get("source", {}).get("fields", "unspecified"),
+                                              provider_structure(doc["cards"]),
+                                              [str(card.get("kind", "Card")) for card in doc["cards"]],
+                                              reviewed.get(doc.get("keyword", keyword)))
+                coverage["without_fields_detail"].append(asdict(record))
+                verdicts = coverage["without_fields_verdicts"]
+                verdicts[record.verdict] = verdicts.get(record.verdict, 0) + 1
 
 
 if __name__ == "__main__":

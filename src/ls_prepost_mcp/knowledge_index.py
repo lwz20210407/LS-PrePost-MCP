@@ -15,7 +15,7 @@ from contextlib import closing
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from .keyword_documentation import KeywordField
+from .keyword_documentation import KeywordField, KeywordWithoutFields, fieldless_review
 
 CATEGORIES = frozenset(("command", "api", "keyword", "user_guide", "recipe", "known_issue"))
 PUBLIC_LICENSES = frozenset(("MIT", "Apache-2.0", "BSD-3-Clause", "CC0-1.0"))
@@ -165,10 +165,31 @@ def repository_documents(root=REPOSITORY):
         yield from chunks(path, source_id=relative, category="recipe", license="MIT", visibility="public", locator="repo://" + relative)
 
 
-def build_index(destination, documents, fields=()):
+def fieldless_document(record):
+    review = record.review or {}
+    meaning = fieldless_review()["verdicts"].get(review.get("verdict"), "Not reviewed; field coverage is unknown.")
+    text = " ".join(part for part in (
+        record.entity_key + ": keyword_docs returned no named field.",
+        "Provider card structure: " + record.provider_structure + " (" + ", ".join(record.card_kinds or ["none"]) + ").",
+        "Review verdict: " + record.verdict + (" (" + review["basis"] + ")." if review.get("basis") else "."),
+        meaning, review.get("note", "")) if part)
+    return Document("keyword_docs:" + record.entity_key, "keyword", record.entity_key, text,
+                    "keyword_docs://" + record.entity_key, "MIT", "public", record.version)
+
+
+def build_index(destination, documents, fields=(), fieldless=()):
     """Publish a complete index atomically; interrupted partials cannot block rebuilds."""
     path = Path(destination).resolve()
     rows = list(documents)
+    fieldless_map = {}
+    for record in fieldless:
+        if not isinstance(record, KeywordWithoutFields):
+            raise ValueError("Field-less keywords must come from the keyword_docs adapter")
+        if fieldless_map.get(record.entity_key, record) != record:
+            raise ValueError("Provider returned conflicting field-less keyword records")
+        fieldless_map[record.entity_key] = record
+    fieldless_rows = {record.entity_key: fieldless_document(record) for record in fieldless_map.values()}
+    rows.extend(fieldless_rows.values())
     field_map = {}
     for field in fields:
         if not isinstance(field, KeywordField):
@@ -202,6 +223,7 @@ def build_index(destination, documents, fields=()):
             db.execute("CREATE VIRTUAL TABLE search_terms USING fts5(id UNINDEXED, terms)")
             db.execute("CREATE TABLE keyword_fields (document_id TEXT PRIMARY KEY, entity_key TEXT, option TEXT, card TEXT, field TEXT, offset INTEGER, width INTEGER, help TEXT, links TEXT, manual_ref TEXT, solver_status TEXT, license TEXT, aliases TEXT)")
             db.execute("CREATE INDEX keyword_lookup ON keyword_fields(entity_key,field)")
+            db.execute("CREATE TABLE keyword_without_fields (document_id TEXT PRIMARY KEY, entity_key TEXT UNIQUE, provider_structure TEXT, card_kinds TEXT, verdict TEXT, review TEXT)")
             db.execute("CREATE TABLE metadata (schema_version INTEGER)")
             db.execute("INSERT INTO metadata VALUES (2)")
             seen = set()
@@ -215,6 +237,11 @@ def build_index(destination, documents, fields=()):
                 digest = hashlib.sha256(row.text.encode()).hexdigest()
                 db.execute("INSERT INTO documents VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (ident, *data.values(), digest))
                 db.execute("INSERT INTO search_terms VALUES (?,?)", (ident, " ".join(terms(row.title + " " + row.text))))
+                record = fieldless_map.get(row.title)
+                if record and fieldless_rows[row.title] is row:
+                    db.execute("INSERT INTO keyword_without_fields VALUES (?,?,?,?,?,?)",
+                               (ident, record.entity_key, record.provider_structure, json.dumps(record.card_kinds),
+                                record.verdict, json.dumps(record.review)))
                 field = field_map.get(row.locator)
                 if field:
                     db.execute("INSERT INTO keyword_fields VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
@@ -229,7 +256,8 @@ def build_index(destination, documents, fields=()):
     finally:
         if created:
             _cleanup_owned_temp(partial, original)  # Only this invocation's UUID-named partial.
-    return dict(schema_version=2, documents=len(seen), keyword_fields=len(field_map), categories=counts,
+    return dict(schema_version=2, documents=len(seen), keyword_fields=len(field_map),
+                keywords_without_fields=len(fieldless_map), categories=counts,
                 private=any(row.visibility == "private" for row in rows))
 
 

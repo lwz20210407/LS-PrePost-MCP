@@ -997,16 +997,18 @@ infrastructure:
     milestone: M1
     status: partial
     gaps:
-      - 已直接对接主干 keyword_docs；3171 个目录标识中 38 个未返回命名字段，须区分无字段指令与提供者未给出的布局
-      - 已构建 66900 条独立字段并完成六类来源检索冒烟；不替代 A10 的留出集质量评测，完整字段覆盖仍待上述空字段项确认
+      - 38 个空字段项已按提供者结构与 R17 手册复核分类：23 无数据卡、1 自由文本已确认；10 项手册有字段而 keyword_docs 未返回布局（Claude 提供者范围），4 项手册无独立章节待定
+      - 3171 个标识均已入索引（66900 字段 + 38 关键字级文档）；新头上的 API 类只用合成私有夹具验证管线，真实私有 Scripting API/用户指南复验待用户提供本机来源；不替代 A10 留出集评测
     verification_level: L1
     evidence:
       - src/ls_prepost_mcp/knowledge_index.py
       - src/ls_prepost_mcp/keyword_documentation.py
+      - src/ls_prepost_mcp/data/keyword_fieldless_review.json
       - tools/build_knowledge_index.py
       - tests/test_knowledge_index.py
       - tests/test_keyword_index_coverage.py
       - docs/decisions/evidence/i05-catalog/report.md
+      - docs/decisions/evidence/i05-catalog/fieldless-review.json
     acceptance:
       - 命令表、Scripting API、关键字定义、用户指南章节、配方、KNOWN_ISSUES 建立索引
       - 公开部分可入仓库；私有课程资料的索引在仓库外
