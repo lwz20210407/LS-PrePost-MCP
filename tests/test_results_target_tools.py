@@ -215,6 +215,21 @@ def test_corrupt_binout_fails_as_a_recorded_job(tmp_path: Path) -> None:
     assert job["status"] == "failed"
 
 
+def test_large_csv_still_gets_a_full_sha256(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    # jobs.fingerprint leaves sha256 empty for files over 64 MiB (a 1M-row CSV is ~70 MB); simulate
+    # that branch instead of writing 70 MB in CI. The tool must still report a verified hash.
+    import ls_prepost_mcp.results_target_tools as module
+
+    real = module.check_artifact
+    monkeypatch.setattr(module, "check_artifact",
+                        lambda path, kind: {**real(path, kind), "sha256": None, "hash_note": "over 64 MiB"})
+    _shard(tmp_path / "binout0000", "nodfor", [0.0, 1.0], ids=[3, 4])
+    result = _valid(_service(tmp_path).extract_database(str(tmp_path / "binout0000"), "nodfor", "x_force", "N"))
+    assert result.status == "succeeded"
+    artifact = result.artifacts[0]
+    assert artifact.sha256 == hashlib.sha256(Path(artifact.path).read_bytes()).hexdigest()
+
+
 def test_tool_is_registered_on_the_mcp_server(tmp_path: Path) -> None:
     names = {t.name for t in asyncio.run(build_server(Settings(tmp_path), "full").list_tools())}
     assert "extract_database" in names

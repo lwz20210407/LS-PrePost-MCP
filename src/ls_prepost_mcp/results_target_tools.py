@@ -12,6 +12,7 @@ are the stored column names (no UI component numbers); values stay in the model'
 from __future__ import annotations
 
 import csv
+import hashlib
 import re
 import struct
 from pathlib import Path
@@ -134,6 +135,8 @@ class ResultsTargetTools:
                         writer.writerow([t, user_id, *tag, row[index]])
                         row_count += 1
         info = check_artifact(output, "csv")
+        if not info.get("sha256"):  # jobs.fingerprint skips hashing over 64 MiB; a verified CSV needs one
+            info = {**info, "sha256": _sha256(output)}
         artifact = Artifact(path=str(output), kind="csv", sha256=info["sha256"], size_bytes=info["size"],
                             verification="verified", metadata={"columns": headers})
         selected = None if ids is None else [user_id for user_id, _, _ in columns]
@@ -184,6 +187,14 @@ class ResultsTargetTools:
                 raise ValueError(f"entity_ids not stored in this database: {missing[:10]}")
             chosen = [index for wanted in entity_ids for index, user_id in enumerate(stored) if user_id == wanted]
         return [(stored[i], i, tags[i]) for i in chosen], ["time", "entity_id", *key, component]
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1 << 20), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def _error(error: Exception) -> dict:
