@@ -153,7 +153,8 @@
     {"name": "edit_keywords", "domain": "model", "target": "edit_keywords", "task_id": "P02", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
     {"name": "create_entities", "domain": "model", "target": "create_entities", "task_id": "P04", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
     {"name": "mesh_ops", "domain": "mesh", "target": "mesh_ops", "task_id": "P08", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
-    {"name": "check_model", "domain": "checks", "target": "check_model", "task_id": "P09", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"}
+    {"name": "check_model", "domain": "checks", "target": "check_model", "task_id": "P09", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
+    {"name": "extract_field", "domain": "results", "target": "extract_field", "task_id": "Q04", "legacy_until": null, "note": "M2 target tool on domain.results (lasso_backend / invariants); returns JobResult/v1"}
   ],
   "workflow_aliases": {"new_model": "reset_gui_session", "open_model": "open_in_gui_session", "checkpoint": "checkpoint_gui_session"}
 }
