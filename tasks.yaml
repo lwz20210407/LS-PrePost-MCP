@@ -372,6 +372,7 @@ tasks:
       - 原生重开后 Joint 定义读回一致
 
   - id: Q01
+    owner: cursor
     group: post
     title: 结果概览
     story: 这个 d3plot 有多少个状态，时间范围多少，有哪些变量，有没有删除单元
