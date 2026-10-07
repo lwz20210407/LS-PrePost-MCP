@@ -55,6 +55,8 @@ run_recipe(reference, parameters={
 
 本地复用既有锁定环境；命令中的 `<scratch>` 为任务外部临时目录，不提交本机绝对路径、原生日志或厂商内容。实际本地测试与实现头 CI 结果由实现 PR 记录。
 
+相关测试 **126 passed / 3 skipped**（Windows 符号链接权限 2 项、默认不执行原生 1 项）；Ruff、import-linter 2.6（3 kept / 0 broken）及下列全部校验通过。实现头 `8c05f080ac781732681cdec9f17ec35d5b63da48` 的正式 [workflow_dispatch 五项 CI](https://github.com/lwz20210407/LS-PrePost-MCP/actions/runs/37656070044) 全 success，Draft skipped 不计；后续证据提交的最终头仍须单独通过五项 CI。
+
 ```text
 python -m pytest tests/test_installed_recipes.py tests/test_installed_recipes_native.py tests/test_recipes.py tests/test_workflow_foundations.py tests/test_core_contracts.py tests/test_task_catalog.py tests/test_doc_links.py -q -p no:cacheprovider --basetemp <scratch>/green
 python -m ruff check . --no-cache
@@ -66,5 +68,15 @@ python tools/fetch_corpus.py --check-registry
 python tools/check_doc_links.py
 git diff --check
 ```
+
+2026-10-08，独占 lease A08-001 批准后，原创模板 + 四节点壳单次 headless 重开 **1 passed / 9.27s**：
+
+```text
+python -m pytest tests/test_installed_recipes_native.py -q -p no:cacheprovider --run-native --native-strict --native-executable <explicit-4.13-executable> --native-output <scratch>/native413
+```
+
+实际 stdout 构建标识为 **2026 R1 v4.13.4 / 17Dec2025**；不是以 executable 元数据 4.13.0.1 推断运行构建。该次执行源码为上面的干净提交，现场源码快照与逐文件哈希见 [脱敏原生摘要](native-summary.json)。参数 T=2，原生读回 4 节点 / 1 单元 / 1 状态，退出码 0，graphics=false、launch_mode=c，源输入前后身份和两个输出 SHA256 一致。启动前与结束后 LS-PrePost 进程数均为 0，窗口已在派发/实现 PR 及 AO 释放。原始上下文、请求和日志留在外部 scratch。
+
+这只验证一个原创适配场景，不验证厂商安装清单或其他模板。`versions_verified=[]` 和 `solver_validated=false` 保留；未运行 4.10、GUI、UU、session 或求解器。最终证据提交不修改该次运行的实现与测试源码。
 
 剩余 gap：真实安装逐项清单/支持/不支持/未测证据；各版本各模式 L2；30 配方发布门槛；session/GUI、许可证受限来源。原生执行必须另有 headless lease 与显式 --run-native；不复用旧授权。本适配不改变任务 acceptance、release、status、depends_on 或删除旧 gap。
