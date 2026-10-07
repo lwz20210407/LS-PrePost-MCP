@@ -1,0 +1,151 @@
+[
+  {
+    "id": "HB01",
+    "category": "command",
+    "query": "想看某个部件沙漏能随时间变化的曲线，用哪个命令？",
+    "title": "mtime 21"
+  },
+  {
+    "id": "HB02",
+    "category": "command",
+    "query": "壳单元的减薄率时程曲线怎么输出",
+    "title": "etime 68"
+  },
+  {
+    "id": "HB03",
+    "category": "command",
+    "query": "鼠标点选时总是选不中，拾取容差的像素范围能调大吗",
+    "title": "pixtol"
+  },
+  {
+    "id": "HB04",
+    "category": "command",
+    "query": "怎么一次性取消所有镜像对称显示（reflect）",
+    "title": "raoff"
+  },
+  {
+    "id": "HB05",
+    "category": "api",
+    "query": "SCL 脚本里怎么获取当前模型所在的文件夹路径",
+    "text": "SCLGetModelDirectory"
+  },
+  {
+    "id": "HB06",
+    "category": "api",
+    "query": "用 SCL 查询某种实体类型目前用到的最大 ID",
+    "text": "SCLGetEntityMaxID"
+  },
+  {
+    "id": "HB07",
+    "category": "api",
+    "query": "几何清理时能不能用脚本自动填补分析出来的孔洞",
+    "text": "SCLHoleManage"
+  },
+  {
+    "id": "HB08",
+    "category": "api",
+    "query": "SCLSetDBEntityColor 的颜色数组第四个分量代表什么",
+    "text": "DBEntityColor"
+  },
+  {
+    "id": "HB09",
+    "category": "keyword",
+    "query": "计算结束时间在哪个关键字的哪个字段里填",
+    "title": "*CONTROL_TERMINATION",
+    "field": "endtim"
+  },
+  {
+    "id": "HB10",
+    "category": "keyword",
+    "query": "开质量缩放要指定目标时间步长，填 CONTROL_TIMESTEP 的哪一项",
+    "title": "*CONTROL_TIMESTEP",
+    "field": "dt2ms"
+  },
+  {
+    "id": "HB11",
+    "category": "keyword",
+    "query": "d3plot 不想按时间间隔输出，想按总帧数平均分配输出用哪个参数",
+    "title": "*DATABASE_BINARY_D3PLOT",
+    "field": "npltc"
+  },
+  {
+    "id": "HB12",
+    "category": "keyword",
+    "query": "给旋转部件设置初始角速度（绕轴转动）是哪个字段",
+    "title": "*INITIAL_VELOCITY_GENERATION",
+    "field": "omega"
+  },
+  {
+    "id": "HB13",
+    "category": "user_guide",
+    "query": "网格分块划分后交界处有重合节点，怎么找出来并合并",
+    "text": "DupNode"
+  },
+  {
+    "id": "HB14",
+    "category": "user_guide",
+    "query": "整个模型的节点和单元编号想整体加偏移量重新编号，在哪个界面",
+    "text": "Renumber"
+  },
+  {
+    "id": "HB15",
+    "category": "user_guide",
+    "query": "装配体部件太多互相遮挡，有没有爆炸视图能把零件分开看",
+    "text": "explode"
+  },
+  {
+    "id": "HB16",
+    "category": "user_guide",
+    "query": "Windows 无图形批处理的作业目录是中文路径时，怎么配置 ASCII 别名目录",
+    "locator": "repo://docs/INSTALL.md",
+    "text": "LSPP_NATIVE_ALIAS_ROOT"
+  },
+  {
+    "id": "HB17",
+    "category": "recipe",
+    "query": "先检查动能比和沙漏能比例、再对选定能量求和的工作流示例",
+    "locator": "energy_screening_gate"
+  },
+  {
+    "id": "HB18",
+    "category": "recipe",
+    "query": "Hex8 质量检查不合格的单元，怎么拿到用户编号并在 GUI 里选中定位",
+    "locator": "visible_gui_locate_failed_solids"
+  },
+  {
+    "id": "HB19",
+    "category": "recipe",
+    "query": "力曲线单位是 kN、时间是 ms，怎么先换算成 N 和 s 再算拉伸曲线",
+    "locator": "declared_unit_tensile"
+  },
+  {
+    "id": "HB20",
+    "category": "recipe",
+    "query": "按指定结果字段渲染云图并固定颜色范围的工作流模板",
+    "locator": "visible_gui_named_fringe"
+  },
+  {
+    "id": "HB21",
+    "category": "known_issue",
+    "query": "XY 曲线里写入 0.1，读回来变成 0.10000000149，是精度丢了吗",
+    "title": "KI-031"
+  },
+  {
+    "id": "HB22",
+    "category": "known_issue",
+    "query": "LASSO 读出来的节点位移看起来把初始坐标也算进去了",
+    "title": "KI-014"
+  },
+  {
+    "id": "HB23",
+    "category": "known_issue",
+    "query": "保存视图之后文件里没有任何数据，为什么",
+    "title": "KI-021"
+  },
+  {
+    "id": "HB24",
+    "category": "known_issue",
+    "query": "实体单元请求第8个积分点的应力，返回的却是第1个点的值",
+    "title": "KI-013"
+  }
+]
