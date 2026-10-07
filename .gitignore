@@ -24,3 +24,5 @@ private/
 native-workspace*/
 acceptance-results*/
 *.xy
+
+temp/
