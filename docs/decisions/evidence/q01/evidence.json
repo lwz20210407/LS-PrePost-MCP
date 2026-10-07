@@ -1,0 +1,279 @@
+{
+ "task": "Q01",
+ "tool": "result_info",
+ "developer": "cursor",
+ "base_revision": "e41cf65",
+ "backends": {
+  "lasso": "lasso-python 2.0.4",
+  "lsprepost": "LS-PrePost 4.13.0.1 (2026R1), headless batch, embedded Python inspect_model"
+ },
+ "corpus": "public corpus via LSPP_CORPUS_DIR; IDs and relative paths only, files not committed",
+ "time_tolerance_rule": "1e-6 x largest |state time|",
+ "cases": {
+  "plade_bb": {
+   "corpus_path": "public-results/node997__dyna_pladebuk/Plade_300_150_4/BB",
+   "status": "succeeded",
+   "error": null,
+   "checks": {
+    "lasso_overview": "passed",
+    "backends_agree": "passed"
+   },
+   "warnings": [],
+   "states": 2,
+   "time_range": [
+    0.0,
+    0.1
+   ],
+   "elements": {
+    "solid": {
+     "count": 15390,
+     "history_variables": 0,
+     "history_variables_source": "readable LASSO array (strain tensors excluded)",
+     "header_extra_values_per_point": 6,
+     "deleted_at_last_state": 0,
+     "deletion_meaning": "elements flagged deleted (zero MDLOPT code) at the last state"
+    }
+   },
+   "header": {
+    "neiph_solid": 6,
+    "neips_shell_tshell": 0,
+    "neipb_beam": 0,
+    "strain_tensor_stored": true,
+    "plastic_strain_tensor_stored": true,
+    "thermal_strain_tensor_stored": false,
+    "deletion_data_stored": true,
+    "meaning": "header words: extra values per integration point, including stored strain tensors"
+   },
+   "parts": 3,
+   "variables": 36,
+   "binout": {
+    "files": [
+     "binout"
+    ],
+    "databases": [
+     "glstat",
+     "matsum",
+     "rcforc",
+     "spcforc",
+     "tprint"
+    ],
+    "split_over_shards": {}
+   },
+   "ascii_files": [
+    "bndout",
+    "deforc",
+    "elout",
+    "glstat",
+    "jntforc",
+    "matsum",
+    "ncforc",
+    "nodout",
+    "rcforc",
+    "spcforc"
+   ],
+   "comparison": {
+    "lasso_states": 2,
+    "lsprepost_states": 2,
+    "state_counts_equal": true,
+    "max_abs_time_difference": 5.960464483090178e-09,
+    "time_tolerance": 1e-07,
+    "time_tolerance_rule": "1e-6 x largest |state time|",
+    "times_equal": true
+   },
+   "lsprepost_status": "succeeded",
+   "lsprepost_states": 2,
+   "d3plot_sha256": "14dda2001542470931fd0f1e272034f351385216327110c238e1602ab58c8d17",
+   "d3plot_family_files": 2,
+   "first_run": {
+    "status": "succeeded",
+    "checks": {
+     "lasso_overview": "passed",
+     "backends_agree": "passed"
+    },
+    "error": null
+   }
+  },
+  "bolt_b_mpp": {
+   "corpus_path": "public-results/hu-shuhan__editOpeniGame/test/Format Validation Test/lsdyna/Bolt_B_Explicit",
+   "status": "succeeded",
+   "error": null,
+   "checks": {
+    "lasso_overview": "passed",
+    "backends_agree": "passed"
+   },
+   "warnings": [],
+   "states": 102,
+   "time_range": [
+    0.0,
+    5.00006628036499
+   ],
+   "elements": {
+    "solid": {
+     "count": 784,
+     "history_variables": 0,
+     "history_variables_source": "readable LASSO array (strain tensors excluded)",
+     "header_extra_values_per_point": 0,
+     "deleted_at_last_state": 0,
+     "deletion_meaning": "elements flagged deleted (zero MDLOPT code) at the last state"
+    },
+    "shell": {
+     "count": 648,
+     "history_variables": 0,
+     "history_variables_source": "readable LASSO array (strain tensors excluded)",
+     "header_extra_values_per_point": 0,
+     "deleted_at_last_state": 0,
+     "deletion_meaning": "elements flagged deleted (zero MDLOPT code) at the last state"
+    },
+    "beam": {
+     "count": 70,
+     "history_variables": 0,
+     "history_variables_source": "readable LASSO array (strain tensors excluded)",
+     "header_extra_values_per_point": 0,
+     "deleted_at_last_state": 0,
+     "deletion_meaning": "elements flagged deleted (zero MDLOPT code) at the last state"
+    }
+   },
+   "header": {
+    "neiph_solid": 0,
+    "neips_shell_tshell": 0,
+    "neipb_beam": 0,
+    "strain_tensor_stored": false,
+    "plastic_strain_tensor_stored": false,
+    "thermal_strain_tensor_stored": false,
+    "deletion_data_stored": true,
+    "meaning": "header words: extra values per integration point, including stored strain tensors"
+   },
+   "parts": 7,
+   "variables": 49,
+   "binout": {
+    "files": [
+     "binout0000",
+     "binout0004",
+     "binout0005",
+     "binout0007"
+    ],
+    "databases": [
+     "bndout",
+     "elout",
+     "glstat",
+     "matsum",
+     "nodout",
+     "rbdout",
+     "rcforc",
+     "sleout",
+     "spcforc",
+     "swforc"
+    ],
+    "split_over_shards": {}
+   },
+   "ascii_files": [
+    "glstat"
+   ],
+   "comparison": {
+    "lasso_states": 102,
+    "lsprepost_states": 102,
+    "state_counts_equal": true,
+    "max_abs_time_difference": 0.0,
+    "time_tolerance": 5.00006628036499e-06,
+    "time_tolerance_rule": "1e-6 x largest |state time|",
+    "times_equal": true
+   },
+   "lsprepost_status": "succeeded",
+   "lsprepost_states": 102,
+   "d3plot_sha256": "4a714925610f4d8dc1e5edbdabec646aa060614d3de1980f72af19916299a4eb",
+   "d3plot_family_files": 103,
+   "first_run": {
+    "status": "partial",
+    "checks": {
+     "lasso_overview": "passed",
+     "backends_agree": "missing"
+    },
+    "error": {
+     "message": "LS-PrePost inspect_model did not succeed: Native batch failed: timeout=False, returncode=3221225477, diagnostics=[]",
+     "native": {
+      "type": "RuntimeError",
+      "message": "Native batch failed: timeout=False, returncode=3221225477, diagnostics=[]"
+     }
+    }
+   }
+  },
+  "taylor_jc": {
+   "corpus_path": "public-results/zenodo__18598355/FEMU_Taylor/21_mat_JC_real",
+   "status": "succeeded",
+   "error": null,
+   "checks": {
+    "lasso_overview": "passed",
+    "backends_agree": "passed"
+   },
+   "warnings": [],
+   "states": 102,
+   "time_range": [
+    0.0,
+    0.07291927188634872
+   ],
+   "elements": {
+    "solid": {
+     "count": 540,
+     "history_variables": 0,
+     "history_variables_source": "readable LASSO array (strain tensors excluded)",
+     "header_extra_values_per_point": 6,
+     "deleted_at_last_state": 66,
+     "deletion_meaning": "elements flagged deleted (zero MDLOPT code) at the last state"
+    },
+    "shell": {
+     "count": 1,
+     "history_variables": 0,
+     "history_variables_source": "readable LASSO array (strain tensors excluded)",
+     "header_extra_values_per_point": 0,
+     "deleted_at_last_state": 0,
+     "deletion_meaning": "elements flagged deleted (zero MDLOPT code) at the last state"
+    }
+   },
+   "header": {
+    "neiph_solid": 6,
+    "neips_shell_tshell": 0,
+    "neipb_beam": 0,
+    "strain_tensor_stored": true,
+    "plastic_strain_tensor_stored": false,
+    "thermal_strain_tensor_stored": false,
+    "deletion_data_stored": true,
+    "meaning": "header words: extra values per integration point, including stored strain tensors"
+   },
+   "parts": 2,
+   "variables": 44,
+   "binout": {
+    "files": [
+     "binout"
+    ],
+    "databases": [
+     "nodout"
+    ],
+    "split_over_shards": {}
+   },
+   "ascii_files": [
+    "nodout"
+   ],
+   "comparison": {
+    "lasso_states": 102,
+    "lsprepost_states": 102,
+    "state_counts_equal": true,
+    "max_abs_time_difference": 0.0,
+    "time_tolerance": 7.291927188634872e-08,
+    "time_tolerance_rule": "1e-6 x largest |state time|",
+    "times_equal": true
+   },
+   "lsprepost_status": "succeeded",
+   "lsprepost_states": 102,
+   "d3plot_sha256": "02de6beaaebae3ede68d7b1a0e764dac89d6562caf500597f1e4be04be3aba87",
+   "d3plot_family_files": 3,
+   "first_run": {
+    "status": "succeeded",
+    "checks": {
+     "lasso_overview": "passed",
+     "backends_agree": "passed"
+    },
+    "error": null
+   }
+  }
+ }
+}

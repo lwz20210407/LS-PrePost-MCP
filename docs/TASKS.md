@@ -247,7 +247,7 @@
 
 ### Q01 结果概览
 
-状态：partial；版本：v0.5；里程碑：M2；层：T1
+状态：done；版本：v0.5；里程碑：M2；层：T1
 
 这个 d3plot 有多少个状态，时间范围多少，有哪些变量，有没有删除单元
 
@@ -257,11 +257,7 @@
 - 同时列出同目录 binout / ASCII 文件及其包含的库
 - LSPP 与 LASSO 两个后端结果一致（状态数、时间数组）
 
-现有入口：`inspect_d3plot_scl`, `inspect_d3plot_database`, `inspect_result_fields`, `inspect_binout`, `inspect_binout_variable`, `inspect_lsreader`, `inspect_dpf_results`
-
-缺口：
-
-- 7 个清点工具并存
+现有入口：`result_info`, `inspect_d3plot_scl`, `inspect_d3plot_database`, `inspect_result_fields`, `inspect_binout`, `inspect_binout_variable`, `inspect_lsreader`, `inspect_dpf_results`
 
 ### Q02 云图出图
 
