@@ -9,6 +9,7 @@
 | 任务 | 开发者 | 新分支 | 派发说明 | 状态 |
 |---|---|---|---|---|
 | Q01 | Cursor | cursor/Q01-result-overview | 本派发 PR（见标题） | 已派发，待 AO 认领 |
+| Q04 | 反重力 | antigravity/Q04-field-metrics | 本派发 PR（见标题） | 已派发，待 AO 认领 |
 
 ## 已交审与保留事项
 

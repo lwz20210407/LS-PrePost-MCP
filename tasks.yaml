@@ -430,6 +430,7 @@ tasks:
       - 删除单元按 Q04 掩码策略处理并在元数据中注明
 
   - id: Q04
+    owner: antigravity
     group: post
     title: 工程量与失效掩码
     story: 计算靶板所有单元的应力三轴度和 Lode 参数，排除已删除单元，找出最大值所在单元
