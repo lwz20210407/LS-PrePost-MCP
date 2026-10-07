@@ -149,6 +149,7 @@
     {"name": "search_docs", "domain": "knowledge", "target": "search_docs", "task_id": "A10", "kind": "knowledge", "legacy_until": null},
     {"name": "keyword_fields", "domain": "knowledge", "target": "keyword_fields", "task_id": "A10", "kind": "knowledge", "legacy_until": null},
     {"name": "command_help", "domain": "knowledge", "target": "command_help", "task_id": "A10", "kind": "knowledge", "legacy_until": null},
+    {"name": "result_info", "domain": "results", "target": "result_info", "task_id": "Q01", "legacy_until": null, "note": "M2 target tool on the shared LASSO overview with an opt-in LS-PrePost state/time check; returns JobResult/v1"},
     {"name": "model_info", "domain": "model", "target": "model_info", "task_id": "P01", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
     {"name": "edit_keywords", "domain": "model", "target": "edit_keywords", "task_id": "P02", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
     {"name": "create_entities", "domain": "model", "target": "create_entities", "task_id": "P04", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},

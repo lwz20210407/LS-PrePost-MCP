@@ -485,6 +485,12 @@ tools:
     target: alias
     task_id: I01
     legacy_until: v0.6
+  result_info:
+    target: result_info
+    task_id: Q01
+    legacy_until: null
+    note: M2 target tool on the shared LASSO overview with an opt-in LS-PrePost state/time
+      check; returns JobResult/v1
   reverse_gui_shell_normals:
     target: mesh_ops
     task_id: P08

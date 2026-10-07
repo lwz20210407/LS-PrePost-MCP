@@ -380,10 +380,10 @@ tasks:
     milestone: M2
     layer: T1
     target_tools: [result_info]
-    status: partial
-    existing: [inspect_d3plot_scl, inspect_d3plot_database, inspect_result_fields, inspect_binout, inspect_binout_variable, inspect_lsreader, inspect_dpf_results]
-    gaps:
-      - 7 个清点工具并存
+    status: done
+    existing: [result_info, inspect_d3plot_scl, inspect_d3plot_database, inspect_result_fields, inspect_binout, inspect_binout_variable, inspect_lsreader, inspect_dpf_results]
+    gaps: []
+    evidence: [tests/test_result_overview.py, docs/decisions/evidence/q01/report.md]
     acceptance:
       - 返回状态数、每个状态时间、可用变量（含 HSV 数量）、部件、单元类型、删除单元计数
       - 同时列出同目录 binout / ASCII 文件及其包含的库

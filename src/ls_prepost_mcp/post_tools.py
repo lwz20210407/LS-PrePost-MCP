@@ -140,6 +140,11 @@ class PostTools(CurveTargetTools):
         return {"units": units, "conventions": CONVENTIONS, "relative_tolerance": relative_tolerance,
                 "results": [stress_metrics(s, relative_tolerance) for s in stresses]}
 
+    def result_info(self, path: str, native_check: bool = False) -> dict:
+        """Q01 JobResult/v1 overview of a d3plot: state count, every state time (1-based states, model time unit), LASSO variables, header and readable history-variable counts, parts, element families with deletions at the last state (null without deletion data), and the binout shards/databases and ASCII files beside it. native_check=true explicitly opens the family in LS-PrePost and checks that state count and times agree."""
+        from .result_overview import result_info
+        return result_info(self, path, native_check)
+
     def inspect_result_fields(self, path: str, state: int = 1) -> dict:
         """Inventory LASSO fields at one 1-based state, stored axis sizes and bounded user-ID samples. Missing fields cannot be reconstructed."""
         from lasso.dyna import ArrayType

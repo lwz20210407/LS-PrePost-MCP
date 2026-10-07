@@ -123,6 +123,7 @@
 | `reset_gui_session` | I08 | session_id*: string; save_checkpoint: boolean |
 | `restart_gui_session` | I08 | session_id*: string |
 | `restore_gui_checkpoint` | I08 | session_id*: string; path: union/ref; expected_empty: union/ref |
+| `result_info` | Q01 | path*: string; native_check: boolean |
 | `reverse_gui_shell_normals` | P08 | session_id*: string; units*: string; shell_ids: union/ref |
 | `rotate_gui_nodes` | P08 | session_id*: string; node_ids*: array; axis*: string; angle*: number; center*: array; units*: string |
 | `rotate_mesh_nodes` | P08 | model*: string; node_ids*: array; axis*: string; angle*: number; center*: array; units*: string |
