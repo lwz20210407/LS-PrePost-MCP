@@ -345,8 +345,10 @@ def test_input_validation_and_refusals(synthetic_d3plot: Path) -> None:
         service.extract_field(r"\\remote-server\share\d3plot", "solid", "von_mises")
 
     # Outside root path
+    outside_file = synthetic_d3plot.parent.parent / "outside_file"
+    outside_file.write_text("x")
     with pytest.raises(ValueError, match="outside the configured allowed roots"):
-        service.extract_field("C:/Windows/System32/calc.exe", "solid", "von_mises")
+        service.extract_field(str(outside_file), "solid", "von_mises")
 
 
 def test_real_corpus_solid_plate_with_deletions() -> None:
