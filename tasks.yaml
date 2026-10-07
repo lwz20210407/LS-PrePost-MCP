@@ -419,10 +419,14 @@ tasks:
     milestone: M2
     layer: T1
     target_tools: [extract_field]
-    status: partial
+    status: done
     existing: [extract_native_fields, extract_native_stress, extract_d3plot_field, extract_d3plot_stress, extract_nodal_results, extract_d3plot_nodal, extract_lsreader_nodal, export_dpf_result]
-    gaps:
-      - 8 个工具按后端各一份；壳层未认证；实体积分点 2-8 原生返回错值被拒绝
+    evidence:
+      - src/ls_prepost_mcp/field_metrics_tools.py
+      - tests/test_field_extraction.py
+      - docs/decisions/evidence/q03/report.md
+      - docs/decisions/evidence/q03/evidence.json
+    gaps: []
     acceptance:
       - 输出 CSV/NPZ，元数据包含量、分量、单位、状态、时间、层/积分点、坐标系、后端
       - 实体与壳各一个用例；LSPP 与 LASSO 结果逐实体一致（容差内）
@@ -437,10 +441,14 @@ tasks:
     milestone: M2
     layer: T1
     target_tools: [extract_field]
-    status: partial
+    status: done
     existing: [compute_stress_invariants, extract_native_stress, inspect_result_validity]
-    gaps:
-      - 只有实体有原生验证；壳单元缺失
+    evidence:
+      - src/ls_prepost_mcp/field_metrics_tools.py
+      - tests/test_field_metrics.py
+      - docs/decisions/evidence/q04/report.md
+      - docs/decisions/evidence/q04/evidence.json
+    gaps: []
     acceptance:
       - Mises、主应力、三轴度、Lode 参数、Lode 角、等效塑性应变在实体与壳上与独立计算一致
       - 公式定义（尤其 Lode 的符号约定）写进结果元数据
@@ -853,6 +861,7 @@ tasks:
       - 选择操作不改变显隐状态（回归：pall 会重置 blank 的已知坑）
 
   - id: G04
+    owner: antigravity
     group: general
     title: 实体识别 Identify
     story: 节点 1001 的坐标和它在第 30 个状态的位移是多少？属于哪个 Part？
@@ -861,8 +870,14 @@ tasks:
     milestone: M2
     layer: T1
     target_tools: [query_entities]
-    status: partial
+    status: done
     existing: [list_nodes, get_element_connectivity, inspect_gui_mesh]
+    gaps: []
+    evidence:
+      - src/ls_prepost_mcp/entity_identify.py
+      - tests/test_entity_identify.py
+      - docs/decisions/evidence/g04/report.md
+      - docs/decisions/evidence/g04/evidence.json
     acceptance:
       - 节点 / 单元 / Part 的 ID、坐标、连接、所属 Part / 材料、指定状态的结果值
       - 结果值与 Q03 同一量一致

@@ -55,6 +55,7 @@
 | `extract_d3plot_field` | Q03 | path*: string; field*: string; states*: array; units*: string; entity_ids: union/ref; component_indices: union/ref; validity_policy: string |
 | `extract_d3plot_nodal` | Q03 | path*: string; node_ids*: array; quantity*: string; states*: array; units*: string |
 | `extract_d3plot_stress` | Q03 | path*: string; element_type*: string; element_ids*: array; states*: array; integration_point*: integer; units*: string; relative_tolerance: number; validity_policy: string |
+| `extract_field` | I08 | path*: string; family*: string; quantity*: string; state: integer; mask: string; units: union/ref; output_format: string; component: union/ref; part_ids: union/ref; entity_ids: union/ref; integration_point: union/ref; layer: union/ref; backend: string; cross_check: boolean |
 | `extract_lsreader_nodal` | Q03 | path*: string; node_ids*: array; quantity*: string; states*: array; units*: string |
 | `extract_native_ascii_curve` | Q06 | path*: string; database*: string; component*: integer; units*: string; entity_id: union/ref |
 | `extract_native_binout_curve` | Q06 | path*: string; branch*: string; quantity*: string; units*: string; entity_id: union/ref; session_id: union/ref |
@@ -112,6 +113,7 @@
 | `probe_environment` | I08 | 无 |
 | `probe_scl` | A03 | model*: string |
 | `process_curve` | Q07 | path*: string; operation*: string; units*: string; time_column: integer; value_column: integer; delimiter: string; skip_rows: integer |
+| `query_entities` | I08 | model*: string; entity_type*: string; entity_ids: union/ref; state: union/ref; quantity: union/ref; component: union/ref; part_ids: union/ref; offset: integer; limit: integer; file_type: string; backend: string |
 | `read_job` | I08 | job_id*: string |
 | `recover_gui_session` | I08 | session_id*: string |
 | `render_gui_field` | Q02 | session_id*: string; entity_type*: string; field*: string; state*: integer; units*: string; integration_point: string; part_ids: union/ref; color_range: union/ref; averaging: string; validity_policy: string |

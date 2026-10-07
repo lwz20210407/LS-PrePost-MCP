@@ -13,6 +13,8 @@ from .core.validation import integer, numbers, unit_label
 from .dpf_tools import DpfTools
 from .engine.context import NativeContext
 from .engineering import EngineeringTools
+from .entity_identify import EntityIdentifyTools
+from .field_metrics_tools import FieldMetricsTools
 from .fringe_presentation import averaging_command
 from .gui_boundaries import GuiBoundaryTools
 from .gui_common import GuiCommonTools
@@ -49,7 +51,7 @@ from .workflow_sweeps import WorkflowSweepTools
 from .workflows import WorkflowTools
 
 
-class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, ModelTargetTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools):
+class Service(EntityIdentifyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, ModelTargetTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools):
     def __init__(self, settings: Settings):
         self.settings = settings
         self.jobs = Jobs(settings.workspace)

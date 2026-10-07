@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "task": "G04",
+  "developer": "antigravity",
+  "ao_harness": "agy",
+  "ao_session": "ls-prepost-mcp-25",
+  "branch": "antigravity/G04-entity-identify",
+  "dispatch_pr": 83,
+  "pr_number": 98,
+  "status": "done",
+  "verification_level": "L1",
+  "target_tool": "query_entities",
+  "summary": "G04 统一节点/单元/Part Identify 查询实现与验证证据",
+  "acceptance_criteria": [
+    {
+      "criterion": "节点 / 单元 / Part 的 ID、坐标、连接、所属 Part / 材料、指定状态的结果值",
+      "status": "passed",
+      "evidence": "tests/test_entity_identify.py::test_acceptance_1_node_identify, tests/test_entity_identify.py::test_acceptance_1_element_identify, tests/test_entity_identify.py::test_acceptance_1_part_identify"
+    },
+    {
+      "criterion": "结果值与 Q03 同一量一致",
+      "status": "passed",
+      "evidence": "tests/test_entity_identify.py::test_acceptance_2_equivalence_with_q03_solid, tests/test_entity_identify.py::test_acceptance_2_equivalence_with_q03_shell"
+    }
+  ],
+  "user_story": {
+    "story": "节点 1001 的坐标和它在第 30 个状态的位移是多少？属于哪个 Part？",
+    "status": "passed",
+    "evidence": "tests/test_entity_identify.py::test_user_story_node_1001_displacement_and_part_at_state_30"
+  },
+  "verified_capabilities": {
+    "node": [
+      "user_id",
+      "reference_coordinates",
+      "deformed_coordinates",
+      "belonging_part_ids",
+      "belonging_part_names",
+      "connected_elements",
+      "displacement_vector",
+      "displacement_magnitude",
+      "velocity_vector",
+      "velocity_magnitude"
+    ],
+    "element": [
+      "user_id",
+      "element_type",
+      "connectivity_node_ids",
+      "centroid_coordinates",
+      "node_coordinates",
+      "belonging_part_id",
+      "belonging_part_name",
+      "material_id",
+      "material_title",
+      "alive_state",
+      "cauchy_stress_six_components",
+      "von_mises_stress",
+      "pressure",
+      "mean_stress",
+      "triaxiality",
+      "effective_plastic_strain"
+    ],
+    "part": [
+      "user_id",
+      "part_name",
+      "material_id",
+      "material_title",
+      "element_count",
+      "element_types_breakdown",
+      "element_ids",
+      "member_node_count",
+      "member_node_ids",
+      "bounding_box",
+      "centroid",
+      "active_element_count",
+      "deleted_element_count"
+    ],
+    "formats": [
+      "d3plot",
+      "keyword_deck"
+    ]
+  },
+  "equivalence_verification": {
+    "solid_element_5_state_20": {
+      "von_mises_diff": 0.0,
+      "sxx_diff": 0.0,
+      "status": "passed"
+    },
+    "shell_element_101_state_10": {
+      "von_mises_diff": 0.0,
+      "status": "passed"
+    }
+  }
+}

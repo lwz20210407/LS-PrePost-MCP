@@ -285,7 +285,7 @@
 
 ### Q03 场数据提取
 
-状态：partial；版本：v0.5；里程碑：M2；层：T1
+状态：done；版本：v0.5；里程碑：M2；层：T1
 
 把第 20 个状态 Part 3 所有单元的应力六分量导出成 CSV
 
@@ -297,13 +297,9 @@
 
 现有入口：`extract_native_fields`, `extract_native_stress`, `extract_d3plot_field`, `extract_d3plot_stress`, `extract_nodal_results`, `extract_d3plot_nodal`, `extract_lsreader_nodal`, `export_dpf_result`
 
-缺口：
-
-- 8 个工具按后端各一份；壳层未认证；实体积分点 2-8 原生返回错值被拒绝
-
 ### Q04 工程量与失效掩码
 
-状态：partial；版本：v0.5；里程碑：M2；层：T1
+状态：done；版本：v0.5；里程碑：M2；层：T1
 
 计算靶板所有单元的应力三轴度和 Lode 参数，排除已删除单元，找出最大值所在单元
 
@@ -314,10 +310,6 @@
 - 掩码策略 alive / all / deleted 可选；极值附带实体 ID 与状态
 
 现有入口：`compute_stress_invariants`, `extract_native_stress`, `inspect_result_validity`
-
-缺口：
-
-- 只有实体有原生验证；壳单元缺失
 
 ### Q05 时程曲线（History）
 
@@ -686,7 +678,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 ### G04 实体识别 Identify
 
-状态：partial；版本：v0.5；里程碑：M2；层：T1
+状态：done；版本：v0.5；里程碑：M2；层：T1
 
 节点 1001 的坐标和它在第 30 个状态的位移是多少？属于哪个 Part？
 
