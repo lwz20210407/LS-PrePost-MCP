@@ -1,0 +1,565 @@
+{
+  "task": "I04",
+  "dispatch_pr": 91,
+  "implementation_pr": 92,
+  "status": "partial",
+  "native_acceptance_pass_claimed": false,
+  "runs": [
+    {
+      "case": "extra-keyword-064",
+      "raw_report_sha256": "548c4a4556b2be615abdaf1c02a1287f2f62789b8fc5e8a4c03dfc598b17d869",
+      "input_tree": {
+        "ok": true,
+        "tree_sha256": "eeb9a587bc3eac4021415743441723ebe912ac2f59e8f986d3d0bc87ef69bd2c",
+        "tree_sha256_version": 1,
+        "tree_kind": "keyword_include_tree",
+        "problems": [],
+        "unsupported_native_variants": [],
+        "files_relative_to": "common_input_directory",
+        "main_relative": "demo.k",
+        "files": [
+          {
+            "relative": "demo.k",
+            "role": "main",
+            "size": 9401,
+            "sha256": "d11b77ef7f5f76c77a50023795423d65a6f466f6697583004f3984bf3d116644"
+          },
+          {
+            "relative": "demo_main.k",
+            "role": "include",
+            "size": 5117313,
+            "sha256": "99aad0fd5fd85bd5d68bc321fcf36fe43fefbe74d1a57ab11e423b997d5edbed"
+          }
+        ]
+      },
+      "execution_context": {
+        "actual_git_head": "dc3d357c744ef2a5750b09dc4bc97384da946cd3",
+        "working_tree_dirty": true,
+        "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames -U3 --inter-hunk-context=0",
+        "git_diff_scope": {
+          "base": "HEAD",
+          "included": "All tracked staged and unstaged changes",
+          "excluded_paths": [],
+          "untracked_included": false
+        },
+        "source_snapshot_sha256": "8b1b4401fc813cb7faa1ffdd7c600b2269bf11bb60ef7e1ea15e98cb5871b7bd",
+        "python_version": "3.11.14 (main, Feb 12 2026, 00:37:49) [MSC v.1944 64 bit (AMD64)]",
+        "relevant_source_files": {
+          "src/ls_prepost_mcp/embedded.py": "73c484edb777f246d4eccffe418272a0f308f1315e680da11fa9051de3555920",
+          "src/ls_prepost_mcp/service.py": "a807975d6e79b7df8f3f75910d8208e7e191e012d0d435c170167403cf2c2f05",
+          "tools/diagnose_public_corpus.py": "fa02244f533777dc62e83c1d9b9f3e2beabebaf87022a36ea023833c9038cf30",
+          "tests/test_public_corpus_diagnostics.py": "c0fd03bdeeafe15e3c6a6f02e63a43b85efa3103e70a055c4347ae581ec9d006"
+        }
+      },
+      "dependencies": {
+        "lasso-python": "2.0.4",
+        "numpy": "2.4.6",
+        "pydantic": "2.13.5"
+      },
+      "status": "native_inventory_failed",
+      "originals_unchanged": true,
+      "directory_listing_unchanged": true,
+      "inventory": {
+        "status": "failed",
+        "returncode": 3221225477,
+        "timed_out": false,
+        "elapsed_seconds": 29.828,
+        "version": {
+          "policy": "primary",
+          "batch": true,
+          "queue_model_identity": true,
+          "evidence": "I01: six native regression cases; KI-048 comparison",
+          "version": "4.13",
+          "version_source": "file_version_resource",
+          "runtime_verified": false,
+          "file_version": "4.13.0.1",
+          "product_name": "LS-PrePost",
+          "fixed_file_version": "4.13.0.1",
+          "product_version": "4.13.0.1",
+          "resource_conflict": false,
+          "resource_string_conflict": false,
+          "requested_version": null,
+          "configured_label_conflict": false,
+          "path_hint_version": "4.13",
+          "path_hint_conflict": false
+        },
+        "counts": null,
+        "state_times": null,
+        "raw_logs": [
+          {
+            "name": "stderr.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "name": "stdout.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "name": "lspost.cfile",
+            "sha256": "771ec7feeec08b52fe9007425d237dc2577307da0f6068602f5223e14f3455d7"
+          },
+          {
+            "name": "lspost.msg",
+            "sha256": "9ff49ca54c9200af374c4b6bb11165d5f227f23c1948f4461ff27acb2175cd60"
+          }
+        ]
+      },
+      "log_diagnosis": "Absolute root open failed before inventory; non-ASCII source parent; native exit 0xC0000005; no export/reopen."
+    },
+    {
+      "case": "extra-result-03",
+      "raw_report_sha256": "8f5cf97589cfc9a881e578c907d7af963e23148bd2f87814c5b751629bdd521d",
+      "input_tree": {
+        "ok": true,
+        "tree_kind": "result_family",
+        "tree_sha256_version": 1,
+        "tree_sha256": "f627dc7f3f4892da8dd0abad6c03424c29e1ed81adf4d86718c2f2470d294f98",
+        "problems": [],
+        "unsupported_native_variants": [],
+        "files_relative_to": "common_input_directory",
+        "main_relative": "iter3.d3plot",
+        "files": [
+          {
+            "relative": "iter3.d3plot",
+            "role": "result_family",
+            "size": 2117632,
+            "sha256": "8e70326dbc1f93819e03944041af36b04f2f55851ca8012999047713dc028f1d"
+          },
+          {
+            "relative": "iter3.d3plot01",
+            "role": "result_family",
+            "size": 21532672,
+            "sha256": "9ca1b75f513f69f3a5577628197c5ffbd1b55c7fdd710f6b65a48e50815820a0"
+          }
+        ]
+      },
+      "execution_context": {
+        "actual_git_head": "dc3d357c744ef2a5750b09dc4bc97384da946cd3",
+        "working_tree_dirty": true,
+        "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames -U3 --inter-hunk-context=0",
+        "git_diff_scope": {
+          "base": "HEAD",
+          "included": "All tracked staged and unstaged changes",
+          "excluded_paths": [],
+          "untracked_included": false
+        },
+        "source_snapshot_sha256": "8b1b4401fc813cb7faa1ffdd7c600b2269bf11bb60ef7e1ea15e98cb5871b7bd",
+        "python_version": "3.11.14 (main, Feb 12 2026, 00:37:49) [MSC v.1944 64 bit (AMD64)]",
+        "relevant_source_files": {
+          "src/ls_prepost_mcp/embedded.py": "73c484edb777f246d4eccffe418272a0f308f1315e680da11fa9051de3555920",
+          "src/ls_prepost_mcp/service.py": "a807975d6e79b7df8f3f75910d8208e7e191e012d0d435c170167403cf2c2f05",
+          "tools/diagnose_public_corpus.py": "fa02244f533777dc62e83c1d9b9f3e2beabebaf87022a36ea023833c9038cf30",
+          "tests/test_public_corpus_diagnostics.py": "c0fd03bdeeafe15e3c6a6f02e63a43b85efa3103e70a055c4347ae581ec9d006"
+        }
+      },
+      "dependencies": {
+        "lasso-python": "2.0.4",
+        "numpy": "2.4.6",
+        "pydantic": "2.13.5"
+      },
+      "status": "backend_state_count_mismatch",
+      "originals_unchanged": true,
+      "directory_listing_unchanged": true,
+      "inventory": {
+        "status": "succeeded",
+        "returncode": 0,
+        "timed_out": false,
+        "elapsed_seconds": 13.266,
+        "version": {
+          "policy": "primary",
+          "batch": true,
+          "queue_model_identity": true,
+          "evidence": "I01: six native regression cases; KI-048 comparison",
+          "version": "4.13",
+          "version_source": "file_version_resource",
+          "runtime_verified": false,
+          "file_version": "4.13.0.1",
+          "product_name": "LS-PrePost",
+          "fixed_file_version": "4.13.0.1",
+          "product_version": "4.13.0.1",
+          "resource_conflict": false,
+          "resource_string_conflict": false,
+          "requested_version": null,
+          "configured_label_conflict": false,
+          "path_hint_version": "4.13",
+          "path_hint_conflict": false
+        },
+        "counts": {
+          "nodes": 5442,
+          "elements": 24265,
+          "states": 2
+        },
+        "state_times": [
+          0.0,
+          1000.0
+        ],
+        "raw_logs": [
+          {
+            "name": "stderr.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "name": "stdout.log",
+            "sha256": "cad2a90bda04336ee4fa94af4495baa7fea4921b5778ae807acf60433a871451"
+          },
+          {
+            "name": "lspost.cfile",
+            "sha256": "bc7d0c73b351a9dcb3f9bc995ec6ef5278f5ebbc58f7f8bc87d929de9bedf31d"
+          },
+          {
+            "name": "lspost.msg",
+            "sha256": "d81199e59dc8b270c5fa43f034c4b632b7b678d2070f11727cb2f3a8f1a6988d"
+          }
+        ]
+      },
+      "comparison": {
+        "native_count": 2,
+        "reader_count": 11,
+        "native_times": [
+          0.0,
+          1000.0
+        ],
+        "reader_times": [
+          0.0,
+          1000.0,
+          -999999.0,
+          300.4748934509089,
+          400.950350711292,
+          501.4258079716751,
+          604.1580370191859,
+          707.308836521931,
+          814.3632933164408,
+          933.7954444824898,
+          1000.0
+        ],
+        "verdict": "backend_state_count_mismatch",
+        "reader_time_reversals": [
+          3
+        ]
+      }
+    }
+  ],
+  "path_experiment": {
+    "execution_context": {
+      "actual_git_head": "dc3d357c744ef2a5750b09dc4bc97384da946cd3",
+      "working_tree_dirty": true,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames -U3 --inter-hunk-context=0",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "source_snapshot_sha256": "d4babb4b48bca7b39d91146aefd5568673ca8e1abfed8802634f718f94f7ed48",
+      "python_version": "3.11.14 (main, Feb 12 2026, 00:37:49) [MSC v.1944 64 bit (AMD64)]",
+      "relevant_source_files": {
+        "src/ls_prepost_mcp/embedded.py": "73c484edb777f246d4eccffe418272a0f308f1315e680da11fa9051de3555920",
+        "src/ls_prepost_mcp/service.py": "a807975d6e79b7df8f3f75910d8208e7e191e012d0d435c170167403cf2c2f05",
+        "tools/diagnose_public_corpus.py": "fa02244f533777dc62e83c1d9b9f3e2beabebaf87022a36ea023833c9038cf30",
+        "tests/test_public_corpus_diagnostics.py": "e6eac31272e76cc2d6e98167ba791caba5675d448dce73b36d0414e3b790e6c5"
+      }
+    },
+    "cases": [
+      {
+        "case": "synthetic_ascii",
+        "raw_report_sha256": "d6416f93db752f98fac957d9d92c2f1e33f5ea39c09eb9eb367923d8ea9adc7e",
+        "input_tree": {
+          "ok": true,
+          "tree_sha256": "25c38d4dc54ec657a6cd1d621497ea0e6d95bdd96854b190536f2cc200fcca71",
+          "tree_sha256_version": 1,
+          "tree_kind": "keyword_include_tree",
+          "problems": [],
+          "unsupported_native_variants": [],
+          "files_relative_to": "common_input_directory",
+          "main_relative": "main.k",
+          "files": [
+            {
+              "relative": "main.k",
+              "role": "main",
+              "size": 34,
+              "sha256": "d2e33d57ba80a338abd6753b165c9c954add503e36c8f2f653694e0d37d1f7a2"
+            },
+            {
+              "relative": "mesh.k",
+              "role": "include",
+              "size": 163,
+              "sha256": "d014a4e106d985dd557c919054cfd6e1ed5222424cefea0449d3e6b6c0811369"
+            }
+          ]
+        },
+        "inventory": {
+          "status": "succeeded",
+          "returncode": 0,
+          "timed_out": false,
+          "elapsed_seconds": 3.828,
+          "version": {
+            "policy": "primary",
+            "batch": true,
+            "queue_model_identity": true,
+            "evidence": "I01: six native regression cases; KI-048 comparison",
+            "version": "4.13",
+            "version_source": "file_version_resource",
+            "runtime_verified": false,
+            "file_version": "4.13.0.1",
+            "product_name": "LS-PrePost",
+            "fixed_file_version": "4.13.0.1",
+            "product_version": "4.13.0.1",
+            "resource_conflict": false,
+            "resource_string_conflict": false,
+            "requested_version": null,
+            "configured_label_conflict": false,
+            "path_hint_version": "4.13",
+            "path_hint_conflict": false
+          },
+          "counts": {
+            "nodes": 4,
+            "elements": 1,
+            "states": 1
+          },
+          "state_times": [
+            0.0
+          ],
+          "raw_logs": [
+            {
+              "name": "stderr.log",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "name": "stdout.log",
+              "sha256": "026b47dfa7f38b2bd6538233878df5e3600c6f8ea21b22acf7b6895d4b610d94"
+            },
+            {
+              "name": "lspost.cfile",
+              "sha256": "9122917174ff0c4b1e327b615f1d5bdfc1b8791803323dae340202bdb567a8a2"
+            },
+            {
+              "name": "lspost.msg",
+              "sha256": "aa35f68577b267e98de5bf464aadd455cb81cf08d0d7525120b754c03edcefc8"
+            }
+          ]
+        },
+        "preservation": {
+          "originals_unchanged": true,
+          "directory_listing_unchanged": true
+        },
+        "original_preservation": null,
+        "remaining_native_processes": []
+      },
+      {
+        "case": "synthetic_unicode",
+        "raw_report_sha256": "ac88dd26165118ae948b212448beb4c15d4cace8765699d3b64937399c092954",
+        "input_tree": {
+          "ok": true,
+          "tree_sha256": "25c38d4dc54ec657a6cd1d621497ea0e6d95bdd96854b190536f2cc200fcca71",
+          "tree_sha256_version": 1,
+          "tree_kind": "keyword_include_tree",
+          "problems": [],
+          "unsupported_native_variants": [],
+          "files_relative_to": "common_input_directory",
+          "main_relative": "main.k",
+          "files": [
+            {
+              "relative": "main.k",
+              "role": "main",
+              "size": 34,
+              "sha256": "d2e33d57ba80a338abd6753b165c9c954add503e36c8f2f653694e0d37d1f7a2"
+            },
+            {
+              "relative": "mesh.k",
+              "role": "include",
+              "size": 163,
+              "sha256": "d014a4e106d985dd557c919054cfd6e1ed5222424cefea0449d3e6b6c0811369"
+            }
+          ]
+        },
+        "inventory": {
+          "status": "failed",
+          "returncode": 0,
+          "timed_out": false,
+          "elapsed_seconds": 3.312,
+          "version": {
+            "policy": "primary",
+            "batch": true,
+            "queue_model_identity": true,
+            "evidence": "I01: six native regression cases; KI-048 comparison",
+            "version": "4.13",
+            "version_source": "file_version_resource",
+            "runtime_verified": false,
+            "file_version": "4.13.0.1",
+            "product_name": "LS-PrePost",
+            "fixed_file_version": "4.13.0.1",
+            "product_version": "4.13.0.1",
+            "resource_conflict": false,
+            "resource_string_conflict": false,
+            "requested_version": null,
+            "configured_label_conflict": false,
+            "path_hint_version": "4.13",
+            "path_hint_conflict": false
+          },
+          "counts": null,
+          "state_times": null,
+          "raw_logs": [
+            {
+              "name": "stderr.log",
+              "sha256": "571ad31592e0e3738b0125588aa66436b7a8786657ff1451cbfce5ae003a6807"
+            },
+            {
+              "name": "stdout.log",
+              "sha256": "2392ca0f50fb9140a430a271e1435a7cb7973dd614dc06eaa774cf1d06fe3faa"
+            },
+            {
+              "name": "lspost.cfile",
+              "sha256": "c84f29440cb626ab240d64f103926798c5ddca7a652a0c1e88ac5063faf7440b"
+            },
+            {
+              "name": "lspost.msg",
+              "sha256": "462c3d12ed7b22290e3910219d7d31606fa4a8e7396eb6551d5734448a318950"
+            }
+          ]
+        },
+        "preservation": {
+          "originals_unchanged": true,
+          "directory_listing_unchanged": true
+        },
+        "original_preservation": null,
+        "remaining_native_processes": []
+      },
+      {
+        "case": "corpus_ascii",
+        "raw_report_sha256": "71cd7c1bf0cf132f33e0429af3fc6011a50ea711287bff3a7917b0d9a2d9022d",
+        "input_tree": {
+          "ok": true,
+          "tree_sha256": "eeb9a587bc3eac4021415743441723ebe912ac2f59e8f986d3d0bc87ef69bd2c",
+          "tree_sha256_version": 1,
+          "tree_kind": "keyword_include_tree",
+          "problems": [],
+          "unsupported_native_variants": [],
+          "files_relative_to": "common_input_directory",
+          "main_relative": "demo.k",
+          "files": [
+            {
+              "relative": "demo.k",
+              "role": "main",
+              "size": 9401,
+              "sha256": "d11b77ef7f5f76c77a50023795423d65a6f466f6697583004f3984bf3d116644"
+            },
+            {
+              "relative": "demo_main.k",
+              "role": "include",
+              "size": 5117313,
+              "sha256": "99aad0fd5fd85bd5d68bc321fcf36fe43fefbe74d1a57ab11e423b997d5edbed"
+            }
+          ]
+        },
+        "inventory": {
+          "status": "succeeded",
+          "returncode": 0,
+          "timed_out": false,
+          "elapsed_seconds": 3.922,
+          "version": {
+            "policy": "primary",
+            "batch": true,
+            "queue_model_identity": true,
+            "evidence": "I01: six native regression cases; KI-048 comparison",
+            "version": "4.13",
+            "version_source": "file_version_resource",
+            "runtime_verified": false,
+            "file_version": "4.13.0.1",
+            "product_name": "LS-PrePost",
+            "fixed_file_version": "4.13.0.1",
+            "product_version": "4.13.0.1",
+            "resource_conflict": false,
+            "resource_string_conflict": false,
+            "requested_version": null,
+            "configured_label_conflict": false,
+            "path_hint_version": "4.13",
+            "path_hint_conflict": false
+          },
+          "counts": {
+            "nodes": 35656,
+            "elements": 30420,
+            "states": 1
+          },
+          "state_times": [
+            0.0
+          ],
+          "raw_logs": [
+            {
+              "name": "stderr.log",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "name": "stdout.log",
+              "sha256": "703d3c73e35b7daf356b2754aca636b6c3d8310897c6f0d9c9eaf54b02a2866a"
+            },
+            {
+              "name": "lspost.cfile",
+              "sha256": "39d936e9434501bd66a4351ae096060dcd376b6402bc4fa9a3139ec27b3bb145"
+            },
+            {
+              "name": "lspost.msg",
+              "sha256": "4e12255c6d1aab7e45dea32a79a219f8a18ba31800c8b302417b59bc2059d9ab"
+            }
+          ]
+        },
+        "preservation": {
+          "originals_unchanged": true,
+          "directory_listing_unchanged": true
+        },
+        "original_preservation": {
+          "originals_unchanged": true,
+          "directory_listing_unchanged": true
+        },
+        "remaining_native_processes": []
+      }
+    ]
+  },
+  "result_layout_probe": {
+    "wordsize": 8,
+    "state_bytes": 1957336,
+    "geometry_bytes": 2115088,
+    "family": [
+      {
+        "name": "iter3.d3plot",
+        "size": 2117632,
+        "aligned_endmark_offsets": [
+          2114656,
+          2115080
+        ],
+        "state_grid_times": []
+      },
+      {
+        "name": "iter3.d3plot01",
+        "size": 21532672,
+        "aligned_endmark_offsets": [
+          3914672,
+          21530696
+        ],
+        "state_grid_times": [
+          0.0,
+          1000.0,
+          -999999.0,
+          300.4748934509089,
+          400.950350711292,
+          501.4258079716751,
+          604.1580370191859,
+          707.308836521931,
+          814.3632933164408,
+          933.7954444824898,
+          1000.0
+        ]
+      }
+    ]
+  },
+  "limits": [
+    "Original-path corpus acceptance remains failed; ASCII relocation is diagnostic only.",
+    "Native Unicode support is not fixed; the Windows INCLUDE root is rejected before job creation.",
+    "LASSO 2.0.4 reads nonzero data after an end marker; no state was removed or reader modified.",
+    "Recorded native source is pre-guard and dirty; untracked source hashes are included, Git patch excludes untracked files.",
+    "Hash source bytes as read on disk, not newline-normalized Git blobs; Git diff parameters are recorded.",
+    "No GUI, UU, 4.10 or solver execution; I04 full acceptance remains partial."
+  ]
+}

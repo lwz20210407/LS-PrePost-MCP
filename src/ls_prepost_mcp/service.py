@@ -50,6 +50,10 @@ from .workflow_sweeps import WorkflowSweepTools
 from .workflows import WorkflowTools
 
 
+def _windows():
+    return os.name == "nt"
+
+
 class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, ModelTargetTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools, ViewTools):
     def __init__(self, settings: Settings):
         self.settings = settings
@@ -74,6 +78,11 @@ class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, Model
             self.settings.check_keyword_includes(source)
             include_bearing = any(line.strip().upper().startswith("*INCLUDE")
                                   for line in source.read_text(errors="replace").splitlines())
+            if include_bearing and _windows() and not str(source).isascii():
+                raise ValueError(
+                    "Non-ASCII source paths for INCLUDE-bearing keyword models are unsupported "
+                    "by the Windows native batch route: the absolute-path open can fail and crash "
+                    "LS-PrePost. Input was not modified and no native job was started.")
             if export and include_bearing:
                 raise ValueError("Native export of include-bearing models needs a staged include-tree implementation")
         if source and file_type == "d3plot" and exceeds_staging_limit(input_family(self.settings, source, family=True)):

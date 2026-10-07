@@ -101,8 +101,7 @@ class NativeIncludeReadError(RuntimeError):
     pass
 
 
-@pytest.mark.parametrize("folder", ["include source", pytest.param("输入 模型", marks=pytest.mark.xfail(
-    strict=True, raises=NativeIncludeReadError, reason="I01 gap: native Unicode INCLUDE root was not opened"))])
+@pytest.mark.parametrize("folder", ["include source", "输入 模型"])
 def test_batch_include_read_preserves_source_directory(native_case, tmp_path, folder, request):
     service, fixture = native_case
     if folder.isascii() and installation_version(service.settings.native_executable()) == "4.10":
@@ -117,6 +116,18 @@ def test_batch_include_read_preserves_source_directory(native_case, tmp_path, fo
     model.write_text("*KEYWORD\n*INCLUDE\nchild.k\n*END\n", encoding="utf8")
     before = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in original.iterdir()}
     reader = Service(Settings(tmp_path / "work", service.settings.native_executable(), (original,), timeout=60))
+    if not folder.isascii():
+        if os.name == "nt":
+            try:
+                with pytest.raises(ValueError, match="Non-ASCII.*INCLUDE"):
+                    reader.inspect_model(str(model))
+                assert not reader.jobs.root.exists(), "Path refusal must precede job creation"
+            finally:
+                after = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in original.iterdir()}
+                assert after == before, "Path refusal added or modified files in the user input directory"
+            return
+        request.node.add_marker(pytest.mark.xfail(strict=True, raises=NativeIncludeReadError,
+            reason="I01 gap: non-Windows native Unicode INCLUDE root opening remains unverified"))
     result = reader.inspect_model(str(model))
     after = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in original.iterdir()}
     assert after == before, "Native read added or modified files in the user input directory"

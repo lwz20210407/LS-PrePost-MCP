@@ -960,6 +960,9 @@ infrastructure:
     milestone: M1
     status: partial
     evidence:
+      - docs/decisions/evidence/i04-diagnostics/report.md
+      - tools/diagnose_public_corpus.py
+      - tests/test_public_corpus_diagnostics.py
       - docs/decisions/evidence/i04/report.md
       - docs/decisions/evidence/i04-window/report.md
       - docs/decisions/evidence/i04-identity/report.md
@@ -972,6 +975,7 @@ infrastructure:
       - tests/test_native_remote.py
       - tests/test_native_input_preconditions.py
     gaps:
+      - 两例公开失败已定向诊断：extra-keyword-064 的 Windows 非 ASCII INCLUDE 根路径启动前拒绝，原路径支持仍缺；extra-result-03 的 LASSO 2.0.4 结束标记后尾数据多计状态已原创复现，共享读取器修复待 Claude，未删状态或改源文件
       - 当前 55 个 tools/run_* 入口已全部收编为 57 个 pytest 用例（保留原生/文件及 batch/GUI 变体）；CLI 参数发现已逐一验证。
       - 三个文件验收和 program_acceptance 批处理已有证据；集成工作副本累计 53 个 GUI 用例通过，包含待审 A02 修复，不作为 PR #5 头全量验证；13 个 UU 格等待用户断开
       - 公开抽样 126 例中新增 100 例的历史 c991f9d 为 16 passed / 84 failed（dirty、缺 diff 哈希）；普通路径修复后干净 53f6072 使用 4.13 重跑为 16 passed / 45 failed / 39 输入限制 evidence_only，100 份树指纹及文件清单核对齐全；19303f7 的 50 限制含 11 个路径误判，历史保留并勘误，仍缺导出、变体、崩溃及读取器差异处理
