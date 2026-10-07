@@ -113,6 +113,7 @@
 | `probe_environment` | I08 | 无 |
 | `probe_scl` | A03 | model*: string |
 | `process_curve` | Q07 | path*: string; operation*: string; units*: string; time_column: integer; value_column: integer; delimiter: string; skip_rows: integer |
+| `query_entities` | I08 | model*: string; entity_type*: string; entity_ids: union/ref; state: union/ref; quantity: union/ref; component: union/ref; part_ids: union/ref; offset: integer; limit: integer; file_type: string; backend: string |
 | `read_job` | I08 | job_id*: string |
 | `recover_gui_session` | I08 | session_id*: string |
 | `render_gui_field` | Q02 | session_id*: string; entity_type*: string; field*: string; state*: integer; units*: string; integration_point: string; part_ids: union/ref; color_range: union/ref; averaging: string; validity_policy: string |

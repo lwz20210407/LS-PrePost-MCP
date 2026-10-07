@@ -861,6 +861,7 @@ tasks:
       - 选择操作不改变显隐状态（回归：pall 会重置 blank 的已知坑）
 
   - id: G04
+    owner: antigravity
     group: general
     title: 实体识别 Identify
     story: 节点 1001 的坐标和它在第 30 个状态的位移是多少？属于哪个 Part？
@@ -869,8 +870,14 @@ tasks:
     milestone: M2
     layer: T1
     target_tools: [query_entities]
-    status: partial
+    status: done
     existing: [list_nodes, get_element_connectivity, inspect_gui_mesh]
+    gaps: []
+    evidence:
+      - src/ls_prepost_mcp/entity_identify.py
+      - tests/test_entity_identify.py
+      - docs/decisions/evidence/g04/report.md
+      - docs/decisions/evidence/g04/evidence.json
     acceptance:
       - 节点 / 单元 / Part 的 ID、坐标、连接、所属 Part / 材料、指定状态的结果值
       - 结果值与 Q03 同一量一致

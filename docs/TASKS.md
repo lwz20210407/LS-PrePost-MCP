@@ -678,7 +678,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 ### G04 实体识别 Identify
 
-状态：partial；版本：v0.5；里程碑：M2；层：T1
+状态：done；版本：v0.5；里程碑：M2；层：T1
 
 节点 1001 的坐标和它在第 30 个状态的位移是多少？属于哪个 Part？
 
