@@ -717,6 +717,8 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 里程碑：M1
 
+负责人：antigravity
+
 状态：done；验证：L1
 
 证据：[src/ls_prepost_mcp/core/contracts.py](../src/ls_prepost_mcp/core/contracts.py), [tests/test_core_contracts.py](../tests/test_core_contracts.py), [tests/test_workflow_gates.py](../tests/test_workflow_gates.py), [tests/test_reference_workflow.py](../tests/test_reference_workflow.py)
@@ -728,6 +730,8 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 ### I03 命令构建器与版本能力表
 
 里程碑：M1
+
+负责人：codex
 
 状态：partial；验证：L2
 
@@ -753,6 +757,8 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 ### I05 知识库索引
 
 里程碑：M1
+
+负责人：cursor
 
 状态：partial；验证：L1
 
