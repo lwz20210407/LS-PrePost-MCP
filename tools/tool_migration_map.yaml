@@ -145,6 +145,11 @@ tools:
     target: run_sweep
     task_id: A09
     legacy_until: v0.6
+  curve_ops:
+    target: curve_ops
+    task_id: Q07
+    legacy_until: null
+    note: M2 target tool on domain.results.curves; returns JobResult/v1
   describe_installed_template:
     target: find_recipe
     task_id: A08
@@ -574,6 +579,12 @@ tools:
     target: set_display
     task_id: G02
     legacy_until: v0.6
+  set_view:
+    target: set_view
+    task_id: G01
+    legacy_until: null
+    note: G01 target tool; returns JobResult/v1; request presets only, Selector centering
+      unsupported
   show_gui_session:
     target: alias
     task_id: I01

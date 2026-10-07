@@ -39,6 +39,7 @@
 | `create_solid_sphere` | P07 | center*: array; radius*: number; divisions*: integer; units*: string; part_id: integer |
 | `create_tensile_shell_plate` | I08 | nx*: integer; ny*: integer; size*: array; thickness*: number; density*: number; young_modulus*: number; poisson_ratio*: number; displacement*: number; duration*: number; output_interval*: number; units*: string |
 | `create_workflow` | A09 | name*: string; steps*: array; defaults: union/ref |
+| `curve_ops` | I08 | inputs*: array; operations*: array |
 | `describe_installed_template` | A08 | template_id*: string |
 | `describe_pydyna_keyword` | A10 | class_name*: string |
 | `edit_keywords` | P02, P03, P10 | model*: string; edits*: array; allow_new_dangling: boolean |
@@ -145,6 +146,7 @@
 | `set_gui_entity_visibility` | G02 | session_id*: string; entity_type*: string; mode*: string; entity_ids: union/ref; capture: boolean |
 | `set_gui_node_coordinates` | P08 | session_id*: string; nodes*: array; units*: string; tolerance: number |
 | `set_gui_part_visibility` | G02 | session_id*: string; mode*: string; part_ids: union/ref |
+| `set_view` | I08 | context: string; session_id: union/ref; model: union/ref; file_type: string; view: union/ref; projection: union/ref; rotation_xyz_degrees: union/ref; zoom_scale: union/ref; pan_xy: union/ref; fit: boolean; center_on: union/ref; save_preset_name: union/ref; restore_preset_name: union/ref; capture: boolean |
 | `show_gui_session` | I08 | session_id*: string; maximize: boolean; keep_on_top: boolean |
 | `start_gui_session` | I08 | 无 |
 | `start_session_recording` | A07 | session_id*: string |
