@@ -13,7 +13,7 @@ def test_missing_include_diagnostic_is_an_error(line):
     assert native_errors("Include File first.k opened successfully") == []
 
 
-@pytest.mark.parametrize("content", ["*KEYWORD\n*END\n".encode("utf16"), b"\x00\xffbad", b"*KEYWORD\n*INCLUDE\nmissing.k\n*END\n"])
+@pytest.mark.parametrize("content", ["*KEYWORD\n*END\n".encode("utf16"), b"\x00\x01binary", b"*KEYWORD\n*INCLUDE\nmissing.k\n*END\n"])
 def test_outside_error_precedes_external_file_diagnostics(tmp_path, content):
     allowed = tmp_path / "allowed"
     allowed.mkdir()

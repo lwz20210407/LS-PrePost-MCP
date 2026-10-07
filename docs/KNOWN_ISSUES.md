@@ -1210,7 +1210,7 @@ BatchEngine 和内置 Python 在作业目录运行，并非主 deck 目录。对
 
 ## I01：INCLUDE 漏读诊断与拒绝状态（第十一轮）
 
-4.10 按 job cwd 解析相对 INCLUDE；源目录中的相对文件不会被读入。`Error - Include File … Not open` 现纳入共享原生错误规则，使返回码为 0 的不完整模型也失败。4.13 按主 deck 目录解析，第九轮复跑日志中 include 打开失败为 0；不据此外推其它版本。回归见 [4.10 原生用例](../tests/test_native_include_failure.py)。
+4.10 按 job cwd 解析相对 INCLUDE；源目录中的相对文件不会被读入。`Error - Include File … Not open` 现纳入共享原生错误规则，使返回码为 0 的不完整模型也失败。4.13 按主 deck 目录解析，PR #54 的第十一轮公开语料复跑日志中 include 打开失败为 0；不据此外推其它版本。回归见 [4.10 原生用例](../tests/test_native_include_failure.py)。
 
 允许目录检查先于预检内容诊断；cwd 检查拒绝后，新建作业显式记为 failed。行首空白及 *END 后的 INCLUDE 直接拒绝，不猜测不同版本的解析。带引号的文件名（例如 `"first.k"`）在共享预检中会被拒绝，属于与旧检查的兼容性变化；尚未做原生语法认证。
 
@@ -1218,13 +1218,14 @@ BatchEngine 和内置 Python 在作业目录运行，并非主 deck 目录。对
 
 第十一轮 [4.10 原生证据](decisions/evidence/i01-include-diagnostics/report.md) 已登记 2 项通过（相对漏读失败、绝对路径完整读入），ce42 H0 也返回 failed。
 
+
+## I01：输入路径在文件系统访问前拒绝网络与设备名
+
+`Settings.input_path` 在 expanduser/resolve 之前按共享 `is_network` 和 Windows 保留名规则拒绝 UNC、混合分隔符 UNC、设备命名空间及 CON/NUL 等设备名；组合 base 后再次检查，错误为 ValueError。检查不访问网络，不能靠 allowed_roots 授权这些输入。带双分隔符的扩展路径也拒绝；调用方先转换为普通本地路径（I04 已采用此口径）。本地相对/绝对文件仍执行原来的允许目录检查。
+
+回归见 [输入访问边界](../tests/test_input_path_confinement.py)：三个公开入口均在文件系统探针之前拒绝；该探针本身有自检。此变更不声称消除本地链接的并发替换窗口，也不修改管理员提供的 Settings 安装目录配置。
 ## I04：公开案例按 INCLUDE 预检区分输入限制
-
 公开语料运行器先调用共享 `preflight_includes`，记录 tree_sha256、版本和每个文件的 relative / role / size / sha256，随后复核完整树的原文件字节。`ok=false` 记为 input_limited，pytest 报告为 evidence_only，禁止据此声称原生通过或代码缺陷。非 keyword 结果族单独标记 tree_kind=result_family。每例另记实际 LS-PrePost 可执行文件与版本资源；预检成功本身不认证原生解析。
-
 历史 p100 的 16 passed / 84 failed 保留不改，新运行和 problems.kind/hint 分类另行追加。回归见 [公开语料测试](../tests/test_public_corpus_native.py) 和 [预检证据测试](../tests/test_public_corpus_preflight.py)。
-
 第十一轮 [100 例证据](decisions/evidence/i04-public100-preflight/report.md) 已更正为 16 通过、45 失败、39 输入限制；先前 50 个限制中有 11 个来自扩展路径误判，原记录保留为历史。树哈希只标识实际成功读取的文件；缺失或不可读的引用保留在 problems 中，不虚构其哈希。
-
-
 第十一轮：预检与 Service/Settings 使用普通路径；长路径 IO 先 normpath 再增加扩展前缀，避免 `..` 被误判为缺文件。文件位置相对共同输入目录记录，并声明 main_relative；运行前后同时比较源目录文件清单，可发现新增文件。旧 p100 的 job.json 有 4.13 版本记录；其 42 次暂存相对名打开、127 次 job 目录 INCLUDE 失败已复核，旧空模型来自只暂存根 deck。

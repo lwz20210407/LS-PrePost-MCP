@@ -891,7 +891,7 @@ infrastructure:
       - Windows 创建暂停进程至加入 Job 之间的宿主强杀窗口尚未消除；已验证加入 Job 后的取消、超时和宿主退出回收
       - renumber/quality 面板路径仍待完整统一；五个批处理入口已读取 JobResult，外部旧清单保留兼容输出；公开 Win32 打开、检查点和重开已补原生证据
       - 原生 d3plot 输入超过 1000 文件或 2 GiB 时在启动前明确拒绝；两版原地只读回退实验均崩溃，暂不提供该回退
-      - 从 job 目录绝对路径读取 Include 时，中文根路径在 4.13/4.10 仍失败，4.10 的相对 Include 仍从 job cwd 解析；不得切到用户目录绕过
+      - 从 job 目录绝对路径读取 Include 时，中文根路径在 4.13/4.10 仍失败，4.10 的相对 Include 仍从 job cwd 解析；漏读诊断已使作业失败，不得切到用户目录绕过
       - INCLUDE 引用总数上限：共享预检接口 preflight_includes(max_references) 已提供（#70，按读取顺序计数，含重复与未解析引用），原生准入路径尚未接入，待 Codex
     evidence:
       - src/ls_prepost_mcp/engine/batch.py
@@ -904,6 +904,8 @@ infrastructure:
       - docs/decisions/evidence/i01-batch-contract/report.md
       - docs/decisions/evidence/i01-process-lifetime/report.md
       - docs/decisions/evidence/i01-log-decoding/report.md
+      - docs/decisions/evidence/i01-include-diagnostics/report.md
+      - tests/test_input_path_confinement.py
       - tests/test_queue_backpressure.py
       - tests/test_queue_backpressure_native.py
       - docs/decisions/evidence/i01-queue/report.md
