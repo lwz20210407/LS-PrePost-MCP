@@ -75,6 +75,9 @@ python tools/diagnose_public_corpus.py --case extra-keyword-064 --output <另一
 
 本地相关 pytest：29 passed / 2 skipped；非 ASCII INCLUDE 拒绝回归修复前 1 failed，修复后通过。
 相同相关测试在现有最小依赖环境为 28 passed / 3 skipped（缺 LASSO 的原创二进制复现跳过）。
+首轮 Windows CI 暴露 `test_batch_input_staging.py` 的旧 mock 仍假定中文 INCLUDE 路径可打开；
+现改为验证 Windows 启动前拒绝，保持 ASCII/非 Windows 绝对根路径及导出限制测试。
+加入该文件后，Windows Python 3.12 相关测试为 39 passed / 2 skipped，最小依赖为 38 passed / 3 skipped。
 Ruff、import-linter、validate_tasks、gen_docs --check、validate_tool_migration、
 fetch_corpus --check-registry、check_doc_links、git diff --check 均通过。
 完整 Ubuntu/Windows × Python 3.11/3.12 与 minimal-deps 以 PR #92 的正式 CI 为准。

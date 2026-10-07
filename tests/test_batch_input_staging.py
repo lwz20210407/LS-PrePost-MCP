@@ -55,6 +55,17 @@ def test_include_read_uses_absolute_root_but_export_stays_rejected(tmp_path, mon
     service = Service(Settings(tmp_path / "work", exe, (original,)))
     before = {p.name: p.read_bytes() for p in original.iterdir()}
 
+    if os.name == "nt" and not str(source).isascii():
+        # I04 native evidence supersedes the old mock-only Unicode assumption.
+        monkeypatch.setattr("ls_prepost_mcp.service.run_batch",
+                            lambda *a, **kw: pytest.fail("Must reject before launch"))
+        for operation in (service.inspect_model, service.export_keyword):
+            with pytest.raises(ValueError, match="Non-ASCII.*INCLUDE"):
+                operation(str(source))
+        assert not service.jobs.root.exists()
+        assert {p.name: p.read_bytes() for p in original.iterdir()} == before
+        return
+
     def execute(executable, cfile, directory, **kwargs):
         request = json.loads((directory / "request.json").read_text(encoding="utf8"))
         assert Path(request["model"]) == source.resolve()
