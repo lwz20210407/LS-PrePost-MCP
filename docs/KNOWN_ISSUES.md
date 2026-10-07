@@ -1174,6 +1174,16 @@ Python 异常传播前会先清理；清理失败不覆盖原始异常，普通�
 资源读取范围、4.11 拒绝及真实二进制改名检查见 [版本资源回归](decisions/evidence/i03-version-resource/report.md)。
 无资源/非 Windows 仍为未验证的路径提示，不将其当作完整运行时探测。
 
+## I01：队列饱和时的明确拒绝
+
+原实现吞掉 queue.Full，调用方只得到未验证的超时；没有可核对的“未接受”回执。
+现在对已认证、属于本会话且尚未开始的请求写入 QueueBusy（executed=false），并记住该 ID，
+之后重复通知不会把已拒绝请求重新执行。非法 ID 在连接前拒绝；不存在的请求目录不会令接收线程退出。
+[真实 socket 离线回归](../tests/test_queue_backpressure.py)使用可控制的应用线程，
+并非 LS-PrePost 原生验证；旧 29a8d1d 的同一饱和测试失败，修复后通过。
+[原生用例](../tests/test_queue_backpressure_native.py)已写好，须同时 --run-native 与 --native-gui，
+占用应用主线程、填满一格队列后检查拒绝及不重放；4.13 原生已通过，含首轮探针准备失败，见 [队列证据](decisions/evidence/i01-queue/report.md)。
+
 ## A01/I01：会话日志元数据与脚本包装器的集成
 
 第六轮 GUI 补验发现：SessionEngine 新增 encoding/lossy 后，run_script 的日志包装器
@@ -1214,3 +1224,8 @@ BatchEngine 和内置 Python 在作业目录运行，并非主 deck 目录。对
 `Settings.input_path` 在 expanduser/resolve 之前按共享 `is_network` 和 Windows 保留名规则拒绝 UNC、混合分隔符 UNC、设备命名空间及 CON/NUL 等设备名；组合 base 后再次检查，错误为 ValueError。检查不访问网络，不能靠 allowed_roots 授权这些输入。带双分隔符的扩展路径也拒绝；调用方先转换为普通本地路径（I04 已采用此口径）。本地相对/绝对文件仍执行原来的允许目录检查。
 
 回归见 [输入访问边界](../tests/test_input_path_confinement.py)：三个公开入口均在文件系统探针之前拒绝；该探针本身有自检。此变更不声称消除本地链接的并发替换窗口，也不修改管理员提供的 Settings 安装目录配置。
+## I04：公开案例按 INCLUDE 预检区分输入限制
+公开语料运行器先调用共享 `preflight_includes`，记录 tree_sha256、版本和每个文件的 relative / role / size / sha256，随后复核完整树的原文件字节。`ok=false` 记为 input_limited，pytest 报告为 evidence_only，禁止据此声称原生通过或代码缺陷。非 keyword 结果族单独标记 tree_kind=result_family。每例另记实际 LS-PrePost 可执行文件与版本资源；预检成功本身不认证原生解析。
+历史 p100 的 16 passed / 84 failed 保留不改，新运行和 problems.kind/hint 分类另行追加。回归见 [公开语料测试](../tests/test_public_corpus_native.py) 和 [预检证据测试](../tests/test_public_corpus_preflight.py)。
+第十一轮 [100 例证据](decisions/evidence/i04-public100-preflight/report.md) 已更正为 16 通过、45 失败、39 输入限制；先前 50 个限制中有 11 个来自扩展路径误判，原记录保留为历史。树哈希只标识实际成功读取的文件；缺失或不可读的引用保留在 problems 中，不虚构其哈希。
+第十一轮：预检与 Service/Settings 使用普通路径；长路径 IO 先 normpath 再增加扩展前缀，避免 `..` 被误判为缺文件。文件位置相对共同输入目录记录，并声明 main_relative；运行前后同时比较源目录文件清单，可发现新增文件。旧 p100 的 job.json 有 4.13 版本记录；其 42 次暂存相对名打开、127 次 job 目录 INCLUDE 失败已复核，旧空模型来自只暂存根 deck。

@@ -1,0 +1,59 @@
+{
+  "task": "I01",
+  "version": "4.13.4",
+  "runs": [
+    {
+      "actual_git_revision": "3939b5bdb6fb67716f1bda5dc7b64dbc17756afb",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "source_snapshot_sha256": "cbbdfe1ce925f22ebd3abbbdf31bdddd7307c1b1439998abbf83867d2b84015b",
+      "report": "r6-gui-queue-r1-report/report.json",
+      "report_sha256": "212d3b907800810fad2077ce8f2a325b8283490bac2bed8d89b0bb807aef9e88",
+      "exit_code": 1,
+      "cases": {
+        "tests/test_queue_backpressure_native.py::test_native_queue_rejects_overload_without_late_execution": {
+          "status": "failed",
+          "seconds": 5.499774099997012
+        }
+      },
+      "failure_summary": "probe omitted the requests parent directory"
+    },
+    {
+      "actual_git_revision": "c68caefbda33a66d756a92f9db3cd6aea7520f5c",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "source_snapshot_sha256": "496739a3ac28893c54a0e65c768ca530bb208c7f74fc7140b570e69e37c88396",
+      "report": "r6-gui-window-r2/queue-report/report.json",
+      "report_sha256": "96409e8c312857ee2db6e3f62b7da36c1d0770c35be71d16966927307548f3f5",
+      "exit_code": 0,
+      "cases": {
+        "tests/test_queue_backpressure_native.py::test_native_queue_rejects_overload_without_late_execution": {
+          "status": "passed",
+          "seconds": 5.326911899988772
+        }
+      }
+    }
+  ],
+  "execution_branch": "codex/m1-panel-session-engine",
+  "execution_pull_request": 26,
+  "shared_code_blobs": {
+    "src/ls_prepost_mcp/engine/embedded_queue.py": "d4d04aaaedb4de1873d8233dc8cabaa931d576a0",
+    "src/ls_prepost_mcp/engine/queue_transport.py": "39743ccf85f9b2529a17e4a1a4a49416f16e001a",
+    "tests/test_queue_backpressure_native.py": "185bad5056d4d31ef4989526b94cfc2b9da5112d"
+  },
+  "scope": "Measured on the clean integrated panel branch; the queue bridge, transport and test blobs match this PR. No UU disconnection."
+}

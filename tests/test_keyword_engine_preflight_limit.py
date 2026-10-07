@@ -186,3 +186,21 @@ def test_invalid_limits_are_rejected(tmp_path: Path, bad: object) -> None:
         preflight_includes(main, max_references=bad)
     with pytest.raises(ValueError, match="max_references"):
         preflight_includes(tmp_path / "absent.k", max_references=bad)
+
+
+@pytest.mark.parametrize("bad", [-1, True, 2.5, "10"])
+def test_invalid_limits_are_rejected_before_any_access(tmp_path: Path, touched: list[str], bad: object) -> None:
+    # Review P2 on #70: KeywordDeck.load read the main deck before it validated the limit.
+    main = _deck(tmp_path, THREE)
+    touched.clear()  # writing the deck went through the spy
+    checked: list[str] = []
+    with access.confined(lambda path: checked.append(str(path))):
+        for target in (main, tmp_path / "absent.k"):
+            with pytest.raises(ValueError, match="max_references must be None or an integer"):
+                KeywordDeck.load(target, max_references=bad)
+            with pytest.raises(ValueError, match="max_references must be None or an integer"):
+                preflight_includes(target, max_references=bad)
+    assert touched == [] and checked == []  # neither the access guard nor the OS saw a path
+    with pytest.raises(FileNotFoundError):  # a valid limit still reads the main deck as before
+        KeywordDeck.load(tmp_path / "absent.k", max_references=0)
+    assert touched and touched[-1].endswith("absent.k")
