@@ -1217,3 +1217,14 @@ BatchEngine 和内置 Python 在作业目录运行，并非主 deck 目录。对
 引用总数上限：共享预检接口已提供（#70），待 Codex 接入。`preflight_includes(..., max_references=N)` 按读取顺序计数：每个 INCLUDE 类文件名及 `*INCLUDE_PATH` 目录每被读一次记一次，重复引用连同其文件首次读取时计入的引用再记一次，缺失、不可读、UNC、循环引用同样计入。超限的那条报 `reference_limit`（带 `counted`、`limit`），读取在此停止：其后的引用不再交给访问守卫，也不做 resolve/stat/读取；超限名称本身同样不访问，只有“重复引用因文件内引用而超限”时该名称已在计数前解析，但不再展开其文件。默认不限制；原生准入路径（`Settings.check_keyword_includes`）尚未传入上限，max_files 仍不等于引用总数上限。
 
 第十一轮 [4.10 原生证据](decisions/evidence/i01-include-diagnostics/report.md) 已登记 2 项通过（相对漏读失败、绝对路径完整读入），ce42 H0 也返回 failed。
+
+## I04：公开案例按 INCLUDE 预检区分输入限制
+
+公开语料运行器先调用共享 `preflight_includes`，记录 tree_sha256、版本和每个文件的 relative / role / size / sha256，随后复核完整树的原文件字节。`ok=false` 记为 input_limited，pytest 报告为 evidence_only，禁止据此声称原生通过或代码缺陷。非 keyword 结果族单独标记 tree_kind=result_family。每例另记实际 LS-PrePost 可执行文件与版本资源；预检成功本身不认证原生解析。
+
+历史 p100 的 16 passed / 84 failed 保留不改，新运行和 problems.kind/hint 分类另行追加。回归见 [公开语料测试](../tests/test_public_corpus_native.py) 和 [预检证据测试](../tests/test_public_corpus_preflight.py)。
+
+第十一轮 [100 例证据](decisions/evidence/i04-public100-preflight/report.md) 已更正为 16 通过、45 失败、39 输入限制；先前 50 个限制中有 11 个来自扩展路径误判，原记录保留为历史。树哈希只标识实际成功读取的文件；缺失或不可读的引用保留在 problems 中，不虚构其哈希。
+
+
+第十一轮：预检与 Service/Settings 使用普通路径；长路径 IO 先 normpath 再增加扩展前缀，避免 `..` 被误判为缺文件。文件位置相对共同输入目录记录，并声明 main_relative；运行前后同时比较源目录文件清单，可发现新增文件。旧 p100 的 job.json 有 4.13 版本记录；其 42 次暂存相对名打开、127 次 job 目录 INCLUDE 失败已复核，旧空模型来自只暂存根 deck。
