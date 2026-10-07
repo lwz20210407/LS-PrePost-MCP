@@ -796,9 +796,11 @@ tasks:
     depends_on: [I05]
     status: partial
     gaps:
-      - 旧二十题评测受到题面专用词表调优影响，不作为完成依据；已冻结六类二十四题独立留出集，记录未经调优的结果，跨语言检索与完整来源覆盖仍需后续工作
+      - 查询侧已加通用中英词表与排序；公开索引下独立留出集 B 前 3 命中 13/24（基线 5/24），旧留出集 16/24；开发集与旧二十题为调优集，不作完成依据
+      - 私有 Scripting API/用户指南来源路径未经用户确认（I05 缺口），正式口径 API 类 0/4；SCL 驼峰函数名建索引时不拆分、指南 PDF 抽取断词属于 I05 构建范围
+      - 不写关键字名的字段语义问题（holdout B HB09/HB11/HB12）仍未命中；holdout B 有 6 题答案目标与开发集重合，去除后 10/18
     existing: [search_commands, search_knowledge, search_workflows, list_pydyna_keywords, describe_pydyna_keyword]
-    evidence: [src/ls_prepost_mcp/knowledge.py, tests/test_knowledge_tools.py, tests/test_keyword_field_lookup.py, docs/decisions/evidence/a10/report.md, docs/decisions/evidence/a10-field-lookup/report.md]
+    evidence: [src/ls_prepost_mcp/knowledge.py, src/ls_prepost_mcp/knowledge_index.py, src/ls_prepost_mcp/data/search_glossary.json, tests/test_knowledge_tools.py, tests/test_knowledge_cross_language.py, tests/test_keyword_field_lookup.py, docs/decisions/evidence/a10/report.md, docs/decisions/evidence/a10-field-lookup/report.md, docs/decisions/evidence/a10-cross-language/report.md]
     acceptance:
       - 可检索命令手册、Scripting API、关键字字段、用户指南章节、配方、KNOWN_ISSUES 六类
       - 每条结果带来源、版本、证据等级（文档记载 / 有源码实例 / 本机验证）
