@@ -445,6 +445,11 @@ tools:
     target: curve_ops
     task_id: Q07
     legacy_until: v0.6
+  query_entities:
+    target: query_entities
+    task_id: G04
+    legacy_until: null
+    note: M2 target tool for entity identify (nodes, elements, parts); returns JobResult/v1
   read_job:
     target: alias
     task_id: I01
