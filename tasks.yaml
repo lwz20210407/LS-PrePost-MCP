@@ -412,6 +412,7 @@ tasks:
       - 图像中色标极值与 Q03 同一量的数据极值一致（容差内）
 
   - id: Q03
+    owner: antigravity
     group: post
     title: 场数据提取
     story: 把第 20 个状态 Part 3 所有单元的应力六分量导出成 CSV
@@ -676,6 +677,7 @@ tasks:
       - 4.13 全量、4.10 子集通过
 
   - id: A05
+    owner: codex
     group: auto
     title: 原生宏执行
     story: 运行这个 .mac 宏，参数 N1 取 103，拾取的节点用 Part 2 顶面节点
@@ -779,6 +781,7 @@ tasks:
       - 每组产物与参数的对应关系可追溯
 
   - id: A10
+    owner: cursor
     group: auto
     title: 知识检索
     story: LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS 字段是什么意思？
@@ -856,6 +859,7 @@ tasks:
       - 选择操作不改变显隐状态（回归：pall 会重置 blank 的已知坑）
 
   - id: G04
+    owner: antigravity
     group: general
     title: 实体识别 Identify
     story: 节点 1001 的坐标和它在第 30 个状态的位移是多少？属于哪个 Part？
@@ -907,6 +911,7 @@ infrastructure:
       - 批处理与会话使用同一套配置隔离与日志读取
 
   - id: I02
+    owner: antigravity
     title: 语义合同 core/contracts.py
     milestone: M1
     status: done
@@ -924,6 +929,7 @@ infrastructure:
       - 工作流门槛只读 JobResult
 
   - id: I03
+    owner: codex
     title: 命令构建器与版本能力表
     milestone: M1
     status: partial
@@ -972,6 +978,7 @@ infrastructure:
       - 一条命令生成 Markdown 报告；私有语料通过环境变量启用
 
   - id: I05
+    owner: cursor
     title: 知识库索引
     milestone: M1
     status: partial
