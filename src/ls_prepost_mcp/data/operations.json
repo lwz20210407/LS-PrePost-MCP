@@ -146,6 +146,7 @@
     {"name": "run_script", "domain": "script", "target": "run_script", "task_id": "A01", "legacy_until": null},
     {"name": "find_recipe", "domain": "automation", "target": "find_recipe", "task_id": "A08", "legacy_until": null},
     {"name": "run_recipe", "domain": "automation", "target": "run_recipe", "task_id": "A08", "legacy_until": null, "workflow": true, "session_route": "optional"},
+    {"name": "render_xyplot", "domain": "presentation", "target": "render_xyplot", "task_id": "Q08", "legacy_until": null, "workflow": true, "session_route": "optional"},
     {"name": "search_docs", "domain": "knowledge", "target": "search_docs", "task_id": "A10", "kind": "knowledge", "legacy_until": null},
     {"name": "keyword_fields", "domain": "knowledge", "target": "keyword_fields", "task_id": "A10", "kind": "knowledge", "legacy_until": null},
     {"name": "command_help", "domain": "knowledge", "target": "command_help", "task_id": "A10", "kind": "knowledge", "legacy_until": null},
@@ -153,7 +154,10 @@
     {"name": "edit_keywords", "domain": "model", "target": "edit_keywords", "task_id": "P02", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
     {"name": "create_entities", "domain": "model", "target": "create_entities", "task_id": "P04", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
     {"name": "mesh_ops", "domain": "mesh", "target": "mesh_ops", "task_id": "P08", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
-    {"name": "check_model", "domain": "checks", "target": "check_model", "task_id": "P09", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"}
+    {"name": "check_model", "domain": "checks", "target": "check_model", "task_id": "P09", "legacy_until": null, "note": "M3 target tool on the I07 keyword engine; returns JobResult/v1"},
+    {"name": "curve_ops", "domain": "engineering", "target": "curve_ops", "task_id": "Q07", "legacy_until": null, "note": "M2 target tool on domain.results.curves; returns JobResult/v1"},
+    {"name": "extract_database", "domain": "results", "target": "extract_database", "task_id": "Q06", "legacy_until": null, "note": "M2 target tool over domain.results (binout across MPP shards, component by name); returns JobResult/v1"},
+    {"name": "set_view", "domain": "presentation", "target": "set_view", "task_id": "G01", "legacy_until": null, "note": "G01 target tool; returns JobResult/v1; request presets only, Selector centering unsupported"}
   ],
   "workflow_aliases": {"new_model": "reset_gui_session", "open_model": "open_in_gui_session", "checkpoint": "checkpoint_gui_session"}
 }

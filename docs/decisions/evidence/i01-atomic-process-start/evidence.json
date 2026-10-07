@@ -1,0 +1,230 @@
+{
+  "task": "I01",
+  "date": "2026-10-07",
+  "scope": "Controlled Python subprocesses only; no LS-PrePost or GUI run",
+  "platform": "Windows-10-10.0.26300-SP0",
+  "python311": "3.11.14 (main, Feb 12 2026, 00:37:49) [MSC v.1944 64 bit (AMD64)]",
+  "python312": "3.12.13",
+  "baseline_revision": "e41cf65551274c496f0bb1802f952d1a30e024b2",
+  "execution_identity": {
+    "actual_git_head": "e41cf65551274c496f0bb1802f952d1a30e024b2",
+    "working_tree_dirty": true,
+    "git_diff_sha256": "04d6af737ff7d513d3a65b301b5296f6070bff338f4e9a14b95c81b93183f352",
+    "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames -U3 --inter-hunk-context=0",
+    "git_diff_patch": "working-tree.patch",
+    "git_diff_scope": {
+      "base": "HEAD",
+      "included": "All tracked staged and unstaged changes",
+      "excluded_paths": [],
+      "untracked_included": false
+    },
+    "source_snapshot_sha256": "b4185b2033d83395084961c30a3d9bd2abdb1da97bc10e692fad35cbf8043335",
+    "python_version": "3.11.14 (main, Feb 12 2026, 00:37:49) [MSC v.1944 64 bit (AMD64)]"
+  },
+  "identity_scope": "Captured after targeted tests; identical tested source files. Tracked diff plus all-source snapshot; raw patch kept outside Git.",
+  "tested_source_files": {
+    "src/ls_prepost_mcp/engine/processes.py": "1fe1aa0480f29e2d16d4a466747dd97ab264749851ab799400b9b3027a58fa03",
+    "src/ls_prepost_mcp/engine/windows_job.py": "34b249d1f3151e23d925da50016b521c12eb999a2992d8a26bc7c56a8f0cf004",
+    "tests/test_process_lifetime.py": "58db4808a8f3c0cfaa4901a9c2faee26fa1949d1c0c97c994b3e6fabe6b5bc99"
+  },
+  "runs": [
+    {
+      "run": "baseline",
+      "counts": {
+        "tests": "1",
+        "failures": "1",
+        "errors": "0",
+        "skipped": "0",
+        "time": "6.985"
+      },
+      "junit_sha256": "2484ce323d799ef8dfee3edebbc1d638ddb30280be2ad8bf1c8d3b598cf9855d",
+      "cases": [
+        {
+          "name": "test_host_killed_before_popen_returns_reaps_child",
+          "result": "failed"
+        }
+      ]
+    },
+    {
+      "run": "targeted311",
+      "counts": {
+        "tests": "56",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "8.308"
+      },
+      "junit_sha256": "4197fdb81bbc91166a852fc4e88998e9e4008b14657140964a9fc0ac1f67745c",
+      "cases": [
+        {
+          "name": "test_owned_process_preserves_output_and_closes_pipes",
+          "result": "passed"
+        },
+        {
+          "name": "test_engine_timeout_and_interrupt_reap_real_tree[None]",
+          "result": "passed"
+        },
+        {
+          "name": "test_engine_timeout_and_interrupt_reap_real_tree[KeyboardInterrupt]",
+          "result": "passed"
+        },
+        {
+          "name": "test_engine_timeout_and_interrupt_reap_real_tree[SystemExit]",
+          "result": "passed"
+        },
+        {
+          "name": "test_failed_assignment_never_runs_the_child",
+          "result": "passed"
+        },
+        {
+          "name": "test_normal_parent_exit_also_closes_its_lingering_child",
+          "result": "passed"
+        },
+        {
+          "name": "test_host_abrupt_exit_kills_only_its_job",
+          "result": "passed"
+        },
+        {
+          "name": "test_host_killed_before_popen_returns_reaps_child",
+          "result": "passed"
+        },
+        {
+          "name": "test_atomic_launch_preserves_unicode_args_environment_cwd_and_pipes",
+          "result": "passed"
+        },
+        {
+          "name": "test_child_is_in_exact_job_and_does_not_inherit_unrelated_handle",
+          "result": "passed"
+        },
+        {
+          "name": "test_creation_failure_closes_job_without_running_code[executable]",
+          "result": "passed"
+        },
+        {
+          "name": "test_creation_failure_closes_job_without_running_code[cwd]",
+          "result": "passed"
+        },
+        {
+          "name": "test_creation_failure_closes_job_without_running_code[attribute]",
+          "result": "passed"
+        }
+      ]
+    },
+    {
+      "run": "targeted312",
+      "counts": {
+        "tests": "56",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "25.584"
+      },
+      "junit_sha256": "eccc5ecf503718829065e62cacf75d4903a9574afa8b2978e056b8ddb683139e",
+      "cases": [
+        {
+          "name": "test_owned_process_preserves_output_and_closes_pipes",
+          "result": "passed"
+        },
+        {
+          "name": "test_engine_timeout_and_interrupt_reap_real_tree[None]",
+          "result": "passed"
+        },
+        {
+          "name": "test_engine_timeout_and_interrupt_reap_real_tree[KeyboardInterrupt]",
+          "result": "passed"
+        },
+        {
+          "name": "test_engine_timeout_and_interrupt_reap_real_tree[SystemExit]",
+          "result": "passed"
+        },
+        {
+          "name": "test_failed_assignment_never_runs_the_child",
+          "result": "passed"
+        },
+        {
+          "name": "test_normal_parent_exit_also_closes_its_lingering_child",
+          "result": "passed"
+        },
+        {
+          "name": "test_host_abrupt_exit_kills_only_its_job",
+          "result": "passed"
+        },
+        {
+          "name": "test_host_killed_before_popen_returns_reaps_child",
+          "result": "passed"
+        },
+        {
+          "name": "test_atomic_launch_preserves_unicode_args_environment_cwd_and_pipes",
+          "result": "passed"
+        },
+        {
+          "name": "test_child_is_in_exact_job_and_does_not_inherit_unrelated_handle",
+          "result": "passed"
+        },
+        {
+          "name": "test_creation_failure_closes_job_without_running_code[executable]",
+          "result": "passed"
+        },
+        {
+          "name": "test_creation_failure_closes_job_without_running_code[cwd]",
+          "result": "passed"
+        },
+        {
+          "name": "test_creation_failure_closes_job_without_running_code[attribute]",
+          "result": "passed"
+        }
+      ]
+    },
+    {
+      "run": "full",
+      "counts": {
+        "tests": "1987",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "255",
+        "time": "134.790"
+      },
+      "junit_sha256": "146bcd555068a432a88c2bfbff85afbce34160959852092def3fd6eb19529f8c"
+    },
+    {
+      "run": "min",
+      "counts": {
+        "tests": "56",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "7.765"
+      },
+      "junit_sha256": "e03ca847835deac5c6ab816de766d0f64ea8b6dc1855008e08ed3480f00cb824"
+    },
+    {
+      "run": "file",
+      "counts": {
+        "tests": "3",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "26.106"
+      },
+      "junit_sha256": "36de309e8e629518541f0711e51c7e444ad7dbfc7e5cf175f6941495570d6cfc"
+    }
+  ],
+  "initial_full_run": {
+    "passed": 1710,
+    "failed": 22,
+    "skipped": 255,
+    "valid": false,
+    "reason": "Invalid basetemp inside repository and too deep for Windows. Repeating outside repository with short path."
+  },
+  "full_suite": "1732 passed, 255 skipped; Windows Python 3.11.15, locked full dependencies",
+  "local_checks": [
+    "Ruff check . --no-cache",
+    "lint-imports --no-cache: 3 kept / 0 broken",
+    "validate_tasks.py",
+    "gen_docs.py --check",
+    "validate_tool_migration.py",
+    "fetch_corpus.py --check-registry",
+    "check_doc_links.py: 856 links",
+    "git diff --check"
+  ]
+}

@@ -350,12 +350,14 @@
 - MPP 分片 binout 合并后与单机结果一致（corpus:mpp_binout）
 - LSPP 与 LASSO 结果一致（容差内）
 
-现有入口：`extract_native_binout_curve`, `extract_native_ascii_curve`, `extract_binout_curve`, `extract_binout_table`, `extract_ascii_curve`
+现有入口：`extract_database`, `extract_native_binout_curve`, `extract_native_ascii_curve`, `extract_binout_curve`, `extract_binout_table`, `extract_ascii_curve`
 
 缺口：
 
-- 原生只有 NODOUT / GLSTAT / MATSUM 部分量；ASCII 只接 6 类且要填 UI 分量编号
-- MPP 分片 binout 被拒绝
+- extract_database（LASSO，不启动 LSPP）已按存储列名读取 12 类 binout 库，自动合并同目录 MPP 分片；重复 ID（RCFORC 的 side 0/1）按存储列区分。公开 binout（Bolt_B_Explicit、pyansys-heart）的 glstat / rcforc / nodout 与 lasso 直读逐值一致
+- ASCII 文本库（glstat、rcforc 等）尚未接入 extract_database，仍走旧工具且要填 UI 分量编号；原生侧只有 NODOUT / GLSTAT / MATSUM 部分量
+- MPP 合并结果与单机结果一致性未验证：公开语料中没有同一模型的 MPP/SMP 成对算例（corpus:mpp_binout）；分片合并只有合成 LSDA 用例
+- LSPP 与 LASSO 结果对照未做（原生侧）
 
 ### Q07 曲线运算
 
@@ -369,11 +371,12 @@
 - 滤波结果与 LSPP XYPlot 同参数滤波对比一致（L2）
 - 每次运算把公式与参数写进结果元数据
 
-现有入口：`process_curve`, `convert_history_units`, `combine_history_curves`, `build_tensile_curves`
+现有入口：`curve_ops`, `process_curve`, `convert_history_units`, `combine_history_curves`, `build_tensile_curves`
 
 缺口：
 
-- 缺 SAE / Butterworth 滤波、重采样、FFT、Cross Plot、真应力应变
+- 滤波结果尚未与 LS-PrePost XYPlot 同参数滤波对比（L2），首尾填充约定是否与 LS-PrePost 一致未知
+- 相对量（两条曲线相减）仍只由旧工具 combine_history_curves 提供，curve_ops 未接入
 
 ### Q08 XYPlot 出图
 
@@ -707,7 +710,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：partial；验证：L1
 
-证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py), [docs/decisions/evidence/i01/report.md](../docs/decisions/evidence/i01/report.md), [docs/decisions/evidence/i01-followup/report.md](../docs/decisions/evidence/i01-followup/report.md), [docs/decisions/evidence/i01-staging/report.md](../docs/decisions/evidence/i01-staging/report.md), [docs/decisions/evidence/i01-batch-contract/report.md](../docs/decisions/evidence/i01-batch-contract/report.md), [docs/decisions/evidence/i01-process-lifetime/report.md](../docs/decisions/evidence/i01-process-lifetime/report.md), [docs/decisions/evidence/i01-log-decoding/report.md](../docs/decisions/evidence/i01-log-decoding/report.md), [tests/test_queue_backpressure.py](../tests/test_queue_backpressure.py), [tests/test_queue_backpressure_native.py](../tests/test_queue_backpressure_native.py), [docs/decisions/evidence/i01-queue/report.md](../docs/decisions/evidence/i01-queue/report.md)
+证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py), [docs/decisions/evidence/i01/report.md](../docs/decisions/evidence/i01/report.md), [docs/decisions/evidence/i01-followup/report.md](../docs/decisions/evidence/i01-followup/report.md), [docs/decisions/evidence/i01-staging/report.md](../docs/decisions/evidence/i01-staging/report.md), [docs/decisions/evidence/i01-batch-contract/report.md](../docs/decisions/evidence/i01-batch-contract/report.md), [docs/decisions/evidence/i01-process-lifetime/report.md](../docs/decisions/evidence/i01-process-lifetime/report.md), [docs/decisions/evidence/i01-atomic-process-start/report.md](../docs/decisions/evidence/i01-atomic-process-start/report.md), [docs/decisions/evidence/i01-log-decoding/report.md](../docs/decisions/evidence/i01-log-decoding/report.md), [docs/decisions/evidence/i01-include-diagnostics/report.md](../docs/decisions/evidence/i01-include-diagnostics/report.md), [tests/test_input_path_confinement.py](../tests/test_input_path_confinement.py), [tests/test_queue_backpressure.py](../tests/test_queue_backpressure.py), [tests/test_queue_backpressure_native.py](../tests/test_queue_backpressure_native.py), [docs/decisions/evidence/i01-queue/report.md](../docs/decisions/evidence/i01-queue/report.md), [tests/test_native_include_budget.py](../tests/test_native_include_budget.py), [docs/decisions/evidence/i01-reference-budget/report.md](../docs/decisions/evidence/i01-reference-budget/report.md)
 
 - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
 - 删除 gui_session_action 中运行时替换 _native 的做法
@@ -716,6 +719,8 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 ### I02 语义合同 core/contracts.py
 
 里程碑：M1
+
+负责人：antigravity
 
 状态：done；验证：L1
 
@@ -728,6 +733,8 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 ### I03 命令构建器与版本能力表
 
 里程碑：M1
+
+负责人：codex
 
 状态：partial；验证：L2
 
@@ -744,7 +751,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：partial；验证：待记录
 
-证据：[docs/decisions/evidence/i04/report.md](../docs/decisions/evidence/i04/report.md), [docs/decisions/evidence/i04-window/report.md](../docs/decisions/evidence/i04-window/report.md), [docs/decisions/evidence/i04-identity/report.md](../docs/decisions/evidence/i04-identity/report.md), [tools/native_regression.py](../tools/native_regression.py), [tests/test_public_corpus_native.py](../tests/test_public_corpus_native.py), [tests/corpus/public_cases.json](../tests/corpus/public_cases.json), [tests/test_native_acceptance.py](../tests/test_native_acceptance.py), [tests/test_native_regression.py](../tests/test_native_regression.py), [tests/test_native_remote.py](../tests/test_native_remote.py), [tests/test_native_input_preconditions.py](../tests/test_native_input_preconditions.py)
+证据：[docs/decisions/evidence/i04/report.md](../docs/decisions/evidence/i04/report.md), [docs/decisions/evidence/i04-window/report.md](../docs/decisions/evidence/i04-window/report.md), [docs/decisions/evidence/i04-identity/report.md](../docs/decisions/evidence/i04-identity/report.md), [docs/decisions/evidence/i04-public100-preflight/report.md](../docs/decisions/evidence/i04-public100-preflight/report.md), [tools/native_regression.py](../tools/native_regression.py), [tests/test_public_corpus_native.py](../tests/test_public_corpus_native.py), [tests/corpus/public_cases.json](../tests/corpus/public_cases.json), [tests/test_native_acceptance.py](../tests/test_native_acceptance.py), [tests/test_native_regression.py](../tests/test_native_regression.py), [tests/test_native_remote.py](../tests/test_native_remote.py), [tests/test_native_input_preconditions.py](../tests/test_native_input_preconditions.py)
 
 - 补测从 M0 转入的 13 个 UU 远程格（4.13/4.10 的 runc 五通道共 10 格，以及两版本 nographics 原生宏和 4.13 会话原生宏共 3 格），记录执行、PNG、MP4 结果与用户确认的断开时间窗
 - 55 个 tools/run_* 收编为 57 个带 marker 的 pytest 用例，共享 fixture
@@ -753,6 +760,8 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 ### I05 知识库索引
 
 里程碑：M1
+
+负责人：cursor
 
 状态：partial；验证：L1
 
