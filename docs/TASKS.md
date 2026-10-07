@@ -536,7 +536,7 @@
 
 缺口：
 
-- 只支持数值参数；拒绝字符串参数、表达式默认值、interactive 暂停、分号多命令、嵌套宏
+- 已支持有界字符串与数值绑定到 cfile；两版原生记录仅作历史证据，审阅修正头未重跑；原生 Macro/Exec 的 batch/session 与五个真实教程宏仍未验收；表达式默认值、interactive 暂停、分号多命令、嵌套宏显式拒绝
 - 拾取域只接受正整数 ID，不能用选择结果绑定
 - create_native_macro / run_native_macro 实为自定义 JSON 模板，名称与原生宏混淆
 

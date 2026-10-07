@@ -6,6 +6,7 @@ Unresolved picks, expression defaults and interactive pauses fail preparation.
 
 import math
 import re
+import unicodedata
 
 NAME = r"[A-Za-z][A-Za-z0-9_]{0,63}"
 REFERENCE = re.compile(r"&(?:\{(" + NAME + r")\}|(" + NAME + r"))(?:\(([nep])\))?")
@@ -19,6 +20,58 @@ def syntax_error(line, message):
 def comment(line):
     stripped = line.strip()
     return not stripped or stripped.startswith('$') or stripped.lower() == 'c' or stripped.lower().startswith('c ')
+
+
+def parameter_literal(value):
+    """Serialize bounded data, never expression source or native command syntax."""
+    if type(value) is str:
+        if (len(value) > 4096 or any(c in '";\\&{}' or unicodedata.category(c).startswith('C')
+                                     or c in '\u2028\u2029' for c in value)):
+            raise ValueError('Native string parameters reject quotes, backslashes, separators, references and controls')
+        return '"' + value + '"'
+    try:
+        if type(value) in (int, float) and math.isfinite(value):
+            return repr(value)
+    except OverflowError:
+        pass
+    raise ValueError('Native macro parameters must be finite numbers or bounded literal strings')
+
+
+def macro_parameters(values):
+    if not isinstance(values, dict) or len(values) > 100:
+        raise ValueError('Expected at most 100 named native macro parameters')
+    for key, value in values.items():
+        if not isinstance(key, str) or not re.fullmatch(NAME, key):
+            raise ValueError('Invalid native macro parameter name')
+        parameter_literal(value)
+    return values
+
+
+def bind_line(line, values, number):
+    if comment(line):
+        return line
+    if line.count('"') % 2:
+        raise syntax_error(number, 'Unbalanced native argument quotes')
+
+    def replace(match):
+        value = values[match[1] or match[2]]
+        literal = parameter_literal(value)
+        if type(value) is not str:
+            return literal
+        prefix, suffix = line[:match.start()], line[match.end():]
+        # Data may occupy an argument, never the command verb. A quoted string
+        # is inserted without a second pair of quotes only inside source quotes.
+        if not re.match(r'^\s*[^\s"&]+\s', prefix):
+            raise syntax_error(number, 'String parameters may only bind command arguments')
+        if '\\' in line:
+            raise syntax_error(number, 'Backslash quoting with string parameters is unsupported; use forward slashes')
+        if prefix.count('"') % 2:
+            return value
+        if (prefix and not prefix[-1].isspace()) or (suffix and not suffix[0].isspace()):
+            raise syntax_error(number, 'Unquoted string references must occupy a complete argument')
+        return literal
+
+    return REFERENCE.sub(replace, line)
 
 
 def parse_blocks(code):
@@ -53,10 +106,8 @@ def parse_blocks(code):
 
 
 def compile_macro(code, parameters, macro_name=None):
-    """Bind finite numeric values; emit native-editable macro and explicit cfile."""
-    from .programs import numeric_parameters
-
-    numeric_parameters(parameters)
+    """Bind finite numbers and literal strings to an explicit reviewed cfile."""
+    macro_parameters(parameters)
     blocks = parse_blocks(code)
     if macro_name is None:
         if len(blocks) != 1:
@@ -68,19 +119,26 @@ def compile_macro(code, parameters, macro_name=None):
     saw_command, reference_lines = False, {}
     for number, line in enumerate(block['lines'], block['first_line'] + 1):
         if comment(line):
-            body.append(line)
+            body.append((number, line))
             continue
         stripped = line.strip()
         if re.match(r"parameter(?:\s|$)", stripped, re.I):
-            match = re.fullmatch(r"parameter\s+(" + NAME + r")\s+(\S+)", stripped, re.I)
-            if not match or not NUMBER.fullmatch(match[2]) or saw_command:
-                raise syntax_error(number, 'Native macro defaults must be literal numbers before commands; expressions/reassignment need explicit native review')
+            match = re.fullmatch(r"parameter\s+(" + NAME + r")\s+(.+)", stripped, re.I)
+            if not match or saw_command:
+                raise syntax_error(number, 'Native macro defaults must be literals before commands; expressions/reassignment need explicit native review')
             key, raw = match[1], match[2]
             if key in defaults:
                 raise syntax_error(number, 'Duplicate native parameter default: ' + key)
-            value = int(raw) if re.fullmatch(r'[+-]?\d+', raw) else float(raw)
-            if not math.isfinite(value):
-                raise syntax_error(number, 'Native macro default must be finite')
+            try:
+                if NUMBER.fullmatch(raw):
+                    value = int(raw) if re.fullmatch(r'[+-]?\d+', raw) else float(raw)
+                elif re.fullmatch(r'"[^"]*"', raw):
+                    value = raw[1:-1]
+                else:
+                    raise ValueError('Native defaults require literal numbers or double-quoted strings; expressions are unsupported')
+                parameter_literal(value)
+            except ValueError as exc:
+                raise syntax_error(number, str(exc)) from exc
             defaults[key] = value
             names.add(key)
             continue
@@ -99,9 +157,9 @@ def compile_macro(code, parameters, macro_name=None):
                 picks[key] = pick
         if '&' in REFERENCE.sub('', line):
             raise syntax_error(number, 'Unsupported native parameter reference syntax')
-        body.append(line)
+        body.append((number, line))
     if len(names) > 100 or not saw_command:
-        raise syntax_error(block['first_line'], 'Native macro requires commands and at most 100 numeric parameters')
+        raise syntax_error(block['first_line'], 'Native macro requires commands and at most 100 parameters')
     if parameters.keys() - names:
         raise ValueError('Unknown native macro parameters: ' + ', '.join(sorted(parameters.keys()-names)))
     values = {**defaults, **parameters}
@@ -113,14 +171,13 @@ def compile_macro(code, parameters, macro_name=None):
             raise syntax_error(reference_lines[key], 'Picked node/element/part parameters require positive integer user IDs: ' + key)
     # Native Macro/Exec sets parameters before dispatching its resolved commands.
     # Retain those definitions for explicitly declared child cfiles as well.
-    definitions = ''.join('parameter ' + key + ' ' + repr(value) + '\n' for key, value in sorted(values.items()))
-    commands = definitions + '\n'.join(line if comment(line) else REFERENCE.sub(
-        lambda m: repr(values[m[1] or m[2]]), line) for line in body) + '\n'
+    definitions = ''.join('parameter ' + key + ' ' + parameter_literal(value) + '\n' for key, value in sorted(values.items()))
+    commands = definitions + '\n'.join(bind_line(line, values, number) for number, line in body) + '\n'
     native = '*macro begin ' + macro_name + '\n'
     native += definitions
-    native += '\n'.join(body) + '\n*macro end\n'
+    native += '\n'.join(line for _, line in body) + '\n*macro end\n'
     metadata = dict(name=macro_name, available_macros=list(blocks), parameters=values,
                     pick_domains={key:dict(n='node', e='element', p='part')[value] for key, value in picks.items()},
                     first_line=block['first_line'], last_line=block['last_line'],
-                    scope='Numeric native macro binding to cfile; user IDs are not existence-checked; no interactive pick, toolbar, shortcut or pause/resume certification')
+                    scope='Literal string/numeric native macro binding to cfile; user IDs are not existence-checked; no native Macro/Exec, interactive pick, toolbar, shortcut or pause/resume certification')
     return commands, native, metadata
