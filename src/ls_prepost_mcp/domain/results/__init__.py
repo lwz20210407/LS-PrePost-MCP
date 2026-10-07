@@ -6,6 +6,6 @@
 ``mpp_shards``: Q06 binout reading across MPP shards with explicit merge rules.
 ``export``: Q03 field export to CSV / NPZ with semantic metadata.
 """
-from . import curves, export, invariants, lasso_backend, mpp_shards
+from . import curves, energy, export, invariants, lasso_backend, mpp_shards, section
 
-__all__ = ["curves", "export", "invariants", "lasso_backend", "mpp_shards"]
+__all__ = ["curves", "energy", "export", "invariants", "lasso_backend", "mpp_shards", "section"]

@@ -327,6 +327,169 @@ class EngineeringTools:
             work,
         )
 
+    def check_energy(
+        self,
+        path: str,
+        units: str,
+        kinetic_ratio_limit: float | None = None,
+        hourglass_ratio_limit: float | None = None,
+        residual_ratio_limit: float | None = None,
+        sliding_ratio_limit: float | None = None,
+        include_parts: bool = True,
+    ) -> dict:
+        """Full GLSTAT energy balance, ratio screening, and MATSUM part dissipation.
+
+        Outputs kinetic, internal, hourglass, sliding, damping, eroded and external work energies
+        with balance residual and ratios. If limits are omitted, ratios are reported without asserting conclusions.
+        """
+        from .domain.results.energy import (
+            calculate_energy_balance,
+            read_ascii_matsum,
+            read_binout_matsum,
+            read_glstat,
+        )
+
+        source = self.settings.input_path(path)
+        sources = [source]
+
+        def work(directory):
+            glstat_data = read_glstat(source)
+            matsum_data = None
+            matsum_warning = None
+            if include_parts:
+                matsum_data = read_binout_matsum(source)
+                if not matsum_data:
+                    ascii_matsum = source.parent / "matsum"
+                    if ascii_matsum.is_file():
+                        matsum_data = read_ascii_matsum(ascii_matsum)
+                    else:
+                        matsum_warning = "未提供部件能量来源（未找到 matsum 文件）"
+
+            calc_result = calculate_energy_balance(
+                glstat_data,
+                parts=matsum_data,
+                units=units,
+                kinetic_ratio_limit=kinetic_ratio_limit,
+                hourglass_ratio_limit=hourglass_ratio_limit,
+                residual_ratio_limit=residual_ratio_limit,
+                sliding_ratio_limit=sliding_ratio_limit,
+            )
+            summary = calc_result["summary"]
+            if matsum_warning:
+                summary.setdefault("warnings", []).append(matsum_warning)
+            series_rows = calc_result["series_rows"]
+
+            csv_header = [
+                "time",
+                "total_energy",
+                "kinetic_energy",
+                "internal_energy",
+                "hourglass_energy",
+                "sliding_energy",
+                "external_work",
+                "damping_energy",
+                "eroded_energy",
+                "residual",
+                "relative_residual",
+                "ke_ratio",
+                "hg_ratio",
+            ]
+            csv_artifact = write_csv(directory / "energy_balance.csv", csv_header, series_rows)
+            artifacts = [csv_artifact]
+
+            if matsum_data and summary["parts"]:
+                part_rows = [
+                    [
+                        p["part_id"],
+                        p["peak_internal_energy"],
+                        p["final_internal_energy"],
+                        p["fraction_of_total_internal_energy"] if p["fraction_of_total_internal_energy"] is not None else 0.0,
+                        p["peak_hourglass_energy"],
+                        p["final_hourglass_energy"],
+                        p["max_part_hourglass_ratio"],
+                        p["peak_kinetic_energy"],
+                        p["final_eroded_internal_energy"],
+                    ]
+                    for p in summary["parts"].values()
+                ]
+                part_header = [
+                    "part_id",
+                    "peak_internal_energy",
+                    "final_internal_energy",
+                    "fraction_of_total_internal_energy",
+                    "peak_hourglass_energy",
+                    "final_hourglass_energy",
+                    "max_part_hourglass_ratio",
+                    "peak_kinetic_energy",
+                    "final_eroded_internal_energy",
+                ]
+                part_artifact = write_csv(directory / "part_energy.csv", part_header, part_rows)
+                artifacts.append(part_artifact)
+
+            atomic_json(directory / "summary.json", summary)
+            artifacts.append(check_artifact(directory / "summary.json", "json"))
+
+            return summary, artifacts
+
+        job_result = self._post_job(
+            "check_energy",
+            dict(
+                units=units,
+                kinetic_ratio_limit=kinetic_ratio_limit,
+                hourglass_ratio_limit=hourglass_ratio_limit,
+                residual_ratio_limit=residual_ratio_limit,
+                sliding_ratio_limit=sliding_ratio_limit,
+                include_parts=include_parts,
+            ),
+            sources,
+            work,
+        )
+
+        # Enrich with JobResult/v1 and CheckResult metadata (P1-2)
+        from .core.contracts import Artifact, CheckResult, JobResult
+
+        checks = []
+        summary_data = job_result.get("data", {})
+        if isinstance(summary_data, dict) and "checks" in summary_data:
+            for check_name, check_info in summary_data["checks"].items():
+                c_status = check_info.get("status")
+                if c_status not in ("passed", "failed", "not_applicable", "missing", "invalid"):
+                    c_status = (
+                        "passed"
+                        if check_info.get("passed") is True
+                        else ("failed" if check_info.get("passed") is False else "not_applicable")
+                    )
+                checks.append(CheckResult(name=check_name, status=c_status, source_path=()))
+
+        clean_artifacts = []
+        for a in job_result.get("artifacts", []):
+            size_b = a.get("size_bytes") if a.get("size_bytes") is not None else a.get("size")
+            clean_artifacts.append(
+                Artifact(
+                    path=str(a["path"]),
+                    kind=str(a["kind"]),
+                    sha256=a.get("sha256"),
+                    size_bytes=size_b,
+                    verification="verified" if a.get("sha256") and size_b is not None else "unverified",
+                )
+            )
+
+        job_dir = Path(job_result["job_directory"]).name if job_result.get("job_directory") else None
+        err = job_result.get("error")
+        res_obj = JobResult(
+            contract="JobResult/v1",
+            operation="check_energy",
+            status=job_result.get("status", "succeeded"),
+            job_id=job_dir,
+            backend="lasso-python/pure-python",
+            data=summary_data if isinstance(summary_data, dict) else {},
+            artifacts=tuple(clean_artifacts),
+            checks=tuple(checks),
+            warnings=tuple(summary_data.get("warnings", []) if isinstance(summary_data, dict) else []),
+            error=err if job_result.get("status") == "failed" and err else None,
+        )
+        return res_obj.model_dump(mode="json")
+
     def native_energy_postprocess(
         self, path: str, units: str, include_hourglass: bool = False, include_external_work: bool = False
     ) -> dict:
