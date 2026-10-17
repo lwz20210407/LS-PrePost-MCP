@@ -971,6 +971,8 @@ infrastructure:
     milestone: M1
     status: partial
     evidence:
+      - docs/decisions/evidence/i04-reader-validation/report.md
+      - tests/test_d3plot_time_validation.py
       - docs/decisions/evidence/i04-diagnostics/report.md
       - tools/diagnose_public_corpus.py
       - tests/test_public_corpus_diagnostics.py
