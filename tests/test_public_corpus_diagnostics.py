@@ -134,11 +134,23 @@ def test_lasso_204_tail_after_endmark_reproduces_extra_state(tmp_path):
     assert raw[size:size + wordsize] == marker
     state_file.write_bytes(raw[:size + wordsize] + bytes(size) + b"\x01" + bytes(2048))
     service = diagnostic.Service(diagnostic.Settings(tmp_path / "jobs", allowed_roots=(tmp_path,)))
-    observed = service.inspect_d3plot_database(str(source))
+    # Preserve the upstream reproduction, while every MCP reader rejects it.
+    observed_times = D3plot(str(source)).arrays["timesteps"].tolist()
+    observed = {"state_count": len(observed_times), "state_times": observed_times}
     assert observed["state_times"] == [0., -999999., 1.]
     result = diagnostic.state_comparison({"counts": {"states": 2}, "state_times": [0., 1.]}, observed)
     assert result["verdict"] == "backend_state_count_mismatch"
     assert result["reader_time_reversals"] == [2]
+    from ls_prepost_mcp.domain.results.lasso_backend import overview
+    from ls_prepost_mcp.post_backend import selected_database
+
+    family = {p: diagnostic.digest(p) for p in tmp_path.glob("d3plot*")}
+    for action in (lambda: service.inspect_d3plot_database(str(source)),
+                   lambda: overview(source),
+                   lambda: selected_database(source, [1], ["node_displacement"])):
+        with pytest.raises(ValueError, match="Invalid d3plot time axis: EOF marker.*state 2"):
+            action()
+    assert {p: diagnostic.digest(p) for p in tmp_path.glob("d3plot*")} == family
 
 
 def write_keyword_fixture(directory):

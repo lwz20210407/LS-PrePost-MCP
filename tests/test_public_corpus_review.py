@@ -97,9 +97,9 @@ def test_known_issues_keeps_unicode_member_paths_unverified():
         assert fact in section
 
 
-def test_known_issues_keeps_lasso_tail_gap_with_shared_owner():
+def test_known_issues_records_shared_guard_and_remaining_lasso_tail_gap():
     text = KNOWN_ISSUES.read_text(encoding="utf8")
     section = text.split("## I04：LASSO 结束标记后尾数据", 1)[1].split("\n## ", 1)[0]
-    for fact in ("2.0.4", "11", "-999999", "Claude", "未修复", "不删状态",
-                 "i04-diagnostics/report.md"):
+    for fact in ("2.0.4", "11", "-999999", "未修复", "不删状态", "state_filter",
+                 "共享时间轴校验", "i04-diagnostics/report.md"):
         assert fact in section

@@ -10,6 +10,7 @@ from pydantic import StrictInt
 from .automation.recipes import RecipeTools
 from .config import Settings
 from .core.validation import integer, numbers, unit_label
+from .domain.results.time_validation import validate_d3plot_times
 from .dpf_tools import DpfTools
 from .engine.context import NativeContext
 from .engineering import EngineeringTools
@@ -374,7 +375,7 @@ class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, Model
         from lasso.dyna import D3plot
         source = self.settings.input_path(path)
         db = D3plot(str(source), state_array_filter=["timesteps"], buffered_reading=True)
-        times = db.arrays.get("timesteps", [])
+        times = validate_d3plot_times(db.arrays.get("timesteps", []))
         return {"backend": "lasso", "source": str(source), "node_count": int(db.header.n_nodes),
                 "shell_count": int(db.header.n_shells), "solid_count": int(db.header.n_solids),
                 "state_count": len(times), "state_times": [float(t) for t in times[:10000]],
@@ -490,7 +491,7 @@ class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, Model
         try:
             key = "node_" + quantity
             db = D3plot(str(source), state_array_filter=[key, "timesteps"], buffered_reading=True)
-            times = np.asarray(db.arrays["timesteps"])
+            times = validate_d3plot_times(db.arrays["timesteps"])
             vectors = lasso_vectors(db.arrays, quantity)
             user_ids = np.asarray(db.arrays["node_ids"])
             if vectors.ndim != 3 or vectors.shape != (len(times), len(user_ids), 3):
