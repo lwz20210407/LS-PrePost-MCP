@@ -15,3 +15,12 @@
 另外保留四次 dirty 探索运行的报告哈希、次数和原因：4.10 首轮 3 passed / 5 failed（fixture 路径）；第二轮 7 passed / 1 failed（图形回调）；4.13 为 7 passed / 1 skipped；4.10 产品入口探针 3 passed。它们不替代上述干净运行，逐项见 evidence.json 的 historical_dirty_runs。
 
 随后单独修复 CreateJunction 失败留下的空目录：只移除本次独占目录内的空普通目录，遇重解析点或非空替换项保留。ce24 的 UNC 情形 I 复验后别名根目录为空，A–H、J 的保护行为不变；新增三个模拟失败用例由修复前失败转为通过。此异常清理修复不改成功作业路线，新增原生记录绑定的是前述纯合并提交。
+
+
+## 2026-10-07：4.13 恢复权限后的无图形复跑
+
+在干净 main `0d7a6d718647fac50e487af101eb18fe58571037` 上运行 `tests/test_native_workspace_alias_native.py`，结果为 **7 passed / 1 skipped**，未再出现 WinError 740。实际执行包含此前 #38/#39 和 #70；空 diff 指纹与源码快照记录在 evidence.json 的 `ci-restored-413-batch`，旧记录原样保留。
+
+10 个原生进程作业均保留 stdout/stderr 原始日志和 log_decoding；6 个中文目录作业均使用 ASCII cwd 别名。逐项核对报告哈希、源码快照、Git blob、状态与日志字段，0 项不一致。原始报告仍在仓库外，未公开安装路径或原生日志。
+
+跳过的 native_batch 需要图形回调；本轮没有可见 GUI、UU 断开或其它版本运行。用户已移除可执行文件的管理员兼容性标记，此记录验证当前 4.13 无图形路径，未改变任务验收或扩大已验证范围。

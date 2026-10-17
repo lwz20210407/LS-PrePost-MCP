@@ -116,3 +116,188 @@ def test_single_curve_column_names_remain_independent_of_optional_legend(tmp_pat
     path.write_text("位移,载荷\n0,0\n1,1\n", encoding="utf8")
     curves = curve_sources(Service(Settings(tmp_path)), str(path), "位移", "载荷", "mm", "N", None, None)
     assert curves[0]["spec"]["y_column"] == "载荷"
+
+
+def test_legacy_session_commands_are_unchanged_without_axis_options():
+    from ls_prepost_mcp.gui_curves import presentation_commands
+
+    assert presentation_commands("xyplot 3 ", "T", "u", "F", "mm", "N", ["A", "B"], True) == [
+        'xyplot 3 title "T"', 'xyplot 3 xtitle "u (mm)"', 'xyplot 3 ytitle "F (N)"', "xyplot 3 legend on",
+        'xyplot 3 curvelegend 1/1 "A"', 'xyplot 3 curvelegend 2/1 "B"']
+    assert presentation_commands("xyplot 1 ", "T", "u", "F", "mm", "N", ["Curve 1"], False)[-1] == "xyplot 1 legend off"
+
+
+@pytest.mark.parametrize("x_log,y_log,token", [(True, False, "Lin-Log"), (False, True, "Log-Lin"), (True, True, "Log-Log")])
+def test_native_axes_token_is_y_scale_then_x_scale_and_precedes_limits(x_log, y_log, token):
+    from ls_prepost_mcp.gui_curves import axis_options, presentation_commands
+
+    options = axis_options([0.1, 10], [1, 1000], x_log, y_log)
+    commands = presentation_commands("xyplot 1 ", "T", "u", "F", "mm", "N", ["A"], True, "Cases", options)
+    assert commands[-6:] == ['xyplot 1 legendlabel "Cases"', "xyplot 1 axes " + token, "xyplot 1 xmin 0.10000000000000001",
+                             "xyplot 1 xmax 10", "xyplot 1 ymin 1", "xyplot 1 ymax 1000"]
+    linear = presentation_commands("xyplot 1 ", "T", "u", "F", "mm", "N", ["A"], True, None, axis_options(y_range=[-2, 3]))
+    assert not any(" axes " in c for c in linear) and linear[-2:] == ["xyplot 1 ymin -2", "xyplot 1 ymax 3"]
+
+
+@pytest.mark.parametrize("kwargs", [
+    dict(x_range=[1, 1]), dict(x_range=[2, 1]), dict(y_range=[0, float("inf")]), dict(x_range=[1]),
+    dict(x_range=["0", 1]), dict(x_range=[0, 1], x_log=True), dict(y_range=[-1, 1], y_log=True), dict(x_log=1)])
+def test_invalid_axis_options_are_rejected(kwargs):
+    from ls_prepost_mcp.gui_curves import axis_options
+
+    with pytest.raises(ValueError):
+        axis_options(**kwargs)
+
+
+def xyplot_service(tmp_path, monkeypatch, native_writer=None):
+    from PIL import Image
+
+    from ls_prepost_mcp import gui_curves
+    from ls_prepost_mcp.config import Settings
+    from ls_prepost_mcp.core.contracts import JobResult
+    from ls_prepost_mcp.service import Service
+
+    executable = tmp_path / "lsprepost4.13.exe"
+    executable.write_bytes(b"placeholder")
+    monkeypatch.setattr(Settings, "native_executable", lambda self: executable)
+    calls = []
+
+    def fake_run_batch(exe, cfile, directory, *, timeout, graphics, operation, launch_mode="c"):
+        calls.append(dict(cfile=cfile.read_text(encoding="utf-8"), graphics=graphics, operation=operation))
+        blocks, lines = [], (directory / "curves.txt").read_text().splitlines()
+        while lines:
+            count = int(lines.pop(0))
+            blocks.append([tuple(float(v) for v in lines.pop(0).split(",")) for _ in range(count)])
+        text = (native_writer or native_text)(blocks)
+        (directory / "native.xy").write_text(text)
+        image = Image.new("RGB", (64, 48), "white")
+        image.putpixel((3, 3), (255, 0, 0))
+        image.save(directory / "plot.png")
+        return JobResult(operation=operation, job_id=directory.name, status="unverified", backend="lsprepost", data={})
+
+    monkeypatch.setattr(gui_curves, "run_batch", fake_run_batch)
+    return Service(Settings(tmp_path / "jobs", None, (tmp_path,))), calls
+
+
+def native_text(blocks):
+    return "".join(f"{len(b):10d}\n" + "".join(f"{float(np.float32(x)):20.10e}{float(np.float32(y)):20.10e}\n"
+                                              for x, y in b) for b in blocks)
+
+
+def three_cases(tmp_path):
+    rows = {"A": "0,0\n1,10\n2,18\n3,22\n", "B": "0,0\n1.5,12\n3,19\n", "C": "0,0\n1,8\n2,13\n1,9\n0,2\n"}
+    curves = []
+    for label, body in rows.items():
+        path = tmp_path / f"case_{label}.csv"
+        path.write_text("time,disp,force\n" + "".join(f"{i},{line}\n" for i, line in enumerate(body.splitlines())))
+        curves.append(dict(path=str(path), x_column="disp", y_column="force", label="Case " + label,
+                           x_unit="mm", y_unit="kN"))
+    return curves
+
+
+def test_render_xyplot_batch_exports_png_and_matching_csv_without_visible_gui(tmp_path, monkeypatch):
+    import csv
+
+    service, calls = xyplot_service(tmp_path, monkeypatch)
+    curves = three_cases(tmp_path)
+    result = service.render_xyplot(curves, "Three load cases", "Displacement", "Force", "mm", "kN",
+                                   x_range=[0, 4], y_range=[0, 25], legend_title="Cases")
+    assert result["status"] == "succeeded", result
+    assert calls[0]["graphics"] is False and calls[0]["operation"] == "render_xyplot"
+    cfile = calls[0]["cfile"].splitlines()
+    assert cfile[:3] == ['open xydata "curves.txt"', "newplot", 'show "curves.txt" 0']
+    assert 'xyplot 1 curvelegend 3/1 "Case C"' in cfile and "xyplot 1 xmax 4" in cfile and cfile[-1] == "exit"
+    assert cfile[-3] == 'print png "plot.png" nogamma enlisted "PlotWindow-1"'
+    data = result["data"]
+    assert data["visible_gui"] is False and data["curve_count"] == 3
+    assert [c["numeric_verification"]["sample_count"] for c in data["curves"]] == [4, 3, 5]
+    assert data["axes"]["requested_x_range"] == [0.0, 4.0] and data["axes"]["x_scale"] == "linear"
+    table = next(a for a in result["artifacts"] if a["path"].endswith("curves.csv"))
+    with open(table["path"], newline="") as stream:
+        rows = [(int(r["curve"]), float(r["x"]), float(r["y"])) for r in csv.DictReader(stream)]
+    hysteresis = [(x, y) for curve, x, y in rows if curve == 3]
+    assert hysteresis == [(0, 0), (1, 8), (2, 13), (1, 9), (0, 2)]
+    assert data["png_csv_consistency"]["csv_sha256"] == table["sha256"]
+    assert {a["kind"] for a in result["artifacts"]} >= {"png", "csv", "text"}
+
+
+def test_render_xyplot_single_curve_uses_first_curve_reference(tmp_path, monkeypatch):
+    service, calls = xyplot_service(tmp_path, monkeypatch)
+    result = service.render_xyplot(three_cases(tmp_path)[1:2], "One", "u", "F", "mm", "kN", legend=False)
+    assert result["status"] == "succeeded", result
+    assert 'show "curves.txt~1" 0' in calls[0]["cfile"] and "xyplot 1 legend off" in calls[0]["cfile"]
+
+
+def test_native_readback_mismatch_fails_the_batch_job(tmp_path, monkeypatch):
+    service, _ = xyplot_service(tmp_path, monkeypatch, native_writer=lambda blocks: native_text(blocks[::-1]))
+    result = service.render_xyplot(three_cases(tmp_path), "T", "u", "F", "mm", "kN")
+    assert result["status"] == "failed" and "count" in result["error"]["message"]
+    assert not any(a["path"].endswith("curves.csv") for a in result["artifacts"])
+
+
+@pytest.mark.parametrize("bad", ["eleven", "unit", "keys", "log_zero", "log_range", "label", "empty"])
+def test_render_xyplot_rejects_ambiguous_requests_before_native_work(tmp_path, monkeypatch, bad):
+    service, calls = xyplot_service(tmp_path, monkeypatch)
+    curves = three_cases(tmp_path)
+    kwargs = {}
+    if bad == "eleven":
+        curves = [dict(c, label=f"C{i}") for i, c in enumerate((curves * 4)[:11])]
+    if bad == "unit":
+        curves[1]["y_unit"] = "N"
+    if bad == "keys":
+        curves[0]["guess_units"] = True
+    if bad == "log_zero":
+        kwargs = dict(x_log=True)
+    if bad == "log_range":
+        kwargs = dict(y_log=True, y_range=[0, 10])
+    if bad == "label":
+        curves[2]["label"] = curves[0]["label"]
+    if bad == "empty":
+        curves = []
+    with pytest.raises(ValueError):
+        service.render_xyplot(curves, "T", "u", "F", "mm", "kN", **kwargs)
+    jobs = tmp_path / "jobs"
+    assert calls == [] and (not jobs.exists() or not any(jobs.iterdir()))
+
+
+def test_ten_curves_are_the_bound(tmp_path, monkeypatch):
+    service, calls = xyplot_service(tmp_path, monkeypatch)
+    base = three_cases(tmp_path)[0]
+    result = service.render_xyplot([dict(base, label=f"C{i}") for i in range(10)], "T", "u", "F", "mm", "kN")
+    assert result["status"] == "succeeded" and result["data"]["curve_count"] == 10
+    assert 'xyplot 1 curvelegend 10/1 "C9"' in calls[0]["cfile"]
+
+
+def test_range_policy_is_per_axis_and_y_range_is_warned(tmp_path, monkeypatch):
+    service, _ = xyplot_service(tmp_path, monkeypatch)
+    curves = three_cases(tmp_path)
+    x_only = service.render_xyplot(curves, "T", "u", "F", "mm", "kN", x_range=[0, 4])
+    assert x_only["status"] == "succeeded" and x_only["warnings"] == []
+    policy = x_only["data"]["axes"]["range_policy"]
+    assert set(policy) == {"x", "y", "readback"} and "widen" in policy["y"] and "widen" not in policy["x"]
+    with_y = service.render_xyplot(curves, "T", "u", "F", "mm", "kN", y_range=[1.3, 21.7])
+    assert with_y["status"] == "succeeded"
+    assert any("Y range may be widened" in w and "not read back" in w for w in with_y["warnings"])
+
+
+def test_curve_outside_requested_range_is_counted_and_warned(tmp_path, monkeypatch):
+    service, _ = xyplot_service(tmp_path, monkeypatch)
+    result = service.render_xyplot(three_cases(tmp_path), "T", "u", "F", "mm", "kN", x_range=[10, 20])
+    assert result["status"] == "succeeded"
+    assert [c["samples_in_requested_range"] for c in result["data"]["curves"]] == [0, 0, 0]
+    assert sum("no sample inside the requested axis ranges" in w for w in result["warnings"]) == 3
+    assert "every sample" in result["data"]["csv_scope"]
+    partial = service.render_xyplot(three_cases(tmp_path), "T", "u", "F", "mm", "kN", x_range=[1, 2],
+                                    y_range=[0, 12])
+    assert [c["samples_in_requested_range"] for c in partial["data"]["curves"]] == [1, 1, 2]
+    assert not any("no sample" in w for w in partial["warnings"])
+    unbounded = service.render_xyplot(three_cases(tmp_path), "T", "u", "F", "mm", "kN")
+    assert [c["samples_in_requested_range"] for c in unbounded["data"]["curves"]] == [4, 3, 5]
+
+
+def test_hidden_legend_does_not_report_a_legend_title(tmp_path, monkeypatch):
+    service, calls = xyplot_service(tmp_path, monkeypatch)
+    result = service.render_xyplot(three_cases(tmp_path), "T", "u", "F", "mm", "kN", legend=False,
+                                   legend_title="Hidden")
+    assert result["status"] == "succeeded" and "legendlabel" not in calls[0]["cfile"]
+    assert result["data"]["legend"] is False and result["data"]["legend_title"] is None
