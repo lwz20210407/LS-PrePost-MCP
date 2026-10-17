@@ -1,6 +1,7 @@
 """CSV-to-native-XYPlot rendering with numeric round-trip verification."""
 
 import csv
+import math
 import re
 
 import numpy as np
@@ -9,7 +10,19 @@ from .core.native_log import native_errors, read_delta
 from .jobs import atomic_json, check_artifact, fingerprint, now
 from .native import commands as nc
 from .post_backend import write_csv
+from .runner import record_batch_result, run_batch
 from .windows_transport import WindowsCommandTransport
+
+# Native token order is <Y scale>-<X scale>: "Lin-Log" draws a logarithmic X axis (4.13.4 batch probe).
+AXES = {(False, False): "Lin-Lin", (True, False): "Lin-Log", (False, True): "Log-Lin", (True, True): "Log-Log"}
+# Measured on 4.13.4 and 4.10 batch PNGs; xyplot minmaxopt 0/1/2 does not change the Y behavior.
+AXIS_RANGE_POLICY = dict(
+    x="Requested X limits are displayed as requested on linear and logarithmic axes.",
+    y="Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+    readback="Rendered axis extents are not read back.",
+)
+Y_RANGE_WARNING = "Y range may be widened by native XYPlot; the actual displayed Y range was not read back"
+CSV_SCOPE = "curves.csv holds every sample of every curve; axis ranges only affect the display"
 
 
 def plot_text(value, name, maximum):
@@ -87,6 +100,7 @@ def verify_curve_readback(path, expected_curves):
 
 
 def verify_xy_values(values, expected):
+    # save_xypair prints %.10e (11 significant digits); its rounding is at most half a unit, i.e. 5e-11 relative.
     quantized = native_plot_values(expected)
     if (
         values.shape != expected.shape
@@ -132,6 +146,106 @@ def curve_sources(service, path, x_column, y_column, x_unit, y_unit, curve_label
     return prepared
 
 
+def axis_options(x_range=None, y_range=None, x_log=False, y_log=False):
+    if type(x_log) is not bool or type(y_log) is not bool:
+        raise ValueError("x_log and y_log must be Boolean")
+    options = dict(x_log=x_log, y_log=y_log, x_range=None, y_range=None)
+    for axis, value, log in (("x", x_range, x_log), ("y", y_range, y_log)):
+        if value is None:
+            continue
+        if (not isinstance(value, (list, tuple)) or len(value) != 2
+                or any(type(v) not in (int, float) or not math.isfinite(v) for v in value) or value[0] >= value[1]):
+            raise ValueError(f"{axis}_range requires two ordered finite numbers [minimum, maximum]")
+        if log and value[0] <= 0:
+            raise ValueError(f"Logarithmic {axis}_range requires a positive minimum")
+        options[axis + "_range"] = [float(value[0]), float(value[1])]
+    return options
+
+
+def require_log_samples(curves, options):
+    for column, axis in ((0, "x"), (1, "y")):
+        if options[axis + "_log"] and any(np.any(curve["quantized"][:, column] <= 0) for curve in curves):
+            raise ValueError(f"Logarithmic {axis} axis requires every plotted {axis} sample to be positive")
+
+
+def presentation_commands(prefix, title, x_label, y_label, x_unit, y_unit, labels, legend, legend_title=None,
+                          options=None):
+    commands = [
+        prefix + f'title "{title}"',
+        prefix + f'xtitle "{x_label} ({x_unit})"',
+        prefix + f'ytitle "{y_label} ({y_unit})"',
+        prefix + ("legend on" if legend else "legend off"),
+        *([prefix + f'curvelegend {i+1}/1 "{label}"' for i, label in enumerate(labels)] if legend else []),
+    ]
+    if legend and legend_title is not None:
+        commands.append(prefix + f'legendlabel "{legend_title}"')
+    if options is not None:
+        if options["x_log"] or options["y_log"]:
+            commands.append(prefix + "axes " + AXES[options["x_log"], options["y_log"]])
+        for axis in ("x", "y"):
+            if options[axis + "_range"] is not None:
+                low, high = options[axis + "_range"]
+                commands += [prefix + f"{axis}min {low:.17g}", prefix + f"{axis}max {high:.17g}"]
+    return commands
+
+
+def axes_summary(options):
+    return dict(x_scale="log" if options["x_log"] else "linear", y_scale="log" if options["y_log"] else "linear",
+                requested_x_range=options["x_range"], requested_y_range=options["y_range"],
+                native_axes_token=AXES[options["x_log"], options["y_log"]], range_policy=AXIS_RANGE_POLICY)
+
+
+def samples_in_range(values, options):
+    inside = np.ones(len(values), dtype=bool)
+    for column, axis in ((0, "x"), (1, "y")):
+        if options[axis + "_range"] is not None:
+            low, high = options[axis + "_range"]
+            inside &= (values[:, column] >= low) & (values[:, column] <= high)
+    return int(inside.sum())
+
+
+def xyplot_data(curves, numeric, units, options, legend, legend_title, png, table, native_xy):
+    warnings = [Y_RANGE_WARNING] if options["y_range"] is not None else []
+    records = []
+    for i, curve in enumerate(curves):
+        inside = samples_in_range(curve["quantized"], options)
+        if inside == 0:
+            warnings.append(f"Curve {i + 1} ({curve['spec']['label']}) has no sample inside the requested axis "
+                            "ranges and may be absent from the PNG")
+        records.append(dict(number=i + 1, label=curve['spec']['label'], source=curve['identity'],
+                            columns=dict(x=curve['spec']['x_column'], y=curve['spec']['y_column']),
+                            numeric_verification=numeric[i], samples_in_requested_range=inside))
+    data = dict(
+        curve_count=len(curves),
+        legend=legend,
+        legend_title=legend_title if legend else None,
+        axes=axes_summary(options),
+        curves=records,
+        csv_columns=dict(curve="1-based curve number in legend order", x=units[0], y=units[1]),
+        csv_scope=CSV_SCOPE,
+        png_csv_consistency=dict(
+            same_native_plot_window=True,
+            readback_after_png=True,
+            csv_equals_native_readback="per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            png_sha256=png.get("sha256"), csv_sha256=table.get("sha256"),
+            native_xy_sha256=native_xy.get("sha256"),
+        ),
+        resampled=False,
+        source_units_inferred=False,
+    )
+    return data, warnings
+
+
+def write_combined_csv(path, curves):
+    rows = [[i + 1, x, y] for i, curve in enumerate(curves) for x, y in curve["quantized"]]
+    return write_csv(path, ["curve", "x", "y"], rows)
+
+
+def xy_text(curves):
+    return "".join(str(len(curve["values"])) + "\n" + "".join(f"{x:.17g},{y:.17g}\n" for x, y in curve["values"])
+                   for curve in curves)
+
+
 def plot_windows(transport):
     return {
         int(match[1])
@@ -142,8 +256,7 @@ def plot_windows(transport):
     }
 
 
-def export_curve_plot(service, session_id, path, x_column, y_column, title, x_label, y_label, x_unit, y_unit,
-                      curve_label=None, additional_curves=None):
+def check_plot_labels(title, x_label, y_label, x_unit, y_unit, legend_title=None):
     for name, value, maximum in [
         ("title", title, 80),
         ("x_label", x_label, 30),
@@ -152,7 +265,17 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
         ("y_unit", y_unit, 12),
     ]:
         plot_text(value, name, maximum)
+    if legend_title is not None:
+        plot_text(legend_title, "legend_title", 40)
+
+
+def export_curve_plot(service, session_id, path, x_column, y_column, title, x_label, y_label, x_unit, y_unit,
+                      curve_label=None, additional_curves=None, *, action="export_gui_curve_plot", options=None,
+                      legend=None, legend_title=None, extra_parameters=None):
+    check_plot_labels(title, x_label, y_label, x_unit, y_unit, legend_title)
     curves = curve_sources(service, path, x_column, y_column, x_unit, y_unit, curve_label, additional_curves)
+    if options is not None:
+        require_log_samples(curves, options)
     quantized = curves[0]['quantized']
     parameters = dict(
         path=path,
@@ -168,6 +291,8 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
         parameters['curve_label'] = curve_label
     if additional_curves is not None:
         parameters['additional_curves'] = additional_curves
+    if extra_parameters:
+        parameters = dict(extra_parameters)
     manager = service._session_manager()
     with manager.lock(session_id):
         meta = service._visible_mesh_session(session_id, manager, allow_results=True)
@@ -178,9 +303,7 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
         before = manager.dispatch(session_id, "inspect_model", {})
         if before["status"] != "succeeded":
             return before
-        directory, manifest = service.jobs.create(
-            "export_gui_curve_plot", dict(session_id=session_id, **parameters)
-        )
+        directory, manifest = service.jobs.create(action, dict(session_id=session_id, **parameters))
         manifest.update(
             status="running",
             started_at=now(),
@@ -190,11 +313,10 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
             inputs=[curve['identity'] for curve in curves],
             process=meta["process"],
         )
+        if options is not None:
+            manifest["route"] = "session"
         xy = directory / ("curve_" + manifest["job_id"] + ".txt")
-        xy.write_text(
-            ''.join(str(len(curve['values'])) + "\n" + "".join(f"{x:.17g},{y:.17g}\n" for x, y in curve['values'])
-                    for curve in curves), encoding="ascii"
-        )
+        xy.write_text(xy_text(curves), encoding="ascii")
         log = manager.directory(session_id) / "lspost.msg"
         offset = log.stat().st_size if log.exists() else 0
         try:
@@ -211,12 +333,10 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
             plot_id = new.pop()
             prefix = f"xyplot {plot_id} "
             commands = [
-                prefix + f'title "{title}"',
-                prefix + f'xtitle "{x_label} ({x_unit})"',
-                prefix + f'ytitle "{y_label} ({y_unit})"',
-                prefix + ("legend on" if len(curves) > 1 or curve_label is not None else "legend off"),
-                *([prefix + f'curvelegend {i+1}/1 "{curve["spec"]["label"]}"' for i, curve in enumerate(curves)]
-                  if len(curves) > 1 or curve_label is not None else []),
+                *presentation_commands(prefix, title, x_label, y_label, x_unit, y_unit,
+                                       [curve["spec"]["label"] for curve in curves],
+                                       len(curves) > 1 or curve_label is not None if legend is None else legend,
+                                       legend_title, options),
                 nc.print_png(directory / "plot.png", mode="nogamma", window=f"PlotWindow-{plot_id}"),
                 nc.save_xypair(directory / "native.xy", plot_id),
             ]
@@ -237,10 +357,16 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
             if any(fingerprint(curve['source']) != curve['identity'] for curve in curves):
                 raise ValueError("Source CSV changed during native plot export")
             png = check_artifact(directory / "plot.png", "png")
-            csv_artifact = write_csv(directory / "plotted.csv", ["x", "y"], quantized)
+            native_xy = check_artifact(directory / "native.xy", "text")
+            if options is None:
+                artifacts = [png, write_csv(directory / "plotted.csv", ["x", "y"], quantized), native_xy]
+                artifacts += [write_csv(directory / f'plotted-{i}.csv', ['x', 'y'], curve['quantized'])
+                              for i, curve in enumerate(curves[1:], 2)]
+            else:
+                table = write_combined_csv(directory / "curves.csv", curves)
+                artifacts = [png, table, native_xy]
             manifest.update(
-                status="succeeded",
-                artifacts=[png, csv_artifact, check_artifact(directory / "native.xy", "text")],
+                artifacts=artifacts,
                 data=dict(
                     plot_id=plot_id,
                     numeric_verification=numeric,
@@ -259,13 +385,99 @@ def export_curve_plot(service, session_id, path, x_column, y_column, title, x_la
                     existing_plot_ids=sorted(old_windows),
                 ),
             )
-            for i, curve in enumerate(curves[1:], 2):
-                manifest['artifacts'].append(write_csv(directory/f'plotted-{i}.csv', ['x','y'], curve['quantized']))
+            if options is not None:
+                data, warnings = xyplot_data(curves, numeric_curves, (x_unit, y_unit), options, legend, legend_title,
+                                             png, table, native_xy)
+                manifest["data"].update(data, visible_gui=True)
+                manifest["warnings"] += warnings
+            manifest["status"] = "succeeded"
         except Exception as exc:
             manifest.update(status="failed", error=dict(type=type(exc).__name__, message=str(exc)))
         manifest["finished_at"] = now()
         atomic_json(directory / "job.json", manifest)
-        manager.journal(
-            session_id, dict(action="export_gui_curve_plot", parameters=parameters, result=manifest)
-        )
+        manager.journal(session_id, dict(action=action, parameters=parameters, result=manifest))
         return manifest
+
+
+def xyplot_sources(service, curves, x_unit, y_unit):
+    if not isinstance(curves, list) or not 1 <= len(curves) <= 10:
+        raise ValueError("render_xyplot requires 1..10 curves")
+    keys = {'path', 'x_column', 'y_column', 'label', 'x_unit', 'y_unit'}
+    if any(not isinstance(curve, dict) or set(curve) != keys for curve in curves):
+        raise ValueError("Each curve requires path,x_column,y_column,label,x_unit,y_unit")
+    if any(curve['x_unit'] != x_unit or curve['y_unit'] != y_unit for curve in curves):
+        raise ValueError("Every curve must declare the plot axis units exactly; convert explicitly first")
+    first = curves[0]
+    return curve_sources(service, first['path'], first['x_column'], first['y_column'], x_unit, y_unit,
+                         first['label'], curves[1:] or None)
+
+
+def render_xyplot(service, curves, title, x_label, y_label, x_unit, y_unit, x_range=None, y_range=None,
+                  x_log=False, y_log=False, legend=True, legend_title=None, session_id=None):
+    if type(legend) is not bool:
+        raise ValueError("legend must be Boolean")
+    options = axis_options(x_range, y_range, x_log, y_log)
+    check_plot_labels(title, x_label, y_label, x_unit, y_unit, legend_title)
+    prepared = xyplot_sources(service, curves, x_unit, y_unit)
+    require_log_samples(prepared, options)
+    parameters = dict(curves=curves, title=title, x_label=x_label, y_label=y_label, x_unit=x_unit, y_unit=y_unit,
+                      x_range=x_range, y_range=y_range, x_log=x_log, y_log=y_log, legend=legend,
+                      legend_title=legend_title)
+    if session_id is not None:
+        first = curves[0]
+        return export_curve_plot(service, session_id, first['path'], first['x_column'], first['y_column'], title,
+                                 x_label, y_label, x_unit, y_unit, first['label'], curves[1:] or None,
+                                 action="render_xyplot", options=options, legend=legend, legend_title=legend_title,
+                                 extra_parameters=parameters)
+    return render_batch(service, prepared, title, x_label, y_label, x_unit, y_unit, options, legend, legend_title,
+                        parameters)
+
+
+def render_batch(service, curves, title, x_label, y_label, x_unit, y_unit, options, legend, legend_title, parameters):
+    executable = service.settings.native_executable()
+    directory, manifest = service.jobs.create("render_xyplot", parameters)
+    manifest.update(status="running", started_at=now(), job_directory=str(directory), route="batch",
+                    backend="lsprepost-native-xyplot-batch", executable=fingerprint(executable),
+                    inputs=[curve['identity'] for curve in curves])
+    try:
+        (directory / "curves.txt").write_text(xy_text(curves), encoding="ascii")
+        reference = "curves.txt" + ("~1" if len(curves) == 1 else "")
+        prefix = "xyplot 1 "
+        commands = [
+            nc.open_xydata("curves.txt"), "newplot", f'show "{reference}" 0',
+            *presentation_commands(prefix, title, x_label, y_label, x_unit, y_unit,
+                                   [curve["spec"]["label"] for curve in curves], legend, legend_title, options),
+            nc.print_png("plot.png", mode="nogamma", window="PlotWindow-1"),
+            nc.save_xypair("native.xy", 1),
+            "exit",
+        ]
+        nc.write_cfile(directory / "commands.cfile", commands)
+        execution = run_batch(executable, directory / "commands.cfile", directory, timeout=service.settings.timeout,
+                              graphics=False, operation="render_xyplot")
+        record_batch_result(execution, manifest, directory)
+        numeric = verify_curve_readback(directory / "native.xy", [curve['values'] for curve in curves])
+        if any(fingerprint(curve['source']) != curve['identity'] for curve in curves):
+            raise ValueError("Source CSV changed during native plot export")
+        png = check_artifact(directory / "plot.png", "png")
+        native_xy = check_artifact(directory / "native.xy", "text")
+        table = write_combined_csv(directory / "curves.csv", curves)
+        manifest["artifacts"] += [png, table, native_xy, check_artifact(directory / "commands.cfile", "text")]
+        data, warnings = xyplot_data(curves, numeric, (x_unit, y_unit), options, legend, legend_title, png, table,
+                                     native_xy)
+        manifest["warnings"] += warnings
+        manifest.update(
+            status="succeeded",
+            data=dict(
+                plot_id=1,
+                title=title,
+                labels=dict(x=f"{x_label} ({x_unit})", y=f"{y_label} ({y_unit})"),
+                declared_units=dict(x=x_unit, y=y_unit),
+                **data,
+                visible_gui=False,
+            ),
+        )
+    except Exception as exc:
+        manifest.update(status="failed", error=dict(type=type(exc).__name__, message=str(exc)))
+    manifest["finished_at"] = now()
+    atomic_json(directory / "job.json", manifest)
+    return manifest
