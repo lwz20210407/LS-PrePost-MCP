@@ -5,6 +5,7 @@ import re
 from importlib.metadata import version
 from pathlib import Path
 
+from .domain.results.time_validation import validate_d3plot_times
 from .jobs import fingerprint
 from .native.versions import dependency_supported
 
@@ -25,7 +26,7 @@ def selected_database(path, states, fields):
     ids(states, "states", 10000)
     # Read only time metadata first, then only selected states/fields.
     meta = D3plot(str(path), state_array_filter=["timesteps"], buffered_reading=True)
-    times = np.asarray(meta.arrays["timesteps"])
+    times = validate_d3plot_times(meta.arrays["timesteps"])
     if max(states) > len(times):
         raise ValueError("State outside database")
     selected = sorted(states)
