@@ -241,15 +241,22 @@ def test_atomic_launch_preserves_unicode_args_environment_cwd_and_pipes(tmp_path
 
 @pytest.mark.skipif(os.name != "nt", reason="Windows exact job membership and handle allowlist")
 def test_child_is_in_exact_job_and_does_not_inherit_unrelated_handle(tmp_path):
-    from ls_prepost_mcp.engine.processes import WindowsJob
-
-    unrelated = WindowsJob()
-    os.set_handle_inheritable(unrelated.handle, True)
+    api = ctypes.WinDLL("kernel32", use_last_error=True)
+    api.CreateEventW.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_wchar_p]
+    api.CreateEventW.restype = ctypes.c_void_p
+    api.WaitForSingleObject.argtypes = [ctypes.c_void_p, ctypes.c_uint32]
+    api.WaitForSingleObject.restype = ctypes.c_uint32
+    api.CloseHandle.argtypes = [ctypes.c_void_p]
+    unrelated = api.CreateEventW(None, True, False, None)
+    assert unrelated, ctypes.get_last_error()
     try:
+        os.set_handle_inheritable(unrelated, True)
+        # Handle values are process-local: the child may reuse this integer for
+        # another object. Signal it and inspect the parent's actual event instead.
         source = (
             "import ctypes,sys,time; api=ctypes.WinDLL('kernel32',use_last_error=True); "
-            "api.GetHandleInformation.argtypes=[ctypes.c_void_p,ctypes.c_void_p]; "
-            f"flags=ctypes.c_uint32(); print(api.GetHandleInformation({unrelated.handle},ctypes.byref(flags)),flush=True); "
+            "api.SetEvent.argtypes=[ctypes.c_void_p]; "
+            f"api.SetEvent({unrelated}); print('probed',flush=True); "
             "time.sleep(60)"
         )
         with OwnedProcess([sys.executable, "-u", "-c", source], cwd=tmp_path,
@@ -260,9 +267,20 @@ def test_child_is_in_exact_job_and_does_not_inherit_unrelated_handle(tmp_path):
             member = ctypes.c_int()
             assert api.IsProcessInJob(int(owned.process._handle), owned.job.handle, ctypes.byref(member))
             assert member.value == 1
-            assert owned.process.stdout.readline().strip() == b"0"
+            assert owned.process.stdout.readline().strip() == b"probed"
+            assert api.WaitForSingleObject(unrelated, 0) == 258, "Unrelated event handle leaked to child"
+        # Positive control: this oracle must detect an explicitly inherited event.
+        startup = subprocess.STARTUPINFO()
+        startup.lpAttributeList = {"handle_list": [unrelated]}
+        control = source.replace("time.sleep(60)", "sys.exit(0)")
+        result = subprocess.run([sys.executable, "-u", "-c", control], cwd=tmp_path,
+                                startupinfo=startup, close_fds=True, capture_output=True, timeout=15,
+                                creationflags=subprocess.CREATE_NO_WINDOW)
+        assert result.returncode == 0, result.stderr
+        assert result.stdout.strip() == b"probed"
+        assert api.WaitForSingleObject(unrelated, 0) == 0, "Positive inheritance control did not signal event"
     finally:
-        unrelated.close()
+        api.CloseHandle(unrelated)
 
 
 @pytest.mark.skipif(os.name != "nt", reason="Windows atomic creation failures")
