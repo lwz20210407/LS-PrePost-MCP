@@ -249,8 +249,8 @@ def test_child_is_in_exact_job_and_does_not_inherit_unrelated_handle(tmp_path):
     api.CloseHandle.argtypes = [ctypes.c_void_p]
     unrelated = api.CreateEventW(None, True, False, None)
     assert unrelated, ctypes.get_last_error()
-    os.set_handle_inheritable(unrelated, True)
     try:
+        os.set_handle_inheritable(unrelated, True)
         # Handle values are process-local: the child may reuse this integer for
         # another object. Signal it and inspect the parent's actual event instead.
         source = (
@@ -274,7 +274,8 @@ def test_child_is_in_exact_job_and_does_not_inherit_unrelated_handle(tmp_path):
         startup.lpAttributeList = {"handle_list": [unrelated]}
         control = source.replace("time.sleep(60)", "sys.exit(0)")
         result = subprocess.run([sys.executable, "-u", "-c", control], cwd=tmp_path,
-                                startupinfo=startup, close_fds=True, capture_output=True, timeout=15)
+                                startupinfo=startup, close_fds=True, capture_output=True, timeout=15,
+                                creationflags=subprocess.CREATE_NO_WINDOW)
         assert result.returncode == 0, result.stderr
         assert result.stdout.strip() == b"probed"
         assert api.WaitForSingleObject(unrelated, 0) == 0, "Positive inheritance control did not signal event"
