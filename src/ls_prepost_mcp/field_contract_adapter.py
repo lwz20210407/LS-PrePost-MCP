@@ -38,6 +38,28 @@ from .field_contracts import (
 from .native_results import ELEMENT_FIELDS, NODE_FIELDS
 from .result_validity import validity_scope
 
+
+def _legacy_frame(value: str) -> tuple[str, int | None]:
+    text = value.strip().lower()
+    if "as_stored" in text or "datacenter" in text or "no coordinate transformation" in text:
+        raise ValueError(
+            f"Frame '{value}' denotes absence of transformation rather than a defined coordinate system; "
+            "pass explicit 'frame=' to disambiguate.")
+    if text in ("global", "material", "local"):
+        return text, None
+    match = re.fullmatch(r"local\s*:?\s+(?:coordinate_system_id|csid|id)\s*[:=]\s*(\d+)", text)
+    if match:
+        return "local", int(match[1])
+    raise ValueError(f"Unrecognized legacy frame '{value}'; pass explicit 'frame=' to disambiguate.")
+
+
+def _legacy_averaging(value: str) -> str:
+    text = value.strip().lower()
+    if text not in ("none", "nodal", "minmax"):
+        raise ValueError(f"Unrecognized legacy averaging '{value}'; pass explicit 'averaging=' to disambiguate.")
+    return text
+
+
 # Standard mapping dictionaries from (backend, domain, quantity, component) -> legacy field name
 NATIVE_STRESS_MAP = {
     "xx": "stress_x",
@@ -161,6 +183,14 @@ def _map_core_to_legacy_fields(
                         f"Unknown or unmappable field/component '{c}' for quantity '{quantity}' on lsprepost backend"
                     )
     elif backend in ("lasso", "lsreader"):
+        tensor_components = ("xx", "yy", "zz", "xy", "yz", "zx")
+        vector_quantities = ("displacement", "disp", "velocity", "velo", "acceleration", "accel")
+        expected = tensor_components if q_lower in ("stress", "stress_tensor") else (
+            ("x", "y", "z") if q_lower in vector_quantities else None)
+        if expected is not None and tuple(components) != expected:
+            raise ValueError(
+                f"Reader whole-array fields cannot represent component selection/order {tuple(components)}; "
+                f"expected {expected}, or supply an explicit field mapping with the required transformations")
         if q_lower in ("stress", "stress_tensor"):
             elem_type = domain if domain in ("shell", "solid", "tshell", "beam") else "shell"
             mapped.append(f"element_{elem_type}_stress")
@@ -277,7 +307,8 @@ def core_to_legacy_field_spec(
     else:
         if resolved_entity_ids is not None:
             entity_ids = tuple(resolved_entity_ids)
-        elif isinstance(core_spec.selector.predicate, core_contracts.IdSelection):
+        elif (isinstance(core_spec.selector.predicate, core_contracts.IdSelection)
+              and core_spec.selector.predicate.kind == "ids"):
             entity_ids = core_spec.selector.predicate.ids
         elif isinstance(core_spec.selector.predicate, core_contracts.NoSelection):
             raise ValueError(
@@ -571,54 +602,28 @@ def legacy_to_core_field_spec(
         raise ValueError(f"Unknown legacy sampling kind '{lsamp.kind}'")
 
     # 5. Map Frame
-    resolved_frame: Literal["global", "material", "local"]
+    parsed_csid = None
     if frame is not None:
         resolved_frame = frame
     else:
-        frame_lower = legacy_spec.frame.lower()
-        if (
-            "as_stored" in frame_lower
-            or "datacenter" in frame_lower
-            or "no coordinate transformation" in frame_lower
-        ):
-            raise ValueError(
-                f"Frame '{legacy_spec.frame}' denotes absence of transformation rather than a defined "
-                f"coordinate system (global/local/material); pass explicit 'frame=' to disambiguate."
-            )
-        elif "material" in frame_lower:
-            resolved_frame = "material"
-        elif "local" in frame_lower:
-            resolved_frame = "local"
-        elif "global" in frame_lower:
-            resolved_frame = "global"
-        else:
-            raise ValueError(
-                f"Unrecognized legacy frame '{legacy_spec.frame}'; pass explicit 'frame=' to disambiguate."
-            )
+        resolved_frame, parsed_csid = _legacy_frame(legacy_spec.frame)
 
     resolved_csid: int | None = coordinate_system_id
     if resolved_frame == "local" and resolved_csid is None:
-        match = re.search(r"(?:csid|coordinate_system_id|id)\s*[:=]\s*(\d+)", legacy_spec.frame)
-        if match:
-            resolved_csid = int(match.group(1))
-        else:
+        if parsed_csid is None:
+            _, parsed_csid = _legacy_frame(legacy_spec.frame)
+        if parsed_csid is None:
             raise ValueError("Local frame requires explicit coordinate_system_id")
+        resolved_csid = parsed_csid
     elif resolved_frame != "local":
         resolved_csid = None
 
 
     # 6. Map Averaging
-    resolved_averaging: Literal["none", "minmax", "nodal"]
     if averaging is not None:
         resolved_averaging = averaging
     else:
-        avg_lower = legacy_spec.averaging.lower()
-        if "minmax" in avg_lower:
-            resolved_averaging = "minmax"
-        elif "nodal" in avg_lower:
-            resolved_averaging = "nodal"
-        else:
-            resolved_averaging = "none"
+        resolved_averaging = _legacy_averaging(legacy_spec.averaging)
 
     return core_contracts.FieldSpec(
         quantity=resolved_quantity,
@@ -702,7 +707,8 @@ def assert_field_spec_equivalence(
                 f"Global domain must not carry entity IDs, but legacy has {legacy_spec.selection.entity_ids}"
             )
     else:
-        if isinstance(core_spec.selector.predicate, core_contracts.IdSelection):
+        if (isinstance(core_spec.selector.predicate, core_contracts.IdSelection)
+                and core_spec.selector.predicate.kind == "ids"):
             if core_spec.selector.predicate.ids != legacy_spec.selection.entity_ids:
                 raise AssertionError(
                     f"Entity IDs mismatch: core has {core_spec.selector.predicate.ids}, "
@@ -782,31 +788,24 @@ def assert_field_spec_equivalence(
         raise AssertionError(f"Unknown core sampling: {core_spec.sampling}")
 
     # 7. Coordinate System / Frame
-    legacy_frame_lower = legacy_spec.frame.lower()
-    if "as_stored" in legacy_frame_lower or "datacenter" in legacy_frame_lower:
+    try:
+        legacy_frame, legacy_csid = _legacy_frame(legacy_spec.frame)
+    except ValueError as error:
+        raise AssertionError(f"Frame mismatch: {error}") from error
+    if core_spec.frame != legacy_frame:
+        raise AssertionError(f"Frame mismatch: core is '{core_spec.frame}', legacy is '{legacy_spec.frame}'")
+    if core_spec.frame == "local" and core_spec.coordinate_system_id != legacy_csid:
         raise AssertionError(
-            f"Frame mismatch: legacy frame '{legacy_spec.frame}' denotes lack of coordinate "
-            f"transformation rather than an explicit coordinate system; cannot equate to core '{core_spec.frame}'"
-        )
-    if core_spec.frame == "global" and "global" not in legacy_frame_lower:
-        raise AssertionError(f"Frame mismatch: core is 'global', legacy is '{legacy_spec.frame}'")
-    if core_spec.frame == "material" and "material" not in legacy_frame_lower:
-        raise AssertionError(f"Frame mismatch: core is 'material', legacy is '{legacy_spec.frame}'")
-    if core_spec.frame == "local":
-        if "local" not in legacy_frame_lower:
-            raise AssertionError(f"Frame mismatch: core is 'local', legacy is '{legacy_spec.frame}'")
-        if core_spec.coordinate_system_id is not None:
-            if str(core_spec.coordinate_system_id) not in legacy_spec.frame:
-                raise AssertionError(
-                    f"Local coordinate system ID {core_spec.coordinate_system_id} not reflected in legacy frame '{legacy_spec.frame}'"
-                )
+            f"Local coordinate system ID mismatch: core={core_spec.coordinate_system_id}, legacy={legacy_csid}")
 
 
     # 8. Averaging
-    if core_spec.averaging == "nodal" and "nodal" not in legacy_spec.averaging.lower():
-        raise AssertionError(f"Averaging mismatch: core is 'nodal', legacy is '{legacy_spec.averaging}'")
-    if core_spec.averaging == "minmax" and "minmax" not in legacy_spec.averaging.lower():
-        raise AssertionError(f"Averaging mismatch: core is 'minmax', legacy is '{legacy_spec.averaging}'")
+    try:
+        legacy_averaging = _legacy_averaging(legacy_spec.averaging)
+    except ValueError as error:
+        raise AssertionError(f"Averaging mismatch: {error}") from error
+    if core_spec.averaging != legacy_averaging:
+        raise AssertionError(f"Averaging mismatch: core is '{core_spec.averaging}', legacy is '{legacy_spec.averaging}'")
 
     # 9. Validity
     val_lower = legacy_spec.validity.lower()

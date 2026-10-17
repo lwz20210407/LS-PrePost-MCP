@@ -72,3 +72,22 @@
 - P2-85c：原生后端未知分量拦截报错。
 
 全套 23 项新测试及既有 57 项合同测试全部通过。
+
+## 2026-10-18 Codex 接管复审补修
+
+原返修仍存在等价误判：局部坐标系 1 会子串匹配坐标系 10；`none` 平均策略没有反向
+核对，可能被判为与 `nodal` / `minmax` 等价。现在双向转换和等价校验共用精确解析，
+未知/否定/混合描述拒绝推断；缺上下文时可由调用者显式给出 frame/averaging。
+规范形式为 `global`、`material`、`local: coordinate_system_id=N` 和
+`none`、`nodal`、`minmax`；不能从一段自由描述中的子串猜测这些值。
+
+另修复两处丢失请求语义的路径：
+- 默认 reader 整数组字段无法表达部分分量或重排，因此明确拒绝；有明确字段及变换语义的调用者
+  仍可使用显式 field_mapping，不把它宣称为默认无损等价。
+- PartSelection/SetSelection 继承 IdSelection，但 Part/Set ID 不是实体 ID。
+  只有 kind=ids 可直接映射，其余需要 resolved_entity_ids；相同数字也不构成等价证据。
+
+新增 [精确语义回归](../../../../tests/test_field_adapter_exact_semantics.py) 24 项，
+把适配器替换为原返修 `e58e94d` 的 Git blob（不改工作树）时 **14 failed / 10 passed**，
+修复后 24 项通过；连同既有适配与合同回归，共 **104 passed**。
+此次是 L1 逻辑验证，没有运行原生程序；未修改两个 FieldSpec 合同本体，也未改工程值。
