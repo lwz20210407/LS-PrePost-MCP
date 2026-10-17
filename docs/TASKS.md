@@ -350,12 +350,14 @@
 - MPP 分片 binout 合并后与单机结果一致（corpus:mpp_binout）
 - LSPP 与 LASSO 结果一致（容差内）
 
-现有入口：`extract_native_binout_curve`, `extract_native_ascii_curve`, `extract_binout_curve`, `extract_binout_table`, `extract_ascii_curve`
+现有入口：`extract_database`, `extract_native_binout_curve`, `extract_native_ascii_curve`, `extract_binout_curve`, `extract_binout_table`, `extract_ascii_curve`
 
 缺口：
 
-- 原生只有 NODOUT / GLSTAT / MATSUM 部分量；ASCII 只接 6 类且要填 UI 分量编号
-- MPP 分片 binout 被拒绝
+- extract_database（LASSO，不启动 LSPP）已按存储列名读取 12 类 binout 库，自动合并同目录 MPP 分片；重复 ID（RCFORC 的 side 0/1）按存储列区分。公开 binout（Bolt_B_Explicit、pyansys-heart）的 glstat / rcforc / nodout 与 lasso 直读逐值一致
+- ASCII 文本库（glstat、rcforc 等）尚未接入 extract_database，仍走旧工具且要填 UI 分量编号；原生侧只有 NODOUT / GLSTAT / MATSUM 部分量
+- MPP 合并结果与单机结果一致性未验证：公开语料中没有同一模型的 MPP/SMP 成对算例（corpus:mpp_binout）；分片合并只有合成 LSDA 用例
+- LSPP 与 LASSO 结果对照未做（原生侧）
 
 ### Q07 曲线运算
 
@@ -369,7 +371,7 @@
 - 滤波结果与 LSPP XYPlot 同参数滤波对比一致（L2）
 - 每次运算把公式与参数写进结果元数据
 
-现有入口：`process_curve`, `convert_history_units`, `combine_history_curves`, `build_tensile_curves`
+现有入口：`curve_ops`, `process_curve`, `convert_history_units`, `combine_history_curves`, `build_tensile_curves`
 
 缺口：
 
@@ -708,7 +710,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：partial；验证：L1
 
-证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py), [docs/decisions/evidence/i01/report.md](../docs/decisions/evidence/i01/report.md), [docs/decisions/evidence/i01-followup/report.md](../docs/decisions/evidence/i01-followup/report.md), [docs/decisions/evidence/i01-staging/report.md](../docs/decisions/evidence/i01-staging/report.md), [docs/decisions/evidence/i01-batch-contract/report.md](../docs/decisions/evidence/i01-batch-contract/report.md), [docs/decisions/evidence/i01-process-lifetime/report.md](../docs/decisions/evidence/i01-process-lifetime/report.md), [docs/decisions/evidence/i01-log-decoding/report.md](../docs/decisions/evidence/i01-log-decoding/report.md), [tests/test_queue_backpressure.py](../tests/test_queue_backpressure.py), [tests/test_queue_backpressure_native.py](../tests/test_queue_backpressure_native.py), [docs/decisions/evidence/i01-queue/report.md](../docs/decisions/evidence/i01-queue/report.md)
+证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py), [docs/decisions/evidence/i01/report.md](../docs/decisions/evidence/i01/report.md), [docs/decisions/evidence/i01-followup/report.md](../docs/decisions/evidence/i01-followup/report.md), [docs/decisions/evidence/i01-staging/report.md](../docs/decisions/evidence/i01-staging/report.md), [docs/decisions/evidence/i01-batch-contract/report.md](../docs/decisions/evidence/i01-batch-contract/report.md), [docs/decisions/evidence/i01-process-lifetime/report.md](../docs/decisions/evidence/i01-process-lifetime/report.md), [docs/decisions/evidence/i01-atomic-process-start/report.md](../docs/decisions/evidence/i01-atomic-process-start/report.md), [docs/decisions/evidence/i01-log-decoding/report.md](../docs/decisions/evidence/i01-log-decoding/report.md), [docs/decisions/evidence/i01-include-diagnostics/report.md](../docs/decisions/evidence/i01-include-diagnostics/report.md), [tests/test_input_path_confinement.py](../tests/test_input_path_confinement.py), [tests/test_queue_backpressure.py](../tests/test_queue_backpressure.py), [tests/test_queue_backpressure_native.py](../tests/test_queue_backpressure_native.py), [docs/decisions/evidence/i01-queue/report.md](../docs/decisions/evidence/i01-queue/report.md), [tests/test_native_include_budget.py](../tests/test_native_include_budget.py), [docs/decisions/evidence/i01-reference-budget/report.md](../docs/decisions/evidence/i01-reference-budget/report.md)
 
 - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
 - 删除 gui_session_action 中运行时替换 _native 的做法
@@ -736,7 +738,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：partial；验证：L2
 
-证据：[src/ls_prepost_mcp/native/commands.py](../src/ls_prepost_mcp/native/commands.py), [src/ls_prepost_mcp/native/versions.py](../src/ls_prepost_mcp/native/versions.py), [tests/test_native_commands.py](../tests/test_native_commands.py), [tests/test_version_resources.py](../tests/test_version_resources.py), [docs/decisions/evidence/i03-version-resource/report.md](../docs/decisions/evidence/i03-version-resource/report.md), [docs/decisions/evidence/i03/report.md](../docs/decisions/evidence/i03/report.md), [docs/decisions/evidence/i03-paths/report.md](../docs/decisions/evidence/i03-paths/report.md), [tests/test_engine_native.py](../tests/test_engine_native.py)
+证据：[src/ls_prepost_mcp/native/commands.py](../src/ls_prepost_mcp/native/commands.py), [src/ls_prepost_mcp/native/versions.py](../src/ls_prepost_mcp/native/versions.py), [tests/test_native_commands.py](../tests/test_native_commands.py), [tests/test_version_resources.py](../tests/test_version_resources.py), [docs/decisions/evidence/i03-version-resource/report.md](../docs/decisions/evidence/i03-version-resource/report.md), [docs/decisions/evidence/i03/report.md](../docs/decisions/evidence/i03/report.md), [docs/decisions/evidence/i03-paths/report.md](../docs/decisions/evidence/i03-paths/report.md), [docs/decisions/evidence/i03-command-path/report.md](../docs/decisions/evidence/i03-command-path/report.md), [tests/test_engine_native.py](../tests/test_engine_native.py)
 
 - genselect / fringe / anim 等命令只在 native/commands.py 生成，有黄金输出测试
 - 版本差异集中在能力表，src 其他位置不出现版本判断
@@ -763,7 +765,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：partial；验证：L1
 
-证据：[src/ls_prepost_mcp/knowledge_index.py](../src/ls_prepost_mcp/knowledge_index.py), [src/ls_prepost_mcp/keyword_documentation.py](../src/ls_prepost_mcp/keyword_documentation.py), [tools/build_knowledge_index.py](../tools/build_knowledge_index.py), [tests/test_knowledge_index.py](../tests/test_knowledge_index.py), [tests/test_keyword_index_coverage.py](../tests/test_keyword_index_coverage.py), [docs/decisions/evidence/i05-catalog/report.md](../docs/decisions/evidence/i05-catalog/report.md)
+证据：[src/ls_prepost_mcp/knowledge_index.py](../src/ls_prepost_mcp/knowledge_index.py), [src/ls_prepost_mcp/keyword_documentation.py](../src/ls_prepost_mcp/keyword_documentation.py), [src/ls_prepost_mcp/data/keyword_fieldless_review.json](../src/ls_prepost_mcp/data/keyword_fieldless_review.json), [tools/build_knowledge_index.py](../tools/build_knowledge_index.py), [tests/test_knowledge_index.py](../tests/test_knowledge_index.py), [tests/test_keyword_index_coverage.py](../tests/test_keyword_index_coverage.py), [docs/decisions/evidence/i05-catalog/report.md](../docs/decisions/evidence/i05-catalog/report.md), [docs/decisions/evidence/i05-catalog/fieldless-review.json](../docs/decisions/evidence/i05-catalog/fieldless-review.json)
 
 - 命令表、Scripting API、关键字定义、用户指南章节、配方、KNOWN_ISSUES 建立索引
 - 公开部分可入仓库；私有课程资料的索引在仓库外

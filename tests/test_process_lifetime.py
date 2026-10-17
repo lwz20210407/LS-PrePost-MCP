@@ -113,19 +113,24 @@ def test_engine_timeout_and_interrupt_reap_real_tree(tmp_path, monkeypatch, inte
         cleanup(owners)
 
 
-@pytest.mark.skipif(os.name != "nt", reason="Windows suspended process assignment")
-def test_failed_assignment_never_runs_the_suspended_child(tmp_path, monkeypatch):
+@pytest.mark.skipif(os.name != "nt", reason="Windows atomic process assignment")
+def test_failed_assignment_never_runs_the_child(tmp_path, monkeypatch):
     marker = tmp_path / "must-not-run.txt"
 
-    def reject(*args):
-        raise OSError("job assignment denied")
+    from ls_prepost_mcp.engine import windows_job
 
-    monkeypatch.setattr("ls_prepost_mcp.engine.processes.WindowsJob.assign", reject)
+    create = windows_job.create_in_job
+
+    def reject(job_handle, *args):
+        # Real CreateProcessW rejects a non-job HANDLE in JOB_LIST.
+        return create(0, *args)
+
+    monkeypatch.setattr(windows_job, "create_in_job", reject)
     owner = OwnedProcess([sys.executable, "-c", f"from pathlib import Path; Path({str(marker)!r}).touch()"], cwd=tmp_path)
-    with pytest.raises(OSError, match="assignment denied"):
+    with pytest.raises(OSError):
         with owner:
             pytest.fail("Cannot enter an uncontained child")
-    assert owner.process.returncode is not None and owner.job.handle is None
+    assert owner.process is None and owner.job.handle is None
     assert not marker.exists()
 
 
@@ -175,3 +180,116 @@ def test_host_abrupt_exit_kills_only_its_job(tmp_path):
             if child.stderr:
                 child.stderr.close()
         cleanup(owners)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows atomic Job assignment at process creation")
+def test_host_killed_before_popen_returns_reaps_child(tmp_path):
+    """Pause after the OS creates a process, before Popen returns to OwnedProcess."""
+    marker = tmp_path / "created.json"
+    script = tmp_path / "creation_host.py"
+    script.write_text(
+        "import json,subprocess,sys,time,psutil\nfrom pathlib import Path\n"
+        "from ls_prepost_mcp.engine.processes import OwnedProcess\n"
+        "original = subprocess.Popen._close_pipe_fds\n"
+        "def pause(self, *args):\n"
+        "    original(self, *args)\n"
+        "    children = psutil.Process().children()\n"
+        f"    Path({str(marker)!r}).write_text(json.dumps([p.pid for p in children]))\n"
+        "    while True: time.sleep(0.01)\n"
+        "subprocess.Popen._close_pipe_fds = pause\n"
+        "with OwnedProcess([sys.executable, '-c', 'import time; time.sleep(60)']): pass\n",
+        encoding="utf8",
+    )
+    env = dict(os.environ, PYTHONPATH=str(Path(__file__).resolve().parents[1] / "src"),
+               PYTHONDONTWRITEBYTECODE="1")
+    flags = subprocess.CREATE_NO_WINDOW
+    owners = []
+    with subprocess.Popen([sys.executable, str(script)], cwd=tmp_path, env=env,
+                          stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, creationflags=flags) as host:
+        try:
+            owners.extend(started(marker))
+            assert len(owners) == 1
+            assert running(owners[0])
+            host.kill()
+            host.wait(timeout=15)
+            assert_stopped(owners)
+        finally:
+            if host.poll() is None:
+                host.kill()
+            host.wait(timeout=15)
+            cleanup(owners)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows CreateProcessW environment and pipe integration")
+def test_atomic_launch_preserves_unicode_args_environment_cwd_and_pipes(tmp_path):
+    directory = tmp_path / "空间 with spaces"
+    directory.mkdir()
+    arguments = ["", "带 空格", 'quoted"value', "trailing\\"]
+    source = (
+        "import json,os,sys; "
+        "print(json.dumps([sys.argv[1:],os.getcwd(),os.environ['I01_VALUE'],sys.stdin.read()])); "
+        "sys.stderr.buffer.write(b'error\\xff')"
+    )
+    with OwnedProcess([sys.executable, "-c", source, *arguments], cwd=directory,
+                      env=dict(os.environ, I01_VALUE="中文=value"), stdin=subprocess.PIPE,
+                      stdout=subprocess.PIPE, stderr=subprocess.PIPE) as owned:
+        stdout, stderr = owned.process.communicate(b"input", timeout=15)
+        assert owned.process.returncode == 0
+        assert json.loads(stdout) == [arguments, str(directory), "中文=value", "input"]
+        assert stderr == b"error\xff"
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows exact job membership and handle allowlist")
+def test_child_is_in_exact_job_and_does_not_inherit_unrelated_handle(tmp_path):
+    from ls_prepost_mcp.engine.processes import WindowsJob
+
+    unrelated = WindowsJob()
+    os.set_handle_inheritable(unrelated.handle, True)
+    try:
+        source = (
+            "import ctypes,sys,time; api=ctypes.WinDLL('kernel32',use_last_error=True); "
+            "api.GetHandleInformation.argtypes=[ctypes.c_void_p,ctypes.c_void_p]; "
+            f"flags=ctypes.c_uint32(); print(api.GetHandleInformation({unrelated.handle},ctypes.byref(flags)),flush=True); "
+            "time.sleep(60)"
+        )
+        with OwnedProcess([sys.executable, "-u", "-c", source], cwd=tmp_path,
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE) as owned:
+            api = ctypes.WinDLL("kernel32", use_last_error=True)
+            api.IsProcessInJob.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.POINTER(ctypes.c_int)]
+            api.IsProcessInJob.restype = ctypes.c_int
+            member = ctypes.c_int()
+            assert api.IsProcessInJob(int(owned.process._handle), owned.job.handle, ctypes.byref(member))
+            assert member.value == 1
+            assert owned.process.stdout.readline().strip() == b"0"
+    finally:
+        unrelated.close()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows atomic creation failures")
+@pytest.mark.parametrize("failure", ["executable", "cwd", "attribute"])
+def test_creation_failure_closes_job_without_running_code(tmp_path, monkeypatch, failure):
+    from ls_prepost_mcp.engine import windows_job
+
+    marker = tmp_path / "must-not-run"
+    args = [sys.executable, "-c", f"from pathlib import Path; Path({str(marker)!r}).touch()"]
+    directory = tmp_path
+    if failure == "executable":
+        args[0] = str(tmp_path / "nonexistent.exe")
+    elif failure == "cwd":
+        directory = tmp_path / "nonexistent"
+    else:
+        api = windows_job._api()
+
+        def reject(*args):
+            ctypes.set_last_error(50)  # ERROR_NOT_SUPPORTED, no fallback launch
+            return 0
+
+        api.UpdateProcThreadAttribute = reject
+        monkeypatch.setattr(windows_job, "_api", lambda: api)
+    owner = OwnedProcess(args, cwd=directory, stdin=subprocess.DEVNULL,
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    with pytest.raises(OSError):
+        with owner:
+            pytest.fail("Creation failure must propagate")
+    assert owner.process is None and owner.job.handle is None
+    assert not marker.exists()
