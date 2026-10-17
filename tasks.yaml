@@ -355,7 +355,7 @@ tasks:
     release: v0.5
     milestone: M3
     layer: T1
-    owner: claude
+    owner: codex
     target_tools: [create_entities, check_model]
     depends_on: [P04]
     status: partial
@@ -372,7 +372,7 @@ tasks:
       - 原生重开后 Joint 定义读回一致
 
   - id: Q01
-    owner: cursor
+    owner: codex
     group: post
     title: 结果概览
     story: 这个 d3plot 有多少个状态，时间范围多少，有哪些变量，有没有删除单元
@@ -412,7 +412,7 @@ tasks:
       - 图像中色标极值与 Q03 同一量的数据极值一致（容差内）
 
   - id: Q03
-    owner: antigravity
+    owner: codex
     group: post
     title: 场数据提取
     story: 把第 20 个状态 Part 3 所有单元的应力六分量导出成 CSV
@@ -431,7 +431,7 @@ tasks:
       - 删除单元按 Q04 掩码策略处理并在元数据中注明
 
   - id: Q04
-    owner: antigravity
+    owner: codex
     group: post
     title: 工程量与失效掩码
     story: 计算靶板所有单元的应力三轴度和 Lode 参数，排除已删除单元，找出最大值所在单元
@@ -509,7 +509,7 @@ tasks:
       - 每次运算把公式与参数写进结果元数据
 
   - id: Q08
-    owner: cursor
+    owner: codex
     group: post
     title: XYPlot 出图
     story: 把 3 个工况的力-位移曲线画在一张图上，带图例，导出 PNG 和 CSV
@@ -545,7 +545,7 @@ tasks:
       - 首、末帧与 Q02 对应状态的静态图一致（感知哈希容差内）
 
   - id: Q10
-    owner: antigravity
+    owner: codex
     group: post
     title: 截面力与剖切面
     story: 在 z=10 mm 处切一刀，输出截面上的合力时程和剖面云图
@@ -578,7 +578,7 @@ tasks:
       - 质量类测量缺少密度或单位时拒绝
 
   - id: Q12
-    owner: antigravity
+    owner: codex
     group: post
     title: 能量检查
     story: 检查能量是否守恒，沙漏能占比是多少
@@ -784,7 +784,7 @@ tasks:
       - 每组产物与参数的对应关系可追溯
 
   - id: A10
-    owner: cursor
+    owner: codex
     group: auto
     title: 知识检索
     story: LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS 字段是什么意思？
@@ -807,7 +807,7 @@ tasks:
 
   # ============================ 通用 ============================
   - id: G01
-    owner: cursor
+    owner: codex
     group: general
     title: 视图控制
     story: 换成前视图，放大 2 倍，居中到 Part 3
@@ -863,7 +863,7 @@ tasks:
       - 选择操作不改变显隐状态（回归：pall 会重置 blank 的已知坑）
 
   - id: G04
-    owner: antigravity
+    owner: codex
     group: general
     title: 实体识别 Identify
     story: 节点 1001 的坐标和它在第 30 个状态的位移是多少？属于哪个 Part？
@@ -922,7 +922,7 @@ infrastructure:
       - 批处理与会话使用同一套配置隔离与日志读取
 
   - id: I02
-    owner: antigravity
+    owner: codex
     title: 语义合同 core/contracts.py
     milestone: M1
     status: done
@@ -996,7 +996,7 @@ infrastructure:
       - 一条命令生成 Markdown 报告；私有语料通过环境变量启用
 
   - id: I05
-    owner: cursor
+    owner: codex
     title: 知识库索引
     milestone: M1
     status: partial
@@ -1027,7 +1027,7 @@ infrastructure:
 
   - id: I07
     title: raw-preserving 关键字引擎
-    owner: claude
+    owner: codex
     integration: "Claude 在 claude/keyword-engine 开发，M3 经 PR 合入 main；代码在 src/ls_prepost_mcp/domain/model/，目标工具在 model_target_tools.py。"
     milestone: M3
     status: done
@@ -1058,7 +1058,7 @@ infrastructure:
 
   - id: I09
     title: Agent 场景评测 L3
-    owner: claude
+    owner: codex
     milestone: M2-M4
     status: partial
     verification_level: L1
