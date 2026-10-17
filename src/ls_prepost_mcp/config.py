@@ -2,7 +2,7 @@
 import json
 import os
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 from .native.commands import quoted_path
 from .native.versions import require_installation
@@ -49,9 +49,17 @@ class Settings:
                    float(os.environ.get("LSPP_TIMEOUT", "120")), profiles, os.environ.get("LSPP_DPF_PATH"))
 
     def input_path(self, value: str, *, base: Path | None = None) -> Path:
+        from .domain.model.includes import is_network
+
+        # Reject Windows network/device syntax before filesystem resolution, even
+        # on non-Windows hosts. Allowed-root checks cannot undo an earlier read.
+        if is_network(str(value)) or PureWindowsPath(value).is_reserved():
+            raise ValueError("Network and device input paths are not supported")
         p = Path(value).expanduser()
         if not p.is_absolute():
             p = (base or self.workspace) / p
+        if is_network(str(p)) or PureWindowsPath(p).is_reserved():
+            raise ValueError("Network and device input paths are not supported")
         p = p.resolve(strict=True)
         if not p.is_file():
             raise ValueError("Input must be a regular file")
@@ -66,12 +74,15 @@ class Settings:
         require_installation(self.executable)
         return self.executable
 
-    def check_keyword_includes(self, path: Path, *, native_cwd: Path | None = None) -> None:
-        """Apply native loading policy to the shared, complete INCLUDE preflight."""
+    def check_keyword_includes(self, path: Path, *, native_cwd: Path | None = None,
+                               max_references: int = 20000) -> None:
+        """Apply native policy; bound expanded references (0 rejects any INCLUDE name)."""
+        if isinstance(max_references, bool) or not isinstance(max_references, int) or max_references < 0:
+            raise ValueError("max_references must be an integer >= 0")
         from .domain.model import preflight_includes
 
         source = self.input_path(str(path))
-        report = preflight_includes(source)
+        report = preflight_includes(source, max_references=max_references)
         references = report["references"]
         # Confinement errors take precedence over diagnostics about external contents.
         for entry in report["files"]:
@@ -82,7 +93,8 @@ class Settings:
         failure = ""
         if not report["ok"]:
             problem = next(p for p in report["problems"] if p["severity"] == "error")
-            legacy = {"cycle": "Cyclic keyword include chain", "limit": "Keyword include limit exceeded"}
+            legacy = {"cycle": "Cyclic keyword include chain", "limit": "Keyword include limit exceeded",
+                      "reference_limit": "Keyword include reference limit exceeded"}
             reason = problem.get("reason") or problem.get("hint") or "INCLUDE preflight failed"
             failure = "{}: kind={}, relative={}, name_line={}, reason={}".format(
                 legacy.get(problem["kind"], "Keyword include preflight failed"), problem["kind"],

@@ -15,6 +15,7 @@ values. Anything else is refused; ``shard=`` reads one file explicitly.
 from __future__ import annotations
 
 import re
+import struct
 from pathlib import Path
 
 import numpy as np
@@ -22,6 +23,8 @@ import numpy as np
 from .lasso_backend import ResultsError, _lasso, backend
 
 SHARD = re.compile(r"^binout(\d{4})?$")
+FAMILY = re.compile(r"^binout(\d{4})?(%\d{2,})?$")  # a shard and its size continuations
+GLOB_CHARACTERS = frozenset("*?[")
 MAX_DEPTH = 4
 
 
@@ -35,6 +38,54 @@ def shards(path: str | Path) -> list[Path]:
     if not found:
         raise ResultsError(f"No binout files in {folder}")
     return found
+
+
+def lasso_reads(file: Path) -> list[Path]:
+    """Every file lasso opens for ``file``: the file and whatever its ``name%[0-9][0-9]*`` glob
+    matches beside it (matched case-insensitively, a superset of the Windows behaviour). Paths
+    with glob characters and continuation names other than ``name%NN...`` digits are refused here,
+    before anything is opened, so callers can confine the complete set first."""
+    if GLOB_CHARACTERS & set(str(file)):
+        raise ResultsError(f"Binout paths containing *, ? or [ are not read (lasso treats them as glob "
+                           f"patterns): {file}")
+    pattern = re.compile(re.escape(file.name) + r"%[0-9][0-9]", re.IGNORECASE)
+    found = [file]
+    for sibling in sorted(file.parent.iterdir()):
+        if sibling.name != file.name and pattern.match(sibling.name):
+            if not re.fullmatch(re.escape(file.name) + r"%\d{2,}", sibling.name):
+                raise ResultsError(f"{sibling.name} would be read as a continuation of {file.name} but is not "
+                                   "a standard size continuation (name%NN); move or rename it")
+            found.append(sibling)
+    return found
+
+
+def _check_header(file: Path) -> None:
+    """LSDA files start with 8 header bytes: header length, then length/offset/command/type sizes
+    (each 1, 2, 4 or 8) and a byte-order flag. A file failing this is refused before lasso opens it,
+    because a failed lasso open leaves its file handle open."""
+    with file.open("rb") as stream:
+        head = stream.read(8)
+    if len(head) < 8 or head[0] < 8 or any(size not in (1, 2, 4, 8) for size in head[1:5]) or head[5] > 1:
+        raise ResultsError(f"{file.name} is not an LSDA binout file (bad header)")
+
+
+def _open(Binout: type, file: Path) -> object:
+    """lasso's Binout and Lsda treat the file name as a glob pattern (the file itself and its
+    ``%NNN`` continuations), so ``case[1]/binout`` would read ``case1/binout``. Paths with glob
+    characters are refused, and the files lasso actually opened must be this shard or its own
+    continuations in the same folder."""
+    for part in lasso_reads(file):  # refuses glob paths and odd continuations before lasso opens anything
+        _check_header(part)
+    try:
+        reader = Binout(str(file))
+    except (OSError, ValueError, IndexError, EOFError, struct.error) as error:
+        raise ResultsError(f"{file.name} is not a readable binout ({type(error).__name__}: {error})") from error
+    opened = [Path(f.name) for f in getattr(getattr(reader, "lsda", None), "files", [])]
+    stray = [str(f) for f in opened if f.parent != file.parent
+             or not (f.name == file.name or re.fullmatch(re.escape(file.name) + r"%\d{2,}", f.name))]
+    if not opened or stray:
+        raise ResultsError(f"lasso opened files other than {file.name} and its continuations: {stray}")
+    return reader
 
 
 def _entries(reader: object) -> dict[str, tuple[str, ...]]:
@@ -63,7 +114,7 @@ def catalog(path: str | Path) -> dict:
     files = shards(path)
     where: dict[str, list[str]] = {}
     for file in files:
-        for key in _entries(Binout(str(file))):
+        for key in _entries(_open(Binout, file)):
             where.setdefault(key, []).append(file.name)
     return {"shards": [f.name for f in files], "entries": dict(sorted(where.items())),
             "split": {k: v for k, v in sorted(where.items()) if len(v) > 1}}
@@ -126,7 +177,7 @@ def read(path: str | Path, database: str, component: str, branch: str | None = N
     key = database if branch is None else f"{database}/{branch}"
     pieces, available = [], set()
     for file in files:
-        reader = Binout(str(file))
+        reader = _open(Binout, file)
         entries = _entries(reader)
         available |= entries.keys()
         if key in entries:
@@ -147,4 +198,4 @@ def read(path: str | Path, database: str, component: str, branch: str | None = N
             "shards": [p["shard"] for p in pieces], "repeated_times_dropped": repeated}
 
 
-__all__ = ["SHARD", "catalog", "read", "shards"]
+__all__ = ["FAMILY", "SHARD", "catalog", "lasso_reads", "read", "shards"]

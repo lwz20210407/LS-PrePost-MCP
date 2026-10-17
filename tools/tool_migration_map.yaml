@@ -215,6 +215,12 @@ tools:
     target: extract_field
     task_id: Q03
     legacy_until: v0.6
+  extract_database:
+    target: extract_database
+    task_id: Q06
+    legacy_until: null
+    note: M2 target tool over domain.results (binout across MPP shards, component
+      by name); returns JobResult/v1
   extract_lsreader_nodal:
     target: extract_field
     task_id: Q03
