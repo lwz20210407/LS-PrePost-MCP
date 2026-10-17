@@ -720,7 +720,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 里程碑：M1
 
-负责人：antigravity
+负责人：codex
 
 状态：done；验证：L1
 
@@ -761,7 +761,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 里程碑：M1
 
-负责人：cursor
+负责人：codex
 
 状态：partial；验证：L1
 
@@ -783,7 +783,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 里程碑：M3
 
-负责人：claude
+负责人：codex
 
 集成约束：Claude 在 claude/keyword-engine 开发，M3 经 PR 合入 main；代码在 src/ls_prepost_mcp/domain/model/，目标工具在 model_target_tools.py。
 
@@ -809,7 +809,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 里程碑：M2-M4
 
-负责人：claude
+负责人：codex
 
 状态：partial；验证：L1
 

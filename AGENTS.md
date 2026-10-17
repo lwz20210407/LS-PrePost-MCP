@@ -1,5 +1,16 @@
 # Development instructions
 
+## Current workflow (user confirmed 2026-10-18)
+
+- Codex owns implementation, testing, review and PR integration for the entire project. The four-agent ownership and Claude-only review/merge rules below are historical and superseded; they must not block work or launch other agents.
+- Keep `tasks.yaml` as the scope and acceptance source. Taking ownership does not change acceptance, milestone order, release, status or the meaning of existing evidence.
+- First resolve the existing PR backlog and review findings. Preserve authorship and history; synchronize with merge commits only, never rebase or force push. Review each change and require the exact PR head's complete CI before integration. Do not treat self-review as an independent external review.
+- Work in this desktop conversation. Do not restart AO dispatch or recurring automations without a new user request. Existing worktrees and uncommitted files remain intact.
+- Use the shared environments `D:\AI_Tools\uv-envs\lspp-py311`, `lspp-py312` and `lspp-min`, with `UV_CACHE_DIR=D:\AI_Tools\uv-cache` and `UV_PYTHON_INSTALL_DIR=D:\AI_Tools\uv-python`. Check the lockfile before syncing; do not modify a shared environment while another test run is using it. Never install project requirements into the user's Conda environments.
+- Continue serial headless native verification with explicit opt-in. Visible GUI and remote-disconnection tests still require a user-arranged window. Keep partial tasks partial until all their acceptance criteria have evidence.
+
+## Historical instructions (apply only where consistent with the current workflow)
+
 - tasks.yaml is the only source of scope, milestone order, acceptance and status. Identify a task or infrastructure ID before work; put unmatched requests in backlog.md. Do not revive archived plans or dashboards.
 - Work incrementally on restructure/v0.5. M0 may change src only for its documented contract bug fixes; no new MCP tools, features or refactors. Archive with git mv; do not delete files during M0.
 - Preserve user changes, validated native commands, pitfalls, result mathematics and artifact identity checks. Do not silently narrow acceptance. Ask the user to choose scope/depth changes.
