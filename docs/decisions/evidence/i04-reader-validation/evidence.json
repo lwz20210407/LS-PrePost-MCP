@@ -1,0 +1,42 @@
+{
+  "case_id": "extra-result-03",
+  "native_run": false,
+  "routes": {
+    "inventory": {
+      "rejected": true,
+      "error": "Invalid d3plot time axis: EOF marker reported as time at state 3 (1-based); possible trailing data after the end marker; no states were removed"
+    },
+    "overview": {
+      "rejected": true,
+      "error": "Invalid d3plot time axis: EOF marker reported as time at state 3 (1-based); possible trailing data after the end marker; no states were removed"
+    },
+    "selected_state_1": {
+      "rejected": true,
+      "error": "Invalid d3plot time axis: EOF marker reported as time at state 3 (1-based); possible trailing data after the end marker; no states were removed"
+    }
+  },
+  "preservation": {
+    "originals_unchanged": true,
+    "directory_listing_unchanged": true
+  },
+  "source_sha256": [
+    "8e70326dbc1f93819e03944041af36b04f2f55851ca8012999047713dc028f1d",
+    "9ca1b75f513f69f3a5577628197c5ffbd1b55c7fdd710f6b65a48e50815820a0"
+  ],
+  "tested_base_revision": "154a01784069f24f2d31ee11d0cee476348da679",
+  "working_tree_dirty": true,
+  "test_level": "L1 plus real LASSO file reads; no native process",
+  "source_sha256_lf": {
+    "src/ls_prepost_mcp/domain/results/time_validation.py": "5d7c7d262f8481f33a903d5f1018cd413038a4813ff7db82a66d6d4ab586e2c3",
+    "src/ls_prepost_mcp/domain/results/lasso_backend.py": "629ecec2aa206ee9030274a91a63ceae92633380a6f14712d95f82f560bb5b6b",
+    "src/ls_prepost_mcp/post_backend.py": "48de2966ce6ef1cbe952ae0670812db768982ff8c5e6329607be74ac9f648801",
+    "src/ls_prepost_mcp/service.py": "573af7611702907ca5fc6faa4cc77a4d61f11a39fcdff42237206d1cd6961386",
+    "tests/test_d3plot_time_validation.py": "10e865bb629576e77e6bcebd42290cedf16bd6acaa6eec9576aeadd62e947c6a",
+    "tests/test_public_corpus_diagnostics.py": "9c3e1cfc62fc088b6865ada83e974112cbb64c1ad488c24e1fe888f2d6bb21ee"
+  },
+  "local_tests": {
+    "baseline": "37 failed, 3 passed",
+    "related": "72 passed, 2 skipped",
+    "full": "2147 passed, 278 skipped, 2 warnings"
+  }
+}
