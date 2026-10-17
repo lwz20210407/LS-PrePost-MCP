@@ -1,6 +1,7 @@
-"""G01 opt-in native check: identical set_view requests in one owned GUI session render identical pixels.
+"""G01 opt-in native checks: identical set_view requests render identical pixels.
 
-Needs --run-native, --native-gui (an authorized visible window) and --native-executable. Never runs in CI.
+Batch cases need --run-native and --native-executable and run isolated c= -nographics processes only.
+Session cases additionally need --native-gui (an authorized visible window). Never runs in CI.
 """
 
 import os
@@ -46,6 +47,41 @@ CASES = {
                                        zoom_scale=2.0, pan_xy=[0.1, -0.05]),
     "fit": dict(view="isometric", projection="perspective", fit=True),
 }
+
+
+@pytest.fixture
+def batch_service(pytestconfig, tmp_path):
+    if not pytestconfig.getoption("--run-native"):
+        pytest.skip("G01 headless pixel identity needs --run-native")
+    executable = pytestconfig.getoption("--native-executable")
+    if not executable or os.name != "nt":
+        pytest.skip("Set --native-executable on Windows")
+    model = tmp_path / "plate.k"
+    model.write_text(PLATE, encoding="ascii")
+    return Service(Settings(tmp_path, Path(executable), (), 120)), str(model)
+
+
+@pytest.mark.parametrize("case", sorted(CASES))
+def test_headless_batch_requests_render_identical_pixels(batch_service, case):
+    service, model = batch_service
+    runs = [service.set_view("batch", model=model, execute=True, **CASES[case]) for _ in range(2)]
+    assert [run["status"] for run in runs] == ["succeeded", "succeeded"], [run.get("error") for run in runs]
+    assert runs[0]["job_id"] != runs[1]["job_id"]
+    assert all(run["data"]["execution"]["graphics"] is False for run in runs)
+    comparison = compare_png_pixels(runs[0]["artifacts"][0]["path"], runs[1]["artifacts"][0]["path"])
+    assert comparison["identical"], comparison
+
+
+def test_headless_preset_restore_renders_identical_and_perturbation_differs(batch_service):
+    service, model = batch_service
+    saved = service.set_view("batch", model=model, execute=True, save_preset_name="g01batch",
+                             **CASES["standard_rotation_zoom_pan"])
+    other = service.set_view("batch", model=model, execute=True, view="top", projection="parallel", zoom_scale=0.5)
+    restored = service.set_view("batch", model=model, execute=True, restore_preset_name="g01batch")
+    assert [r["status"] for r in (saved, other, restored)] == ["succeeded"] * 3
+    saved_png, other_png, restored_png = (r["artifacts"][0]["path"] for r in (saved, other, restored))
+    assert compare_png_pixels(saved_png, restored_png)["identical"]
+    assert not compare_png_pixels(saved_png, other_png)["identical"]
 
 
 @pytest.fixture

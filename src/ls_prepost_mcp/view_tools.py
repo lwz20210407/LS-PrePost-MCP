@@ -43,12 +43,13 @@ class ViewTools:
         save_preset_name: str | None = None,
         restore_preset_name: str | None = None,
         capture: bool = True,
+        execute: bool = False,
     ) -> dict:
-        """G01: standard view, projection, incremental global X/Y/Z rotation, fit, then ABSOLUTE native zoom_scale and pan_xy (pan is a native view offset, not a model length; "zoom 2x" needs the absolute value). context=session uses the given existing GUI session (never starts one); context=batch only prepares a reviewed cfile/PNG program for the given model because headless rendering is unverified. Named presets store the replayable request (explicit view+projection), bound to the session model generation or batch input bytes, never a captured native camera. center_on (Selector) is validated and rejected as unsupported. Returns JobResult/v1."""
-        if context not in ("batch", "session") or type(capture) is not bool:
-            raise ValueError("context must be batch or session and capture must be Boolean")
-        if context == "session" and (not session_id or model is not None):
-            raise ValueError("Session context requires an existing session_id and no batch model")
+        """G01: standard view, projection, incremental global X/Y/Z rotation, fit, then ABSOLUTE native zoom_scale and pan_xy (pan is a native view offset, not a model length; "zoom 2x" needs the absolute value). context=session uses the given existing GUI session (never starts one); context=batch prepares a reviewed cfile/PNG program for the given model and, only with execute=True, runs it once in an isolated c= -nographics process (never a GUI or session) and returns the verified PNG. Named presets store the replayable request (explicit view+projection), bound to the session model generation or batch input bytes, never a captured native camera. center_on (Selector) is validated and rejected as unsupported. Returns JobResult/v1."""
+        if context not in ("batch", "session") or type(capture) is not bool or type(execute) is not bool:
+            raise ValueError("context must be batch or session; capture and execute must be Boolean")
+        if context == "session" and (not session_id or model is not None or execute):
+            raise ValueError("Session context requires an existing session_id, no batch model and no execute flag")
         if context == "batch" and (session_id is not None or not model):
             raise ValueError("Batch context requires model and no session_id")
         if context == "batch" and not capture:
@@ -118,8 +119,31 @@ class ViewTools:
             artifacts, job_id, stage, status = [], prepared["job_id"], "preparation", "unverified"
             execution = dict(prepared_job_id=prepared["job_id"], prepared_sha256=prepared["data"]["sha256"],
                              model=identity, file_type=file_type, native_started=False,
-                             next_step="execute_native_program with this job and SHA256 after an authorized "
-                                       "graphics mode; headless PNG rendering is not verified")
+                             next_step="set_view(..., execute=True) or execute_native_program with this job and "
+                                       "SHA256, graphics=False")
+            if execute:
+                ran = self.execute_native_program(prepared["job_id"], prepared["data"]["sha256"], model=model,
+                                                  file_type=file_type, graphics=False, launch_mode="c")
+                process = ran.get("process") or {}
+                execution.update(native_started=process.get("pid") is not None, next_step=None,
+                                 executed_job_id=ran["job_id"], graphics=False, launch_mode="c",
+                                 native_returncode=process.get("returncode"),
+                                 native_elapsed_seconds=process.get("elapsed_seconds"),
+                                 executable=ran.get("executable"))
+                png = [item for item in ran.get("artifacts") or [] if item["kind"] == "png"]
+                staged = [item.get("sha256") for item in ran.get("inputs") or []]
+                failure = None
+                if ran["status"] != "succeeded":
+                    failure = ran.get("error") or dict(message="Native batch view execution failed")
+                elif len(png) != 1:
+                    failure = dict(message="Batch view produced no verified PNG")
+                elif staged[:1] != [identity["sha256"]]:
+                    failure = dict(message="Executed input differs from the prepared model")
+                if failure is not None:
+                    return _result("failed", dict(context=context, request=request.model_dump(mode="json"),
+                                                  commands=commands, execution=execution),
+                                   job_id=ran["job_id"], stage="execution", error=dict(failure))
+                artifacts, job_id, stage, status = [_artifact(png[0])], ran["job_id"], "execution", "succeeded"
         saved = None
         if save_preset_name is not None:
             path, body = save_preset(self._view_presets(), save_preset_name, request, binding, now())
@@ -133,5 +157,8 @@ class ViewTools:
         warnings = ["Native camera state is not read back; the request is applied, not verified"]
         if stage == "preparation":
             warnings.append("Batch rendering was prepared only; no native process was started")
+        elif context == "batch":
+            warnings.append("Each batch execution is a fresh process; the view starts from the opened model, "
+                            "not from a previous call")
         return _result(status, data, job_id=job_id, stage=stage, artifacts=artifacts, warnings=warnings,
                        scope="native view request; camera matrix, named native views and Selector centering are gaps")
