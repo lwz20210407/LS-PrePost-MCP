@@ -31,3 +31,8 @@ python -m pytest tests/test_field_metrics.py tests/test_results_invariants.py te
 
 公开靶板读测也改为严格断言存活数等于存储 alive 标志之和，有限值数量独立验证。
 本次没有调用 LS-PrePost，不新增原生通过声明，不改变 Q04 的任务范围与原验收。
+
+在已合入 Q01 修复的干净提交 `fc10e50057fdfb244274c9f09ca58e801066b059` 上，
+公开靶板和壳模型回归 **2 passed**，见 [公开读取日志](public-report.txt) 与
+[evidence.json](evidence.json)。测试源记录 git blob ID，日志哈希按 UTF-8/LF 规范化，
+不把这些 LASSO 读测标成原生 LS-PrePost 通过。
