@@ -8,6 +8,7 @@ import pytest
 
 from ls_prepost_mcp.config import Settings
 from ls_prepost_mcp.core.contracts import JobResult
+from ls_prepost_mcp.server import build_server
 from ls_prepost_mcp.service import Service
 
 pytest.importorskip("ansys.dyna.core")
@@ -178,3 +179,13 @@ def test_include_outside_roots_is_not_opened_even_for_preflight(tmp_path, monkey
     result = invoke(svc, main)
     assert result.status == "failed" and "outside" in result.error["message"].lower()
     assert not calls and result.job_id is None
+
+
+@pytest.mark.parametrize("field,value", [("expected_counts", True), ("expected_counts", "4"),
+                                         ("expected_counts", 4.0), ("expected_part_ids", True),
+                                         ("expected_part_ids", "1"), ("expected_part_ids", 1.0)])
+def test_mcp_expectations_do_not_coerce_boolean_string_or_float(tmp_path, field, value):
+    argument_model = build_server(Settings(tmp_path))._tool_manager.get_tool("save_model").fn_metadata.arg_model
+    argument = {"nodes": value} if field == "expected_counts" else [value]
+    with pytest.raises(ValueError):
+        argument_model.model_validate({"model": "not-opened.k", field: argument})
