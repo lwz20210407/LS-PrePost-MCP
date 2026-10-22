@@ -108,6 +108,26 @@ def overview(path: str | Path) -> dict:
             "ascii_files": sorted(p.name for p in folder.iterdir() if p.name in ASCII)}
 
 
+def header(path: str | Path) -> dict:
+    """d3plot control words beside the readable arrays (Q01): extra values per integration point
+    (NEIPH solids, NEIPS shells/thick shells, NEIPB beams) and which tensors / deletion data are
+    stored. LASSO moves stored strain tensors out of the history arrays, so a family can declare
+    extra values while exposing no history-variable array."""
+    try:
+        from lasso.dyna.d3plot_header import D3plotHeader
+    except ImportError as error:
+        raise ResultsError("Reading results needs lasso-python (install the 'results' extra)") from error
+    path = Path(path)
+    if not path.exists():
+        raise ResultsError(f"{path} does not exist")
+    h = D3plotHeader().load_file(str(path))
+    return {"neiph_solid": int(h.n_solid_history_vars), "neips_shell_tshell": int(h.n_shell_tshell_history_vars),
+            "neipb_beam": int(h.n_beam_history_vars), "strain_tensor_stored": bool(h.has_element_strain),
+            "plastic_strain_tensor_stored": bool(h.has_solid_shell_plastic_strain_tensor),
+            "thermal_strain_tensor_stored": bool(h.has_solid_shell_thermal_strain_tensor),
+            "deletion_data_stored": bool(h.has_element_deletion_data)}
+
+
 def _part_ids(arrays: dict) -> np.ndarray:
     """Part IDs in d3plot order (part_ids, or part_titles_ids when the file only has titles)."""
     for key in ("part_ids", "part_titles_ids"):
@@ -219,4 +239,5 @@ def binout_curves(path: str | Path, database: str, component: str, branch: str |
     return mpp_shards.read(path, database, component, branch, shard)
 
 
-__all__ = ["ASCII", "FAMILIES", "ResultsError", "backend", "binout_curves", "field", "history", "overview"]
+__all__ = ["ASCII", "FAMILIES", "ResultsError", "backend", "binout_curves", "field", "header", "history",
+           "overview"]
