@@ -1,0 +1,443 @@
+{
+  "task": "P11",
+  "runs": [
+    {
+      "actual_git_revision": "ea7d0288b7849808fd220e21acdc5b229933652f",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "executable": {
+        "name": "lsprepost4.13.exe",
+        "version": "4.13",
+        "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+      },
+      "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+      "run_id": "sp413a",
+      "context": "batch",
+      "passed": 4,
+      "failed": 0,
+      "cases": [
+        {
+          "case": "edited-search",
+          "actual_git_revision": "ea7d0288b7849808fd220e21acdc5b229933652f",
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "succeeded",
+          "error": null,
+          "original_tree_sha256": "34e20c6b24087ee2780ecc2d8f0f7cb3cac2f79d4c3b016500facda1eb548317",
+          "source_unchanged": true,
+          "native_jobs": [
+            {
+              "job_id": "9e32fb853dec462ea642d40c1b0e1c60",
+              "status": "succeeded",
+              "returncode": 0,
+              "graphics": false,
+              "timed_out": false,
+              "nographics": true
+            },
+            {
+              "job_id": "b016a46efe9f480a8889ae93409dc71e",
+              "status": "succeeded",
+              "returncode": 0,
+              "graphics": false,
+              "timed_out": false,
+              "nographics": true
+            }
+          ],
+          "saved_tree_ok": true,
+          "saved_missing_directories": [],
+          "expected_counts": {
+            "nodes": 4,
+            "elements": 1
+          },
+          "differences": []
+        },
+        {
+          "case": "relative-search",
+          "actual_git_revision": "ea7d0288b7849808fd220e21acdc5b229933652f",
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "succeeded",
+          "error": null,
+          "original_tree_sha256": "e3e5b50d2f7a11c4650c44a88e2d9e5fb025085a251cc59ec3e95ef34478b3e0",
+          "source_unchanged": true,
+          "native_jobs": [
+            {
+              "job_id": "4ac76c23b1524b0e9e511aa9ed0bb230",
+              "status": "succeeded",
+              "returncode": 0,
+              "graphics": false,
+              "timed_out": false,
+              "nographics": true
+            },
+            {
+              "job_id": "710dfac9b7df496d9f5198f7cb359df2",
+              "status": "succeeded",
+              "returncode": 0,
+              "graphics": false,
+              "timed_out": false,
+              "nographics": true
+            }
+          ],
+          "saved_tree_ok": true,
+          "saved_missing_directories": [],
+          "expected_counts": {
+            "nodes": 4,
+            "elements": 1
+          },
+          "differences": []
+        },
+        {
+          "case": "search",
+          "actual_git_revision": "ea7d0288b7849808fd220e21acdc5b229933652f",
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "succeeded",
+          "error": null,
+          "original_tree_sha256": "34e20c6b24087ee2780ecc2d8f0f7cb3cac2f79d4c3b016500facda1eb548317",
+          "source_unchanged": true,
+          "native_jobs": [
+            {
+              "job_id": "fa5056d9e8704f2e982a71100acf1d5f",
+              "status": "succeeded",
+              "returncode": 0,
+              "graphics": false,
+              "timed_out": false,
+              "nographics": true
+            },
+            {
+              "job_id": "fd8264a693b245cfa58fdca3b69369ff",
+              "status": "succeeded",
+              "returncode": 0,
+              "graphics": false,
+              "timed_out": false,
+              "nographics": true
+            }
+          ],
+          "saved_tree_ok": true,
+          "saved_missing_directories": [],
+          "expected_counts": {
+            "nodes": 4,
+            "elements": 1
+          },
+          "differences": []
+        },
+        {
+          "case": "unused-search",
+          "actual_git_revision": "ea7d0288b7849808fd220e21acdc5b229933652f",
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "succeeded",
+          "error": null,
+          "original_tree_sha256": "631b4d1d3cf290139b957bc4fafe4e04476f94e643f927f6ff79587d75acf967",
+          "source_unchanged": true,
+          "native_jobs": [
+            {
+              "job_id": "e7449b4c0eb54a2ab4ca9c8d426ea5ce",
+              "status": "succeeded",
+              "returncode": 0,
+              "graphics": false,
+              "timed_out": false,
+              "nographics": true
+            },
+            {
+              "job_id": "ca6607db68b242d0bba297b42b5d8ce2",
+              "status": "succeeded",
+              "returncode": 0,
+              "graphics": false,
+              "timed_out": false,
+              "nographics": true
+            }
+          ],
+          "saved_tree_ok": true,
+          "saved_missing_directories": [],
+          "expected_counts": {
+            "nodes": 4,
+            "elements": 1
+          },
+          "differences": []
+        }
+      ],
+      "test_source_identity": {
+        "path": "tests/test_save_search_paths_native.py",
+        "git_blob_id": "0356c58e4e53ae67d39b6e659f231b16c4b6d7af",
+        "sha256_lf": "4a83118f6a212585a972d39f23abeb459cda7dc9e95ffc001cbc59f83bb9d692",
+        "newline_basis": "LF normalized Git blob"
+      },
+      "report": "sp413a-batch-report.md",
+      "report_sha256": "dcd43dbe22786260ff20a5f23b9bb503c67c93f348c4508f6ecf72f405754c67"
+    },
+    {
+      "actual_git_revision": "ea7d0288b7849808fd220e21acdc5b229933652f",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "executable": {
+        "name": "lsprepost4.10_x64.exe",
+        "version": "4.10",
+        "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+      },
+      "source_config_sha256": "cf42fba49988b2196a9a009b9c9ee31e30100a1a698b6f9a5fcb3789157f4461",
+      "run_id": "sp410a",
+      "context": "batch",
+      "passed": 4,
+      "failed": 0,
+      "cases": [
+        {
+          "case": "edited-search",
+          "actual_git_revision": "ea7d0288b7849808fd220e21acdc5b229933652f",
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "executable": {
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+          },
+          "source_config_sha256": "cf42fba49988b2196a9a009b9c9ee31e30100a1a698b6f9a5fcb3789157f4461",
+          "status": "succeeded",
+          "error": null,
+          "original_tree_sha256": "34e20c6b24087ee2780ecc2d8f0f7cb3cac2f79d4c3b016500facda1eb548317",
+          "source_unchanged": true,
+          "native_jobs": [
+            {
+              "job_id": "efcaf1e0bf9240829a0ad0ddac3a5e2b",
+              "status": "succeeded",
+              "returncode": 0,
+              "graphics": false,
+              "timed_out": false,
+              "nographics": true
+            },
+            {
+              "job_id": "7ae9a90590364c4483e5609e9fd4c9ee",
+              "status": "succeeded",
+              "returncode": 0,
+              "graphics": false,
+              "timed_out": false,
+              "nographics": true
+            }
+          ],
+          "saved_tree_ok": true,
+          "saved_missing_directories": [],
+          "expected_counts": {
+            "nodes": 4,
+            "elements": 1
+          },
+          "differences": []
+        },
+        {
+          "case": "relative-search",
+          "actual_git_revision": "ea7d0288b7849808fd220e21acdc5b229933652f",
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "executable": {
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+          },
+          "source_config_sha256": "cf42fba49988b2196a9a009b9c9ee31e30100a1a698b6f9a5fcb3789157f4461",
+          "status": "succeeded",
+          "error": null,
+          "original_tree_sha256": "e3e5b50d2f7a11c4650c44a88e2d9e5fb025085a251cc59ec3e95ef34478b3e0",
+          "source_unchanged": true,
+          "native_jobs": [
+            {
+              "job_id": "517e521d0b0740cd9e6776e9ab0319a9",
+              "status": "succeeded",
+              "returncode": 0,
+              "graphics": false,
+              "timed_out": false,
+              "nographics": true
+            },
+            {
+              "job_id": "f49ebb593d5c4e9ca0c96d9ed3f67418",
+              "status": "succeeded",
+              "returncode": 0,
+              "graphics": false,
+              "timed_out": false,
+              "nographics": true
+            }
+          ],
+          "saved_tree_ok": true,
+          "saved_missing_directories": [],
+          "expected_counts": {
+            "nodes": 4,
+            "elements": 1
+          },
+          "differences": []
+        },
+        {
+          "case": "search",
+          "actual_git_revision": "ea7d0288b7849808fd220e21acdc5b229933652f",
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "executable": {
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+          },
+          "source_config_sha256": "cf42fba49988b2196a9a009b9c9ee31e30100a1a698b6f9a5fcb3789157f4461",
+          "status": "succeeded",
+          "error": null,
+          "original_tree_sha256": "34e20c6b24087ee2780ecc2d8f0f7cb3cac2f79d4c3b016500facda1eb548317",
+          "source_unchanged": true,
+          "native_jobs": [
+            {
+              "job_id": "5aef24a0ba904139ac4aa7590d8fd9f5",
+              "status": "succeeded",
+              "returncode": 0,
+              "graphics": false,
+              "timed_out": false,
+              "nographics": true
+            },
+            {
+              "job_id": "1cbc23a0263149588375b49676f7f655",
+              "status": "succeeded",
+              "returncode": 0,
+              "graphics": false,
+              "timed_out": false,
+              "nographics": true
+            }
+          ],
+          "saved_tree_ok": true,
+          "saved_missing_directories": [],
+          "expected_counts": {
+            "nodes": 4,
+            "elements": 1
+          },
+          "differences": []
+        },
+        {
+          "case": "unused-search",
+          "actual_git_revision": "ea7d0288b7849808fd220e21acdc5b229933652f",
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "executable": {
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+          },
+          "source_config_sha256": "cf42fba49988b2196a9a009b9c9ee31e30100a1a698b6f9a5fcb3789157f4461",
+          "status": "succeeded",
+          "error": null,
+          "original_tree_sha256": "631b4d1d3cf290139b957bc4fafe4e04476f94e643f927f6ff79587d75acf967",
+          "source_unchanged": true,
+          "native_jobs": [
+            {
+              "job_id": "a1f660a5c4f64a22ba7e1392b47f8580",
+              "status": "succeeded",
+              "returncode": 0,
+              "graphics": false,
+              "timed_out": false,
+              "nographics": true
+            },
+            {
+              "job_id": "8e7eae079a3045e38f8bff94c3eeb2f7",
+              "status": "succeeded",
+              "returncode": 0,
+              "graphics": false,
+              "timed_out": false,
+              "nographics": true
+            }
+          ],
+          "saved_tree_ok": true,
+          "saved_missing_directories": [],
+          "expected_counts": {
+            "nodes": 4,
+            "elements": 1
+          },
+          "differences": []
+        }
+      ],
+      "test_source_identity": {
+        "path": "tests/test_save_search_paths_native.py",
+        "git_blob_id": "0356c58e4e53ae67d39b6e659f231b16c4b6d7af",
+        "sha256_lf": "4a83118f6a212585a972d39f23abeb459cda7dc9e95ffc001cbc59f83bb9d692",
+        "newline_basis": "LF normalized Git blob"
+      },
+      "report": "sp410a-batch-report.md",
+      "report_sha256": "da654a22f148b05e2e49da40d2c5ddbf836e5005019f027625fda82e09d0d2ef"
+    }
+  ]
+}
