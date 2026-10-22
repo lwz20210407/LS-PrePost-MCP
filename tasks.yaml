@@ -386,7 +386,7 @@ tasks:
     gaps:
       - LSPP 对照证据需按身份规范（revision、可执行文件哈希、job id）重跑；现有 4.13 对照记录只有基线 e41cf65，不能复核
       - 状态超过 2000 时共享 overview 不返回逐状态时间，result_info 返回 partial，无法自动判定第 3 条
-    evidence: [tests/test_result_overview.py, docs/decisions/evidence/q01/report.md]
+    evidence: [tests/test_result_overview.py, tests/test_result_overview_validity.py, docs/decisions/evidence/q01/report.md, docs/decisions/evidence/q01-validity/report.md]
     acceptance:
       - 返回状态数、每个状态时间、可用变量（含 HSV 数量）、部件、单元类型、删除单元计数
       - 同时列出同目录 binout / ASCII 文件及其包含的库

@@ -36,7 +36,7 @@ def result_info(tools, path: str, native_check: bool) -> dict:
     except Exception as error:  # reader failures of any kind are reported, not raised past the job record
         result = _result("failed", {"source": str(source)}, manifest["job_id"], error=_error(error))
         return _record(directory, manifest, result)
-    warnings: list[str] = []
+    warnings: list[str] = list(overview.get("warnings", []))
     data = {"source": str(source), "lasso_backend": overview["backend"], "state_index_base": 1,
             "states": overview["states"], "time_range": overview["time_range"], "times": overview["times"],
             "time_units": "as stored in the d3plot (model time unit; nothing converted)",
@@ -115,12 +115,35 @@ def _native(tools, path: str) -> tuple[dict, dict | None]:
     native = {"status": job.get("status"), "job_id": job.get("job_id"),
               "states": (reply.get("counts") or {}).get("states"), "times": reply.get("state_times"),
               "executable": job.get("executable")}
+    # An execution success is not a valid observation. Remove malformed numeric
+    # payloads before constructing JobResult, which forbids nested NaN/Inf.
+    invalid = []
+    if type(native["states"]) is not int or native["states"] < 0:
+        native["states"] = None
+        invalid.append("state count must be a nonnegative integer")
+    times = native["times"]
+    if not _finite_times(times):
+        native["times"] = None
+        invalid.append("state times must be a nonempty finite numeric vector")
+    else:
+        native["times"] = [float(t) for t in times]
+    if invalid:
+        native["observation_errors"] = invalid
     if job.get("status") != "succeeded":
         return native, {"message": "LS-PrePost inspect_model did not succeed: "
                         + str((job.get("error") or {}).get("message") or job.get("status")), "native": job.get("error")}
-    if native["states"] is None or native["times"] is None:
-        return native, {"message": "LS-PrePost reported no state count or state times"}
+    if invalid:
+        return native, {"message": "LS-PrePost returned an invalid observation: " + "; ".join(invalid)}
     return native, None
+
+
+def _finite_times(times: object) -> bool:
+    if not isinstance(times, (list, tuple)) or not times:
+        return False
+    try:
+        return all(type(t) in (int, float) and math.isfinite(t) for t in times)
+    except (ValueError, OverflowError):
+        return False
 
 
 def _agreement(overview: dict, native: dict, data: dict) -> CheckResult:
@@ -131,11 +154,16 @@ def _agreement(overview: dict, native: dict, data: dict) -> CheckResult:
     tolerance = TIME_RELATIVE_TOLERANCE * max([abs(t) for t in lasso_times] or [0.0])
     difference = (max((abs(a - b) for a, b in zip(lasso_times, native_times)), default=0.0)
                   if len(lasso_times) == len(native_times) else None)
+    # Even two finite timestamps can overflow when subtracted. Keep the failed
+    # comparison serializable instead of replacing it with a contract exception.
+    overflow = difference is not None and not math.isfinite(difference)
+    if overflow:
+        difference = None
     same_times = difference is not None and math.isfinite(difference) and difference <= tolerance
     data["comparison"] = {"lasso_states": overview["states"], "lsprepost_states": native["states"],
                           "state_counts_equal": same_count, "max_abs_time_difference": difference,
                           "time_tolerance": tolerance, "time_tolerance_rule": "1e-6 x largest |state time|",
-                          "times_equal": same_times}
+                          "times_equal": same_times, "difference_overflow": overflow}
     return CheckResult(name="backends_agree", status="passed" if same_count and same_times else "failed")
 
 
