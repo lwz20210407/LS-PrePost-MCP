@@ -2,6 +2,7 @@
 
 import csv
 import errno
+import functools
 import hashlib
 import json
 import logging
@@ -20,6 +21,11 @@ from .keyword_documentation import KeywordField, KeywordWithoutFields, fieldless
 CATEGORIES = frozenset(("command", "api", "keyword", "user_guide", "recipe", "known_issue"))
 PUBLIC_LICENSES = frozenset(("MIT", "Apache-2.0", "BSD-3-Clause", "CC0-1.0"))
 REPOSITORY = Path(__file__).resolve().parents[2]
+GLOSSARY = Path(__file__).with_name("data") / "search_glossary.json"
+ENGLISH_STOPWORDS = frozenset((
+    "a", "an", "the", "of", "to", "in", "on", "at", "for", "and", "or", "is", "are", "be", "it", "its",
+    "how", "what", "which", "where", "why", "do", "does", "can", "i", "my", "with", "by", "from", "this", "that"))
+SIBILANT_ENDINGS = ("s", "x", "z", "ch", "sh")
 
 
 def _cleanup_owned_temp(path, original):
@@ -261,6 +267,167 @@ def build_index(destination, documents, fields=(), fieldless=()):
                 private=any(row.visibility == "private" for row in rows))
 
 
+@functools.lru_cache(maxsize=1)
+def glossary():
+    data = json.loads(GLOSSARY.read_text(encoding="utf-8"))
+    return {key: tuple(values) for key, values in data["terms"].items()}, frozenset(data["stopwords"])
+
+
+def _quote(value):
+    # Identifier-prefix behavior for underscored code names only.
+    prefix = "*" if "_" in value and not value.startswith("zh_") else ""
+    return '"' + value.replace('"', '""') + '"' + prefix
+
+
+def _inflections(stem):
+    base = stem[:-1] if stem.endswith("e") else stem
+    if stem.endswith("y") and stem[-2:-1] not in "aeiou":
+        plural = stem[:-1] + "ies"
+    else:
+        plural = stem + ("es" if stem.endswith(SIBILANT_ENDINGS) else "s")
+    return {stem, plural, base + "ed", base + "ing"}
+
+
+def _word_forms(word):
+    """Regular English inflections of a query word, never shorter fragments of identifiers.
+
+    Only alphabetic words of four or more letters are expanded; digits/underscores stay literal.
+    A suffix is removed only when at least four letters remain, so "string", "speed" and
+    "spring" never shrink to "str", "spe" or "spr" and cannot match code names like str_lim.
+    """
+    if not word.isalpha() or len(word) < 4:
+        return [word]
+    if word.endswith("ies"):
+        stems = [word[:-3] + "y"]
+    elif word.endswith("es") and word[:-2].endswith(SIBILANT_ENDINGS):
+        stems = [word[:-2]]
+    elif word.endswith("s") and not word.endswith(("ss", "us", "is")):
+        stems = [word[:-1]]
+    elif word.endswith(("ing", "ed")):
+        stem = word[:-3] if word.endswith("ing") else word[:-2]
+        stems = [stem, stem + "e"] if len(stem) >= 4 else []
+    else:
+        stems = []
+    stems = [stem for stem in stems if len(stem) >= 4]
+    forms = {word} if stems else _inflections(word)
+    for stem in stems:
+        forms |= _inflections(stem)
+    return sorted(forms)
+
+
+def _word_expression(word):
+    forms = _word_forms(word)
+    return _quote(forms[0]) if len(forms) == 1 else "(" + " OR ".join(_quote(form) for form in forms) + ")"
+
+
+def _phrase_expression(phrase):
+    words = [word for word in re.findall(r"[a-z0-9]+", phrase.casefold()) if len(word) > 1]
+    return " AND ".join(_word_expression(word) for word in words), words
+
+
+def _chinese_expression(text):
+    grams = [text[i:i + 2] for i in range(len(text) - 1)] or [text]
+    return " AND ".join(_quote("zh_" + gram) for gram in grams)
+
+
+def _segment(run, entries, stopwords):
+    """Greedy longest glossary/stopword match; unmatched characters stay as raw text."""
+    longest = max(map(len, (*entries, *stopwords)))
+    pieces, rest, i = [], "", 0
+    while i < len(run):
+        for size in range(min(longest, len(run) - i), 0, -1):
+            word = run[i:i + size]
+            if word in entries or word in stopwords:
+                break
+        else:
+            rest += run[i]
+            i += 1
+            continue
+        if rest:
+            pieces.append(("rest", rest))
+            rest = ""
+        pieces.append(("term" if word in entries else "stop", word))
+        i += size
+    if rest:
+        pieces.append(("rest", rest))
+    return pieces
+
+
+def plan_query(query):
+    """Translate a query into FTS expressions without executing or rewriting index content.
+
+    Latin terms remain mandatory. Chinese text becomes optional concepts: general glossary
+    terms (matched as Chinese or as their English phrases) and unmatched Chinese text.
+    """
+    entries, stopwords = glossary()
+    latin = [value for value in terms(query) if not value.startswith("zh_")]
+    content = [value for value in latin if value not in ENGLISH_STOPWORDS]
+    latin = content or latin
+    concepts, expansion, fallback, highlights = [], [], [], set(latin)
+    for run in re.findall(r"[\u3400-\u9fff]+", query):
+        fallback.extend(run[i:i + 2] for i in range(len(run) - 1))
+        for kind, text in _segment(run, entries, stopwords):
+            if kind == "term":
+                english = [_phrase_expression(phrase) for phrase in entries[text]]
+                options = [_chinese_expression(text)] + [expression for expression, _ in english if expression]
+                concepts.append("(" + " OR ".join("(" + option + ")" for option in options) + ")")
+                expansion.append(dict(term=text, english=list(entries[text])))
+                highlights.add(text)
+                highlights.update(word for _, words in english for word in words)
+            elif kind == "rest" and len(text) > 1:
+                concepts.append("(" + " OR ".join(_quote("zh_" + text[i:i + 2]) for i in range(len(text) - 1)) + ")")
+                highlights.add(text)
+    if not concepts and fallback:
+        concepts = ["(" + " OR ".join(_quote("zh_" + gram) for gram in dict.fromkeys(fallback)) + ")"]
+    if not concepts:
+        runs = re.findall(r"[\u3400-\u9fff]", query)
+        concepts = ["(" + " OR ".join(_quote("zh_" + char) for char in dict.fromkeys(runs)) + ")"] if runs else []
+    entities = [match.upper() for match in re.findall(r"\*([A-Za-z][A-Za-z0-9_/-]*)", query)]
+    return dict(latin=" AND ".join(_word_expression(value) for value in latin),
+                literal=" AND ".join(_quote(value) for value in latin), concepts=concepts,
+                expansion=expansion, entities=["*" + entity for entity in dict.fromkeys(entities)],
+                highlights=_highlight_forms(highlights))
+
+
+def _highlight_forms(words):
+    """Map every form that can take part in matching to its query word, longest form first.
+
+    Snippets must find the inflection a document actually matched ("select" for "selected"),
+    while all forms of one word still count as a single term when windows are compared.
+    """
+    forms = {}
+    for word in sorted(words, key=len, reverse=True):
+        for form in (_word_forms(word) if word.isascii() else [word]):
+            forms.setdefault(form, word)
+    return dict(sorted(forms.items(), key=lambda item: len(item[0]), reverse=True))
+
+
+def _snippet(text, query, highlights, width=600):
+    folded = text.casefold()
+    position = folded.find(query.casefold())
+    if position >= 0:
+        begin = max(0, position - 100)
+        return text[begin:begin + width]
+    hits = []
+    for term, word in highlights.items():
+        start = folded.find(term)
+        while start >= 0 and len(hits) < 2000:
+            hits.append((start, word))
+            start = folded.find(term, start + len(term))
+    if not hits:
+        return text[:width]
+    hits.sort()
+    best, best_count, j = 0, 0, 0
+    for i, (start, _) in enumerate(hits):
+        while j < len(hits) and hits[j][0] - start <= width - 100:
+            j += 1
+        count = len({term for _, term in hits[i:j]})
+        if count > best_count:
+            best, best_count = start, count
+    begin = max(0, best - 100)
+    return text[begin:begin + width]
+
+
 def search_index(path, query, *, category=None, limit=10, include_private=False, keyword_filter=None):
     if not isinstance(query, str) or not query.strip() or len(query) > 1000 or type(limit) is not int or not 1 <= limit <= 50:
         raise ValueError("Provide a bounded query and limit 1..50")
@@ -273,20 +440,14 @@ def search_index(path, query, *, category=None, limit=10, include_private=False,
                 or not isinstance(keyword_filter[0], str) or not re.fullmatch(r"\*[A-Z0-9_/-]+", keyword_filter[0])
                 or keyword_filter[1] is not None and not isinstance(keyword_filter[1], str)):
             raise ValueError("Structured keyword lookup requires a keyword prefix and optional field")
-    query_terms = terms(query)
-    if not query_terms:
+    if not terms(query):
         return []
-    latin = [value for value in query_terms if not value.startswith("zh_")]
-    chinese = [value for value in query_terms if value.startswith("zh_") and len(value) == 5]
-    if not chinese:
-        chinese = [value for value in query_terms if value.startswith("zh_")]
-    def quote(value):
-        # Retain A10's identifier-prefix behavior without expanding query terms.
-        prefix = "*" if "_" in value and not value.startswith("zh_") else ""
-        return '"' + value.replace('"', '""') + '"' + prefix
-    latin_expression = " AND ".join(quote(value) for value in latin)
-    chinese_expression = " OR ".join(quote(value) for value in chinese)
-    mixed = bool(latin and chinese)
+    plan = plan_query(query)
+    latin_expression = plan["latin"]
+    chinese_expression = " OR ".join(plan["concepts"])
+    if not latin_expression and not chinese_expression:
+        return []
+    mixed = bool(latin_expression and chinese_expression)
     expression = ("(" + latin_expression + ") OR (" + chinese_expression + ")"
                   if mixed else latin_expression or chinese_expression)
     uri = Path(path).resolve(strict=True).as_uri() + "?mode=ro"
@@ -304,9 +465,30 @@ def search_index(path, query, *, category=None, limit=10, include_private=False,
                 params += ["(" + latin_expression + ") AND (" + chinese_expression + ")", latin_expression]
             else:
                 sql += ", 0 AS query_priority"
-            sql += " FROM search_terms JOIN documents ON documents.id=search_terms.id WHERE search_terms MATCH ?"
+            # An explicitly named *KEYWORD outranks concept coverage; bm25 only breaks ties.
+            coverage = " + ".join("(documents.id IN (SELECT id FROM search_terms WHERE search_terms MATCH ?))"
+                                  for _ in plan["concepts"]) or "0"
+            params += plan["concepts"]
+            sql += ", " + coverage + " AS coverage"
+            entity = " OR ".join("upper(documents.title)=? OR substr(upper(documents.title),1,?)=?"
+                                 for _ in plan["entities"])
+            sql += ", " + ("CASE WHEN " + entity + " THEN 0 ELSE 1 END" if entity else "1") + " AS entity_rank"
+            for key in plan["entities"]:
+                params += [key, len(key) + 1, key + " "]
+            sql += " FROM search_terms JOIN documents ON documents.id=search_terms.id"
+            if plan["literal"]:
+                # Documents with the literal query words keep their I05 bm25 order; inflections only
+                # add matches after them, so English queries cannot rank below the uninflected baseline.
+                # MATERIALIZED evaluates the literal MATCH once; a flattened join reruns it for every row.
+                sql = ("WITH literal AS MATERIALIZED (SELECT id AS literal_id, bm25(search_terms) AS literal_rank"
+                       " FROM search_terms WHERE search_terms MATCH ?) " + sql
+                       + " LEFT JOIN literal ON literal.literal_id=documents.id")
+                params.insert(0, plan["literal"])
+                order = "entity_rank, query_priority, coverage DESC, literal_rank IS NULL, literal_rank, rank, documents.id"
+            else:
+                order = "entity_rank, query_priority, coverage DESC, rank, documents.id"
+            sql += " WHERE search_terms MATCH ?"
             params.append(expression)
-            order = "query_priority, rank, documents.id"
             order_params = []
         else:
             prefix, field_name = keyword_filter
@@ -339,17 +521,13 @@ def search_index(path, query, *, category=None, limit=10, include_private=False,
     for row in rows:
         data = dict(row)
         priority = data.pop("query_priority")
+        for key in ("coverage", "entity_rank", "literal_id", "literal_rank"):
+            data.pop(key, None)
         data["query_match"] = (("both", "code_only", "text_only")[priority] if mixed
-                               else "code_only" if latin else "text_only")
+                               else "code_only" if latin_expression else "text_only")
         text = data.pop("text")
-        position = text.casefold().find(query.casefold())
-        if position < 0:
-            for token in sorted((value for value in query_terms if not value.startswith("zh_")),key=len,reverse=True):
-                position=text.casefold().find(token)
-                if position >= 0:
-                    break
-        begin = max(0, position - 100) if position >= 0 else 0
-        data["snippet"] = text[begin:begin + 600]
+        data["snippet"] = _snippet(text, query, plan["highlights"])
+        data["query_expansion"] = plan["expansion"]
         data.update(status="reference_unverified", executable=False, private=data["visibility"] == "private")
         if data["category"] == "recipe":
             proof = recipe_verification(text)
