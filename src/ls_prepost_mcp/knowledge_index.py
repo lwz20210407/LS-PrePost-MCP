@@ -386,7 +386,20 @@ def plan_query(query):
     return dict(latin=" AND ".join(_word_expression(value) for value in latin),
                 literal=" AND ".join(_quote(value) for value in latin), concepts=concepts,
                 expansion=expansion, entities=["*" + entity for entity in dict.fromkeys(entities)],
-                highlights=sorted(highlights, key=len, reverse=True))
+                highlights=_highlight_forms(highlights))
+
+
+def _highlight_forms(words):
+    """Map every form that can take part in matching to its query word, longest form first.
+
+    Snippets must find the inflection a document actually matched ("select" for "selected"),
+    while all forms of one word still count as a single term when windows are compared.
+    """
+    forms = {}
+    for word in sorted(words, key=len, reverse=True):
+        for form in (_word_forms(word) if word.isascii() else [word]):
+            forms.setdefault(form, word)
+    return dict(sorted(forms.items(), key=lambda item: len(item[0]), reverse=True))
 
 
 def _snippet(text, query, highlights, width=600):
@@ -396,10 +409,10 @@ def _snippet(text, query, highlights, width=600):
         begin = max(0, position - 100)
         return text[begin:begin + width]
     hits = []
-    for term in highlights:
+    for term, word in highlights.items():
         start = folded.find(term)
         while start >= 0 and len(hits) < 2000:
-            hits.append((start, term))
+            hits.append((start, word))
             start = folded.find(term, start + len(term))
     if not hits:
         return text[:width]
@@ -471,9 +484,9 @@ def search_index(path, query, *, category=None, limit=10, include_private=False,
                        " FROM search_terms WHERE search_terms MATCH ?) " + sql
                        + " LEFT JOIN literal ON literal.literal_id=documents.id")
                 params.insert(0, plan["literal"])
-                order = "query_priority, entity_rank, coverage DESC, literal_rank IS NULL, literal_rank, rank, documents.id"
+                order = "entity_rank, query_priority, coverage DESC, literal_rank IS NULL, literal_rank, rank, documents.id"
             else:
-                order = "query_priority, entity_rank, coverage DESC, rank, documents.id"
+                order = "entity_rank, query_priority, coverage DESC, rank, documents.id"
             sql += " WHERE search_terms MATCH ?"
             params.append(expression)
             order_params = []

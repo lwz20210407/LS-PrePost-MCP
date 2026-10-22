@@ -79,6 +79,31 @@ def test_explicit_keyword_outranks_prefix_siblings(tmp_path):
     assert rows[0]["query_match"] == "both"
 
 
+def test_explicit_keyword_outranks_siblings_that_also_match_the_chinese_concept(tmp_path):
+    # Codex review of 8648cc8: the exact entry matched only the code, the sibling matched both,
+    # and query_priority (both > code only) put the sibling first.
+    path = tmp_path / "index.sqlite"
+    build_index(path, [doc("*MAT_ELASTIC_FLUID pr", "Poisson ratio of the fluid model", "keyword"),
+                       doc("*MAT_ELASTIC pr", "PR field of the card", "keyword")])
+    rows = search_index(path, "*MAT_ELASTIC 泊松比", category="keyword")
+    assert [row["title"] for row in rows][0] == "*MAT_ELASTIC pr"
+
+
+def test_snippet_centres_on_the_inflected_form_that_matched(tmp_path):
+    # Codex P2: the snippet looked only for the query word "selected"; the document matched via "select".
+    path = tmp_path / "index.sqlite"
+    build_index(path, [doc("guide", "filler " * 300 + "Select the part to colour.", "user_guide")])
+    assert "Select the part" in search_index(path, "selected")[0]["snippet"]
+
+
+def test_snippet_counts_inflections_of_one_word_once(tmp_path):
+    # Forms of one query word must not outvote a window that holds two different query words.
+    path = tmp_path / "index.sqlite"
+    text = "select selected selects " + "filler " * 200 + "select the node here"
+    build_index(path, [doc("guide", text, "user_guide")])
+    assert "select the node" in search_index(path, "selected node")[0]["snippet"]
+
+
 def test_snippet_centres_on_expanded_terms(tmp_path):
     path = tmp_path / "index.sqlite"
     text = "filler " * 300 + "Shrink Factor\nInput shrink factor."
