@@ -183,7 +183,7 @@ def test_unselected_preflight_candidate_must_be_allowed(tmp_path, monkeypatch):
     outside.write_text("*KEYWORD\n*END\n")
     report = api.preflight_includes(main)
     report["references"][0]["candidates"].append(str(outside))
-    monkeypatch.setattr(api, "preflight_includes", lambda source: report)
+    monkeypatch.setattr(api, "preflight_includes", lambda source, **kwargs: report)
     with pytest.raises(ValueError, match="outside"):
         Settings(root).check_keyword_includes(main)
 

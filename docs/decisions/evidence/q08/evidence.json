@@ -1,0 +1,1235 @@
+{
+ "schema_version": 1,
+ "task": "Q08",
+ "date": "2026-10-07",
+ "launch_mode": "c= -nographics (BatchEngine, graphics=False)",
+ "note": "Original synthetic CSV curves; paths are relative to each external run root.",
+ "runs": [
+  {
+   "lsprepost": "4.13",
+   "git_head": "a1f386bfefd2d0de88ce17e37c84334c93f52f32",
+   "working_tree_dirty": false,
+   "source_snapshot_sha256": "3d566d9e46b95c3db8aba0d5311dd656ce6dd6fe0ac8451506e78251edf14115",
+   "gui_curves_sha256": "fda642e379efa2425eaa9419772ab2d3bfecceb4860d71a8a00f5bdcc014538e",
+   "pytest": "tests/test_native_xyplot_batch.py --run-native --native-strict",
+   "result": "3 passed",
+   "jobs": [
+    {
+     "test": "test_three_load_cases_force_di0",
+     "status": "succeeded",
+     "route": "batch",
+     "visible_gui": false,
+     "engine_status": "unverified",
+     "launch": [
+      "lsprepost4.13.exe",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "native_diagnostics": [],
+     "executable_version": "4.13.0.1",
+     "curve_count": 3,
+     "legend": true,
+     "legend_title": "Load case",
+     "axes": {
+      "x_scale": "linear",
+      "y_scale": "linear",
+      "requested_x_range": [
+       0.0,
+       4.0
+      ],
+      "requested_y_range": [
+       0.0,
+       25.0
+      ],
+      "native_axes_token": "Lin-Lin"
+     },
+     "curves": [
+      {
+       "number": 1,
+       "label": "Case A",
+       "samples": 5,
+       "max_abs_diff_to_input": 0.0,
+       "source_sha256": "18266b4776f7efaa71225f28697bb44b04a0c7b6b53d95bc0ac02b73c9c71a17"
+      },
+      {
+       "number": 2,
+       "label": "Case B",
+       "samples": 4,
+       "max_abs_diff_to_input": 0.0,
+       "source_sha256": "b4a4ce56b314581bfcc57f26816c286019b9c1da680611566605deea88ee1d51"
+      },
+      {
+       "number": 3,
+       "label": "Case C",
+       "samples": 6,
+       "max_abs_diff_to_input": 0.0,
+       "source_sha256": "bd84851f084690bf40c1564cd5c8bf5b7c6e66f8f29b493795c6b67cf0d38bb2"
+      }
+     ],
+     "png": {
+      "size": [
+       3300,
+       2550
+      ],
+      "sha256": "79f34494b7bac7f01e0a848aaafc0c8de5d074aa5b1ced40912614f4cd266d53"
+     },
+     "csv_sha256": "47f0d1aa4e00b9f7221165b274392647c2d0b59c22dad9388cb0dcce053614d4",
+     "native_xy_sha256": "4558fda1047a57bd285abac47ebaf3d89bcee466eafd70cb98ce4d2e4df3cb48",
+     "artifacts": [
+      {
+       "relative_path": "pytest/test_three_load_cases_force_di0/jobs/jobs/aacc208248db4d44b3f00f1712716988/plot.png",
+       "sha256": "79f34494b7bac7f01e0a848aaafc0c8de5d074aa5b1ced40912614f4cd266d53",
+       "kind": "png"
+      },
+      {
+       "relative_path": "pytest/test_three_load_cases_force_di0/jobs/jobs/aacc208248db4d44b3f00f1712716988/curves.csv",
+       "sha256": "47f0d1aa4e00b9f7221165b274392647c2d0b59c22dad9388cb0dcce053614d4",
+       "kind": "csv"
+      },
+      {
+       "relative_path": "pytest/test_three_load_cases_force_di0/jobs/jobs/aacc208248db4d44b3f00f1712716988/native.xy",
+       "sha256": "4558fda1047a57bd285abac47ebaf3d89bcee466eafd70cb98ce4d2e4df3cb48",
+       "kind": "text"
+      },
+      {
+       "relative_path": "pytest/test_three_load_cases_force_di0/jobs/jobs/aacc208248db4d44b3f00f1712716988/commands.cfile",
+       "sha256": "3e1ef8bb131c8efb2d16802c8d538cfbd2dc12358ab46771916b8c6fecc7c4c7",
+       "kind": "text"
+      }
+     ]
+    },
+    {
+     "test": "test_ten_curves_log_axes_and_r0",
+     "status": "succeeded",
+     "route": "batch",
+     "visible_gui": false,
+     "engine_status": "unverified",
+     "launch": [
+      "lsprepost4.13.exe",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "native_diagnostics": [],
+     "executable_version": "4.13.0.1",
+     "curve_count": 10,
+     "legend": true,
+     "legend_title": null,
+     "axes": {
+      "x_scale": "linear",
+      "y_scale": "linear",
+      "requested_x_range": null,
+      "requested_y_range": null,
+      "native_axes_token": "Lin-Lin"
+     },
+     "curves": [
+      {
+       "number": 1,
+       "label": "C1",
+       "samples": 3,
+       "max_abs_diff_to_input": 6.053273771122747e-09,
+       "source_sha256": "c8b6d6957466b1a8d8dbec4c23a413c658aef2ed0c485a681d9c13a5b4d7ab0b"
+      },
+      {
+       "number": 2,
+       "label": "C2",
+       "samples": 4,
+       "max_abs_diff_to_input": 9.679238033299953e-08,
+       "source_sha256": "55bdce73bfdf7f656f1bd282c9d516523e16bc9f72ab688598a32c0d8f5e6e71"
+      },
+      {
+       "number": 3,
+       "label": "C3",
+       "samples": 5,
+       "max_abs_diff_to_input": 3.8363857157719394e-07,
+       "source_sha256": "b656a90a2140d46f33c4d0fef65ce3ae6c36ee63dbd6c5a73f372c7b7fcab396"
+      },
+      {
+       "number": 4,
+       "label": "C4",
+       "samples": 6,
+       "max_abs_diff_to_input": 1.5488780888972542e-06,
+       "source_sha256": "bbc4d97812d3ede97738544d5893c9da903ca5284977b6f707d0ecc38ff14e7e"
+      },
+      {
+       "number": 5,
+       "label": "C5",
+       "samples": 3,
+       "max_abs_diff_to_input": 5.349957976630293e-09,
+       "source_sha256": "c1fb28947da9817f59de3dc932e83fdd23ad59835e93534d8a3892a0ad3443da"
+      },
+      {
+       "number": 6,
+       "label": "C6",
+       "samples": 4,
+       "max_abs_diff_to_input": 7.67477143170936e-07,
+       "source_sha256": "7da44ec5d063ca192f5fdc11cd9de0532726a76d0e7e3a115189510c0d723925"
+      },
+      {
+       "number": 7,
+       "label": "C7",
+       "samples": 5,
+       "max_abs_diff_to_input": 3.2945073513701573e-06,
+       "source_sha256": "193817b00cc3d1dd5f5779a2adc33c648686a13957f780dc0d36a65c307dd4a1"
+      },
+      {
+       "number": 8,
+       "label": "C8",
+       "samples": 6,
+       "max_abs_diff_to_input": 3.0937561916744016e-06,
+       "source_sha256": "6ee9c938b836e8ad45c5e565c66365ad9aea2ad98ea14bcbf800f2340ad1e90b"
+      },
+      {
+       "number": 9,
+       "label": "C9",
+       "samples": 3,
+       "max_abs_diff_to_input": 9.4560535846e-08,
+       "source_sha256": "c6da693f57765eefaddddaa29c40c7037752bb6a2b1fcf062995fd7e48a7cd75"
+      },
+      {
+       "number": 10,
+       "label": "C10",
+       "samples": 4,
+       "max_abs_diff_to_input": 1.070991595408799e-08,
+       "source_sha256": "e0c47f5304be0295113d95d6e71c14c2287adcfebdfd280bb6a8775b3d3e89f1"
+      }
+     ],
+     "png": {
+      "size": [
+       3300,
+       2550
+      ],
+      "sha256": "bf9985ab0458ade08378a41194760940ccfffba3ad9e5fa032e6b5261884ea5c"
+     },
+     "csv_sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+     "native_xy_sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+     "artifacts": [
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/85e1130bf24a4586b55dee41c0742b29/plot.png",
+       "sha256": "bf9985ab0458ade08378a41194760940ccfffba3ad9e5fa032e6b5261884ea5c",
+       "kind": "png"
+      },
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/85e1130bf24a4586b55dee41c0742b29/curves.csv",
+       "sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+       "kind": "csv"
+      },
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/85e1130bf24a4586b55dee41c0742b29/native.xy",
+       "sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+       "kind": "text"
+      },
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/85e1130bf24a4586b55dee41c0742b29/commands.cfile",
+       "sha256": "c590761760169a5d25fe0aac6781c284218cc13d1a9eda6925bd26178f8606b4",
+       "kind": "text"
+      }
+     ]
+    },
+    {
+     "test": "test_ten_curves_log_axes_and_r0",
+     "status": "succeeded",
+     "route": "batch",
+     "visible_gui": false,
+     "engine_status": "unverified",
+     "launch": [
+      "lsprepost4.13.exe",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "native_diagnostics": [],
+     "executable_version": "4.13.0.1",
+     "curve_count": 10,
+     "legend": true,
+     "legend_title": null,
+     "axes": {
+      "x_scale": "log",
+      "y_scale": "log",
+      "requested_x_range": null,
+      "requested_y_range": null,
+      "native_axes_token": "Log-Log"
+     },
+     "curves": [
+      {
+       "number": 1,
+       "label": "C1",
+       "samples": 3,
+       "max_abs_diff_to_input": 6.053273771122747e-09,
+       "source_sha256": "c8b6d6957466b1a8d8dbec4c23a413c658aef2ed0c485a681d9c13a5b4d7ab0b"
+      },
+      {
+       "number": 2,
+       "label": "C2",
+       "samples": 4,
+       "max_abs_diff_to_input": 9.679238033299953e-08,
+       "source_sha256": "55bdce73bfdf7f656f1bd282c9d516523e16bc9f72ab688598a32c0d8f5e6e71"
+      },
+      {
+       "number": 3,
+       "label": "C3",
+       "samples": 5,
+       "max_abs_diff_to_input": 3.8363857157719394e-07,
+       "source_sha256": "b656a90a2140d46f33c4d0fef65ce3ae6c36ee63dbd6c5a73f372c7b7fcab396"
+      },
+      {
+       "number": 4,
+       "label": "C4",
+       "samples": 6,
+       "max_abs_diff_to_input": 1.5488780888972542e-06,
+       "source_sha256": "bbc4d97812d3ede97738544d5893c9da903ca5284977b6f707d0ecc38ff14e7e"
+      },
+      {
+       "number": 5,
+       "label": "C5",
+       "samples": 3,
+       "max_abs_diff_to_input": 5.349957976630293e-09,
+       "source_sha256": "c1fb28947da9817f59de3dc932e83fdd23ad59835e93534d8a3892a0ad3443da"
+      },
+      {
+       "number": 6,
+       "label": "C6",
+       "samples": 4,
+       "max_abs_diff_to_input": 7.67477143170936e-07,
+       "source_sha256": "7da44ec5d063ca192f5fdc11cd9de0532726a76d0e7e3a115189510c0d723925"
+      },
+      {
+       "number": 7,
+       "label": "C7",
+       "samples": 5,
+       "max_abs_diff_to_input": 3.2945073513701573e-06,
+       "source_sha256": "193817b00cc3d1dd5f5779a2adc33c648686a13957f780dc0d36a65c307dd4a1"
+      },
+      {
+       "number": 8,
+       "label": "C8",
+       "samples": 6,
+       "max_abs_diff_to_input": 3.0937561916744016e-06,
+       "source_sha256": "6ee9c938b836e8ad45c5e565c66365ad9aea2ad98ea14bcbf800f2340ad1e90b"
+      },
+      {
+       "number": 9,
+       "label": "C9",
+       "samples": 3,
+       "max_abs_diff_to_input": 9.4560535846e-08,
+       "source_sha256": "c6da693f57765eefaddddaa29c40c7037752bb6a2b1fcf062995fd7e48a7cd75"
+      },
+      {
+       "number": 10,
+       "label": "C10",
+       "samples": 4,
+       "max_abs_diff_to_input": 1.070991595408799e-08,
+       "source_sha256": "e0c47f5304be0295113d95d6e71c14c2287adcfebdfd280bb6a8775b3d3e89f1"
+      }
+     ],
+     "png": {
+      "size": [
+       3300,
+       2550
+      ],
+      "sha256": "6ec0b50483da9751b1d416e0c3df2680961eb24029ba334faf91115e276dba0b"
+     },
+     "csv_sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+     "native_xy_sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+     "artifacts": [
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/1a4d97eed22941e5905d1511bc343239/plot.png",
+       "sha256": "6ec0b50483da9751b1d416e0c3df2680961eb24029ba334faf91115e276dba0b",
+       "kind": "png"
+      },
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/1a4d97eed22941e5905d1511bc343239/curves.csv",
+       "sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+       "kind": "csv"
+      },
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/1a4d97eed22941e5905d1511bc343239/native.xy",
+       "sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+       "kind": "text"
+      },
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/1a4d97eed22941e5905d1511bc343239/commands.cfile",
+       "sha256": "cdab5a424609a2206a4b333c0220d7a4ed8ebe7e8a11bfdd902410906be9d351",
+       "kind": "text"
+      }
+     ]
+    },
+    {
+     "test": "test_ten_curves_log_axes_and_r0",
+     "status": "succeeded",
+     "route": "batch",
+     "visible_gui": false,
+     "engine_status": "unverified",
+     "launch": [
+      "lsprepost4.13.exe",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "native_diagnostics": [],
+     "executable_version": "4.13.0.1",
+     "curve_count": 10,
+     "legend": true,
+     "legend_title": null,
+     "axes": {
+      "x_scale": "log",
+      "y_scale": "log",
+      "requested_x_range": [
+       0.1,
+       10.0
+      ],
+      "requested_y_range": [
+       0.1,
+       1000.0
+      ],
+      "native_axes_token": "Log-Log"
+     },
+     "curves": [
+      {
+       "number": 1,
+       "label": "C1",
+       "samples": 3,
+       "max_abs_diff_to_input": 6.053273771122747e-09,
+       "source_sha256": "c8b6d6957466b1a8d8dbec4c23a413c658aef2ed0c485a681d9c13a5b4d7ab0b"
+      },
+      {
+       "number": 2,
+       "label": "C2",
+       "samples": 4,
+       "max_abs_diff_to_input": 9.679238033299953e-08,
+       "source_sha256": "55bdce73bfdf7f656f1bd282c9d516523e16bc9f72ab688598a32c0d8f5e6e71"
+      },
+      {
+       "number": 3,
+       "label": "C3",
+       "samples": 5,
+       "max_abs_diff_to_input": 3.8363857157719394e-07,
+       "source_sha256": "b656a90a2140d46f33c4d0fef65ce3ae6c36ee63dbd6c5a73f372c7b7fcab396"
+      },
+      {
+       "number": 4,
+       "label": "C4",
+       "samples": 6,
+       "max_abs_diff_to_input": 1.5488780888972542e-06,
+       "source_sha256": "bbc4d97812d3ede97738544d5893c9da903ca5284977b6f707d0ecc38ff14e7e"
+      },
+      {
+       "number": 5,
+       "label": "C5",
+       "samples": 3,
+       "max_abs_diff_to_input": 5.349957976630293e-09,
+       "source_sha256": "c1fb28947da9817f59de3dc932e83fdd23ad59835e93534d8a3892a0ad3443da"
+      },
+      {
+       "number": 6,
+       "label": "C6",
+       "samples": 4,
+       "max_abs_diff_to_input": 7.67477143170936e-07,
+       "source_sha256": "7da44ec5d063ca192f5fdc11cd9de0532726a76d0e7e3a115189510c0d723925"
+      },
+      {
+       "number": 7,
+       "label": "C7",
+       "samples": 5,
+       "max_abs_diff_to_input": 3.2945073513701573e-06,
+       "source_sha256": "193817b00cc3d1dd5f5779a2adc33c648686a13957f780dc0d36a65c307dd4a1"
+      },
+      {
+       "number": 8,
+       "label": "C8",
+       "samples": 6,
+       "max_abs_diff_to_input": 3.0937561916744016e-06,
+       "source_sha256": "6ee9c938b836e8ad45c5e565c66365ad9aea2ad98ea14bcbf800f2340ad1e90b"
+      },
+      {
+       "number": 9,
+       "label": "C9",
+       "samples": 3,
+       "max_abs_diff_to_input": 9.4560535846e-08,
+       "source_sha256": "c6da693f57765eefaddddaa29c40c7037752bb6a2b1fcf062995fd7e48a7cd75"
+      },
+      {
+       "number": 10,
+       "label": "C10",
+       "samples": 4,
+       "max_abs_diff_to_input": 1.070991595408799e-08,
+       "source_sha256": "e0c47f5304be0295113d95d6e71c14c2287adcfebdfd280bb6a8775b3d3e89f1"
+      }
+     ],
+     "png": {
+      "size": [
+       3300,
+       2550
+      ],
+      "sha256": "60882e65713576ca14f934e2ca1ad58fbc492d19b95eea250b50130332f0466e"
+     },
+     "csv_sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+     "native_xy_sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+     "artifacts": [
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/123c417ece3645c8a5061b3273eab7cb/plot.png",
+       "sha256": "60882e65713576ca14f934e2ca1ad58fbc492d19b95eea250b50130332f0466e",
+       "kind": "png"
+      },
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/123c417ece3645c8a5061b3273eab7cb/curves.csv",
+       "sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+       "kind": "csv"
+      },
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/123c417ece3645c8a5061b3273eab7cb/native.xy",
+       "sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+       "kind": "text"
+      },
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/123c417ece3645c8a5061b3273eab7cb/commands.cfile",
+       "sha256": "64c6404766589112c21f6d1b5be30497db2048f882f0080c2ffee96d7b2ac68f",
+       "kind": "text"
+      }
+     ]
+    },
+    {
+     "test": "test_single_curve_and_semilog_0",
+     "status": "succeeded",
+     "route": "batch",
+     "visible_gui": false,
+     "engine_status": "unverified",
+     "launch": [
+      "lsprepost4.13.exe",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "native_diagnostics": [],
+     "executable_version": "4.13.0.1",
+     "curve_count": 1,
+     "legend": false,
+     "legend_title": null,
+     "axes": {
+      "x_scale": "linear",
+      "y_scale": "log",
+      "requested_x_range": null,
+      "requested_y_range": null,
+      "native_axes_token": "Log-Lin"
+     },
+     "curves": [
+      {
+       "number": 1,
+       "label": "Growth",
+       "samples": 4,
+       "max_abs_diff_to_input": 0.0,
+       "source_sha256": "4ad78f74e2e4d6112136640cfbcabf689d59f19c3978618ffffc2ebc249445c7"
+      }
+     ],
+     "png": {
+      "size": [
+       3300,
+       2550
+      ],
+      "sha256": "388c68fa28aa0ab0075482e6306fb4e73bec3581ff5bf5085c4b88ccde983c82"
+     },
+     "csv_sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+     "native_xy_sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb",
+     "artifacts": [
+      {
+       "relative_path": "pytest/test_single_curve_and_semilog_0/jobs/jobs/2cf27c54ee0d4496acf343048718c3a9/plot.png",
+       "sha256": "388c68fa28aa0ab0075482e6306fb4e73bec3581ff5bf5085c4b88ccde983c82",
+       "kind": "png"
+      },
+      {
+       "relative_path": "pytest/test_single_curve_and_semilog_0/jobs/jobs/2cf27c54ee0d4496acf343048718c3a9/curves.csv",
+       "sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+       "kind": "csv"
+      },
+      {
+       "relative_path": "pytest/test_single_curve_and_semilog_0/jobs/jobs/2cf27c54ee0d4496acf343048718c3a9/native.xy",
+       "sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb",
+       "kind": "text"
+      },
+      {
+       "relative_path": "pytest/test_single_curve_and_semilog_0/jobs/jobs/2cf27c54ee0d4496acf343048718c3a9/commands.cfile",
+       "sha256": "ced0db6eb81951af07eff650e5d6ab31c379e7f12bb6aa8978b30b45640a48f7",
+       "kind": "text"
+      }
+     ]
+    },
+    {
+     "test": "test_single_curve_and_semilog_0",
+     "status": "succeeded",
+     "route": "batch",
+     "visible_gui": false,
+     "engine_status": "unverified",
+     "launch": [
+      "lsprepost4.13.exe",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "native_diagnostics": [],
+     "executable_version": "4.13.0.1",
+     "curve_count": 1,
+     "legend": true,
+     "legend_title": null,
+     "axes": {
+      "x_scale": "linear",
+      "y_scale": "linear",
+      "requested_x_range": [
+       0.5,
+       2.5
+      ],
+      "requested_y_range": null,
+      "native_axes_token": "Lin-Lin"
+     },
+     "curves": [
+      {
+       "number": 1,
+       "label": "Growth",
+       "samples": 4,
+       "max_abs_diff_to_input": 0.0,
+       "source_sha256": "4ad78f74e2e4d6112136640cfbcabf689d59f19c3978618ffffc2ebc249445c7"
+      }
+     ],
+     "png": {
+      "size": [
+       3300,
+       2550
+      ],
+      "sha256": "2f4fa3dbc47c021e520e2acc002e2e1313edfd80a69f10030caafbddf61b1fbe"
+     },
+     "csv_sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+     "native_xy_sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb",
+     "artifacts": [
+      {
+       "relative_path": "pytest/test_single_curve_and_semilog_0/jobs/jobs/57ee9ad5f16c4d36b0deeed2b2b41aa7/plot.png",
+       "sha256": "2f4fa3dbc47c021e520e2acc002e2e1313edfd80a69f10030caafbddf61b1fbe",
+       "kind": "png"
+      },
+      {
+       "relative_path": "pytest/test_single_curve_and_semilog_0/jobs/jobs/57ee9ad5f16c4d36b0deeed2b2b41aa7/curves.csv",
+       "sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+       "kind": "csv"
+      },
+      {
+       "relative_path": "pytest/test_single_curve_and_semilog_0/jobs/jobs/57ee9ad5f16c4d36b0deeed2b2b41aa7/native.xy",
+       "sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb",
+       "kind": "text"
+      },
+      {
+       "relative_path": "pytest/test_single_curve_and_semilog_0/jobs/jobs/57ee9ad5f16c4d36b0deeed2b2b41aa7/commands.cfile",
+       "sha256": "0b7ea72c7f460ef51d26ddac7927cd6aaccbc8483d4c5dcb116312ebef434be1",
+       "kind": "text"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "lsprepost": "4.10",
+   "git_head": "a1f386bfefd2d0de88ce17e37c84334c93f52f32",
+   "working_tree_dirty": false,
+   "source_snapshot_sha256": "3d566d9e46b95c3db8aba0d5311dd656ce6dd6fe0ac8451506e78251edf14115",
+   "gui_curves_sha256": "fda642e379efa2425eaa9419772ab2d3bfecceb4860d71a8a00f5bdcc014538e",
+   "pytest": "tests/test_native_xyplot_batch.py --run-native --native-strict",
+   "result": "3 passed",
+   "jobs": [
+    {
+     "test": "test_three_load_cases_force_di0",
+     "status": "succeeded",
+     "route": "batch",
+     "visible_gui": false,
+     "engine_status": "unverified",
+     "launch": [
+      "lsprepost4.10_x64.exe",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "native_diagnostics": [],
+     "executable_version": "4.10.0.1",
+     "curve_count": 3,
+     "legend": true,
+     "legend_title": "Load case",
+     "axes": {
+      "x_scale": "linear",
+      "y_scale": "linear",
+      "requested_x_range": [
+       0.0,
+       4.0
+      ],
+      "requested_y_range": [
+       0.0,
+       25.0
+      ],
+      "native_axes_token": "Lin-Lin"
+     },
+     "curves": [
+      {
+       "number": 1,
+       "label": "Case A",
+       "samples": 5,
+       "max_abs_diff_to_input": 0.0,
+       "source_sha256": "18266b4776f7efaa71225f28697bb44b04a0c7b6b53d95bc0ac02b73c9c71a17"
+      },
+      {
+       "number": 2,
+       "label": "Case B",
+       "samples": 4,
+       "max_abs_diff_to_input": 0.0,
+       "source_sha256": "b4a4ce56b314581bfcc57f26816c286019b9c1da680611566605deea88ee1d51"
+      },
+      {
+       "number": 3,
+       "label": "Case C",
+       "samples": 6,
+       "max_abs_diff_to_input": 0.0,
+       "source_sha256": "bd84851f084690bf40c1564cd5c8bf5b7c6e66f8f29b493795c6b67cf0d38bb2"
+      }
+     ],
+     "png": {
+      "size": [
+       3300,
+       2550
+      ],
+      "sha256": "bf7a59141fcf092d78b63c329fcfb035da19b98a43bef0ce3e486a3290ef94b0"
+     },
+     "csv_sha256": "47f0d1aa4e00b9f7221165b274392647c2d0b59c22dad9388cb0dcce053614d4",
+     "native_xy_sha256": "4558fda1047a57bd285abac47ebaf3d89bcee466eafd70cb98ce4d2e4df3cb48",
+     "artifacts": [
+      {
+       "relative_path": "pytest/test_three_load_cases_force_di0/jobs/jobs/d00964a5f053429c9f31d933b4c636e8/plot.png",
+       "sha256": "bf7a59141fcf092d78b63c329fcfb035da19b98a43bef0ce3e486a3290ef94b0",
+       "kind": "png"
+      },
+      {
+       "relative_path": "pytest/test_three_load_cases_force_di0/jobs/jobs/d00964a5f053429c9f31d933b4c636e8/curves.csv",
+       "sha256": "47f0d1aa4e00b9f7221165b274392647c2d0b59c22dad9388cb0dcce053614d4",
+       "kind": "csv"
+      },
+      {
+       "relative_path": "pytest/test_three_load_cases_force_di0/jobs/jobs/d00964a5f053429c9f31d933b4c636e8/native.xy",
+       "sha256": "4558fda1047a57bd285abac47ebaf3d89bcee466eafd70cb98ce4d2e4df3cb48",
+       "kind": "text"
+      },
+      {
+       "relative_path": "pytest/test_three_load_cases_force_di0/jobs/jobs/d00964a5f053429c9f31d933b4c636e8/commands.cfile",
+       "sha256": "3e1ef8bb131c8efb2d16802c8d538cfbd2dc12358ab46771916b8c6fecc7c4c7",
+       "kind": "text"
+      }
+     ]
+    },
+    {
+     "test": "test_ten_curves_log_axes_and_r0",
+     "status": "succeeded",
+     "route": "batch",
+     "visible_gui": false,
+     "engine_status": "unverified",
+     "launch": [
+      "lsprepost4.10_x64.exe",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "native_diagnostics": [],
+     "executable_version": "4.10.0.1",
+     "curve_count": 10,
+     "legend": true,
+     "legend_title": null,
+     "axes": {
+      "x_scale": "linear",
+      "y_scale": "linear",
+      "requested_x_range": null,
+      "requested_y_range": null,
+      "native_axes_token": "Lin-Lin"
+     },
+     "curves": [
+      {
+       "number": 1,
+       "label": "C1",
+       "samples": 3,
+       "max_abs_diff_to_input": 6.053273771122747e-09,
+       "source_sha256": "c8b6d6957466b1a8d8dbec4c23a413c658aef2ed0c485a681d9c13a5b4d7ab0b"
+      },
+      {
+       "number": 2,
+       "label": "C2",
+       "samples": 4,
+       "max_abs_diff_to_input": 9.679238033299953e-08,
+       "source_sha256": "55bdce73bfdf7f656f1bd282c9d516523e16bc9f72ab688598a32c0d8f5e6e71"
+      },
+      {
+       "number": 3,
+       "label": "C3",
+       "samples": 5,
+       "max_abs_diff_to_input": 3.8363857157719394e-07,
+       "source_sha256": "b656a90a2140d46f33c4d0fef65ce3ae6c36ee63dbd6c5a73f372c7b7fcab396"
+      },
+      {
+       "number": 4,
+       "label": "C4",
+       "samples": 6,
+       "max_abs_diff_to_input": 1.5488780888972542e-06,
+       "source_sha256": "bbc4d97812d3ede97738544d5893c9da903ca5284977b6f707d0ecc38ff14e7e"
+      },
+      {
+       "number": 5,
+       "label": "C5",
+       "samples": 3,
+       "max_abs_diff_to_input": 5.349957976630293e-09,
+       "source_sha256": "c1fb28947da9817f59de3dc932e83fdd23ad59835e93534d8a3892a0ad3443da"
+      },
+      {
+       "number": 6,
+       "label": "C6",
+       "samples": 4,
+       "max_abs_diff_to_input": 7.67477143170936e-07,
+       "source_sha256": "7da44ec5d063ca192f5fdc11cd9de0532726a76d0e7e3a115189510c0d723925"
+      },
+      {
+       "number": 7,
+       "label": "C7",
+       "samples": 5,
+       "max_abs_diff_to_input": 3.2945073513701573e-06,
+       "source_sha256": "193817b00cc3d1dd5f5779a2adc33c648686a13957f780dc0d36a65c307dd4a1"
+      },
+      {
+       "number": 8,
+       "label": "C8",
+       "samples": 6,
+       "max_abs_diff_to_input": 3.0937561916744016e-06,
+       "source_sha256": "6ee9c938b836e8ad45c5e565c66365ad9aea2ad98ea14bcbf800f2340ad1e90b"
+      },
+      {
+       "number": 9,
+       "label": "C9",
+       "samples": 3,
+       "max_abs_diff_to_input": 9.4560535846e-08,
+       "source_sha256": "c6da693f57765eefaddddaa29c40c7037752bb6a2b1fcf062995fd7e48a7cd75"
+      },
+      {
+       "number": 10,
+       "label": "C10",
+       "samples": 4,
+       "max_abs_diff_to_input": 1.070991595408799e-08,
+       "source_sha256": "e0c47f5304be0295113d95d6e71c14c2287adcfebdfd280bb6a8775b3d3e89f1"
+      }
+     ],
+     "png": {
+      "size": [
+       3300,
+       2550
+      ],
+      "sha256": "c23f574976312730da4ecea1bb6a60a0c54fa3056fd0ecccb7e2e3b926eaee45"
+     },
+     "csv_sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+     "native_xy_sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+     "artifacts": [
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/addc8dbe81ca499bac079bb78999c99f/plot.png",
+       "sha256": "c23f574976312730da4ecea1bb6a60a0c54fa3056fd0ecccb7e2e3b926eaee45",
+       "kind": "png"
+      },
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/addc8dbe81ca499bac079bb78999c99f/curves.csv",
+       "sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+       "kind": "csv"
+      },
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/addc8dbe81ca499bac079bb78999c99f/native.xy",
+       "sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+       "kind": "text"
+      },
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/addc8dbe81ca499bac079bb78999c99f/commands.cfile",
+       "sha256": "c590761760169a5d25fe0aac6781c284218cc13d1a9eda6925bd26178f8606b4",
+       "kind": "text"
+      }
+     ]
+    },
+    {
+     "test": "test_ten_curves_log_axes_and_r0",
+     "status": "succeeded",
+     "route": "batch",
+     "visible_gui": false,
+     "engine_status": "unverified",
+     "launch": [
+      "lsprepost4.10_x64.exe",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "native_diagnostics": [],
+     "executable_version": "4.10.0.1",
+     "curve_count": 10,
+     "legend": true,
+     "legend_title": null,
+     "axes": {
+      "x_scale": "log",
+      "y_scale": "log",
+      "requested_x_range": null,
+      "requested_y_range": null,
+      "native_axes_token": "Log-Log"
+     },
+     "curves": [
+      {
+       "number": 1,
+       "label": "C1",
+       "samples": 3,
+       "max_abs_diff_to_input": 6.053273771122747e-09,
+       "source_sha256": "c8b6d6957466b1a8d8dbec4c23a413c658aef2ed0c485a681d9c13a5b4d7ab0b"
+      },
+      {
+       "number": 2,
+       "label": "C2",
+       "samples": 4,
+       "max_abs_diff_to_input": 9.679238033299953e-08,
+       "source_sha256": "55bdce73bfdf7f656f1bd282c9d516523e16bc9f72ab688598a32c0d8f5e6e71"
+      },
+      {
+       "number": 3,
+       "label": "C3",
+       "samples": 5,
+       "max_abs_diff_to_input": 3.8363857157719394e-07,
+       "source_sha256": "b656a90a2140d46f33c4d0fef65ce3ae6c36ee63dbd6c5a73f372c7b7fcab396"
+      },
+      {
+       "number": 4,
+       "label": "C4",
+       "samples": 6,
+       "max_abs_diff_to_input": 1.5488780888972542e-06,
+       "source_sha256": "bbc4d97812d3ede97738544d5893c9da903ca5284977b6f707d0ecc38ff14e7e"
+      },
+      {
+       "number": 5,
+       "label": "C5",
+       "samples": 3,
+       "max_abs_diff_to_input": 5.349957976630293e-09,
+       "source_sha256": "c1fb28947da9817f59de3dc932e83fdd23ad59835e93534d8a3892a0ad3443da"
+      },
+      {
+       "number": 6,
+       "label": "C6",
+       "samples": 4,
+       "max_abs_diff_to_input": 7.67477143170936e-07,
+       "source_sha256": "7da44ec5d063ca192f5fdc11cd9de0532726a76d0e7e3a115189510c0d723925"
+      },
+      {
+       "number": 7,
+       "label": "C7",
+       "samples": 5,
+       "max_abs_diff_to_input": 3.2945073513701573e-06,
+       "source_sha256": "193817b00cc3d1dd5f5779a2adc33c648686a13957f780dc0d36a65c307dd4a1"
+      },
+      {
+       "number": 8,
+       "label": "C8",
+       "samples": 6,
+       "max_abs_diff_to_input": 3.0937561916744016e-06,
+       "source_sha256": "6ee9c938b836e8ad45c5e565c66365ad9aea2ad98ea14bcbf800f2340ad1e90b"
+      },
+      {
+       "number": 9,
+       "label": "C9",
+       "samples": 3,
+       "max_abs_diff_to_input": 9.4560535846e-08,
+       "source_sha256": "c6da693f57765eefaddddaa29c40c7037752bb6a2b1fcf062995fd7e48a7cd75"
+      },
+      {
+       "number": 10,
+       "label": "C10",
+       "samples": 4,
+       "max_abs_diff_to_input": 1.070991595408799e-08,
+       "source_sha256": "e0c47f5304be0295113d95d6e71c14c2287adcfebdfd280bb6a8775b3d3e89f1"
+      }
+     ],
+     "png": {
+      "size": [
+       3300,
+       2550
+      ],
+      "sha256": "3fc0f2fc530284d8105cf01b95bc62581dc0d4ed9f394918f70e0e6144097f66"
+     },
+     "csv_sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+     "native_xy_sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+     "artifacts": [
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/e9a88bae3b884e6ba2a47fbd54c4a979/plot.png",
+       "sha256": "3fc0f2fc530284d8105cf01b95bc62581dc0d4ed9f394918f70e0e6144097f66",
+       "kind": "png"
+      },
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/e9a88bae3b884e6ba2a47fbd54c4a979/curves.csv",
+       "sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+       "kind": "csv"
+      },
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/e9a88bae3b884e6ba2a47fbd54c4a979/native.xy",
+       "sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+       "kind": "text"
+      },
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/e9a88bae3b884e6ba2a47fbd54c4a979/commands.cfile",
+       "sha256": "cdab5a424609a2206a4b333c0220d7a4ed8ebe7e8a11bfdd902410906be9d351",
+       "kind": "text"
+      }
+     ]
+    },
+    {
+     "test": "test_ten_curves_log_axes_and_r0",
+     "status": "succeeded",
+     "route": "batch",
+     "visible_gui": false,
+     "engine_status": "unverified",
+     "launch": [
+      "lsprepost4.10_x64.exe",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "native_diagnostics": [],
+     "executable_version": "4.10.0.1",
+     "curve_count": 10,
+     "legend": true,
+     "legend_title": null,
+     "axes": {
+      "x_scale": "log",
+      "y_scale": "log",
+      "requested_x_range": [
+       0.1,
+       10.0
+      ],
+      "requested_y_range": [
+       0.1,
+       1000.0
+      ],
+      "native_axes_token": "Log-Log"
+     },
+     "curves": [
+      {
+       "number": 1,
+       "label": "C1",
+       "samples": 3,
+       "max_abs_diff_to_input": 6.053273771122747e-09,
+       "source_sha256": "c8b6d6957466b1a8d8dbec4c23a413c658aef2ed0c485a681d9c13a5b4d7ab0b"
+      },
+      {
+       "number": 2,
+       "label": "C2",
+       "samples": 4,
+       "max_abs_diff_to_input": 9.679238033299953e-08,
+       "source_sha256": "55bdce73bfdf7f656f1bd282c9d516523e16bc9f72ab688598a32c0d8f5e6e71"
+      },
+      {
+       "number": 3,
+       "label": "C3",
+       "samples": 5,
+       "max_abs_diff_to_input": 3.8363857157719394e-07,
+       "source_sha256": "b656a90a2140d46f33c4d0fef65ce3ae6c36ee63dbd6c5a73f372c7b7fcab396"
+      },
+      {
+       "number": 4,
+       "label": "C4",
+       "samples": 6,
+       "max_abs_diff_to_input": 1.5488780888972542e-06,
+       "source_sha256": "bbc4d97812d3ede97738544d5893c9da903ca5284977b6f707d0ecc38ff14e7e"
+      },
+      {
+       "number": 5,
+       "label": "C5",
+       "samples": 3,
+       "max_abs_diff_to_input": 5.349957976630293e-09,
+       "source_sha256": "c1fb28947da9817f59de3dc932e83fdd23ad59835e93534d8a3892a0ad3443da"
+      },
+      {
+       "number": 6,
+       "label": "C6",
+       "samples": 4,
+       "max_abs_diff_to_input": 7.67477143170936e-07,
+       "source_sha256": "7da44ec5d063ca192f5fdc11cd9de0532726a76d0e7e3a115189510c0d723925"
+      },
+      {
+       "number": 7,
+       "label": "C7",
+       "samples": 5,
+       "max_abs_diff_to_input": 3.2945073513701573e-06,
+       "source_sha256": "193817b00cc3d1dd5f5779a2adc33c648686a13957f780dc0d36a65c307dd4a1"
+      },
+      {
+       "number": 8,
+       "label": "C8",
+       "samples": 6,
+       "max_abs_diff_to_input": 3.0937561916744016e-06,
+       "source_sha256": "6ee9c938b836e8ad45c5e565c66365ad9aea2ad98ea14bcbf800f2340ad1e90b"
+      },
+      {
+       "number": 9,
+       "label": "C9",
+       "samples": 3,
+       "max_abs_diff_to_input": 9.4560535846e-08,
+       "source_sha256": "c6da693f57765eefaddddaa29c40c7037752bb6a2b1fcf062995fd7e48a7cd75"
+      },
+      {
+       "number": 10,
+       "label": "C10",
+       "samples": 4,
+       "max_abs_diff_to_input": 1.070991595408799e-08,
+       "source_sha256": "e0c47f5304be0295113d95d6e71c14c2287adcfebdfd280bb6a8775b3d3e89f1"
+      }
+     ],
+     "png": {
+      "size": [
+       3300,
+       2550
+      ],
+      "sha256": "3bb5baff37b8377d9462f24429523a851103ef611e2c849aceb7901ff26e0a0d"
+     },
+     "csv_sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+     "native_xy_sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+     "artifacts": [
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/24bf8077ec554c0f8995cacdaf400cf4/plot.png",
+       "sha256": "3bb5baff37b8377d9462f24429523a851103ef611e2c849aceb7901ff26e0a0d",
+       "kind": "png"
+      },
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/24bf8077ec554c0f8995cacdaf400cf4/curves.csv",
+       "sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+       "kind": "csv"
+      },
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/24bf8077ec554c0f8995cacdaf400cf4/native.xy",
+       "sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+       "kind": "text"
+      },
+      {
+       "relative_path": "pytest/test_ten_curves_log_axes_and_r0/jobs/jobs/24bf8077ec554c0f8995cacdaf400cf4/commands.cfile",
+       "sha256": "64c6404766589112c21f6d1b5be30497db2048f882f0080c2ffee96d7b2ac68f",
+       "kind": "text"
+      }
+     ]
+    },
+    {
+     "test": "test_single_curve_and_semilog_0",
+     "status": "succeeded",
+     "route": "batch",
+     "visible_gui": false,
+     "engine_status": "unverified",
+     "launch": [
+      "lsprepost4.10_x64.exe",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "native_diagnostics": [],
+     "executable_version": "4.10.0.1",
+     "curve_count": 1,
+     "legend": false,
+     "legend_title": null,
+     "axes": {
+      "x_scale": "linear",
+      "y_scale": "log",
+      "requested_x_range": null,
+      "requested_y_range": null,
+      "native_axes_token": "Log-Lin"
+     },
+     "curves": [
+      {
+       "number": 1,
+       "label": "Growth",
+       "samples": 4,
+       "max_abs_diff_to_input": 0.0,
+       "source_sha256": "4ad78f74e2e4d6112136640cfbcabf689d59f19c3978618ffffc2ebc249445c7"
+      }
+     ],
+     "png": {
+      "size": [
+       3300,
+       2550
+      ],
+      "sha256": "2390ffb9f5d998c81a8d8458edc68307fe1ca05fd1be34befd421963ff51570d"
+     },
+     "csv_sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+     "native_xy_sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb",
+     "artifacts": [
+      {
+       "relative_path": "pytest/test_single_curve_and_semilog_0/jobs/jobs/518996406ef84bfabf8df9fc797cc3cc/plot.png",
+       "sha256": "2390ffb9f5d998c81a8d8458edc68307fe1ca05fd1be34befd421963ff51570d",
+       "kind": "png"
+      },
+      {
+       "relative_path": "pytest/test_single_curve_and_semilog_0/jobs/jobs/518996406ef84bfabf8df9fc797cc3cc/curves.csv",
+       "sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+       "kind": "csv"
+      },
+      {
+       "relative_path": "pytest/test_single_curve_and_semilog_0/jobs/jobs/518996406ef84bfabf8df9fc797cc3cc/native.xy",
+       "sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb",
+       "kind": "text"
+      },
+      {
+       "relative_path": "pytest/test_single_curve_and_semilog_0/jobs/jobs/518996406ef84bfabf8df9fc797cc3cc/commands.cfile",
+       "sha256": "ced0db6eb81951af07eff650e5d6ab31c379e7f12bb6aa8978b30b45640a48f7",
+       "kind": "text"
+      }
+     ]
+    },
+    {
+     "test": "test_single_curve_and_semilog_0",
+     "status": "succeeded",
+     "route": "batch",
+     "visible_gui": false,
+     "engine_status": "unverified",
+     "launch": [
+      "lsprepost4.10_x64.exe",
+      "-nographics"
+     ],
+     "returncode": 0,
+     "native_diagnostics": [],
+     "executable_version": "4.10.0.1",
+     "curve_count": 1,
+     "legend": true,
+     "legend_title": null,
+     "axes": {
+      "x_scale": "linear",
+      "y_scale": "linear",
+      "requested_x_range": [
+       0.5,
+       2.5
+      ],
+      "requested_y_range": null,
+      "native_axes_token": "Lin-Lin"
+     },
+     "curves": [
+      {
+       "number": 1,
+       "label": "Growth",
+       "samples": 4,
+       "max_abs_diff_to_input": 0.0,
+       "source_sha256": "4ad78f74e2e4d6112136640cfbcabf689d59f19c3978618ffffc2ebc249445c7"
+      }
+     ],
+     "png": {
+      "size": [
+       3300,
+       2550
+      ],
+      "sha256": "732a0a19549541c1c342f314d1c6da966380a654ddb63cfc145dabcbc6ef6c64"
+     },
+     "csv_sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+     "native_xy_sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb",
+     "artifacts": [
+      {
+       "relative_path": "pytest/test_single_curve_and_semilog_0/jobs/jobs/f8e267bb045b47ca86ca88497bd07946/plot.png",
+       "sha256": "732a0a19549541c1c342f314d1c6da966380a654ddb63cfc145dabcbc6ef6c64",
+       "kind": "png"
+      },
+      {
+       "relative_path": "pytest/test_single_curve_and_semilog_0/jobs/jobs/f8e267bb045b47ca86ca88497bd07946/curves.csv",
+       "sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+       "kind": "csv"
+      },
+      {
+       "relative_path": "pytest/test_single_curve_and_semilog_0/jobs/jobs/f8e267bb045b47ca86ca88497bd07946/native.xy",
+       "sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb",
+       "kind": "text"
+      },
+      {
+       "relative_path": "pytest/test_single_curve_and_semilog_0/jobs/jobs/f8e267bb045b47ca86ca88497bd07946/commands.cfile",
+       "sha256": "0b7ea72c7f460ef51d26ddac7927cd6aaccbc8483d4c5dcb116312ebef434be1",
+       "kind": "text"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

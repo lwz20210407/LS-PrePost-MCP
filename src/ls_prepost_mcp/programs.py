@@ -161,7 +161,7 @@ class ProgramTools:
         macro_name: str | None = None,
         script_parameters: dict | None = None,
     ) -> dict:
-        """Prepare command/cfile/SCL/application-Python or native macro source without execution. language=macro binds one *macro block (macro_name required for multiple blocks), literal numeric parameter defaults and &name/(n/e/p) user IDs into an explicit cfile; retains source.mac and native-editable bound.mac. Interactive/unresolved picks are rejected. Dependencies {path,name} are frozen. Returns reviewed rendered source and execution SHA256; no global macro installation."""
+        """Prepare command/cfile/SCL/application-Python or native macro source without execution. language=macro binds one *macro block (macro_name required for multiple blocks), literal numeric/double-quoted string defaults and &name/(n/e/p) user IDs into an explicit cfile; retains source.mac and native-editable bound.mac. String values bind arguments only; quotes, backslashes, separators and references are rejected. Interactive/unresolved picks are rejected. Dependencies {path,name} are frozen. Returns reviewed rendered source and execution SHA256; no global macro installation or native Macro/Exec certification."""
         if language not in {*LANGUAGES, "macro"} or (code is None) == (path is None):
             raise ValueError("Choose command/cfile/scl/python/macro and exactly one of code/path")
         if language != "macro" and macro_name is not None:
@@ -188,7 +188,7 @@ class ProgramTools:
             raise ValueError("Expected nonempty source up to 1 MiB")
         if language == "command" and len(code.strip().splitlines()) != 1:
             raise ValueError("Use cfile for multiple command lines")
-        params = numeric_parameters(parameters or {})
+        params = parameters if language == "macro" and parameters is not None else numeric_parameters(parameters or {})
         native_macro = None
         if language == "macro":
             from .native_macros import compile_macro
@@ -201,7 +201,8 @@ class ProgramTools:
             rendered = render(code, params)
         outputs, counts = output_contract(outputs), count_contract(expected_counts)
         captured = capture_dependencies(self.settings, dependencies, outputs)
-        graph = validate_script_references(rendered.encode("utf8"), language, captured)
+        graph = validate_script_references(rendered.encode("utf8"), language, captured,
+                                           filename_executable=lambda: self.settings.executable)
         directory, manifest = self.jobs.create(
             "prepare_native_program", dict(language=language, parameters=params)
         )
@@ -287,7 +288,9 @@ class ProgramTools:
                 raise ValueError("script-model.k is reserved for the requested model snapshot")
             outputs = [*outputs, dict(name="script-model.k", kind="keyword")]
         captured = checked_dependencies(prepared_dir, contract)
-        validate_script_references(content, language, captured)
+        validate_script_references(content, language, captured, filename_executable=lambda: (
+            self._session_manager().read(session_id)["executable"]["path"]
+            if session_id is not None else self.settings.executable))
         if session_id is not None:
             if model is not None:
                 raise ValueError("GUI programs use the current model; open it separately and omit model")

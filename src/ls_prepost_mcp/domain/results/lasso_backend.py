@@ -14,6 +14,7 @@ from pathlib import Path
 import numpy as np
 
 from . import invariants as inv
+from .time_validation import validate_d3plot_times
 
 ASCII = ("glstat", "matsum", "rcforc", "secforc", "nodout", "elout", "sleout", "nodfor", "spcforc", "rbdout",
          "ncforc", "deforc", "jntforc", "bndout", "rwforc", "abstat", "swforc", "gceout")
@@ -55,7 +56,12 @@ def _arrays(path: str | Path) -> dict:
     path = Path(path)
     if not path.exists():
         raise ResultsError(f"{path} does not exist")
-    return {str(getattr(key, "value", key)): value for key, value in D3plot(str(path)).arrays.items()}
+    arrays = {str(getattr(key, "value", key)): value for key, value in D3plot(str(path)).arrays.items()}
+    try:
+        validate_d3plot_times(arrays.get("timesteps", arrays.get("global_timesteps", [])))
+    except ValueError as error:
+        raise ResultsError(str(error)) from error
+    return arrays
 
 
 def _texts(values: object) -> list[str]:

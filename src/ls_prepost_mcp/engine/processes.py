@@ -1,11 +1,11 @@
-"""Owned batch lifetimes. Windows children join a kill-on-close job before running."""
+"""Owned batch lifetimes. Windows children are created inside a kill-on-close job."""
 
 import ctypes
 import os
 import signal
 import subprocess
 
-import psutil
+from .windows_job import JobPopen
 
 
 class _BasicLimits(ctypes.Structure):
@@ -23,7 +23,7 @@ class _ExtendedLimits(ctypes.Structure):
 
 
 class WindowsJob:
-    """An unnamed, non-inheritable job; assignment failure never resumes the child."""
+    """An unnamed, non-inheritable job passed atomically to process creation."""
 
     def __init__(self):
         api = ctypes.WinDLL("kernel32", use_last_error=True)
@@ -31,8 +31,6 @@ class WindowsJob:
         api.CreateJobObjectW.restype = ctypes.c_void_p
         api.SetInformationJobObject.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p, ctypes.c_uint32]
         api.SetInformationJobObject.restype = ctypes.c_int
-        api.AssignProcessToJobObject.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
-        api.AssignProcessToJobObject.restype = ctypes.c_int
         api.CloseHandle.argtypes = [ctypes.c_void_p]
         api.CloseHandle.restype = ctypes.c_int
         self.api = api
@@ -46,11 +44,6 @@ class WindowsJob:
             self.close()
             raise error
 
-    def assign(self, process):
-        # Popen owns this exact process handle, not a later lookup by executable name.
-        if not self.api.AssignProcessToJobObject(self.handle, int(process._handle)):
-            raise ctypes.WinError(ctypes.get_last_error())
-
     def close(self):
         if self.handle is not None:
             if not self.api.CloseHandle(self.handle):
@@ -62,7 +55,7 @@ class OwnedProcess:
     """Reap a batch child on success, failure or BaseException, with bounded waits.
 
     POSIX uses a fresh process group while the unreaped leader retains its PID.
-    Windows uses a suspended launch plus an OS-owned job, including host exit.
+    Windows assigns an OS-owned job during creation, including host exit.
     This is lifetime management for trusted jobs, not a script sandbox.
     """
 
@@ -76,13 +69,11 @@ class OwnedProcess:
         try:
             if os.name == "nt":
                 self.job = WindowsJob()
-                self.kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0) | 0x4  # CREATE_SUSPENDED
+                self.kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
+                self.process = JobPopen(self.args, job_handle=self.job.handle, **self.kwargs)
             else:
                 self.kwargs["start_new_session"] = True
-            self.process = subprocess.Popen(self.args, **self.kwargs)
-            if self.job is not None:
-                self.job.assign(self.process)
-                psutil.Process(self.process.pid).resume()
+                self.process = subprocess.Popen(self.args, **self.kwargs)
             return self
         except BaseException as error:
             self.__exit__(type(error), error, error.__traceback__)

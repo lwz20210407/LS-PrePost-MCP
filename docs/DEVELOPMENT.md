@@ -159,3 +159,17 @@ uv run --no-sync python tools/run_l3.py --agent claude --domain pre --out <仓�
   - Claude 关闭内置工具，只能用 lspp 工具。`--bare` 还会跳过用户记忆、技能和 CLAUDE.md，但只接受 ANTHROPIC_API_KEY 认证。
   - Codex 不读取用户 config.toml，关闭 apps 和插件，沙箱只读，只预先批准 lspp 工具。
 - `--out` 必须在仓库外，并且不要放在带有 CLAUDE.md 或 AGENTS.md 的目录下，否则会被代理读到。
+
+## I01 原生 INCLUDE 引用预算
+
+`Settings.check_keyword_includes(path, *, native_cwd=None, max_references=20000)`
+将预算传给共享 `preflight_includes`。现有原生调用默认最多允许 20000 次引用；这不是唯一文件数，
+重复 INCLUDE 的子树引用也重复计数，未解析名称同样计数。恰好达到预算允许通过，超过即拒绝。
+直接调用该方法时可显式设置非负整数预算；0 只允许没有 INCLUDE 名称的输入，
+布尔值、负数、非整数及 None 在访问输入文件前拒绝，不提供取消限制的配置或环境变量。
+
+共享预检返回 `reference_limit` 时，原生准入报出可读限制消息并保留
+`kind/relative/name_line/reason`。已返回的 files/candidates 仍先检查允许目录，
+不启用网络解析，也不跳过已有语法、缺失文件及原生 cwd 检查。
+[专属 L1 证据](decisions/evidence/i01-reference-budget/report.md) 验证启动前拒绝，
+不代表实际原生执行通过；I01 全项仍为 partial。

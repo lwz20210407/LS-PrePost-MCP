@@ -10,6 +10,7 @@ from pydantic import StrictInt
 from .automation.recipes import RecipeTools
 from .config import Settings
 from .core.validation import integer, numbers, unit_label
+from .domain.results.time_validation import validate_d3plot_times
 from .dpf_tools import DpfTools
 from .engine.context import NativeContext
 from .engineering import EngineeringTools
@@ -42,14 +43,20 @@ from .post_tools import PostTools
 from .pre_tools import PreTools
 from .programs import ProgramTools
 from .results import lasso_vectors, open_binout
+from .results_target_tools import ResultsTargetTools
 from .runner import decode, record_batch_result, run_batch
 from .script_tools import ScriptTools
 from .sessions import SessionTools
+from .view_tools import ViewTools
 from .workflow_sweeps import WorkflowSweepTools
 from .workflows import WorkflowTools
 
 
-class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, ModelTargetTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools):
+def _windows():
+    return os.name == "nt"
+
+
+class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, ModelTargetTools, ResultsTargetTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools, ViewTools):
     def __init__(self, settings: Settings):
         self.settings = settings
         self.jobs = Jobs(settings.workspace)
@@ -73,6 +80,11 @@ class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, Model
             self.settings.check_keyword_includes(source)
             include_bearing = any(line.strip().upper().startswith("*INCLUDE")
                                   for line in source.read_text(errors="replace").splitlines())
+            if include_bearing and _windows() and not str(source).isascii():
+                raise ValueError(
+                    "Non-ASCII source paths for INCLUDE-bearing keyword models are unsupported "
+                    "by the Windows native batch route: the absolute-path open can fail and crash "
+                    "LS-PrePost. Input was not modified and no native job was started.")
             if export and include_bearing:
                 raise ValueError("Native export of include-bearing models needs a staged include-tree implementation")
         if source and file_type == "d3plot" and exceeds_staging_limit(input_family(self.settings, source, family=True)):
@@ -363,7 +375,7 @@ class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, Model
         from lasso.dyna import D3plot
         source = self.settings.input_path(path)
         db = D3plot(str(source), state_array_filter=["timesteps"], buffered_reading=True)
-        times = db.arrays.get("timesteps", [])
+        times = validate_d3plot_times(db.arrays.get("timesteps", []))
         return {"backend": "lasso", "source": str(source), "node_count": int(db.header.n_nodes),
                 "shell_count": int(db.header.n_shells), "solid_count": int(db.header.n_solids),
                 "state_count": len(times), "state_times": [float(t) for t in times[:10000]],
@@ -479,7 +491,7 @@ class Service(RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, Model
         try:
             key = "node_" + quantity
             db = D3plot(str(source), state_array_filter=[key, "timesteps"], buffered_reading=True)
-            times = np.asarray(db.arrays["timesteps"])
+            times = validate_d3plot_times(db.arrays["timesteps"])
             vectors = lasso_vectors(db.arrays, quantity)
             user_ids = np.asarray(db.arrays["node_ids"])
             if vectors.ndim != 3 or vectors.shape != (len(times), len(user_ids), 3):

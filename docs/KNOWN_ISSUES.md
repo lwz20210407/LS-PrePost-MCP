@@ -421,14 +421,31 @@
 - 原始结果保存在 comparison_data，不原地修改。证据：[旧结果与门槛回归](../tests/test_legacy_outcomes.py)。本项是纯 Python 合同修复，没有新增原生通过声明。
 ## I01：批处理输入路径暂存补修
 
-公开语料暴露了非 ASCII 源路径读取失败和 Include 相对目录丢失。独立 keyword 与 d3plot 文件族现在复用已有暂存器，使用 job 内的 ASCII 名称，并核对整个原文件族身份；已有普通 Include 的只读打开使用绝对根文件路径。Include 解析能力和编辑保存仍留 I07，不实现第二套关键字引擎。
+公开语料暴露了非 ASCII 源路径读取失败和 Include 相对目录丢失。独立 keyword 与 d3plot 文件族现在复用已有暂存器，使用 job 内的 ASCII 名称，并核对整个原文件族身份；已有普通 Include 的只读打开使用绝对根文件路径，但 Windows 下含 INCLUDE 的非 ASCII 根路径在创建作业前抛出明确的 `ValueError`，不启动原生进程。Include 解析能力和编辑保存仍留 I07，不实现第二套关键字引擎。
 
 - 已修：Include 打开期间 cwd 始终位于自有 job，不能切到用户源目录；离线与原生用例逐项比较源目录文件列表和字节身份。
 - 明确限制：原生 d3plot 模型检查等入口超过 1000 个文件或 2 GiB 时在创建 job、启动进程前拒绝。小型真实结果强制走原地回退的实验在 4.13/4.10 均返回访问冲突，故不交付该回退；大结果支持仍为 I01 gap，读取器通道的限制独立于此。
 - 已修：暂存之后整族文件被修改、添加或删除均导致失败。超限拒绝有模拟大文件及实际 1001 个小文件的离线回归，不声称运行过 2 GiB 原生模型。
-- 原生 gap：中文 Include 根路径在两版失败；4.10 仍从 job cwd 查找相对 Include。只有匹配已观察到的特定诊断才严格 xfail，源目录不变断言始终先执行；其他错误仍失败。
+- 原生 gap：中文 Include 根路径在两版失败；4.13 公开例曾在打开失败后以 `0xC0000005` 退出，原创合成例则为 rc=0、status=failed 的打开失败。Windows 当前以启动前拒绝规避，Unicode 原生支持仍未修复，不把拒绝算作原生打开成功。
+- [原生回归](../tests/test_engine_native.py) 的中文路径用例在 Windows 直接断言 `ValueError`、未创建作业和源目录不变；本轮修改只做了离线打桩验证，没有新增原生窗口。非 Windows 保留匹配特定诊断的严格 xfail；4.10 ASCII 根路径的相对 Include 仍受 job cwd 问题影响，其特定诊断严格 xfail 保持不变；其他错误仍失败。
+- 未验证：ASCII 根路径下非 ASCII 的 INCLUDE 成员名，以及非 ASCII 的 `*INCLUDE_PATH` 目录，没有原生对照；本次守卫只检查根路径，不把这些输入标为已支持或已拒绝。
 
-证据：[输入暂存回归](../tests/test_batch_input_staging.py)；原生报告随本修复附于 [I01 路径证据](decisions/evidence/i01-staging/report.md)。
+证据：[输入暂存回归](../tests/test_batch_input_staging.py)、[I01 路径证据](decisions/evidence/i01-staging/report.md)、[I04 两例诊断](decisions/evidence/i04-diagnostics/report.md)。
+
+## I04：LASSO 结束标记后尾数据
+
+LASSO 2.0.4 按末尾非零字节估计状态数，没有在第一个结束标记处停止。公开例
+`extra-result-03` 原生为 2 状态，LASSO 却静默返回 11 状态，第三时间为 `-999999`；
+原创两状态夹具在结束标记后加非零尾数据，也复现了额外状态。这是共享读取器的既有缺陷，
+2026-10-18 Codex 接手后增加共享时间轴准入：完整读取、元数据清点、节点导出及
+state_filter 读取前的完整时间元数据统一检查；EOF 标记被当作时间、非有限时间、二维时间轴或时间倒退
+会明确拒绝，不再返回看似成功的工程结果。允许合法的负起始时间、重复时间及空几何清点。
+Claude 原审阅记录和上游 LASSO 2.0.4 行为仍保留：上游边界解析未修复，当前是拒绝异常输入，
+不是恢复截断文件。若尾数据恰好形成有限且有序的时间，单靠时间校验仍无法确认文件结构完整。
+处置：保留后端分歧并明确报告，不删状态、不重编号、不调整容差，不把异常数组当已验证结果。
+历史证据及接口需求见 [I04 两例诊断](decisions/evidence/i04-diagnostics/report.md)；
+回归见 [共享时间轴校验](../tests/test_d3plot_time_validation.py) 和
+[原创 EOF 尾数据复现](../tests/test_public_corpus_diagnostics.py)。
 
 ## P12 运动副：R11 实测要点
 
@@ -1210,10 +1227,22 @@ BatchEngine 和内置 Python 在作业目录运行，并非主 deck 目录。对
 
 ## I01：INCLUDE 漏读诊断与拒绝状态（第十一轮）
 
-4.10 按 job cwd 解析相对 INCLUDE；源目录中的相对文件不会被读入。`Error - Include File … Not open` 现纳入共享原生错误规则，使返回码为 0 的不完整模型也失败。4.13 按主 deck 目录解析，第九轮复跑日志中 include 打开失败为 0；不据此外推其它版本。回归见 [4.10 原生用例](../tests/test_native_include_failure.py)。
+4.10 按 job cwd 解析相对 INCLUDE；源目录中的相对文件不会被读入。`Error - Include File … Not open` 现纳入共享原生错误规则，使返回码为 0 的不完整模型也失败。4.13 按主 deck 目录解析，PR #54 的第十一轮公开语料复跑日志中 include 打开失败为 0；不据此外推其它版本。回归见 [4.10 原生用例](../tests/test_native_include_failure.py)。
 
 允许目录检查先于预检内容诊断；cwd 检查拒绝后，新建作业显式记为 failed。行首空白及 *END 后的 INCLUDE 直接拒绝，不猜测不同版本的解析。带引号的文件名（例如 `"first.k"`）在共享预检中会被拒绝，属于与旧检查的兼容性变化；尚未做原生语法认证。
 
 引用总数上限：共享预检接口已提供（#70），待 Codex 接入。`preflight_includes(..., max_references=N)` 按读取顺序计数：每个 INCLUDE 类文件名及 `*INCLUDE_PATH` 目录每被读一次记一次，重复引用连同其文件首次读取时计入的引用再记一次，缺失、不可读、UNC、循环引用同样计入。超限的那条报 `reference_limit`（带 `counted`、`limit`），读取在此停止：其后的引用不再交给访问守卫，也不做 resolve/stat/读取；超限名称本身同样不访问，只有“重复引用因文件内引用而超限”时该名称已在计数前解析，但不再展开其文件。默认不限制；原生准入路径（`Settings.check_keyword_includes`）尚未传入上限，max_files 仍不等于引用总数上限。
 
 第十一轮 [4.10 原生证据](decisions/evidence/i01-include-diagnostics/report.md) 已登记 2 项通过（相对漏读失败、绝对路径完整读入），ce42 H0 也返回 failed。
+
+
+## I01：输入路径在文件系统访问前拒绝网络与设备名
+
+`Settings.input_path` 在 expanduser/resolve 之前按共享 `is_network` 和 Windows 保留名规则拒绝 UNC、混合分隔符 UNC、设备命名空间及 CON/NUL 等设备名；组合 base 后再次检查，错误为 ValueError。检查不访问网络，不能靠 allowed_roots 授权这些输入。带双分隔符的扩展路径也拒绝；调用方先转换为普通本地路径（I04 已采用此口径）。本地相对/绝对文件仍执行原来的允许目录检查。
+
+回归见 [输入访问边界](../tests/test_input_path_confinement.py)：三个公开入口均在文件系统探针之前拒绝；该探针本身有自检。此变更不声称消除本地链接的并发替换窗口，也不修改管理员提供的 Settings 安装目录配置。
+## I04：公开案例按 INCLUDE 预检区分输入限制
+公开语料运行器先调用共享 `preflight_includes`，记录 tree_sha256、版本和每个文件的 relative / role / size / sha256，随后复核完整树的原文件字节。`ok=false` 记为 input_limited，pytest 报告为 evidence_only，禁止据此声称原生通过或代码缺陷。非 keyword 结果族单独标记 tree_kind=result_family。每例另记实际 LS-PrePost 可执行文件与版本资源；预检成功本身不认证原生解析。
+历史 p100 的 16 passed / 84 failed 保留不改，新运行和 problems.kind/hint 分类另行追加。回归见 [公开语料测试](../tests/test_public_corpus_native.py) 和 [预检证据测试](../tests/test_public_corpus_preflight.py)。
+第十一轮 [100 例证据](decisions/evidence/i04-public100-preflight/report.md) 已更正为 16 通过、45 失败、39 输入限制；先前 50 个限制中有 11 个来自扩展路径误判，原记录保留为历史。树哈希只标识实际成功读取的文件；缺失或不可读的引用保留在 problems 中，不虚构其哈希。
+第十一轮：预检与 Service/Settings 使用普通路径；长路径 IO 先 normpath 再增加扩展前缀，避免 `..` 被误判为缺文件。文件位置相对共同输入目录记录，并声明 main_relative；运行前后同时比较源目录文件清单，可发现新增文件。旧 p100 的 job.json 有 4.13 版本记录；其 42 次暂存相对名打开、127 次 job 目录 INCLUDE 失败已复核，旧空模型来自只暂存根 deck。

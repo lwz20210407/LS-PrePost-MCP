@@ -294,6 +294,88 @@
         "untracked_included": false
       },
       "source_snapshot_sha256": "5cb1e7ecc3d614ba8b4619c7223c7b9af3cb461d6792e829f5a717f7ea8cfc07"
+    },
+    {
+      "run_id": "ci-restored-413-batch",
+      "version": "4.13",
+      "report": "native413-report/report.json",
+      "original_report": "native413-report/report.json",
+      "cases_directory": "native413-cases",
+      "report_sha256": "b4512bc42abd1665b8b89d2e35ecde4c17bc1cac9566ba8d6c396bf3f9331794",
+      "exit_code": 0,
+      "cases": {
+        "tests/test_native_workspace_alias_native.py::test_alias_batch_save_png_reopen_preserves_original_workspace[ascii-workspace]": {
+          "status": "passed",
+          "seconds": 12.207826000027126
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_batch_save_png_reopen_preserves_original_workspace[space folder]": {
+          "status": "passed",
+          "seconds": 12.904425500018988
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_batch_save_png_reopen_preserves_original_workspace[\\u4e2d\\u6587 \\u7a7a\\u683c]": {
+          "status": "passed",
+          "seconds": 12.55882420000853
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_covers_batch_callers_in_unicode_workspace[service]": {
+          "status": "passed",
+          "seconds": 4.692937499989057
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_covers_batch_callers_in_unicode_workspace[scl_backend]": {
+          "status": "passed",
+          "seconds": 4.578592000005301
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_covers_batch_callers_in_unicode_workspace[native_results]": {
+          "status": "passed",
+          "seconds": 4.009846599976299
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_covers_batch_callers_in_unicode_workspace[native_batch]": {
+          "status": "skipped",
+          "seconds": 0.0002789999998640269
+        },
+        "tests/test_native_workspace_alias_native.py::test_alias_covers_batch_callers_in_unicode_workspace[programs]": {
+          "status": "passed",
+          "seconds": 3.765857699996559
+        }
+      },
+      "test_source_identities": [
+        {
+          "path": "tests/test_native_workspace_alias_native.py",
+          "revision": "0d7a6d718647fac50e487af101eb18fe58571037",
+          "git_blob_id": "24b5b3c290bff1a0cc8bc52154ab8c9fa39e456e",
+          "sha256_lf": "2e65840c9af869d14970b0c911236ee42401ffa8e5acaa91394ab89c1c847610",
+          "newline_policy": "CRLF normalized to LF"
+        },
+        {
+          "path": "tests/test_engine_native.py",
+          "revision": "0d7a6d718647fac50e487af101eb18fe58571037",
+          "git_blob_id": "6c4a73d8fb500892632fede34236e30a31a9c52e",
+          "sha256_lf": "cfc4b2de295346b420059b5cf38c20b5112026ad9d35a494b1c4a7d95418e9a4",
+          "newline_policy": "CRLF normalized to LF"
+        }
+      ],
+      "actual_git_revision": "0d7a6d718647fac50e487af101eb18fe58571037",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames -U3 --inter-hunk-context=0",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "source_snapshot_sha256": "515bbe31368b8527d904b7bc690860237afd9aaca5da186a981f316148e15379",
+      "job_checks": {
+        "native_process_jobs": 10,
+        "unicode_alias_jobs": 6,
+        "versions": {
+          "4.13": 10
+        },
+        "raw_logs_and_decoding_present": true,
+        "all_unicode_process_cwd_ascii": true,
+        "source_snapshot_files": 439,
+        "mismatches": 0
+      },
+      "scope": "Headless rerun after user removed the executable administrator compatibility flag; native_batch graphical callback skipped. No GUI or UU disconnection."
     }
   ],
   "fixture_sha256": {
