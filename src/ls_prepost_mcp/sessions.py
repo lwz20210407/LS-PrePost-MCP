@@ -41,7 +41,9 @@ RECOVERABLE_READS = {"inspect_model", "list_nodes", "list_parts", "connectivity"
 
 
 def recovery_mode(request):
-    if request.get("native_commands"):
+    # Host-side panel preparation (for example renumber Apply) mutates the model
+    # before the readback; its late export still needs the host transaction checks.
+    if request.get("native_commands") or request.get("host_preparation"):
         return "requires_host_validation"
     if request.get("model") or request["action"] == "gui_new":
         return "model_replaced"

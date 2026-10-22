@@ -299,6 +299,44 @@ def test_late_command_readback_does_not_bypass_host_validation(tmp_path, monkeyp
         Service(manager.settings).reset_gui_session(sid)
 
 
+def test_late_panel_apply_export_requires_host_validation(tmp_path, monkeypatch):
+    # Renumber Apply runs as host preparation inside a gui_mesh_state export
+    # request with no native commands; its late model.k is not yet validated.
+    manager, sid, module = session_fixture(tmp_path, monkeypatch)
+    meta = manager.read(sid)
+    meta.update(last_checkpoint="trusted.k", bridge_protocol=4)
+    manager.save(sid, meta)
+    applied = []
+
+    class Transport:
+        def __init__(self, pid):
+            pass
+
+        def preflight(self):
+            pass
+
+        def submit(self, command):
+            pass
+
+    monkeypatch.setattr(module, "WindowsCommandTransport", Transport)
+    with pytest.raises(TimeoutError):
+        manager.dispatch(sid, "gui_mesh_state", {}, artifacts=(("model.k", "keyword"),), export=True,
+                         _before_submit=lambda transport, directory: applied.append(directory.name))
+    rid = manager.read(sid)["active_request"]
+    assert applied == [rid]
+    directory = manager.directory(sid) / "requests" / rid
+    request = json.loads((directory / "request.json").read_text())
+    assert request["native_commands"] == [] and request["host_preparation"] is True
+    (directory / "model.k").write_text("*KEYWORD\n*END\n")
+    atomic_json(directory / "complete.json", dict(job_id=rid, ok=True, data=dict(counts=dict(nodes=8))))
+    result = Service(manager.settings).recover_gui_session(sid)
+    assert result["state"] == "uncertain" and result["dirty"] and result["active_request"] is None
+    assert result["requires_host_validation"] and result["recovery_mode"] == "requires_host_validation"
+    assert result["last_checkpoint"] == "trusted.k"
+    assert json.loads((directory / "recovery.json").read_text())["status"] == "completed_unverified"
+    assert applied == [rid]
+
+
 def test_late_reopen_clears_previous_model_checkpoint_and_caches(tmp_path, monkeypatch):
     manager, sid, _ = session_fixture(tmp_path, monkeypatch, "uncertain")
     rid = "b" * 32
