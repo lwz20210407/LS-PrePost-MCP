@@ -54,10 +54,15 @@ def native_overview(pytestconfig):
 @pytest.mark.parametrize("name,corpus_id,states", CASES, ids=[case[0] for case in CASES])
 def test_public_inventory_agrees_with_native_batch(native_overview, pytestconfig, record_property,
                                                   name, corpus_id, states):
-    root, executable, executable_identity, config_sha = native_overview
+    root = native_overview[0]
     source = plain_path(resolve(entries(load_registry())[corpus_id], root))
     if source.is_dir():
         source = source / "d3plot"
+    _compare(native_overview, pytestconfig, record_property, name, corpus_id, states, source)
+
+
+def _compare(native_overview, pytestconfig, record_property, name, corpus_id, states, source):
+    root, executable, executable_identity, config_sha = native_overview
     family = sorted(p for p in source.parent.iterdir() if p.is_file()
                     and re.fullmatch(re.escape(source.name) + r"\d*", p.name))
     assert family and source in family
@@ -69,14 +74,20 @@ def test_public_inventory_agrees_with_native_batch(native_overview, pytestconfig
     checks = {check.name: check.status for check in result.checks}
     data = result.data
     native = data.get("lsprepost", {})
+    native_manifest = (json.loads((directory / "jobs" / native["job_id"] / "job.json").read_text(encoding="utf-8"))
+                       if native.get("job_id") else {})
+    process = native_manifest.get("process", {})
     identity = pytestconfig._native_identity
-    evidence = dict(corpus_id=corpus_id, actual_git_revision=identity["actual_git_head"],
+    evidence = dict(case_id=name, corpus_id=corpus_id, input_kind="registered_public" if corpus_id else "synthetic",
+        actual_git_revision=identity["actual_git_head"],
         working_tree_dirty=identity["working_tree_dirty"], git_diff_sha256=identity["git_diff_sha256"],
         git_diff_scope=identity["git_diff_scope"], native_run=True, graphics=False,
         executable=executable_identity, source_config_sha256=config_sha,
         source_sha256=before, source_unchanged=before == {p.name: _sha(p) for p in family},
         directory_unchanged=listing == sorted(p.name for p in source.parent.iterdir()),
         result_info_job_id=result.job_id, native_job_id=native.get("job_id"),
+        native_process={key: process.get(key) for key in ("pid", "returncode", "timed_out", "graphics", "launch_mode")},
+        argv_uses_nographics="-nographics" in process.get("argv", []),
         status=result.status, checks=checks, reader_backend=data.get("lasso_backend"),
         states=data.get("states"), native_states=native.get("states"), comparison=data.get("comparison"),
         reader_times=data.get("times"), native_times=native.get("times"))
@@ -89,4 +100,34 @@ def test_public_inventory_agrees_with_native_batch(native_overview, pytestconfig
     assert checks["backends_agree"] == "passed"
     assert data["comparison"]["state_counts_equal"] and data["comparison"]["times_equal"]
     assert result.job_id and native["job_id"]
+    assert process["graphics"] is False and "-nographics" in process["argv"]
+    assert process["returncode"] == 0 and process["timed_out"] is False
+    assert Path(native_manifest["executable"]["path"]).resolve() == executable.resolve()
     assert evidence["source_unchanged"] and evidence["directory_unchanged"]
+
+
+def test_long_state_inventory_agrees_with_native_batch(native_overview, pytestconfig, record_property):
+    import numpy as np
+    from lasso.dyna import ArrayType, D3plot
+
+    directory = pytestconfig._native_root / "long" / "source"
+    directory.mkdir(parents=True)
+    source = directory / "d3plot"
+    plot = D3plot()
+    coordinates = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0],
+                            [0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]], dtype=float)
+    arrays = plot.arrays
+    arrays[ArrayType.node_coordinates] = coordinates
+    arrays[ArrayType.node_ids] = np.arange(1, 9)
+    arrays[ArrayType.element_solid_ids] = np.array([101])
+    arrays[ArrayType.element_solid_node_indexes] = np.arange(8).reshape(1, 8)
+    arrays[ArrayType.element_solid_part_indexes] = np.array([0])
+    arrays[ArrayType.part_titles_ids] = np.array([5])
+    arrays[ArrayType.part_titles] = np.array([b"long-state-regression"])
+    arrays[ArrayType.global_timesteps] = np.linspace(0., 2., 2001)
+    arrays[ArrayType.node_displacement] = np.repeat(coordinates[None], 2001, axis=0)
+    arrays[ArrayType.element_solid_stress] = np.zeros((2001, 1, 1, 6))
+    arrays[ArrayType.element_solid_is_alive] = np.ones((2001, 1))
+    plot.write_d3plot(str(source))
+    del plot
+    _compare(native_overview, pytestconfig, record_property, "long", None, 2001, source)

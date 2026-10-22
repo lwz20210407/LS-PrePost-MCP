@@ -120,7 +120,7 @@ def overview(path: str | Path) -> dict:
         binout = mpp_shards.catalog(folder)
     return {"backend": backend(), "states": int(times.size),
             "time_range": [float(times[0]), float(times[-1])] if times.size else None,
-            "times": times.tolist() if times.size <= 2000 else None, "variables": sorted(arrays),
+            "times": times.tolist(), "variables": sorted(arrays),
             "elements": elements, "parts": [{"id": p, "title": titles.get(p)} for p in parts],
             "warnings": warnings,
             "binout_files": binout["shards"], "binout_databases": sorted({k.split("/")[0] for k in binout["entries"]}),
