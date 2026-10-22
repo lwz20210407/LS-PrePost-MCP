@@ -443,7 +443,7 @@ tasks:
     layer: T1
     target_tools: [extract_field]
     status: done
-    existing: [compute_stress_invariants, extract_native_stress, inspect_result_validity]
+    existing: [extract_field, compute_stress_invariants, extract_native_stress, inspect_result_validity]
     evidence:
       - src/ls_prepost_mcp/field_metrics_tools.py
       - tests/test_field_metrics.py

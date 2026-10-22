@@ -19,12 +19,12 @@
     {
       "criterion": "公式定义（尤其 Lode 的符号约定）写进结果元数据",
       "status": "passed",
-      "evidence": "tests/test_field_metrics.py::test_metadata_and_lode_conventions"
+      "evidence": "tests/test_field_metrics.py::test_metadata_and_lode_conventions, tests/test_field_metrics.py::test_formula_and_sign_conventions_in_result_and_artifacts"
     },
     {
       "criterion": "掩码策略 alive / all / deleted 可选；极值附带实体 ID 与状态",
       "status": "passed",
-      "evidence": "tests/test_field_metrics.py::test_mask_modes_and_extrema_with_id_and_state"
+      "evidence": "tests/test_field_metrics.py::test_mask_modes_and_extrema_with_id_and_state, tests/test_field_metrics.py::test_rows_and_artifacts_follow_mask"
     },
     {
       "criterion": "故事：靶板所有单元的三轴度和 Lode 参数，排除已删除单元，找出最大值所在单元",
@@ -80,8 +80,8 @@
   ],
   "pytest_summary": {
     "test_file": "tests/test_field_metrics.py",
-    "with_corpus": "27 passed",
-    "without_corpus": "25 passed, 2 skipped",
+    "with_corpus": "36 passed",
+    "without_corpus": "34 passed, 2 skipped",
     "date": "2026-10-22"
   },
   "review_fixes": {
@@ -105,5 +105,16 @@
       "tests/test_field_metrics.py::test_mcp_layer_does_not_coerce_state_or_part_ids"
     ]
   },
-  "corpus_root_env": "LSPP_CORPUS_DIR"
+  "corpus_root_env": "LSPP_CORPUS_DIR",
+  "review_fixes_round2": {
+    "review": "PR #82 Codex review of 797105c (P1-a mask rows, P1-b formula metadata)",
+    "fixed_by": "claude",
+    "date": "2026-10-22",
+    "mask_rows": "returned ids/values/alive and CSV/NPZ rows follow the selected mask; mask_policy records rule, elements, rows, excluded",
+    "formula_metadata": "invariants.definition and CONVENTIONS give formula, range and sign meaning (Lode 1926 parameter; Bai-Wierzbicki 2008 Lode angle and parameter); export writes formula and conventions into CSV/NPZ metadata",
+    "tests": [
+      "tests/test_field_metrics.py::test_rows_and_artifacts_follow_mask",
+      "tests/test_field_metrics.py::test_formula_and_sign_conventions_in_result_and_artifacts"
+    ]
+  }
 }

@@ -22,19 +22,20 @@
 - `state` 改为 1 起算状态号；`-1` 或 `"last"`（默认）表示最后一个状态。0、超过状态数、其他负数、bool 和其他字符串在建作业前拒绝，不取模；状态数由共享 `lasso_backend.state_times` 只读时间步得到。测试：`test_state_is_one_based`、`test_state_out_of_range_refused_before_job`、`test_backend_field_refuses_out_of_range_state`；MCP 层用 StrictInt，true 或 1.0 不会被转成状态 1（`test_mcp_layer_does_not_coerce_state_or_part_ids`）。
 - 测试不再写本机绝对路径：语料测试从 `tests/corpus/manifest.yaml` 登记 ID 和 `LSPP_CORPUS_DIR` 解析路径，未设置时 skip；作业目录放 tmp_path，不写入语料目录。
 - 部件筛选：共享 `lasso_backend.field` 新增 `part_ids`（按 `part_ids`，文件只有标题时按 `part_titles_ids` 解析）；未知部件、部件中没有该族单元时明确失败。测试：`test_backend_field_selects_parts_by_user_id`、`test_part_filter_story_target_plate`、`test_part_filter_refusals`。
-- 为此修改了 Claude 负责的共享实现：`lasso_backend`（`field` 的 `part_ids` 与越界拒绝、新增 `state_times`）、`export`（有筛选时元数据写 `part_ids`）、`invariants.CONVENTIONS`（补主应力、最大剪应力、平均应力定义，P2-82a）。下文第 3 节“未修改共享计算实现”的说法对修复后的版本不再成立。
+- 为此修改了 Claude 负责的共享实现：`lasso_backend`（`field` 的 `part_ids` 与越界拒绝、新增 `state_times`）、`export`（有筛选时元数据写 `part_ids`）、`invariants.CONVENTIONS`（补主应力、最大剪应力、平均应力定义，P2-82a）。
+- 第二轮（Codex 审阅 797105c）：结果行和 CSV/NPZ 行按所选掩码筛选（默认 alive 不再输出已删除单元），`data.mask_policy` 与工件元数据 `mask_policy` 写明掩码规则、单元总数、输出行数和被排除数（`test_rows_and_artifacts_follow_mask`）；每个量的公式写明取值范围与正负号含义（Lode 参数按 Lode 1926 定义，-1 单轴拉伸、+1 单轴压缩或等双轴拉伸；Lode 角与 Lode 角参数按 Bai-Wierzbicki 2008 定义，二者在这些状态下与 Lode 参数符号相反），共享 `export` 把 `formula` 和完整 `conventions` 写进 CSV/NPZ 元数据（`test_formula_and_sign_conventions_in_result_and_artifacts`）。
 - 壳和多积分点单元先对存储点/层求平均再计算不变量（工具说明已注明，P2-82c）。
 
 ## 3. 实现与边界说明
 - 新增适配层 Mixin `src/ls_prepost_mcp/field_metrics_tools.py`，实现目标工具 `extract_field`。
-- 直接复用 Claude 负责的 `domain.results.invariants` (`invariants`, `masked`, `extrema`, `CONVENTIONS`, `QUANTITIES`) 与 `domain.results.lasso_backend` (`field`, `FAMILIES`)，未修改共享计算实现。
+- 读取与运算复用 Claude 负责的 `domain.results`：`invariants`（`invariants`、`masked`、`extrema`、`CONVENTIONS`、`MASKS`、`definition`）、`lasso_backend`（`field`、`state_times`、`FAMILIES`）与 `export`（`export_field`）。为 PR #82 审阅修复改动了这三个共享模块，改动边界见 2.1 节；不变量的数值计算本身没有改。
 - `src/ls_prepost_mcp/service.py` 仅继承 `FieldMetricsTools`，未改动任何现有方法主体。
 - `src/ls_prepost_mcp/data/operations.json` 注册 target tool `extract_field`，旧入口保持别名到 v0.6。
 - 完整支持输出 CSV 与 NPZ 工件，并使用 `read_field` 校验往返一致性。
 - 在真实语料库 `order_d3plot`（壳单元）与 `d3plot_projectile`（穿靶实体与失效单元删除）上完成冒烟验证。
 
 ## 4. 本地测试与工具检查
-- 修复后（2026-10-22，lspp-py311）：`LSPP_CORPUS_DIR=<公开语料根> pytest tests/test_field_metrics.py` 27 passed；不设该变量 25 passed、2 skipped
+- 修复后（2026-10-22，lspp-py311）：`LSPP_CORPUS_DIR=<公开语料根> pytest tests/test_field_metrics.py` 36 passed；不设该变量 34 passed、2 skipped
 - 修复后语料核对：新工具与直接调用共享 `lasso_backend.field` 逐单元比较（d3plot_projectile 实体、lsdyna_bird_strike 壳；5 个量；状态 1、末状态、-1；有/无部件筛选），max|diff| = 0，NaN 位置与极值 ID/值一致
 - 以下为原作者修复前的记录：
 - `pytest tests/test_field_metrics.py`: 9 passed

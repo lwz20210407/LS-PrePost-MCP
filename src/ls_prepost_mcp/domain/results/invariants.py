@@ -24,11 +24,34 @@ CONVENTIONS = {
     "principal_2": "middle eigenvalue s2 of the stress tensor (s1 >= s2 >= s3)",
     "principal_3": "smallest eigenvalue s3 of the stress tensor (s1 >= s2 >= s3)",
     "max_shear": "(s1 - s3) / 2",
-    "lode_parameter": "(2 s2 - s1 - s3) / (s1 - s3), s1 >= s2 >= s3",
-    "lode_angle": "theta = acos((3 sqrt3 / 2) J3 / J2^1.5) / 3 in [0, pi/3]",
-    "lode_angle_parameter": "1 - 6 theta / pi",
+    "lode_parameter": "L = (2 s2 - s1 - s3) / (s1 - s3), s1 >= s2 >= s3 (Lode 1926); range [-1, 1]: "
+                      "-1 uniaxial tension (s2 = s3), 0 pure shear / plane strain (s2 = (s1 + s3) / 2), "
+                      "+1 uniaxial compression or equibiaxial tension (s2 = s1)",
+    "lode_angle": "theta = acos(xi) / 3, xi = (3 sqrt3 / 2) J3 / J2^1.5 = (27/2) J3 / sigma_vm^3 "
+                  "(Bai-Wierzbicki 2008); radians in [0, pi/3]: 0 uniaxial tension, pi/6 pure shear, "
+                  "pi/3 uniaxial compression or equibiaxial tension",
+    "lode_angle_parameter": "theta_bar = 1 - 6 theta / pi (Bai-Wierzbicki 2008); range [-1, 1]: +1 uniaxial "
+                            "tension, 0 pure shear, -1 uniaxial compression or equibiaxial tension "
+                            "(sign opposite to the Lode parameter L at these states)",
     "undefined": "deviatoric quantities are NaN where sigma_vm <= rel_tol * max|sigma|",
 }
+CONVENTIONS["lode_angle_rad"] = CONVENTIONS["lode_angle"]
+MASKS = {
+    "alive": "rows of elements not deleted at this state (stored deletion flag != 0)",
+    "all": "rows of all elements, deleted or not",
+    "deleted": "rows of elements deleted at this state (stored deletion flag == 0)",
+}
+
+
+def definition(quantity: str) -> str:
+    """Formula / meaning of an element field quantity for result and artifact metadata."""
+    if quantity in CONVENTIONS and quantity not in ("components", "undefined"):
+        return CONVENTIONS[quantity]
+    if quantity == "effective_plastic_strain":
+        return "stored effective plastic strain (as written to d3plot)"
+    if quantity.startswith("s") and quantity[1:] in CONVENTIONS["components"]:
+        return f"stored stress component {quantity} (global frame, as written to d3plot)"
+    return quantity
 QUANTITIES = ("von_mises", "mean_stress", "pressure", "triaxiality", "principal_1", "principal_2", "principal_3",
               "max_shear", "lode_parameter", "lode_angle_rad", "lode_angle_parameter")
 
@@ -83,4 +106,4 @@ def extrema(values: object, ids: object, selection: object | None = None) -> dic
             "max": {"value": float(values[high]), "id": int(ids[high])}}
 
 
-__all__ = ["CONVENTIONS", "QUANTITIES", "extrema", "invariants", "masked"]
+__all__ = ["CONVENTIONS", "MASKS", "QUANTITIES", "definition", "extrema", "invariants", "masked"]

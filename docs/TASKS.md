@@ -314,7 +314,7 @@
 - 公式定义（尤其 Lode 的符号约定）写进结果元数据
 - 掩码策略 alive / all / deleted 可选；极值附带实体 ID 与状态
 
-现有入口：`compute_stress_invariants`, `extract_native_stress`, `inspect_result_validity`
+现有入口：`extract_field`, `compute_stress_invariants`, `extract_native_stress`, `inspect_result_validity`
 
 ### Q05 时程曲线（History）
 

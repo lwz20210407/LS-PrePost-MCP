@@ -65,16 +65,6 @@ def _part_list(part_ids: object) -> list[int] | None:
     return [int(p) for p in part_ids]
 
 
-def _formula(quantity: str) -> str:
-    if quantity in inv.CONVENTIONS:
-        return inv.CONVENTIONS[quantity]
-    if quantity == "effective_plastic_strain":
-        return "stored effective plastic strain (as written to d3plot)"
-    if quantity in lb.STRESS:
-        return f"stored stress component {quantity} (global frame, as written to d3plot)"
-    return quantity
-
-
 def _jsonable(value: object) -> object:
     """Plain JSON values: numpy scalars and arrays converted, NaN/Inf serialized as string, None preserved."""
     if isinstance(value, dict):
@@ -117,6 +107,7 @@ class FieldMetricsTools:
         state. Numbers outside 1..n are refused before a job is created.
         part_ids (user part IDs) restricts the elements and extrema to those parts, e.g. the target plate.
         Mask options: 'alive' (default), 'all', 'deleted'.
+        Returned ids/values and CSV/NPZ rows follow the mask; data.mask_policy gives the excluded count.
         Elements with several stored integration points / shell layers are averaged over them before the
         invariants are computed (shells: through-thickness mean; see data.note).
         Returns JobResult/v1 with extrema (element ID and 1-based state), formula conventions, and CSV/NPZ artifacts.
@@ -196,7 +187,14 @@ class FieldMetricsTools:
                 "min": {**min_info, "state": state_out} if min_info is not None else None,
                 "max": {**max_info, "state": state_out} if max_info is not None else None,
             }
-            raw = {**raw, "state": state_out, "extrema": extrema}
+            alive_all = np.asarray(raw["alive"], dtype=bool).reshape(-1)
+            keep = inv.masked(alive_all, norm_mask)  # rows follow the selected mask, not just the extrema
+            element_count = int(alive_all.size)
+            mask_policy = {"mode": norm_mask, "rule": inv.MASKS[norm_mask], "elements": element_count,
+                           "rows": int(keep.sum()), "excluded": int(element_count - keep.sum())}
+            raw = {**raw, "state": state_out, "extrema": extrema, "mask_policy": mask_policy,
+                   "ids": np.asarray(raw["ids"]).reshape(-1)[keep],
+                   "values": np.asarray(raw["values"], dtype=float).reshape(-1)[keep], "alive": alive_all[keep]}
 
             declared_units = units if (units and units.strip()) else "model units, not converted (unit system not declared)"
 
@@ -228,7 +226,7 @@ class FieldMetricsTools:
                     )
                 )
 
-            formula = _formula(norm_quantity)
+            formula = inv.definition(norm_quantity)
 
             data = {
                 "backend": raw.get("backend", lb.backend()),
@@ -243,7 +241,10 @@ class FieldMetricsTools:
                 "note": raw.get("note", "stored value"),
                 "formula": formula,
                 "conventions": dict(inv.CONVENTIONS),
-                "element_count": int(np.asarray(raw["ids"]).size),
+                "element_count": element_count,
+                "row_count": mask_policy["rows"],
+                "excluded_by_mask": mask_policy["excluded"],
+                "mask_policy": mask_policy,
                 "active_count": int(extrema["count"]),
                 "extrema": extrema,
                 "ids": [int(i) for i in np.asarray(raw["ids"]).reshape(-1)],

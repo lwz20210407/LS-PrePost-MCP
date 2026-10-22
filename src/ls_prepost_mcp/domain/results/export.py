@@ -14,6 +14,7 @@ from pathlib import Path
 
 import numpy as np
 
+from . import invariants as inv
 from .lasso_backend import ResultsError
 
 FORMATS = ("csv", "npz")
@@ -24,7 +25,10 @@ def _meta(result: dict, units: str | None) -> dict:
             "time": result["time"], "points": result.get("note", "stored value"), "mask": result["mask"],
             "coordinate_system": "global (as stored in d3plot)", "backend": result["backend"],
             "units": units or "model units, not converted (unit system not declared)",
-            "rows": int(np.asarray(result["ids"]).size), "extrema": result.get("extrema")}
+            "rows": int(np.asarray(result["ids"]).size), "extrema": result.get("extrema"),
+            "formula": inv.definition(result["quantity"]), "conventions": dict(inv.CONVENTIONS)}
+    if result.get("mask_policy") is not None:
+        meta["mask_policy"] = result["mask_policy"]
     if result.get("part_ids") is not None:
         meta["part_ids"] = [int(p) for p in result["part_ids"]]
     return meta

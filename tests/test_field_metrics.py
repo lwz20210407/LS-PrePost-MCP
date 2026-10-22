@@ -226,9 +226,39 @@ def test_metadata_and_lode_conventions(service: Service, synthetic_d3plot: Path)
     # Every computed quantity names its own definition, not a generic placeholder
     for quantity, fragment in (("principal_1", "eigenvalue"), ("max_shear", "(s1 - s3) / 2"),
                                ("mean_stress", "I1/3"), ("sxx", "stored"),
-                               ("effective_plastic_strain", "stored")):
+                               ("effective_plastic_strain", "stored"), ("lode_angle_rad", "theta")):
         formula = service.extract_field(str(synthetic_d3plot), "solid", quantity, state=3)["data"]["formula"]
         assert fragment in formula, (quantity, formula)
+
+
+@pytest.mark.parametrize(("quantity", "fragments"), [
+    ("lode_parameter", ["(2 s2 - s1 - s3) / (s1 - s3)", "[-1, 1]", "-1 uniaxial tension", "+1 uniaxial compression"]),
+    ("lode_angle_rad", ["acos", "J3 / J2^1.5", "[0, pi/3]", "0 uniaxial tension", "pi/3 uniaxial compression"]),
+    ("lode_angle_parameter", ["1 - 6 theta / pi", "[-1, 1]", "+1 uniaxial tension", "-1 uniaxial compression"]),
+    ("triaxiality", ["sigma_m / sigma_vm"]),
+])
+def test_formula_and_sign_conventions_in_result_and_artifacts(service: Service, synthetic_d3plot: Path,
+                                                              quantity: str, fragments: list[str]) -> None:
+    """Codex P1-b: each quantity carries its formula with range and sign meaning, and the CSV/NPZ
+    artifacts carry the same formula and the full convention table."""
+    res = service.extract_field(str(synthetic_d3plot), "solid", quantity, state=3, output_format="both")
+    formula = res["data"]["formula"]
+    for fragment in fragments:
+        assert fragment in formula, (quantity, fragment, formula)
+    assert len(res["artifacts"]) == 2
+    for artifact in res["artifacts"]:
+        meta = exp.read_field(artifact["path"])["meta"]
+        assert meta["formula"] == formula
+        assert meta["conventions"]["lode_parameter"] == res["data"]["conventions"]["lode_parameter"]
+        assert "undefined" in meta["conventions"]
+    # the stated signs hold on the synthetic states: 10 uniaxial tension, 30 equibiaxial tension
+    values = dict(zip(res["data"]["ids"], res["data"]["values"]))
+    if quantity == "lode_parameter":
+        assert values[10] == pytest.approx(-1.0) and values[30] == pytest.approx(1.0)
+    if quantity == "lode_angle_rad":
+        assert values[10] == pytest.approx(0.0, abs=1e-6) and values[30] == pytest.approx(math.pi / 3)
+    if quantity == "lode_angle_parameter":
+        assert values[10] == pytest.approx(1.0) and values[30] == pytest.approx(-1.0)
 
 
 def test_mask_modes_and_extrema_with_id_and_state(service: Service, synthetic_d3plot: Path) -> None:
@@ -397,14 +427,39 @@ def test_artifact_export_and_round_trip(service: Service, synthetic_d3plot: Path
     npz_art = next(a for a in artifacts if a["kind"] == "npz")
 
     csv_data = exp.read_field(csv_art["path"])
-    assert csv_data["ids"].tolist() == [10, 20, 30, 40]
+    assert csv_data["ids"].tolist() == [10, 30, 40]  # element 20 is deleted; default mask is alive
     assert csv_data["meta"]["quantity"] == "triaxiality"
     assert csv_data["meta"]["units"] == "MPa"
     assert csv_data["meta"]["state"] == 3
 
     npz_data = exp.read_field(npz_art["path"])
-    assert npz_data["ids"].tolist() == [10, 20, 30, 40]
+    assert npz_data["ids"].tolist() == [10, 30, 40]
     assert npz_data["meta"]["mask"] == "alive"
+
+
+@pytest.mark.parametrize(("family", "mask", "rows", "excluded"), [
+    ("solid", "alive", [10, 30, 40], 1), ("solid", "deleted", [20], 3), ("solid", "all", [10, 20, 30, 40], 0),
+    ("shell", "alive", [101, 103, 104], 1), ("shell", "deleted", [102], 3),
+])
+def test_rows_and_artifacts_follow_mask(service: Service, synthetic_d3plot: Path, family: str, mask: str,
+                                        rows: list[int], excluded: int) -> None:
+    """Codex P1-a: the selected mask filters the returned rows and the CSV/NPZ rows, not only the extrema;
+    the metadata states the mask policy and how many elements it excluded."""
+    res = service.extract_field(str(synthetic_d3plot), family, "von_mises", state=3, mask=mask, output_format="both")
+    assert res["status"] == "succeeded"
+    data = res["data"]
+    assert data["ids"] == rows
+    assert len(data["values"]) == len(data["alive"]) == len(rows)
+    assert all(data["alive"]) if mask == "alive" else True
+    assert not any(data["alive"]) if mask == "deleted" else True
+    assert data["element_count"] == 4 and data["row_count"] == len(rows) and data["excluded_by_mask"] == excluded
+    assert data["mask_policy"]["mode"] == mask and data["mask_policy"]["excluded"] == excluded
+    assert "deletion flag" in data["mask_policy"]["rule"] or mask == "all"
+    for artifact in res["artifacts"]:
+        back = exp.read_field(artifact["path"])
+        assert back["ids"].tolist() == rows
+        assert back["meta"]["rows"] == len(rows)
+        assert back["meta"]["mask_policy"] == data["mask_policy"]
 
 
 def test_fastmcp_tool_registration(synthetic_d3plot: Path, tmp_path: Path) -> None:
@@ -481,13 +536,14 @@ def test_corpus_story_target_plate_maximum(tmp_path: Path) -> None:
         assert res["status"] == "succeeded"
         data = res["data"]
         assert data["state"] == states
-        assert data["ids"] == plate_ids.tolist()
+        assert data["ids"] == plate_ids[alive].tolist()  # deleted plate elements are not returned
         assert data["element_count"] == int(in_plate.sum())
+        assert data["excluded_by_mask"] == int((~alive).sum()) > 0
         assert data["active_count"] <= int(alive.sum())
         expected = np.array([independent_stress_metrics(s)[quantity] for s in stress])
         got = np.array([float(v) for v in data["values"]])
-        assert np.array_equal(np.isnan(got), np.isnan(expected))
-        assert np.allclose(got[~np.isnan(got)], expected[~np.isnan(expected)], rtol=1e-9, atol=1e-12)
+        assert np.array_equal(np.isnan(got), np.isnan(expected[alive]))
+        assert np.allclose(got[~np.isnan(got)], expected[alive][~np.isnan(expected[alive])], rtol=1e-9, atol=1e-12)
         keep = alive & np.isfinite(expected)
         top = int(np.flatnonzero(keep)[np.argmax(expected[keep])])
         assert data["extrema"]["max"]["id"] == int(plate_ids[top])
