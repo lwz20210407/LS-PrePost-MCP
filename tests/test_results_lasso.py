@@ -52,6 +52,40 @@ def test_overview(d3plot: Path) -> None:
     assert info["parts"] == [{"id": 1, "title": "lower"}, {"id": 2, "title": "upper"}]
 
 
+def _header_case(folder: Path, extra: dict) -> Path:
+    folder.mkdir(parents=True, exist_ok=True)
+    plot = D3plot()
+    a = plot.arrays
+    a[ArrayType.node_coordinates] = CUBE
+    a[ArrayType.node_ids] = np.arange(1, 9)
+    a[ArrayType.element_solid_node_indexes] = np.arange(8)[None]
+    a[ArrayType.element_solid_part_indexes] = np.array([0])
+    a[ArrayType.element_solid_ids] = np.array([1])
+    a[ArrayType.global_timesteps] = np.array([0.0, 1.0])
+    a[ArrayType.node_displacement] = np.repeat(CUBE[None], 2, axis=0)
+    a[ArrayType.element_solid_stress] = np.zeros((2, 1, 1, 6))
+    a.update(extra)
+    plot.write_d3plot(str(folder / "d3plot"))
+    return folder / "d3plot"
+
+
+def test_header_words(d3plot: Path, tmp_path: Path) -> None:
+    plain = lb.header(d3plot)
+    assert plain == {"neiph_solid": 0, "neips_shell_tshell": 0, "neipb_beam": 0, "strain_tensor_stored": False,
+                     "plastic_strain_tensor_stored": False, "thermal_strain_tensor_stored": False,
+                     "deletion_data_stored": True}
+    hsv = _header_case(tmp_path / "hsv", {ArrayType.element_solid_history_variables: np.ones((2, 1, 1, 2))})
+    assert lb.header(hsv)["neiph_solid"] == 2
+    assert lb.overview(hsv)["elements"]["solid"]["history_variables"] == 2
+    # NEIPH > 0 while LASSO exposes no history array: the six words are the stored strain tensor
+    strain = _header_case(tmp_path / "strain", {ArrayType.element_solid_strain: np.ones((2, 1, 1, 6))})
+    words = lb.header(strain)
+    assert words["neiph_solid"] == 6 and words["strain_tensor_stored"] is True
+    assert lb.overview(strain)["elements"]["solid"]["history_variables"] == 0
+    with pytest.raises(lb.ResultsError, match="does not exist"):
+        lb.header(tmp_path / "missing" / "d3plot")
+
+
 def test_histories(d3plot: Path) -> None:
     node = lb.history(d3plot, "node", "displacement_z", [16, 1])
     assert np.allclose(node[0]["values"], [0.0, 0.1, 0.2], atol=1e-6) and node[1]["values"] == [0.0, 0.0, 0.0]

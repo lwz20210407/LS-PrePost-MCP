@@ -257,11 +257,12 @@
 - 同时列出同目录 binout / ASCII 文件及其包含的库
 - LSPP 与 LASSO 两个后端结果一致（状态数、时间数组）
 
-现有入口：`inspect_d3plot_scl`, `inspect_d3plot_database`, `inspect_result_fields`, `inspect_binout`, `inspect_binout_variable`, `inspect_lsreader`, `inspect_dpf_results`
+现有入口：`result_info`, `inspect_d3plot_scl`, `inspect_d3plot_database`, `inspect_result_fields`, `inspect_binout`, `inspect_binout_variable`, `inspect_lsreader`, `inspect_dpf_results`
 
 缺口：
 
-- 7 个清点工具并存
+- LSPP 对照证据需按身份规范（revision、可执行文件哈希、job id）重跑；现有 4.13 对照记录只有基线 e41cf65，不能复核
+- 状态超过 2000 时共享 overview 不返回逐状态时间，result_info 返回 partial，无法自动判定第 3 条
 
 ### Q02 云图出图
 
@@ -707,7 +708,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：partial；验证：L1
 
-证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py), [docs/decisions/evidence/i01/report.md](../docs/decisions/evidence/i01/report.md), [docs/decisions/evidence/i01-followup/report.md](../docs/decisions/evidence/i01-followup/report.md), [docs/decisions/evidence/i01-staging/report.md](../docs/decisions/evidence/i01-staging/report.md), [docs/decisions/evidence/i01-batch-contract/report.md](../docs/decisions/evidence/i01-batch-contract/report.md), [docs/decisions/evidence/i01-process-lifetime/report.md](../docs/decisions/evidence/i01-process-lifetime/report.md), [docs/decisions/evidence/i01-atomic-process-start/report.md](../docs/decisions/evidence/i01-atomic-process-start/report.md), [docs/decisions/evidence/i01-log-decoding/report.md](../docs/decisions/evidence/i01-log-decoding/report.md), [docs/decisions/evidence/i01-include-diagnostics/report.md](../docs/decisions/evidence/i01-include-diagnostics/report.md), [tests/test_input_path_confinement.py](../tests/test_input_path_confinement.py), [tests/test_queue_backpressure.py](../tests/test_queue_backpressure.py), [tests/test_queue_backpressure_native.py](../tests/test_queue_backpressure_native.py), [docs/decisions/evidence/i01-queue/report.md](../docs/decisions/evidence/i01-queue/report.md), [tests/test_native_include_budget.py](../tests/test_native_include_budget.py), [docs/decisions/evidence/i01-reference-budget/report.md](../docs/decisions/evidence/i01-reference-budget/report.md)
+证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py), [docs/decisions/evidence/i01/report.md](../docs/decisions/evidence/i01/report.md), [docs/decisions/evidence/i01-followup/report.md](../docs/decisions/evidence/i01-followup/report.md), [docs/decisions/evidence/i01-staging/report.md](../docs/decisions/evidence/i01-staging/report.md), [docs/decisions/evidence/i01-batch-contract/report.md](../docs/decisions/evidence/i01-batch-contract/report.md), [docs/decisions/0009-panel-session-engine.md](../docs/decisions/0009-panel-session-engine.md), [docs/decisions/evidence/i01-panels/report.md](../docs/decisions/evidence/i01-panels/report.md), [docs/decisions/evidence/i01-process-lifetime/report.md](../docs/decisions/evidence/i01-process-lifetime/report.md), [docs/decisions/evidence/i01-atomic-process-start/report.md](../docs/decisions/evidence/i01-atomic-process-start/report.md), [docs/decisions/evidence/i01-log-decoding/report.md](../docs/decisions/evidence/i01-log-decoding/report.md), [docs/decisions/evidence/i01-include-diagnostics/report.md](../docs/decisions/evidence/i01-include-diagnostics/report.md), [tests/test_input_path_confinement.py](../tests/test_input_path_confinement.py), [tests/test_queue_backpressure.py](../tests/test_queue_backpressure.py), [tests/test_queue_backpressure_native.py](../tests/test_queue_backpressure_native.py), [docs/decisions/evidence/i01-queue/report.md](../docs/decisions/evidence/i01-queue/report.md), [tests/test_native_include_budget.py](../tests/test_native_include_budget.py), [docs/decisions/evidence/i01-reference-budget/report.md](../docs/decisions/evidence/i01-reference-budget/report.md)
 
 - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
 - 删除 gui_session_action 中运行时替换 _native 的做法
