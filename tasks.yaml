@@ -355,7 +355,7 @@ tasks:
     release: v0.5
     milestone: M3
     layer: T1
-    owner: claude
+    owner: codex
     target_tools: [create_entities, check_model]
     depends_on: [P04]
     status: partial
@@ -372,6 +372,7 @@ tasks:
       - 原生重开后 Joint 定义读回一致
 
   - id: Q01
+    owner: codex
     group: post
     title: 结果概览
     story: 这个 d3plot 有多少个状态，时间范围多少，有哪些变量，有没有删除单元
@@ -411,6 +412,7 @@ tasks:
       - 图像中色标极值与 Q03 同一量的数据极值一致（容差内）
 
   - id: Q03
+    owner: codex
     group: post
     title: 场数据提取
     story: 把第 20 个状态 Part 3 所有单元的应力六分量导出成 CSV
@@ -429,6 +431,7 @@ tasks:
       - 删除单元按 Q04 掩码策略处理并在元数据中注明
 
   - id: Q04
+    owner: codex
     group: post
     title: 工程量与失效掩码
     story: 计算靶板所有单元的应力三轴度和 Lode 参数，排除已删除单元，找出最大值所在单元
@@ -474,10 +477,12 @@ tasks:
     layer: T1
     target_tools: [extract_database]
     status: partial
-    existing: [extract_native_binout_curve, extract_native_ascii_curve, extract_binout_curve, extract_binout_table, extract_ascii_curve]
+    existing: [extract_database, extract_native_binout_curve, extract_native_ascii_curve, extract_binout_curve, extract_binout_table, extract_ascii_curve]
     gaps:
-      - 原生只有 NODOUT / GLSTAT / MATSUM 部分量；ASCII 只接 6 类且要填 UI 分量编号
-      - MPP 分片 binout 被拒绝
+      - extract_database（LASSO，不启动 LSPP）已按存储列名读取 12 类 binout 库，自动合并同目录 MPP 分片；重复 ID（RCFORC 的 side 0/1）按存储列区分。公开 binout（Bolt_B_Explicit、pyansys-heart）的 glstat / rcforc / nodout 与 lasso 直读逐值一致
+      - ASCII 文本库（glstat、rcforc 等）尚未接入 extract_database，仍走旧工具且要填 UI 分量编号；原生侧只有 NODOUT / GLSTAT / MATSUM 部分量
+      - MPP 合并结果与单机结果一致性未验证：公开语料中没有同一模型的 MPP/SMP 成对算例（corpus:mpp_binout）；分片合并只有合成 LSDA 用例
+      - LSPP 与 LASSO 结果对照未做（原生侧）
     acceptance:
       - GLSTAT、MATSUM、RCFORC、SECFORC、NODOUT、ELOUT、SLEOUT、NODFOR、SPCFORC、RBDOUT、NCFORC、DEFORC 各一个用例
       - 按名称指定分量（不用 UI 编号）；返回单位与原始列名
@@ -494,16 +499,17 @@ tasks:
     layer: T1
     target_tools: [curve_ops]
     status: partial
-    existing: [process_curve, convert_history_units, combine_history_curves, build_tensile_curves]
+    existing: [curve_ops, process_curve, convert_history_units, combine_history_curves, build_tensile_curves]
     gaps:
-      - 缺 SAE / Butterworth 滤波、重采样、FFT、Cross Plot、真应力应变
+      - 滤波结果尚未与 LS-PrePost XYPlot 同参数滤波对比（L2），首尾填充约定是否与 LS-PrePost 一致未知
+      - 相对量（两条曲线相减）仍只由旧工具 combine_history_curves 提供，curve_ops 未接入
     acceptance:
       - 单位换算、相对量、力-位移、工程/真应力应变、微分、积分、重采样、SAE/Butterworth 滤波、FFT、Cross Plot 各有 L1 用例（对解析解）
       - 滤波结果与 LSPP XYPlot 同参数滤波对比一致（L2）
       - 每次运算把公式与参数写进结果元数据
 
   - id: Q08
-    owner: cursor
+    owner: codex
     group: post
     title: XYPlot 出图
     story: 把 3 个工况的力-位移曲线画在一张图上，带图例，导出 PNG 和 CSV
@@ -539,7 +545,7 @@ tasks:
       - 首、末帧与 Q02 对应状态的静态图一致（感知哈希容差内）
 
   - id: Q10
-    owner: antigravity
+    owner: codex
     group: post
     title: 截面力与剖切面
     story: 在 z=10 mm 处切一刀，输出截面上的合力时程和剖面云图
@@ -572,7 +578,7 @@ tasks:
       - 质量类测量缺少密度或单位时拒绝
 
   - id: Q12
-    owner: antigravity
+    owner: codex
     group: post
     title: 能量检查
     story: 检查能量是否守恒，沙漏能占比是多少
@@ -673,6 +679,7 @@ tasks:
       - 4.13 全量、4.10 子集通过
 
   - id: A05
+    owner: codex
     group: auto
     title: 原生宏执行
     story: 运行这个 .mac 宏，参数 N1 取 103，拾取的节点用 Part 2 顶面节点
@@ -685,9 +692,9 @@ tasks:
     depends_on: [G03]
     status: partial
     existing: [prepare_native_program]
-    evidence: [tests/test_native_macro_transport.py, tests/test_native_macros.py, docs/decisions/0006-native-macro-probe.md]
+    evidence: [tests/test_native_macro_transport.py, tests/test_native_macros.py, tests/test_native_macro_parameters.py, tests/test_native_macro_parameters_native.py, tests/test_native_macro_review.py, docs/decisions/0006-native-macro-probe.md, docs/decisions/evidence/a05/report.md]
     gaps:
-      - 只支持数值参数；拒绝字符串参数、表达式默认值、interactive 暂停、分号多命令、嵌套宏
+      - 已支持有界字符串与数值绑定到 cfile；两版原生记录仅作历史证据，审阅修正头未重跑；原生 Macro/Exec 的 batch/session 与五个真实教程宏仍未验收；表达式默认值、interactive 暂停、分号多命令、嵌套宏显式拒绝
       - 拾取域只接受正整数 ID，不能用选择结果绑定
       - create_native_macro / run_native_macro 实为自定义 JSON 模板，名称与原生宏混淆
     acceptance:
@@ -735,6 +742,7 @@ tasks:
       - 生成的配方附带一个 L2 用例骨架
 
   - id: A08
+    owner: codex
     group: auto
     title: 配方库
     story: 有没有现成的配方能做 Block Mesher 划网格？有就用它
@@ -776,6 +784,7 @@ tasks:
       - 每组产物与参数的对应关系可追溯
 
   - id: A10
+    owner: codex
     group: auto
     title: 知识检索
     story: LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS 字段是什么意思？
@@ -800,6 +809,7 @@ tasks:
 
   # ============================ 通用 ============================
   - id: G01
+    owner: codex
     group: general
     title: 视图控制
     story: 换成前视图，放大 2 倍，居中到 Part 3
@@ -810,8 +820,10 @@ tasks:
     target_tools: [set_view]
     status: partial
     existing: [set_gui_display]
+    evidence: [src/ls_prepost_mcp/view_tools.py, tests/test_view_tools.py, tests/test_view_native.py, docs/decisions/evidence/g01/coverage.md, docs/decisions/evidence/g01/headless-4.13.json]
     gaps:
       - 缺命名视图保存 / 恢复、居中到选区
+      - fit（ac）在 4.13 headless perspective 下可重复但未框住全部部件，语义未证实；GUI 会话与 4.10 未测
     acceptance:
       - 标准视图、缩放、平移、绕轴旋转、fit、居中到 Selector、命名视图保存 / 恢复
       - 同一视图参数两次出图像素一致
@@ -855,6 +867,7 @@ tasks:
       - 选择操作不改变显隐状态（回归：pall 会重置 blank 的已知坑）
 
   - id: G04
+    owner: codex
     group: general
     title: 实体识别 Identify
     story: 节点 1001 的坐标和它在第 30 个状态的位移是多少？属于哪个 Part？
@@ -881,10 +894,12 @@ infrastructure:
     verification_level: L1
     gaps:
       - 队列饱和与不重放已在 4.13 原生集成提交 c68caef 通过；4.10 队列仍按版本能力表在启动前拒绝
-      - Windows 创建暂停进程至加入 Job 之间的宿主强杀窗口尚未消除；已验证加入 Job 后的取消、超时和宿主退出回收
+      - Windows 创建窗口已通过 JOB_LIST 原子绑定关闭，并以受控进程强杀回归验证；其余原生/GUI 验收仍按各自证据范围保留
       - renumber/quality 面板路径仍待完整统一；五个批处理入口已读取 JobResult，外部旧清单保留兼容输出；公开 Win32 打开、检查点和重开已补原生证据
       - 原生 d3plot 输入超过 1000 文件或 2 GiB 时在启动前明确拒绝；两版原地只读回退实验均崩溃，暂不提供该回退
       - 从 job 目录绝对路径读取 Include 时，中文根路径在 4.13/4.10 仍失败，4.10 的相对 Include 仍从 job cwd 解析；不得切到用户目录绕过
+      - INCLUDE 引用总数上限已接入原生准入：默认 20000，按读取顺序计数，含重复子树与未解析引用；L1 启动前拒绝回归通过，不代表 I01 全项完成
+      - 从 job 目录绝对路径读取 Include 时，中文根路径在 4.13/4.10 仍失败，4.10 的相对 Include 仍从 job cwd 解析；漏读诊断已使作业失败，不得切到用户目录绕过
       - INCLUDE 引用总数上限：共享预检接口 preflight_includes(max_references) 已提供（#70，按读取顺序计数，含重复与未解析引用），原生准入路径尚未接入，待 Codex
     evidence:
       - src/ls_prepost_mcp/engine/batch.py
@@ -896,26 +911,34 @@ infrastructure:
       - docs/decisions/evidence/i01-staging/report.md
       - docs/decisions/evidence/i01-batch-contract/report.md
       - docs/decisions/evidence/i01-process-lifetime/report.md
+      - docs/decisions/evidence/i01-atomic-process-start/report.md
       - docs/decisions/evidence/i01-log-decoding/report.md
+      - docs/decisions/evidence/i01-include-diagnostics/report.md
+      - tests/test_input_path_confinement.py
       - tests/test_queue_backpressure.py
       - tests/test_queue_backpressure_native.py
       - docs/decisions/evidence/i01-queue/report.md
+      - tests/test_native_include_budget.py
+      - docs/decisions/evidence/i01-reference-budget/report.md
     acceptance:
       - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
       - 删除 gui_session_action 中运行时替换 _native 的做法
       - 批处理与会话使用同一套配置隔离与日志读取
 
   - id: I02
+    owner: codex
     title: 语义合同 core/contracts.py
     milestone: M1
     status: done
-    gaps:
-      - M2：core.FieldSpec 与旧 field_contracts.FieldSpec 的适配层及等价测试尚未落地
+    gaps: []
     evidence:
       - src/ls_prepost_mcp/core/contracts.py
       - tests/test_core_contracts.py
       - tests/test_workflow_gates.py
       - tests/test_reference_workflow.py
+      - src/ls_prepost_mcp/field_contract_adapter.py
+      - tests/test_field_contract_adapter.py
+      - docs/decisions/evidence/i02-field-adapter/report.md
     verification_level: L1
     acceptance:
       - ModelRef、Selector、FieldSpec、CurveSpec、JobResult、Artifact 以 pydantic 定义
@@ -923,12 +946,14 @@ infrastructure:
       - 工作流门槛只读 JobResult
 
   - id: I03
+    owner: codex
     title: 命令构建器与版本能力表
     milestone: M1
     status: partial
     gaps:
       - 路径命令及 SCL 写入已集中；GUI 模型检查、实体导入等调用待集中窗口原生复核，批处理的导入/XY/SCL 子集已有独立证据
       - KI-049：4.13/4.10 的 ASCII 空格目录及显式启用 ASCII 别名的中文目录已通过无图形保存、PNG、重开和四个后台入口；未启用别名的中文目录、GUI/Movie 与 native_postprocess_case 图形回调仍待验证
+      - ASCII job 根下的 UTF-8 cfile 相对中文文件名：import keyword/open xydata 在 4.13/4.10 均失败，runscript 在 4.10 失败；空格文件名三路及 4.13 中文 SCL 通过，原生失败断言保留
     verification_level: L2
     evidence:
       - src/ls_prepost_mcp/native/commands.py
@@ -938,6 +963,7 @@ infrastructure:
       - docs/decisions/evidence/i03-version-resource/report.md
       - docs/decisions/evidence/i03/report.md
       - docs/decisions/evidence/i03-paths/report.md
+      - docs/decisions/evidence/i03-command-path/report.md
       - tests/test_engine_native.py
     compatibility_notes:
       - KI-048 的 4.10 队列来源读回限制保留；版本能力表在启动前拒绝该路线。4.10 六项批处理/命令回归通过，不外推为全部会话能力通过。
@@ -951,9 +977,15 @@ infrastructure:
     milestone: M1
     status: partial
     evidence:
+      - docs/decisions/evidence/i04-reader-validation/report.md
+      - tests/test_d3plot_time_validation.py
+      - docs/decisions/evidence/i04-diagnostics/report.md
+      - tools/diagnose_public_corpus.py
+      - tests/test_public_corpus_diagnostics.py
       - docs/decisions/evidence/i04/report.md
       - docs/decisions/evidence/i04-window/report.md
       - docs/decisions/evidence/i04-identity/report.md
+      - docs/decisions/evidence/i04-public100-preflight/report.md
       - tools/native_regression.py
       - tests/test_public_corpus_native.py
       - tests/corpus/public_cases.json
@@ -962,15 +994,17 @@ infrastructure:
       - tests/test_native_remote.py
       - tests/test_native_input_preconditions.py
     gaps:
+      - 两例公开失败已定向诊断：extra-keyword-064 的 Windows 非 ASCII INCLUDE 根路径启动前拒绝，原路径支持仍缺；extra-result-03 的 EOF 异常时间已由共享时间轴准入拒绝，完整/元数据/state_filter 前置路径一致；未删状态或改源文件，上游边界解析及有限有序尾数据检测仍缺
       - 当前 55 个 tools/run_* 入口已全部收编为 57 个 pytest 用例（保留原生/文件及 batch/GUI 变体）；CLI 参数发现已逐一验证。
       - 三个文件验收和 program_acceptance 批处理已有证据；集成工作副本累计 53 个 GUI 用例通过，包含待审 A02 修复，不作为 PR #5 头全量验证；13 个 UU 格等待用户断开
-      - 公开抽样为 126 例（首轮 26，新增 100）；新增 100 已执行，历史报告 16 通过 / 84 失败，dirty 基线缺 diff 哈希，不能作为当前分支通过证明；失败已初分，仍需修复或明确输入限制后重跑
+      - 公开抽样 126 例中新增 100 例的历史 c991f9d 为 16 passed / 84 failed（dirty、缺 diff 哈希）；普通路径修复后干净 53f6072 使用 4.13 重跑为 16 passed / 45 failed / 39 输入限制 evidence_only，100 份树指纹及文件清单核对齐全；19303f7 的 50 限制含 11 个路径误判，历史保留并勘误，仍缺导出、变体、崩溃及读取器差异处理
     acceptance:
       - 补测从 M0 转入的 13 个 UU 远程格（4.13/4.10 的 runc 五通道共 10 格，以及两版本 nographics 原生宏和 4.13 会话原生宏共 3 格），记录执行、PNG、MP4 结果与用户确认的断开时间窗
       - 55 个 tools/run_* 收编为 57 个带 marker 的 pytest 用例，共享 fixture
       - 一条命令生成 Markdown 报告；私有语料通过环境变量启用
 
   - id: I05
+    owner: codex
     title: 知识库索引
     milestone: M1
     status: partial
@@ -1001,7 +1035,7 @@ infrastructure:
 
   - id: I07
     title: raw-preserving 关键字引擎
-    owner: claude
+    owner: codex
     integration: "Claude 在 claude/keyword-engine 开发，M3 经 PR 合入 main；代码在 src/ls_prepost_mcp/domain/model/，目标工具在 model_target_tools.py。"
     milestone: M3
     status: done
@@ -1032,7 +1066,7 @@ infrastructure:
 
   - id: I09
     title: Agent 场景评测 L3
-    owner: claude
+    owner: codex
     milestone: M2-M4
     status: partial
     verification_level: L1

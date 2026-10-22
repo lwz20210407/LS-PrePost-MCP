@@ -14,8 +14,10 @@ import pytest
 
 from ls_prepost_mcp.config import Settings
 from ls_prepost_mcp.jobs import atomic_json
+from ls_prepost_mcp.native.versions import profile
 from ls_prepost_mcp.service import Service
-from tools.fetch_corpus import entries, io_root, load_registry, read_catalogs, resolve
+from tools.fetch_corpus import entries, load_registry, plain_path, read_catalogs, resolve
+from tools.public_corpus_preflight import directory_snapshot, input_classification, input_tree
 
 CASE_FILE = Path(__file__).parent / "corpus/public_cases.json"
 CASES = json.loads(CASE_FILE.read_text(encoding="utf8"))["cases"]
@@ -60,7 +62,7 @@ def public_registry(pytestconfig):
     raw = os.environ.get("LSPP_CORPUS_DIR")
     if not raw:
         pytest.fail("Set LSPP_CORPUS_DIR to the external corpus root")
-    root = io_root(Path(raw))
+    root = plain_path(Path(raw)).resolve(strict=True)
     registry = load_registry()
     records, manifests = read_catalogs(registry, root)
     return root, entries(registry), records, manifests
@@ -70,7 +72,7 @@ def public_registry(pytestconfig):
 def public_case(case, public_registry, pytestconfig, request):
     root, registry, catalog, manifests = public_registry
     base = resolve(registry[case["corpus"]], root)
-    source = (base / case["member"] if case["member"] else base).resolve(strict=True)
+    source = plain_path(base / case["member"] if case["member"] else base).resolve(strict=True)
     assert source.is_relative_to(root) and "local-book" not in source.relative_to(root).parts
     family = [source]
     if case["kind"] == "d3plot":
@@ -79,6 +81,8 @@ def public_case(case, public_registry, pytestconfig, request):
     if "mpp" in case["features"]:
         family = sorted(p for p in source.parent.iterdir() if re.fullmatch(r"binout\d+", p.name))
         assert len(family) > 1
+    tree, tree_identities = input_tree(source, family, keyword=case["kind"] == "keyword")
+    directory_before = directory_snapshot([source, *tree_identities])
     identities = {}
     for path in family:
         relative = path.relative_to(root).as_posix()
@@ -92,7 +96,9 @@ def public_case(case, public_registry, pytestconfig, request):
                                (root / "public-keyword", root / "public-results", directory), timeout=120))
     record = dict(case=case["id"], corpus=case["corpus"], member=case["member"],
                   input_features=case["features"], status="running", checks=[],
-                  source_identities=identities, external_manifest_identities=manifests)
+                  source_identities=identities, external_manifest_identities=manifests,
+                  input_tree=tree, tree_sha256=tree["tree_sha256"], tree_sha256_version=tree["tree_sha256_version"],
+                  native_installation=dict(executable=str(Path(executable).resolve()), **profile(Path(executable))))
     evidence = directory / "public-case.json"
     request.node.user_properties.append(("native_evidence", str(evidence)))
     try:
@@ -100,19 +106,27 @@ def public_case(case, public_registry, pytestconfig, request):
         # Pytest does not throw test-body exceptions back into yield fixtures.
         # Use the already-recorded call outcome, never a successful teardown.
         outcome = pytestconfig._native_rows.get(request.node.nodeid, {})
-        if record["status"] != "unsupported":
+        if record["status"] not in ("unsupported", "input_limited"):
             record["status"] = "succeeded" if outcome.get("status") == "passed" else "failed"
             if record["status"] == "failed":
                 record["failure"] = outcome.get("reason", "No completed test verdict")
     except BaseException as exc:
-        if record["status"] != "unsupported":
+        if record["status"] not in ("unsupported", "input_limited"):
             record.update(status="failed", error=dict(type=type(exc).__name__, message=str(exc)))
         raise
     finally:
         unchanged = all(sha(root / name) == digest for name, digest in identities.items())
-        record["originals_unchanged"] = unchanged
+        tree_unchanged = all(path.is_file() and sha(path) == digest for path, digest in tree_identities.items())
+        directory_after = directory_snapshot([source, *tree_identities])
+        record["source_directory_listing_unchanged"] = directory_before == directory_after
+        record["source_directory_count"] = len(directory_before)
+        record["source_directory_listing_sha256"] = hashlib.sha256(
+            json.dumps(list(directory_before.values()), ensure_ascii=True).encode("ascii")).hexdigest()
+        record["input_tree_unchanged"] = tree_unchanged
+        record["originals_unchanged"] = unchanged and tree_unchanged
         atomic_json(evidence, record)
-        assert unchanged, "Original corpus bytes changed"
+        assert unchanged and tree_unchanged, "Original corpus or INCLUDE tree bytes changed"
+        assert directory_before == directory_after, "Source directory entries changed"
 
 
 def keyword_round_trip(service, source, record):
@@ -235,6 +249,11 @@ def ascii_cross_check(service, source, record, case, request):
 def test_public_corpus(case, public_case, request):
     service, source, record = public_case
     if case["kind"] == "keyword":
+        if not record["input_tree"]["ok"]:
+            reason = "输入限制：" + input_classification(record["input_tree"])
+            record.update(status="input_limited", reason=reason)
+            request.node.user_properties.append(("native_scope", "evidence_only"))
+            pytest.xfail(reason)
         keyword_round_trip(service, source, record)
     elif case["kind"] == "d3plot":
         d3plot_cross_reader(service, source, record, request)

@@ -35,6 +35,36 @@ DEPENDENCIES = {"lasso-python": "2.0.4", "ansys-dpf-core": "0.16.1"}
 DPF_SERVER_MINIMUM = "7.1"
 MINIMUM_VECTOR_ABI = (3, 10)
 
+# PR #87: relative dependency names under an ASCII job root, UTF-8 cfile.
+# Keyed by observed file resource, not an executable filename/family guess.
+# True preserves that observation; it does not certify every Unicode filename.
+BUNDLE_UNICODE_FILENAMES = {
+    "4.13.0.1": {"import keyword": False, "open xydata": False, "runscript": True},
+    "4.10.0.1": {"import keyword": False, "open xydata": False, "runscript": False},
+}
+
+
+def require_bundle_filename(operation, name, executable):
+    """Guard only literal relative input names for the three observed readers.
+
+    Resolve the executable lazily so ASCII bundles still prepare without an
+    installation and session checks use the owned process, not the default.
+    Unknown builds are unverified, not declared natively unsupported.
+    """
+    if name.isascii():
+        return
+    result = require_installation(executable())
+    observed = BUNDLE_UNICODE_FILENAMES.get(result["file_version"], {}).get(operation)
+    if result["version_source"] != "file_version_resource" or result["resource_conflict"]:
+        observed = None
+    if observed is True:
+        return
+    reason = "observed failure" if observed is False else "unverified build/operation"
+    raise ValueError(
+        "Native relative filename for {}: {} ({}). Use an explicit ASCII bundle "
+        "name in dependencies and the same name in command references "
+        "(including XY name~1); keep the original source path unchanged.".format(operation, name, reason))
+
 
 def _path_version(executable):
     text = str(executable).replace("\\", "/")

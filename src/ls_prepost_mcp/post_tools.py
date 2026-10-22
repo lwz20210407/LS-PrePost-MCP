@@ -4,6 +4,7 @@ import re
 
 from pydantic import StrictInt
 
+from .curve_target_tools import CurveTargetTools
 from .field_contracts import FieldSpec, ResultSelection, SamplingSpec
 from .jobs import atomic_json, fingerprint, now
 from .post_backend import (
@@ -25,7 +26,7 @@ from .result_validity import (
 from .stress import CONVENTIONS, NULLABLE, stress_metrics
 
 
-class PostTools:
+class PostTools(CurveTargetTools):
     def inspect_result_validity(self, path: str, element_type: str, states: list[StrictInt],
                                 element_ids: list[StrictInt] | None = None) -> dict:
         """Inspect recorded MDLOPT2 element presence/deletion using LASSO2.0.4. Positive material codes mean present; zero means deleted. Return per-state counts plus an ID/state-aligned Boolean NPZ artifact, not GUI Blank. Missing masks/adaptivity/unsupported domains reject. This does not classify material failure, rigidity or missing field records."""

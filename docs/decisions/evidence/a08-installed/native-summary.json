@@ -1,0 +1,74 @@
+{
+  "task": "A08",
+  "date": "2026-10-08",
+  "lease": "A08-001",
+  "scope": "One original template and four-node shell; not vendor catalog coverage or solver validation",
+  "native_calls": 1,
+  "status": "passed",
+  "runtime_build": "LS-PrePost 2026 R1 v4.13.4, 17Dec2025",
+  "runtime_build_source": "Captured native stdout banner; not executable file metadata",
+  "execution_mode": "c -nographics",
+  "returncode": 0,
+  "timed_out": false,
+  "native_seconds": 6.641,
+  "pytest_seconds": 9.27,
+  "lspp_processes_before": 0,
+  "lspp_processes_after": 0,
+  "lease_released": true,
+  "actual_git_head": "8c05f080ac781732681cdec9f17ec35d5b63da48",
+  "working_tree_dirty": false,
+  "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "source_snapshot_sha256": "73aee22310c94a27f54a369645e2d0d683747f8b050b1726ad44188a554916f2",
+  "source_hashes": {
+    "src/ls_prepost_mcp/automation/installed_recipes.py": "737bff566a3722d694831fc5f117c34cf21aa3c31430dcd8dd97c72edee52524",
+    "src/ls_prepost_mcp/automation/recipes.py": "1ec3bd079254d5271207bec0b094f8ebd70aba9c714b427e8c3667fd328fb6b7",
+    "src/ls_prepost_mcp/installation_assets.py": "171eb57ff74c316d2fce83e524322972b9d4c99d10cc2ac44bf07c41bb1b7c29",
+    "src/ls_prepost_mcp/service.py": "a807975d6e79b7df8f3f75910d8208e7e191e012d0d435c170167403cf2c2f05",
+    "src/ls_prepost_mcp/engine/batch.py": "0c72ae92ffa687dd91e4318b23a03c5156c1d6a405a14b90a59e101a02c75d63"
+  },
+  "test": "tests/test_installed_recipes_native.py::test_original_installed_template_reopens_in_batch",
+  "test_sha256": "688ca724cfcafc6f5c2e2d3946e1e75f0cca198c8630d9004292960abe91a736",
+  "native_program_hashes": {
+    "commands.cfile": "9c0649ba42ea54137d9cb226ee8fd842e67b0d1e1daab040cf5c5d4ebd802ba4",
+    "bootstrap.py": "117e51d939a15125de5925607a60a10fafdd4c20ce386b8efa83c5632afc3e2b",
+    "request.json": "0c7a522d342d3cb15dac64cc060738733a84c973e6c37f00bf80017304c65761"
+  },
+  "original_inputs": [
+    {
+      "kind": "template",
+      "size": 61,
+      "sha256": "6247732be70ce2882db476ed34818f498a1482f9718c664a9779c2d532b133da"
+    },
+    {
+      "kind": "keyword_model",
+      "size": 88,
+      "sha256": "2a665e373cd446da8d05fc231e7173e97db114d6d9cb4d7f6a66e5d87f49152e"
+    }
+  ],
+  "inputs_unchanged": true,
+  "native_input_matches_generated_model": true,
+  "artifacts": [
+    {
+      "kind": "keyword",
+      "size_bytes": 139,
+      "sha256": "1ed480fb47c6447bc141dd1d9d705f4e6cb85a4e115775f362a565ca9a648c2c"
+    },
+    {
+      "kind": "json",
+      "size_bytes": 14,
+      "sha256": "835d1a39a671b46836fb56e0c4f3c07caa951e4e2cfd9cbd597dc5e8c81faa39"
+    }
+  ],
+  "parameters": {
+    "T": 2
+  },
+  "counts": {
+    "nodes": 4,
+    "elements": 1,
+    "states": 1
+  },
+  "native_mesh_verified": true,
+  "solver_validated": false,
+  "versions_verified": [],
+  "raw_evidence": "Retained outside Git in task scratch; no vendor files or native logs published"
+}

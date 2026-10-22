@@ -145,6 +145,11 @@ tools:
     target: run_sweep
     task_id: A09
     legacy_until: v0.6
+  curve_ops:
+    target: curve_ops
+    task_id: Q07
+    legacy_until: null
+    note: M2 target tool on domain.results.curves; returns JobResult/v1
   describe_installed_template:
     target: find_recipe
     task_id: A08
@@ -210,6 +215,12 @@ tools:
     target: extract_field
     task_id: Q03
     legacy_until: v0.6
+  extract_database:
+    target: extract_database
+    task_id: Q06
+    legacy_until: null
+    note: M2 target tool over domain.results (binout across MPP shards, component
+      by name); returns JobResult/v1
   extract_lsreader_nodal:
     target: extract_field
     task_id: Q03
@@ -456,6 +467,10 @@ tools:
     target: render_fringe
     task_id: Q02
     legacy_until: v0.6
+  render_xyplot:
+    target: render_xyplot
+    task_id: Q08
+    legacy_until: null
   renumber_gui_entities:
     target: mesh_ops
     task_id: P08
@@ -574,6 +589,12 @@ tools:
     target: set_display
     task_id: G02
     legacy_until: v0.6
+  set_view:
+    target: set_view
+    task_id: G01
+    legacy_until: null
+    note: G01 target tool; returns JobResult/v1; request presets only, Selector centering
+      unsupported
   show_gui_session:
     target: alias
     task_id: I01
