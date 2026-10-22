@@ -102,3 +102,34 @@ def test_zero_energy_has_no_arbitrary_absolute_denominator_floor():
     summary = calculate_energy_balance(data, residual_ratio_limit=.01)["summary"]
     assert summary["verdict"] == "incomplete"
     assert summary["balance_residual"]["max_relative_residual"] is None
+
+
+@pytest.mark.parametrize("scale", [1e-20, 1., 1e20])
+def test_screening_ratios_and_undefined_counts_are_unit_invariant(scale):
+    data = histories()
+    data.update(internal_energy=np.array([1e-20, 100.]) * scale,
+                kinetic_energy=np.array([1., 1.]) * scale,
+                hourglass_energy=np.array([2., 2.]) * scale)
+    summary = calculate_energy_balance(data, kinetic_ratio_limit=.05, hourglass_ratio_limit=.05)["summary"]
+    assert summary["screening_ratios"]["max_kinetic_energy_ratio"] == pytest.approx(.01)
+    assert summary["screening_ratios"]["max_hourglass_ratio"] == pytest.approx(.02)
+    assert summary["ratio_defined"]["hourglass_energy"] == {"defined_samples": 1, "undefined_samples": 1}
+    assert summary["passed"] is True
+
+
+def test_balance_reference_uses_work_increment_when_record_starts_after_zero():
+    data = histories()
+    data.update(total_energy=[100., 110.], external_work=[50., 60.])
+    summary = calculate_energy_balance(data, residual_ratio_limit=1e-8)["summary"]
+    assert summary["passed"] is True
+    assert summary["balance_residual"]["max_relative_residual"] == 0
+
+
+@pytest.mark.parametrize("data", [
+    {"time": [0., 1.], "internal_energy": [1., float('nan')]},
+    {"time": [0., 1.], "internal_energy": [1.]},
+    {"time": [0., 1.], "total_energy": [1e308, 1e308], "external_work": [-1e308, 1e308]},
+])
+def test_nonfinite_or_misaligned_measurements_and_derived_overflow_are_rejected(data):
+    with pytest.raises(ValueError):
+        calculate_energy_balance(data, residual_ratio_limit=.01)

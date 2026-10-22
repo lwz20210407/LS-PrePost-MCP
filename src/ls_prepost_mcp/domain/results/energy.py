@@ -61,6 +61,16 @@ def calculate_energy_balance(energies, parts=None, units="model_units", kinetic_
     """
     limits = dict(kinetic_energy=kinetic_ratio_limit, hourglass_energy=hourglass_ratio_limit,
                   sliding_energy=sliding_ratio_limit, energy_balance=residual_ratio_limit)
+    validate_parameters(units, limits, ratio_floor, relative_floor)
+    try:
+        with np.errstate(over="raise", invalid="raise", divide="raise"):
+            return _calculate(energies, parts or {}, units, limits, ratio_floor, relative_floor)
+    except FloatingPointError as error:
+        raise EnergyBalanceError(f"Nonfinite derived energy metric: {error}") from error
+
+
+def validate_parameters(units, limits, ratio_floor, relative_floor):
+    """Validate screening options before a tool reads or creates any files."""
     for name, value in limits.items():
         if value is not None and (type(value) not in (int, float) or not math.isfinite(value) or value < 0):
             raise EnergyBalanceError(f"{name}: threshold must be a nonnegative finite number or None")
@@ -69,11 +79,6 @@ def calculate_energy_balance(energies, parts=None, units="model_units", kinetic_
             raise EnergyBalanceError(f"{name} must be a finite fraction in [0, 1)")
     if not isinstance(units, str) or not units.strip():
         raise EnergyBalanceError("Explicit energy unit label required")
-    try:
-        with np.errstate(over="raise", invalid="raise", divide="raise"):
-            return _calculate(energies, parts or {}, units, limits, ratio_floor, relative_floor)
-    except FloatingPointError as error:
-        raise EnergyBalanceError(f"Nonfinite derived energy metric: {error}") from error
 
 
 def _calculate(energies, parts, units, limits, ratio_floor, relative_floor):
@@ -157,7 +162,7 @@ def _calculate(energies, parts, units, limits, ratio_floor, relative_floor):
             max_hourglass_ratio=maximum(pr), ratio_defined=pd)
         part_rows.extend([[float(t), int(pid), *row] for t, row in zip(pt, zip(*(nullable(v) for v in pv.values())))])
     summary = dict(units=units, sample_count=n, time_range=[float(time[0]), float(time[-1])],
-        verdict=verdict, passed=passed, checks=checks, warnings=warnings,
+        verdict=verdict, passed=passed, checks=checks, warnings=warnings, time_monotonic=monotonic,
         screening_ratios={"max_kinetic_energy_ratio": maximum(ratios["kinetic_energy"]),
                           "max_hourglass_ratio": maximum(ratios["hourglass_energy"]),
                           "max_sliding_energy_ratio": maximum(ratios["sliding_energy"])},
@@ -166,7 +171,9 @@ def _calculate(energies, parts, units, limits, ratio_floor, relative_floor):
             max_relative_residual=maximum(relative), final_residual=nullable(residual[-1:])[0],
             residual_denominator="max(abs(TE0 + (W(t)-W0)), max_t abs(TE))",
             formula="TE(t) - TE(0) - (W(t)-W(0))", undefined_samples=int((~np.isfinite(relative)).sum())),
-        energy_budget=budgets, parts_analyzed=len(part_summaries), parts=part_summaries)
+        energy_budget=budgets, missing_samples={key: int((~np.isfinite(array)).sum()) for key, array in values.items()},
+        peak_policy="algebraic maxima of recorded samples; missing samples are not bounds",
+        parts_analyzed=len(part_summaries), parts=part_summaries)
     rows = [[float(t), *row] for t, row in zip(time, zip(*(nullable(values[k]) for k in ENERGIES[:8]),
                 nullable(residual), nullable(relative), nullable(ratios["kinetic_energy"]),
                 nullable(ratios["hourglass_energy"])))]

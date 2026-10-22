@@ -44,6 +44,11 @@ def test_ascii_tool_with_parts_is_json_safe_and_exports_blanks(tmp_path, monkeyp
     assert len(result.artifacts) == 3
     assert all(a.verification == "verified" for a in result.artifacts)
     assert {p: hashlib.sha256(p.read_bytes()).hexdigest() for p in before} == before
+    part_csv = next(Path(a.path) for a in result.artifacts if Path(a.path).name == "part_energy.csv")
+    with part_csv.open() as stream:
+        rows = list(csv.DictReader(stream))
+    assert [float(row["hourglass_energy"]) for row in rows if row["part_id"] == "10"] == [1., 2.]
+    assert all(row["hourglass_energy"] == "" for row in rows if row["part_id"] == "90")
 
 
 def test_missing_external_work_cannot_pass_requested_balance(tmp_path):
@@ -138,3 +143,75 @@ def test_synthetic_binout_parts_roundtrip_through_public_tool(tmp_path):
     assert result.data["parts"]["10"]["energy_budget"]["final_internal_energy"] == 40.
     assert result.data["parts"]["90"]["energy_budget"]["final_hourglass_energy"] is None
     assert len(result.artifacts) == 3
+
+
+@pytest.mark.parametrize("options", [dict(units=""), dict(units="J" * 101),
+    dict(kinetic_ratio_limit=True), dict(hourglass_ratio_limit=-1), dict(ratio_floor=1.),
+    dict(relative_floor=float('nan')), dict(input_format="garbage"), dict(include_parts="yes")])
+def test_bad_options_fail_before_source_reads_or_job_creation(tmp_path, monkeypatch, options):
+    source = ascii_case(tmp_path)
+    monkeypatch.setattr(energy_readers, "read_ascii_glstat", lambda *a: pytest.fail("Unexpected source read"))
+    service = Service(Settings(tmp_path / "work", allowed_roots=(tmp_path,)))
+    arguments = dict(path=str(source), units="J", **{k: v for k, v in options.items() if k != "units"})
+    if "units" in options:
+        arguments["units"] = options["units"]
+    result = service.check_energy(**arguments)
+    assert result["status"] == "failed"
+    assert not service.jobs.root.exists()
+
+
+def test_default_report_has_no_passed_quality_and_unavailable_parts_are_partial(tmp_path):
+    source = ascii_case(tmp_path)
+    service = Service(Settings(tmp_path / "work", allowed_roots=(tmp_path,)))
+    report = JobResult.model_validate_json(json.dumps(service.check_energy(str(source), "J")))
+    assert report.data["passed"] is None
+    assert report.check_status == "not_applicable"
+    (tmp_path / "matsum").unlink()
+    incomplete = JobResult.model_validate_json(json.dumps(service.check_energy(str(source), "J", residual_ratio_limit=.01)))
+    assert incomplete.status == "partial" and incomplete.data["passed"] is None
+    assert incomplete.data["verdict"] == "incomplete" and incomplete.data["global_verdict"] == "passed"
+
+
+def test_nonstandard_binary_name_never_reads_a_neighbour(tmp_path, monkeypatch):
+    source = tmp_path / "binout_other"
+    source.write_bytes(bytes([8, 8, 8, 1, 1, 0, 0, 0]))
+    (tmp_path / "binout").write_bytes(source.read_bytes())
+    monkeypatch.setattr(lasso_backend, "binout_curves", lambda *a, **kw: pytest.fail("Wrong-family read"))
+    service = Service(Settings(tmp_path / "work", allowed_roots=(tmp_path,)))
+    result = service.check_energy(str(source), "J")
+    assert result["status"] == "failed"
+    assert not service.jobs.root.exists()
+
+
+def test_manifest_write_error_cannot_return_success_or_escape_as_exception(tmp_path, monkeypatch):
+    import ls_prepost_mcp.energy_tools as tools
+
+    source = ascii_case(tmp_path)
+    original = tools.atomic_json
+
+    def persist(path, value):
+        if path.name == "job.json":
+            raise OSError("test disk full")
+        return original(path, value)
+
+    monkeypatch.setattr(tools, "atomic_json", persist)
+    result = Service(Settings(tmp_path / "work", allowed_roots=(tmp_path,))).check_energy(str(source), "J")
+    assert result["status"] == "failed" and "test disk full" in result["error"]["message"]
+    assert not result["artifacts"]
+
+
+def test_new_binary_shard_during_read_is_not_reported_as_same_input(tmp_path, monkeypatch):
+    from ls_prepost_mcp.domain.results.energy import ENERGIES
+
+    source = tmp_path / "binout"
+    source.touch()
+
+    def read(path):
+        (tmp_path / "binout0001").touch()
+        return {"time": [0., 1.], **{key: [0., 0.] for key in ENERGIES}}
+
+    monkeypatch.setattr(energy_readers, "read_binout_glstat", read)
+    result = Service(Settings(tmp_path / "work", allowed_roots=(tmp_path,))).check_energy(
+        str(source), "J", include_parts=False)
+    assert result["status"] == "failed" and "membership changed" in result["error"]["message"]
+    assert not result["artifacts"]
