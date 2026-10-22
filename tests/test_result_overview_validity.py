@@ -1,5 +1,8 @@
 """Q01 malformed native observations must remain JSON-safe diagnostic results."""
+import hashlib
 import json
+import os
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -96,3 +99,42 @@ def test_ambiguous_or_malformed_title_identity_is_rejected(tmp_path, monkeypatch
     _arrays(monkeypatch, ids=ids)
     with pytest.raises(lb.ResultsError, match="title"):
         lb.overview(tmp_path / "d3plot")
+
+
+@pytest.mark.parametrize("corpus_id,states,parts", [
+    ("result.ansys__example-data.result_files.d3plot_projectile", 16, 2),
+    ("shell_d3plot", 7, 4),
+    ("result.hu-shuhan__editOpeniGame.test.Format_Validation_Test.lsdyna.Bolt_B_Explicit", 102, 7),
+])
+def test_public_overview_preserves_title_identity_and_source(tmp_path, corpus_id, states, parts):
+    location = os.environ.get("LSPP_CORPUS_DIR")
+    if not location:
+        pytest.skip("Set LSPP_CORPUS_DIR to use registered public overview cases")
+    pytest.importorskip("lasso.dyna")
+    from lasso.dyna import ArrayType, D3plot
+
+    from tools.fetch_corpus import entries, load_registry, plain_path, resolve
+
+    root = Path(location)
+    source = plain_path(resolve(entries(load_registry())[corpus_id], root))
+    if source.is_dir():
+        source = source / "d3plot"
+    family = [p for p in source.parent.iterdir() if p.is_file() and (
+        p.name == source.name or p.name.startswith(source.name) and p.name[len(source.name):].isdigit())]
+    before = {}
+    for path in family:
+        with path.open("rb") as stream:
+            before[path] = hashlib.file_digest(stream, "sha256").hexdigest()
+    listing = sorted(p.name for p in source.parent.iterdir())
+    result = JobResult.model_validate(Service(Settings(tmp_path / "jobs", allowed_roots=(root,)))
+                                     .result_info(str(source)))
+    plot = D3plot(str(source))
+    expected = {int(pid): (title.decode("latin-1") if isinstance(title, bytes) else str(title)).strip()
+        for pid, title in zip(plot.arrays.get(ArrayType.part_titles_ids, []), plot.arrays.get(ArrayType.part_titles, []))}
+    assert result.status == "succeeded", result.error
+    assert result.data["states"] == states and len(result.data["parts"]) == parts
+    assert all(part["title"] == expected.get(part["id"]) for part in result.data["parts"])
+    for path, sha in before.items():
+        with path.open("rb") as stream:
+            assert hashlib.file_digest(stream, "sha256").hexdigest() == sha
+    assert sorted(p.name for p in source.parent.iterdir()) == listing
