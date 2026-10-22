@@ -183,3 +183,50 @@ def test_corpus_mpp_shards_and_ascii(tmp_path: Path) -> None:
     assert result.data["binout"]["files"] == ["binout0000", "binout0004", "binout0005", "binout0007"]
     assert {"glstat", "nodout", "matsum"} <= set(result.data["binout"]["databases"])
     assert "glstat" in result.data["ascii_files"]
+
+
+def test_every_family_file_and_binout_shard_is_confined_before_reading(tmp_path, monkeypatch):
+    # Codex review of 0788427: only the d3plot entry was checked; family files and binout shards
+    # (which may be links outside the allowed roots) were opened unchecked.
+    source = _write(tmp_path / "run")
+    (source.parent / "d3plot01").write_bytes(b"x")
+    (source.parent / "binout0000").write_bytes(b"x")
+    (source.parent / "binout0000%001").write_bytes(b"x")
+    service = Service(Settings(tmp_path))
+    checked = []
+    real = Settings.input_path
+
+    def spy(self, value, **kwargs):
+        checked.append(Path(value).name)
+        if Path(value).name in ("d3plot01", "binout0000%001"):
+            raise ValueError("Input is outside the configured allowed roots")
+        return real(self, value, **kwargs)
+
+    monkeypatch.setattr(Settings, "input_path", spy)
+    from ls_prepost_mcp.domain.results import lasso_backend
+    monkeypatch.setattr(lasso_backend, "overview", lambda *a, **k: pytest.fail("read before confinement"))
+    with pytest.raises(ValueError, match="allowed roots"):
+        service.result_info(str(source), False)
+    assert "d3plot01" in checked
+    assert not (tmp_path / "jobs").exists() or not any((tmp_path / "jobs").iterdir())
+
+
+def test_binout_continuations_are_confined(tmp_path, monkeypatch):
+    source = _write(tmp_path / "run")
+    (source.parent / "binout0000").write_bytes(b"x")
+    (source.parent / "binout0000%001").write_bytes(b"x")
+    service = Service(Settings(tmp_path))
+    checked = []
+    real = Settings.input_path
+
+    def spy(self, value, **kwargs):
+        checked.append(Path(value).name)
+        if Path(value).name == "binout0000%001":
+            raise ValueError("Input is outside the configured allowed roots")
+        return real(self, value, **kwargs)
+
+    monkeypatch.setattr(Settings, "input_path", spy)
+    with pytest.raises(ValueError, match="allowed roots"):
+        service.result_info(str(source), False)
+    assert {"binout0000", "binout0000%001"} <= set(checked)
+

@@ -11,6 +11,9 @@ With ``native_check`` the same file family is opened by LS-PrePost (the existing
 from __future__ import annotations
 
 import math
+import os
+import re
+from pathlib import Path
 
 from .core.contracts import CheckResult, JobResult
 from .jobs import atomic_json
@@ -25,6 +28,7 @@ def result_info(tools, path: str, native_check: bool) -> dict:
     if type(native_check) is not bool:
         raise ValueError("native_check must be true or false")
     source = tools.settings.input_path(path)
+    _confine_family(tools, source)
     directory, manifest = tools.jobs.create("result_info", {"path": str(source), "native_check": native_check})
     try:
         overview = lb.overview(source)
@@ -56,6 +60,27 @@ def result_info(tools, path: str, native_check: bool) -> dict:
     result = _result(status, data, manifest["job_id"], checks=checks, warnings=tuple(warnings), error=error,
                      backend="lasso+lsprepost" if native_check else "lasso")
     return _record(directory, manifest, result)
+
+
+def _confine_family(tools, source: Path) -> None:
+    """Run every file the shared readers will open through the allowed-root check first.
+
+    lasso's D3plot reads each file in the folder matching ``(<basename>)[0-9]+$`` (the same
+    expression is rebuilt here); the binout catalogue reads every shard and the continuations
+    lasso globs for it (``mpp_shards.lasso_reads``). A family member linked outside the configured
+    roots is therefore refused before anything is opened. ASCII databases are only listed by name."""
+    from .domain.results import mpp_shards
+
+    folder = source.parent
+    family = re.compile(f"({os.path.basename(source)})[0-9]+$")
+    for name in sorted(os.listdir(folder)):
+        candidate = folder / name
+        if candidate.is_file() and family.match(name):
+            tools.settings.input_path(str(candidate))
+    if any(mpp_shards.SHARD.match(p.name) for p in folder.iterdir()):
+        for shard in mpp_shards.shards(folder):
+            for file in mpp_shards.lasso_reads(shard):
+                tools.settings.input_path(str(file))
 
 
 def _elements(overview: dict, header: dict, families: dict, warnings: list[str]) -> dict:
