@@ -3,7 +3,6 @@
 from .core.validation import integer
 from .gui_mesh import check_same_nodes, mesh_index
 from .native import commands as nc
-from .windows_transport import WindowsCommandTransport
 
 
 def renumber_map(path, header, old_ids, new_ids):
@@ -135,12 +134,7 @@ class GuiRenumberTools:
                         "Input has invalid supported keyword references; inspect before renumbering"
                     )
 
-        def commands(state, directory):
-            manager = self._session_manager()
-            meta = manager.read(session_id)
-            if not meta["process_alive"]:
-                raise RuntimeError("Owned process exited")
-            transport = WindowsCommandTransport(meta["process"]["pid"])
+        def prepare_selection(transport, directory):
             transport.open_panel("renumber")
             transport._click_panel_control("Renumber", 10001, "Renumber")
             transport._click_panel_control("Renumber", 10005, "Selected")
@@ -148,10 +142,14 @@ class GuiRenumberTools:
                 entity_type
             ]
             transport._click_panel_control("Renumber", control, caption)
+
+        def commands(state, directory):
+            manager = self._session_manager()
             selected = manager.dispatch(
                 session_id,
                 "gui_mesh_state",
                 {},
+                _before_submit=prepare_selection,
                 native_commands=[
                     "pall",
                     nc.selection('clear'),
@@ -170,12 +168,14 @@ class GuiRenumberTools:
             )
             if set(selected["data"].get("selection_ids") or []) != expected:
                 raise ValueError("Native renumber selection does not cover the requested entities")
+            return []
+
+        def apply_renumber(state, directory, transport):
             context["log"] = directory / "renumber-map.txt"
             transport._set_panel_checked("Renumber", 10006, True, "Save renumbering log file")
             transport._set_panel_text("Renumber", 10007, str(context["log"]))
             transport._set_panel_text("Renumber", 10031, str(start_id))
             transport._click_panel_control("Renumber", 10041, "Apply")
-            return []
 
         def refs(before_path, after_path, verification):
             if not check_references:
@@ -219,4 +219,6 @@ class GuiRenumberTools:
             precheck,
             refs,
             preflight,
+            prepare_native=apply_renumber,
+            requires_panel=True,
         )
