@@ -1,0 +1,26 @@
+{
+  "case": "result.hu-shuhan__editOpeniGame.test.Format_Validation_Test.lsdyna.Bolt_B_Explicit",
+  "samples": 1000,
+  "normalized_max_errors": {
+    "time": 1.000850563349218e-06,
+    "total_energy": 5.65046230471755e-07,
+    "kinetic_energy": 6.658940712670989e-07,
+    "internal_energy": 7.239095987070343e-07,
+    "hourglass_energy": 0.0,
+    "sliding_energy": 2.595989691270929e-06,
+    "external_work": 1.2973303471162842e-06,
+    "damping_energy": 0.0,
+    "spring_and_damper_energy": 3.1734478413333574e-08,
+    "eroded_kinetic_energy": 0.0,
+    "eroded_internal_energy": 0.0,
+    "eroded_hourglass_energy": 0.0
+  },
+  "normalization": "max_abs_difference / peak_abs_binout_value, no interpolation or alignment changes",
+  "native_run": false,
+  "source_code_revision": "10bf6e0560eef4819f19dae765289dcd6c693118",
+  "working_tree_dirty": true,
+  "non_runtime_changes": [
+    "backlog.md",
+    "tests/test_energy_corpus.py"
+  ]
+}
