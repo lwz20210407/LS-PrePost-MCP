@@ -159,7 +159,8 @@
     {"name": "curve_ops", "domain": "engineering", "target": "curve_ops", "task_id": "Q07", "legacy_until": null, "note": "M2 target tool on domain.results.curves; returns JobResult/v1"},
     {"name": "extract_field", "domain": "results", "target": "extract_field", "task_id": "Q04", "legacy_until": null, "note": "M2 target tool on domain.results (lasso_backend / invariants); returns JobResult/v1"},
     {"name": "extract_database", "domain": "results", "target": "extract_database", "task_id": "Q06", "legacy_until": null, "note": "M2 target tool over domain.results (binout across MPP shards, component by name); returns JobResult/v1"},
-    {"name": "set_view", "domain": "presentation", "target": "set_view", "task_id": "G01", "legacy_until": null, "note": "G01 target tool; returns JobResult/v1; request presets only, Selector centering unsupported"}
+    {"name": "set_view", "domain": "presentation", "target": "set_view", "task_id": "G01", "legacy_until": null, "note": "G01 target tool; returns JobResult/v1; request presets only, Selector centering unsupported"},
+    {"name": "check_energy", "domain": "engineering", "workflow": true, "target": "check_energy", "task_id": "Q12", "legacy_until": null, "note": "Q12 GLSTAT/MATSUM energy report and explicit thresholds; returns JobResult/v1"}
   ],
   "workflow_aliases": {"new_model": "reset_gui_session", "open_model": "open_in_gui_session", "checkpoint": "checkpoint_gui_session"}
 }

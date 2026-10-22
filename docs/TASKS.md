@@ -459,12 +459,13 @@
 - 阈值由调用者给定；未给定时只报告比例不下结论
 - 按部件（MATSUM）分解
 
-现有入口：`assess_energy_balance`, `native_energy_postprocess`
+现有入口：`assess_energy_balance`, `native_energy_postprocess`, `check_energy`
 
 缺口：
 
-- 只看 KE / IE / HG
-- PR #57（2026-10-22 关闭未合）未解决：非标准文件名会读到同目录另一个 binout；缺失量（部件沙漏能、能量预算、CSV）仍补 0；任意 8 列以上数值表被当作 glstat 并判通过；平衡残差分母下限 1.0 使结论随单位缩放；带 MATSUM 的真实 binout 报错；读取未完全复用 domain/results。ASCII glstat 块格式读取器已通过 8 份公开文件核对，可参考
+- 新 check_energy 已提供八项能量/显式阈值/MATSUM 分解，缺项留空且筛查单位不变；完成 L1 和公开读测，原生 L2 全量对照仍待补
+- 非标准 binout 名明确拒绝；MPP 不同实体集合仍按共享读取器规则拒绝；未证实全部求解器输出变体
+- 已关闭的 PR #57 历史能量缺陷在新实现中有针对性回归，旧代码未合入；新实现目前仅有 L1 和公开读取证据
 
 ## 自动化
 

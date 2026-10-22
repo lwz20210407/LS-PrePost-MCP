@@ -36,6 +36,10 @@ class ResultsError(ValueError):
     """A result request that cannot be answered from the files."""
 
 
+class MissingComponentError(ResultsError):
+    """A known database does not store a requested component, rather than a read failure."""
+
+
 def _lasso():
     try:
         from lasso.dyna import ArrayType, Binout, D3plot

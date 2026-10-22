@@ -12,6 +12,7 @@ from .config import Settings
 from .core.validation import integer, numbers, unit_label
 from .domain.results.time_validation import validate_d3plot_times
 from .dpf_tools import DpfTools
+from .energy_tools import EnergyTools
 from .engine.context import NativeContext
 from .engineering import EngineeringTools
 from .field_metrics_tools import FieldMetricsTools
@@ -57,7 +58,7 @@ def _windows():
     return os.name == "nt"
 
 
-class Service(FieldMetricsTools, RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, ModelTargetTools, ResultsTargetTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools, ViewTools):
+class Service(EnergyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, ModelTargetTools, ResultsTargetTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools, ViewTools):
     def __init__(self, settings: Settings):
         self.settings = settings
         self.jobs = Jobs(settings.workspace)
