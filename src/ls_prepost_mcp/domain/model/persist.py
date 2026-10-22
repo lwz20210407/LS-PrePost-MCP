@@ -94,14 +94,40 @@ def _unified(old: list[str], new: list[str], fromfile: str, tofile: str, context
 
 def _relocation_plan(deck: KeywordDeck, out_dir: Path) -> tuple[dict[Path, Path], list[str]]:
     absolute = {identity(r.child.path) for r in deck.includes if r.child and Path(r.name).is_absolute()}
-    external = [str(deck.files[k].path) for k in absolute]
+    # Absolute search directories still point at the source tree after a raw
+    # save-as. A modified copy there would be unused when the saved main reloads.
+    absolute_dirs = [Path(r.name) for r in deck.includes if r.kind == "path" and Path(r.name).is_absolute()]
+    for ref in deck.includes:
+        if ref.child and any(identity(directory / ref.name) == identity(ref.child.path) for directory in absolute_dirs):
+            absolute.add(identity(ref.child.path))
+    # An external parent also keeps its relative descendants external. Otherwise
+    # their edited output copies would be disconnected from the saved main deck.
+    while True:
+        descendants = {identity(r.child.path) for r in deck.includes
+                       if r.child and identity(r.parent.path) in absolute
+                       and r.resolution is not None and r.resolution.rule == "including_dir"}
+        expanded = absolute | descendants
+        if expanded == absolute:
+            break
+        absolute = expanded
+    external = [str(source.path) for key, source in deck.files.items() if key in absolute]
     for key in absolute:
         if deck.files[key].modified:
-            raise ValueError(f"{deck.files[key].path} is included by absolute path and was edited; save in place")
+            raise ValueError(f"{deck.files[key].path} is included by absolute path or search path and was edited; save in place")
     reachable = {identity(deck.main.path)} | {identity(r.child.path) for r in deck.includes if r.child}
     movable = [f.path for k, f in deck.files.items() if k not in absolute and k in reachable]
-    opaque = [r.resolution.path for r in deck.includes
-              if r.kind == "opaque" and r.resolution and r.resolution.path and not Path(r.name).is_absolute()]
+    opaque = []
+    for ref in deck.includes:
+        if ref.kind != "opaque" or not ref.resolution or not ref.resolution.path:
+            continue
+        path = ref.resolution.path
+        if (Path(ref.name).is_absolute()
+                or (identity(ref.parent.path) in absolute and ref.resolution.rule == "including_dir")
+                or any(identity(directory / ref.name) == identity(path) for directory in absolute_dirs)):
+            external.append(str(path))
+        else:
+            opaque.append(path)
+    external = list(dict.fromkeys(external))
     root = Path(os.path.commonpath([str(p.parent.resolve()) for p in movable + opaque]))
     plan = {p: out_dir / p.resolve().relative_to(root) for p in movable + opaque}
     return plan, external
