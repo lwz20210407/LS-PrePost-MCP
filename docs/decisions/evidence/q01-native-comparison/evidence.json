@@ -1055,6 +1055,112 @@
       "report": "r48a-report.md",
       "report_hash_policy": "SHA256 of UTF-8 bytes with CRLF normalized to LF",
       "report_sha256": "c2791e068d687dad0d508cbf1da2d302a283fd76aef3575879042aa1708ffeb1"
+    },
+    {
+      "run_id": "r48b",
+      "actual_git_revision": "f9b980f88d7e1ec0e0043d6154e2a8d2fd17fc8b",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "test_source_identity": {
+        "kind": "git_blob_id",
+        "path": "tests/test_result_overview_native.py",
+        "value": "afc829e8db368f871aaf2eeba2bc60f59a379c7f"
+      },
+      "python_version": "3.11.15 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:12:15) [MSC v.1942 64 bit (AMD64)]",
+      "exit_status": 1,
+      "cases": [
+        {
+          "case_id": "projectile",
+          "corpus_id": "result.ansys__example-data.result_files.d3plot_projectile",
+          "input_kind": "registered_public",
+          "actual_git_revision": "f9b980f88d7e1ec0e0043d6154e2a8d2fd17fc8b",
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "native_run": true,
+          "graphics": false,
+          "executable": {
+            "name": "lsprepost4.8_x64.exe",
+            "sha256": "d908e4ed09f0941e5c01cbdaf07e7fb6fa0ff2a695333368d39b897a13851f94",
+            "version": "4.8",
+            "file_version": "4.8.0.1"
+          },
+          "source_config_sha256": "fdc43cf0f23c7778d9b938885614ccc636cec0f5ad257d6a3cd6d7853f1aacdb",
+          "source_sha256": {
+            "d3plot": "743d026b2b4e76830079dae0b5e65971a6e90db6254ff595eebca5902790e398",
+            "d3plot01": "214361a30424baf5bda8375761f9429d5f2d6311ea631ae1ea3ad68840d23193",
+            "d3plot02": "e1b0e21f310194ef8838bff62bb2b6bb8dc04112502e2c3e866898de30e42158",
+            "d3plot03": "4625cf2f448b473e680caffdf2ddadb9bb4d1c5b324a2f2990c74248bfb3d28d",
+            "d3plot04": "e7d2f8fb78b10bd1ce7c86a94f758caac12d68e27fb627763d5c3bf6c74ec95c",
+            "d3plot05": "e01f3c9d328f8c76cb21060ae4fd843842e93c0f2db3d22f1320eb2f6cc5e2dc",
+            "d3plot06": "8161152eb1db5c6954190eeb1ba2b1fbbe92d93c0460176b8c2ee2eb2b369d9e",
+            "d3plot07": "ae041e1600a98a5404bd7260ddcdac83765d00a7c742f9fec574afcba8111118",
+            "d3plot08": "3e9d2f2f9a0447453a729416358192b171d855917ad6daa15e9f1490901b4f3a",
+            "d3plot09": "d93c03430a63cd81feeaf1e5f613176562cfc5a779a456a8b5fac7733f7c3023",
+            "d3plot10": "3fcc5ef7130697b56893ca64ffff97b17215df42f647d076998fbc8a2525dc9e",
+            "d3plot11": "fdd6e41016998f67690d151036b642e68e666be8a93e1063799c6deb6a0e9aad",
+            "d3plot12": "81b4a684c827676a95230cdd63fac8c718b324b58b6e2099d8f17655c772f642",
+            "d3plot13": "6f9f85dca22c7abef1e7106df5d11cdbb15d73d0cb82983a799140e2541db7cc",
+            "d3plot14": "56c296db9c2c31d9968e02a643a79f6942592100d0051d457dfbbd4a824f0a1b",
+            "d3plot15": "13b0f52d90d1f1ee70e697a89e9812c7e72ee35ca8849d355d3f4a525c6548d2",
+            "d3plot16": "b8f351216b283edbc4739d7795c00e318a0cb3b32a5c6618aee2e182ec53dd17"
+          },
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "result_info_job_id": "f263465a62924f1bbbdfa677998477d7",
+          "native_job_id": "a4bb78ffb9ac45fc8441fc172bf5b6ad",
+          "native_process": {
+            "pid": 28032,
+            "returncode": 3221226505,
+            "timed_out": false,
+            "graphics": false,
+            "launch_mode": "c"
+          },
+          "argv_uses_nographics": true,
+          "status": "partial",
+          "checks": {
+            "lasso_overview": "passed",
+            "backends_agree": "missing"
+          },
+          "reader_backend": "lasso-python 2.0.4",
+          "states": 16,
+          "native_states": null,
+          "comparison": null,
+          "pytest_status": "failed",
+          "duration_seconds": 7.903527500000564,
+          "time_vectors": {
+            "reader_times": {
+              "count": 16,
+              "sha256": "3157b6da057b28a9e2048dfe9c91654a63166ce7b20d17a0e7f17b7d36e80242"
+            },
+            "native_times": {
+              "count": null,
+              "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+            }
+          },
+          "limitation": "Isolated Python-home override did not produce a native response; process exited with 0xC0000409. Root cause unconfirmed; 4.8 remains uncertified."
+        }
+      ],
+      "report": "r48b-report.md",
+      "report_hash_policy": "SHA256 of UTF-8 bytes with CRLF normalized to LF",
+      "configuration_override": {
+        "original_user_config_sha256": "f893500503bf771553cd2d2dddc87d935d198f57f5643d1c70aa0d38024ebe8d",
+        "private_config_sha256": "fdc43cf0f23c7778d9b938885614ccc636cec0f5ad257d6a3cd6d7853f1aacdb",
+        "source": "initialized 4.8 preferences with existing verified 4.10 Python-home setting; no package installation or global configuration writes",
+        "original_user_config_unchanged": true
+      },
+      "report_sha256": "ac1973fb75ec79344ee826c333944191e565e58a091d05777ac95120631d4c2c"
     }
   ]
 }

@@ -1256,3 +1256,11 @@ BatchEngine 和内置 Python 在作业目录运行，并非主 deck 目录。对
 MATSUM 保留续行 HG、真实存储 ID 及独立时间轴，不重采样到 GLSTAT。
 全量内容身份、全部输出变体和新增 L2 对照尚未完成；源身份仍沿用现有 fingerprint 限制。
 实现和反例见 [Q12 回归记录](decisions/evidence/q12-validity/report.md)。
+
+## Q01：4.8 本机 Python 初始化限制（2026-10-23）
+
+4.13 四例和 4.10 两例原生清点对照（均含 2001 状态）已通过。
+4.8 本机原配置的 Python-home 无效；隔离副本复用现有运行时的尝试仍无回执，
+进程退出 0xC0000409，原因未定。因此本机 4.8 原生路径仍未认证，失败未改判为通过。
+原用户配置未改，原始日志留在仓库外；身份与结果见
+[Q01 对照记录](decisions/evidence/q01-native-comparison/report.md)。
