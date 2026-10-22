@@ -421,6 +421,9 @@
 - 原始结果保存在 comparison_data，不原地修改。证据：[旧结果与门槛回归](../tests/test_legacy_outcomes.py)。本项是纯 Python 合同修复，没有新增原生通过声明。
 ## I01：批处理输入路径暂存补修
 
+**以下为历史记录。** `7d2e18b` 之前的原地只读路线及拒绝/xfail 证据保留；
+当前普通 Include 读取已改用自有规范化副本，更新结果见本节末尾。
+
 公开语料暴露了非 ASCII 源路径读取失败和 Include 相对目录丢失。独立 keyword 与 d3plot 文件族现在复用已有暂存器，使用 job 内的 ASCII 名称，并核对整个原文件族身份；已有普通 Include 的只读打开使用绝对根文件路径，但 Windows 下含 INCLUDE 的非 ASCII 根路径在创建作业前抛出明确的 `ValueError`，不启动原生进程。Include 解析能力和编辑保存仍留 I07，不实现第二套关键字引擎。
 
 - 已修：Include 打开期间 cwd 始终位于自有 job，不能切到用户源目录；离线与原生用例逐项比较源目录文件列表和字节身份。
@@ -431,6 +434,14 @@
 - 未验证：ASCII 根路径下非 ASCII 的 INCLUDE 成员名，以及非 ASCII 的 `*INCLUDE_PATH` 目录，没有原生对照；本次守卫只检查根路径，不把这些输入标为已支持或已拒绝。
 
 证据：[输入暂存回归](../tests/test_batch_input_staging.py)、[I01 路径证据](decisions/evidence/i01-staging/report.md)、[I04 两例诊断](decisions/evidence/i04-diagnostics/report.md)。
+
+2026-10-23 更新：共享预检解析后，只在自有读取副本中改写引用为唯一 ASCII 文件名，
+主文件中已验证的搜索目录改为 `.`；源文件与正式另存结构不改。4.13/4.10 各八个后台用例通过，
+含 UTF-8/GBK 中文文件名、中文作业目录、主文件搜索路径和 SCL；两版公开 35656 节点模型均读取、
+保存重开一致且原树不变，4.10 的普通 Include 保存七项也通过。Windows 原生回归现在要求实际
+成功与原目录不变，移除该路线的旧拒绝/xfail 断言。成功的自产副本按身份与哈希清理，未知或变化文件保留。
+Transform/opaque/参数化文件名、嵌套 INCLUDE_PATH_RELATIVE 仍拒绝；正式保存的搜索路径变体仍待处理。
+4.8 只补了 SCL 样例，Python 环境限制未消失。详见 [规范化副本证据](decisions/evidence/i01-keyword-snapshot/report.md)。
 
 ## I04：LASSO 结束标记后尾数据
 

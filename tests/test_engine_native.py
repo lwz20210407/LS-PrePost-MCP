@@ -156,9 +156,6 @@ def test_public_panel_actions_have_correlated_engine_evidence(native_case, pytes
 @pytest.mark.parametrize("folder", ["include source", "输入 模型"])
 def test_batch_include_read_preserves_source_directory(native_case, tmp_path, folder, request):
     service, fixture = native_case
-    if folder.isascii() and installation_version(service.settings.native_executable()) == "4.10":
-        request.node.add_marker(pytest.mark.xfail(strict=True, raises=NativeIncludeReadError,
-            reason="I01 gap: 4.10 resolves relative INCLUDE from job cwd instead of root deck directory"))
     original = tmp_path / folder
     original.mkdir()
     lines = (fixture / "input.k").read_text(encoding="utf8").splitlines()
@@ -168,31 +165,13 @@ def test_batch_include_read_preserves_source_directory(native_case, tmp_path, fo
     model.write_text("*KEYWORD\n*INCLUDE\nchild.k\n*END\n", encoding="utf8")
     before = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in original.iterdir()}
     reader = Service(Settings(tmp_path / "work", service.settings.native_executable(), (original,), timeout=60))
-    if not folder.isascii():
-        if os.name == "nt":
-            try:
-                with pytest.raises(ValueError, match="Non-ASCII.*INCLUDE"):
-                    reader.inspect_model(str(model))
-                assert not reader.jobs.root.exists(), "Path refusal must precede job creation"
-            finally:
-                after = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in original.iterdir()}
-                assert after == before, "Path refusal added or modified files in the user input directory"
-            return
-        request.node.add_marker(pytest.mark.xfail(strict=True, raises=NativeIncludeReadError,
-            reason="I01 gap: non-Windows native Unicode INCLUDE root opening remains unverified"))
     result = reader.inspect_model(str(model))
     after = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in original.iterdir()}
     assert after == before, "Native read added or modified files in the user input directory"
-    if result["status"] == "failed":
-        message = result.get("bridge_error", {}).get("message")
-        if not folder.isascii() and message == "There is no d3plot data!":
-            raise NativeIncludeReadError("Native Unicode INCLUDE root did not load; source directory unchanged")
-        log = Path(result["job_directory"]) / "lspost.msg"
-        if folder.isascii() and installation_version(service.settings.native_executable()) == "4.10" and log.is_file():
-            if "Error - Include File child.k Not open" in log.read_text(encoding="utf8", errors="replace"):
-                raise NativeIncludeReadError("Native 4.10 relative INCLUDE unresolved; source directory unchanged")
     assert result["status"] == "succeeded", result
     assert result["data"]["counts"]["nodes"] == 8
+    assert result["input_tree"]["mode"] == "normalized_readonly_snapshot"
+    assert result["input_tree"]["cleanup"]["retained"] == []
 
 
 def test_queue_session_reuses_pid_and_never_uses_win32(native_case, monkeypatch):

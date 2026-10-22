@@ -36,6 +36,20 @@ def test_keyword_crash_does_not_export_or_reclassify_empty_model(tmp_path):
     service.export_keyword.assert_not_called()
 
 
+def test_keyword_diagnostic_uses_verified_tree_save_without_a_duplicate_reopen(tmp_path):
+    service = Mock()
+    counts = {"nodes": 8, "elements": 4, "states": 1}
+    service.inspect_model.return_value = {"status": "succeeded", "data": {"counts": counts}}
+    service.save_model.return_value = {"status": "succeeded", "operation": "save_model", "data": {
+        "observations": {"after_reopen": {"status": "succeeded", "job_id": "reopen", "counts": counts,
+                                          "part_ids": [1]}}}}
+    result = diagnostic.diagnose(service, tmp_path / "model.k", "keyword", run_native=True)
+    assert result["status"] == "identical_counts_only"
+    service.save_model.assert_called_once_with(str(tmp_path / "model.k"))
+    service.inspect_model.assert_called_once()
+    service.export_keyword.assert_not_called()
+
+
 def test_offline_never_launches_native(tmp_path, monkeypatch):
     service = Mock()
     monkeypatch.setattr(diagnostic, "overview", lambda _: {"backend": "mock", "states": 1, "times": [0.0]})
@@ -70,7 +84,7 @@ def test_changed_source_and_added_files_are_detected(tmp_path):
     assert result["directory_listing_unchanged"] is False
 
 
-def test_windows_unicode_include_root_rejected_before_job_creation(tmp_path, monkeypatch):
+def test_windows_unicode_include_root_reaches_owned_snapshot_creation(tmp_path, monkeypatch):
     import importlib
 
     module = importlib.import_module("ls_prepost_mcp.service")
@@ -78,10 +92,10 @@ def test_windows_unicode_include_root_rejected_before_job_creation(tmp_path, mon
     monkeypatch.setattr(diagnostic.Settings, "native_executable", lambda _: tmp_path / "unused.exe")
     source = write_keyword_fixture(tmp_path / "中文")
     service = diagnostic.Service(diagnostic.Settings(tmp_path / "jobs", allowed_roots=(tmp_path,)))
-    service.jobs.create = Mock(side_effect=AssertionError("Created job before path refusal"))
-    with pytest.raises(ValueError, match="Non-ASCII.*INCLUDE"):
+    service.jobs.create = Mock(side_effect=RuntimeError("Admitted source reached owned job creation"))
+    with pytest.raises(RuntimeError, match="Admitted source"):
         service.inspect_model(str(source))
-    service.jobs.create.assert_not_called()
+    service.jobs.create.assert_called_once()
 
 
 @pytest.mark.parametrize("parent,include", [("ascii", True), ("中文", False)])

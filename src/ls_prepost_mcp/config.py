@@ -49,6 +49,13 @@ class Settings:
                    float(os.environ.get("LSPP_TIMEOUT", "120")), profiles, os.environ.get("LSPP_DPF_PATH"))
 
     def input_path(self, value: str, *, base: Path | None = None) -> Path:
+        return self._input_path(value, base=base, directory=False)
+
+    def input_directory(self, value: str) -> Path:
+        """A search directory subject to the same network and allowed-root rules as files."""
+        return self._input_path(value, base=None, directory=True)
+
+    def _input_path(self, value: str, *, base: Path | None, directory: bool) -> Path:
         from .domain.model.includes import is_network
 
         # Reject Windows network/device syntax before filesystem resolution, even
@@ -61,8 +68,8 @@ class Settings:
         if is_network(str(p)) or PureWindowsPath(p).is_reserved():
             raise ValueError("Network and device input paths are not supported")
         p = p.resolve(strict=True)
-        if not p.is_file():
-            raise ValueError("Input must be a regular file")
+        if not (p.is_dir() if directory else p.is_file()):
+            raise ValueError("Input must be a directory" if directory else "Input must be a regular file")
         if not any(p.is_relative_to(root) for root in (self.workspace, *self.allowed_roots)):
             raise ValueError("Input is outside the configured allowed roots")
         command_path(p)
@@ -77,6 +84,17 @@ class Settings:
     def check_keyword_includes(self, path: Path, *, native_cwd: Path | None = None,
                                max_references: int = 20000) -> None:
         """Apply native policy; bound expanded references (0 rejects any INCLUDE name)."""
+        self._keyword_report(path, native_cwd, max_references, allow_paths=False)
+
+    def native_keyword_report(self, path: Path, *, max_references: int = 20000) -> dict:
+        """Admit a complete tree for an owned normalized snapshot, including checked search dirs.
+
+        Other native callers retain the existing plain-Include policy. Snapshot callers
+        must normalize every filename/path card before handing the tree to LS-PrePost.
+        """
+        return self._keyword_report(path, None, max_references, allow_paths=True)
+
+    def _keyword_report(self, path, native_cwd, max_references, *, allow_paths):
         if isinstance(max_references, bool) or not isinstance(max_references, int) or max_references < 0:
             raise ValueError("max_references must be an integer >= 0")
         from .domain.model import preflight_includes
@@ -90,6 +108,8 @@ class Settings:
         for ref in references:
             for candidate in ref["candidates"]:
                 self.input_path(candidate)
+            if allow_paths and ref["kind"] == "path" and ref["path"] is not None:
+                self.input_directory(ref["path"])
         failure = ""
         if not report["ok"]:
             problem = next(p for p in report["problems"] if p["severity"] == "error")
@@ -101,12 +121,19 @@ class Settings:
                 problem["relative"], problem["name_line"], reason)
         details = "; " + failure if failure else ""
         for ref in references:
-            if ref["keyword"] != "*INCLUDE":
+            directory = allow_paths and ref["kind"] == "path" and ref["keyword"] in (
+                "*INCLUDE_PATH", "*INCLUDE_PATH_RELATIVE")
+            if (directory and ref["keyword"] == "*INCLUDE_PATH_RELATIVE"
+                    and Path(ref["file"]).parent != source.parent):
+                raise ValueError("Nested INCLUDE_PATH_RELATIVE semantics require separate native validation")
+            if ref["keyword"] != "*INCLUDE" and not directory:
                 raise ValueError("Only plain *INCLUDE is supported in this release: " + ref["keyword"] + details)
             if "&" in ref["name"] or "%" in ref["name"]:
                 raise ValueError("Parameterized includes require a future resolver" + details)
         if failure:
             raise ValueError(failure)
+        if allow_paths and any(p["kind"] == "ambiguous" for p in report["problems"]):
+            raise ValueError("Ambiguous INCLUDE resolution cannot be normalized for native reading")
         # A plain header with only comments is a disabled include alternative,
         # not a missing filename. Native 4.13 reads the remaining tree correctly.
         # Never extend that exception to unsupported INCLUDE variants.
@@ -124,16 +151,18 @@ class Settings:
                     checked = self.input_path(str(alternate))
                     if ref["path"] is None or checked != Path(ref["path"]).resolve():
                         raise ValueError("Native working-directory INCLUDE resolves to a different file")
+        return report
 
 
 def _check_include_layout(path):
     """Reject ignored keyword placement; filename parsing stays in shared preflight."""
     ended = False
     with path.open(encoding="latin1") as stream:
-        for raw in stream:
-            line = raw.lstrip()
+        for number, raw in enumerate(stream):
+            content = raw[3:] if number == 0 and raw.startswith("\xef\xbb\xbf") else raw
+            line = content.lstrip()
             if line.upper().startswith("*INCLUDE"):
-                if line != raw:
+                if line != content:
                     raise ValueError("INCLUDE keywords must start in the first column")
                 if ended:
                     raise ValueError("INCLUDE after *END is not supported for native loading")

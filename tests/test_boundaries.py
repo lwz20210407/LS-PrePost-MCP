@@ -109,7 +109,7 @@ def test_include_export_refused_before_any_write(tmp_path):
     child.write_text("*KEYWORD\n*END")
     model = tmp_path / "main.k"
     model.write_text("*KEYWORD\n*INCLUDE\npart.k\n*END")
-    with pytest.raises(ValueError, match="staged include"):
+    with pytest.raises(ValueError, match="include-tree"):
         Service(Settings(tmp_path, model)).export_keyword(str(model))
     assert not (tmp_path / "jobs").exists()
 

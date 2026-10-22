@@ -51,11 +51,14 @@ def parse_blocks(text: str) -> list[Block]:
     blocks: list[Block] = []
     current: list[str] = []
     kind, keyword = "preamble", None
-    for line in split_lines(text):
-        if kind != "after_end" and is_keyword(line):
+    for number, line in enumerate(split_lines(text)):
+        # Keep the BOM bytes in Block.lines, but recognize a first-line keyword
+        # so a BOM cannot conceal Include references from shared preflight.
+        header = line[3:] if number == 0 and line.startswith("\xef\xbb\xbf") else line
+        if kind != "after_end" and is_keyword(header):
             if current:
                 blocks.append(Block(current, kind, keyword))
-            keyword, current, kind = parse_keyword_line(line), [line], "keyword"
+            keyword, current, kind = parse_keyword_line(header), [line], "keyword"
             if keyword.name == "*END":
                 blocks.append(Block(current, kind, keyword))
                 current, kind, keyword = [], "after_end", None

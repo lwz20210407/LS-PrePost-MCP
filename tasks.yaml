@@ -342,8 +342,8 @@ tasks:
     existing: [export_keyword, checkpoint_gui_session, save_model]
     verification_level: L2
     gaps:
-      - save_model 已提供普通 Include 树保真另存与自动原生重开；4.13 的独立、空 Include、三文件树、编辑后保存、公开 Bolt 树与公开控制卡编辑，以及预期计数不符负例均有干净提交证据
-      - INCLUDE_PATH / INCLUDE_TRANSFORM 等变体仍被原生准入策略拒绝；Windows 非 ASCII Include 根路径仍缺，4.10 相对 Include 仍受 cwd 解析限制；4.10 本次仅验收独立模型与空 Include 子集
+      - save_model 已提供普通 Include 树保真另存与自动原生重开；4.13/4.10 的独立、空 Include、三文件树、编辑后保存、公开 Bolt 树、公开控制卡编辑及预期计数不符负例均有干净提交证据；公开 35656 节点模型两版保存重开一致
+      - 正式保真另存入口仍拒绝 INCLUDE_PATH / INCLUDE_TRANSFORM 等变体；原生读取入口支持已验证的主文件搜索路径和中文输入，不外推到所有保存变体
       - 旧 export_keyword 仍只导出独立模型；save_model 验证磁盘上的关键字树，不读取 GUI 中尚未保存的编辑；GUI 会话与 4.8 本项未复验
     evidence:
       - src/ls_prepost_mcp/model_save.py
@@ -351,6 +351,7 @@ tasks:
       - tests/test_save_model_native.py
       - tests/test_save_model_evidence.py
       - docs/decisions/evidence/p11-save/report.md
+      - docs/decisions/evidence/i01-keyword-snapshot/report.md
     acceptance:
       - 保存带 Include 的模型：结构保持（同 P02 判据）
       - 保存后自动原生重开，核对实体计数、Part 列表与预期一致，失败时返回差异
@@ -931,7 +932,7 @@ infrastructure:
       - renumber/quality 已接入 SessionEngine（面板设置与 Apply 在已登记的会话请求内执行，迟到完成须经宿主校验）；6 项面板原生回归仅在历史集成树 3939b5b 通过，本头未重跑；Model Selection 面板与曲线窗口枚举等只读路径仍直接走 Win32；五个批处理入口已读取 JobResult，外部旧清单保留兼容输出；公开 Win32 打开、检查点和重开已补原生证据
       - 原生 d3plot 输入超过 1000 文件或 2 GiB 时在启动前明确拒绝；两版原地只读回退实验均崩溃，暂不提供该回退
       - INCLUDE 引用总数上限已接入原生准入：默认 20000，按读取顺序计数，含重复子树与未解析引用；L1 启动前拒绝回归通过，不代表 I01 全项完成
-      - 从 job 目录绝对路径读取 Include 时，中文根路径在 4.13/4.10 仍失败，4.10 的相对 Include 仍从 job cwd 解析；漏读诊断已使作业失败，不得切到用户目录绕过
+      - 普通 Include 与主文件中的 INCLUDE_PATH/INCLUDE_PATH_RELATIVE 已通过自有临时副本规范化读取：4.13/4.10 各八例含 UTF-8/GBK 中文文件名、中文作业目录、SCL；公开 35656 节点模型两版均保存重开一致。参数化文件名、Transform/opaque 变体、嵌套 INCLUDE_PATH_RELATIVE 仍拒绝；4.8 本次仅 SCL 一例，不覆盖其 Python 环境
     evidence:
       - src/ls_prepost_mcp/engine/batch.py
       - src/ls_prepost_mcp/engine/session.py
@@ -955,6 +956,10 @@ infrastructure:
       - docs/decisions/evidence/i01-reference-budget/report.md
       - docs/decisions/evidence/i01-host-preparation/report.md
       - tests/test_sessions_workflows.py
+      - src/ls_prepost_mcp/keyword_staging.py
+      - tests/test_keyword_native_snapshot.py
+      - tests/test_keyword_native_snapshot_native.py
+      - docs/decisions/evidence/i01-keyword-snapshot/report.md
     acceptance:
       - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
       - 删除 gui_session_action 中运行时替换 _native 的做法
@@ -1029,7 +1034,7 @@ infrastructure:
       - tests/test_native_remote.py
       - tests/test_native_input_preconditions.py
     gaps:
-      - 两例公开失败已定向诊断：extra-keyword-064 的 Windows 非 ASCII INCLUDE 根路径启动前拒绝，原路径支持仍缺；extra-result-03 的 EOF 异常时间已由共享时间轴准入拒绝，完整/元数据/state_filter 前置路径一致；未删状态或改源文件，上游边界解析及有限有序尾数据检测仍缺
+      - extra-keyword-064 的历史非 ASCII INCLUDE 拒绝已由自有规范化副本路线补齐：4.13/4.10 读取、保存重开均为 35656 节点/30420 单元且原树不变。extra-result-03 的 EOF 异常时间仍由共享时间轴准入拒绝，完整/元数据/state_filter 前置路径一致；未删状态或改源文件，上游边界解析及有限有序尾数据检测仍缺
       - 当前 55 个 tools/run_* 入口已全部收编为 57 个 pytest 用例（保留原生/文件及 batch/GUI 变体）；CLI 参数发现已逐一验证。
       - '三个文件验收和 program_acceptance 批处理已有证据；集成工作副本累计 53 个 GUI 用例通过，包含待审 A02 修复，不作为 PR #5 头全量验证；13 个 UU 格等待用户断开'
       - 公开抽样 126 例中新增 100 例的历史 c991f9d 为 16 passed / 84 failed（dirty、缺 diff 哈希）；普通路径修复后干净 53f6072 使用 4.13 重跑为 16 passed / 45 failed / 39 输入限制 evidence_only，100 份树指纹及文件清单核对齐全；19303f7 的 50 限制含 11 个路径误判，历史保留并勘误，仍缺导出、变体、崩溃及读取器差异处理
