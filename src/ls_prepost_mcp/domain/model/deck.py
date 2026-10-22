@@ -74,10 +74,13 @@ class KeywordDeck:
         accessed (used by :func:`preflight.preflight_includes` for untrusted decks).
         ``max_references`` (None: no limit) bounds ``reference_count``, counted as described in
         :func:`tree.walk`; past it loading raises :class:`tree.ReferenceLimit`, or with
-        ``record_unreadable`` records a ``reference_limit`` reference and stops reading.
+        ``record_unreadable`` records a ``reference_limit`` reference and stops reading. An invalid
+        ``max_references`` (negative, bool, not an integer) raises ValueError before ``path`` is
+        handed to the access guard or read.
         """
+        budget = tree.reference_budget(max_references)
         return cls(SourceFile.read(Path(path)), [Path(p) for p in include_paths], max_files, record_unreadable,
-                   max_references=max_references)
+                   max_references=budget)
 
     # ------------------------------------------------------------------ structure
     def _rebuild(self) -> None:
