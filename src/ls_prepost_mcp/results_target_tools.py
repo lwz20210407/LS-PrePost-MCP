@@ -1,6 +1,6 @@
 """M2 result-reading target tools, returning JobResult/v1 over the shared ``domain.results`` backends.
 
-``extract_database`` (tasks.yaml Q06) reads one component of a binout database (GLSTAT, MATSUM,
+``extract_database`` (tasks.yaml Q06) reads named ASCII RCFORC/SECFORC or a binout database (GLSTAT, MATSUM,
 RCFORC, SECFORC, NODOUT, ELOUT, SLEOUT, NODFOR, SPCFORC, RBDOUT, NCFORC, DEFORC and the other
 LSDA families) by its stored column name, merged across every MPP shard beside the input. The
 reading and the merge rules live in :mod:`domain.results.lasso_backend` and
@@ -36,7 +36,7 @@ class ResultsTargetTools:
     def extract_database(self, path: str, database: str, component: str, units: str,
                          branch: str | None = None, shard: str | None = None,
                          entity_ids: list[int] | None = None, time_units: str = "time") -> dict:
-        """Q06: read one binout database component by its stored column name across all MPP shards.
+        """Q06: read a named binout component across MPP shards, or one explicit ASCII rcforc/secforc.
 
         ``path`` is one binout file (``binout`` or ``binout0000``); the other shards beside it are
         read and merged with the documented rules (united time samples where the stored entities
@@ -45,14 +45,18 @@ class ResultsTargetTools:
         nested level (``shell``, ``velocity/nodes``); ``component`` is the stored column name, not a
         UI number. ``entity_ids`` keeps only those stored IDs. ``shard`` reads a single named file.
         The CSV holds the time column and the component under its own name; ``units`` / ``time_units``
-        are declarations and nothing is converted. No LS-PrePost."""
+        are declarations and nothing is converted. ASCII input must be named rcforc/secforc and
+        match database; branch/shard are not applicable. Text components: x_force/y_force/z_force,
+        x_moment/y_moment/z_moment; rcforc also mass, secforc also force_magnitude/moment_magnitude,
+        x_centroid/y_centroid/z_centroid/area. Written sides and coordinate-system IDs are retained;
+        no frame transform, missing-value fill or interpolation. No LS-PrePost."""
         try:
             parameters = self._database_parameters(database, component, units, branch, shard, entity_ids, time_units)
         except ValueError as error:
             return _result("failed", {"database": database, "component": component, "backend": BACKEND},
                            error=_error(error))
         try:
-            source = self._database_source(path)
+            source = self._database_source(path, parameters)
         except (ValueError, OSError) as error:
             return _result("failed", {"database": database, "component": component, "backend": BACKEND},
                            error=_error(error))
@@ -61,21 +65,31 @@ class ResultsTargetTools:
             result = self._read_database(directory, source, parameters)
         except (ValueError, KeyError, TypeError, OSError, IndexError, EOFError, struct.error) as error:
             result = _result("failed", {"database": database, "branch": branch, "component": component,
-                                        "backend": BACKEND}, job_id=manifest["job_id"], error=_error(error))
+                                        "backend": "ls-dyna-ascii" if source.name in ("rcforc", "secforc")
+                                        else BACKEND}, job_id=manifest["job_id"], error=_error(error))
         atomic_json(directory / "job.json", {**manifest, "status": result["status"], "result": result})
         return result
 
-    def _database_source(self, path: str) -> Path:
-        """The confined binout entry. Only ``binout`` / ``binoutNNNN`` files are accepted (an ASCII
-        ``glstat`` beside a binout must not be swapped for it silently), and every shard and size
-        continuation beside it passes the same allowed-root check, so a linked shard cannot pull
-        data from outside the configured roots."""
+    def _database_source(self, path: str, parameters: dict | None = None) -> Path:
+        """Confine the explicit entry: ASCII rcforc/secforc or a standard binout family.
+
+        Every binary shard/continuation passes the same allowed-root check. ASCII never
+        opens companions or silently substitutes a sibling binout for the requested file.
+        """
         from .domain.results.mpp_shards import SHARD, lasso_reads, shards
 
         source = self.settings.input_path(path)
+        if source.name in ("rcforc", "secforc"):
+            if parameters is None:
+                raise ValueError("ASCII force input requires explicit extract_database parameters")
+            if source.name != parameters["database"]:
+                raise ValueError("ASCII filename must match the requested database")
+            if parameters["branch"] is not None or parameters["shard"] is not None:
+                raise ValueError("ASCII force files do not accept binout branch or shard selection")
+            return source
         if not SHARD.fullmatch(source.name):
             raise ValueError("extract_database reads binout files (binout or binoutNNNN); ASCII "
-                             f"databases are not supported by this tool: {source.name}")
+                             f"input is limited to rcforc/secforc: {source.name}")
         for shard in shards(source):
             for file in lasso_reads(shard):
                 self.settings.input_path(str(file))
@@ -109,8 +123,13 @@ class ResultsTargetTools:
     def _read_database(self, directory: Path, source: Path, parameters: dict) -> dict:
         from .domain.results.lasso_backend import binout_curves
 
-        curve = binout_curves(source, parameters["database"], parameters["component"],
-                              parameters["branch"], parameters["shard"])
+        if source.name in ("rcforc", "secforc"):
+            from .domain.results.ascii_forces import read
+
+            curve = read(source, parameters["database"], parameters["component"])
+        else:
+            curve = binout_curves(source, parameters["database"], parameters["component"],
+                                  parameters["branch"], parameters["shard"])
         times = curve["time"]
         ids = curve["ids"]
         values = curve["values"]
@@ -147,9 +166,12 @@ class ResultsTargetTools:
                 "column_key": headers[1:-1], "entity_metadata": curve["entity_metadata"], "shards": curve["shards"],
                 "repeated_times_dropped": curve["repeated_times_dropped"], "state_count": len(times),
                 "entity_count": 0 if ids is None else len(columns), "row_count": row_count,
-                "merge": "per-shard read; time samples united where the stored entities match"}
+                "merge": curve.get("merge", "per-shard read; time samples united where the stored entities match")}
+        if "source_format" in curve:
+            data["source_format"] = curve["source_format"]
         return _result("succeeded", data, job_id=directory.name, artifacts=(artifact,),
-                       scope="binout read and MPP-shard-merged in the model's own units; no conversion")
+                       warnings=tuple(curve.get("warnings", [])),
+                       scope="explicit result database in the model's own units; no conversion")
 
     @staticmethod
     def _columns(ids: list[int] | None, values: list, entity_ids: list[int] | None, component: str,
@@ -173,10 +195,10 @@ class ResultsTargetTools:
                              "inspect the branch before extraction")
         stored = [int(i) for i in ids]
         side = metadata.get("side")
-        if len(set(stored)) == len(stored):
-            key, tags = [], [()] * len(stored)
-        elif isinstance(side, list) and len(side) == len(stored) and                 len(set(zip(stored, side))) == len(stored):
+        if isinstance(side, list) and len(side) == len(stored) and len(set(zip(stored, side))) == len(stored):
             key, tags = ["side"], [(int(s),) for s in side]
+        elif len(set(stored)) == len(stored):
+            key, tags = [], [()] * len(stored)
         else:
             key, tags = ["column"], [(index,) for index in range(len(stored))]
         if entity_ids is None:
