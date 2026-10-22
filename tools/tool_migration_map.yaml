@@ -553,6 +553,12 @@ tools:
     target: query_entities
     task_id: G03
     legacy_until: v0.6
+  save_model:
+    target: save_model
+    task_id: P11
+    legacy_until: null
+    note: P11 keyword-engine tree copy and automatic headless native reopen; returns
+      JobResult/v1
   search_commands:
     target: command_help
     task_id: A10
