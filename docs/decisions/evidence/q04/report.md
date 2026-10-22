@@ -24,6 +24,7 @@
 - 部件筛选：共享 `lasso_backend.field` 新增 `part_ids`（按 `part_ids`，文件只有标题时按 `part_titles_ids` 解析）；未知部件、部件中没有该族单元时明确失败。测试：`test_backend_field_selects_parts_by_user_id`、`test_part_filter_story_target_plate`、`test_part_filter_refusals`。
 - 为此修改了 Claude 负责的共享实现：`lasso_backend`（`field` 的 `part_ids` 与越界拒绝、新增 `state_times`）、`export`（有筛选时元数据写 `part_ids`）、`invariants.CONVENTIONS`（补主应力、最大剪应力、平均应力定义，P2-82a）。
 - 第二轮（Codex 审阅 797105c）：结果行和 CSV/NPZ 行按所选掩码筛选（默认 alive 不再输出已删除单元），`data.mask_policy` 与工件元数据 `mask_policy` 写明掩码规则、单元总数、输出行数和被排除数（`test_rows_and_artifacts_follow_mask`）；每个量的公式写明取值范围与正负号含义（Lode 参数按 Lode 1926 定义，-1 单轴拉伸、+1 单轴压缩或等双轴拉伸；Lode 角与 Lode 角参数按 Bai-Wierzbicki 2008 定义，二者在这些状态下与 Lode 参数符号相反），共享 `export` 把 `formula` 和完整 `conventions` 写进 CSV/NPZ 元数据（`test_formula_and_sign_conventions_in_result_and_artifacts`）。
+- 第三轮（Codex 复审 730a497）：d3plot 未存删除数据时不再把全部单元当作 alive。mask=alive / deleted 在建作业前拒绝，错误信息说明 d3plot 未存删除数据（共享 lasso_backend.field 同样拒绝）；mask=all 照常可用，data.alive 为 null，mask_policy 与工件元数据 deletion_status 写明删除状态未知（test_missing_deletion_data_refuses_masks_that_need_it）。零行结果（如第一状态 + mask=deleted）的 CSV/NPZ 可以读回，共享 export.read_field 处理空表（test_zero_row_export_round_trip）。Q04 的掩码验收针对存有删除数据的结果；三份公开语料都存有删除数据，故事场景据此成立，状态保持 done。
 - 壳和多积分点单元先对存储点/层求平均再计算不变量（工具说明已注明，P2-82c）。
 
 ## 3. 实现与边界说明
@@ -35,7 +36,7 @@
 - 在真实语料库 `order_d3plot`（壳单元）与 `d3plot_projectile`（穿靶实体与失效单元删除）上完成冒烟验证。
 
 ## 4. 本地测试与工具检查
-- 修复后（2026-10-22，lspp-py311）：`LSPP_CORPUS_DIR=<公开语料根> pytest tests/test_field_metrics.py` 36 passed；不设该变量 34 passed、2 skipped
+- 修复后（2026-10-22，lspp-py311）：`LSPP_CORPUS_DIR=<公开语料根> pytest tests/test_field_metrics.py` 38 passed；不设该变量 36 passed、2 skipped
 - 修复后语料核对：新工具与直接调用共享 `lasso_backend.field` 逐单元比较（d3plot_projectile 实体、lsdyna_bird_strike 壳；5 个量；状态 1、末状态、-1；有/无部件筛选），max|diff| = 0，NaN 位置与极值 ID/值一致
 - 以下为原作者修复前的记录：
 - `pytest tests/test_field_metrics.py`: 9 passed

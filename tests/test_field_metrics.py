@@ -83,7 +83,7 @@ def independent_stress_metrics(s: np.ndarray) -> dict[str, float]:
     }
 
 
-def write_synthetic(plot_path: Path, part_key: ArrayType = ArrayType.part_titles_ids) -> Path:
+def write_synthetic(plot_path: Path, part_key: ArrayType = ArrayType.part_titles_ids, deletion: bool = True) -> Path:
     """Synthetic d3plot with solids and shells across 3 states with deletions and sparse part IDs."""
     plot = D3plot()
     a = plot.arrays
@@ -131,8 +131,9 @@ def write_synthetic(plot_path: Path, part_key: ArrayType = ArrayType.part_titles
 
     # Deletions: solid 20 and shell 102 are deleted at the last state
     deleted_last = np.array([[1, 1, 1, 1], [1, 1, 1, 1], [1, 0, 1, 1]], dtype=float)
-    a[ArrayType.element_solid_is_alive] = deleted_last
-    a[ArrayType.element_shell_is_alive] = deleted_last.copy()
+    if deletion:  # deletion=False writes a d3plot without element deletion data
+        a[ArrayType.element_solid_is_alive] = deleted_last
+        a[ArrayType.element_shell_is_alive] = deleted_last.copy()
 
     plot.write_d3plot(str(plot_path))
     return plot_path
@@ -460,6 +461,43 @@ def test_rows_and_artifacts_follow_mask(service: Service, synthetic_d3plot: Path
         assert back["ids"].tolist() == rows
         assert back["meta"]["rows"] == len(rows)
         assert back["meta"]["mask_policy"] == data["mask_policy"]
+
+
+def test_missing_deletion_data_refuses_masks_that_need_it(tmp_path: Path) -> None:
+    """Codex P1 (730a497): without stored deletion flags the elements are not assumed alive. mask alive /
+    deleted are refused before a job; mask all works and reports the deletion status as unknown."""
+    folder = tmp_path / "nodel"
+    folder.mkdir()
+    path = write_synthetic(folder / "d3plot", deletion=False)
+    service = Service(Settings(tmp_path / "work", allowed_roots=(folder,)))
+    for mask in ("alive", "deleted"):
+        with pytest.raises(ValueError, match="deletion data"):
+            service.extract_field(str(path), "solid", "von_mises", mask=mask)
+        with pytest.raises(lb.ResultsError, match="no element deletion data"):
+            lb.field(path, "solid", "von_mises", mask=mask)
+    assert service.jobs.list() == []
+    res = service.extract_field(str(path), "solid", "von_mises", mask="all", output_format="both")
+    assert res["status"] == "succeeded"
+    data = res["data"]
+    assert data["ids"] == [10, 20, 30, 40] and data["alive"] is None
+    assert data["mask_policy"]["deletion_status"].startswith("unknown")
+    for artifact in res["artifacts"]:
+        meta = exp.read_field(artifact["path"])["meta"]
+        assert meta["deletion_status"].startswith("unknown")
+    assert lb.field(path, "solid", "von_mises", mask="all")["deletion_data"] is False
+
+
+def test_zero_row_export_round_trip(service: Service, synthetic_d3plot: Path) -> None:
+    """Codex P2 (730a497): a zero-row result (first state, mask deleted) round-trips through CSV and NPZ."""
+    res = service.extract_field(str(synthetic_d3plot), "solid", "von_mises", state=1, mask="deleted",
+                                output_format="both")
+    assert res["status"] == "succeeded"
+    assert res["data"]["row_count"] == 0 and res["data"]["ids"] == [] and res["data"]["extrema"]["count"] == 0
+    assert len(res["artifacts"]) == 2
+    for artifact in res["artifacts"]:
+        back = exp.read_field(artifact["path"])
+        assert back["ids"].size == back["values"].size == back["alive"].size == 0
+        assert back["meta"]["rows"] == 0 and back["meta"]["mask_policy"]["excluded"] == 4
 
 
 def test_fastmcp_tool_registration(synthetic_d3plot: Path, tmp_path: Path) -> None:

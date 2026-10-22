@@ -254,7 +254,11 @@ def field(path: str | Path, family: str, quantity: str, state: int = -1, mask: s
     ids = np.asarray(arrays[FAMILIES[family][0]]).reshape(-1)
     row = np.asarray(values[state_index])
     alive_key = FAMILIES[family][1]
-    alive = np.asarray(arrays[alive_key])[state_index] != 0 if alive_key in arrays else np.ones(ids.size, bool)
+    deletion_data = alive_key in arrays
+    if not deletion_data and mask != "all":
+        raise ResultsError(f"This d3plot stores no element deletion data for {family} elements, so mask={mask} "
+                           "cannot be applied (deletion status unknown); use mask=all")
+    alive = np.asarray(arrays[alive_key])[state_index] != 0 if deletion_data else np.ones(ids.size, bool)
     parts = None
     if part_ids is not None:
         parts = [int(p) for p in part_ids]
@@ -263,7 +267,8 @@ def field(path: str | Path, family: str, quantity: str, state: int = -1, mask: s
     selection = inv.masked(alive, mask)
     return {"backend": backend(), "family": family, "quantity": quantity, "state": state_index,
             "time": float(times[state_index]), "ids": ids, "values": row, "alive": alive,
-            "mask": mask, "part_ids": parts, "extrema": inv.extrema(row, ids, selection), "note": note}
+            "mask": mask, "part_ids": parts, "extrema": inv.extrema(row, ids, selection), "note": note,
+            "deletion_data": deletion_data}
 
 
 def binout_curves(path: str | Path, database: str, component: str, branch: str | None = None,

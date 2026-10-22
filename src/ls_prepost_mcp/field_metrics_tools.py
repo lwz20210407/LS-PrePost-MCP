@@ -108,6 +108,7 @@ class FieldMetricsTools:
         part_ids (user part IDs) restricts the elements and extrema to those parts, e.g. the target plate.
         Mask options: 'alive' (default), 'all', 'deleted'.
         Returned ids/values and CSV/NPZ rows follow the mask; data.mask_policy gives the excluded count.
+        Without stored deletion data, mask alive/deleted is refused and mask all reports the deletion status unknown.
         Elements with several stored integration points / shell layers are averaged over them before the
         invariants are computed (shells: through-thickness mean; see data.note).
         Returns JobResult/v1 with extrema (element ID and 1-based state), formula conventions, and CSV/NPZ artifacts.
@@ -145,8 +146,12 @@ class FieldMetricsTools:
 
         try:
             state_count = int(lb.state_times(source).size)
+            deletion_stored = bool(lb.header(source)["deletion_data_stored"])
         except Exception:  # unreadable file: the job below reads it again and records the error
-            state_count = None
+            state_count, deletion_stored = None, None
+        if deletion_stored is False and norm_mask != "all":
+            raise ValueError(f"mask={norm_mask} needs element deletion data, but this d3plot stores none "
+                             "(deletion status unknown); use mask=all")
         if state_count is not None and state_number > state_count:
             raise ValueError(f"State {state_number} is out of range; this d3plot has states 1..{state_count}")
         if state_count is not None and state_count == 0:
@@ -191,7 +196,9 @@ class FieldMetricsTools:
             keep = inv.masked(alive_all, norm_mask)  # rows follow the selected mask, not just the extrema
             element_count = int(alive_all.size)
             mask_policy = {"mode": norm_mask, "rule": inv.MASKS[norm_mask], "elements": element_count,
-                           "rows": int(keep.sum()), "excluded": int(element_count - keep.sum())}
+                           "rows": int(keep.sum()), "excluded": int(element_count - keep.sum()),
+                           "deletion_status": "stored" if raw.get("deletion_data", True) else
+                           "unknown: the d3plot stores no element deletion data"}
             raw = {**raw, "state": state_out, "extrema": extrema, "mask_policy": mask_policy,
                    "ids": np.asarray(raw["ids"]).reshape(-1)[keep],
                    "values": np.asarray(raw["values"], dtype=float).reshape(-1)[keep], "alive": alive_all[keep]}
@@ -249,7 +256,8 @@ class FieldMetricsTools:
                 "extrema": extrema,
                 "ids": [int(i) for i in np.asarray(raw["ids"]).reshape(-1)],
                 "values": [float(v) if math.isfinite(v) else "nan" for v in np.asarray(raw["values"], dtype=float).reshape(-1)],
-                "alive": [bool(a) for a in np.asarray(raw["alive"], dtype=bool).reshape(-1)],
+                "alive": [bool(a) for a in np.asarray(raw["alive"], dtype=bool).reshape(-1)]
+                if mask_policy["deletion_status"] == "stored" else None,
             }
 
             after_fp = fingerprint(source)
