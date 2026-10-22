@@ -99,11 +99,11 @@ def write_dependencies(directory, captured):
             stream.write(content)
 
 
-def validate_script_references(content, language, captured):
+def validate_script_references(content, language, captured, *, filename_executable=None):
     """Check literal native script loads; Python imports/SCL semantics are not inferred."""
     entry = "program." + {"command":"cfile", "cfile":"cfile", "scl":"scl", "python":"py"}[language]
     files = {entry: content, **{item["name"]:data for item, data in captured}}
-    expression = re.compile(r'^\s*((?:open|openc)\s+command|runpython|runscript)\s+(?:"([^"]+)"|([^;\s]+))', re.I)
+    expression = re.compile(r'^\s*((?:open|openc)\s+command|runpython|runscript|import\s+keyword|open\s+xydata)\s+(?:"([^"]+)"|([^;\s]+))', re.I)
     graph = {name:[] for name in files}
     pending = [entry] if language in ("command", "cfile") else []
     parsed = set()
@@ -131,6 +131,17 @@ def validate_script_references(content, language, captured):
                 if not match:
                     continue
                 target = (match[2] or match[3]).replace("\\", "/")
+                operation = " ".join(match[1].lower().split())
+                if operation in ("import keyword", "open xydata", "runscript") and filename_executable is not None:
+                    # Absolute reader paths and embedded Python/SCL contents are
+                    # outside this relative filename policy. Do not infer a
+                    # reader from a dependency extension or rewrite user code.
+                    if not PurePosixPath(target).is_absolute() and not re.match(r"^[A-Za-z]:", target):
+                        from .native.versions import require_bundle_filename
+
+                        require_bundle_filename(operation, target, filename_executable)
+                if operation in ("import keyword", "open xydata"):
+                    continue
                 relative_name(target)
                 if target not in files:
                     raise ValueError("Native script reference is not declared in the bundle: " + target)
