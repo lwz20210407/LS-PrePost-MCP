@@ -75,7 +75,7 @@ def search_docs(query: str, category: str | None = None, limit: int = 10, includ
 def _reference_evidence(results):
     """Use the same attribution rules for text search and structured field lookup."""
     for row in results:
-        row["query_expansion"]=[]
+        row.setdefault("query_expansion",[])
         row["evidence_level"]="source_example" if row["category"] in ("command","recipe") else "documented"
         row["evidence_scope"]="Reference content; not an execution result"
         recipe=row.get("recipe_verification",{})

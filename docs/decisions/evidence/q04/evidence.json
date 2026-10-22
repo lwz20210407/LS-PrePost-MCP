@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "task": "Q04",
+  "developer": "antigravity",
+  "ao_harness": "agy",
+  "ao_session": "ls-prepost-mcp-agy-3",
+  "branch": "antigravity/Q04-field-metrics",
+  "dispatch_pr": 79,
+  "status": "done",
+  "verification_level": "L1",
+  "target_tool": "extract_field",
+  "summary": "Q04 工程量与失效掩码（extract_field）实现与验证记录",
+  "acceptance_criteria": [
+    {
+      "criterion": "Mises、主应力、三轴度、Lode 参数、Lode 角、等效塑性应变在实体与壳上与独立计算一致",
+      "status": "passed",
+      "evidence": "tests/test_field_metrics.py::test_independent_calculation_match_solids, tests/test_field_metrics.py::test_independent_calculation_match_shells, tests/test_field_metrics.py::test_corpus_story_target_plate_maximum, tests/test_field_metrics.py::test_corpus_shells_match_independent_calculation"
+    },
+    {
+      "criterion": "公式定义（尤其 Lode 的符号约定）写进结果元数据",
+      "status": "passed",
+      "evidence": "tests/test_field_metrics.py::test_metadata_and_lode_conventions, tests/test_field_metrics.py::test_formula_and_sign_conventions_in_result_and_artifacts"
+    },
+    {
+      "criterion": "掩码策略 alive / all / deleted 可选；极值附带实体 ID 与状态",
+      "status": "passed",
+      "evidence": "tests/test_field_metrics.py::test_mask_modes_and_extrema_with_id_and_state, tests/test_field_metrics.py::test_rows_and_artifacts_follow_mask"
+    },
+    {
+      "criterion": "故事：靶板所有单元的三轴度和 Lode 参数，排除已删除单元，找出最大值所在单元",
+      "status": "passed",
+      "evidence": "tests/test_field_metrics.py::test_part_filter_story_target_plate, tests/test_field_metrics.py::test_corpus_story_target_plate_maximum"
+    }
+  ],
+  "verified_quantities": [
+    "von_mises",
+    "mean_stress",
+    "pressure",
+    "principal_1",
+    "principal_2",
+    "principal_3",
+    "max_shear",
+    "triaxiality",
+    "lode_parameter",
+    "lode_angle_rad",
+    "lode_angle_parameter",
+    "effective_plastic_strain"
+  ],
+  "verified_families": [
+    "solid",
+    "shell"
+  ],
+  "verified_masks": [
+    "alive",
+    "all",
+    "deleted"
+  ],
+  "corpus_cases": [
+    {
+      "corpus_id": "result.ansys__example-data.result_files.d3plot_projectile",
+      "file": "d3plot",
+      "family": "solid",
+      "elements": 5664,
+      "target_plate_part": 2,
+      "target_plate_elements": 3800,
+      "state": 16,
+      "target_plate_max_triaxiality": {
+        "id": 2840,
+        "value": 1.6415
+      },
+      "whole_model_max_triaxiality_id": 1681,
+      "verified_test": "tests/test_field_metrics.py::test_corpus_story_target_plate_maximum"
+    },
+    {
+      "corpus_id": "shell_d3plot",
+      "family": "shell",
+      "elements": 16,
+      "verified_test": "tests/test_field_metrics.py::test_corpus_shells_match_independent_calculation"
+    }
+  ],
+  "pytest_summary": {
+    "test_file": "tests/test_field_metrics.py",
+    "with_corpus": "38 passed",
+    "without_corpus": "36 passed, 2 skipped",
+    "date": "2026-10-22"
+  },
+  "review_fixes": {
+    "review": "PR #82 Claude review P1-82a/b/c",
+    "fixed_by": "claude",
+    "date": "2026-10-22",
+    "state_convention": "1-based state number; -1 or 'last' is the last state; 0, >n, other negatives, bools and other strings refused before a job is created (no wrapping)",
+    "part_filter": "part_ids (user part IDs, resolved via part_ids or part_titles_ids) in shared lasso_backend.field; unknown part or part without elements of the family fails explicitly",
+    "shared_changes": [
+      "domain/results/lasso_backend.py: field(part_ids, refuse out-of-range state), state_times",
+      "domain/results/export.py: part_ids in metadata when filtered",
+      "domain/results/invariants.py: CONVENTIONS for principal_1..3, max_shear, mean_stress"
+    ],
+    "tests": [
+      "tests/test_field_metrics.py::test_state_is_one_based",
+      "tests/test_field_metrics.py::test_state_out_of_range_refused_before_job",
+      "tests/test_field_metrics.py::test_backend_field_refuses_out_of_range_state",
+      "tests/test_field_metrics.py::test_backend_field_selects_parts_by_user_id",
+      "tests/test_field_metrics.py::test_part_filter_story_target_plate",
+      "tests/test_field_metrics.py::test_part_filter_refusals",
+      "tests/test_field_metrics.py::test_mcp_layer_does_not_coerce_state_or_part_ids"
+    ]
+  },
+  "corpus_root_env": "LSPP_CORPUS_DIR",
+  "review_fixes_round2": {
+    "review": "PR #82 Codex review of 797105c (P1-a mask rows, P1-b formula metadata)",
+    "fixed_by": "claude",
+    "date": "2026-10-22",
+    "mask_rows": "returned ids/values/alive and CSV/NPZ rows follow the selected mask; mask_policy records rule, elements, rows, excluded",
+    "formula_metadata": "invariants.definition and CONVENTIONS give formula, range and sign meaning (Lode 1926 parameter; Bai-Wierzbicki 2008 Lode angle and parameter); export writes formula and conventions into CSV/NPZ metadata",
+    "tests": [
+      "tests/test_field_metrics.py::test_rows_and_artifacts_follow_mask",
+      "tests/test_field_metrics.py::test_formula_and_sign_conventions_in_result_and_artifacts"
+    ]
+  },
+  "review_fixes_round3": {
+    "review": "PR #82 Codex review of 730a497 (P1 missing deletion data, P2 zero-row read)",
+    "fixed_by": "claude",
+    "date": "2026-10-22",
+    "missing_deletion_data": "mask alive/deleted refused before a job when the d3plot stores no element deletion data; mask all reports deletion_status unknown and alive null",
+    "zero_rows": "export.read_field returns empty arrays for a zero-row CSV",
+    "tests": [
+      "tests/test_field_metrics.py::test_missing_deletion_data_refuses_masks_that_need_it",
+      "tests/test_field_metrics.py::test_zero_row_export_round_trip"
+    ]
+  }
+}

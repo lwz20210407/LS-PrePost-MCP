@@ -15,6 +15,7 @@ from .dpf_tools import DpfTools
 from .energy_tools import EnergyTools
 from .engine.context import NativeContext
 from .engineering import EngineeringTools
+from .field_metrics_tools import FieldMetricsTools
 from .fringe_presentation import averaging_command
 from .gui_boundaries import GuiBoundaryTools
 from .gui_common import GuiCommonTools
@@ -57,7 +58,7 @@ def _windows():
     return os.name == "nt"
 
 
-class Service(EnergyTools, RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, ModelTargetTools, ResultsTargetTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools, ViewTools):
+class Service(EnergyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTools, PreTools, KeywordTools, ModelTargetTools, ResultsTargetTools, SessionTools, InstallationTools, MeshTools, EngineeringTools, WorkflowTools, WorkflowSweepTools, GuiControls, ProgramTools, GuiMeshTools, GuiSelectionTools, GuiRenumberTools, GuiQualityTools, GuiMediaTools, DpfTools, GuiCommonTools, GuiVisibilityTools, GuiEntityTools, GuiSegmentTools, GuiBoundaryTools, GuiMotionTools, GuiNodalLoadTools, ViewTools):
     def __init__(self, settings: Settings):
         self.settings = settings
         self.jobs = Jobs(settings.workspace)
