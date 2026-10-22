@@ -160,3 +160,21 @@ def test_empty_unsupported_variant_still_fails(tmp_path):
     main.write_text("*KEYWORD\n*INCLUDE_BINARY\n$disabled alternative\n*END\n", encoding="utf-8")
     with pytest.raises(ValueError, match="Only plain|preflight failed"):
         Settings(tmp_path).check_keyword_includes(main)
+
+
+def test_include_outside_roots_is_not_opened_even_for_preflight(tmp_path, monkeypatch):
+    svc, main, calls = service(tmp_path, monkeypatch)
+    outside = tmp_path / "external.k"
+    outside.write_bytes(b"external contents must not be inspected")
+    main.write_text("*KEYWORD\n*INCLUDE\n../external.k\n*END\n", encoding="utf-8")
+    original = Path.open
+
+    def guarded(path, *args, **kwargs):
+        if path.resolve() == outside:
+            pytest.fail("Preflight opened an input outside allowed roots")
+        return original(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", guarded)
+    result = invoke(svc, main)
+    assert result.status == "failed" and "outside" in result.error["message"].lower()
+    assert not calls and result.job_id is None

@@ -77,7 +77,8 @@ def save_model(service, model, expected_counts=None, expected_part_ids=None):
     try:
         _expectations(expected_counts, expected_part_ids)
         source = service._input(model)
-        service.settings.check_keyword_includes(source)
+        with service._guard():
+            service.settings.check_keyword_includes(source)
         directory, manifest = service.jobs.create("save_model", {"model": str(source),
             "expected_counts": expected_counts, "expected_part_ids": expected_part_ids})
         with service._guard():

@@ -44,7 +44,7 @@ def installation(pytestconfig):
     assert sha(executable) == binary_sha and sha(config) == config_sha
 
 
-@pytest.mark.parametrize("case", ["standalone", "empty", "include", "edited", "public-include", "public-edited"])
+@pytest.mark.parametrize("case", ["standalone", "empty", "include", "edited", "public-include", "public-edited", "mismatch"])
 def test_native_save_and_reopen(installation, pytestconfig, record_property, case):
     executable, binary, config_sha = installation
     root = pytestconfig._native_root / case
@@ -81,7 +81,8 @@ def test_native_save_and_reopen(installation, pytestconfig, record_property, cas
         assert len(modified_files) == 1
         if case == "edited":
             assert "200" in (main.parent / "mesh.k").read_text()
-    result = JobResult.model_validate(service.save_model(str(main)))
+    result = JobResult.model_validate(service.save_model(str(main), **(
+        {"expected_counts": {"nodes": 5, "elements": 1}} if case == "mismatch" else {})))
     jobs = []
     for phase, item in result.data.get("observations", {}).items():
         job = service.jobs.get(item["job_id"])
@@ -101,9 +102,14 @@ def test_native_save_and_reopen(installation, pytestconfig, record_property, cas
              "modified_files_before_save": modified_files,
              "source_tree_sha256": original_tree["tree_sha256"],
              "artifact_sha256": [a.sha256 for a in result.artifacts]}
+    proof["expected_result"] = "failed" if case == "mismatch" else "succeeded"
     output = root / "verified.json"
     output.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     record_property("evidence", str(output))
+    if case == "mismatch":
+        assert result.status == "failed" and result.data["differences"] and not result.artifacts
+        assert len(jobs) == 1 and jobs[0]["status"] == "succeeded" and proof["original_tree_unchanged"]
+        return
     assert result.status == "succeeded", result.error
     assert result.check_status == "passed" and proof["original_main_unchanged"] and proof["original_tree_unchanged"]
     assert len(jobs) == 2
