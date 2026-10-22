@@ -14,17 +14,26 @@ from pathlib import Path
 
 import numpy as np
 
+from . import invariants as inv
 from .lasso_backend import ResultsError
 
 FORMATS = ("csv", "npz")
 
 
 def _meta(result: dict, units: str | None) -> dict:
-    return {"quantity": result["quantity"], "family": result["family"], "state": result["state"],
+    meta = {"quantity": result["quantity"], "family": result["family"], "state": result["state"],
             "time": result["time"], "points": result.get("note", "stored value"), "mask": result["mask"],
             "coordinate_system": "global (as stored in d3plot)", "backend": result["backend"],
             "units": units or "model units, not converted (unit system not declared)",
-            "rows": int(np.asarray(result["ids"]).size), "extrema": result.get("extrema")}
+            "rows": int(np.asarray(result["ids"]).size), "extrema": result.get("extrema"),
+            "formula": inv.definition(result["quantity"]), "conventions": dict(inv.CONVENTIONS)}
+    if result.get("deletion_data") is False:
+        meta["deletion_status"] = "unknown: the d3plot stores no element deletion data; alive column is not a deletion flag"
+    if result.get("mask_policy") is not None:
+        meta["mask_policy"] = result["mask_policy"]
+    if result.get("part_ids") is not None:
+        meta["part_ids"] = [int(p) for p in result["part_ids"]]
+    return meta
 
 
 def export_field(result: dict, path: str | Path, units: str | None = None, fmt: str | None = None) -> dict:
@@ -68,6 +77,9 @@ def read_field(path: str | Path) -> dict:
             meta[key] = json.loads(value)
         elif line and line != "id,value,alive":
             rows.append(line.split(","))
+    if not rows:  # zero-row export (for example mask=deleted before any deletion)
+        return {"ids": np.empty(0, dtype=np.int64), "values": np.empty(0, dtype=float),
+                "alive": np.empty(0, dtype=bool), "meta": meta}
     table = np.asarray(rows, dtype=object)
     return {"ids": table[:, 0].astype(np.int64), "values": table[:, 1].astype(float),
             "alive": table[:, 2].astype(int).astype(bool), "meta": meta}
