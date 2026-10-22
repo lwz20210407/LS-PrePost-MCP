@@ -122,9 +122,11 @@ def save_model(service, model, expected_counts=None, expected_part_ids=None):
             job_id=manifest["job_id"], data=data, checks=tuple(checks), artifacts=artifacts,
             scope="owned keyword-tree copy; automatic headless native reopen; original files unchanged")
     except (ValueError, KeyError, TypeError, OSError, RuntimeError, RecursionError) as error:
+        message = str(error)
         result = JobResult(operation="save_model", status="failed", backend="keyword-engine+lsprepost",
             job_id=manifest["job_id"] if manifest else None, data=data,
-            error={"type": type(error).__name__, "message": str(error) or type(error).__name__}, warnings=tuple(warnings))
+            error={"type": type(error).__name__, "message": message if message.strip() else type(error).__name__},
+            warnings=tuple(warnings))
     serialized = result.model_dump(mode="json")
     if directory is not None:
         atomic_json(directory / "job.json", {**manifest, "status": result.status, "result": serialized})

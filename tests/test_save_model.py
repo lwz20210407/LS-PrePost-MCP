@@ -189,3 +189,15 @@ def test_mcp_expectations_do_not_coerce_boolean_string_or_float(tmp_path, field,
     argument = {"nodes": value} if field == "expected_counts" else [value]
     with pytest.raises(ValueError):
         argument_model.model_validate({"model": "not-opened.k", field: argument})
+
+
+@pytest.mark.parametrize("message", ["", " ", "\t\n"])
+def test_empty_diagnostic_does_not_throw_another_contract_error(tmp_path, monkeypatch, message):
+    svc = Service(Settings(tmp_path))
+
+    def fail(_):
+        raise RuntimeError(message)
+
+    monkeypatch.setattr(svc, "_input", fail)
+    result = invoke(svc, "not-opened.k")
+    assert result.status == "failed" and result.error["message"] == "RuntimeError"
