@@ -257,11 +257,12 @@
 - 同时列出同目录 binout / ASCII 文件及其包含的库
 - LSPP 与 LASSO 两个后端结果一致（状态数、时间数组）
 
-现有入口：`inspect_d3plot_scl`, `inspect_d3plot_database`, `inspect_result_fields`, `inspect_binout`, `inspect_binout_variable`, `inspect_lsreader`, `inspect_dpf_results`
+现有入口：`result_info`, `inspect_d3plot_scl`, `inspect_d3plot_database`, `inspect_result_fields`, `inspect_binout`, `inspect_binout_variable`, `inspect_lsreader`, `inspect_dpf_results`
 
 缺口：
 
-- 7 个清点工具并存
+- LSPP 对照证据需按身份规范（revision、可执行文件哈希、job id）重跑；现有 4.13 对照记录只有基线 e41cf65，不能复核
+- 状态超过 2000 时共享 overview 不返回逐状态时间，result_info 返回 partial，无法自动判定第 3 条
 
 ### Q02 云图出图
 
@@ -300,6 +301,7 @@
 缺口：
 
 - 8 个工具按后端各一份；壳层未认证；实体积分点 2-8 原生返回错值被拒绝
+- PR #90（反重力，2026-10-22 关闭未合，分支 antigravity/Q03-field-extraction 保留）未解决：backend="native" 不跑 LSPP 却标 lsprepost；壳 layer/integration_point 只改元数据不改数值；越界 state 被取模；另写导出器，CSV 用共享 read_field 读不回；LSPP 与 LASSO 一致性证据是回写比较；部分 entity_ids 缺失被丢弃。重做时须复用 lasso_backend.field / export
 
 ### Q04 工程量与失效掩码
 
@@ -423,6 +425,10 @@
 
 现有入口：无
 
+缺口：
+
+- PR #57（反重力，2026-10-22 关闭未合，分支 feat/q10-q12-postprocessing 保留）中的配方仍用 4.13/4.10 均不存在的 `splane create`，l2_case 指向不存在的测试；ASCII secforc 读取器已按真实版式修过，可参考
+
 ### Q11 测量
 
 状态：partial；版本：v0.6；里程碑：待排期；层：T1+T2
@@ -457,6 +463,7 @@
 缺口：
 
 - 只看 KE / IE / HG
+- PR #57（2026-10-22 关闭未合）未解决：非标准文件名会读到同目录另一个 binout；缺失量（部件沙漏能、能量预算、CSV）仍补 0；任意 8 列以上数值表被当作 glstat 并判通过；平衡残差分母下限 1.0 使结论随单位缩放；带 MATSUM 的真实 binout 报错；读取未完全复用 domain/results。ASCII glstat 块格式读取器已通过 8 份公开文件核对，可参考
 
 ## 自动化
 
@@ -701,6 +708,10 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 现有入口：`list_nodes`, `get_element_connectivity`, `inspect_gui_mesh`
 
+缺口：
+
+- PR #98（反重力，2026-10-22 关闭未合，分支 antigravity/G04-entity-identify 保留）另写了按空白切分的关键字解析器：空白字段坐标读错，不处理 *INCLUDE 和 _THICKNESS 等后缀（公开 main.k 15390 个单元报 0 个仍 succeeded），d3plot 同目录任意 .k 被当作配套模型。重做时模型侧须用 domain/model 关键字引擎，结果侧复用 lasso_backend
+
 ## 基础设施
 
 ### I01 执行引擎 Engine（BatchEngine 默认 + SessionEngine 可选）
@@ -711,7 +722,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：partial；验证：L1
 
-证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py), [docs/decisions/evidence/i01/report.md](../docs/decisions/evidence/i01/report.md), [docs/decisions/evidence/i01-followup/report.md](../docs/decisions/evidence/i01-followup/report.md), [docs/decisions/evidence/i01-staging/report.md](../docs/decisions/evidence/i01-staging/report.md), [docs/decisions/evidence/i01-batch-contract/report.md](../docs/decisions/evidence/i01-batch-contract/report.md), [docs/decisions/evidence/i01-process-lifetime/report.md](../docs/decisions/evidence/i01-process-lifetime/report.md), [docs/decisions/evidence/i01-atomic-process-start/report.md](../docs/decisions/evidence/i01-atomic-process-start/report.md), [docs/decisions/evidence/i01-log-decoding/report.md](../docs/decisions/evidence/i01-log-decoding/report.md), [docs/decisions/evidence/i01-include-diagnostics/report.md](../docs/decisions/evidence/i01-include-diagnostics/report.md), [tests/test_input_path_confinement.py](../tests/test_input_path_confinement.py), [tests/test_queue_backpressure.py](../tests/test_queue_backpressure.py), [tests/test_queue_backpressure_native.py](../tests/test_queue_backpressure_native.py), [docs/decisions/evidence/i01-queue/report.md](../docs/decisions/evidence/i01-queue/report.md), [tests/test_native_include_budget.py](../tests/test_native_include_budget.py), [docs/decisions/evidence/i01-reference-budget/report.md](../docs/decisions/evidence/i01-reference-budget/report.md)
+证据：[src/ls_prepost_mcp/engine/batch.py](../src/ls_prepost_mcp/engine/batch.py), [src/ls_prepost_mcp/engine/session.py](../src/ls_prepost_mcp/engine/session.py), [tests/test_engines.py](../tests/test_engines.py), [tests/test_engine_native.py](../tests/test_engine_native.py), [docs/decisions/evidence/i01/report.md](../docs/decisions/evidence/i01/report.md), [docs/decisions/evidence/i01-followup/report.md](../docs/decisions/evidence/i01-followup/report.md), [docs/decisions/evidence/i01-staging/report.md](../docs/decisions/evidence/i01-staging/report.md), [docs/decisions/evidence/i01-batch-contract/report.md](../docs/decisions/evidence/i01-batch-contract/report.md), [docs/decisions/0009-panel-session-engine.md](../docs/decisions/0009-panel-session-engine.md), [docs/decisions/evidence/i01-panels/report.md](../docs/decisions/evidence/i01-panels/report.md), [docs/decisions/evidence/i01-process-lifetime/report.md](../docs/decisions/evidence/i01-process-lifetime/report.md), [docs/decisions/evidence/i01-atomic-process-start/report.md](../docs/decisions/evidence/i01-atomic-process-start/report.md), [docs/decisions/evidence/i01-log-decoding/report.md](../docs/decisions/evidence/i01-log-decoding/report.md), [docs/decisions/evidence/i01-include-diagnostics/report.md](../docs/decisions/evidence/i01-include-diagnostics/report.md), [tests/test_input_path_confinement.py](../tests/test_input_path_confinement.py), [tests/test_queue_backpressure.py](../tests/test_queue_backpressure.py), [tests/test_queue_backpressure_native.py](../tests/test_queue_backpressure_native.py), [docs/decisions/evidence/i01-queue/report.md](../docs/decisions/evidence/i01-queue/report.md), [tests/test_native_include_budget.py](../tests/test_native_include_budget.py), [docs/decisions/evidence/i01-reference-budget/report.md](../docs/decisions/evidence/i01-reference-budget/report.md)
 
 - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
 - 删除 gui_session_action 中运行时替换 _native 的做法

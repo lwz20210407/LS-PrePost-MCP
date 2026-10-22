@@ -382,9 +382,11 @@ tasks:
     layer: T1
     target_tools: [result_info]
     status: partial
-    existing: [inspect_d3plot_scl, inspect_d3plot_database, inspect_result_fields, inspect_binout, inspect_binout_variable, inspect_lsreader, inspect_dpf_results]
+    existing: [result_info, inspect_d3plot_scl, inspect_d3plot_database, inspect_result_fields, inspect_binout, inspect_binout_variable, inspect_lsreader, inspect_dpf_results]
     gaps:
-      - 7 个清点工具并存
+      - LSPP 对照证据需按身份规范（revision、可执行文件哈希、job id）重跑；现有 4.13 对照记录只有基线 e41cf65，不能复核
+      - 状态超过 2000 时共享 overview 不返回逐状态时间，result_info 返回 partial，无法自动判定第 3 条
+    evidence: [tests/test_result_overview.py, docs/decisions/evidence/q01/report.md]
     acceptance:
       - 返回状态数、每个状态时间、可用变量（含 HSV 数量）、部件、单元类型、删除单元计数
       - 同时列出同目录 binout / ASCII 文件及其包含的库
@@ -425,6 +427,7 @@ tasks:
     existing: [extract_native_fields, extract_native_stress, extract_d3plot_field, extract_d3plot_stress, extract_nodal_results, extract_d3plot_nodal, extract_lsreader_nodal, export_dpf_result]
     gaps:
       - 8 个工具按后端各一份；壳层未认证；实体积分点 2-8 原生返回错值被拒绝
+      - 'PR #90（反重力，2026-10-22 关闭未合，分支 antigravity/Q03-field-extraction 保留）未解决：backend="native" 不跑 LSPP 却标 lsprepost；壳 layer/integration_point 只改元数据不改数值；越界 state 被取模；另写导出器，CSV 用共享 read_field 读不回；LSPP 与 LASSO 一致性证据是回写比较；部分 entity_ids 缺失被丢弃。重做时须复用 lasso_backend.field / export'
     acceptance:
       - 输出 CSV/NPZ，元数据包含量、分量、单位、状态、时间、层/积分点、坐标系、后端
       - 实体与壳各一个用例；LSPP 与 LASSO 结果逐实体一致（容差内）
@@ -556,6 +559,8 @@ tasks:
     target_tools: [run_recipe]
     status: todo
     existing: []
+    gaps:
+      - 'PR #57（反重力，2026-10-22 关闭未合，分支 feat/q10-q12-postprocessing 保留）中的配方仍用 4.13/4.10 均不存在的 `splane create`，l2_case 指向不存在的测试；ASCII secforc 读取器已按真实版式修过，可参考'
     acceptance:
       - 剖切面位置/法向可设；剖面云图一个配方
       - 截面合力时程与 SECFORC（同截面定义）一致
@@ -592,6 +597,7 @@ tasks:
     existing: [assess_energy_balance, native_energy_postprocess]
     gaps:
       - 只看 KE / IE / HG
+      - 'PR #57（2026-10-22 关闭未合）未解决：非标准文件名会读到同目录另一个 binout；缺失量（部件沙漏能、能量预算、CSV）仍补 0；任意 8 列以上数值表被当作 glstat 并判通过；平衡残差分母下限 1.0 使结论随单位缩放；带 MATSUM 的真实 binout 报错；读取未完全复用 domain/results。ASCII glstat 块格式读取器已通过 8 份公开文件核对，可参考'
     acceptance:
       - 总能量、动能、内能、沙漏能、滑移能、外功、阻尼能、侵蚀能逐项输出，并给出平衡残差
       - 阈值由调用者给定；未给定时只报告比例不下结论
@@ -876,6 +882,8 @@ tasks:
     target_tools: [query_entities]
     status: partial
     existing: [list_nodes, get_element_connectivity, inspect_gui_mesh]
+    gaps:
+      - 'PR #98（反重力，2026-10-22 关闭未合，分支 antigravity/G04-entity-identify 保留）另写了按空白切分的关键字解析器：空白字段坐标读错，不处理 *INCLUDE 和 _THICKNESS 等后缀（公开 main.k 15390 个单元报 0 个仍 succeeded），d3plot 同目录任意 .k 被当作配套模型。重做时模型侧须用 domain/model 关键字引擎，结果侧复用 lasso_backend'
     acceptance:
       - 节点 / 单元 / Part 的 ID、坐标、连接、所属 Part / 材料、指定状态的结果值
       - 结果值与 Q03 同一量一致
@@ -893,12 +901,10 @@ infrastructure:
     gaps:
       - 队列饱和与不重放已在 4.13 原生集成提交 c68caef 通过；4.10 队列仍按版本能力表在启动前拒绝
       - Windows 创建窗口已通过 JOB_LIST 原子绑定关闭，并以受控进程强杀回归验证；其余原生/GUI 验收仍按各自证据范围保留
-      - renumber/quality 面板路径仍待完整统一；五个批处理入口已读取 JobResult，外部旧清单保留兼容输出；公开 Win32 打开、检查点和重开已补原生证据
+      - renumber/quality 已接入 SessionEngine（面板设置与 Apply 在已登记的会话请求内执行，迟到完成须经宿主校验）；6 项面板原生回归仅在历史集成树 3939b5b 通过，本头未重跑；Model Selection 面板与曲线窗口枚举等只读路径仍直接走 Win32；五个批处理入口已读取 JobResult，外部旧清单保留兼容输出；公开 Win32 打开、检查点和重开已补原生证据
       - 原生 d3plot 输入超过 1000 文件或 2 GiB 时在启动前明确拒绝；两版原地只读回退实验均崩溃，暂不提供该回退
-      - 从 job 目录绝对路径读取 Include 时，中文根路径在 4.13/4.10 仍失败，4.10 的相对 Include 仍从 job cwd 解析；不得切到用户目录绕过
       - INCLUDE 引用总数上限已接入原生准入：默认 20000，按读取顺序计数，含重复子树与未解析引用；L1 启动前拒绝回归通过，不代表 I01 全项完成
       - 从 job 目录绝对路径读取 Include 时，中文根路径在 4.13/4.10 仍失败，4.10 的相对 Include 仍从 job cwd 解析；漏读诊断已使作业失败，不得切到用户目录绕过
-      - INCLUDE 引用总数上限：共享预检接口 preflight_includes(max_references) 已提供（#70，按读取顺序计数，含重复与未解析引用），原生准入路径尚未接入，待 Codex
     evidence:
       - src/ls_prepost_mcp/engine/batch.py
       - src/ls_prepost_mcp/engine/session.py
@@ -908,6 +914,8 @@ infrastructure:
       - docs/decisions/evidence/i01-followup/report.md
       - docs/decisions/evidence/i01-staging/report.md
       - docs/decisions/evidence/i01-batch-contract/report.md
+      - docs/decisions/0009-panel-session-engine.md
+      - docs/decisions/evidence/i01-panels/report.md
       - docs/decisions/evidence/i01-process-lifetime/report.md
       - docs/decisions/evidence/i01-atomic-process-start/report.md
       - docs/decisions/evidence/i01-log-decoding/report.md
@@ -994,7 +1002,7 @@ infrastructure:
     gaps:
       - 两例公开失败已定向诊断：extra-keyword-064 的 Windows 非 ASCII INCLUDE 根路径启动前拒绝，原路径支持仍缺；extra-result-03 的 EOF 异常时间已由共享时间轴准入拒绝，完整/元数据/state_filter 前置路径一致；未删状态或改源文件，上游边界解析及有限有序尾数据检测仍缺
       - 当前 55 个 tools/run_* 入口已全部收编为 57 个 pytest 用例（保留原生/文件及 batch/GUI 变体）；CLI 参数发现已逐一验证。
-      - 三个文件验收和 program_acceptance 批处理已有证据；集成工作副本累计 53 个 GUI 用例通过，包含待审 A02 修复，不作为 PR #5 头全量验证；13 个 UU 格等待用户断开
+      - '三个文件验收和 program_acceptance 批处理已有证据；集成工作副本累计 53 个 GUI 用例通过，包含待审 A02 修复，不作为 PR #5 头全量验证；13 个 UU 格等待用户断开'
       - 公开抽样 126 例中新增 100 例的历史 c991f9d 为 16 passed / 84 failed（dirty、缺 diff 哈希）；普通路径修复后干净 53f6072 使用 4.13 重跑为 16 passed / 45 failed / 39 输入限制 evidence_only，100 份树指纹及文件清单核对齐全；19303f7 的 50 限制含 11 个路径误判，历史保留并勘误，仍缺导出、变体、崩溃及读取器差异处理
     acceptance:
       - 补测从 M0 转入的 13 个 UU 远程格（4.13/4.10 的 runc 五通道共 10 格，以及两版本 nographics 原生宏和 4.13 会话原生宏共 3 格），记录执行、PNG、MP4 结果与用户确认的断开时间窗
