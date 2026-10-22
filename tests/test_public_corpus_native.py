@@ -81,7 +81,8 @@ def public_case(case, public_registry, pytestconfig, request):
     if "mpp" in case["features"]:
         family = sorted(p for p in source.parent.iterdir() if re.fullmatch(r"binout\d+", p.name))
         assert len(family) > 1
-    tree, tree_identities = input_tree(source, family, keyword=case["kind"] == "keyword")
+    tree, tree_identities = input_tree(source, family, keyword=case["kind"] == "keyword",
+                                     allowed_roots=(root / "public-keyword", root / "public-results"))
     directory_before = directory_snapshot([source, *tree_identities])
     identities = {}
     for path in family:
@@ -142,12 +143,15 @@ def keyword_round_trip(service, source, record):
         return rows
 
     original_nodes = nodes(str(source), "reference_nodes")
-    saved = checked(record, "save_keyword", service.export_keyword(str(source)))
-    output = next(a["path"] for a in saved["artifacts"] if a["kind"] == "keyword")
-    after = checked(record, "reopen_inventory", service.inspect_model(output))
+    saved = checked(record, "save_keyword", service.save_model(str(source)))
+    output = saved["data"]["main"]
+    observation = saved["data"]["observations"]["after_reopen"]
+    after = checked(record, "reopen_inventory", {"status": observation["status"], "job_id": observation["job_id"],
+                    "data": {"counts": observation["counts"], "part_ids": observation["part_ids"]}})
     assert before["data"]["counts"] == after["data"]["counts"]
+    assert sorted(before["data"]["part_ids"]) == sorted(after["data"]["part_ids"])
     compare_node_rows(original_nodes, nodes(output, "reopened_nodes"))
-    record["scope"] = "Native counts and all reference-node IDs/coordinates through bounded pages; not all keyword card semantics"
+    record["scope"] = "Native counts, Part IDs and all reference-node IDs/coordinates through bounded pages; not all keyword card semantics"
 
 
 def d3plot_cross_reader(service, source, record, request):
@@ -249,8 +253,9 @@ def ascii_cross_check(service, source, record, case, request):
 def test_public_corpus(case, public_case, request):
     service, source, record = public_case
     if case["kind"] == "keyword":
-        if not record["input_tree"]["ok"]:
-            reason = "输入限制：" + input_classification(record["input_tree"])
+        classification = input_classification(record["input_tree"])
+        if classification != "preflight_ok_requires_native_diagnosis":
+            reason = "输入限制：" + classification
             record.update(status="input_limited", reason=reason)
             request.node.user_properties.append(("native_scope", "evidence_only"))
             pytest.xfail(reason)
