@@ -352,7 +352,7 @@
 缺口：
 
 - extract_database（LASSO，不启动 LSPP）已按存储列名读取 12 类 binout 库，自动合并同目录 MPP 分片；重复 ID（RCFORC 的 side 0/1）按存储列区分。公开 binout（Bolt_B_Explicit、pyansys-heart）的 glstat / rcforc / nodout 与 lasso 直读逐值一致
-- ASCII 文本库（glstat、rcforc 等）尚未接入 extract_database，仍走旧工具且要填 UI 分量编号；原生侧只有 NODOUT / GLSTAT / MATSUM 部分量
+- ASCII RCFORC/SECFORC 已按名称接入 extract_database，接触两侧与截面坐标系保留，五份公开文件逐行核对；GLSTAT/MATSUM 等其余 ASCII 库尚未接入该工具，原生侧只有 NODOUT / GLSTAT / MATSUM 部分量
 - MPP 合并结果与单机结果一致性未验证：公开语料中没有同一模型的 MPP/SMP 成对算例（corpus:mpp_binout）；分片合并只有合成 LSDA 用例
 - LSPP 与 LASSO 结果对照未做（原生侧）
 
