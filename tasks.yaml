@@ -1023,6 +1023,7 @@ infrastructure:
     status: partial
     evidence:
       - docs/decisions/evidence/i04-reader-validation/report.md
+      - docs/decisions/evidence/i04-current-public100/report.md
       - tests/test_d3plot_time_validation.py
       - docs/decisions/evidence/i04-diagnostics/report.md
       - tools/diagnose_public_corpus.py
@@ -1040,6 +1041,7 @@ infrastructure:
       - tests/test_native_input_preconditions.py
     gaps:
       - extra-keyword-064 的历史非 ASCII INCLUDE 拒绝已由自有规范化副本路线补齐：4.13/4.10 读取、保存重开均为 35656 节点/30420 单元且原树不变。extra-result-03 的 EOF 异常时间仍由共享时间轴准入拒绝，完整/元数据/state_filter 前置路径一致；未删状态或改源文件，上游边界解析及有限有序尾数据检测仍缺
+      - 干净 c46bb9d 的新增公开 100 例串行 4.13 后台复跑为 45 passed / 5 failed / 50 输入限制；29 个旧失败通过、11 个旧失败改为输入限制而非功能修复，100 份树字节与目录清单不变；三个搜索路径保存拒绝、参数重载警告及读取器 EOF 异常时间仍保留失败
       - 当前 55 个 tools/run_* 入口已全部收编为 57 个 pytest 用例（保留原生/文件及 batch/GUI 变体）；CLI 参数发现已逐一验证。
       - '三个文件验收和 program_acceptance 批处理已有证据；集成工作副本累计 53 个 GUI 用例通过，包含待审 A02 修复，不作为 PR #5 头全量验证；13 个 UU 格等待用户断开'
       - 公开抽样 126 例中新增 100 例的历史 c991f9d 为 16 passed / 84 failed（dirty、缺 diff 哈希）；普通路径修复后干净 53f6072 使用 4.13 重跑为 16 passed / 45 failed / 39 输入限制 evidence_only，100 份树指纹及文件清单核对齐全；19303f7 的 50 限制含 11 个路径误判，历史保留并勘误，仍缺导出、变体、崩溃及读取器差异处理
