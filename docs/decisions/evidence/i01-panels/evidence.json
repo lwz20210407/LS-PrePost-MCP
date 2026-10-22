@@ -1,0 +1,50 @@
+{
+  "task": "I01",
+  "version": "4.13.4",
+  "runs": [
+    {
+      "actual_git_revision": "3939b5bdb6fb67716f1bda5dc7b64dbc17756afb",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_command": "git -c core.quotepath=true diff HEAD --binary --no-ext-diff --no-color --no-textconv --src-prefix=a/ --dst-prefix=b/ --diff-algorithm=myers --no-renames",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "source_snapshot_sha256": "cbbdfe1ce925f22ebd3abbbdf31bdddd7307c1b1439998abbf83867d2b84015b",
+      "report": "r6-gui-window-r1/panels-report/report.json",
+      "report_sha256": "1028d0fc2f5464b5df366ab98192f7a24c4f43f642bb69ab9e1ce43af8c64c00",
+      "exit_code": 0,
+      "cases": {
+        "tests/test_engine_native.py::test_public_panel_actions_have_correlated_engine_evidence[renumber_node]": {
+          "status": "passed",
+          "seconds": 34.665494899993064
+        },
+        "tests/test_engine_native.py::test_public_panel_actions_have_correlated_engine_evidence[renumber_shell]": {
+          "status": "passed",
+          "seconds": 16.81794729999092
+        },
+        "tests/test_engine_native.py::test_public_panel_actions_have_correlated_engine_evidence[renumber_part]": {
+          "status": "passed",
+          "seconds": 13.437791799995466
+        },
+        "tests/test_engine_native.py::test_public_panel_actions_have_correlated_engine_evidence[keyword_check]": {
+          "status": "passed",
+          "seconds": 12.599425399996107
+        },
+        "tests/test_engine_native.py::test_public_panel_actions_have_correlated_engine_evidence[shell_quality]": {
+          "status": "passed",
+          "seconds": 11.35893919999944
+        },
+        "tests/test_engine_native.py::test_public_panel_actions_have_correlated_engine_evidence[solid_quality]": {
+          "status": "passed",
+          "seconds": 12.733418599993456
+        }
+      }
+    }
+  ],
+  "scope": "Six public Win32 panel cases; correlated engine results, saved reopen, PNG and original fixture bytes checked",
+  "warnings": "PyDYNA emitted 12 warnings for trailing card characters in native-saved synthetic fixtures; the recorded case assertions passed."
+}
