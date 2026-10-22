@@ -169,6 +169,222 @@ def test_panel_preparation_rejects_queue_before_any_native_action(tmp_path, monk
     assert not (manager.directory(sid) / "requests").exists()
 
 
+@pytest.mark.parametrize("process_alive", [True, False])
+@pytest.mark.parametrize("message", ["Apply partially failed", ""])
+def test_failed_host_preparation_has_terminal_recovery_without_native_receipt(tmp_path, monkeypatch, process_alive, message):
+    manager, sid, module = session_fixture(tmp_path, monkeypatch)
+    meta = manager.read(sid)
+    meta.update(last_checkpoint="trusted.k", bridge_protocol=4)
+    manager.save(sid, meta)
+    events = []
+
+    class Transport:
+        def __init__(self, pid):
+            pass
+
+        def preflight(self):
+            pass
+
+        def submit(self, command):
+            pytest.fail("Preparation failed before native dispatch")
+
+    def prepare(transport, directory):
+        events.append(directory.name)
+        assert manager.read(sid)["active_request"] == directory.name
+        raise RuntimeError(message)
+
+    monkeypatch.setattr(module, "WindowsCommandTransport", Transport)
+    with pytest.raises(RuntimeError):
+        manager.dispatch(sid, "gui_mesh_state", {}, _before_submit=prepare)
+    rid = manager.read(sid)["active_request"]
+    directory = manager.directory(sid) / "requests" / rid
+    marker = json.loads((directory / "host-preparation-failed.json").read_text())
+    assert marker["job_id"] == rid and marker["phase"] == "host_preparation"
+    assert marker["dispatch_submitted"] is False
+    assert marker["error"]["message"] == (message or "RuntimeError")
+    assert not (directory / "complete.json").exists()
+    monkeypatch.setattr(module, "alive", lambda identity: process_alive)
+    service = Service(manager.settings)
+    result = service.recover_gui_session(sid)
+    assert result["active_request"] is None
+    assert result["state"] == ("uncertain" if process_alive else "exited")
+    assert result["dirty"] and result["requires_host_validation"]
+    assert result["last_checkpoint"] == "trusted.k"
+    assert result["dispatch_submitted"] is False
+    recovery = json.loads((directory / "recovery.json").read_text())
+    assert recovery["status"] == "failed" and recovery["replayed"] is False
+    assert recovery["phase"] == "host_preparation"
+    assert service.recover_gui_session(sid)["active_request"] is None
+    assert events == [rid]
+
+
+@pytest.mark.parametrize("change", [dict(job_id="c" * 32), dict(phase="native"), dict(dispatch_submitted=True),
+                                    dict(error={"message": ""})])
+def test_malformed_host_terminal_marker_does_not_clear_request(tmp_path, monkeypatch, change):
+    manager, sid, module = session_fixture(tmp_path, monkeypatch, "uncertain")
+    rid = "b" * 32
+    directory = manager.directory(sid) / "requests" / rid
+    directory.mkdir(parents=True)
+    meta = manager.read(sid)
+    meta.update(active_request=rid, last_checkpoint="trusted.k")
+    manager.save(sid, meta)
+    atomic_json(directory / "request.json", dict(job_id=rid, action="gui_mesh_state", host_preparation=True))
+    atomic_json(directory / "host-preparation-failed.json", dict(job_id=rid, phase="host_preparation",
+        dispatch_submitted=False, error=dict(type="RuntimeError", message="Apply failed")) | change)
+    with pytest.raises(ValueError, match="host preparation"):
+        Service(manager.settings).recover_gui_session(sid)
+    assert manager.read(sid)["active_request"] == rid
+    assert manager.read(sid)["last_checkpoint"] == "trusted.k"
+
+
+def test_transport_send_failure_keeps_waiting_for_possible_native_completion(tmp_path, monkeypatch):
+    manager, sid, module = session_fixture(tmp_path, monkeypatch)
+    meta = manager.read(sid)
+    meta["bridge_protocol"] = 4
+    manager.save(sid, meta)
+
+    class Transport:
+        def __init__(self, pid):
+            pass
+
+        def preflight(self):
+            pass
+
+        def submit(self, command):
+            raise RuntimeError("Send may have reached the application")
+
+    monkeypatch.setattr(module, "WindowsCommandTransport", Transport)
+    with pytest.raises(RuntimeError, match="may have reached"):
+        manager.dispatch(sid, "gui_mesh_state", {}, _before_submit=lambda *args: None)
+    rid = manager.read(sid)["active_request"]
+    directory = manager.directory(sid) / "requests" / rid
+    assert not (directory / "host-preparation-failed.json").exists()
+    result = Service(manager.settings).recover_gui_session(sid)
+    assert result["active_request"] == rid
+    assert "No correlated completion" in result["recovery"]
+
+
+def test_host_terminal_cannot_override_a_request_without_preparation(tmp_path, monkeypatch):
+    manager, sid, _ = session_fixture(tmp_path, monkeypatch, "uncertain")
+    rid = "b" * 32
+    directory = manager.directory(sid) / "requests" / rid
+    directory.mkdir(parents=True)
+    meta = manager.read(sid)
+    meta["active_request"] = rid
+    manager.save(sid, meta)
+    atomic_json(directory / "request.json", dict(job_id=rid, action="inspect_model", host_preparation=False))
+    atomic_json(directory / "host-preparation-failed.json", dict(job_id=rid, phase="host_preparation",
+        dispatch_submitted=False, error=dict(message="Unrelated host record")))
+    with pytest.raises(ValueError, match="host preparation"):
+        Service(manager.settings).recover_gui_session(sid)
+    assert manager.read(sid)["active_request"] == rid
+
+
+def test_host_failure_is_not_promoted_by_a_success_receipt(tmp_path, monkeypatch):
+    manager, sid, _ = session_fixture(tmp_path, monkeypatch, "uncertain")
+    rid = "b" * 32
+    directory = manager.directory(sid) / "requests" / rid
+    directory.mkdir(parents=True)
+    meta = manager.read(sid)
+    meta.update(active_request=rid, last_checkpoint="trusted.k")
+    manager.save(sid, meta)
+    atomic_json(directory / "request.json", dict(job_id=rid, action="gui_mesh_state", host_preparation=True))
+    atomic_json(directory / "host-preparation-failed.json", dict(job_id=rid, phase="host_preparation",
+        dispatch_submitted=False, error=dict(message="Host preparation failed")))
+    atomic_json(directory / "complete.json", dict(job_id=rid, ok=True, data=dict(counts=dict(nodes=8))))
+    result = Service(manager.settings).recover_gui_session(sid)
+    assert result["state"] == "uncertain" and result["requires_host_validation"]
+    assert result["last_checkpoint"] == "trusted.k"
+    assert json.loads((directory / "recovery.json").read_text())["status"] == "failed"
+
+
+@pytest.mark.parametrize("tool", ["renumber", "quality"])
+def test_real_panel_tool_preparation_runs_inside_registered_engine_request(tmp_path, monkeypatch, tool):
+    manager, sid, module = session_fixture(tmp_path, monkeypatch)
+    meta = manager.read(sid)
+    meta.update(bridge_protocol=4, last_checkpoint="trusted.k")
+    manager.save(sid, meta)
+    service = Service(manager.settings)
+    monkeypatch.setattr(service, "_session_manager", lambda: manager)
+    monkeypatch.setattr(service, "_visible_mesh_session", lambda *args, **kwargs: manager.read(sid))
+    state = dict(nodes=[[10, 0, 0, 0], [20, 1, 0, 0], [30, 0, 1, 0], [40, 1, 1, 0]],
+                 elements=[dict(id=50, type="shell", nodes=[10, 20, 40, 30])], part_ids=[7],
+                 part_elements={"7": [50]}, part_visibility={"7": True}, selection_ids=[])
+    baseline = tmp_path / "baseline"
+    baseline.mkdir()
+    (baseline / "model.k").write_text("*KEYWORD\n*END\n")
+    dispatch = manager.dispatch
+    calls = dict(baseline=False, in_engine=False, stopped=0)
+
+    def baseline_then_dispatch(*args, **kwargs):
+        if not calls["baseline"]:
+            calls["baseline"] = True
+            return dict(status="succeeded", data=state, job_directory=str(baseline),
+                        artifacts=[dict(path=str(baseline / "model.k"))])
+        return dispatch(*args, **kwargs)
+
+    original_run = module.SessionEngine.run
+
+    def run(engine, job):
+        calls["in_engine"] = True
+        try:
+            return original_run(engine, job)
+        finally:
+            calls["in_engine"] = False
+
+    def inside():
+        assert calls["in_engine"]
+        rid = manager.read(sid)["active_request"]
+        assert rid
+        request = json.loads((manager.directory(sid) / "requests" / rid / "request.json").read_text())
+        assert request["host_preparation"] is True
+
+    class Transport:
+        def __init__(self, pid):
+            pass
+
+        def preflight(self):
+            pass
+
+        def open_panel(self, *args):
+            inside()
+
+        def open_menu_item(self, *args):
+            inside()
+
+        def _set_panel_checked(self, *args):
+            inside()
+
+        def _set_panel_text(self, *args):
+            inside()
+
+        def _click_panel_control(self, panel, cid, caption):
+            inside()
+            if caption == "Apply":
+                calls["stopped"] += 1
+                raise RuntimeError("Controlled stop at owned Apply")
+
+        def _select_panel_tab(self, *args):
+            inside()
+            calls["stopped"] += 1
+            raise RuntimeError("Controlled stop at owned quality panel")
+
+        def submit(self, command):
+            rid = manager.read(sid)["active_request"]
+            atomic_json(manager.directory(sid) / "requests" / rid / "complete.json",
+                        dict(job_id=rid, ok=True, data=dict(selection_ids=[10, 20, 30, 40])))
+
+    monkeypatch.setattr(manager, "dispatch", baseline_then_dispatch)
+    monkeypatch.setattr(module.SessionEngine, "run", run)
+    monkeypatch.setattr(module, "WindowsCommandTransport", Transport)
+    result = (service.renumber_gui_entities(sid, "node", 1001, check_references=False) if tool == "renumber"
+              else service.check_gui_shell_quality(sid, {"aspect_ratio": 10}, "mm"))
+    assert calls["stopped"] == 1
+    assert result["status"] == "uncertain"
+    rid = manager.read(sid)["active_request"]
+    assert json.loads((manager.directory(sid) / "requests" / rid / "host-preparation-failed.json").read_text())["phase"] == "host_preparation"
+
+
 @pytest.mark.parametrize("panel", ["renumber", "keyword", "shell", "solid"])
 def test_panel_tools_reject_queue_before_snapshot_or_selection_mutation(tmp_path, monkeypatch, panel):
     manager, sid, module = session_fixture(tmp_path, monkeypatch)

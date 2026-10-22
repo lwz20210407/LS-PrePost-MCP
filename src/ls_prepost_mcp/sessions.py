@@ -54,6 +54,34 @@ def recovery_mode(request):
     return "requires_host_validation"
 
 
+def _recover_host_preparation_failure(manager, ident, meta, directory):
+    """Finish a failed host callback without inventing a native completion."""
+    try:
+        marker = json.loads((directory / "host-preparation-failed.json").read_text(encoding="utf8"))
+        request = json.loads((directory / "request.json").read_text(encoding="utf8"))
+    except (OSError, ValueError) as error:
+        raise ValueError("Unreadable host preparation terminal record") from error
+    error = marker.get("error") if isinstance(marker, dict) else None
+    if (not isinstance(marker, dict) or not isinstance(request, dict)
+            or marker.get("job_id") != directory.name or request.get("job_id") != directory.name
+            or request.get("host_preparation") is not True or marker.get("phase") != "host_preparation"
+            or marker.get("dispatch_submitted") is not False or not isinstance(error, dict)
+            or not isinstance(error.get("message"), str) or not error["message"].strip()):
+        raise ValueError("Invalid or uncorrelated host preparation terminal record")
+    recovery = dict(session_id=ident, request_id=directory.name, status="failed", error=error,
+                    phase="host_preparation", dispatch_submitted=False, replayed=False,
+                    requires_host_validation=True,
+                    scope="Host preparation raised before native dispatch; panel side effects remain unverified")
+    atomic_json(directory / "recovery.json", recovery)
+    meta.update(state="uncertain" if meta["process_alive"] else "exited", active_request=None,
+                last_error=error["message"], last_recovery=str(directory / "recovery.json"))
+    if meta["model_kind"] == "keyword":
+        meta["dirty"] = True
+    manager.save(ident, meta)
+    return dict(**meta, recovery="Host preparation failed; restore or validate the model; nothing replayed",
+                host_error=error, dispatch_submitted=False, requires_host_validation=True)
+
+
 def process_identity(pid):
     import psutil
 
@@ -359,7 +387,14 @@ class Sessions:
             # The engine captures the log cursor and marks the request uncertain
             # before any panel action. A partially applied click is never replayed.
             if _before_submit is not None:
-                _before_submit(transport, directory)
+                try:
+                    _before_submit(transport, directory)
+                except Exception as error:
+                    message = str(error)
+                    atomic_json(directory / "host-preparation-failed.json", dict(
+                        job_id=directory.name, phase="host_preparation", dispatch_submitted=False,
+                        error=dict(type=type(error).__name__, message=message if message.strip() else type(error).__name__)))
+                    raise
             transport.submit(directory.name if queued else nc.run_script(command_file, "cfile"))
 
         outcome = SessionEngine().run(SessionJob(
@@ -440,7 +475,7 @@ class SessionTools:
         return [manager.read(p.parent.name) for p in sorted(manager.root.glob("*/session.json"))]
 
     def recover_gui_session(self, session_id: str) -> dict:
-        """Reconcile correlated late completion without replay. Only self-validated kernels/reads or explicit reopen can restore readiness; native-command transactions retain uncertainty until restored/revalidated. Parent workflow gates are never implicitly passed."""
+        """Reconcile correlated late completion or host preparation failure without replay. A pre-dispatch host failure terminates the request but keeps the model uncertain and requires host validation/restoration. Only self-validated kernels/reads or explicit reopen can restore readiness; parent workflow gates are never implicitly passed."""
         manager = self._session_manager()
         with manager.lock(session_id):
             meta = manager.read(session_id)
@@ -450,6 +485,8 @@ class SessionTools:
             if not re.fullmatch(r"[a-f0-9]{32}", request_id):
                 raise ValueError("Invalid pending request identity")
             directory = manager.directory(session_id) / "requests" / request_id
+            if (directory / "host-preparation-failed.json").exists():
+                return _recover_host_preparation_failure(manager, session_id, meta, directory)
             complete = directory / "complete.json"
             if not complete.exists():
                 return dict(**meta, recovery="No correlated completion yet; nothing replayed")
