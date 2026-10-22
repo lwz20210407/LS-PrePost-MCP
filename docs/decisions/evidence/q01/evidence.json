@@ -3,6 +3,7 @@
  "tool": "result_info",
  "developer": "cursor",
  "base_revision": "e41cf65",
+ "identity_status": "incomplete: no producing commit, worktree state, source SHA256, LS-PrePost executable SHA256 or per-case LSPP/result_info job ids; the LSPP comparison must be rerun under the native evidence identity rules before Q01 acceptance item 3 counts (PR #84 review P1-84b, 2026-10-22)",
  "backends": {
   "lasso": "lasso-python 2.0.4",
   "lsprepost": "LS-PrePost 4.13.0.1 (2026R1), headless batch, embedded Python inspect_model"

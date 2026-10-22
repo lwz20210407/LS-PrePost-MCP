@@ -247,7 +247,7 @@
 
 ### Q01 结果概览
 
-状态：done；版本：v0.5；里程碑：M2；层：T1
+状态：partial；版本：v0.5；里程碑：M2；层：T1
 
 这个 d3plot 有多少个状态，时间范围多少，有哪些变量，有没有删除单元
 
@@ -258,6 +258,11 @@
 - LSPP 与 LASSO 两个后端结果一致（状态数、时间数组）
 
 现有入口：`result_info`, `inspect_d3plot_scl`, `inspect_d3plot_database`, `inspect_result_fields`, `inspect_binout`, `inspect_binout_variable`, `inspect_lsreader`, `inspect_dpf_results`
+
+缺口：
+
+- LSPP 对照证据需按身份规范（revision、可执行文件哈希、job id）重跑；现有 4.13 对照记录只有基线 e41cf65，不能复核
+- 状态超过 2000 时共享 overview 不返回逐状态时间，result_info 返回 partial，无法自动判定第 3 条
 
 ### Q02 云图出图
 
