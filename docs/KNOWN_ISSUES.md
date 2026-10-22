@@ -1264,3 +1264,17 @@ MATSUM 保留续行 HG、真实存储 ID 及独立时间轴，不重采样到 GL
 进程退出 0xC0000409，原因未定。因此本机 4.8 原生路径仍未认证，失败未改判为通过。
 原用户配置未改，原始日志留在仓库外；身份与结果见
 [Q01 对照记录](decisions/evidence/q01-native-comparison/report.md)。
+
+## P11：普通 Include 树保存与原生准入（2026-10-23）
+
+`save_model` 用关键字引擎保真另存磁盘树，再自动无图形重开，比对节点/单元计数与 Part ID。
+`edit_keywords` 等工具返回的 `data.main` 可交给它；旧 `export_keyword` 的独立模型导出接口保持原状。
+保存失败返回观察和差异，没有 verified 输出。源树文件与目录清单、输出 SHA256 都有复核。
+
+只有注释的普通 `*INCLUDE` 是禁用的备选段：共享预检记为 warning，先前原生准入误拒绝。
+公开 Bolt 原样读入与独立计数一致，已放开这一个情形；缺文件、越界、网络、非首列/END 后卡片，
+以及空的非普通 Include 变体仍拒绝。预检从一开始就在模型访问守卫内执行。
+
+4.13 七项与 4.10 两项子集通过；P11 仍 partial：INCLUDE_PATH/TRANSFORM 等变体、
+非 ASCII Include 根路径、4.10 相对 Include 及 GUI 未保存的编辑尚未闭环，4.8 本项未复验。
+历史失败、干净执行 revision 与验证口径见 [P11 保存记录](decisions/evidence/p11-save/report.md)。

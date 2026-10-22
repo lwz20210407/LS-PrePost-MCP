@@ -3,7 +3,8 @@
 model_info (P01), edit_keywords (P02/P03/P10), create_entities (P04-P06), mesh_ops (P08) and
 check_model (P09) are thin wrappers over ``domain.model.operations``. Material / EOS / section /
 hourglass / control cards are edit_keywords ops; run_recipe is the A08 recipe tool, not defined here.
-No LS-PrePost is needed: edits are applied to the deck text, untouched bytes and the Include
+Text edits use pure Python; save_model additionally verifies a fresh headless native reopen.
+Edits are applied to the deck text, untouched bytes and the Include
 structure are kept, and the result deck is written to the job directory, never over the input.
 Selections may be ``core.contracts.Selector`` objects (``"selector"`` in an edit or target).
 """
@@ -14,6 +15,8 @@ import os
 import re
 from collections.abc import Callable
 from pathlib import Path
+
+from pydantic import StrictInt
 
 from .core.contracts import Artifact, CheckResult, JobResult
 from .jobs import atomic_json
@@ -44,6 +47,18 @@ def _result(operation: str, status: str, data: dict, **fields: object) -> dict:
 
 class ModelTargetTools:
     """Mixed into Service: needs ``self.settings`` (input paths) and ``self.jobs`` (job directories)."""
+
+    def save_model(self, model: str, expected_counts: dict[str, StrictInt] | None = None,
+                   expected_part_ids: list[StrictInt] | None = None) -> dict:
+        """P11: copy a keyword/Include tree into an owned job without reformatting, then reopen
+        it in a fresh headless LS-PrePost and compare node/element counts and Part IDs. Expected
+        values default to a native observation of the input; explicit counts/Part IDs must also
+        match that input. Relative layout and untouched bytes remain unchanged. Absolute external
+        Includes remain explicit read-only references, listed in external_unchanged. No input
+        overwrite; failures expose observations/differences and no verified output artifacts."""
+        from .model_save import save_model
+
+        return save_model(self, model, expected_counts, expected_part_ids)
 
     def model_info(self, model: str) -> dict:
         """P01: inventory of a keyword deck with its Include tree (parts, materials, sections, sets,

@@ -138,6 +138,7 @@
 | `run_workflow` | A09 | path*: string; parameters: union/ref; session_id: union/ref |
 | `run_workflow_sweep` | A09 | path*: string; cases*: array; outputs: union/ref; session_id: union/ref |
 | `save_gui_selection_buffer` | G03 | session_id*: string; entity_type*: string; entity_ids*: array; slot*: integer |
+| `save_model` | P11 | model*: string; expected_counts: union/ref; expected_part_ids: union/ref |
 | `search_commands` | A10 | query*: string; limit: integer |
 | `search_docs` | I08 | query*: string; category: union/ref; limit: integer; include_private: boolean |
 | `search_knowledge` | A10 | query*: string; limit: integer; include_private: boolean; category: union/ref |
