@@ -221,7 +221,7 @@
 缺口：
 
 - save_model 已提供普通 Include 树保真另存与自动原生重开；4.13/4.10 的独立、空 Include、三文件树、编辑后保存、公开 Bolt 树、公开控制卡编辑及预期计数不符负例均有干净提交证据；公开 35656 节点模型两版保存重开一致
-- 正式保真另存入口仍拒绝 INCLUDE_PATH / INCLUDE_TRANSFORM 等变体；原生读取入口支持已验证的主文件搜索路径和中文输入，不外推到所有保存变体
+- 正式保真另存支持已验证的主文件 INCLUDE_PATH / INCLUDE_PATH_RELATIVE，保留相对空搜索目录；4.13/4.10 各四项保存重开通过；INCLUDE_TRANSFORM、opaque、参数化文件名与嵌套 INCLUDE_PATH_RELATIVE 仍拒绝
 - 旧 export_keyword 仍只导出独立模型；save_model 验证磁盘上的关键字树，不读取 GUI 中尚未保存的编辑；GUI 会话与 4.8 本项未复验
 
 ### P12 运动副与刚体连接
