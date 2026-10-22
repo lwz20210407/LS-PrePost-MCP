@@ -25,6 +25,7 @@ GLOSSARY = Path(__file__).with_name("data") / "search_glossary.json"
 ENGLISH_STOPWORDS = frozenset((
     "a", "an", "the", "of", "to", "in", "on", "at", "for", "and", "or", "is", "are", "be", "it", "its",
     "how", "what", "which", "where", "why", "do", "does", "can", "i", "my", "with", "by", "from", "this", "that"))
+SIBILANT_ENDINGS = ("s", "x", "z", "ch", "sh")
 
 
 def _cleanup_owned_temp(path, original):
@@ -278,15 +279,40 @@ def _quote(value):
     return '"' + value.replace('"', '""') + '"' + prefix
 
 
+def _inflections(stem):
+    base = stem[:-1] if stem.endswith("e") else stem
+    if stem.endswith("y") and stem[-2:-1] not in "aeiou":
+        plural = stem[:-1] + "ies"
+    else:
+        plural = stem + ("es" if stem.endswith(SIBILANT_ENDINGS) else "s")
+    return {stem, plural, base + "ed", base + "ing"}
+
+
 def _word_forms(word):
-    """Exact English inflection alternatives; identifiers and short tokens stay literal."""
-    if not word.isalpha() or len(word) < 3:
+    """Regular English inflections of a query word, never shorter fragments of identifiers.
+
+    Only alphabetic words of four or more letters are expanded; digits/underscores stay literal.
+    A suffix is removed only when at least four letters remain, so "string", "speed" and
+    "spring" never shrink to "str", "spe" or "spr" and cannot match code names like str_lim.
+    """
+    if not word.isalpha() or len(word) < 4:
         return [word]
-    stems = {word}
-    for suffix, replacement in (("ies", "y"), ("es", ""), ("s", ""), ("ing", ""), ("ed", "")):
-        if word.endswith(suffix) and len(word) - len(suffix) >= 3:
-            stems.add(word[:-len(suffix)] + replacement)
-    return sorted({form for stem in stems for form in (stem, stem + "s", stem + "es", stem + "ed", stem + "ing")})
+    if word.endswith("ies"):
+        stems = [word[:-3] + "y"]
+    elif word.endswith("es") and word[:-2].endswith(SIBILANT_ENDINGS):
+        stems = [word[:-2]]
+    elif word.endswith("s") and not word.endswith(("ss", "us", "is")):
+        stems = [word[:-1]]
+    elif word.endswith(("ing", "ed")):
+        stem = word[:-3] if word.endswith("ing") else word[:-2]
+        stems = [stem, stem + "e"] if len(stem) >= 4 else []
+    else:
+        stems = []
+    stems = [stem for stem in stems if len(stem) >= 4]
+    forms = {word} if stems else _inflections(word)
+    for stem in stems:
+        forms |= _inflections(stem)
+    return sorted(forms)
 
 
 def _word_expression(word):
@@ -357,7 +383,8 @@ def plan_query(query):
         runs = re.findall(r"[\u3400-\u9fff]", query)
         concepts = ["(" + " OR ".join(_quote("zh_" + char) for char in dict.fromkeys(runs)) + ")"] if runs else []
     entities = [match.upper() for match in re.findall(r"\*([A-Za-z][A-Za-z0-9_/-]*)", query)]
-    return dict(latin=" AND ".join(_word_expression(value) for value in latin), concepts=concepts,
+    return dict(latin=" AND ".join(_word_expression(value) for value in latin),
+                literal=" AND ".join(_quote(value) for value in latin), concepts=concepts,
                 expansion=expansion, entities=["*" + entity for entity in dict.fromkeys(entities)],
                 highlights=sorted(highlights, key=len, reverse=True))
 
@@ -435,9 +462,20 @@ def search_index(path, query, *, category=None, limit=10, include_private=False,
             sql += ", " + ("CASE WHEN " + entity + " THEN 0 ELSE 1 END" if entity else "1") + " AS entity_rank"
             for key in plan["entities"]:
                 params += [key, len(key) + 1, key + " "]
-            sql += " FROM search_terms JOIN documents ON documents.id=search_terms.id WHERE search_terms MATCH ?"
+            sql += " FROM search_terms JOIN documents ON documents.id=search_terms.id"
+            if plan["literal"]:
+                # Documents with the literal query words keep their I05 bm25 order; inflections only
+                # add matches after them, so English queries cannot rank below the uninflected baseline.
+                # MATERIALIZED evaluates the literal MATCH once; a flattened join reruns it for every row.
+                sql = ("WITH literal AS MATERIALIZED (SELECT id AS literal_id, bm25(search_terms) AS literal_rank"
+                       " FROM search_terms WHERE search_terms MATCH ?) " + sql
+                       + " LEFT JOIN literal ON literal.literal_id=documents.id")
+                params.insert(0, plan["literal"])
+                order = "query_priority, entity_rank, coverage DESC, literal_rank IS NULL, literal_rank, rank, documents.id"
+            else:
+                order = "query_priority, entity_rank, coverage DESC, rank, documents.id"
+            sql += " WHERE search_terms MATCH ?"
             params.append(expression)
-            order = "query_priority, entity_rank, coverage DESC, rank, documents.id"
             order_params = []
         else:
             prefix, field_name = keyword_filter
@@ -470,7 +508,7 @@ def search_index(path, query, *, category=None, limit=10, include_private=False,
     for row in rows:
         data = dict(row)
         priority = data.pop("query_priority")
-        for key in ("coverage", "entity_rank"):
+        for key in ("coverage", "entity_rank", "literal_id", "literal_rank"):
             data.pop(key, None)
         data["query_match"] = (("both", "code_only", "text_only")[priority] if mixed
                                else "code_only" if latin_expression else "text_only")

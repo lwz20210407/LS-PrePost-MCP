@@ -2,7 +2,16 @@
 import json
 from pathlib import Path
 
-from ls_prepost_mcp.knowledge_index import Document, build_index, glossary, plan_query, search_index
+import pytest
+
+from ls_prepost_mcp.knowledge_index import (
+    Document,
+    _word_forms,
+    build_index,
+    glossary,
+    plan_query,
+    search_index,
+)
 
 DATA = Path(__file__).parent / "data"
 
@@ -34,6 +43,33 @@ def test_english_inflections_match_but_identifiers_stay_literal(tmp_path):
     assert search_index(path, "value7") == [] and search_index(path, "runtime4") == []
 
 
+@pytest.mark.parametrize("word, identifier", [("string", "str_lim"), ("speed", "spe_x"), ("spring", "spr_id")])
+def test_english_words_never_match_truncated_stems_of_identifiers(tmp_path, word, identifier):
+    # P1-93b: "string" once expanded to "str", which matched the field name str_lim.
+    path = tmp_path / "index.sqlite"
+    build_index(path, [doc("*MAT_X " + identifier, identifier + " limit", "keyword"),
+                       doc("*MAT_X " + word, "Defines the " + word + " parameter", "keyword")])
+    assert [row["title"] for row in search_index(path, word)] == ["*MAT_X " + word]
+    assert all(form.startswith(word) for form in _word_forms(word))
+
+
+def test_literal_matches_rank_before_inflection_only_matches(tmp_path):
+    # Pure English queries keep the I05 ranking; inflections only append further matches.
+    path = tmp_path / "index.sqlite"
+    build_index(path, [doc("inflected", "springs springs springs"),
+                       doc("literal", "Spring stiffness is defined on the discrete beam section card")])
+    assert [row["title"] for row in search_index(path, "spring")] == ["literal", "inflected"]
+
+
+def test_word_forms_add_suffixes_and_reduce_only_to_four_letter_stems():
+    assert "node" in _word_forms("nodes") and "nod" not in _word_forms("nodes")
+    assert {"select", "selected", "selecting", "selects"} <= set(_word_forms("selecting"))
+    assert "box" not in _word_forms("boxes") and "boxes" in _word_forms("boxes")
+    for word in ("string", "speed", "spring", "seed", "stress", "process"):
+        assert all(form.startswith(word) for form in _word_forms(word)), word
+    assert _word_forms("str") == ["str"] and _word_forms("value7") == ["value7"]
+
+
 def test_explicit_keyword_outranks_prefix_siblings(tmp_path):
     path = tmp_path / "index.sqlite"
     build_index(path, [doc("*MAT_ELASTIC_FLUID pr", "Poisson's ratio of the fluid model", "keyword"),
@@ -57,7 +93,8 @@ def test_stopwords_alone_still_fall_back_to_raw_chinese(tmp_path):
     assert plan_query("为什么")["expansion"] == []
 
 
-def test_glossary_is_general_and_disjoint_from_evaluation_questions():
+def test_glossary_is_well_formed_and_no_key_is_a_whole_evaluation_question():
+    # Shape check only; it cannot detect tuning leakage (see the coverage comparison in the A10 report).
     entries, stopwords = glossary()
     assert len(entries) >= 200 and not set(entries) & stopwords
     assert all(values and all(isinstance(value, str) and value.strip() for value in values) for values in entries.values())
