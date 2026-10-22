@@ -263,6 +263,7 @@
 
 - LSPP 对照证据需按身份规范（revision、可执行文件哈希、job id）重跑；现有 4.13 对照记录只有基线 e41cf65，不能复核
 - 状态超过 2000 时共享 overview 不返回逐状态时间，result_info 返回 partial，无法自动判定第 3 条
+- 审阅 P2（#84 合入时未修）：native_check 的原生状态时间含 NaN 时，backends_agree 判 failed 后构造 JobResult 抛校验异常，调用方拿不到结果；部件标题按序号与 ID 配对（共享 lasso_backend）
 
 ### Q02 云图出图
 
@@ -316,6 +317,10 @@
 - 掩码策略 alive / all / deleted 可选；极值附带实体 ID 与状态
 
 现有入口：`extract_field`, `compute_stress_invariants`, `extract_native_stress`, `inspect_result_validity`
+
+缺口：
+
+- 审阅 P2（#82 合入时未修）：extract_field 的 active_count 实际是参与极值计算的有限值行数（存活但三轴度为 NaN 的单元不计入），应改名 finite_count 或按存活标志计数
 
 ### Q05 时程曲线（History）
 
@@ -374,7 +379,6 @@
 缺口：
 
 - 滤波结果尚未与 LS-PrePost XYPlot 同参数滤波对比（L2），首尾填充约定是否与 LS-PrePost 一致未知
-- 相对量（两条曲线相减）仍只由旧工具 combine_history_curves 提供，curve_ops 未接入
 
 ### Q08 XYPlot 出图
 
@@ -637,6 +641,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 - holdout B 的独立性未经可复核证明：文件 blob e8d7728b 首次出现在 ecae976，与代码提交 3703de5 同一秒提交，Git 不能证明调优前冻结；以后的留出集须先公布哈希再调优
 - 私有 Scripting API/用户指南来源路径未经用户确认（I05 缺口），正式口径 API 类 0/4；SCL 驼峰函数名建索引时不拆分、指南 PDF 抽取断词属于 I05 构建范围
 - 不写关键字名的字段语义问题（holdout B HB09/HB11/HB12）仍未命中；holdout B 有 6 题答案目标与开发集重合，去除后 10/18
+- 审阅 P2（#93 合入时未修）：重复的中文概念未去重，超长重复查询会触发 sqlite Expression tree is too large；evidence.json 的逐题返回列表仍是 f04843a 的记录，最终修订改变了 6 题的前 3 条，未重新生成；扩展词形覆盖率无自动测试
 
 ## 通用
 
