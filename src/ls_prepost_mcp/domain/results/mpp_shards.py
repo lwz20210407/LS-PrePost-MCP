@@ -20,7 +20,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .lasso_backend import ResultsError, _lasso, backend
+from .lasso_backend import MissingComponentError, ResultsError, _lasso, backend
 
 SHARD = re.compile(r"^binout(\d{4})?$")
 FAMILY = re.compile(r"^binout(\d{4})?(%\d{2,})?$")  # a shard and its size continuations
@@ -127,7 +127,7 @@ def _identity(names: list[str]) -> list[str]:
 def _piece(name: str, reader: object, location: tuple[str, ...], component: str) -> dict:
     names = reader.read(*location)
     if component not in names:
-        raise ResultsError(f"{'/'.join(location)} has no {component!r}; available: {sorted(names)}")
+        raise MissingComponentError(f"{'/'.join(location)} has no {component!r}; available: {sorted(names)}")
     if "time" not in names:
         raise ResultsError(f"{'/'.join(location)} in {name} has no time samples")
     time = np.asarray(reader.read(*location, "time"), dtype=float).reshape(-1)
