@@ -68,6 +68,9 @@ def walk(deck: KeywordDeck, source: SourceFile, stack: list[str]) -> None:
         if kind is None:
             continue
         for name, lines in file_names(block.name, block.data()):
+            # Blocks preserve bytes as Latin-1; filesystem names use the detected
+            # text encoding. UTF-16 SourceFile text is already decoded.
+            name = name if source.wide else source.from_text(name)
             line = block.line_number + lines[0] if lines else None
             if not _count(deck, 1):  # before any file-system access for this name
                 _stop(deck, IncludeRef(source, block, kind, name, Resolution(None, "reference_limit"),

@@ -32,6 +32,7 @@ from .gui_selection import GuiSelectionTools
 from .gui_visibility import GuiVisibilityTools
 from .installation_assets import InstallationTools
 from .jobs import Jobs, atomic_json, check_artifact, fingerprint, now
+from .keyword_staging import stage_keyword_snapshot
 from .keyword_tools import KeywordTools
 from .mesh_tools import MeshTools
 from .model_target_tools import ModelTargetTools
@@ -77,36 +78,24 @@ class Service(EnergyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTool
         if file_type not in ("keyword", "d3plot"):
             raise ValueError("file_type must be keyword or d3plot")
         source = self.settings.input_path(model) if model else None
-        include_bearing = False
+        include_bearing, keyword_report = False, None
         if source and file_type == "keyword":
-            self.settings.check_keyword_includes(source)
-            include_bearing = any(line.strip().upper().startswith("*INCLUDE")
-                                  for line in source.read_text(errors="replace").splitlines())
-            if include_bearing and _windows() and not str(source).isascii():
-                raise ValueError(
-                    "Non-ASCII source paths for INCLUDE-bearing keyword models are unsupported "
-                    "by the Windows native batch route: the absolute-path open can fail and crash "
-                    "LS-PrePost. Input was not modified and no native job was started.")
+            with self._guard():
+                keyword_report = self.settings.native_keyword_report(source)
+            include_bearing = bool(keyword_report["references"]) or any(
+                p["kind"] == "empty_include" for p in keyword_report["problems"])
             if export and include_bearing:
-                raise ValueError("Native export of include-bearing models needs a staged include-tree implementation")
+                raise ValueError("Native export would flatten the include-tree; use save_model")
         if source and file_type == "d3plot" and exceeds_staging_limit(input_family(self.settings, source, family=True)):
             raise ValueError("Native d3plot input exceeds 1000 files / 2 GiB staging limit; read-only in-place fallback is unverified and disabled after native crashes. Use a supported reader backend or a smaller result family.")
         directory, manifest = self.jobs.create(action, parameters)
-        if include_bearing:
-            try:
-                self.settings.check_keyword_includes(source, native_cwd=directory)
-            except Exception as exc:
-                manifest.update(status="failed", finished_at=now(), job_directory=str(directory),
-                                error={"type": type(exc).__name__, "message": str(exc) or type(exc).__name__})
-                atomic_json(directory / "job.json", manifest)
-                raise
         manifest["backend"] = "lsprepost"
         manifest["executable"] = fingerprint(exe)
         manifest["native_channel"] = "scl" if action == "scl_probe" else "embedded_python"
         request = {"job_id": manifest["job_id"], "action": action, "parameters": parameters,
                    "job_directory": str(directory), "model": str(source) if source else None,
                    "file_type": file_type}
-        staged_sources, source_identities = [], []
+        staged_sources, source_identities, keyword_snapshot = [], [], None
         if source:
             manifest["input"] = fingerprint(source)
             if not include_bearing:
@@ -116,15 +105,21 @@ class Service(EnergyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTool
                 manifest["input_staging"] = "Owned ASCII basename; original paths and bytes remain unchanged"
                 manifest["inputs"] = source_identities
             else:
-                # Existing plain INCLUDE validation is retained. Read-only native
-                # loading uses the absolute root deck; I07 still owns tree edits.
-                native_source = str(source)
-                if native_source.startswith("\\\\?\\UNC\\"):
-                    native_source = "\\\\" + native_source[8:]
-                elif native_source.startswith("\\\\?\\"):
-                    native_source = native_source[4:]
-                request["model"] = native_source
-            request["absolute_keyword_path"] = file_type == "keyword" and include_bearing
+                try:
+                    with self._guard():
+                        keyword_snapshot = stage_keyword_snapshot(self.settings, source, directory, keyword_report)
+                    request["model"] = str(keyword_snapshot.main)
+                    manifest["input_tree"] = keyword_snapshot.metadata()
+                    # Preserve the legacy root projection; full source identities live in input_tree.
+                    manifest["inputs"] = [manifest["input"]]
+                    manifest["input_staging"] = "Owned ASCII aliases; only temporary filename/path cards normalized"
+                except Exception as exc:
+                    message = str(exc)
+                    manifest.update(status="failed", finished_at=now(), job_directory=str(directory),
+                        error={"type": type(exc).__name__, "message": message if message.strip() else type(exc).__name__})
+                    atomic_json(directory / "job.json", manifest)
+                    return manifest
+            request["absolute_keyword_path"] = False
         atomic_json(directory / "request.json", request)
         bridge = stage_bridge(directory)
         bootstrap = directory / "bootstrap.py"
@@ -134,7 +129,8 @@ class Service(EnergyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTool
                              + repr(str(directory / "response.json")) + ")\n", encoding="utf-8")
         commands = ["new"]
         if source and action == "scl_probe":
-            commands.append(nc.open_model(request["model"], file_type, openc=file_type == "d3plot"))
+            native_model = Path(request["model"]).name if keyword_snapshot is not None else request["model"]
+            commands.append(nc.open_model(native_model, file_type, openc=file_type == "d3plot"))
         if action == "scl_probe":
             script = directory / "probe.scl"
             nc.write_scl(script, '/*LS-SCRIPT*/\ndefine:\nvoid main(void)\n{\nInt n;\nFILE *fp;\n'
@@ -181,9 +177,18 @@ class Service(EnergyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTool
             if staged_sources and [fingerprint(path) for path in input_family(
                     self.settings, source, family=file_type == "d3plot")] != source_identities:
                 raise RuntimeError("Input family changed during the task")
+            if keyword_snapshot is not None:
+                with self._guard():
+                    keyword_snapshot.verify(self.settings)
             manifest["status"] = "succeeded"
         except Exception as exc:
-            manifest.update(status="failed", error={"type": type(exc).__name__, "message": str(exc)})
+            message = str(exc)
+            manifest.update(status="failed", error={"type": type(exc).__name__,
+                            "message": message if message.strip() else type(exc).__name__})
+        if keyword_snapshot is not None and manifest["status"] == "succeeded":
+            manifest["input_tree"]["cleanup"] = keyword_snapshot.cleanup()
+            if manifest["input_tree"]["cleanup"]["retained"]:
+                manifest["warnings"].append("Some owned native input copies were retained; inspect input_tree.cleanup")
         manifest["finished_at"] = now()
         manifest["job_directory"] = str(directory)
         manifest["logs"] = [str(p) for p in directory.glob("*.log")] + [str(p) for p in directory.glob("lspost.*")]

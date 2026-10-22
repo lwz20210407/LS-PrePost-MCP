@@ -34,7 +34,7 @@ def test_ignored_include_syntax_is_rejected(tmp_path, text):
         Settings(tmp_path).check_keyword_includes(main)
 
 
-def test_cwd_rejection_marks_created_job_failed(tmp_path, monkeypatch):
+def test_normalized_snapshot_never_reads_or_deletes_an_unrelated_cwd_alternative(tmp_path, monkeypatch):
     source = tmp_path / "source"
     source.mkdir()
     main = source / "main.k"
@@ -51,11 +51,22 @@ def test_cwd_rejection_marks_created_job_failed(tmp_path, monkeypatch):
         return directory, manifest
 
     monkeypatch.setattr(service.jobs, "create", with_alternate)
-    monkeypatch.setattr("ls_prepost_mcp.service.run_batch", lambda *a, **kw: pytest.fail("Must reject before native launch"))
-    with pytest.raises(ValueError, match="different file"):
-        service.inspect_model(str(main))
+    def execute(executable, cfile, directory, **kwargs):
+        from ls_prepost_mcp.core.contracts import JobResult
+        from ls_prepost_mcp.domain.model import preflight_includes
+
+        request = json.loads((directory / "request.json").read_text(encoding="utf8"))
+        report = preflight_includes(request["model"])
+        assert all(entry["path"] != str(directory / "child.k") for entry in report["files"])
+        (directory / "response.json").write_text(json.dumps({"job_id": directory.name, "ok": True,
+                                                            "data": {"counts": {"nodes": 1}}}))
+        return JobResult(operation=kwargs["operation"], job_id=directory.name, status="unverified",
+                         data={"returncode": 0, "timed_out": False})
+
+    monkeypatch.setattr("ls_prepost_mcp.service.run_batch", execute)
+    result = service.inspect_model(str(main))
     paths = list(service.jobs.root.glob("*/job.json"))
     assert len(paths) == 1
     result = json.loads(paths[0].read_text(encoding="utf8"))
-    assert result["status"] == "failed"
-    assert "different file" in result["error"]["message"] and result["finished_at"]
+    assert result["status"] == "succeeded"
+    assert (paths[0].parent / "child.k").read_text() == "*KEYWORD\n*END\n"

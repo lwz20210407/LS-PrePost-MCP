@@ -78,12 +78,13 @@ def diagnose(service, source, kind, *, run_native):
         record["comparison"] = state_comparison(native["data"], record["metadata_reader"])
         record["status"] = record["comparison"]["verdict"]
     else:
-        saved = service.export_keyword(str(source))
+        saved = service.save_model(str(source))
         record["save_keyword"] = saved
         record["status"] = "keyword_save_failed"
         if saved["status"] == "succeeded":
-            output = next(a["path"] for a in saved["artifacts"] if a["kind"] == "keyword")
-            reopened = service.inspect_model(output)
+            observation = saved["data"]["observations"]["after_reopen"]
+            reopened = {"status": observation["status"], "job_id": observation["job_id"],
+                        "data": {"counts": observation["counts"], "part_ids": observation["part_ids"]}}
             record["reopen_inventory"] = reopened
             record["status"] = "keyword_reopen_failed"
             if reopened["status"] == "succeeded":
