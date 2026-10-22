@@ -318,10 +318,6 @@
 
 现有入口：`extract_field`, `compute_stress_invariants`, `extract_native_stress`, `inspect_result_validity`
 
-缺口：
-
-- 审阅 P2（#82 合入时未修）：extract_field 的 active_count 实际是参与极值计算的有限值行数（存活但三轴度为 NaN 的单元不计入），应改名 finite_count 或按存活标志计数
-
 ### Q05 时程曲线（History）
 
 状态：partial；版本：v0.5；里程碑：M2；层：T1
