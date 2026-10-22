@@ -26,3 +26,16 @@ def test_invalid_catalog_is_rejected(mutation, fragment):
     catalog = copy.deepcopy(read_catalog())
     mutation(catalog)
     assert any(fragment in error for error in validate(catalog, registered_tools()))
+
+
+def test_list_items_are_not_truncated_by_inline_comments():
+    # A plain YAML scalar ends at " #": "- PR #57 ..." parses as "PR". Quote such items.
+    text = (Path(__file__).resolve().parents[1] / "tasks.yaml").read_text(encoding="utf-8")
+    offenders = []
+    for number, line in enumerate(text.splitlines(), start=1):
+        stripped = line.lstrip()
+        if not stripped.startswith("- ") or stripped[2:3] in ("'", '"', "[", "{"):
+            continue
+        if " #" in stripped[2:]:
+            offenders.append(f"tasks.yaml:{number}: {stripped[:60]}")
+    assert offenders == []
