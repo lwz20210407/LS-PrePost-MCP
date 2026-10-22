@@ -92,7 +92,7 @@ def _unified(old: list[str], new: list[str], fromfile: str, tofile: str, context
     return (renumbered, partial) if with_flag else renumbered
 
 
-def _relocation_plan(deck: KeywordDeck, out_dir: Path) -> tuple[dict[Path, Path], list[str]]:
+def _relocation_plan(deck: KeywordDeck, out_dir: Path) -> tuple[dict[Path, Path], list[str], dict[Path, Path]]:
     absolute = {identity(r.child.path) for r in deck.includes if r.child and Path(r.name).is_absolute()}
     # Absolute search directories still point at the source tree after a raw
     # save-as. A modified copy there would be unused when the saved main reloads.
@@ -128,9 +128,21 @@ def _relocation_plan(deck: KeywordDeck, out_dir: Path) -> tuple[dict[Path, Path]
         else:
             opaque.append(path)
     external = list(dict.fromkeys(external))
-    root = Path(os.path.commonpath([str(p.parent.resolve()) for p in movable + opaque]))
+    directories = []
+    for ref in deck.includes:
+        if ref.kind != "path" or Path(ref.name).is_absolute() or ref.error:
+            continue
+        directory = deck.main_dir / ref.name
+        access.require(directory)
+        if directory.is_dir():
+            directories.append(directory.resolve())
+    # Empty relative search directories also determine layout. Omitting them
+    # can leave an unchanged path card dangling after a successful save-as.
+    locations = [str(p.parent.resolve()) for p in movable + opaque] + [str(p) for p in directories]
+    root = Path(os.path.commonpath(locations))
     plan = {p: out_dir / p.resolve().relative_to(root) for p in movable + opaque}
-    return plan, external
+    directory_plan = {p: out_dir / p.relative_to(root) for p in directories}
+    return plan, external, directory_plan
 
 
 def save_as(deck: KeywordDeck, out_dir: str | os.PathLike[str], overwrite: bool = False) -> dict:
@@ -140,13 +152,15 @@ def save_as(deck: KeywordDeck, out_dir: str | os.PathLike[str], overwrite: bool 
     The written deck is reloaded as a check.
     """
     out = Path(out_dir)
-    plan, external = _relocation_plan(deck, out)
+    plan, external, directories = _relocation_plan(deck, out)
     sources = {identity(f.path): f for f in deck.files.values()}
     for source, dest in plan.items():
         if identity(dest) == identity(source):
             raise ValueError("Output directory would overwrite the input files; use save_in_place")
         if dest.exists() and not overwrite:
             raise FileExistsError(f"{dest} exists")
+    for dest in directories.values():
+        dest.mkdir(parents=True, exist_ok=True)
     written = []
     for source, dest in plan.items():
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -163,6 +177,7 @@ def save_as(deck: KeywordDeck, out_dir: str | os.PathLike[str], overwrite: bool 
     skipped = [str(f.path) for k, f in deck.files.items() if f.modified and k not in planned
                and str(f.path) not in external]
     return {"main": str(main_dest), "files": written, "external_unchanged": external,
+            "search_directories": [{"source": str(p), "dest": str(d)} for p, d in directories.items()],
             "skipped_unreferenced_edits": skipped,
             "reload_files": len(reloaded.files), "reload_warnings": reloaded.warnings}
 
