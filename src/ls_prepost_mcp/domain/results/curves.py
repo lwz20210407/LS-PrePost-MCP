@@ -365,6 +365,47 @@ def spectrum(t: object, y: object, *, t_unit: str, y_unit: str | None = None) ->
         resolution_hz=1 / (y.size * dt_s), samples=int(y.size), window="rectangular"))
 
 
+def _common_times(tx: np.ndarray, ty: np.ndarray) -> np.ndarray:
+    """Shared explicit interpolation grid for cross plots and relative histories."""
+    lo, hi = max(tx[0], ty[0]), min(tx[-1], ty[-1])
+    if not lo < hi:
+        raise CurveError(f"The time ranges [{tx[0]:g}, {tx[-1]:g}] and [{ty[0]:g}, {ty[-1]:g}] do not overlap")
+    times = np.unique(np.concatenate([tx[(tx >= lo) & (tx <= hi)], ty[(ty >= lo) & (ty <= hi)], [lo, hi]]))
+    if times.size > MAX_SAMPLES:
+        raise CurveError(f"The aligned curve exceeds {MAX_SAMPLES} samples")
+    return times
+
+
+def difference(ta: object, a: object, tb: object, b: object, *, t_unit: str | None = None,
+               y_unit: str | None = None, alignment: str = "exact") -> Curve:
+    """a(t)-b(t), with shared declared units and explicit sample alignment.
+
+    Default exact alignment requires identical stored times. intersection explicitly
+    opts into linear interpolation on the union within the overlapping interval;
+    no extrapolation or automatic clock/unit conversion. Convert units first.
+    """
+    ta, a = _xy(ta, a)
+    tb, b = _xy(tb, b)
+    if alignment not in ("exact", "intersection"):
+        raise CurveError("alignment must be exact or intersection")
+    if alignment == "exact":
+        if not np.array_equal(ta, tb):
+            raise CurveError("exact alignment requires identical time samples; convert units/resample first "
+                             "or explicitly select alignment='intersection'")
+        times, left, right = ta, a, b
+    else:
+        times = _common_times(ta, tb)
+        left, right = np.interp(times, ta, a), np.interp(times, tb, b)
+    with np.errstate(over="ignore", invalid="ignore"):
+        values = left - right
+    if not np.isfinite(values).all():
+        raise CurveError("Curve difference overflows finite arithmetic")
+    return Curve(times, values, _meta("difference", "a(t) - b(t)", (t_unit, y_unit), ("time", "value"),
+        alignment=alignment, interval=[float(times[0]), float(times[-1])], samples=int(times.size),
+        interpolation="none; identical stored times" if alignment == "exact" else
+                      "linear at the common interval's union of sample times; no extrapolation"))
+
+
 def cross_plot(tx: object, x: object, ty: object, y: object, *, t_unit: str | None = None,
                x_unit: str | None = None, y_unit: str | None = None) -> Curve:
     """y(t) against x(t) on the common time interval. Both curves share one time unit (``t_unit``,
@@ -374,15 +415,10 @@ def cross_plot(tx: object, x: object, ty: object, y: object, *, t_unit: str | No
     values interpolated linearly there; nothing is extrapolated and disjoint ranges are refused."""
     tx, x = _xy(tx, x)
     ty, y = _xy(ty, y)
-    lo, hi = max(tx[0], ty[0]), min(tx[-1], ty[-1])
-    if not lo < hi:
-        raise CurveError(f"The time ranges [{tx[0]:g}, {tx[-1]:g}] and [{ty[0]:g}, {ty[-1]:g}] do not overlap")
-    times = np.unique(np.concatenate([tx[(tx >= lo) & (tx <= hi)], ty[(ty >= lo) & (ty <= hi)], [lo, hi]]))
-    if times.size > MAX_SAMPLES:
-        raise CurveError(f"The aligned curve exceeds {MAX_SAMPLES} samples")
+    times = _common_times(tx, ty)
     return Curve(np.interp(times, tx, x), np.interp(times, ty, y), _meta(
         "cross_plot", "(x(t), y(t)) at the union of both sample times in the common interval, linear "
-        "interpolation, no extrapolation", (x_unit, y_unit), ("x", "y"), interval=[float(lo), float(hi)],
+        "interpolation, no extrapolation", (x_unit, y_unit), ("x", "y"), interval=[float(times[0]), float(times[-1])],
         t_unit=t_unit, samples=int(times.size)))
 
 
@@ -452,5 +488,5 @@ def true_stress_strain(strain: object, stress: object, *, strain_unit: str = "1"
 
 
 __all__ = ["Curve", "CurveError", "MAX_SAMPLES", "PADDINGS", "SAE_CLASSES", "butterworth_filter",
-           "convert_units", "cross_plot", "differentiate", "engineering_stress_strain", "history", "integrate",
+           "convert_units", "cross_plot", "difference", "differentiate", "engineering_stress_strain", "history", "integrate",
            "resample", "sae_filter", "spectrum", "true_stress_strain"]
