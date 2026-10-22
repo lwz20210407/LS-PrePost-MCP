@@ -252,7 +252,13 @@ class FieldMetricsTools:
                 "row_count": mask_policy["rows"],
                 "excluded_by_mask": mask_policy["excluded"],
                 "mask_policy": mask_policy,
-                "active_count": int(extrema["count"]),
+                "active_count": int(np.count_nonzero(raw["alive"]))
+                if mask_policy["deletion_status"] == "stored" else None,
+                "finite_count": int(extrema["count"]),
+                "count_policy": {
+                    "active_count": "stored alive flags among returned rows; null when deletion status is unknown",
+                    "finite_count": "finite scalar values among returned rows participating in extrema",
+                },
                 "extrema": extrema,
                 "ids": [int(i) for i in np.asarray(raw["ids"]).reshape(-1)],
                 "values": [float(v) if math.isfinite(v) else "nan" for v in np.asarray(raw["values"], dtype=float).reshape(-1)],

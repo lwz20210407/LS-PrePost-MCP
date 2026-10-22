@@ -529,6 +529,30 @@ def test_input_validation_and_refusals(service: Service, synthetic_d3plot: Path,
     assert service.jobs.list() == []
 
 
+@pytest.mark.parametrize("family", ["solid", "shell"])
+@pytest.mark.parametrize("mask,rows,active,finite", [("alive", 3, 3, 2), ("all", 4, 3, 3), ("deleted", 1, 0, 1)])
+def test_live_and_finite_counts_are_distinct(service, synthetic_d3plot, family, mask, rows, active, finite):
+    result = service.extract_field(str(synthetic_d3plot), family, "triaxiality", state=3, mask=mask)
+    assert result["status"] == "succeeded", result.get("error")
+    data = result["data"]
+    assert data["row_count"] == rows
+    assert data["active_count"] == active  # hydrostatic/zero stress is still a live element
+    assert data["finite_count"] == finite == data["extrema"]["count"]
+    assert data["active_count"] == sum(data["alive"])
+    assert "returned rows" in data["count_policy"]["active_count"]
+    assert "finite" in data["count_policy"]["finite_count"]
+
+
+def test_live_count_is_unknown_without_deletion_records(tmp_path):
+    source = write_synthetic(tmp_path / "d3plot", deletion=False)
+    result = Service(Settings(tmp_path / "jobs", allowed_roots=(tmp_path,))).extract_field(
+        str(source), "solid", "triaxiality", state=3, mask="all")
+    assert result["status"] == "succeeded", result.get("error")
+    data = result["data"]
+    assert data["row_count"] == 4 and data["finite_count"] == 3
+    assert data["alive"] is None and data["active_count"] is None
+
+
 # Opt-in public corpus checks: LSPP_CORPUS_DIR points at the external corpus root (never committed);
 # paths come from the registered IDs in tests/corpus/manifest.yaml. Jobs go to tmp_path, not the corpus.
 
@@ -577,7 +601,8 @@ def test_corpus_story_target_plate_maximum(tmp_path: Path) -> None:
         assert data["ids"] == plate_ids[alive].tolist()  # deleted plate elements are not returned
         assert data["element_count"] == int(in_plate.sum())
         assert data["excluded_by_mask"] == int((~alive).sum()) > 0
-        assert data["active_count"] <= int(alive.sum())
+        assert data["active_count"] == int(alive.sum())
+        assert data["finite_count"] <= data["active_count"]
         expected = np.array([independent_stress_metrics(s)[quantity] for s in stress])
         got = np.array([float(v) for v in data["values"]])
         assert np.array_equal(np.isnan(got), np.isnan(expected[alive]))

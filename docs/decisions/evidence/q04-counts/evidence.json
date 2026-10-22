@@ -1,0 +1,18 @@
+{
+  "actual_git_revision": "fc10e50057fdfb244274c9f09ca58e801066b059",
+  "working_tree_dirty": false,
+  "native_run": false,
+  "command": "python -m pytest tests/test_field_metrics.py -k corpus -q -p no:cacheprovider",
+  "exit_code": 0,
+  "report": "public-report.txt",
+  "report_sha256_policy": "UTF-8 bytes with CRLF normalized to LF",
+  "report_sha256": "d8b80237d915042a0ade5897c2913a8b2e357b4ed483d68ca45ac44364514419",
+  "test_source_identity": {
+    "kind": "git_blob_id",
+    "value": "364c9d3493596e1b5da3ef89bedf8b3eb80334a2"
+  },
+  "corpus_ids": [
+    "result.ansys__example-data.result_files.d3plot_projectile",
+    "shell_d3plot"
+  ]
+}
