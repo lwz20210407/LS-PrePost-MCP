@@ -451,7 +451,6 @@ tasks:
       - tests/test_field_metrics.py
       - docs/decisions/evidence/q04/report.md
       - docs/decisions/evidence/q04/evidence.json
-    gaps: []
     gaps:
       - '审阅 P2（#82 合入时未修）：extract_field 的 active_count 实际是参与极值计算的有限值行数（存活但三轴度为 NaN 的单元不计入），应改名 finite_count 或按存活标志计数'
     acceptance:
