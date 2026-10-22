@@ -1,0 +1,689 @@
+{
+  "task": "P02",
+  "runs": [
+    {
+      "actual_git_revision": "081ad030cc1ddd8d495af4ea58b874eca00a9f5d",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "executable": {
+        "name": "lsprepost4.13.exe",
+        "version": "4.13",
+        "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+      },
+      "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+      "run_id": "ex413a",
+      "context": "batch",
+      "passed": 2,
+      "failed": 0,
+      "cases": [
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "fixed",
+          "actual_git_revision": "081ad030cc1ddd8d495af4ea58b874eca00a9f5d",
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "succeeded",
+          "warnings": [],
+          "source_unchanged": true,
+          "observations": [
+            {
+              "job_id": "36a767e5b55d4613813f6caa33566e15",
+              "status": "succeeded",
+              "node_1": [
+                1,
+                4.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "job_id": "9d52ae3e1944463ca77b76a8610d4869",
+              "status": "succeeded",
+              "node_1": [
+                1,
+                4.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "native_jobs": [
+            {
+              "job_id": "2046d30b09bc4a809bcf7f80766a3b48",
+              "status": "succeeded",
+              "returncode": 0,
+              "timed_out": false,
+              "graphics": false,
+              "nographics": true
+            },
+            {
+              "job_id": "4c52cb1aba4040d4897ea283f1b6f97b",
+              "status": "succeeded",
+              "returncode": 0,
+              "timed_out": false,
+              "graphics": false,
+              "nographics": true
+            },
+            {
+              "job_id": "36a767e5b55d4613813f6caa33566e15",
+              "status": "succeeded",
+              "returncode": 0,
+              "timed_out": false,
+              "graphics": false,
+              "nographics": true
+            },
+            {
+              "job_id": "9d52ae3e1944463ca77b76a8610d4869",
+              "status": "succeeded",
+              "returncode": 0,
+              "timed_out": false,
+              "graphics": false,
+              "nographics": true
+            }
+          ]
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "free",
+          "actual_git_revision": "081ad030cc1ddd8d495af4ea58b874eca00a9f5d",
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "succeeded",
+          "warnings": [],
+          "source_unchanged": true,
+          "observations": [
+            {
+              "job_id": "15ba1529044c412bb1a3a92e18baecb2",
+              "status": "succeeded",
+              "node_1": [
+                1,
+                4.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "job_id": "f2085f18b2104eb281526f3fb3ae07f4",
+              "status": "succeeded",
+              "node_1": [
+                1,
+                4.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "native_jobs": [
+            {
+              "job_id": "06c3998ce58543178710bbcd6210cf26",
+              "status": "succeeded",
+              "returncode": 0,
+              "timed_out": false,
+              "graphics": false,
+              "nographics": true
+            },
+            {
+              "job_id": "bd472a80676a4ef297a98296ffe11f57",
+              "status": "succeeded",
+              "returncode": 0,
+              "timed_out": false,
+              "graphics": false,
+              "nographics": true
+            },
+            {
+              "job_id": "15ba1529044c412bb1a3a92e18baecb2",
+              "status": "succeeded",
+              "returncode": 0,
+              "timed_out": false,
+              "graphics": false,
+              "nographics": true
+            },
+            {
+              "job_id": "f2085f18b2104eb281526f3fb3ae07f4",
+              "status": "succeeded",
+              "returncode": 0,
+              "timed_out": false,
+              "graphics": false,
+              "nographics": true
+            }
+          ]
+        }
+      ],
+      "test_source_identity": {
+        "path": "tests/test_parameter_expressions_native.py",
+        "git_blob_id": "904b99d2f37da96e37091dbe7cca05ab0a8b41de",
+        "sha256_lf": "9dbd624ba0f082f2641a2d554501a1833265b8b65ca0c587855f49e8f3e4673c",
+        "newline_basis": "LF normalized Git blob"
+      },
+      "report": "ex413a-batch-report.md",
+      "report_sha256": "0d46f83a01d75eb343863b83be7e949e02934129a3ae495a11f8c4efdaab3156"
+    },
+    {
+      "actual_git_revision": "081ad030cc1ddd8d495af4ea58b874eca00a9f5d",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "executable": {
+        "name": "lsprepost4.10_x64.exe",
+        "version": "4.10",
+        "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+      },
+      "source_config_sha256": "cf42fba49988b2196a9a009b9c9ee31e30100a1a698b6f9a5fcb3789157f4461",
+      "run_id": "ex410a",
+      "context": "batch",
+      "passed": 2,
+      "failed": 0,
+      "cases": [
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "fixed",
+          "actual_git_revision": "081ad030cc1ddd8d495af4ea58b874eca00a9f5d",
+          "executable": {
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+          },
+          "source_config_sha256": "cf42fba49988b2196a9a009b9c9ee31e30100a1a698b6f9a5fcb3789157f4461",
+          "status": "succeeded",
+          "warnings": [],
+          "source_unchanged": true,
+          "observations": [
+            {
+              "job_id": "252edcfb64ba48f78a7ff6bf31909dca",
+              "status": "succeeded",
+              "node_1": [
+                1,
+                4.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "job_id": "7354db70b16e4db9b305e1b8fc456222",
+              "status": "succeeded",
+              "node_1": [
+                1,
+                4.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "native_jobs": [
+            {
+              "job_id": "156eb665a87a44b79b24ed602a2f6fe1",
+              "status": "succeeded",
+              "returncode": 0,
+              "timed_out": false,
+              "graphics": false,
+              "nographics": true
+            },
+            {
+              "job_id": "dab7b448fd0d48c7af3f064cc8431b8e",
+              "status": "succeeded",
+              "returncode": 0,
+              "timed_out": false,
+              "graphics": false,
+              "nographics": true
+            },
+            {
+              "job_id": "252edcfb64ba48f78a7ff6bf31909dca",
+              "status": "succeeded",
+              "returncode": 0,
+              "timed_out": false,
+              "graphics": false,
+              "nographics": true
+            },
+            {
+              "job_id": "7354db70b16e4db9b305e1b8fc456222",
+              "status": "succeeded",
+              "returncode": 0,
+              "timed_out": false,
+              "graphics": false,
+              "nographics": true
+            }
+          ]
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "free",
+          "actual_git_revision": "081ad030cc1ddd8d495af4ea58b874eca00a9f5d",
+          "executable": {
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+          },
+          "source_config_sha256": "cf42fba49988b2196a9a009b9c9ee31e30100a1a698b6f9a5fcb3789157f4461",
+          "status": "succeeded",
+          "warnings": [],
+          "source_unchanged": true,
+          "observations": [
+            {
+              "job_id": "805a48660978450897b6a0dffe581b13",
+              "status": "succeeded",
+              "node_1": [
+                1,
+                4.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "job_id": "ef6881b1716f4448922eeaa956b5c6c3",
+              "status": "succeeded",
+              "node_1": [
+                1,
+                4.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "native_jobs": [
+            {
+              "job_id": "abef3c6e62054969b3a65acd21111a4f",
+              "status": "succeeded",
+              "returncode": 0,
+              "timed_out": false,
+              "graphics": false,
+              "nographics": true
+            },
+            {
+              "job_id": "0773b49d448144bc894be23fd870420d",
+              "status": "succeeded",
+              "returncode": 0,
+              "timed_out": false,
+              "graphics": false,
+              "nographics": true
+            },
+            {
+              "job_id": "805a48660978450897b6a0dffe581b13",
+              "status": "succeeded",
+              "returncode": 0,
+              "timed_out": false,
+              "graphics": false,
+              "nographics": true
+            },
+            {
+              "job_id": "ef6881b1716f4448922eeaa956b5c6c3",
+              "status": "succeeded",
+              "returncode": 0,
+              "timed_out": false,
+              "graphics": false,
+              "nographics": true
+            }
+          ]
+        }
+      ],
+      "test_source_identity": {
+        "path": "tests/test_parameter_expressions_native.py",
+        "git_blob_id": "904b99d2f37da96e37091dbe7cca05ab0a8b41de",
+        "sha256_lf": "9dbd624ba0f082f2641a2d554501a1833265b8b65ca0c587855f49e8f3e4673c",
+        "newline_basis": "LF normalized Git blob"
+      },
+      "report": "ex410a-batch-report.md",
+      "report_sha256": "c40e8b3e2a7304c1769bc5c135f20ebdeae8243ab78666f56cca4ac072a4a2d3"
+    }
+  ],
+  "public_save_diagnostics": [
+    {
+      "run_id": "public-save-413a",
+      "actual_git_revision": "37c17e2483ae34c43d2109c52e6bdf9cb90f2e0b",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "probe_sha256": "ad13fbbc86d3aeb8633f87899c71ac80e715c229d32b6852dae0179379d3a20b",
+      "executable_version": "4.13",
+      "cases": [
+        {
+          "case": "extra-keyword-025",
+          "status": "failed",
+          "reload_warning_count": 4,
+          "originals_unchanged": true,
+          "directory_unchanged": true,
+          "input_tree_sha256": "75b64a66a1e2bcd35017f5164813eaa5f67728d13c9b9c6ced828c6ae0721ecd",
+          "input_tree_sha256_version": 1,
+          "observations": {
+            "before_save": {
+              "counts": {
+                "nodes": 564960,
+                "elements": 782601,
+                "states": 1
+              },
+              "part_ids_sha256": "e6b63dfa78ddaac1585f72efdba8581ce3f3f351fcb47b0aea30b4755b9c8dac"
+            },
+            "after_reopen": {
+              "counts": {
+                "nodes": 564960,
+                "elements": 782601,
+                "states": 1
+              },
+              "part_ids_sha256": "e6b63dfa78ddaac1585f72efdba8581ce3f3f351fcb47b0aea30b4755b9c8dac"
+            }
+          },
+          "native_jobs": [
+            {
+              "job_id": "d261a557b1d249fc9aab1933645dfa59",
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            },
+            {
+              "job_id": "3c3e1899b69844c1aea827ffb21348d7",
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "scope": "P11 save/reopen counts and parts only; not full p100 node-coordinate recheck"
+        },
+        {
+          "case": "extra-keyword-063",
+          "status": "failed",
+          "reload_warning_count": 4,
+          "originals_unchanged": true,
+          "directory_unchanged": true,
+          "input_tree_sha256": "60062359319cf2a7e443097bb9fa2affae726ef9420f6d8aa0e19364e043ef7f",
+          "input_tree_sha256_version": 1,
+          "observations": {
+            "before_save": {
+              "counts": {
+                "nodes": 564960,
+                "elements": 782601,
+                "states": 1
+              },
+              "part_ids_sha256": "e6b63dfa78ddaac1585f72efdba8581ce3f3f351fcb47b0aea30b4755b9c8dac"
+            },
+            "after_reopen": {
+              "counts": {
+                "nodes": 564960,
+                "elements": 782601,
+                "states": 1
+              },
+              "part_ids_sha256": "e6b63dfa78ddaac1585f72efdba8581ce3f3f351fcb47b0aea30b4755b9c8dac"
+            }
+          },
+          "native_jobs": [
+            {
+              "job_id": "e215397df591429484cb5ae8fd037049",
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            },
+            {
+              "job_id": "25f4ce6b3ebd4e9ba3fb9419092c9828",
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "scope": "P11 save/reopen counts and parts only; not full p100 node-coordinate recheck"
+        },
+        {
+          "case": "extra-keyword-082",
+          "status": "failed",
+          "reload_warning_count": 4,
+          "originals_unchanged": true,
+          "directory_unchanged": true,
+          "input_tree_sha256": "b98207b5b9ce93bce8f834db8f6fc45288da81ad33861693d8d49a312474f345",
+          "input_tree_sha256_version": 1,
+          "observations": {
+            "before_save": {
+              "counts": {
+                "nodes": 564960,
+                "elements": 782601,
+                "states": 1
+              },
+              "part_ids_sha256": "e6b63dfa78ddaac1585f72efdba8581ce3f3f351fcb47b0aea30b4755b9c8dac"
+            },
+            "after_reopen": {
+              "counts": {
+                "nodes": 564960,
+                "elements": 782601,
+                "states": 1
+              },
+              "part_ids_sha256": "e6b63dfa78ddaac1585f72efdba8581ce3f3f351fcb47b0aea30b4755b9c8dac"
+            }
+          },
+          "native_jobs": [
+            {
+              "job_id": "8e61556cdde545ff8b435d25cf59ddf1",
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            },
+            {
+              "job_id": "aa2219e309e34d508741d86ff774fcb0",
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "scope": "P11 save/reopen counts and parts only; not full p100 node-coordinate recheck"
+        }
+      ],
+      "report": "public-save-413a-batch-report.md",
+      "report_sha256": "2c8858b3218ba25f3c660b9bcfc08bd987176099e16afb0de5e6f81330e476aa"
+    },
+    {
+      "run_id": "public-save-413b",
+      "actual_git_revision": "081ad030cc1ddd8d495af4ea58b874eca00a9f5d",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "probe_sha256": "a86cd107112d1a8a57c7907e76b3f4c7cc828fc3c37df8947138d4d9b42de32c",
+      "executable_version": "4.13",
+      "cases": [
+        {
+          "case": "extra-keyword-025",
+          "status": "succeeded",
+          "reload_warning_count": 0,
+          "originals_unchanged": true,
+          "directory_unchanged": true,
+          "input_tree_sha256": "75b64a66a1e2bcd35017f5164813eaa5f67728d13c9b9c6ced828c6ae0721ecd",
+          "input_tree_sha256_version": 1,
+          "observations": {
+            "before_save": {
+              "counts": {
+                "nodes": 564960,
+                "elements": 782601,
+                "states": 1
+              },
+              "part_ids_sha256": "e6b63dfa78ddaac1585f72efdba8581ce3f3f351fcb47b0aea30b4755b9c8dac"
+            },
+            "after_reopen": {
+              "counts": {
+                "nodes": 564960,
+                "elements": 782601,
+                "states": 1
+              },
+              "part_ids_sha256": "e6b63dfa78ddaac1585f72efdba8581ce3f3f351fcb47b0aea30b4755b9c8dac"
+            }
+          },
+          "native_jobs": [
+            {
+              "job_id": "3e3b2f78c0f94e49aad5ee08c89295c8",
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            },
+            {
+              "job_id": "860ad8c39f8f481c986dbfe81beee1e4",
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "scope": "P11 save/reopen counts and parts only; not full p100 node-coordinate recheck"
+        },
+        {
+          "case": "extra-keyword-063",
+          "status": "succeeded",
+          "reload_warning_count": 0,
+          "originals_unchanged": true,
+          "directory_unchanged": true,
+          "input_tree_sha256": "60062359319cf2a7e443097bb9fa2affae726ef9420f6d8aa0e19364e043ef7f",
+          "input_tree_sha256_version": 1,
+          "observations": {
+            "before_save": {
+              "counts": {
+                "nodes": 564960,
+                "elements": 782601,
+                "states": 1
+              },
+              "part_ids_sha256": "e6b63dfa78ddaac1585f72efdba8581ce3f3f351fcb47b0aea30b4755b9c8dac"
+            },
+            "after_reopen": {
+              "counts": {
+                "nodes": 564960,
+                "elements": 782601,
+                "states": 1
+              },
+              "part_ids_sha256": "e6b63dfa78ddaac1585f72efdba8581ce3f3f351fcb47b0aea30b4755b9c8dac"
+            }
+          },
+          "native_jobs": [
+            {
+              "job_id": "34b00d4dfcc1479cb63adc5327e8ba05",
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            },
+            {
+              "job_id": "cabad9dbdea74102bad3c2ac5a396129",
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "scope": "P11 save/reopen counts and parts only; not full p100 node-coordinate recheck"
+        },
+        {
+          "case": "extra-keyword-082",
+          "status": "succeeded",
+          "reload_warning_count": 0,
+          "originals_unchanged": true,
+          "directory_unchanged": true,
+          "input_tree_sha256": "b98207b5b9ce93bce8f834db8f6fc45288da81ad33861693d8d49a312474f345",
+          "input_tree_sha256_version": 1,
+          "observations": {
+            "before_save": {
+              "counts": {
+                "nodes": 564960,
+                "elements": 782601,
+                "states": 1
+              },
+              "part_ids_sha256": "e6b63dfa78ddaac1585f72efdba8581ce3f3f351fcb47b0aea30b4755b9c8dac"
+            },
+            "after_reopen": {
+              "counts": {
+                "nodes": 564960,
+                "elements": 782601,
+                "states": 1
+              },
+              "part_ids_sha256": "e6b63dfa78ddaac1585f72efdba8581ce3f3f351fcb47b0aea30b4755b9c8dac"
+            }
+          },
+          "native_jobs": [
+            {
+              "job_id": "26aff024ada4495f93c1f403c24477e2",
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            },
+            {
+              "job_id": "8f328fd0d5e045878c5d187d7a8d3344",
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "scope": "P11 save/reopen counts and parts only; not full p100 node-coordinate recheck"
+        }
+      ],
+      "report": "public-save-413b-batch-report.md",
+      "report_sha256": "922820176df76e1778a675e84e08e2c6456bcbb9229804fd69df36d7fecc1492"
+    }
+  ]
+}
