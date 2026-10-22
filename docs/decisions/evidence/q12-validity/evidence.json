@@ -431,7 +431,7 @@
     "actual_git_revision": "2e351f9cfe3471cdae6e0a58c4cc99f933a4ade3",
     "working_tree_dirty": false,
     "native_run": false,
-    "report_sha256": "8b2cf701b9e53ca32150741251fe9f6e0c274765f3b8a58b6e4ccccaef60b401",
+    "report_sha256": "f45942d85e57f9e430790cda2123f2a9e02295474e83bf9bfa36d01a73a41a88",
     "exit_code": 0,
     "command": "python -m pytest tests/test_energy_corpus.py -q -p no:cacheprovider",
     "test_source_identity": {
@@ -444,6 +444,7 @@
       "result.jascott4427__PILLARS-LSDyna.Bolt_B_Explicit"
     ],
     "report": "public-reader-report.txt",
-    "result": "3 passed; source SHA256 and directory listings unchanged"
+    "result": "3 passed; source SHA256 and directory listings unchanged",
+    "report_sha256_policy": "SHA256 of UTF-8 file bytes after CRLF to LF normalization"
   }
 }
