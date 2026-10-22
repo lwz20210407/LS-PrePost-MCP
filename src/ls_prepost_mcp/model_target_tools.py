@@ -3,7 +3,8 @@
 model_info (P01), edit_keywords (P02/P03/P10), create_entities (P04-P06), mesh_ops (P08) and
 check_model (P09) are thin wrappers over ``domain.model.operations``. Material / EOS / section /
 hourglass / control cards are edit_keywords ops; run_recipe is the A08 recipe tool, not defined here.
-No LS-PrePost is needed: edits are applied to the deck text, untouched bytes and the Include
+Text edits use pure Python; save_model additionally verifies a fresh headless native reopen.
+Edits are applied to the deck text, untouched bytes and the Include
 structure are kept, and the result deck is written to the job directory, never over the input.
 Selections may be ``core.contracts.Selector`` objects (``"selector"`` in an edit or target).
 """

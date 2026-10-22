@@ -215,11 +215,13 @@
 - 保存后自动原生重开，核对实体计数、Part 列表与预期一致，失败时返回差异
 - 不覆盖输入文件；输出路径在 job 目录或用户显式指定位置
 
-现有入口：`export_keyword`, `checkpoint_gui_session`
+现有入口：`export_keyword`, `checkpoint_gui_session`, `save_model`
 
 缺口：
 
-- 带 Include 的模型拒绝保存
+- save_model 已提供普通 Include 树保真另存与自动原生重开；4.13 的独立、空 Include、三文件树、编辑后保存、公开 Bolt 树与公开控制卡编辑，以及预期计数不符负例均有干净提交证据
+- INCLUDE_PATH / INCLUDE_TRANSFORM 等变体仍被原生准入策略拒绝；Windows 非 ASCII Include 根路径仍缺，4.10 相对 Include 仍受 cwd 解析限制；4.10 本次仅验收独立模型与空 Include 子集
+- 旧 export_keyword 仍只导出独立模型；save_model 验证磁盘上的关键字树，不读取 GUI 中尚未保存的编辑；GUI 会话与 4.8 本项未复验
 
 ### P12 运动副与刚体连接
 
