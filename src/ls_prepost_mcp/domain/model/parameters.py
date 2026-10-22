@@ -127,9 +127,17 @@ def parse_definitions(keyword: str, data: list[tuple[int, str]]) -> tuple[list[P
             continue
         text = body(line)
         if expression:
-            if "," in text:
+            # Commas inside max(a,b), atan2(a,b), etc. belong to the
+            # expression. A free-format separator must follow a complete name.
+            try:
+                free = "," in text and _split_name(text.split(",", 1)[0]) is not None
+            except FieldError:
+                free = False
+            if free:
                 prmr, raw = text.split(",", 1)
-                pairs = [(prmr, raw, FieldSlot(index, 0, 70, 1))]
+                # The expression occupies the remainder, not one comma token.
+                # A character span lets edits retain nested argument commas.
+                pairs = [(prmr, raw, FieldSlot(index, len(prmr) + 1, max(70, len(raw))))]
             else:
                 pairs = [(text[:10], text[10:], FieldSlot(index, 10, 70))]
         elif "," in text:
