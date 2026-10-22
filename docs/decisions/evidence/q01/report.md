@@ -7,13 +7,13 @@
 
 ## 证据身份（2026-10-22 审阅更正）
 
-本记录不能作为验收第 3 条的通过证据，Q01 在 tasks.yaml 中保持 `partial`：
+本历史记录不能作为验收第 3 条的通过证据，2026-10-22 审阅时 Q01 因此被标为 `partial`；后续真实重跑见 [2026-10-23 对照](../q01-native-comparison/report.md)：
 
 - 只记了基线 `e41cf65`，没有产生结果的实际提交、工作树是否干净、`result_overview.py` / `lasso_backend.py` 的 SHA256；
 - 没有 LS-PrePost 可执行文件的 SHA256，也没有每例的 LSPP job_id、result_info job_id 和运行时间；
 - 记录之后 d3plot 头字段改由共享的 `lasso_backend.header` 读取（PR #84 审阅 P1-84a），代码已不是产生这些数字的代码。
 
-LSPP 对照需按身份规范（revision、可执行文件哈希、job id）重跑后再判定。下表的 LASSO 一侧已在审阅中用公开语料直读复算一致（taylor_jc、bolt_b_mpp）；LSPP 一侧的数字照原样保留，仅供参考，未经复核。
+当时需要按身份规范（revision、可执行文件哈希、job id）重跑后再判定；新运行已在上方链接的 2026-10-23 对照中单独记录。下表的 LASSO 一侧在原审阅中用公开语料直读复算一致（taylor_jc、bolt_b_mpp）；旧 LSPP 数字照原样保留，仅供历史参考。
 
 ## 结果
 
@@ -33,5 +33,5 @@ LSPP 对照需按身份规范（revision、可执行文件哈希、job id）重�
 
 - 第一次运行时，bolt_b_mpp 的 LSPP 进程以 0xC0000005（返回码 3221225477）崩溃，结果为 `partial`，`backends_agree=missing`，错误原样返回。立即单独重跑 `inspect_model` 成功，SCL 清点（`inspect_d3plot_scl`）也给出 102 个状态；第二次完整运行三例都通过。崩溃没能复现，原因未查明。
 - 只验证了 4.13，本次没有跑 4.10 对照。
-- 共享 overview 在状态数超过 2000 时不返回逐状态时间，这时 `result_info` 返回 `partial` 并给出警告，不能做时间对照。
+- 当时共享 overview 在超过 2000 状态时省略逐状态时间；此历史限制已在后续修复中移除，并补了 2001 状态的两版本原生回归。旧运行本身仍不提供该边界证据。
 - 删除数只统计最后一个状态；d3plot 没有删除数据时为 null，不写成 0。

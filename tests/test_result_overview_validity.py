@@ -12,6 +12,8 @@ from ls_prepost_mcp.core.contracts import JobResult
 from ls_prepost_mcp.domain.results import lasso_backend as lb
 from ls_prepost_mcp.service import Service
 
+REAL_OVERVIEW = lb.overview
+
 
 @pytest.fixture
 def service(tmp_path, monkeypatch):
@@ -92,6 +94,29 @@ def test_title_mapping_warning_reaches_public_result(service, monkeypatch):
     monkeypatch.setattr(lb, "overview", lambda path: {**original(path), "warnings": ["Missing title IDs"]})
     result = JobResult.model_validate(service.result_info("d3plot"))
     assert "Missing title IDs" in result.warnings
+
+
+def test_overview_keeps_every_time_beyond_the_old_2000_state_cutoff(tmp_path, monkeypatch):
+    times = np.linspace(0., 2., 2001)
+    monkeypatch.setattr(lb, "_arrays", lambda path: {"timesteps": times})
+    overview = lb.overview(tmp_path / "d3plot")
+    assert overview["states"] == 2001
+    assert overview["times"] == times.tolist()
+
+
+@pytest.mark.parametrize("native_check", [False, True])
+def test_long_inventory_is_complete_and_comparable(service, monkeypatch, native_check):
+    times = np.linspace(0., 2., 2001)
+    monkeypatch.setattr(lb, "overview", REAL_OVERVIEW)
+    monkeypatch.setattr(lb, "_arrays", lambda path: {"timesteps": times})
+    monkeypatch.setattr(service, "inspect_model", lambda *args: _native(2001, times.tolist()))
+    result = JobResult.model_validate(service.result_info("d3plot", native_check=native_check))
+    assert result.status == "succeeded", result.error
+    assert result.data["times"] == times.tolist()
+    assert not any("2000" in message for message in result.warnings)
+    if native_check:
+        assert result.data["comparison"]["times_equal"]
+        assert result.check_status == "passed"
 
 
 @pytest.mark.parametrize("ids", [(10, 10), (10,), (10, 0), (10, 1.5)])

@@ -46,8 +46,7 @@ def result_info(tools, path: str, native_check: bool) -> dict:
                        "entries": overview["binout_entries"], "split_over_shards": overview["binout_split"]},
             "ascii_files": overview["ascii_files"]}
     if overview["times"] is None:
-        warnings.append(f"The shared overview lists state times only up to 2000 states; this result has "
-                        f"{overview['states']}, so only time_range is reported")
+        warnings.append("The reader did not return the complete state-time vector; only time_range is reported")
     checks = [CheckResult(name="lasso_overview", status="passed")]
     error = None
     if native_check:
