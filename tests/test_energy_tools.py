@@ -118,7 +118,8 @@ def test_ascii_matsum_outside_allowed_root_is_rejected(tmp_path):
     assert not service.jobs.root.exists()
 
 
-def test_synthetic_binout_parts_roundtrip_through_public_tool(tmp_path):
+@pytest.mark.parametrize("part_ids", [[10], [10, 90]])
+def test_synthetic_binout_parts_roundtrip_through_public_tool(tmp_path, part_ids):
     pytest.importorskip("lasso.dyna")
     from lasso.dyna.lsda_py3 import Lsda
 
@@ -128,11 +129,11 @@ def test_synthetic_binout_parts_roundtrip_through_public_tool(tmp_path):
         out.cd(f"/{database}/metadata", 1)
         out.write("date", Lsda.I1, [1])
         if database == "matsum":
-            out.write("ids", Lsda.I4, [10, 90])
+            out.write("ids", Lsda.I4, part_ids)
         for index in (1, 2):
             out.cd(f"/{database}/d{index:06d}", 1)
             out.write("time", Lsda.R8, [float(index - 1)])
-            out.write("internal_energy", Lsda.R8, [100.] if database == "glstat" else [40., 60.])
+            out.write("internal_energy", Lsda.R8, [100.] if database == "glstat" else [40., 60.][:len(part_ids)])
             if database == "glstat":
                 out.write("total_energy", Lsda.R8, [100.])
                 out.write("external_work", Lsda.R8, [0.])
@@ -141,7 +142,8 @@ def test_synthetic_binout_parts_roundtrip_through_public_tool(tmp_path):
     result = JobResult.model_validate_json(json.dumps(service.check_energy(str(source), "J", residual_ratio_limit=.01)))
     assert result.status == "succeeded", result.error
     assert result.data["parts"]["10"]["energy_budget"]["final_internal_energy"] == 40.
-    assert result.data["parts"]["90"]["energy_budget"]["final_hourglass_energy"] is None
+    assert result.data["parts"]["10"]["energy_budget"]["final_hourglass_energy"] is None
+    assert result.data["parts_analyzed"] == len(part_ids)
     assert len(result.artifacts) == 3
 
 

@@ -20,6 +20,16 @@ PART_KEYS = {"inten": "internal_energy", "kinen": "kinetic_energy", "hgeng": "ho
              "eroded_ie": "eroded_internal_energy", "eroded_ke": "eroded_kinetic_energy",
              "eroded_hg": "eroded_hourglass_energy"}
 PART_PAIR = re.compile(r"\b(" + "|".join(PART_KEYS) + r")\s*=\s*(\S+)", re.I)
+MAX_RECORD_CHARS = 16_384
+
+
+def _lines(path):
+    # Bound mistaken binary input / enormous records without buffering a whole line.
+    with open(path, encoding="utf-8-sig", errors="replace") as stream:
+        while line := stream.readline(MAX_RECORD_CHARS + 1):
+            if len(line) > MAX_RECORD_CHARS:
+                raise EnergyBalanceError("ASCII energy record exceeds 16384 characters; unsupported input")
+            yield line
 
 
 def _number(value, context):
@@ -43,33 +53,32 @@ def _columns(records, names):
 def read_ascii_glstat(path):
     """Read named time blocks only. Missing block fields remain null, never zero."""
     records, current, wall_names = [], None, set()
-    with open(path, encoding="utf-8-sig", errors="replace") as stream:
-        for line in stream:
-            match = PAIR.match(line)
-            if not match:
-                continue
-            label = " ".join(match[1].lower().split())
-            key = "time" if label == "time" else LABELS.get(label)
-            wall = "wall#" in (label + match[3].lower())
-            if key is None and not wall:
-                continue
-            value = _number(match[2], f"glstat {label}")
-            if key == "time":
-                current = {"time": value, "_walls": {}}
-                records.append(current)
-                if len(records) > MAX_ROWS:
-                    raise EnergyBalanceError("glstat exceeds one million samples")
-            elif current is not None:
-                if wall:
-                    identity = label + match[3].strip().lower()
-                    if identity in current["_walls"]:
-                        raise EnergyBalanceError("Duplicate glstat wall energy in one time block")
-                    current["_walls"][identity] = value
-                    wall_names.add(identity)
-                elif key in current:
-                    raise EnergyBalanceError(f"Duplicate glstat {key} in one time block")
-                else:
-                    current[key] = value
+    for line in _lines(path):
+        match = PAIR.match(line)
+        if not match:
+            continue
+        label = " ".join(match[1].lower().split())
+        key = "time" if label == "time" else LABELS.get(label)
+        wall = "wall#" in (label + match[3].lower())
+        if key is None and not wall:
+            continue
+        value = _number(match[2], f"glstat {label}")
+        if key == "time":
+            current = {"time": value, "_walls": {}}
+            records.append(current)
+            if len(records) > MAX_ROWS:
+                raise EnergyBalanceError("glstat exceeds one million samples")
+        elif current is not None:
+            if wall:
+                identity = label + match[3].strip().lower()
+                if identity in current["_walls"]:
+                    raise EnergyBalanceError("Duplicate glstat wall energy in one time block")
+                current["_walls"][identity] = value
+                wall_names.add(identity)
+            elif key in current:
+                raise EnergyBalanceError(f"Duplicate glstat {key} in one time block")
+            else:
+                current[key] = value
     if not records or not any(any(key in record for key in ENERGIES) for record in records):
         raise EnergyBalanceError("No LS-DYNA glstat named time/energy blocks recognized")
     for record in records:
@@ -81,35 +90,34 @@ def read_ascii_glstat(path):
 def read_ascii_matsum(path):
     """Read each material record including its HG continuation lines, skipping legends."""
     records, current, time, legend, count = {}, None, None, False, 0
-    with open(path, encoding="utf-8-sig", errors="replace") as stream:
-        for line in stream:
-            if "{BEGIN LEGEND}" in line:
-                legend = True
-            if "{END LEGEND}" in line:
-                legend = False
-                continue
-            if legend:
-                continue
-            tm = re.match(r"\s*time\s*=\s*(\S+)", line, re.I)
-            if tm:
-                time, current = _number(tm[1], "matsum time"), None
-                continue
-            mat = MATERIAL.search(line)
-            if mat:
-                if time is None or int(mat[1]) <= 0:
-                    raise EnergyBalanceError("MATSUM record needs a time and positive stored part ID")
-                pid = int(mat[1])
-                current = {"time": time}
-                records.setdefault(pid, []).append(current)
-                count += 1
-                if count > MAX_ROWS:
-                    raise EnergyBalanceError("MATSUM exceeds one million part rows")
-            if current is not None:
-                for pair in PART_PAIR.finditer(line):
-                    key = PART_KEYS[pair[1].lower()]
-                    if key in current:
-                        raise EnergyBalanceError(f"Duplicate MATSUM {key} in one part record")
-                    current[key] = _number(pair[2], f"matsum {key}")
+    for line in _lines(path):
+        if "{BEGIN LEGEND}" in line:
+            legend = True
+        if "{END LEGEND}" in line:
+            legend = False
+            continue
+        if legend:
+            continue
+        tm = re.match(r"\s*time\s*=\s*(\S+)", line, re.I)
+        if tm:
+            time, current = _number(tm[1], "matsum time"), None
+            continue
+        mat = MATERIAL.search(line)
+        if mat:
+            if time is None or int(mat[1]) <= 0:
+                raise EnergyBalanceError("MATSUM record needs a time and positive stored part ID")
+            pid = int(mat[1])
+            current = {"time": time}
+            records.setdefault(pid, []).append(current)
+            count += 1
+            if count > MAX_ROWS:
+                raise EnergyBalanceError("MATSUM exceeds one million part rows")
+        if current is not None:
+            for pair in PART_PAIR.finditer(line):
+                key = PART_KEYS[pair[1].lower()]
+                if key in current:
+                    raise EnergyBalanceError(f"Duplicate MATSUM {key} in one part record")
+                current[key] = _number(pair[2], f"matsum {key}")
     if not records:
         raise EnergyBalanceError("No LS-DYNA matsum time/material records recognized")
     return {pid: _columns(rows, PART_FIELDS) for pid, rows in records.items()}
@@ -168,6 +176,9 @@ def read_binout_matsum(path):
                 part[key] = None
             continue
         values = np.asarray(item["values"], dtype=float)
+        if len(ids) == 1 and values.shape == (len(times),):
+            # Shared Binout reads flatten a single stored entity; keep its ID axis.
+            values = values[:, None]
         if values.shape != (len(times), len(ids)) or item["ids"] != ids or item["time"] != times:
             raise EnergyBalanceError(f"MATSUM {key}: part IDs or time axes do not align")
         for index, pid in enumerate(ids):

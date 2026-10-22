@@ -5,6 +5,7 @@ from pathlib import Path
 from .core.contracts import Artifact, CheckResult, JobResult
 from .core.validation import unit_label
 from .domain.results import energy, energy_readers, mpp_shards
+from .domain.results.lasso_backend import backend as reader_backend
 from .jobs import atomic_json, check_artifact, fingerprint
 from .post_backend import write_csv
 
@@ -84,7 +85,7 @@ class EnergyTools:
             report = energy.calculate_energy_balance(data, parts, units, kinetic_ratio_limit,
                 hourglass_ratio_limit, residual_ratio_limit, sliding_ratio_limit, ratio_floor, relative_floor)
             summary = report["summary"]
-            summary.update(backend="lasso-python" if kind == "binout" else "lsdyna-ascii",
+            summary.update(backend=reader_backend() if kind == "binout" else "lsdyna-ascii",
                            input_format=kind, time_units=time_units, input_identities=list(identities.values()),
                            input_identity_policy="SHA256 up to 64 MiB; size/mtime otherwise",
                            parts_time_axis="stored MATSUM times; no interpolation to GLSTAT",

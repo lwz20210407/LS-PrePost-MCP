@@ -11,7 +11,7 @@ ENERGIES = ("total_energy", "kinetic_energy", "internal_energy", "hourglass_ener
             "eroded_kinetic_energy", "eroded_internal_energy", "eroded_hourglass_energy")
 PART_FIELDS = ("kinetic_energy", "internal_energy", "hourglass_energy", "eroded_kinetic_energy",
                "eroded_internal_energy", "eroded_hourglass_energy")
-SERIES_HEADER = ("time", *ENERGIES[:8], "balance_residual", "relative_residual", "kinetic_ratio", "hourglass_ratio")
+SERIES_HEADER = ("time", *ENERGIES, "balance_residual", "relative_residual", "kinetic_ratio", "hourglass_ratio")
 PART_HEADER = ("time", "part_id", *PART_FIELDS)
 MAX_ROWS = 1_000_000
 
@@ -100,7 +100,7 @@ def _calculate(energies, parts, units, limits, ratio_floor, relative_floor):
         erosion[derive] = sum(component[derive] for component in components)
     for key, array in values.items():
         missing = int((~np.isfinite(array)).sum())
-        if missing:
+        if missing and key in ENERGIES[:8]:
             warnings.append(f"{key}: {missing}/{n} samples not recorded; preserved as null")
     ratios, defined = {}, {}
     for key in ("kinetic_energy", "hourglass_energy", "sliding_energy"):
@@ -143,6 +143,7 @@ def _calculate(energies, parts, units, limits, ratio_floor, relative_floor):
     if np.any(sliding < 0):
         warnings.append("Negative sliding_energy values recorded; inspect contact behaviour")
     part_summaries, part_rows = {}, []
+    missing_parts = {key: [] for key in PART_FIELDS}
     for pid, part in parts.items():
         if type(pid) not in (int, str) or not str(pid).isdigit() or int(pid) < 1:
             raise EnergyBalanceError("MATSUM requires positive stored part IDs")
@@ -152,7 +153,7 @@ def _calculate(energies, parts, units, limits, ratio_floor, relative_floor):
         pv = {key: column(part.get(key), len(pt), f"MATSUM {pid} {key}") for key in PART_FIELDS}
         for key, array in pv.items():
             if not np.isfinite(array).all():
-                warnings.append(f"MATSUM part {pid}: {key} missing samples preserved as null")
+                missing_parts[key].append(str(pid))
         pr, pd = _ratio(pv["hourglass_energy"], pv["internal_energy"], ratio_floor)
         part_budget = {"peak_" + key: maximum(array) for key, array in pv.items()}
         part_budget.update({"final_" + key: nullable(array[-1:])[0] for key, array in pv.items()})
@@ -161,6 +162,10 @@ def _calculate(energies, parts, units, limits, ratio_floor, relative_floor):
             missing_samples={key: int((~np.isfinite(array)).sum()) for key, array in pv.items()},
             max_hourglass_ratio=maximum(pr), ratio_defined=pd)
         part_rows.extend([[float(t), int(pid), *row] for t, row in zip(pt, zip(*(nullable(v) for v in pv.values())))])
+    for key, ids in missing_parts.items():
+        if ids:
+            label = f"part {ids[0]}" if len(ids) == 1 else f"parts {','.join(ids[:8])} ({len(ids)} total)"
+            warnings.append(f"MATSUM {label}: {key} missing samples preserved as null")
     summary = dict(units=units, sample_count=n, time_range=[float(time[0]), float(time[-1])],
         verdict=verdict, passed=passed, checks=checks, warnings=warnings, time_monotonic=monotonic,
         screening_ratios={"max_kinetic_energy_ratio": maximum(ratios["kinetic_energy"]),
@@ -174,7 +179,7 @@ def _calculate(energies, parts, units, limits, ratio_floor, relative_floor):
         energy_budget=budgets, missing_samples={key: int((~np.isfinite(array)).sum()) for key, array in values.items()},
         peak_policy="algebraic maxima of recorded samples; missing samples are not bounds",
         parts_analyzed=len(part_summaries), parts=part_summaries)
-    rows = [[float(t), *row] for t, row in zip(time, zip(*(nullable(values[k]) for k in ENERGIES[:8]),
+    rows = [[float(t), *row] for t, row in zip(time, zip(*(nullable(values[k]) for k in ENERGIES),
                 nullable(residual), nullable(relative), nullable(ratios["kinetic_energy"]),
                 nullable(ratios["hourglass_energy"])))]
     return dict(summary=summary, series_rows=rows, part_series_rows=part_rows, warnings=warnings)

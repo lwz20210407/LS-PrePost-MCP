@@ -8,7 +8,7 @@
 | `apply_keyword_filter` | P10, A08 | model*: string; filter_id*: string |
 | `assess_energy_balance` | Q12 | kinetic_curve*: string; internal_curve*: string; units*: string; hourglass_curve: union/ref; external_work_curve: union/ref; kinetic_ratio_limit: number; hourglass_ratio_limit: number |
 | `build_tensile_curves` | Q07 | force_curve*: string; displacement_curve*: string; area*: number; gauge_length*: number; force_unit*: string; length_unit*: string; time_unit*: string; reference_displacement_curve: union/ref; force_sign: integer; displacement_sign: integer; true_conversion: boolean |
-| `check_energy` | I08 | path*: string; units*: string; include_parts: boolean; matsum_path: union/ref; input_format: string; kinetic_ratio_limit: union/ref; hourglass_ratio_limit: union/ref; residual_ratio_limit: union/ref; sliding_ratio_limit: union/ref; ratio_floor: number; relative_floor: number |
+| `check_energy` | Q12 | path*: string; units*: string; include_parts: boolean; matsum_path: union/ref; input_format: string; kinetic_ratio_limit: union/ref; hourglass_ratio_limit: union/ref; residual_ratio_limit: union/ref; sliding_ratio_limit: union/ref; ratio_floor: number; relative_floor: number; time_units: string |
 | `check_gui_keywords` | P09 | session_id*: string |
 | `check_gui_shell_quality` | P09 | session_id*: string; thresholds*: object; units*: string |
 | `check_gui_solid_quality` | P09 | session_id*: string; checks*: array; units*: string; capture_failed_ids: boolean |

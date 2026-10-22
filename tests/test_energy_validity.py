@@ -133,3 +133,14 @@ def test_balance_reference_uses_work_increment_when_record_starts_after_zero():
 def test_nonfinite_or_misaligned_measurements_and_derived_overflow_are_rejected(data):
     with pytest.raises(ValueError):
         calculate_energy_balance(data, residual_ratio_limit=.01)
+
+
+@pytest.mark.parametrize("reader,body", [
+    (read_ascii_glstat, "time.... 0\ninternal energy.... 1\n"),
+    (read_ascii_matsum, "time = 0\nmat.#= 1 inten= 1\n"),
+])
+def test_overlong_ascii_record_has_an_explicit_resource_bound(tmp_path, reader, body):
+    source = tmp_path / "energy"
+    source.write_text("X" * 20000 + "\n" + body)
+    with pytest.raises(ValueError, match="record exceeds"):
+        reader(source)
