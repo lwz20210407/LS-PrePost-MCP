@@ -37,3 +37,16 @@ def test_edit_nested_function_expression_preserves_name_eol_and_unrelated_bytes(
 def test_malformed_parameter_name_is_still_reported():
     definitions, problems = parse_definitions("*PARAMETER_EXPRESSION", [(0, "R bad name,max(2,3)\n")])
     assert not definitions and problems
+
+
+@pytest.mark.parametrize("value", ["max(1,2)\n*INCLUDE\noutside.k", "__import__('os').getcwd()"])
+def test_expression_edits_cannot_inject_cards_or_python_calls(tmp_path, value):
+    from ls_prepost_mcp.domain.model import FieldError
+
+    main = tmp_path / "main.k"
+    original = b"*KEYWORD\n*PARAMETER_EXPRESSION\nRmaxval,max(2,3)\n*END\n"
+    main.write_bytes(original)
+    parsed = KeywordDeck.load(main)
+    with pytest.raises(FieldError):
+        parsed.set_parameter("maxval", value)
+    assert parsed.main.data() == original and main.read_bytes() == original
