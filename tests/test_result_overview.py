@@ -81,7 +81,44 @@ def test_missing_deletion_data_is_null_not_zero(tmp_path: Path) -> None:
     _write(tmp_path / "run", deletion=False)
     result = _valid(Service(Settings(tmp_path)).result_info("run/d3plot"))
     assert result.status == "succeeded" and result.data["elements"]["solid"]["deleted_at_last_state"] is None
-    assert any("no element deletion data" in w for w in result.warnings)
+    assert any("no element-level deletion data" in w for w in result.warnings)
+    assert "deletion_data_stored" in result.data["header"]
+
+
+def test_header_read_only_through_shared_lasso_backend() -> None:
+    import ast
+
+    import ls_prepost_mcp.result_overview as module
+
+    tree = ast.parse(Path(module.__file__).read_text(encoding="utf-8"))
+    imported = {alias.name for node in ast.walk(tree) if isinstance(node, ast.Import) for alias in node.names}
+    imported |= {node.module or "" for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)}
+    assert not [name for name in imported if name.split(".")[0] == "lasso"]
+
+
+def _words(**changes) -> dict:
+    words = {"neiph_solid": 0, "neips_shell_tshell": 0, "neipb_beam": 0, "strain_tensor_stored": False,
+             "plastic_strain_tensor_stored": False, "thermal_strain_tensor_stored": False,
+             "deletion_data_stored": True}
+    return {**words, **changes}
+
+
+@pytest.mark.parametrize("words, warned", [
+    (_words(neiph_solid=3), True),  # declared values that LASSO does not expose as history variables
+    (_words(neiph_solid=6, strain_tensor_stored=True), False),
+    (_words(neiph_solid=6, thermal_strain_tensor_stored=True), False),  # LASSO 2.0.4 deducts 6 for it
+    (_words(neiph_solid=9, thermal_strain_tensor_stored=True), True),
+])
+def test_header_words_come_from_shared_backend(service: Service, monkeypatch: pytest.MonkeyPatch,
+                                               words: dict, warned: bool) -> None:
+    from ls_prepost_mcp.domain.results import lasso_backend as lb
+
+    calls = []
+    monkeypatch.setattr(lb, "header", lambda path: calls.append(path) or dict(words))
+    result = _valid(service.result_info("run/d3plot"))
+    assert len(calls) == 1 and result.data["header"]["neiph_solid"] == words["neiph_solid"]
+    assert result.data["elements"]["solid"]["header_extra_values_per_point"] == words["neiph_solid"]
+    assert any("no history-variable array" in w for w in result.warnings) is warned
 
 
 def test_native_check_agrees(service: Service, monkeypatch: pytest.MonkeyPatch) -> None:

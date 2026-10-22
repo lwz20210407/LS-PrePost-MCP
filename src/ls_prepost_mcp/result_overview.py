@@ -2,8 +2,9 @@
 
 The numbers come from the shared LASSO overview (``domain.results.lasso_backend.overview`` with
 the MPP binout catalogue of ``domain.results.mpp_shards``). The d3plot header words NEIPH / NEIPS /
-NEIPB are reported beside the readable history-variable counts, because LASSO moves stored strain
-tensors out of the history arrays and reports a family without such an array as 0.
+NEIPB, read by the shared ``lasso_backend.header``, are reported beside the readable history-variable
+counts, because LASSO moves stored strain tensors out of the history arrays and reports a family
+without such an array as 0.
 With ``native_check`` the same file family is opened by LS-PrePost (the existing embedded-Python
 ``inspect_model``) and its state count and state times are compared with LASSO's.
 """
@@ -15,6 +16,7 @@ from .core.contracts import CheckResult, JobResult
 from .jobs import atomic_json
 
 TIME_RELATIVE_TOLERANCE = 1e-6
+HEADER_MEANING = "header words: extra values per integration point, including stored strain tensors"
 
 
 def result_info(tools, path: str, native_check: bool) -> dict:
@@ -26,7 +28,7 @@ def result_info(tools, path: str, native_check: bool) -> dict:
     directory, manifest = tools.jobs.create("result_info", {"path": str(source), "native_check": native_check})
     try:
         overview = lb.overview(source)
-        header = _header(source)
+        header = {**lb.header(source), "meaning": HEADER_MEANING}
     except Exception as error:  # reader failures of any kind are reported, not raised past the job record
         result = _result("failed", {"source": str(source)}, manifest["job_id"], error=_error(error))
         return _record(directory, manifest, result)
@@ -56,18 +58,6 @@ def result_info(tools, path: str, native_check: bool) -> dict:
     return _record(directory, manifest, result)
 
 
-def _header(source) -> dict:
-    from lasso.dyna.d3plot_header import D3plotHeader
-
-    h = D3plotHeader().load_file(str(source))
-    return {"neiph_solid": int(h.n_solid_history_vars), "neips_shell_tshell": int(h.n_shell_tshell_history_vars),
-            "neipb_beam": int(h.n_beam_history_vars), "strain_tensor_stored": bool(h.has_element_strain),
-            "plastic_strain_tensor_stored": bool(h.has_solid_shell_plastic_strain_tensor),
-            "thermal_strain_tensor_stored": bool(h.has_solid_shell_thermal_strain_tensor),
-            "deletion_data_stored": bool(h.has_element_deletion_data),
-            "meaning": "header words: extra values per integration point, including stored strain tensors"}
-
-
 def _elements(overview: dict, header: dict, families: dict, warnings: list[str]) -> dict:
     words = {"solid": header["neiph_solid"], "shell": header["neips_shell_tshell"],
              "tshell": header["neips_shell_tshell"], "beam": header["neipb_beam"]}
@@ -75,13 +65,15 @@ def _elements(overview: dict, header: dict, families: dict, warnings: list[str])
     for family, entry in overview["elements"].items():
         declared = words[family]
         readable = families[family][3] in overview["variables"]
-        explained = 6 * (header["strain_tensor_stored"] + header["plastic_strain_tensor_stored"])
+        explained = 6 * (header["strain_tensor_stored"] + header["plastic_strain_tensor_stored"]
+                         + header["thermal_strain_tensor_stored"])
         if declared and not readable and not (family == "solid" and declared <= explained):
             warnings.append(f"{family}: the header declares {declared} extra values per point but LASSO exposes "
                             "no history-variable array; history_variables=0 is not a measured HSV count")
         deleted = entry.get("deleted_at_last_state")
         if deleted is None:
-            warnings.append(f"{family}: the d3plot stores no element deletion data; deleted count is null, not 0")
+            warnings.append(f"{family}: the d3plot stores no element-level deletion data (see "
+                            "header.deletion_data_stored); deleted count is null, not 0")
         out[family] = {"count": entry["count"], "history_variables": entry["history_variables"],
                        "history_variables_source": "readable LASSO array (strain tensors excluded)",
                        "header_extra_values_per_point": declared, "deleted_at_last_state": deleted,
