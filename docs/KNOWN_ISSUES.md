@@ -1289,3 +1289,11 @@ MATSUM 保留续行 HG、真实存储 ID 及独立时间轴，不重采样到 GL
 4.13 七项与 4.10 两项子集通过；P11 仍 partial：INCLUDE_PATH/TRANSFORM 等变体、
 非 ASCII Include 根路径、4.10 相对 Include 及 GUI 未保存的编辑尚未闭环，4.8 本项未复验。
 历史失败、干净执行 revision 与验证口径见 [P11 保存记录](decisions/evidence/p11-save/report.md)。
+
+## P02：绝对外部依赖另存的修改保护（2026-10-23）
+
+绝对搜索目录或绝对父文件的相对后代曾可能写出未被保存主文件引用的修改副本。
+现在在写出前拒绝这种修改；未改外部依赖仍列在 external_unchanged，不宣称输出自包含。
+相对搜索目录、绝对父文件中的 main-dir 回退和普通相对 opaque 资产仍保持原另存行为。
+不自动改写用户未指定的路径卡，也不覆盖源文件。反例与范围见
+[P02 外部依赖记录](decisions/evidence/p02-absolute-save/report.md)。
