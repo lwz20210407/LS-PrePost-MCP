@@ -382,6 +382,10 @@ def plan_query(query):
     if not concepts:
         runs = re.findall(r"[\u3400-\u9fff]", query)
         concepts = ["(" + " OR ".join(_quote("zh_" + char) for char in dict.fromkeys(runs)) + ")"] if runs else []
+    # Coverage counts distinct concepts, not how many times the user repeats
+    # one term. Bound SQL expression growth without discarding unique concepts.
+    concepts = list(dict.fromkeys(concepts))
+    expansion = list({item["term"]: item for item in expansion}.values())
     entities = [match.upper() for match in re.findall(r"\*([A-Za-z][A-Za-z0-9_/-]*)", query)]
     return dict(latin=" AND ".join(_word_expression(value) for value in latin),
                 literal=" AND ".join(_quote(value) for value in latin), concepts=concepts,

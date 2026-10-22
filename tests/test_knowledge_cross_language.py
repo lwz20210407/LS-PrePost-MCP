@@ -35,6 +35,37 @@ def test_more_matched_concepts_rank_before_bm25(tmp_path):
     assert [row["title"] for row in search_index(path, "背景改成白色")] == ["two", "one"]
 
 
+def test_repeated_chinese_concepts_and_expansions_are_unique():
+    short = plan_query("节点 背景")
+    repeated = plan_query("节点 背景 节点 背景 节点")
+    assert repeated["concepts"] == short["concepts"]
+    assert repeated["expansion"] == short["expansion"]
+
+
+@pytest.mark.parametrize("query,short", [("节点" * 500, "节点"),
+    ("MPP " + "节点" * 400, "MPP 节点"), ("壳" * 1000, "壳"),
+    ("MPP " + "壳" * 995, "MPP 壳")], ids=["nodes", "mpp-nodes", "shell", "mpp-shell"])
+def test_bounded_repeated_query_cannot_exhaust_sqlite_expression_depth(tmp_path, query, short):
+    assert len(query) <= 1000
+    path = tmp_path / "index.sqlite"
+    build_index(path, [doc("nodes", "MPP select nodes"), doc("parts", "Select model parts"),
+                       doc("shell", "MPP shell element")])
+    expected = search_index(path, short)
+    actual = search_index(path, query)
+    assert actual and [row["title"] for row in actual] == [row["title"] for row in expected]
+    assert actual[0]["query_expansion"] == expected[0]["query_expansion"]
+
+
+def test_repeated_concept_does_not_artificially_change_coverage_ranking(tmp_path):
+    path = tmp_path / "index.sqlite"
+    build_index(path, [doc("nodes", "Select nodes " + " ".join(f"unrelated{i}" for i in range(100))),
+                       doc("background", "Set background color"),
+                       doc("both", "Select nodes and set background color")])
+    short = search_index(path, "节点 背景")
+    repeated = search_index(path, "节点 " * 25 + "背景")
+    assert [row["title"] for row in repeated] == [row["title"] for row in short]
+
+
 def test_english_inflections_match_but_identifiers_stay_literal(tmp_path):
     path = tmp_path / "index.sqlite"
     build_index(path, [doc("plural", "Select nodes by box"), doc("code", "value73 runtime42")])
