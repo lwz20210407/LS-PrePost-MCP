@@ -107,8 +107,12 @@ class Settings:
                 raise ValueError("Parameterized includes require a future resolver" + details)
         if failure:
             raise ValueError(failure)
-        if any(p["kind"] == "empty_include" for p in report["problems"]):
-            raise ValueError("Empty *INCLUDE card")
+        # A plain header with only comments is a disabled include alternative,
+        # not a missing filename. Native 4.13 reads the remaining tree correctly.
+        # Never extend that exception to unsupported INCLUDE variants.
+        for problem in report["problems"]:
+            if problem["kind"] == "empty_include" and problem["keyword"] != "*INCLUDE":
+                raise ValueError("Only plain *INCLUDE is supported in this release: " + problem["keyword"])
         for entry in report["files"]:
             _check_include_layout(Path(entry["path"]))
         for ref in references:

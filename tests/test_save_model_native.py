@@ -8,6 +8,7 @@ import pytest
 
 from ls_prepost_mcp.config import Settings
 from ls_prepost_mcp.core.contracts import JobResult
+from ls_prepost_mcp.domain.model import preflight_includes
 from ls_prepost_mcp.engine.environment import locate_config
 from ls_prepost_mcp.native.versions import profile
 from ls_prepost_mcp.service import Service
@@ -43,14 +44,14 @@ def installation(pytestconfig):
     assert sha(executable) == binary_sha and sha(config) == config_sha
 
 
-@pytest.mark.parametrize("case", ["standalone", "include", "edited", "public-include"])
+@pytest.mark.parametrize("case", ["standalone", "empty", "include", "edited", "public-include", "public-edited"])
 def test_native_save_and_reopen(installation, pytestconfig, record_property, case):
     executable, binary, config_sha = installation
     root = pytestconfig._native_root / case
     root.mkdir(parents=True, exist_ok=True)
     allowed = [root]
     corpus_id = None
-    if case == "public-include":
+    if case.startswith("public-"):
         location = os.environ.get("LSPP_CORPUS_DIR")
         if not location:
             pytest.skip("Set LSPP_CORPUS_DIR for registered include_contact")
@@ -60,18 +61,26 @@ def test_native_save_and_reopen(installation, pytestconfig, record_property, cas
         main = plain_path(resolve(entries(load_registry())[corpus_id], corpus_root))
     else:
         main = deck(root / "source")
-        if case == "standalone":
+        if case in ("standalone", "empty"):
             main.write_bytes(b"*KEYWORD\n" + (main.parent / "nodes.k").read_bytes()
-                             + (main.parent / "mesh.k").read_bytes() + b"*END\n")
+                             + (main.parent / "mesh.k").read_bytes()
+                             + (b"*INCLUDE\n$ disabled alternative\n" if case == "empty" else b"") + b"*END\n")
     service = Service(Settings(root / "work", executable, tuple(allowed), timeout=180))
     original = main
     original_hash = sha(main)
-    if case == "edited":
-        edited = JobResult.model_validate(service.edit_keywords(str(main), [
-            {"op": "set", "keyword": "*MAT_ELASTIC", "field": "e", "value": 200.0}]))
+    original_tree = preflight_includes(main)
+    source_hashes = {f["path"]: sha(f["path"]) for f in original_tree["files"]}
+    modified_files = None
+    if case in ("edited", "public-edited"):
+        edit = ({"op": "set", "keyword": "*CONTROL_TERMINATION", "field": "endtim", "value": 6.0}
+                if case == "public-edited" else {"op": "set", "keyword": "*MAT_ELASTIC", "field": "e", "value": 200.0})
+        edited = JobResult.model_validate(service.edit_keywords(str(main), [edit]))
         assert edited.status == "succeeded", edited.error
         main = Path(edited.data["main"])
-        assert "200" in (main.parent / "mesh.k").read_text()
+        modified_files = [Path(a.path).name for a in edited.artifacts if a.metadata["modified"]]
+        assert len(modified_files) == 1
+        if case == "edited":
+            assert "200" in (main.parent / "mesh.k").read_text()
     result = JobResult.model_validate(service.save_model(str(main)))
     jobs = []
     for phase, item in result.data.get("observations", {}).items():
@@ -88,12 +97,15 @@ def test_native_save_and_reopen(installation, pytestconfig, record_property, cas
              "differences": result.data["differences"], "observations": result.data.get("observations"),
              "saved_files": result.data.get("saved_files"), "native_jobs": jobs,
              "original_main_unchanged": sha(original) == original_hash,
+             "original_tree_unchanged": source_hashes == {p: sha(p) for p in source_hashes},
+             "modified_files_before_save": modified_files,
+             "source_tree_sha256": original_tree["tree_sha256"],
              "artifact_sha256": [a.sha256 for a in result.artifacts]}
     output = root / "verified.json"
     output.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     record_property("evidence", str(output))
     assert result.status == "succeeded", result.error
-    assert result.check_status == "passed" and proof["original_main_unchanged"]
+    assert result.check_status == "passed" and proof["original_main_unchanged"] and proof["original_tree_unchanged"]
     assert len(jobs) == 2
     assert all(j["status"] == "succeeded" and j["returncode"] == 0 and j["timed_out"] is False
                and j["graphics"] is False and j["nographics"] for j in jobs)

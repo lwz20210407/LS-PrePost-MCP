@@ -147,3 +147,16 @@ def test_source_directory_new_file_during_reopen_is_refused(tmp_path, monkeypatc
     result = invoke(svc, main)
     assert result.status == "failed" and "listing changed" in result.error["message"]
     assert not result.artifacts
+
+
+def test_comment_only_plain_include_is_not_a_missing_file(tmp_path):
+    main = tmp_path / "main.k"
+    main.write_text("*KEYWORD\n*INCLUDE\n$disabled alternative\n*END\n", encoding="utf-8")
+    Settings(tmp_path).check_keyword_includes(main)
+
+
+def test_empty_unsupported_variant_still_fails(tmp_path):
+    main = tmp_path / "main.k"
+    main.write_text("*KEYWORD\n*INCLUDE_BINARY\n$disabled alternative\n*END\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="Only plain|preflight failed"):
+        Settings(tmp_path).check_keyword_includes(main)
