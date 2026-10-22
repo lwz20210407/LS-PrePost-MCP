@@ -426,5 +426,24 @@
       "csv_rows": 1,
       "global_hg_blank_count": 1
     }
-  ]
+  ],
+  "final_public_reader_regression": {
+    "actual_git_revision": "2e351f9cfe3471cdae6e0a58c4cc99f933a4ade3",
+    "working_tree_dirty": false,
+    "native_run": false,
+    "report_sha256": "8b2cf701b9e53ca32150741251fe9f6e0c274765f3b8a58b6e4ccccaef60b401",
+    "exit_code": 0,
+    "command": "python -m pytest tests/test_energy_corpus.py -q -p no:cacheprovider",
+    "test_source_identity": {
+      "kind": "git_blob_id",
+      "value": "e9d49670976af50550be2da0fec5ec791f0a8573"
+    },
+    "cases": [
+      "result.ansys__pyansys-heart.tests.heart.assets.post.main",
+      "result.hu-shuhan__editOpeniGame.test.Format_Validation_Test.lsdyna.Bolt_B_Explicit",
+      "result.jascott4427__PILLARS-LSDyna.Bolt_B_Explicit"
+    ],
+    "report": "public-reader-report.txt",
+    "result": "3 passed; source SHA256 and directory listings unchanged"
+  }
 }

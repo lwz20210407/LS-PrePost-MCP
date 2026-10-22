@@ -54,7 +54,9 @@ LSPP_CORPUS_DIR=<existing-local-corpus> python -m pytest tests/test_energy_corpu
 
 当前专属回归含 43 项；单部件 binout 曾因共享读取器压平 ID 轴而被误判为不完整，
 已在真实 LSDA writer 的一部件/双部件反例上复现并修复，保留原 ID。
-可选的已登记公开语料入口 **3 passed**。
+可选的已登记公开语料入口 **3 passed**；最终在已合入 Q04/A10 的干净提交
+`2e351f9cfe3471cdae6e0a58c4cc99f933a4ade3` 上重跑仍为 **3 passed**，
+见 [最终公开读取日志](public-reader-report.txt) 和 evidence.json 中的追加记录。
 该入口未设置 LSPP_CORPUS_DIR 时 skip，不含本机默认路径，不复制语料。
 入口首次使用注册器的扩展路径时被输入守卫正确拒绝，后来用已有 plain_path 转回普通路径；
 首轮日志保留在仓库外，没有放宽设备/网络路径守卫。
