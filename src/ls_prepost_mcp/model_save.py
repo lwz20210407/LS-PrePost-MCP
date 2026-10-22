@@ -78,7 +78,7 @@ def save_model(service, model, expected_counts=None, expected_part_ids=None):
         _expectations(expected_counts, expected_part_ids)
         source = service._input(model)
         with service._guard():
-            service.settings.check_keyword_includes(source)
+            preflight = service.settings.native_keyword_report(source)
         directory, manifest = service.jobs.create("save_model", {"model": str(source),
             "expected_counts": expected_counts, "expected_part_ids": expected_part_ids})
         with service._guard():
@@ -87,7 +87,8 @@ def save_model(service, model, expected_counts=None, expected_part_ids=None):
             identities = {str(p): _sha(p) for p in paths}
             if any(hashlib.sha256(f.original).hexdigest() != identities[str(f.path)] for f in deck.files.values()):
                 raise ValueError("Input tree changed while loading the keyword snapshot")
-            listings = {p.parent: sorted(f.name for f in p.parent.iterdir()) for p in paths}
+            folders = {p.parent for p in paths} | {Path(r["path"]) for r in preflight["references"] if r["kind"] == "path"}
+            listings = {p: sorted(f.name for f in p.iterdir()) for p in folders}
             before = _observe(service, source, "before_save", data)
             expected = {"counts": {**before["counts"], **(expected_counts or {})},
                         "part_ids": before["part_ids"] if expected_part_ids is None else sorted(expected_part_ids)}
@@ -100,6 +101,7 @@ def save_model(service, model, expected_counts=None, expected_part_ids=None):
                 raise ValueError("Input tree changed before save")
             saved = deck.save_as(directory / "deck")
             data.update(main=saved["main"], external_unchanged=saved["external_unchanged"],
+                        search_directories=saved["search_directories"],
                         saved_files=len(saved["files"]), structure="relative layout and untouched bytes preserved")
             warnings.extend(str(w) for w in saved["reload_warnings"])
             after = _observe(service, saved["main"], "after_reopen", data)

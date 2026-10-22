@@ -440,7 +440,7 @@
 含 UTF-8/GBK 中文文件名、中文作业目录、主文件搜索路径和 SCL；两版公开 35656 节点模型均读取、
 保存重开一致且原树不变，4.10 的普通 Include 保存七项也通过。Windows 原生回归现在要求实际
 成功与原目录不变，移除该路线的旧拒绝/xfail 断言。成功的自产副本按身份与哈希清理，未知或变化文件保留。
-Transform/opaque/参数化文件名、嵌套 INCLUDE_PATH_RELATIVE 仍拒绝；正式保存的搜索路径变体仍待处理。
+Transform/opaque/参数化文件名、嵌套 INCLUDE_PATH_RELATIVE 仍拒绝；正式保存的主文件搜索路径已由下述 P11 补验覆盖。
 4.8 只补了 SCL 样例，Python 环境限制未消失。详见 [规范化副本证据](decisions/evidence/i01-keyword-snapshot/report.md)。
 
 ## I04：LASSO 结束标记后尾数据
@@ -1286,9 +1286,27 @@ MATSUM 保留续行 HG、真实存储 ID 及独立时间轴，不重采样到 GL
 公开 Bolt 原样读入与独立计数一致，已放开这一个情形；缺文件、越界、网络、非首列/END 后卡片，
 以及空的非普通 Include 变体仍拒绝。预检从一开始就在模型访问守卫内执行。
 
-4.13 七项与 4.10 两项子集通过；P11 仍 partial：INCLUDE_PATH/TRANSFORM 等变体、
-非 ASCII Include 根路径、4.10 相对 Include 及 GUI 未保存的编辑尚未闭环，4.8 本项未复验。
+初次证据为 4.13 七项与 4.10 两项子集；后续规范化副本验证补齐 4.10 普通 Include 七项与
+非 ASCII 源路径，见前述 I01 补验。P11 仍 partial：TRANSFORM 等变体、嵌套相对搜索路径、
+GUI 未保存的编辑尚未闭环，4.8 本项未复验。
 历史失败、干净执行 revision 与验证口径见 [P11 保存记录](decisions/evidence/p11-save/report.md)。
+
+## P02：绝对外部依赖另存的修改保护（2026-10-23）
+
+绝对搜索目录或绝对父文件的相对后代曾可能写出未被保存主文件引用的修改副本。
+现在在写出前拒绝这种修改；未改外部依赖仍列在 external_unchanged，不宣称输出自包含。
+相对搜索目录、绝对父文件中的 main-dir 回退和普通相对 opaque 资产仍保持原另存行为。
+不自动改写用户未指定的路径卡，也不覆盖源文件。反例与范围见
+[P02 外部依赖记录](decisions/evidence/p02-absolute-save/report.md)。
+
+## P11：搜索路径的保真保存（2026-10-23）
+
+公开百例中的三个大模型已可读取，但 save_model 仍误用只接受普通 Include 的旧准入而拒绝保存。
+现与规范化原生读取共用受限路径校验，允许已验证的主文件 INCLUDE_PATH / INCLUDE_PATH_RELATIVE；
+相对空搜索目录也参与输出布局计算并保留，避免原样路径卡在另存后悬空。
+4.13 和 4.10 各四个后台保存重开用例通过，证据绑定干净 revision，见
+[P11 搜索路径保存](decisions/evidence/p11-search-path-save/report.md)。这八项是小模型验证，
+不将公开大模型的历史失败改判为通过。绝对依赖显式 external_unchanged；修改固定外部依赖仍拒绝。
 
 ## I04：当前原生底座的公开百例复跑（2026-10-23）
 
