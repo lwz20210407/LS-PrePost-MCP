@@ -51,12 +51,13 @@ def backend() -> str:
         return "lasso-python (not installed)"
 
 
-def _arrays(path: str | Path) -> dict:
+def _arrays(path: str | Path, state_arrays: list | None = None) -> dict:
     _, _, D3plot = _lasso()
     path = Path(path)
     if not path.exists():
         raise ResultsError(f"{path} does not exist")
-    arrays = {str(getattr(key, "value", key)): value for key, value in D3plot(str(path)).arrays.items()}
+    plot = D3plot(str(path)) if state_arrays is None else D3plot(str(path), state_array_filter=state_arrays)
+    arrays = {str(getattr(key, "value", key)): value for key, value in plot.arrays.items()}
     try:
         validate_d3plot_times(arrays.get("timesteps", arrays.get("global_timesteps", [])))
     except ValueError as error:
@@ -195,19 +196,54 @@ def history(path: str | Path, kind: str, quantity: str, ids: list[int] | None = 
              "note": note} for i, w in zip(ids, where)]
 
 
-def field(path: str | Path, family: str, quantity: str, state: int = -1, mask: str = "alive") -> dict:
-    """Element values of one state with IDs, the alive mask and extrema (Q03/Q04)."""
+def state_times(path: str | Path) -> np.ndarray:
+    """Times of all states, reading no other state arrays (to validate a requested state first)."""
+    ArrayType, _, _ = _lasso()
+    return _times(_arrays(path, state_arrays=[ArrayType.global_timesteps]))
+
+
+def _part_elements(arrays: dict, family: str, part_ids: list[int]) -> np.ndarray:
+    """Boolean selection of the ``family`` elements belonging to the user part IDs ``part_ids``."""
+    if not part_ids:
+        raise ResultsError("part_ids must name at least one part")
+    where = _index(_part_ids(arrays), part_ids, "Part")
+    key = FAMILIES[family][2]
+    if key not in arrays:
+        raise ResultsError(f"No {family} part assignment in this d3plot")
+    owner = np.asarray(arrays[key]).reshape(-1)
+    empty = [int(p) for p, w in zip(part_ids, where) if not np.any(owner == w)]
+    if empty:
+        raise ResultsError(f"Parts {empty} have no {family} elements")
+    return np.isin(owner, where)
+
+
+def field(path: str | Path, family: str, quantity: str, state: int = -1, mask: str = "alive",
+          part_ids: list[int] | None = None) -> dict:
+    """Element values of one state with IDs, the alive mask and extrema (Q03/Q04).
+
+    ``state`` is a 0-based index (negative counts from the end); an index outside the stored
+    states is refused, never wrapped. ``part_ids`` (user part IDs, resolved through part_ids or
+    part_titles_ids) restricts the returned elements and the extrema to those parts."""
     arrays = _arrays(path)
     times = _times(arrays)
+    if isinstance(state, bool) or not isinstance(state, (int, np.integer)) or not -times.size <= state < times.size:
+        raise ResultsError(f"State index {state!r} is out of range for {times.size} states "
+                           f"(0-based, negative from the end)")
+    state_index = int(state) % times.size
     values, note = _element_values(arrays, family, quantity)
     ids = np.asarray(arrays[FAMILIES[family][0]]).reshape(-1)
+    row = np.asarray(values[state_index])
     alive_key = FAMILIES[family][1]
-    alive = np.asarray(arrays[alive_key])[state] != 0 if alive_key in arrays else np.ones(ids.size, bool)
+    alive = np.asarray(arrays[alive_key])[state_index] != 0 if alive_key in arrays else np.ones(ids.size, bool)
+    parts = None
+    if part_ids is not None:
+        parts = [int(p) for p in part_ids]
+        keep = _part_elements(arrays, family, parts)
+        ids, row, alive = ids[keep], row[keep], alive[keep]
     selection = inv.masked(alive, mask)
-    state_index = int(state % times.size)
     return {"backend": backend(), "family": family, "quantity": quantity, "state": state_index,
-            "time": float(times[state_index]), "ids": ids, "values": values[state_index], "alive": alive,
-            "mask": mask, "extrema": inv.extrema(values[state_index], ids, selection), "note": note}
+            "time": float(times[state_index]), "ids": ids, "values": row, "alive": alive,
+            "mask": mask, "part_ids": parts, "extrema": inv.extrema(row, ids, selection), "note": note}
 
 
 def binout_curves(path: str | Path, database: str, component: str, branch: str | None = None,
@@ -219,4 +255,5 @@ def binout_curves(path: str | Path, database: str, component: str, branch: str |
     return mpp_shards.read(path, database, component, branch, shard)
 
 
-__all__ = ["ASCII", "FAMILIES", "ResultsError", "backend", "binout_curves", "field", "history", "overview"]
+__all__ = ["ASCII", "FAMILIES", "ResultsError", "backend", "binout_curves", "field", "history", "overview",
+           "state_times"]

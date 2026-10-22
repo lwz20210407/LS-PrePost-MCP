@@ -11,6 +11,7 @@ import math
 from typing import Any
 
 import numpy as np
+from pydantic import StrictInt
 
 from .core.contracts import Artifact, CheckResult, JobResult
 from .domain.results import export as exp
@@ -42,6 +43,38 @@ ALLOWED_MASKS = frozenset({"alive", "all", "deleted"})
 ALLOWED_FORMATS = frozenset({"csv", "npz", "both", "all", "none"})
 
 
+def _state_number(state: object) -> int:
+    """Public state: a 1-based positive integer, or -1 / "last" for the last state (-1 returned)."""
+    if isinstance(state, str) and state.strip().lower() == "last":
+        return -1
+    if isinstance(state, bool) or not isinstance(state, int) or not (state == -1 or state >= 1):
+        raise ValueError(f"State must be a 1-based state number, -1 or 'last', got {state!r}")
+    return state
+
+
+def _part_list(part_ids: object) -> list[int] | None:
+    """Optional user part IDs: a non-empty list of unique positive integers."""
+    if part_ids is None:
+        return None
+    if not isinstance(part_ids, (list, tuple)) or not part_ids:
+        raise ValueError(f"part_ids must be a non-empty list of part IDs, got {part_ids!r}")
+    if any(isinstance(p, bool) or not isinstance(p, int) or p < 1 for p in part_ids):
+        raise ValueError(f"part_ids must be positive integer part IDs, got {list(part_ids)!r}")
+    if len(set(part_ids)) != len(part_ids):
+        raise ValueError(f"part_ids must not repeat a part, got {list(part_ids)!r}")
+    return [int(p) for p in part_ids]
+
+
+def _formula(quantity: str) -> str:
+    if quantity in inv.CONVENTIONS:
+        return inv.CONVENTIONS[quantity]
+    if quantity == "effective_plastic_strain":
+        return "stored effective plastic strain (as written to d3plot)"
+    if quantity in lb.STRESS:
+        return f"stored stress component {quantity} (global frame, as written to d3plot)"
+    return quantity
+
+
 def _jsonable(value: object) -> object:
     """Plain JSON values: numpy scalars and arrays converted, NaN/Inf serialized as string, None preserved."""
     if isinstance(value, dict):
@@ -65,10 +98,11 @@ class FieldMetricsTools:
         path: str,
         family: str,
         quantity: str,
-        state: int = -1,
+        state: StrictInt | str = -1,
         mask: str = "alive",
         units: str | None = None,
         output_format: str = "csv",
+        part_ids: list[StrictInt] | None = None,
     ) -> dict[str, Any]:
         """Extract an element field or compute stress invariants with failure masking (tasks.yaml Q04).
 
@@ -79,8 +113,13 @@ class FieldMetricsTools:
         - lode_parameter, lode_angle_rad, lode_angle_parameter
         - effective_plastic_strain
         - stress components: sxx, syy, szz, sxy, syz, szx
+        state is the 1-based state number (1 = first stored state); -1 or 'last' (default) is the last
+        state. Numbers outside 1..n are refused before a job is created.
+        part_ids (user part IDs) restricts the elements and extrema to those parts, e.g. the target plate.
         Mask options: 'alive' (default), 'all', 'deleted'.
-        Returns JobResult/v1 with extrema (including element ID and state), formula conventions, and CSV/NPZ artifacts.
+        Elements with several stored integration points / shell layers are averaged over them before the
+        invariants are computed (shells: through-thickness mean; see data.note).
+        Returns JobResult/v1 with extrema (element ID and 1-based state), formula conventions, and CSV/NPZ artifacts.
         """
         if not isinstance(path, str) or not path.strip():
             raise ValueError("Input path must be a non-empty string")
@@ -105,22 +144,33 @@ class FieldMetricsTools:
         q_key = quantity.strip().lower()
         norm_quantity = QUANTITY_ALIASES.get(q_key, q_key)
 
-        if not isinstance(state, int):
-            raise ValueError(f"State must be an integer, got {type(state).__name__}")
+        state_number = _state_number(state)
+        parts = _part_list(part_ids)
 
         if units is not None and not isinstance(units, str):
             raise ValueError("Units must be a string or None")
 
         source = self.settings.input_path(path)
 
+        try:
+            state_count = int(lb.state_times(source).size)
+        except Exception:  # unreadable file: the job below reads it again and records the error
+            state_count = None
+        if state_count is not None and state_number > state_count:
+            raise ValueError(f"State {state_number} is out of range; this d3plot has states 1..{state_count}")
+        if state_count is not None and state_count == 0:
+            raise ValueError("This d3plot has no stored states")
+        state_index = -1 if state_number == -1 else state_number - 1
+
         parameters = {
             "path": str(source),
             "family": norm_family,
             "quantity": norm_quantity,
-            "state": state,
+            "state": state_number,
             "mask": norm_mask,
             "units": units,
             "output_format": norm_fmt,
+            "part_ids": parts,
         }
         directory, manifest = self.jobs.create("extract_field", parameters)
 
@@ -133,9 +183,9 @@ class FieldMetricsTools:
         raw: dict[str, Any] = {}
 
         try:
-            raw = lb.field(source, norm_family, norm_quantity, state=state, mask=norm_mask)
+            raw = lb.field(source, norm_family, norm_quantity, state=state_index, mask=norm_mask, part_ids=parts)
 
-            state_idx = int(raw["state"])
+            state_out = int(raw["state"]) + 1  # public 1-based state number
             state_time = float(raw["time"])
 
             raw_ext = raw.get("extrema") or {"count": 0, "min": None, "max": None}
@@ -143,15 +193,15 @@ class FieldMetricsTools:
             max_info = raw_ext.get("max")
             extrema = {
                 "count": int(raw_ext.get("count", 0)),
-                "min": {**min_info, "state": state_idx, "state_1based": state_idx + 1} if min_info is not None else None,
-                "max": {**max_info, "state": state_idx, "state_1based": state_idx + 1} if max_info is not None else None,
+                "min": {**min_info, "state": state_out} if min_info is not None else None,
+                "max": {**max_info, "state": state_out} if max_info is not None else None,
             }
-            raw["extrema"] = extrema
+            raw = {**raw, "state": state_out, "extrema": extrema}
 
             declared_units = units if (units and units.strip()) else "model units, not converted (unit system not declared)"
 
             if norm_fmt in ("csv", "both", "all"):
-                csv_file = directory / f"{norm_family}_{norm_quantity}_state_{state_idx}.csv"
+                csv_file = directory / f"{norm_family}_{norm_quantity}_state_{state_out}.csv"
                 exported = exp.export_field(raw, csv_file, units=declared_units, fmt="csv")
                 artifacts.append(
                     Artifact(
@@ -165,7 +215,7 @@ class FieldMetricsTools:
                 )
 
             if norm_fmt in ("npz", "both", "all"):
-                npz_file = directory / f"{norm_family}_{norm_quantity}_state_{state_idx}.npz"
+                npz_file = directory / f"{norm_family}_{norm_quantity}_state_{state_out}.npz"
                 exported = exp.export_field(raw, npz_file, units=declared_units, fmt="npz")
                 artifacts.append(
                     Artifact(
@@ -178,17 +228,18 @@ class FieldMetricsTools:
                     )
                 )
 
-            formula = inv.CONVENTIONS.get(norm_quantity, "stored or IP-averaged value")
+            formula = _formula(norm_quantity)
 
             data = {
                 "backend": raw.get("backend", lb.backend()),
                 "family": norm_family,
                 "quantity": norm_quantity,
-                "state": state_idx,
-                "state_1based": state_idx + 1,
+                "state": state_out,
+                "state_count": state_count,
                 "time": state_time,
                 "units": declared_units,
                 "mask": norm_mask,
+                "part_ids": parts,
                 "note": raw.get("note", "stored value"),
                 "formula": formula,
                 "conventions": dict(inv.CONVENTIONS),
@@ -214,7 +265,8 @@ class FieldMetricsTools:
 
         except Exception as exc:
             error = {"type": type(exc).__name__, "message": str(exc) or type(exc).__name__}
-            data = {"path": str(source), "family": norm_family, "quantity": norm_quantity, "state": state, "mask": norm_mask}
+            data = {"path": str(source), "family": norm_family, "quantity": norm_quantity, "state": state_number,
+                    "mask": norm_mask, "part_ids": parts}
 
         status = "failed" if error else "succeeded"
         backend_name = raw.get("backend", lb.backend()) if not error else BACKEND

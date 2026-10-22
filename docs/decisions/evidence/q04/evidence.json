@@ -14,7 +14,7 @@
     {
       "criterion": "Mises、主应力、三轴度、Lode 参数、Lode 角、等效塑性应变在实体与壳上与独立计算一致",
       "status": "passed",
-      "evidence": "tests/test_field_metrics.py::test_independent_calculation_match_solids, tests/test_field_metrics.py::test_independent_calculation_match_shells"
+      "evidence": "tests/test_field_metrics.py::test_independent_calculation_match_solids, tests/test_field_metrics.py::test_independent_calculation_match_shells, tests/test_field_metrics.py::test_corpus_story_target_plate_maximum, tests/test_field_metrics.py::test_corpus_shells_match_independent_calculation"
     },
     {
       "criterion": "公式定义（尤其 Lode 的符号约定）写进结果元数据",
@@ -25,6 +25,11 @@
       "criterion": "掩码策略 alive / all / deleted 可选；极值附带实体 ID 与状态",
       "status": "passed",
       "evidence": "tests/test_field_metrics.py::test_mask_modes_and_extrema_with_id_and_state"
+    },
+    {
+      "criterion": "故事：靶板所有单元的三轴度和 Lode 参数，排除已删除单元，找出最大值所在单元",
+      "status": "passed",
+      "evidence": "tests/test_field_metrics.py::test_part_filter_story_target_plate, tests/test_field_metrics.py::test_corpus_story_target_plate_maximum"
     }
   ],
   "verified_quantities": [
@@ -52,24 +57,53 @@
   ],
   "corpus_cases": [
     {
-      "name": "d3plot_projectile",
-      "relative_path": "corpus/public-results/ansys__example-data/result_files/d3plot_projectile/d3plot",
+      "corpus_id": "result.ansys__example-data.result_files.d3plot_projectile",
+      "file": "d3plot",
       "family": "solid",
       "elements": 5664,
-      "deleted_at_last_state": 614,
-      "verified_test": "tests/test_field_metrics.py::test_real_corpus_solid_plate_with_deletions"
+      "target_plate_part": 2,
+      "target_plate_elements": 3800,
+      "state": 16,
+      "target_plate_max_triaxiality": {
+        "id": 2840,
+        "value": 1.6415
+      },
+      "whole_model_max_triaxiality_id": 1681,
+      "verified_test": "tests/test_field_metrics.py::test_corpus_story_target_plate_maximum"
     },
     {
-      "name": "order_d3plot",
-      "relative_path": "corpus/public-results/open-lasso-python__lasso-python/test/test_data/order_d3plot/d3plot",
+      "corpus_id": "shell_d3plot",
       "family": "shell",
       "elements": 16,
-      "verified_test": "tests/test_field_metrics.py::test_real_corpus_shell_elements"
+      "verified_test": "tests/test_field_metrics.py::test_corpus_shells_match_independent_calculation"
     }
   ],
   "pytest_summary": {
     "test_file": "tests/test_field_metrics.py",
-    "passed": 9,
-    "failed": 0
-  }
+    "with_corpus": "27 passed",
+    "without_corpus": "25 passed, 2 skipped",
+    "date": "2026-10-22"
+  },
+  "review_fixes": {
+    "review": "PR #82 Claude review P1-82a/b/c",
+    "fixed_by": "claude",
+    "date": "2026-10-22",
+    "state_convention": "1-based state number; -1 or 'last' is the last state; 0, >n, other negatives, bools and other strings refused before a job is created (no wrapping)",
+    "part_filter": "part_ids (user part IDs, resolved via part_ids or part_titles_ids) in shared lasso_backend.field; unknown part or part without elements of the family fails explicitly",
+    "shared_changes": [
+      "domain/results/lasso_backend.py: field(part_ids, refuse out-of-range state), state_times",
+      "domain/results/export.py: part_ids in metadata when filtered",
+      "domain/results/invariants.py: CONVENTIONS for principal_1..3, max_shear, mean_stress"
+    ],
+    "tests": [
+      "tests/test_field_metrics.py::test_state_is_one_based",
+      "tests/test_field_metrics.py::test_state_out_of_range_refused_before_job",
+      "tests/test_field_metrics.py::test_backend_field_refuses_out_of_range_state",
+      "tests/test_field_metrics.py::test_backend_field_selects_parts_by_user_id",
+      "tests/test_field_metrics.py::test_part_filter_story_target_plate",
+      "tests/test_field_metrics.py::test_part_filter_refusals",
+      "tests/test_field_metrics.py::test_mcp_layer_does_not_coerce_state_or_part_ids"
+    ]
+  },
+  "corpus_root_env": "LSPP_CORPUS_DIR"
 }

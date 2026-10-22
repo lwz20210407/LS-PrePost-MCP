@@ -19,7 +19,11 @@ import numpy as np
 
 CONVENTIONS = {
     "components": ["xx", "yy", "zz", "xy", "yz", "zx"],
-    "von_mises": "sqrt(3 J2)", "triaxiality": "sigma_m / sigma_vm", "pressure": "-I1/3",
+    "von_mises": "sqrt(3 J2)", "triaxiality": "sigma_m / sigma_vm", "pressure": "-I1/3", "mean_stress": "I1/3",
+    "principal_1": "largest eigenvalue s1 of the stress tensor (s1 >= s2 >= s3)",
+    "principal_2": "middle eigenvalue s2 of the stress tensor (s1 >= s2 >= s3)",
+    "principal_3": "smallest eigenvalue s3 of the stress tensor (s1 >= s2 >= s3)",
+    "max_shear": "(s1 - s3) / 2",
     "lode_parameter": "(2 s2 - s1 - s3) / (s1 - s3), s1 >= s2 >= s3",
     "lode_angle": "theta = acos((3 sqrt3 / 2) J3 / J2^1.5) / 3 in [0, pi/3]",
     "lode_angle_parameter": "1 - 6 theta / pi",

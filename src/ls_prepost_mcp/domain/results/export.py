@@ -20,11 +20,14 @@ FORMATS = ("csv", "npz")
 
 
 def _meta(result: dict, units: str | None) -> dict:
-    return {"quantity": result["quantity"], "family": result["family"], "state": result["state"],
+    meta = {"quantity": result["quantity"], "family": result["family"], "state": result["state"],
             "time": result["time"], "points": result.get("note", "stored value"), "mask": result["mask"],
             "coordinate_system": "global (as stored in d3plot)", "backend": result["backend"],
             "units": units or "model units, not converted (unit system not declared)",
             "rows": int(np.asarray(result["ids"]).size), "extrema": result.get("extrema")}
+    if result.get("part_ids") is not None:
+        meta["part_ids"] = [int(p) for p in result["part_ids"]]
+    return meta
 
 
 def export_field(result: dict, path: str | Path, units: str | None = None, fmt: str | None = None) -> dict:
