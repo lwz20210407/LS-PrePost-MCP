@@ -257,11 +257,12 @@
 - 同时列出同目录 binout / ASCII 文件及其包含的库
 - LSPP 与 LASSO 两个后端结果一致（状态数、时间数组）
 
-现有入口：`inspect_d3plot_scl`, `inspect_d3plot_database`, `inspect_result_fields`, `inspect_binout`, `inspect_binout_variable`, `inspect_lsreader`, `inspect_dpf_results`
+现有入口：`result_info`, `inspect_d3plot_scl`, `inspect_d3plot_database`, `inspect_result_fields`, `inspect_binout`, `inspect_binout_variable`, `inspect_lsreader`, `inspect_dpf_results`
 
 缺口：
 
-- 7 个清点工具并存
+- LSPP 对照证据需按身份规范（revision、可执行文件哈希、job id）重跑；现有 4.13 对照记录只有基线 e41cf65，不能复核
+- 状态超过 2000 时共享 overview 不返回逐状态时间，result_info 返回 partial，无法自动判定第 3 条
 
 ### Q02 云图出图
 
