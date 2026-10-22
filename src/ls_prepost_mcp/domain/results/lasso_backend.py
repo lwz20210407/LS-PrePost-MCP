@@ -77,6 +77,21 @@ def _texts(values: object) -> list[str]:
     return out
 
 
+def _part_titles(arrays: dict) -> tuple[dict[int, str], list[str]]:
+    titles = _texts(arrays["part_titles"]) if "part_titles" in arrays else []
+    if not titles:
+        return {}, []
+    if "part_titles_ids" not in arrays:
+        return {}, ["Part titles have no stored title IDs; titles left null rather than guessed by position"]
+    ids = np.asarray(arrays["part_titles_ids"]).reshape(-1)
+    if (ids.size != len(titles) or any(isinstance(value, (bool, np.bool_))
+            or not isinstance(value, (int, np.integer)) or value <= 0 for value in ids)):
+        raise ResultsError("Part title IDs must be positive integers aligned with the stored titles")
+    if len(set(map(int, ids))) != len(titles):
+        raise ResultsError("Duplicate part title IDs make title association ambiguous")
+    return dict(zip(map(int, ids), titles)), []
+
+
 def overview(path: str | Path) -> dict:
     """Q01: states, times, variables, parts, element counts with deletions, sibling files
     (binout shards with the shards holding each database / branch)."""
@@ -98,7 +113,7 @@ def overview(path: str | Path) -> dict:
             entry["deleted_at_last_state"] = int(count - np.count_nonzero(final))
         elements[family] = entry
     parts = [int(p) for p in _part_ids(arrays)]
-    titles = _texts(arrays["part_titles"]) if "part_titles" in arrays else []
+    titles, warnings = _part_titles(arrays)
     folder = Path(path).parent
     binout = {"shards": [], "entries": {}, "split": {}}
     if any(mpp_shards.SHARD.match(p.name) for p in folder.iterdir()):
@@ -106,8 +121,8 @@ def overview(path: str | Path) -> dict:
     return {"backend": backend(), "states": int(times.size),
             "time_range": [float(times[0]), float(times[-1])] if times.size else None,
             "times": times.tolist() if times.size <= 2000 else None, "variables": sorted(arrays),
-            "elements": elements, "parts": [{"id": p, "title": titles[i] if i < len(titles) else None}
-                                            for i, p in enumerate(parts)],
+            "elements": elements, "parts": [{"id": p, "title": titles.get(p)} for p in parts],
+            "warnings": warnings,
             "binout_files": binout["shards"], "binout_databases": sorted({k.split("/")[0] for k in binout["entries"]}),
             "binout_entries": binout["entries"], "binout_split": binout["split"],
             "ascii_files": sorted(p.name for p in folder.iterdir() if p.name in ASCII)}

@@ -263,7 +263,6 @@
 
 - LSPP 对照证据需按身份规范（revision、可执行文件哈希、job id）重跑；现有 4.13 对照记录只有基线 e41cf65，不能复核
 - 状态超过 2000 时共享 overview 不返回逐状态时间，result_info 返回 partial，无法自动判定第 3 条
-- 审阅 P2（#84 合入时未修）：native_check 的原生状态时间含 NaN 时，backends_agree 判 failed 后构造 JobResult 抛校验异常，调用方拿不到结果；部件标题按序号与 ID 配对（共享 lasso_backend）
 
 ### Q02 云图出图
 
