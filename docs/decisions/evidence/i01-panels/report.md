@@ -7,4 +7,6 @@
 [证据 JSON](evidence.json)包含实际 Git revision、working_tree_dirty=false、空 diff 的 SHA256、
 源码快照、六项状态及原始报告指纹。原生保存的自产小模型在 PyDYNA 读回时产生 12 条
 卡片尾部字符提示；实际断言范围以上述六项为准，原始输出在外部报告保留。
-I01 仍 partial：大结果族与 Include 路径限制保留。此次没有 UU 断开和 4.10 面板验收。
+I01 仍 partial/L1：大结果族与 Include 路径限制保留。此次没有 UU 断开和 4.10 面板验收。
+这六项结果只代表 3939b5b；之后的 PR 头（含迟到完成须经宿主校验的修复）未重跑面板原生用例，
+不据此提升 I01 的验证级别。

@@ -889,7 +889,7 @@ infrastructure:
     title: 执行引擎 Engine（BatchEngine 默认 + SessionEngine 可选）
     milestone: M1
     status: partial
-    verification_level: L2
+    verification_level: L1
     gaps:
       - 队列饱和与不重放已在 4.13 原生集成提交 c68caef 通过；4.10 队列仍按版本能力表在启动前拒绝
       - Windows 创建窗口已通过 JOB_LIST 原子绑定关闭，并以受控进程强杀回归验证；其余原生/GUI 验收仍按各自证据范围保留

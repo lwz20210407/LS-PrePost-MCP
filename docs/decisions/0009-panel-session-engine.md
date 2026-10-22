@@ -1,6 +1,6 @@
 # I01：面板操作进入会话引擎
 
-日期：2026-10-06。状态：六项面板及集中会话/队列补验完成；I01 保持 partial。
+日期：2026-10-06。状态：六项面板及集中会话/队列补验完成（历史 revision，见下）；I01 保持 partial/L1。
 
 重编号和质量检查此前在 SessionEngine 捕获日志、登记请求之前操作 Win32 面板。
 控件操作抛错时，可能已经改变模型，却没有对应的引擎结果。
@@ -9,11 +9,16 @@
 先建立独立请求、登记 active_request、捕获日志，再执行面板操作与原生 cfile。
 完成仍依靠原生 complete.json、任务 ID 和已有领域校验。回调抛错时保留 unverified
 及待核对请求，不重发点击，不生成成功回执，不启动后台实例。
+带面板准备的请求在 request.json 中记 host_preparation=true；即使 native_commands 为空，
+迟到完成也按 requires_host_validation 恢复：会话保持 uncertain/dirty，迟到导出的 model.k
+不会成为 last_checkpoint，须由宿主重新校验或恢复检查点。
 
 重编号的面板/选择阶段与应用阶段各有自己的关联请求；壳/实体质量检查的面板设置
 进入对应检查请求。读取控件值、核对拓扑/坐标/映射、保存重开等领域校验继续保留。
 队列会话在这些工具进行快照、检查点或选择变更之前明确拒绝面板操作。
 内部回调不暴露为 MCP 参数，不新增按钮级工具，不改变 I02 合同或 run_recipe 签名。
+本决定只覆盖 renumber/quality 面板；Model Selection 面板（windows_model_list）和曲线窗口枚举
+（gui_curves）等只读路径仍直接走 Win32，不在本次统一范围内。
 
 ## 集中补验记录
 
