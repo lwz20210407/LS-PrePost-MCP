@@ -497,6 +497,7 @@ tasks:
       - LSPP 与 LASSO 结果一致（容差内）
 
   - id: Q07
+    owner: codex
     group: post
     title: 曲线运算
     story: 力-位移曲线转成工程应力应变，再转真应力应变，SAE 600 滤波
@@ -509,7 +510,7 @@ tasks:
     existing: [curve_ops, process_curve, convert_history_units, combine_history_curves, build_tensile_curves]
     gaps:
       - 滤波结果尚未与 LS-PrePost XYPlot 同参数滤波对比（L2），首尾填充约定是否与 LS-PrePost 一致未知
-      - 相对量（两条曲线相减）仍只由旧工具 combine_history_curves 提供，curve_ops 未接入
+    evidence: [tests/test_results_curves.py, tests/test_curve_ops_tool.py, tests/test_curve_difference.py, docs/decisions/evidence/q07-relative/report.md]
     acceptance:
       - 单位换算、相对量、力-位移、工程/真应力应变、微分、积分、重采样、SAE/Butterworth 滤波、FFT、Cross Plot 各有 L1 用例（对解析解）
       - 滤波结果与 LSPP XYPlot 同参数滤波对比一致（L2）

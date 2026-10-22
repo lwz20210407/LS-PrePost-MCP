@@ -45,6 +45,15 @@ def _cross(x, y, p):
                          y_unit=y.meta["units"]["y"])
 
 
+def _difference(a, b, p):
+    from .domain.results import curves as cv
+
+    if a.meta["units"] != b.meta["units"]:
+        raise cv.CurveError("difference requires identical declared time/value units; "
+                            "convert one curve first (convert_units)")
+    return cv.difference(a.t, a.y, b.t, b.y, **_units(a), alignment=p.get("alignment", "exact"))
+
+
 def _ops() -> dict[str, _Op]:
     from .domain.results import curves as cv
 
@@ -70,6 +79,7 @@ def _ops() -> dict[str, _Op]:
                                                                      padding=p.get("padding", "odd"))),
         "spectrum": _Op(("input",), (), (), "time", lambda c, p: cv.spectrum(c.t, c.y, **_units(c))),
         "cross_plot": _Op(("x", "y"), (), (), "time", _cross),
+        "difference": _Op(("a", "b"), (), ("alignment",), "time", _difference),
         "engineering_stress_strain": _Op(("input",), ("area", "gauge_length", "length_unit"), (), "x", engineering),
         "true_stress_strain": _Op(("input",), (), (), "engineering_strain", lambda c, p: cv.true_stress_strain(
             c.t, c.y, strain_unit=c.meta["units"]["t"], stress_unit=c.meta["units"]["y"]), "engineering_stress"),
@@ -131,7 +141,9 @@ class CurveTargetTools:
         "output" name: convert_units(input, abscissa_unit?, value_unit?), resample(input, dt in the
         curve's time unit; filter before coarsening), differentiate(input), integrate(input, initial?),
         sae_filter(input, cfc, padding?), butterworth_filter(input, order, cutoff_hz, padding?),
-        spectrum(input), cross_plot(x, y), engineering_stress_strain(input = cross_plot of force on
+        spectrum(input), cross_plot(x, y), difference(a, b, alignment? = "exact"; identical declared
+        units/times required, "intersection" opts into common-interval linear interpolation without
+        extrapolation), engineering_stress_strain(input = cross_plot of force on
         displacement, area in length_unit^2, gauge_length in length_unit, length_unit),
         true_stress_strain(input = engineering curve). Filters and spectra need uniform sampling;
         padding "odd" (default) or "constant". True stress-strain is valid only for uniform
