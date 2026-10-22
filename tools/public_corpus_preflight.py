@@ -2,18 +2,23 @@
 
 import hashlib
 import os
+from contextlib import nullcontext
 from pathlib import Path
 
-from ls_prepost_mcp.domain.model import preflight_includes
+from ls_prepost_mcp.domain.model import access, preflight_includes
+from ls_prepost_mcp.model_target_tools import _include_check
 from tools.fetch_corpus import io_root, plain_path
 
 
-def input_tree(source, family, *, keyword):
+def input_tree(source, family, *, keyword, allowed_roots=None):
     """Return publishable metadata plus private paths used only for preservation checks."""
     source = plain_path(source).absolute()
     family = [plain_path(path).absolute() for path in family]
     if keyword:
-        report = preflight_includes(source)
+        guard = (access.confined(_include_check(tuple(plain_path(p) for p in allowed_roots)))
+                 if allowed_roots is not None else nullcontext())
+        with guard:
+            report = preflight_includes(source)
         files = report["files"]
         public = {key: report[key] for key in ("ok", "tree_sha256", "tree_sha256_version")}
         public["tree_kind"] = "keyword_include_tree"
@@ -22,7 +27,9 @@ def input_tree(source, family, *, keyword):
             for problem in report["problems"]
         ]
         public["unsupported_native_variants"] = sorted({
-            ref["keyword"] for ref in report["references"] if ref["keyword"] != "*INCLUDE"
+            ref["keyword"] for ref in report["references"]
+            if ref["keyword"] not in ("*INCLUDE", "*INCLUDE_PATH", "*INCLUDE_PATH_RELATIVE")
+            or (ref["keyword"] == "*INCLUDE_PATH_RELATIVE" and Path(ref["file"]).parent != source.parent)
         })
     else:
         files = []
@@ -52,6 +59,8 @@ def input_classification(tree):
         return "input_" + (p.get("hint") or p["kind"])
     if tree["unsupported_native_variants"]:
         return "unsupported_native_include_variant"
+    if any(p["kind"] == "ambiguous" for p in tree["problems"]):
+        return "input_ambiguous"
     return "preflight_ok_requires_native_diagnosis"
 
 

@@ -53,7 +53,8 @@ def resolve_case(case_id, root):
     if case["kind"] == "d3plot":
         family += sorted(p for p in source.parent.iterdir() if p.is_file()
                          and re.fullmatch(re.escape(source.name) + r"\d+", p.name))
-    tree, identities = input_tree(source, family, keyword=case["kind"] == "keyword")
+    tree, identities = input_tree(source, family, keyword=case["kind"] == "keyword",
+                                  allowed_roots=(plain_path(root) / "public-keyword", plain_path(root) / "public-results"))
     for path, sha in identities.items():
         relative = plain_path(path).relative_to(plain_path(root)).as_posix()
         if sha != catalog[relative]["sha256"]:
