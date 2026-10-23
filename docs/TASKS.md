@@ -382,6 +382,7 @@
 缺口：
 
 - 滤波结果尚未与 LS-PrePost XYPlot 同参数滤波对比（L2），首尾填充约定是否与 LS-PrePost 一致未知
+- 已增加 headless SAE 60/600 × s/ms 的固定波形对照用例，差异记为 xfail 而非通过；具体实测提交、两种填充及中段/端点差异见 q07-native-filter-review02。Python 公式暂不按观察结果调参，Butterworth 原生对照仍缺
 - CSV 若带 alive 列，曲线运算及共享历史运算入口要求所有样本严格为1；deleted/unknown/畸形标记拒绝，不自动丢样本或插值。无 alive 的 CSV 仍按调用者数据处理并在 curve_ops 标为 not_declared，不推断其物理有效性；其他消费者和原生滤波对照仍缺
 
 ### Q08 XYPlot 出图
