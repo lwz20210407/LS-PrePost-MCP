@@ -29,3 +29,5 @@ Q01 remains partial pending broader native/HSV/deletion checks and independent r
 After history validity/filter changes in lasso_backend, the three paired public keyword/title cases were rerun on clean 8c972f58f45344fbd45543b2dc85dfd0c6f9e4c5: 3 passed, 16 Parts, all input bytes unchanged. The initial 7c5d801 capture is retained in previous_captures; active product blobs/cases refer to this fresh run. No native title claim is added.
 
 Review02 wrapper refresh: the three independent keyword oracles were rerun at `35df3aa1fc87dea130d9dc3bfa75f8225dd38512` (3 passed, 16 Parts). The active product blobs and prior captures are in evidence.json; the initial revision above remains historical.
+
+History-point follow-up refreshed the shared-reader blob and three independent paired-keyword oracles at clean 2ccdc34 (16 Parts); active source identities and flat history are in evidence.json.

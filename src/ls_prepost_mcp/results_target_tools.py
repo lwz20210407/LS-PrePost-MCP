@@ -52,7 +52,7 @@ class ResultsTargetTools:
         are declarations and nothing is converted. ASCII input must be named rcforc/secforc and
         match database; branch/shard are not applicable. Text components: x_force/y_force/z_force,
         x_moment/y_moment/z_moment; rcforc also mass, secforc also force_magnitude/moment_magnitude,
-        x_centroid/y_centroid/z_centroid/area. Written sides and coordinate-system IDs are retained;
+        x_centroid/y_centroid/z_centroid/area. Written sides, legend titles and original local-frame reference tags are retained;
         no frame transform, missing-value fill or interpolation. native_check=true independently
         exports up to 16 ASCII rcforc/secforc entity/side curves for x_force/y_force/z_force in
         headless LS-PrePost and compares all times/values. Reader values are never replaced.
