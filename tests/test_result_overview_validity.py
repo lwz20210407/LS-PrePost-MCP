@@ -68,7 +68,7 @@ def test_finite_clock_difference_overflow_is_json_safe_disagreement(service, mon
 
 
 def _arrays(monkeypatch, ids=(20, 10), titles=(b"upper", b"lower")):
-    data = {"timesteps": np.array([0., 1.]), "part_ids": np.array([10, 20, 30]),
+    data = {"timesteps": np.array([0., 1.]), "part_ids": np.array([10, 20]),
             "part_titles": np.array(titles)}
     if ids is not None:
         data["part_titles_ids"] = np.array(ids)
@@ -78,8 +78,7 @@ def _arrays(monkeypatch, ids=(20, 10), titles=(b"upper", b"lower")):
 def test_part_titles_are_joined_by_stored_id_not_position(tmp_path, monkeypatch):
     _arrays(monkeypatch)
     overview = lb.overview(tmp_path / "d3plot")
-    assert overview["parts"] == [{"id": 10, "title": "lower"}, {"id": 20, "title": "upper"},
-                                  {"id": 30, "title": None}]
+    assert overview["parts"] == [{"id": 10, "title": "lower"}, {"id": 20, "title": "upper"}]
 
 
 def test_titles_without_stored_title_ids_are_not_guessed(tmp_path, monkeypatch):
@@ -120,10 +119,10 @@ def test_long_inventory_is_complete_and_comparable(service, monkeypatch, native_
 
 
 @pytest.mark.parametrize("ids", [(10, 10), (10,), (10, 0), (10, 1.5)])
-def test_ambiguous_or_malformed_title_identity_is_rejected(tmp_path, monkeypatch, ids):
+def test_ambiguous_or_malformed_title_identity_is_degraded(tmp_path, monkeypatch, ids):
     _arrays(monkeypatch, ids=ids)
-    with pytest.raises(lb.ResultsError, match="title"):
-        lb.overview(tmp_path / "d3plot")
+    result = lb.overview(tmp_path / "d3plot")
+    assert all(part["title"] is None for part in result["parts"]) and result["warnings"]
 
 
 @pytest.mark.parametrize("corpus_id,states,parts", [
@@ -131,12 +130,11 @@ def test_ambiguous_or_malformed_title_identity_is_rejected(tmp_path, monkeypatch
     ("shell_d3plot", 7, 4),
     ("result.hu-shuhan__editOpeniGame.test.Format_Validation_Test.lsdyna.Bolt_B_Explicit", 102, 7),
 ])
-def test_public_overview_preserves_title_identity_and_source(tmp_path, corpus_id, states, parts):
+def test_public_overview_preserves_inventory_and_source(tmp_path, corpus_id, states, parts):
     location = os.environ.get("LSPP_CORPUS_DIR")
     if not location:
         pytest.skip("Set LSPP_CORPUS_DIR to use registered public overview cases")
     pytest.importorskip("lasso.dyna")
-    from lasso.dyna import ArrayType, D3plot
 
     from tools.fetch_corpus import entries, load_registry, plain_path, resolve
 
@@ -153,12 +151,9 @@ def test_public_overview_preserves_title_identity_and_source(tmp_path, corpus_id
     listing = sorted(p.name for p in source.parent.iterdir())
     result = JobResult.model_validate(Service(Settings(tmp_path / "jobs", allowed_roots=(root,)))
                                      .result_info(str(source)))
-    plot = D3plot(str(source))
-    expected = {int(pid): (title.decode("latin-1") if isinstance(title, bytes) else str(title)).strip()
-        for pid, title in zip(plot.arrays.get(ArrayType.part_titles_ids, []), plot.arrays.get(ArrayType.part_titles, []))}
     assert result.status == "succeeded", result.error
     assert result.data["states"] == states and len(result.data["parts"]) == parts
-    assert all(part["title"] == expected.get(part["id"]) for part in result.data["parts"])
+    assert result.data["part_title_mapping"] in ("stored_user_ids", "internal_ordinal", "absent", "unconfirmed")
     for path, sha in before.items():
         with path.open("rb") as stream:
             assert hashlib.file_digest(stream, "sha256").hexdigest() == sha

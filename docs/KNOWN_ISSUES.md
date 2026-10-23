@@ -1391,3 +1391,9 @@ RCFORC 使用 `Sl-ID` / `Ma-ID`，低层入口必须显式给 side 0/1，不能�
 见 [Q06 原生力曲线证据](decisions/evidence/q06-native-forces/report.md)。
 只覆盖登记的两个公开文件与三个力分量，未外推到 binout 全库、力矩、质心或 MPP/SMP，
 Q06 保持 partial；默认 native_check=false 的既有读取不启动 LS-PrePost。
+
+## Q01 / Q03 / Q05：缺失用户 Part-ID 表
+
+仅有 `part_titles_ids` 的 d3plot 尚不能确认用户 PID，不能自动把标题序号当成 PID。
+这类库存观察显式标为未确认并返回 partial；按用户 PID 过滤与部件历史当前拒绝，
+待补充原生/编号表证据后再扩展，跟踪 Q01、Q03、Q05。

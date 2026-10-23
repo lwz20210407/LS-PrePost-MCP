@@ -77,19 +77,52 @@ def _texts(values: object) -> list[str]:
     return out
 
 
-def _part_titles(arrays: dict) -> tuple[dict[int, str], list[str]]:
+def _part_identity(arrays: dict) -> tuple[np.ndarray, str, list[str]]:
+    """Only part_ids certifies user PIDs; title ordinals are display-only unknown IDs."""
+    if "part_ids" in arrays and np.asarray(arrays["part_ids"]).size:
+        values = np.asarray(arrays["part_ids"])
+        _index(values, [], "Part")
+        return values, "stored_user_ids", []
+    if "part_titles_ids" in arrays and np.asarray(arrays["part_titles_ids"]).size:
+        values = np.asarray(arrays["part_titles_ids"])
+        warning = "Part user IDs are unconfirmed: part_ids is absent; part_titles_ids may be internal ordinals"
+        try:
+            _index(values, [], "Title")
+        except ResultsError:
+            return np.empty(0, dtype=int), "unconfirmed_title_ids", [warning, "Malformed title IDs were not exposed as user PIDs"]
+        return values, "unconfirmed_title_ids", [warning]
+    return np.empty(0, dtype=int), "unavailable", []
+
+
+def _part_title_association(arrays: dict) -> tuple[dict[int, str], list[str], str]:
     titles = _texts(arrays["part_titles"]) if "part_titles" in arrays else []
     if not titles:
-        return {}, []
+        return {}, [], "absent"
     if "part_titles_ids" not in arrays:
-        return {}, ["Part titles have no stored title IDs; titles left null rather than guessed by position"]
-    ids = np.asarray(arrays["part_titles_ids"]).reshape(-1)
-    if (ids.size != len(titles) or any(isinstance(value, (bool, np.bool_))
-            or not isinstance(value, (int, np.integer)) or value <= 0 for value in ids)):
-        raise ResultsError("Part title IDs must be positive integers aligned with the stored titles")
-    if len(set(map(int, ids))) != len(titles):
-        raise ResultsError("Duplicate part title IDs make title association ambiguous")
-    return dict(zip(map(int, ids), titles)), []
+        return {}, ["Part titles have no title IDs; association is unconfirmed"], "unconfirmed"
+    ids = np.asarray(arrays["part_titles_ids"])
+    try:
+        _index(ids, [], "Title")
+    except ResultsError as error:
+        return {}, ["Part titles left null: " + str(error)], "unconfirmed"
+    parts, scope, _ = _part_identity(arrays)
+    if scope != "stored_user_ids":
+        return {}, ["Part titles left null because user Part IDs are unconfirmed"], "unconfirmed"
+    if ids.size != len(titles) or ids.size != parts.size:
+        return {}, ["Part title ID/count mismatch; titles left null"], "unconfirmed"
+    ordinal_ids = set(range(1, parts.size + 1))
+    part_ids, title_ids = set(map(int, parts)), set(map(int, ids))
+    nonidentity_ordinal_parts = part_ids == ordinal_ids and parts.tolist() != list(range(1, parts.size + 1))
+    if title_ids == part_ids and not nonidentity_ordinal_parts:
+        return dict(zip(map(int, ids), titles)), [], "stored_user_ids"
+    if title_ids == ordinal_ids:
+        return {int(parts[int(k) - 1]): title for k, title in zip(ids, titles)}, [], "internal_ordinal"
+    return {}, ["Part title ID space is ambiguous; titles left null"], "unconfirmed"
+
+
+def _part_titles(arrays: dict) -> tuple[dict[int, str], list[str]]:
+    mapping, warnings, _ = _part_title_association(arrays)
+    return mapping, warnings
 
 
 def overview(path: str | Path) -> dict:
@@ -112,8 +145,10 @@ def overview(path: str | Path) -> dict:
             final = np.asarray(arrays[alive])[-1]
             entry["deleted_at_last_state"] = int(count - np.count_nonzero(final))
         elements[family] = entry
-    parts = [int(p) for p in _part_ids(arrays)]
-    titles, warnings = _part_titles(arrays)
+    raw_parts, part_scope, identity_warnings = _part_identity(arrays)
+    parts = [int(p) for p in raw_parts]
+    titles, title_warnings, title_source = _part_title_association(arrays)
+    warnings = list(dict.fromkeys([*identity_warnings, *title_warnings]))
     folder = Path(path).parent
     binout = {"shards": [], "entries": {}, "split": {}}
     if any(mpp_shards.SHARD.match(p.name) for p in folder.iterdir()):
@@ -122,7 +157,7 @@ def overview(path: str | Path) -> dict:
             "time_range": [float(times[0]), float(times[-1])] if times.size else None,
             "times": times.tolist(), "variables": sorted(arrays),
             "elements": elements, "parts": [{"id": p, "title": titles.get(p)} for p in parts],
-            "warnings": warnings,
+            "warnings": warnings, "part_id_scope": part_scope, "part_title_mapping": title_source,
             "binout_files": binout["shards"], "binout_databases": sorted({k.split("/")[0] for k in binout["entries"]}),
             "binout_entries": binout["entries"], "binout_split": binout["split"],
             "ascii_files": sorted(p.name for p in folder.iterdir() if p.name in ASCII)}
@@ -149,11 +184,11 @@ def header(path: str | Path) -> dict:
 
 
 def _part_ids(arrays: dict) -> np.ndarray:
-    """Part IDs in d3plot order (part_ids, or part_titles_ids when the file only has titles)."""
-    for key in ("part_ids", "part_titles_ids"):
-        if key in arrays and np.asarray(arrays[key]).size:
-            return np.asarray(arrays[key]).reshape(-1)
-    return np.empty(0, dtype=int)
+    """Certified user Part IDs. Title-only IDs cannot drive filters or histories."""
+    values, scope, _ = _part_identity(arrays)
+    if scope == "unconfirmed_title_ids":
+        raise ResultsError("Part user IDs are unconfirmed; title IDs cannot drive Part filtering/history")
+    return values
 
 
 def _times(arrays: dict) -> np.ndarray:

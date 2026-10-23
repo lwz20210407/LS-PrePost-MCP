@@ -402,9 +402,11 @@ tasks:
     verification_level: L1
     existing: [result_info, inspect_d3plot_scl, inspect_d3plot_database, inspect_result_fields, inspect_binout, inspect_binout_variable, inspect_lsreader, inspect_dpf_results]
     gaps:
-      - 审核02 P0-1：part_titles_ids 可能是内部序号，既有标题 ID 连接及循环测试不能证明用户 PID/标题关联；需修复并用关键字或原生独立核对
+      - 审核02 P0-1 的标题关联已用三份配套关键字树独立核对 16 个 Part；仍缺完整原生属性对照与独立完成审阅，保持 partial。缺 part_ids 时用户 PID 未确认，不把标题序号用于部件过滤/部件历史
       - 审核02 P1-8：原生对照只覆盖状态数/时间；HSV、部件/标题、删除计数仍需独立核对。4.8 的 result_info 崩溃由 I04 跟踪
     evidence: [tests/test_result_overview.py, tests/test_result_overview_validity.py, docs/decisions/evidence/q01/report.md, docs/decisions/evidence/q01-validity/report.md, tests/test_result_overview_native.py, docs/decisions/evidence/q01-native-comparison/report.md, docs/decisions/evidence/q01-native-comparison/evidence.json]
+    notes:
+      - 审核02 标题修复与失效旧断言见 docs/decisions/evidence/q01-title-review02/report.md；产品 blob 绑定，后续改动须刷新或标记证据被取代
     acceptance:
       - 返回状态数、每个状态时间、可用变量（含 HSV 数量）、部件、单元类型、删除单元计数
       - 同时列出同目录 binout / ASCII 文件及其包含的库
