@@ -148,3 +148,15 @@ def test_family_changes_cannot_publish_verified_tensor_artifacts(model, tmp_path
     result=service.extract_field(str(model), "solid", "stress", units="MPa", mask="all")
     assert result["status"] == "failed" and not result["artifacts"]
     assert "family changed" in result["error"]["message"]
+
+
+def test_native_user_id_conditions_fit_scl_physical_lines_without_losing_ids():
+    import re
+
+    from ls_prepost_mcp.native_results import field_script
+
+    ids = list(range(1_999_998_000, 1_999_999_000))
+    script = field_script("solid", ids, [2], ["stress_x"], "0")
+    assert max(map(len, script.splitlines())) < 512
+    assert [int(v) for v in re.findall(r"(?<!\w)uid==([0-9]+)", script)] == ids
+    assert "keep_uid=0;" in script and "if(keep_uid==1)" in script

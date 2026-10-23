@@ -83,13 +83,16 @@ def field_script(domain, entity_ids, states, fields, ipt, output_path="native.cs
     allocations = "\n".join("v%d=malloc(ne*sizeof(Float));" % i for i in range(len(fields)))
     loads = "\n".join('n=SCLGetDataCenterFloatArray("%s",%s,%s,&v%d);\nif(n!=ne) { fprintf(fp,"ERROR_%s,count_%%d_expected_%%d\\n",n,ne); fclose(fp); return; }' % (key, kind, "0" if key in ELEMENT_SCALARS else ipt, i, key)
                       for i, key in enumerate(fields))
-    selects = " || ".join("uid==%d" % uid for uid in entity_ids)
+    # SCL truncates long physical source lines. Bound each condition instead of
+    # emitting one OR expression for up to 1000 user IDs on a single line.
+    selects = "\n".join("if(" + " || ".join("uid==%d" % uid for uid in entity_ids[i:i+20])
+                        + ") keep_uid=1;" for i in range(0, len(entity_ids), 20))
     body = []
     fmt = "%d,%.17g,%d" + ",%.17g" * len(fields) + "\\n"
     arguments = ",".join("v%d[j]" % i for i in range(len(fields)))
     for state in states:
         body.append('if(ns<%d) { fclose(fp); return; }\nSCLSwitchStateTo(%d);\n%s\n'
-                    'for(j=0;j<ne;j=j+1){\nuid=SCLGetUserId(j,%s);\nif(%s) fprintf(fp,"%s",%d,times[%d],uid,%s);\n}'
+                    'for(j=0;j<ne;j=j+1){\nuid=SCLGetUserId(j,%s);\nkeep_uid=0;\n%s\nif(keep_uid==1) fprintf(fp,"%s",%d,times[%d],uid,%s);\n}'
                     % (state, state, loads, kind, selects, fmt, state, state-1, arguments))
     frees = "\n".join("free(v%d);" % i for i in range(len(fields)))
     point_guard = ''
@@ -97,7 +100,7 @@ def field_script(domain, entity_ids, states, fields, ipt, output_path="native.cs
         point_guard = ('if(SCLGetDataCenterInt("is_full_integrated")!=1){fp=fopen('
                        + nc.scl_string(output_path)
                        + ',"w");if(fp!=NULL){fprintf(fp,"ERROR_SOLID_POINT_UNAVAILABLE\\n");fclose(fp);}return;}\n')
-    return ('/*LS-SCRIPT*/\ndefine:\nvoid main(void)\n{\nInt ne,ns,n,j,uid;\nFILE *fp;\nFloat *times=NULL;\n'
+    return ('/*LS-SCRIPT*/\ndefine:\nvoid main(void)\n{\nInt ne,ns,n,j,uid,keep_uid;\nFILE *fp;\nFloat *times=NULL;\n'
             + declarations + '\n' + point_guard + 'ne=SCLGetDataCenterInt("' + counter + '");\nns=SCLGetDataCenterInt("num_states");\n'
             'if(ne<=0 || ns<=0) return;\ntimes=malloc(ns*sizeof(Float));\n'
             'n=SCLGetDataCenterFloatArray("state_times",0,0,&times);\nif(n!=ns) return;\n'
