@@ -44,7 +44,7 @@ def installation(pytestconfig):
     assert sha(executable) == binary_sha and sha(config) == config_sha
 
 
-@pytest.mark.parametrize("case", ["standalone", "empty", "include", "edited", "public-include", "public-edited", "mismatch"])
+@pytest.mark.parametrize("case", ["standalone", "empty", "placeholder", "include", "edited", "public-include", "public-edited", "mismatch"])
 def test_native_save_and_reopen(installation, pytestconfig, record_property, case):
     executable, binary, config_sha = installation
     root = pytestconfig._native_root / case
@@ -61,10 +61,11 @@ def test_native_save_and_reopen(installation, pytestconfig, record_property, cas
         main = plain_path(resolve(entries(load_registry())[corpus_id], corpus_root))
     else:
         main = deck(root / "source")
-        if case in ("standalone", "empty"):
+        if case in ("standalone", "empty", "placeholder"):
             main.write_bytes(b"*KEYWORD\n" + (main.parent / "nodes.k").read_bytes()
                              + (main.parent / "mesh.k").read_bytes()
-                             + (b"*INCLUDE\n$ disabled alternative\n" if case == "empty" else b"") + b"*END\n")
+                             + (b"*INCLUDE\n$ disabled alternative\n" if case == "empty" else
+                                b"*INCLUDE\n${GEOMETRY}\n" if case == "placeholder" else b"") + b"*END\n")
     service = Service(Settings(root / "work", executable, tuple(allowed), timeout=180))
     original = main
     original_hash = sha(main)
@@ -102,7 +103,7 @@ def test_native_save_and_reopen(installation, pytestconfig, record_property, cas
              "modified_files_before_save": modified_files,
              "source_tree_sha256": original_tree["tree_sha256"],
              "artifact_sha256": [a.sha256 for a in result.artifacts]}
-    proof["expected_result"] = "failed" if case == "mismatch" else "succeeded"
+    proof["expected_result"] = "failed" if case == "mismatch" else "partial" if case == "placeholder" else "succeeded"
     output = root / "verified.json"
     output.write_text(json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     record_property("evidence", str(output))
@@ -110,8 +111,11 @@ def test_native_save_and_reopen(installation, pytestconfig, record_property, cas
         assert result.status == "failed" and result.data["differences"] and not result.artifacts
         assert len(jobs) == 1 and jobs[0]["status"] == "succeeded" and proof["original_tree_unchanged"]
         return
-    assert result.status == "succeeded", result.error
-    assert result.check_status == "passed" and proof["original_main_unchanged"] and proof["original_tree_unchanged"]
+    assert result.status == proof["expected_result"], result.error
+    assert result.check_status == ("missing" if case == "placeholder" else "passed")
+    if case == "placeholder":
+        assert any("placeholder" in warning for warning in result.warnings)
+    assert proof["original_main_unchanged"] and proof["original_tree_unchanged"]
     assert len(jobs) == 2
     assert all(j["status"] == "succeeded" and j["returncode"] == 0 and j["timed_out"] is False
                and j["graphics"] is False and j["nographics"] for j in jobs)
