@@ -68,6 +68,15 @@ M2 按所属结果任务迁移：先解析 Selector 为用户 ID 和 1-based 状
 JobResult 的 failed 必须带非空 error；partial 必须说明 error/warnings，且有 data 或
 artifact。检查聚合忽略 not_applicable；只有全体均不适用时才返回 not_applicable。
 
+审核02 的必需检查门禁：`CheckResult.required` 是严格布尔值，默认 `true`。
+构建 JobResult 时，必需检查 failed/invalid 会将 succeeded/partial 归为 failed，
+必需证据 missing 会将 succeeded 归为 unverified，并写明检查名；已有错误保留为 cause，
+不修改调用方原始字典。另存重载失败的输出保留供排错，但不标为 verified。
+工程质量诊断（check_model/check_energy 的缺陷或阈值报告、旧 GUI quality 投影）显式
+标为 required=false，表示检查动作完成不等于模型质量合格；它们仍参与 check_status，
+默认工作流门槛仍拒绝 failed/missing/invalid。report_only 的既有诊断模式不因此放行
+任何必需的输出、输入身份或原生一致性失败。旧 JSON 未写 required 时按 true 解释。
+
 ## 原生命令与版本能力
 
 `native/commands.py` 集中生成选择、传播、缓冲区、动画、状态、云图和色标范围命令。构建器拒绝布尔/字符串 ID、越界槽位与可注入命令的参数；节点/单元使用真实用户 ID，状态从 1 开始，原生缓冲区从 0 开始。命令文本和分号格式由黄金输出测试固定，实际选择、状态与图像另外走原生回归。录制器保留命令解析语法，不承担命令生成。

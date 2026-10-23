@@ -223,7 +223,7 @@ def test_gate_uses_canonical_status_and_checks_not_legacy_envelope():
     job = JobResult(
         operation="check",
         status="succeeded",
-        checks=[CheckResult(name="quality", status="failed")],
+        checks=[CheckResult(name="quality", status="failed", required=False)],
         comparison_data=dict(verification=dict(passed_checks=True)),
     )
     assert not evaluate_gate(job, [])["passed"]

@@ -336,6 +336,9 @@ class Artifact(Contract):
 class CheckResult(Contract):
     name: Text
     status: Literal["passed", "failed", "not_applicable", "missing", "invalid"]
+    # Execution evidence is required by default. Diagnostic quality findings may
+    # opt out explicitly; check_status still includes them for workflow gates.
+    required: Annotated[bool, Field(strict=True)] = True
     source_path: Annotated[
         tuple[str | Annotated[int, Field(strict=True, ge=0)], ...], BeforeValidator(freeze_sequence)
     ] = ()
@@ -358,6 +361,41 @@ class JobResult(Contract):
     # Transitional envelope for existing user-authored JSON predicates only.
     # Execution/quality decisions use status/checks, never fields in this envelope.
     comparison_data: dict[str, JsonValue] | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def required_check_verdict(cls, value):
+        """Derive the public verdict before freezing the validated result.
+
+        A completed execution cannot certify a failed/invalid required check.
+        Retain diagnostic checks and existing errors; do not mutate the caller's
+        envelope. Missing required evidence makes a claimed success unverified.
+        """
+        if not isinstance(value, dict) or value.get("status") not in ("succeeded", "partial"):
+            return value
+        checks = value.get("checks", ())
+        if not isinstance(checks, (tuple, list)):
+            return value  # normal field validation reports malformed inputs
+        required = []
+        for check in checks:
+            if isinstance(check, CheckResult):
+                name, verdict, needed = check.name, check.status, check.required
+            elif isinstance(check, dict):
+                name, verdict, needed = check.get("name"), check.get("status"), check.get("required", True)
+            else:
+                continue
+            if needed is True and isinstance(verdict, str):
+                required.append((name, verdict))
+        bad = [name for name, verdict in required if verdict in {"failed", "invalid"}]
+        missing = [name for name, verdict in required if verdict == "missing"]
+        if not bad and not (missing and value["status"] == "succeeded"):
+            return value
+        names = bad or missing
+        message = "checks: " + ("failed" if bad else "missing") + " (" + ", ".join(map(str, names)) + ")"
+        error = {"type": "RequiredCheckFailed" if bad else "RequiredCheckMissing", "message": message}
+        if value.get("error") is not None:
+            error["cause"] = value["error"]
+        return {**value, "status": "failed" if bad else "unverified", "error": error}
 
     @model_validator(mode="after")
     def result_consistency(self):
