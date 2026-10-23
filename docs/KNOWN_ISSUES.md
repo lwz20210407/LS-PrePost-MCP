@@ -1339,3 +1339,11 @@ stored_point 是读取器的 1-based 槽位；native_sampling 独立指定原生
 真实 548 实体用例还揭示 SCL 单行超长导致编译失败；现按每行至多二十个 ID 条件生成，保留全部 ID。
 4.13/4.10 各八项测试通过，含六正例与两拒绝负例；首轮三项失败保留，见
 [Q03 原生与格式回归](decisions/evidence/q03-tensor-field/report.md)。Q03 仍 partial。
+
+## I05：API 函数名的分词与旧索引（2026-10-23）
+
+API 文档中的 SCLGetDataCenterFloatArray 等函数现在同时按完整标识符与词边界建索引。
+这只改 API 文档的搜索 token，不改原文、行定位、查询、词表、许可或私有可见性。
+metadata.api_tokenization=identifier-parts-v1 标记新构建口径；旧 schema-v2 索引仍可只读查询，
+没有隐式迁移，需在仓库外新路径显式重建才获得新 token。真实私有来源仍未补齐，见
+[I05 API 索引回归](decisions/evidence/i05-api-identifiers/report.md)。

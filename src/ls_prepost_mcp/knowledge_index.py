@@ -117,6 +117,20 @@ def terms(text):
     return list(dict.fromkeys(result))
 
 
+def _api_terms(text):
+    """Index API identifiers intact plus case/underscore word boundaries.
+
+    Source text, document identity and query normalization remain unchanged.
+    Acronyms stay whole: SCLGetData -> SCL/Get/Data, not S/C/L.
+    """
+    expanded = []
+    for identifier in re.findall(r"[A-Za-z][A-Za-z0-9_]*", text):
+        words = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1 \2", identifier)
+        words = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", words)
+        expanded.extend(terms(words))
+    return list(dict.fromkeys([*terms(text), *expanded]))
+
+
 def chunks(path, *, source_id, category, license, visibility="private", version="unspecified", locator=None,
            max_chars=3200):
     """Chunk local text with exact line provenance; external sources default private."""
@@ -230,8 +244,8 @@ def build_index(destination, documents, fields=(), fieldless=()):
             db.execute("CREATE TABLE keyword_fields (document_id TEXT PRIMARY KEY, entity_key TEXT, option TEXT, card TEXT, field TEXT, offset INTEGER, width INTEGER, help TEXT, links TEXT, manual_ref TEXT, solver_status TEXT, license TEXT, aliases TEXT)")
             db.execute("CREATE INDEX keyword_lookup ON keyword_fields(entity_key,field)")
             db.execute("CREATE TABLE keyword_without_fields (document_id TEXT PRIMARY KEY, entity_key TEXT UNIQUE, provider_structure TEXT, card_kinds TEXT, verdict TEXT, review TEXT)")
-            db.execute("CREATE TABLE metadata (schema_version INTEGER)")
-            db.execute("INSERT INTO metadata VALUES (2)")
+            db.execute("CREATE TABLE metadata (schema_version INTEGER, api_tokenization TEXT)")
+            db.execute("INSERT INTO metadata VALUES (2, 'identifier-parts-v1')")
             seen = set()
             for row in rows:
                 data = asdict(row)
@@ -242,7 +256,8 @@ def build_index(destination, documents, fields=(), fieldless=()):
                 seen.add(ident)
                 digest = hashlib.sha256(row.text.encode()).hexdigest()
                 db.execute("INSERT INTO documents VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (ident, *data.values(), digest))
-                db.execute("INSERT INTO search_terms VALUES (?,?)", (ident, " ".join(terms(row.title + " " + row.text))))
+                tokens = _api_terms if row.category == "api" else terms
+                db.execute("INSERT INTO search_terms VALUES (?,?)", (ident, " ".join(tokens(row.title + " " + row.text))))
                 record = fieldless_map.get(row.title)
                 if record and fieldless_rows[row.title] is row:
                     db.execute("INSERT INTO keyword_without_fields VALUES (?,?,?,?,?,?)",
