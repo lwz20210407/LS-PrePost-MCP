@@ -188,8 +188,33 @@ def _normals(xyz: np.ndarray, faces: np.ndarray, lookup: np.ndarray) -> np.ndarr
     return np.divide(normal, length, out=np.zeros_like(normal), where=length > 0)
 
 
-def _index(ids: np.ndarray) -> np.ndarray:
-    lookup = np.full(int(ids.max()) + 1 if ids.size else 1, -1, dtype=np.int64)
+class _SparseIndex:
+    """User-ID lookup with memory proportional to node count, not largest ID."""
+
+    def __init__(self, ids):
+        self.rows = np.argsort(ids)
+        self.ids = ids[self.rows]
+        self.size = int(self.ids[-1]) + 1
+
+    def __getitem__(self, values):
+        values = np.asarray(values)
+        if values.size and values.dtype.kind not in "iu":
+            raise IndexError("Node lookup requires integer user IDs")
+        positions = np.searchsorted(self.ids, values)
+        bounded = np.minimum(positions, self.ids.size - 1)
+        found = (positions < self.ids.size) & (self.ids[bounded] == values)
+        return np.where(found, self.rows[bounded], -1).astype(np.int64)
+
+
+def _index(ids: np.ndarray) -> np.ndarray | _SparseIndex:
+    ids = np.asarray(ids)
+    if ids.ndim != 1 or (ids.size and (ids.dtype.kind not in "iu" or (ids <= 0).any()
+                                      or np.unique(ids).size != ids.size)):
+        raise FieldError("Node IDs must be unique positive stored integers")
+    span = int(ids.max()) + 1 if ids.size else 1
+    if span > max(1_000_000, 4 * ids.size):
+        return _SparseIndex(ids)
+    lookup = np.full(span, -1, dtype=np.int64)
     lookup[ids] = np.arange(ids.size)
     return lookup
 

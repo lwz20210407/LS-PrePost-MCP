@@ -70,6 +70,11 @@ def _safe(deck: KeywordDeck, block: object, row: int | None, names: Iterable[str
 def inspect_deck(path: str, include_paths: tuple[str, ...] = (), include_mesh: bool = False) -> dict:
     """Overview of a deck without modifying anything."""
     deck = KeywordDeck.load(path, include_paths)
+    return inspect_loaded_deck(deck, include_mesh)
+
+
+def inspect_loaded_deck(deck: KeywordDeck, include_mesh: bool = False) -> dict:
+    """The same overview over an already confined snapshot; no second parse."""
     parts, sections, materials, sets, curves, contacts = [], [], [], [], [], []
     elements: dict[str, int] = {}  # element count per *ELEMENT_ keyword (tasks.yaml P01)
     for block in deck.iter_blocks():

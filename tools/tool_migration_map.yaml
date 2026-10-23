@@ -467,6 +467,12 @@ tools:
     target: curve_ops
     task_id: Q07
     legacy_until: v0.6
+  query_entities:
+    target: query_entities
+    task_id: G04
+    legacy_until: null
+    note: G04 read-only keyword/d3plot identification over shared readers and Selector;
+      unknown binary material IDs remain explicit
   read_job:
     target: alias
     task_id: I01

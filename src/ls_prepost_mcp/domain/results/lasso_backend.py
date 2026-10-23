@@ -211,7 +211,12 @@ def _element_values(arrays: dict, family: str, quantity: str, stored_point: int 
 def history(path: str | Path, kind: str, quantity: str, ids: list[int] | None = None) -> list[dict]:
     """Q05 time histories: kind node / solid / shell / part / global; one curve per entity."""
     arrays = _arrays(path)
-    times = _times(arrays)
+    return _history_from_arrays(arrays, kind, quantity, ids)
+
+
+def _history_from_arrays(arrays: dict, kind: str, quantity: str, ids: list[int] | None = None) -> list[dict]:
+    """Shared quantity/ID math for an existing reader snapshot, including filtered states."""
+    times = validate_d3plot_times(_times(arrays))
     if kind == "global":
         key = f"global_{quantity}"
         if key not in arrays:
