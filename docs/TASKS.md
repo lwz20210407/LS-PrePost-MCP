@@ -337,7 +337,8 @@
 
 缺口：
 
-- 审核02 P1-6/P1-7：删除后的单元样本缺少有效性标记；缺少 d3plot Part/global、shell/tshell/beam 原生对照，节点用例需改为可鉴别的非零位移；Part 用户 ID 回退口径需随 P0-1 修复
+- 缺少 d3plot Part/global、shell/tshell/beam 原生对照；缺少真实 part_ids 的 d3plot 部件时程明确拒绝，不用标题序号猜用户 PID；原生子集补验不据此将 Q05 升为 done
+- 单元 CSV 已增加 alive 列、deletion_status 与首次删除状态；缺删除数据显式 unknown。其他曲线消费者尚不自动应用 alive 掩码；stored_point 请求与多层壳历史仍待对应共享层任务完善
 - 原生 d3plot 对照限节点及单存储点单元量、最多 1000 状态；Part/global 原生对照需显式单文件 binout；多点均值不映射为层；MPP 数值复用既有合并规则且记录时间合并口径；4.8 未验
 
 ### Q06 binout / ASCII 全库曲线
