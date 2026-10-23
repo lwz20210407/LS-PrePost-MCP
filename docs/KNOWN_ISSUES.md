@@ -1378,3 +1378,16 @@ G03/G04 共享几何查询的稀疏节点 ID 使用紧凑查找；不会按最�
 
 4.13/4.10 各三项后台对照通过，实际提交与首轮失败见
 [G04 实体查询证据](decisions/evidence/g04-entity-query/report.md)。
+
+## Q06 原生 ASCII 力曲线选择与对照（2026-10-23）
+
+SECFORC 原生命令使用 `Sec-ID`，裸数字 ID 会产生 `No match!!` 和缺失曲线；
+RCFORC 使用 `Sl-ID` / `Ma-ID`，低层入口必须显式给 side 0/1，不能默认或合并两侧。
+`extract_database(native_check=true)` 现对 ASCII RCFORC/SECFORC 的 x/y/z_force
+独立导出原生曲线，最多 16 个实体/侧曲线；所有时间与数值分别核对，保持读取器值。
+错误分量、时间错位、源/产物变更、空诊断或缺 CSV 都返回 failed，不暴露已验证产物。
+
+4.13/4.10 各七项对照与各两个 I04 调用端兼容用例通过，
+见 [Q06 原生力曲线证据](decisions/evidence/q06-native-forces/report.md)。
+只覆盖登记的两个公开文件与三个力分量，未外推到 binout 全库、力矩、质心或 MPP/SMP，
+Q06 保持 partial；默认 native_check=false 的既有读取不启动 LS-PrePost。

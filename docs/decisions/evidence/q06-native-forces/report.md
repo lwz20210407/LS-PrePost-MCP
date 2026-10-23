@@ -1,0 +1,13 @@
+# Q06 native force comparison
+
+The canonical `extract_database` now supports explicit `native_check=true` for named ASCII RCFORC/SECFORC x_force, y_force and z_force. It reuses the shared ASCII parser and existing native batch exporter. User-ID and written side keys remain distinct; all times and values are compared independently and the reader CSV remains authoritative. No second force parser, interpolation, model-unit conversion or native-value backfill is introduced.
+
+The first exploratory section runs failed to create curve.xy. Inspection found `No match!!`: the native section selector needs `Sec-ID`, not a bare integer. Contact selectors similarly use explicit `Sl-ID` and `Ma-ID`, with side 0/1 required rather than guessed. The [Ansys LS-OPT example](https://lsdyna.ansys.com/ls-prepost-4/) documents the contact label syntax; these changes were then tested on both local versions. The three exploratory failures remain outside Git with their SHA256 recorded; they lack captured Git/diff identity and are not acceptance evidence.
+
+On clean c12b2d6, [4.13](r413a-batch-report.md) and [4.10](r410a-batch-report.md) each passed seven native tests: six positive component/database combinations and one real wrong-component rejection. This is 2952 positive time/value comparisons across versions. Native jobs succeeded for the negative too; the numeric mismatch was rejected by the tool, with no verified output artifacts. All source bytes and directory inventories were preserved, with input hashes checked against external public manifests.
+
+The I04 caller also needed an explicit side and a contact-specific reader oracle. Its regression failed before the update, then passed. On clean 57e5935, the existing public-contact/public-section cases passed in [4.13](compat413-batch-report.md) and [4.10](compat410-batch-report.md), two tests per version. No historical public100 result is replaced by these focused rechecks.
+
+89 related unit/adapter tests passed; two unrelated optional corpus/dependency cases skipped. The initial eleven contract tests failed before implementation; two further failure tests exposed missing native CSV and blank-error propagation before their fixes. Full revisions, empty diff hashes, portable Git blob/LF test-source identities and per-case native process evidence are in [evidence.json](evidence.json).
+
+Q06 stays partial. The new optional native check covers these two ASCII databases and three force components, not all binout branches, moments/centroids or MPP/SMP equality. Existing non-native modes and aliases remain, and unsupported comparisons are explicitly rejected. Source data, binaries, manuals and raw native logs are not published.
