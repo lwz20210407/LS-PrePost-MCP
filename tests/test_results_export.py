@@ -23,7 +23,7 @@ def test_round_trip_keeps_values_and_metadata(tmp_path: Path, suffix: str) -> No
     meta = back["meta"]
     assert meta["quantity"] == "triaxiality" and meta["state"] == 3 and meta["time"] == 1.5e-4
     assert meta["points"] == "mean of 8 stored points" and meta["mask"] == "alive"
-    assert meta["units"] == "mm-t-s (stress MPa)" and meta["coordinate_system"].startswith("global")
+    assert meta["units"] == "mm-t-s (stress MPa)" and meta["coordinate_system"] == "as stored"
 
 
 def test_undeclared_units_are_labelled_not_converted(tmp_path: Path) -> None:
