@@ -29,10 +29,25 @@ def test_owned_gui_readonly_recovery_probe(installation, pytestconfig):
         transport = WindowsCommandTransport(started["process"]["pid"])
         probe = transport.probe_idle()
         assert probe["responsive"] and probe["enabled"] and probe["pid"] == started["process"]["pid"]
+        manager = service._session_manager()
+
+        def host_failure(_transport, _directory):
+            raise RuntimeError("Owned diagnostic host callback stopped before dispatch; no Apply sent")
+
+        with pytest.raises(RuntimeError, match="Owned diagnostic"):
+            manager.dispatch(sid, "gui_mesh_state", {}, _before_submit=host_failure)
+        request_id = manager.read(sid)["active_request"]
+        request_dir = manager.directory(sid) / "requests" / request_id
+        assert not (request_dir / "complete.json").exists()
+        recovered = service.recover_gui_session(sid)
+        assert recovered["active_request"] is None and recovered["state"] == "uncertain"
+        assert recovered["requires_host_validation"] and recovered["dispatch_submitted"] is False
+        assert recovered["recovery_probe"]["responsive"]
         context = pytestconfig._native_identity
         (root / "verified.json").write_text(json.dumps(dict(actual_git_revision=context["actual_git_head"],
             working_tree_dirty=context["working_tree_dirty"], git_diff_sha256=context["git_diff_sha256"],
             executable=binary, source_config_sha256=config_sha, probe=probe,
+            recovery_probe=recovered["recovery_probe"], model_state=recovered["state"],
             scope="Responsive idle owned GUI only; real busy Apply/background mutation not certified"),separators=(",", ":"))+"\n",encoding="utf8")
     finally:
         assert service.close_gui_session(sid, save_checkpoint=False)["state"] == "closed"
