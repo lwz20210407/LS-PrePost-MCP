@@ -402,6 +402,21 @@ class WindowsCommandTransport:
             raise RuntimeError("Owned GUI has a blocking modal dialog; no command dispatched")
         return state
 
+    def probe_idle(self):
+        """Read-only GUI-thread responsiveness, not proof of background-model quiescence."""
+        state = self.preflight()
+        result = self.ctypes.c_size_t()
+        # WM_NULL carries no command and changes no model/window state. Do not
+        # use WaitForInputIdle: its startup result is not a repeated busy test.
+        if not self.u.SendMessageTimeoutW(state["main_window"], 0, 0, 0, 0x0003, 2000,
+                                          self.ctypes.byref(result)):
+            raise RuntimeError("Owned GUI thread is busy or unresponsive; recovery request retained")
+        current = self.window_state()
+        if current["main_window"] != state["main_window"] or not current["enabled"]:
+            raise RuntimeError("Owned GUI changed or became blocked during recovery probe")
+        return {"pid": self.pid, "responsive": True, "enabled": True, "probe": "WM_NULL",
+                "scope": "GUI thread responded; background effects and model still require host validation"}
+
     def window_state(self):
         hwnd = self.command_window()
         root = self.u.GetAncestor(hwnd, 2)
