@@ -245,7 +245,22 @@ def _element_values(arrays: dict, family: str, quantity: str, stored_point: int 
 
 def history(path: str | Path, kind: str, quantity: str, ids: list[int] | None = None) -> list[dict]:
     """Q05 time histories: kind node / solid / shell / part / global; one curve per entity."""
-    arrays = _arrays(path)
+    needed = ["timesteps"]
+    if kind in {"part", "global"}:
+        needed.append(f"{kind}_{quantity}")
+    elif kind == "node":
+        base, _, axis = quantity.partition("_")
+        if base not in {"displacement", "velocity"} or axis not in {"x", "y", "z", "magnitude"}:
+            raise ResultsError("Node quantities: displacement_/velocity_ + x, y, z or magnitude")
+        needed.append("node_displacement" if base == "displacement" else "node_velocity")
+    elif kind in FAMILIES:
+        key = FAMILIES[kind][5 if quantity == "effective_plastic_strain" else 4]
+        if key is None:
+            raise ResultsError(f"No {quantity} history support for {kind} elements")
+        needed += [key, FAMILIES[kind][1]]
+    else:
+        raise ResultsError("kind must be node, solid, shell, tshell, beam, part or global")
+    arrays = _arrays(path, state_arrays=needed)
     return _history_from_arrays(arrays, kind, quantity, ids)
 
 
@@ -288,9 +303,32 @@ def _history_from_arrays(arrays: dict, kind: str, quantity: str, ids: list[int] 
     if kind not in FAMILIES:
         raise ResultsError("kind must be node, solid, shell, tshell, beam, part or global")
     values, note = _element_values(arrays, kind, quantity)
-    where = _index(arrays[FAMILIES[kind][0]], ids, kind.capitalize())
-    return [{"entity": int(i), "quantity": quantity, "time": times.tolist(), "values": values[:, w].tolist(),
-             "note": note} for i, w in zip(ids, where)]
+    stored_ids = np.asarray(arrays[FAMILIES[kind][0]]).reshape(-1)
+    if values.shape != (times.size, stored_ids.size):
+        raise ResultsError("Scalar history state/element axes do not match the stored user-ID registry")
+    where = _index(stored_ids, ids, kind.capitalize())
+    alive_key = FAMILIES[kind][1]
+    selected_alive = None
+    if alive_key in arrays:
+        flags = np.asarray(arrays[alive_key])
+        if flags.shape != (times.size, stored_ids.size):
+            raise ResultsError("History deletion/alive array does not match its state and element axes")
+        flags = flags[:, where]
+        if flags.dtype.kind not in "biuf" or not np.all(np.isfinite(flags)):
+            raise ResultsError("History deletion/alive array contains invalid flags")
+        selected_alive = flags != 0
+    records = []
+    for n, (i, w) in enumerate(zip(ids, where)):
+        alive = selected_alive[:, n] if selected_alive is not None else None
+        deleted = np.flatnonzero(~alive) if alive is not None else []
+        records.append({"entity": int(i), "quantity": quantity, "time": times.tolist(),
+                        "values": values[:, w].tolist(), "note": note,
+                        "alive": alive.tolist() if alive is not None else None,
+                        "deletion_status": "stored" if alive is not None else "unknown",
+                        "deleted_from_state": int(deleted[0]) + 1 if len(deleted) else None,
+                        "validity": "Raw values retained; per-sample alive flags are authoritative; "
+                                    "deleted_from_state is the first observed deleted state, 1-based"})
+    return records
 
 
 def state_times(path: str | Path) -> np.ndarray:

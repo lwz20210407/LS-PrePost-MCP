@@ -1,3 +1,5 @@
+> 历史报告：Q05 已退回 partial；旧证据不覆盖删除有效性、新容差和非零节点选择。当前限定范围见 [审核02修复](../q05-deletion-review02/report.md)。旧运行与失败保留。
+
 # Q05: multi-entity history extraction
 
 extract_history exposes node, solid/shell/tshell/beam, Part and global time histories through

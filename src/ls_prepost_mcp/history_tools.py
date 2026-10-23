@@ -75,6 +75,7 @@ def _csv_curve(service, result):
 
 def _native(service, source, family, source_kind, domain, quantity, records, units):
     expected = {r["entity"]: r for r in records}
+    value_atol = {uid: 1e-6 * float(np.max(np.abs(r["values"]))) for uid, r in expected.items()}
     if source_kind == "binout":
         if len(family) != 1:
             raise ValueError(
@@ -95,7 +96,7 @@ def _native(service, source, family, source_kind, domain, quantity, records, uni
             if (
                 actual.shape != wanted.shape
                 or not np.allclose(actual[:, 0], wanted[:, 0], rtol=1e-6, atol=1e-9)
-                or not np.allclose(actual[:, 1], wanted[:, 1], rtol=2e-5, atol=1e-6)
+                or not np.allclose(actual[:, 1], wanted[:, 1], rtol=2e-5, atol=value_atol[record["entity"]])
             ):
                 raise ValueError("Native/LASSO binout history disagreement")
             errors.append(float(np.max(np.abs(actual[:, 1] - wanted[:, 1]))))
@@ -107,7 +108,10 @@ def _native(service, source, family, source_kind, domain, quantity, records, uni
             "max_absolute_error": max(errors),
             "max_time_absolute_error": max(time_errors),
             "curves": len(records),
+            "value_atol_by_entity": {str(k): v for k, v in value_atol.items()},
         }
+    if domain == "beam":
+        raise ValueError("Native beam history comparison is unsupported; no binout substitution is performed")
     if domain not in {"node", "solid", "shell", "tshell"}:
         raise ValueError("Native Part/global history comparison requires explicit source_kind=binout")
     if any(re.search(r"mean of (?!1\b)\d+ stored points", r.get("note", "")) for r in records):
@@ -116,9 +120,11 @@ def _native(service, source, family, source_kind, domain, quantity, records, uni
 
     if domain == "node":
         name, _, component = quantity.rpartition("_")
-        field = NATIVE_NODE_MAP[(name, component)]
+        field = NATIVE_NODE_MAP.get((name, component))
     else:
-        field = NATIVE_STRESS_MAP[quantity[1:] if quantity in lb.STRESS else quantity]
+        field = NATIVE_STRESS_MAP.get(quantity[1:] if quantity in lb.STRESS else quantity)
+    if field is None:
+        raise ValueError(f"Native {domain} history comparison does not support quantity {quantity!r}")
     times = np.asarray(records[0]["time"])
     if times.size > 1000:
         raise ValueError("Native history comparison supports at most 1000 states")
@@ -138,7 +144,7 @@ def _native(service, source, family, source_kind, domain, quantity, records, uni
         if (
             not np.isclose(time, times[state - 1], rtol=1e-6, atol=1e-9)
             or not np.isfinite(value)
-            or not np.isclose(value, wanted, rtol=2e-5, atol=1e-6)
+            or not np.isclose(value, wanted, rtol=2e-5, atol=value_atol[uid])
         ):
             raise ValueError("Native/LASSO d3plot history disagreement")
         error = max(error, abs(value - wanted))
@@ -149,6 +155,7 @@ def _native(service, source, family, source_kind, domain, quantity, records, uni
         "job_ids": [result["job_id"]],
         "max_absolute_error": error,
         "curves": len(records),
+        "value_atol_by_entity": {str(k): v for k, v in value_atol.items()},
     }
 
 
@@ -200,7 +207,7 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
     directory, manifest = service.jobs.create("extract_history", parameters)
     manifest["parameters"]["curve_spec"] = spec.model_dump(mode="json")
     manifest["inputs"] = [{"path": p, "sha256": h} for p, h in before.items()]
-    data, artifacts = {}, []
+    data, artifacts, warnings = {}, [], []
     try:
         with service._guard():
             records = (
@@ -226,6 +233,21 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
             if total > 1_000_000:
                 raise ValueError("History exceeds one million total samples")
             record.update(time=t, values=y)
+            if source_kind == "d3plot" and domain in lb.FAMILIES:
+                flags = record.get("alive")
+                if record.get("deletion_status") == "stored":
+                    if (not isinstance(flags, list) or len(flags) != t.size
+                            or any(type(flag) is not bool for flag in flags)):
+                        raise ValueError("Stored history alive flags do not match its samples")
+                    deleted = [n + 1 for n, flag in enumerate(flags) if not flag]
+                    if record.get("deleted_from_state") != (deleted[0] if deleted else None):
+                        raise ValueError("History first-deleted state disagrees with its alive samples")
+                    if deleted:
+                        warnings.append(f"{domain} {record['entity']}: deleted samples start at state {deleted[0]}; "
+                                        "raw values are retained and are not valid active-element measurements")
+                else:
+                    record.update(alive=None, deletion_status="unknown", deleted_from_state=None)
+                    warnings.append(f"{domain} {record['entity']}: deletion status unknown; no alive data stored")
         comparison = (
             _native(service, source, family, source_kind, domain, quantity, records, units)
             if native_check
@@ -234,7 +256,8 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
         if comparison is not None:
             comparison["tolerances"] = {
                 "time": {"rtol": 1e-6, "atol": 1e-9, "units": time_units},
-                "value": {"rtol": 2e-5, "atol": 1e-6, "units": units},
+                "value": {"rtol": 2e-5, "atol_rule": "1e-6 * max(abs(reference curve)); zero curve has zero atol",
+                          "atol_by_entity": comparison["value_atol_by_entity"], "units": units},
             }
         summaries = []
         for record in records:
@@ -246,13 +269,21 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
                 + quantity
             )
             output = directory / (name + ".csv")
-            exported = write_csv(
-                output, ["time", "value"], zip(record["time"].tolist(), record["values"].tolist())
-            )
+            element_validity = source_kind == "d3plot" and domain in lb.FAMILIES
+            rows = list(zip(record["time"].tolist(), record["values"].tolist()))
+            columns = ["time", "value"]
+            if element_validity:
+                flags = record["alive"]
+                columns.append("alive")
+                rows = [(*row, int(flags[n]) if flags is not None else None) for n, row in enumerate(rows)]
+            exported = write_csv(output, columns, rows, nullable=("alive",) if element_validity else ())
             with output.open(newline="", encoding="utf8") as stream:
-                saved = np.asarray([[float(r["time"]), float(r["value"])] for r in csv.DictReader(stream)])
+                csv_rows = list(csv.DictReader(stream))
+                saved = np.asarray([[float(r["time"]), float(r["value"])] for r in csv_rows])
             if not np.array_equal(saved, np.column_stack((record["time"], record["values"]))):
                 raise ValueError("Saved history CSV differs from the original reader samples")
+            if element_validity and [r["alive"] for r in csv_rows] != [str(row[2]) if row[2] is not None else "" for row in rows]:
+                raise ValueError("Saved history alive flags differ from the reader samples")
             meta = {
                 "domain": domain,
                 "entity_id": record["entity"],
@@ -261,14 +292,18 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
                 "source_kind": source_kind,
                 "units": {"time": time_units, "value": units},
                 "samples": int(record["time"].size),
+                "columns": columns,
                 "sampling": record.get("note", "as stored; no interpolation"),
-                "validity": "raw stored history; no deletion filtering",
+                "validity": record.get("validity", "raw stored history; no deletion filtering"),
                 "time_policy": record.get(
                     "time_policy", "original order and duplicate times retained; no sorting/resampling"
                 ),
                 "entity_scope": record.get("entity_scope", "user IDs stored in this d3plot"),
                 "merge": record.get("merge"),
             }
+            if element_validity:
+                meta.update(deletion_status=record["deletion_status"], deleted_from_state=record["deleted_from_state"],
+                            alive_column="1=active, 0=deleted, empty=unknown; no samples removed or backfilled")
             artifacts.append(
                 Artifact(
                     path=str(output),
@@ -315,6 +350,7 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
             data=data,
             artifacts=tuple(artifacts),
             checks=tuple(checks),
+            warnings=tuple(warnings),
             scope="Stored histories; shared merge policy reported; no unit conversion or added resampling",
         )
     except Exception as error:
