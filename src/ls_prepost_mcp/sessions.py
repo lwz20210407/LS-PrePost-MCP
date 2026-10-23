@@ -20,6 +20,7 @@ from .checkpoint_context import (
 from .engine import SessionEngine, SessionJob
 from .engine.environment import native_environment
 from .engine.queue_transport import QueueTransport
+from .engine.session import HostPreparationError
 from .jobs import atomic_json, check_artifact, fingerprint, now
 from .model_context import verify_load_reply
 from .native import commands as nc
@@ -394,7 +395,7 @@ class Sessions:
                     atomic_json(directory / "host-preparation-failed.json", dict(
                         job_id=directory.name, phase="host_preparation", dispatch_submitted=False,
                         error=dict(type=type(error).__name__, message=message if message.strip() else type(error).__name__)))
-                    raise
+                    raise HostPreparationError(message if message.strip() else type(error).__name__) from error
             transport.submit(directory.name if queued else nc.run_script(command_file, "cfile"))
 
         outcome = SessionEngine().run(SessionJob(
