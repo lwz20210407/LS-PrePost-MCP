@@ -15,7 +15,7 @@ def test_shell_records_preserve_failed_attempt_and_stricter_native_rejections():
     assert evidence["status"] == "partial"
     assert [(r["passed"], r["failed"]) for r in evidence["runs"]] == [(7, 1), (8, 0), (8, 0)]
     for run in evidence["runs"]:
-        assert hashlib.sha256((DIRECTORY / run["report"]).read_bytes()).hexdigest() == run["report_sha256"]
+        assert hashlib.sha256((DIRECTORY / run["report"]).read_bytes().replace(b"\r\n", b"\n")).hexdigest() == run["report_sha256"]
         assert not run["working_tree_dirty"] and run["git_diff_sha256"] == hashlib.sha256(b"").hexdigest()
         for case in run["cases"]:
             assert case["source_unchanged"] and case["directory_unchanged"]
