@@ -98,14 +98,15 @@ def test_entity_identity_matches_native_geometry_and_values(installation, pytest
             )
             assert canonical["status"] == "succeeded", canonical.get("error")
             assert value == canonical["data"]["values"][canonical["data"]["ids"].index(uid)]
+        native_quantity = "stress_x" if domain == "solid" else "disp_z"
         native = service.extract_native_fields(
-            str(source), domain, [uid], [state], [quantity], "mid", "source_native_units"
+            str(source), domain, [uid], [state], [native_quantity], "mid", "source_native_units"
         )
         assert native["status"] == "succeeded", native.get("error")
         with Path(native["artifacts"][0]["path"]).open(newline="", encoding="utf8") as f:
             native_values = list(csv.DictReader(f))
         assert len(native_values) == 1 and int(native_values[0]["entity_id"]) == uid
-        native_value = float(native_values[0][quantity])
+        native_value = float(native_values[0][native_quantity])
         np.testing.assert_allclose(value, native_value, rtol=2e-5, atol=1e-6)
         result_error = abs(value - native_value)
     identity = pytestconfig._native_identity

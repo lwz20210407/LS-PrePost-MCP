@@ -149,3 +149,15 @@ def test_reference_result_geometry_does_not_require_a_state(tmp_path):
     assert result["status"] == "partial", result.get("error")
     assert result["data"]["entities"][0]["part_id"] == 7
     assert result["data"]["state"] is None
+
+
+def test_empty_reader_diagnostic_still_returns_a_failed_job(keyword_model, tmp_path, monkeypatch):
+    from ls_prepost_mcp import entity_query
+
+    def broken(*args):
+        raise RuntimeError("  ")
+
+    monkeypatch.setattr(entity_query, "inspect_loaded_deck", broken)
+    service = Service(Settings(tmp_path / "work", allowed_roots=(keyword_model.parent,)))
+    result = service.query_entities(str(keyword_model), selection("node", [1]))
+    assert result["status"] == "failed" and result["error"]["message"] == "RuntimeError"

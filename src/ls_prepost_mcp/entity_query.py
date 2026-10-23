@@ -324,7 +324,7 @@ def query_entities(service, path, selector, source_kind, state, quantity, units)
             job_id=manifest["job_id"],
             backend="keyword-engine" if source_kind == "keyword" else lb.backend(),
             data={},
-            error={"type": type(error).__name__, "message": str(error) or type(error).__name__},
+            error={"type": type(error).__name__, "message": str(error).strip() or type(error).__name__},
         )
     payload = result.model_dump(mode="json")
     atomic_json(directory / "job.json", {**manifest, "status": result.status, "result": payload})
