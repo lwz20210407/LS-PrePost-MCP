@@ -880,7 +880,7 @@ tasks:
       - 不写关键字名的字段语义问题（holdout B HB09/HB11/HB12）仍未命中；holdout B 有 6 题答案目标与开发集重合，去除后 10/18
       - '审阅 P2（#93 合入时未修）：evidence.json 的逐题返回列表仍是 f04843a 的记录，最终修订改变了 6 题的前 3 条，未重新生成；扩展词形覆盖率无自动测试'
     existing: [search_commands, search_knowledge, search_workflows, list_pydyna_keywords, describe_pydyna_keyword]
-    evidence: [src/ls_prepost_mcp/knowledge.py, src/ls_prepost_mcp/knowledge_index.py, src/ls_prepost_mcp/data/search_glossary.json, tests/test_knowledge_tools.py, tests/test_knowledge_cross_language.py, tests/test_keyword_field_lookup.py, docs/decisions/evidence/a10/report.md, docs/decisions/evidence/a10-field-lookup/report.md, docs/decisions/evidence/a10-cross-language/report.md, docs/decisions/evidence/a10-query-dedup/report.md]
+    evidence: [src/ls_prepost_mcp/knowledge.py, src/ls_prepost_mcp/knowledge_index.py, src/ls_prepost_mcp/data/search_glossary.json, tests/test_knowledge_tools.py, tests/test_knowledge_cross_language.py, tests/test_keyword_field_lookup.py, docs/decisions/evidence/a10/report.md, docs/decisions/evidence/a10-field-lookup/report.md, docs/decisions/evidence/a10-cross-language/report.md, docs/decisions/evidence/a10-query-dedup/report.md, tests/test_knowledge_concept_budget_review02.py, docs/decisions/evidence/a10-concept-budget-review02/report.md]
     acceptance:
       - 可检索命令手册、Scripting API、关键字字段、用户指南章节、配方、KNOWN_ISSUES 六类
       - 每条结果带来源、版本、证据等级（文档记载 / 有源码实例 / 本机验证）
