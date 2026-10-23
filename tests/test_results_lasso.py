@@ -29,6 +29,7 @@ def d3plot(tmp_path: Path) -> Path:
     a[ArrayType.element_solid_node_indexes] = np.array([np.arange(8), np.arange(8, 16)])
     a[ArrayType.element_solid_part_indexes] = np.array([0, 1])
     a[ArrayType.element_solid_ids] = np.array([10, 20])
+    a[ArrayType.part_ids] = np.array([1, 2])
     a[ArrayType.part_titles_ids] = np.array([1, 2])
     a[ArrayType.part_titles] = np.array([b"lower".ljust(72), b"upper".ljust(72)])
     a[ArrayType.global_timesteps] = times

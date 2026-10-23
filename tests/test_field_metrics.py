@@ -83,7 +83,7 @@ def independent_stress_metrics(s: np.ndarray) -> dict[str, float]:
     }
 
 
-def write_synthetic(plot_path: Path, part_key: ArrayType = ArrayType.part_titles_ids, deletion: bool = True) -> Path:
+def write_synthetic(plot_path: Path, part_key: ArrayType = ArrayType.part_ids, deletion: bool = True) -> Path:
     """Synthetic d3plot with solids and shells across 3 states with deletions and sparse part IDs."""
     plot = D3plot()
     a = plot.arrays
@@ -358,8 +358,12 @@ def test_backend_field_refuses_out_of_range_state(synthetic_d3plot: Path) -> Non
 
 @pytest.mark.parametrize("part_key", [ArrayType.part_titles_ids, ArrayType.part_ids])
 def test_backend_field_selects_parts_by_user_id(tmp_path: Path, part_key: ArrayType) -> None:
-    """Part IDs resolve through part_ids or, when the file only has titles, part_titles_ids."""
+    """Only a declared user-ID table can drive a Part filter; title-only IDs remain uncertified."""
     path = write_synthetic(tmp_path / "d3plot", part_key)
+    if part_key == ArrayType.part_titles_ids:
+        with pytest.raises(lb.ResultsError, match="unconfirmed"):
+            lb.field(path, "solid", "von_mises", state=-1, part_ids=[9])
+        return
     plate = lb.field(path, "solid", "von_mises", state=-1, part_ids=[9])
     assert plate["ids"].tolist() == [30, 40]
     assert plate["part_ids"] == [9]
