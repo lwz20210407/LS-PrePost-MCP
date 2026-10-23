@@ -57,7 +57,7 @@ def input_classification(tree):
         p = errors[0]
         return "input_" + (p.get("hint") or p["kind"])
     if tree["unsupported_native_variants"]:
-        return "unsupported_native_include_variant"
+        return "product_unsupported_include_variant"
     if any(p["kind"] == "ambiguous" for p in tree["problems"]):
         return "input_ambiguous"
     return "preflight_ok_requires_native_diagnosis"
