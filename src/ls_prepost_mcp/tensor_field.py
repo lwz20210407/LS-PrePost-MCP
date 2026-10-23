@@ -40,7 +40,7 @@ def _native_agreement(service, source, raw, selector):
     values = []
     for uid in ids:
         row = observed[uid]
-        if int(row["state"]) != raw["state"] or not np.isclose(float(row["time"]), raw["time"], rtol=1e-6, atol=1e-9):
+        if int(row["state"]) != raw["state"] or not np.isclose(float(row["time"]), raw["time"], rtol=1e-6, atol=0.0):
             raise ValueError("Native comparison state/time differs from reader selection")
         values.append([float(row[k]) for k in fields])
     values = np.asarray(values)
@@ -49,6 +49,7 @@ def _native_agreement(service, source, raw, selector):
         raise ValueError("Native/LASSO six-component stress disagreement; check sampling and frame")
     return {"backend": "lsprepost", "job_id": native["job_id"], "entities": len(ids),
             "components": list(lb.STRESS), "rtol": 2e-5, "atol": atol.tolist(),
+            "time_rtol": 1e-6, "time_atol": 0.0, "time_reference": "reader state time; no time-unit floor",
             "atol_rule": "1e-6 times each native component's maximum absolute value; zero for zero components",
             "max_absolute_error": float(np.max(np.abs(values - raw["values"]))),
             "native_selector": selector, "reader_sampling": raw["sampling"],

@@ -73,11 +73,12 @@ def compare_ascii_forces(service, source, result):
             or not np.isfinite(expected).all()
         ):
             raise ValueError("Native force curve shape/nonfinite values disagree with reader output")
-        if not np.allclose(observed[:, 0], expected[:, 0], rtol=1e-6, atol=1e-9):
+        if not np.allclose(observed[:, 0], expected[:, 0], rtol=1e-6, atol=0.0):
             raise ValueError(
                 "Native force curve time axis differs; no interpolation or alignment was applied"
             )
-        if not np.allclose(observed[:, 1], expected[:, 1], rtol=2e-5, atol=1e-6):
+        value_atol = 1e-6 * float(np.max(np.abs(expected[:, 1])))
+        if not np.allclose(observed[:, 1], expected[:, 1], rtol=2e-5, atol=value_atol):
             raise ValueError("Native force values disagree with reader output; no replacement was applied")
         comparisons.append(
             dict(
@@ -85,6 +86,7 @@ def compare_ascii_forces(service, source, result):
                 side=side,
                 native_job_id=native["job_id"],
                 samples=len(rows),
+                value_atol=value_atol,
                 max_time_absolute_error=float(np.abs(observed[:, 0] - expected[:, 0]).max()),
                 max_value_absolute_error=float(np.abs(observed[:, 1] - expected[:, 1]).max()),
             )
@@ -95,6 +97,8 @@ def compare_ascii_forces(service, source, result):
         backend="lsprepost",
         component=data["component"],
         curves=comparisons,
-        tolerances=dict(time=dict(rtol=1e-6, atol=1e-9), value=dict(rtol=2e-5, atol=1e-6)),
+        tolerances=dict(time=dict(rtol=1e-6, atol=0.0, reference="reader time; no time-unit floor"),
+                        value=dict(rtol=2e-5, atol_rule="1e-6 * max(abs(reader curve)); zero curve has zero atol",
+                                   atol_by_curve=[dict(entity_id=c["entity_id"], side=c["side"], atol=c["value_atol"]) for c in comparisons])),
         scope="Same source component, entity ID and written side; no coordinate/unit transform or native backfill",
     )
