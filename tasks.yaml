@@ -158,12 +158,14 @@ tasks:
       - P11 已补普通树、控制卡编辑与主文件搜索路径的保存重开；参数函数逗号修复有两版本坐标读回及三个公开大模型保存定点证据；本项插卡/删卡等完整验收链仍缺原生逐项核对
       - corpus:include_contact 的验收用例依赖语料，CI 中跳过
       - 绝对 Include/搜索目录的外部依赖修改后保真另存会明确拒绝，避免写出未被主文件引用的修改副本；未改外部子树显式保留，相对路径与 main-dir 回退仍可另存，绝对依赖的可移植路径重写尚未提供
+      - 布局内部的 symlink/junction 目前明确拒绝另存，尚未实现链接物化/保真复制；写入失败可能在 job 内保留部分树或空目录，不能当作验证通过的产物
     evidence:
       - tests/test_keyword_absolute_save.py
       - docs/decisions/evidence/p02-absolute-save/report.md
       - tests/test_save_include_resolution_review02.py
       - docs/decisions/evidence/p02-resolution-review02/report.md
       - docs/decisions/evidence/p02-expression-commas/report.md
+      - docs/decisions/evidence/p02-save-layout-review02/report.md
     acceptance:
       - corpus:include_contact 上改一张卡的一个字段，保存后只有该卡所在文件变化，其余文件字节级不变
       - 被改文件中未改动的卡逐字节不变（含注释、空行、字段宽度）
@@ -347,9 +349,10 @@ tasks:
     depends_on: [P02]
     status: partial
     existing: [export_keyword, checkpoint_gui_session, save_model]
-    verification_level: L2
+    verification_level: L1
     gaps:
       - 原路径保存重开已在干净 a181aa1（含审核02必需检查门禁）由 4.13/4.10 各11项无图形用例覆盖；before_save 仍为规范化输入观察，after_reopen 以另存根目录和相对主文件名读取实际树，应用内回执核对打开路径；仅证明登记子集，不替代完整物理检查
+      - 当前链接保护与预检警告传播修复仅 L1；两版本各12项（新增模板警告 partial 用例）的原路径重开已排队，尚未运行，旧 a181aa1 证据不外推到新头
       - 主文件 INCLUDE_PATH / INCLUDE_PATH_RELATIVE 与相对空搜索目录已有真实树读回；INCLUDE_TRANSFORM、opaque、参数化文件名与嵌套 INCLUDE_PATH_RELATIVE 仍拒绝；根目录已有 lspost.db 的树在原生启动前拒绝，防止覆盖资产
       - save_model 读取磁盘树而非 GUI 未保存编辑；GUI、4.8 与非 ASCII 另存文件名仍未验证；没有节点的模型仍被原生读取检查拒绝
     evidence:
