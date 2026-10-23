@@ -26,6 +26,7 @@ ENGLISH_STOPWORDS = frozenset((
     "a", "an", "the", "of", "to", "in", "on", "at", "for", "and", "or", "is", "are", "be", "it", "its",
     "how", "what", "which", "where", "why", "do", "does", "can", "i", "my", "with", "by", "from", "this", "that"))
 SIBILANT_ENDINGS = ("s", "x", "z", "ch", "sh")
+MAX_QUERY_CONCEPTS = 32
 
 
 def _cleanup_owned_temp(path, original):
@@ -378,34 +379,45 @@ def plan_query(query):
     latin = [value for value in terms(query) if not value.startswith("zh_")]
     content = [value for value in latin if value not in ENGLISH_STOPWORDS]
     latin = content or latin
-    concepts, expansion, fallback, highlights = [], [], [], set(latin)
+    concepts, expansion, fallback = [], [], []
+    concept_expansions, concept_highlights = {}, {}
     for run in re.findall(r"[\u3400-\u9fff]+", query):
         fallback.extend(run[i:i + 2] for i in range(len(run) - 1))
         for kind, text in _segment(run, entries, stopwords):
             if kind == "term":
                 english = [_phrase_expression(phrase) for phrase in entries[text]]
                 options = [_chinese_expression(text)] + [expression for expression, _ in english if expression]
-                concepts.append("(" + " OR ".join("(" + option + ")" for option in options) + ")")
+                concept = "(" + " OR ".join("(" + option + ")" for option in options) + ")"
+                concepts.append(concept)
                 expansion.append(dict(term=text, english=list(entries[text])))
-                highlights.add(text)
-                highlights.update(word for _, words in english for word in words)
+                concept_expansions[text] = concept
+                concept_highlights.setdefault(concept, set()).update([text, *(word for _, words in english for word in words)])
             elif kind == "rest" and len(text) > 1:
-                concepts.append("(" + " OR ".join(_quote("zh_" + text[i:i + 2]) for i in range(len(text) - 1)) + ")")
-                highlights.add(text)
+                concept = "(" + " OR ".join(_quote("zh_" + text[i:i + 2]) for i in range(len(text) - 1)) + ")"
+                concepts.append(concept)
+                concept_highlights.setdefault(concept, set()).add(text)
     if not concepts and fallback:
         concepts = ["(" + " OR ".join(_quote("zh_" + gram) for gram in dict.fromkeys(fallback)) + ")"]
     if not concepts:
         runs = re.findall(r"[\u3400-\u9fff]", query)
         concepts = ["(" + " OR ".join(_quote("zh_" + char) for char in dict.fromkeys(runs)) + ")"] if runs else []
     # Coverage counts distinct concepts, not how many times the user repeats
-    # one term. Bound SQL expression growth without discarding unique concepts.
+    # one term. Unique concepts must ALSO be bounded: each adds a MATCH scan
+    # and a coverage check per candidate document, even in a 1000-char query.
     concepts = list(dict.fromkeys(concepts))
-    expansion = list({item["term"]: item for item in expansion}.values())
+    concept_total = len(concepts)
+    concepts = concepts[:MAX_QUERY_CONCEPTS]
+    expansion = [item for item in {item["term"]: item for item in expansion}.values()
+                 if concept_expansions[item["term"]] in concepts]
+    highlights = set(latin)
+    for concept in concepts:
+        highlights.update(concept_highlights.get(concept, ()))
     entities = [match.upper() for match in re.findall(r"\*([A-Za-z][A-Za-z0-9_/-]*)", query)]
     return dict(latin=" AND ".join(_word_expression(value) for value in latin),
                 literal=" AND ".join(_quote(value) for value in latin), concepts=concepts,
                 expansion=expansion, entities=["*" + entity for entity in dict.fromkeys(entities)],
-                highlights=_highlight_forms(highlights))
+                highlights=_highlight_forms(highlights), concepts_truncated=concept_total > len(concepts),
+                concepts_total=concept_total, concept_limit=MAX_QUERY_CONCEPTS)
 
 
 def _highlight_forms(words):
@@ -485,7 +497,10 @@ def search_index(path, query, *, category=None, limit=10, include_private=False,
             else:
                 sql += ", 0 AS query_priority"
             # An explicitly named *KEYWORD outranks concept coverage; bm25 only breaks ties.
-            coverage = " + ".join("(documents.id IN (SELECT id FROM search_terms WHERE search_terms MATCH ?))"
+            # Coverage belongs to the matched FTS row. Integer rowids keep the
+            # materialized membership sets compact; 32 sets of SHA256 text IDs
+            # otherwise cause large temporary B-trees on dense matches.
+            coverage = " + ".join("(search_terms.rowid IN (SELECT rowid FROM search_terms WHERE search_terms MATCH ?))"
                                   for _ in plan["concepts"]) or "0"
             params += plan["concepts"]
             sql += ", " + coverage + " AS coverage"
@@ -547,6 +562,8 @@ def search_index(path, query, *, category=None, limit=10, include_private=False,
         text = data.pop("text")
         data["snippet"] = _snippet(text, query, plan["highlights"])
         data["query_expansion"] = plan["expansion"]
+        data.update(concepts_truncated=plan["concepts_truncated"], concepts_total=plan["concepts_total"],
+                    concepts_used=len(plan["concepts"]), concept_limit=plan["concept_limit"])
         data.update(status="reference_unverified", executable=False, private=data["visibility"] == "private")
         if data["category"] == "recipe":
             proof = recipe_verification(text)
