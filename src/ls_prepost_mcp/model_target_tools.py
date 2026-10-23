@@ -101,9 +101,9 @@ class ModelTargetTools:
         except (ValueError, KeyError, TypeError, OSError, RecursionError) as error:
             return _result("check_model", "failed", {"model": str(source)}, error=_error(error))
         kinds = sorted({e["kind"] for e in report["errors"]})
-        checks = [CheckResult(name="objective_defects", status="failed" if report["errors"] else "passed"),
-                  CheckResult(name="all_blocks_read", status="passed" if report["complete"] else "missing")]
-        checks += [CheckResult(name=f"defect:{kind}", status="failed") for kind in kinds]
+        checks = [CheckResult(name="objective_defects", status="failed" if report["errors"] else "passed", required=False),
+                  CheckResult(name="all_blocks_read", status="passed" if report["complete"] else "missing", required=False)]
+        checks += [CheckResult(name=f"defect:{kind}", status="failed", required=False) for kind in kinds]
         return _result("check_model", "succeeded", report, checks=checks, warnings=tuple(report["warnings"][:50]),
                        scope="keyword deck and its includes")
 
@@ -185,10 +185,13 @@ class ModelTargetTools:
                                           metadata={"source": item["source"], "modified": item["modified"]}))
             checks = [CheckResult(name="edits_applied", status="passed"),
                       CheckResult(name="no_new_dangling_references",
-                                  status="failed" if outcome["new_dangling"] else "passed"),
+                                  status="failed" if outcome["new_dangling"] else "passed",
+                                  required=not allow_new_dangling),
                       CheckResult(name="saved_deck_reloads",
                                   status="failed" if save["reload_warnings"] else "passed")]
             data["main"] = save["main"]
+            if any(c.required and c.status in {"failed", "invalid", "missing"} for c in checks):
+                artifacts = [a.model_copy(update={"verification": "unverified"}) for a in artifacts]
             result = _result(operation, "succeeded", data, job_id=manifest["job_id"], artifacts=tuple(artifacts),
                              checks=checks, warnings=tuple(str(w) for w in outcome.get("warnings", [])[:50]),
                              scope="input deck unchanged; edited copy in the job directory")

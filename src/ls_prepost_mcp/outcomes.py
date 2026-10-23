@@ -73,7 +73,7 @@ def normalize_outcome(action, result) -> JobResult:
                     **job.model_dump(),
                     "checks": (
                         *job.checks,
-                        CheckResult(name="quality", status="missing", source_path=CHECK_PATHS[action]),
+                        CheckResult(name="quality", status="missing", source_path=CHECK_PATHS[action], required=False),
                     ),
                 }
             )
@@ -111,7 +111,7 @@ def normalize_outcome(action, result) -> JobResult:
             )
         except KeyError:
             verdict = "missing"
-        checks.append(CheckResult(name="quality", status=verdict, source_path=path))
+        checks.append(CheckResult(name="quality", status=verdict, source_path=path, required=False))
 
     def metadata(name):
         for candidate in (("verification", name), ("data", name), (name,)):

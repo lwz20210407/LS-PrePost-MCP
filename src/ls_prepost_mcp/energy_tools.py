@@ -114,7 +114,7 @@ class EnergyTools:
             incomplete = summary["verdict"] == "incomplete" or part_error is not None or not summary["time_monotonic"]
             result = JobResult(operation="check_energy", status="partial" if incomplete else "succeeded",
                 backend=summary["backend"], job_id=manifest["job_id"], data=summary,
-                warnings=summary["warnings"], checks=[CheckResult(name=name, status=check["status"])
+                warnings=summary["warnings"], checks=[CheckResult(name=name, status=check["status"], required=False)
                     for name, check in summary["checks"].items()], artifacts=[Artifact(
                         path=a["path"], kind=a["kind"], sha256=a.get("sha256"), size_bytes=a["size"],
                         verification="verified" if a.get("sha256") else "unverified", metadata=a)
