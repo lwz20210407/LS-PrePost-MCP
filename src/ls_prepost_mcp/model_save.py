@@ -75,12 +75,17 @@ def save_model(service, model, expected_counts=None, expected_part_ids=None):
 
     directory, manifest, artifacts = None, None, ()
     data = {"differences": []}
-    checks, warnings = [], []
+    checks, warnings, input_warnings = [], [], []
+    template_unresolved = False
     try:
         _expectations(expected_counts, expected_part_ids)
         source = service._input(model)
         with service._guard():
             preflight = service.settings.native_keyword_report(source)
+        input_warnings = ["Input preflight: {} ({}) at {}:{}".format(
+            p["kind"], p.get("hint") or p.get("reason") or "warning", p.get("relative"), p.get("line"))
+            for p in preflight["problems"] if p["severity"] == "warning"]
+        template_unresolved = any(p.get("hint") == "placeholder" for p in preflight["problems"])
         directory, manifest = service.jobs.create("save_model", {"model": str(source),
             "expected_counts": expected_counts, "expected_part_ids": expected_part_ids})
         with service._guard():
@@ -127,15 +132,18 @@ def save_model(service, model, expected_counts=None, expected_part_ids=None):
                 metadata={"source": item["source"], "modified": item["modified"]}) for item in saved["files"])
         if warnings:
             raise ValueError("Saved keyword tree reload produced warnings; native counts alone cannot certify it")
-        result = JobResult(operation="save_model", status="succeeded", backend="keyword-engine+lsprepost",
+        if template_unresolved:
+            checks.append(CheckResult(name="template_inputs_resolved", status="missing"))
+        result = JobResult(operation="save_model", status="partial" if template_unresolved else "succeeded", backend="keyword-engine+lsprepost",
             job_id=manifest["job_id"], data=data, checks=tuple(checks), artifacts=artifacts,
+            warnings=tuple(input_warnings),
             scope="owned keyword-tree copy; automatic headless native reopen; original files unchanged")
     except (ValueError, KeyError, TypeError, OSError, RuntimeError, RecursionError) as error:
         message = str(error)
         result = JobResult(operation="save_model", status="failed", backend="keyword-engine+lsprepost",
             job_id=manifest["job_id"] if manifest else None, data=data,
             error={"type": type(error).__name__, "message": message if message.strip() else type(error).__name__},
-            warnings=tuple(warnings))
+            warnings=tuple([*input_warnings, *warnings]))
     serialized = result.model_dump(mode="json")
     if directory is not None:
         atomic_json(directory / "job.json", {**manifest, "status": result.status, "result": serialized})
