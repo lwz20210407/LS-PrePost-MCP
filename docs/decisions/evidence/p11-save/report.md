@@ -1,3 +1,5 @@
+> 当前有效性：本报告是历史实现记录；后续规范化读取改变了路径，不能由它证明当前另存树的原生路径解析。当前产品绑定与真实原路径重开见 [审核02复跑](../p11-raw-review02/report.md)。旧运行与失败记录保留。
+
 # P11：Include 树保真另存与原生重开
 
 新增任务书既定 T1 `save_model(model, expected_counts?, expected_part_ids?)`。
@@ -11,15 +13,15 @@ MCP 的预期计数/ID 使用 StrictInt，拒绝布尔、浮点、字符串隐�
 
 ## 证据
 
-最终执行逻辑的干净提交是 `c6415c5e0bd4423ab66e3313c12b0b88ff4152e8`；其后只补证据、任务文档和模块说明文字。
+最终执行逻辑的干净提交是 `c6415c5e0bd4423ab66e3313c12b0b88ff4152e8`；该历史阶段随后只补证据、任务文档和说明；后来的执行路线变动不受此记录覆盖。
 八轮运行全部保留于 [evidence.json](evidence.json)，含实际 revision、dirty/diff 口径、测试 Git blob、
 可执行文件与配置指纹、进程状态、实体观察和每份公开报告的 UTF-8/LF SHA256。未提交模型、派生模型、
 原生日志、配置或私有路径。
 
-| 最终运行 | 结果 | 范围 |
-|---|---|---|
-| [r413e](r413e-batch-report.md) | 7 passed | 独立模型、注释空 Include、三文件 Include、编辑后保存、公开 Bolt Include、公开控制卡编辑、计数不符负例 |
-| [r410c](r410c-batch-report.md) | 2 passed | 独立模型与注释空 Include；其余 5 项 deselected |
+| 历史最终运行 | 结果 | 范围 | 当前有效 / 已被取代 |
+|---|---|---|---|
+| [r413e](r413e-batch-report.md) | 7 passed | 独立模型、注释空 Include、三文件 Include、编辑后保存、公开 Bolt Include、公开控制卡编辑、计数不符负例 | 已被取代 |
+| [r410c](r410c-batch-report.md) | 2 passed | 独立模型与注释空 Include；其余 5 项 deselected | 已被取代 |
 
 正例均实际启动两个 `c= ... -nographics` 进程，保存前后实体计数与 Part ID 相同、源树未变；
 负例只启动输入观察进程，作业按预期 failed，没有保存产物。公开 `include_contact` 有 1946 节点、

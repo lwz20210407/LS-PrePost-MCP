@@ -103,7 +103,8 @@ def test_script_result_preserves_normalized_warnings_and_checks(tmp_path, monkey
     monkeypatch.setattr(service, "prepare_native_program", lambda *a, **kw: dict(job_id="p", data=dict(sha256="h")))
     monkeypatch.setattr(service, "execute_native_program", lambda *a, **kw: dict(job_directory=str(tmp_path)))
     result = JobResult.model_validate(service.run_script("command", "top"))
-    assert result.status == ("partial" if log_present else "unverified")
+    assert result.status == "failed"  # the required image check already failed
+    assert "image" in result.error["message"]
     assert result.warnings == normalized.warnings
     assert result.checks == normalized.checks
     assert not result.execution_accepted

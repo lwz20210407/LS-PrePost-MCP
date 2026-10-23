@@ -349,15 +349,18 @@ tasks:
     existing: [export_keyword, checkpoint_gui_session, save_model]
     verification_level: L2
     gaps:
-      - save_model 已提供普通 Include 树保真另存与自动原生重开；4.13/4.10 的独立、空 Include、三文件树、编辑后保存、公开 Bolt 树、公开控制卡编辑及预期计数不符负例均有干净提交证据；公开 35656 节点模型两版保存重开一致
-      - 正式保真另存支持已验证的主文件 INCLUDE_PATH / INCLUDE_PATH_RELATIVE，保留相对空搜索目录；4.13/4.10 各四项保存重开通过；INCLUDE_TRANSFORM、opaque、参数化文件名与嵌套 INCLUDE_PATH_RELATIVE 仍拒绝
-      - 旧 export_keyword 仍只导出独立模型；save_model 验证磁盘上的关键字树，不读取 GUI 中尚未保存的编辑；GUI 会话与 4.8 本项未复验
+      - 原路径保存重开已在干净 a181aa1（含审核02必需检查门禁）由 4.13/4.10 各11项无图形用例覆盖；before_save 仍为规范化输入观察，after_reopen 以另存根目录和相对主文件名读取实际树，应用内回执核对打开路径；仅证明登记子集，不替代完整物理检查
+      - 主文件 INCLUDE_PATH / INCLUDE_PATH_RELATIVE 与相对空搜索目录已有真实树读回；INCLUDE_TRANSFORM、opaque、参数化文件名与嵌套 INCLUDE_PATH_RELATIVE 仍拒绝；根目录已有 lspost.db 的树在原生启动前拒绝，防止覆盖资产
+      - save_model 读取磁盘树而非 GUI 未保存编辑；GUI、4.8 与非 ASCII 另存文件名仍未验证；没有节点的模型仍被原生读取检查拒绝
     evidence:
       - src/ls_prepost_mcp/model_save.py
       - tests/test_save_model.py
       - tests/test_save_model_native.py
       - tests/test_save_model_evidence.py
       - docs/decisions/evidence/p11-save/report.md
+      - tests/test_raw_saved_tree_reopen_review02.py
+      - tests/test_raw_save_evidence_review02.py
+      - docs/decisions/evidence/p11-raw-review02/report.md
       - docs/decisions/evidence/p11-search-path-save/report.md
       - docs/decisions/evidence/i01-keyword-snapshot/report.md
     acceptance:
@@ -1027,6 +1030,8 @@ infrastructure:
       - src/ls_prepost_mcp/field_contract_adapter.py
       - tests/test_field_contract_adapter.py
       - docs/decisions/evidence/i02-field-adapter/report.md
+      - tests/test_required_checks_review02.py
+      - docs/decisions/evidence/i02-required-checks-review02/report.md
     verification_level: L1
     acceptance:
       - ModelRef、Selector、FieldSpec、CurveSpec、JobResult、Artifact 以 pydantic 定义

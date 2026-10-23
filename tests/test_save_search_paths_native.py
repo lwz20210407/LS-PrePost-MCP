@@ -46,6 +46,7 @@ def test_search_path_preserved_save(installation, pytestconfig, record_property,
         "git_diff_scope": identity["git_diff_scope"], "executable": binary, "source_config_sha256": config_sha,
         "status": result.status, "error": result.error, "original_tree_sha256": original["tree_sha256"],
         "source_unchanged": before == {p: sha(p) for p in before}, "native_jobs": jobs,
+        "observations": result.data.get("observations", {}),
         "saved_tree_ok": saved["ok"] if saved else False,
         "saved_missing_directories": [p["kind"] for p in saved["problems"] if p["kind"] == "missing_search_dir"] if saved else [],
         "expected_counts": result.data.get("expected", {}).get("counts"), "differences": result.data["differences"]}
@@ -57,3 +58,8 @@ def test_search_path_preserved_save(installation, pytestconfig, record_property,
     assert proof["expected_counts"] == {"nodes": 4, "elements": 1} and not proof["differences"]
     assert len(jobs) == 2 and all(j["status"] == "succeeded" and j["returncode"] == 0
         and j["graphics"] is False and j["timed_out"] is False and j["nographics"] for j in jobs)
+    opened = proof["observations"]["after_reopen"]["input_open"]
+    saved_main = Path(result.data["main"])
+    assert opened["normalized"] is False and opened["load_name"] == saved_main.name
+    assert Path(opened["cwd"]).resolve() == saved_main.parent.resolve()
+    assert Path(opened["resolved_main"]).resolve() == saved_main.resolve()
