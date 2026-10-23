@@ -200,3 +200,39 @@ def test_duplicate_d3plot_times_are_preserved_not_resampled(history_model, tmp_p
     assert result["status"] == "succeeded"
     with open(result["artifacts"][0]["path"], newline="", encoding="utf8") as stream:
         assert [float(row["time"]) for row in csv.DictReader(stream)] == [0.0, 0.0, 1.0]
+
+
+def test_binout_native_time_grid_is_not_compared_with_value_absolute_tolerance(tmp_path, monkeypatch):
+    import hashlib
+
+    source = tmp_path / "binout"
+    _shard(source, "glstat", [0.0, 1.0, 2.0], component="kinetic_energy")
+    service = Service(Settings(tmp_path / "work", allowed_roots=(tmp_path,)))
+
+    def native(*args, **kwargs):
+        directory, manifest = service.jobs.create("native-test", {})
+        output = directory / "native.csv"
+        output.write_text("time,value\n0.0000005,0\n1,1\n2,2\n", encoding="utf8")
+        return {
+            "status": "succeeded",
+            "job_id": manifest["job_id"],
+            "artifacts": [
+                {
+                    "kind": "csv",
+                    "path": str(output),
+                    "sha256": hashlib.sha256(output.read_bytes()).hexdigest(),
+                }
+            ],
+        }
+
+    monkeypatch.setattr(service, "extract_native_binout_curve", native)
+    result = service.extract_history(
+        str(source),
+        "global",
+        "kinetic_energy",
+        units="J",
+        time_units="s",
+        source_kind="binout",
+        native_check=True,
+    )
+    assert result["status"] == "failed" and not result["artifacts"]

@@ -80,7 +80,7 @@ def _native(service, source, family, source_kind, domain, quantity, records, uni
             raise ValueError(
                 "Native history comparison supports a single binout file; no shard/continuation fallback"
             )
-        errors, jobs = [], []
+        errors, time_errors, jobs = [], [], []
         for record in records:
             result = service.extract_native_binout_curve(
                 str(source),
@@ -92,14 +92,20 @@ def _native(service, source, family, source_kind, domain, quantity, records, uni
             rows = _csv_curve(service, result)
             actual = np.asarray([[float(row["time"]), float(row["value"])] for row in rows])
             wanted = np.column_stack((record["time"], record["values"]))
-            if actual.shape != wanted.shape or not np.allclose(actual, wanted, rtol=2e-5, atol=1e-6):
+            if (
+                actual.shape != wanted.shape
+                or not np.allclose(actual[:, 0], wanted[:, 0], rtol=1e-6, atol=1e-9)
+                or not np.allclose(actual[:, 1], wanted[:, 1], rtol=2e-5, atol=1e-6)
+            ):
                 raise ValueError("Native/LASSO binout history disagreement")
-            errors.append(float(np.max(np.abs(actual - wanted))))
+            errors.append(float(np.max(np.abs(actual[:, 1] - wanted[:, 1]))))
+            time_errors.append(float(np.max(np.abs(actual[:, 0] - wanted[:, 0]))))
             jobs.append(result["job_id"])
         return {
             "backend": "lsprepost",
             "job_ids": jobs,
             "max_absolute_error": max(errors),
+            "max_time_absolute_error": max(time_errors),
             "curves": len(records),
         }
     if domain not in {"node", "solid", "shell", "tshell"}:
@@ -225,6 +231,11 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
             if native_check
             else None
         )
+        if comparison is not None:
+            comparison["tolerances"] = {
+                "time": {"rtol": 1e-6, "atol": 1e-9, "units": time_units},
+                "value": {"rtol": 2e-5, "atol": 1e-6, "units": units},
+            }
         summaries = []
         for record in records:
             name = (
