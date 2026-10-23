@@ -13,7 +13,13 @@ LENGTH_TO_MM = {"mm": 1.0, "m": 1000.0, "cm": 10.0, "um": 0.001}
 FORCE_TO_N = {"N": 1.0, "kN": 1000.0, "MN": 1e6}
 
 
-def read_curve(path, time_column="time", value_column="value"):
+def read_curve(path, time_column="time", value_column="value", *, include_validity=False):
+    """Read arithmetic inputs without dropping deleted or unknown samples.
+
+    An optional Q05 ``alive`` column must contain exactly ``1`` for every row.
+    ``0`` is deleted, empty is unknown, other values are malformed. Plain CSVs
+    remain accepted as caller-supplied measurements, not certified alive data.
+    """
     with path.open(encoding="utf-8-sig", newline="") as f:
         reader = csv.DictReader(f)
         if (
@@ -22,14 +28,26 @@ def read_curve(path, time_column="time", value_column="value"):
             or value_column not in reader.fieldnames
         ):
             raise ValueError("Curve must contain explicit time/value columns")
+        has_alive = "alive" in reader.fieldnames
+        if reader.fieldnames.count("alive") > 1:
+            raise ValueError("Curve has an ambiguous duplicate alive column")
         rows = []
         for row in reader:
+            if has_alive and row.get("alive") != "1":
+                flag = row.get("alive")
+                reason = "deleted" if flag == "0" else "unknown" if flag in (None, "") else "malformed"
+                raise ValueError(f"Curve alive sample {len(rows) + 1} is {reason}; arithmetic requires all samples active; "
+                                 "no samples were removed, filled or interpolated")
             rows.append([float(row[time_column]), float(row[value_column])])
             if len(rows) > 1000000:
                 raise ValueError("Curve exceeds one million samples")
     a = np.asarray(rows, dtype=float)
     if len(a) < 2 or a.ndim != 2 or not np.isfinite(a).all() or np.any(np.diff(a[:, 0]) <= 0):
         raise ValueError("Each curve must be a finite single-entity history with strictly increasing time")
+    if include_validity:
+        return a[:, 0], a[:, 1], dict(status="all_samples_alive" if has_alive else "not_declared",
+            source_column="alive" if has_alive else None, samples=len(rows), samples_removed=0,
+            policy="Every declared alive flag must be 1; no deletion inference for unmarked CSVs")
     return a[:, 0], a[:, 1]
 
 
