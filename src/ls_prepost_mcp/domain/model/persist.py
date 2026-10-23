@@ -5,6 +5,7 @@ import difflib
 import hashlib
 import os
 import re
+import stat
 import time
 import uuid
 from collections.abc import Callable
@@ -155,7 +156,24 @@ def _relocation_plan(deck: KeywordDeck, out_dir: Path) -> tuple[dict[Path, Path]
         directory = deck.main_dir / ref.name
         access.require(directory)
         if directory.is_dir():
-            directories.append(directory.resolve())
+            directories.append(directory)
+    # A link inside the relative layout cannot be recreated by resolving paths:
+    # lib/x.k would be copied beneath real_lib while the raw card still says lib.
+    # Reject before physical commonpath (also before cross-drive junction errors).
+    lexical = Path(os.path.commonpath([str(p.absolute().parent) for p in movable + opaque]
+                                     + [str(p.absolute()) for p in directories]))
+    for path in movable + opaque + directories:
+        access.require(path)
+        current = path.absolute()
+        while current != lexical:
+            info = current.lstat()  # metadata of an already-admitted input's ancestry, not file contents
+            if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
+                raise ValueError("save_as does not support symlink/junction paths inside the relative layout")
+            parent = current.parent
+            if parent == current:
+                break
+            current = parent
+    directories = [p.resolve() for p in directories]
     # Empty relative search directories also determine layout. Omitting them
     # can leave an unchanged path card dangling after a successful save-as.
     locations = [str(p.parent.resolve()) for p in movable + opaque] + [str(p) for p in directories]
