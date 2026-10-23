@@ -1,0 +1,4123 @@
+{
+  "schema_version": 1,
+  "task": "Q08",
+  "status": "done",
+  "runs": [
+    {
+      "run_id": "r413a",
+      "actual_git_revision": "4f148fb0a130f8b85ce2b6ded2968033a6aacd2d",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "passed": 3,
+      "failed": 0,
+      "report": "r413a-batch-report.md",
+      "report_sha256": "468ef22522fba46aa3f166be90029542889444f15d888580be12d345b0dbc5dc",
+      "source_identities": [
+        {
+          "path": "tests/test_native_xyplot_batch.py",
+          "git_blob_id": "f6d5be7c14dd629f4aa13c1f13ac9e27c38fb08c",
+          "sha256_lf": "cd2b38ac92ac461d9d0a9d8ec38c1a3e41d8cc97a7139a954dcb862acf543be9"
+        },
+        {
+          "path": "src/ls_prepost_mcp/gui_curves.py",
+          "git_blob_id": "94fcfdff9ce26f096a57e862f35b4672c9b0b4cc",
+          "sha256_lf": "aa864338c66d014cf25f1a888af7da5e92f821a825ddc92461026b9eefde8f07"
+        },
+        {
+          "path": "src/ls_prepost_mcp/native/commands.py",
+          "git_blob_id": "30365f098ae09ec3653b2abada8d056515581c90",
+          "sha256_lf": "266dc1f72ec33f0fe0a60ea3a0977b380053a47bda7439568e1f7a2456dd1cb2"
+        },
+        {
+          "path": "src/ls_prepost_mcp/engine/batch.py",
+          "git_blob_id": "de879b24895c1a88d90829968cff49f9549efc83",
+          "sha256_lf": "40239c8ceafa301fc319d666432c1e0630d034d84d9122053e04a36818135d8c"
+        }
+      ],
+      "jobs": [
+        {
+          "case": "test_single_curve_and_semilog_0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Growth",
+          "labels": {
+            "x": "Time (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 1,
+          "legend": false,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "linear",
+            "y_scale": "log",
+            "requested_x_range": null,
+            "requested_y_range": null,
+            "native_axes_token": "Log-Lin",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "Growth",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "388c68fa28aa0ab0075482e6306fb4e73bec3581ff5bf5085c4b88ccde983c82",
+              "bytes": 48339,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+              "bytes": 61
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb",
+              "bytes": 180
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "ced0db6eb81951af07eff650e5d6ab31c379e7f12bb6aa8978b30b45640a48f7",
+              "bytes": 279
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "388c68fa28aa0ab0075482e6306fb4e73bec3581ff5bf5085c4b88ccde983c82",
+            "csv_sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+            "native_xy_sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 155738624,
+            "sha256": null,
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "hash_scope": "Original job fingerprint skipped hashes above 64 MiB; no full startup hash claimed"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_single_curve_and_semilog_0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Growth",
+          "labels": {
+            "x": "Time (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 1,
+          "legend": true,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "linear",
+            "y_scale": "linear",
+            "requested_x_range": [
+              0.5,
+              2.5
+            ],
+            "requested_y_range": null,
+            "native_axes_token": "Lin-Lin",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "Growth",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 2
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "2f4fa3dbc47c021e520e2acc002e2e1313edfd80a69f10030caafbddf61b1fbe",
+              "bytes": 49965,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+              "bytes": 61
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb",
+              "bytes": 180
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "0b7ea72c7f460ef51d26ddac7927cd6aaccbc8483d4c5dcb116312ebef434be1",
+              "bytes": 326
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "2f4fa3dbc47c021e520e2acc002e2e1313edfd80a69f10030caafbddf61b1fbe",
+            "csv_sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+            "native_xy_sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 155738624,
+            "sha256": null,
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "hash_scope": "Original job fingerprint skipped hashes above 64 MiB; no full startup hash claimed"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_ten_curves_log_axes_and_r0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Ten curves",
+          "labels": {
+            "x": "Displacement (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 10,
+          "legend": true,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "log",
+            "y_scale": "log",
+            "requested_x_range": null,
+            "requested_y_range": null,
+            "native_axes_token": "Log-Log",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "C1",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 6.053273771122747e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 2,
+              "label": "C2",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.679238033299953e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 3,
+              "label": "C3",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.8363857157719394e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 4,
+              "label": "C4",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.5488780888972542e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 5,
+              "label": "C5",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 5.349957976630293e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 6,
+              "label": "C6",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 7.67477143170936e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 7,
+              "label": "C7",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.2945073513701573e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 8,
+              "label": "C8",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.0937561916744016e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 9,
+              "label": "C9",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.4560535846e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 10,
+              "label": "C10",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.070991595408799e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "6ec0b50483da9751b1d416e0c3df2680961eb24029ba334faf91115e276dba0b",
+              "bytes": 81127,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+              "bytes": 1135
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+              "bytes": 1926
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "cdab5a424609a2206a4b333c0220d7a4ed8ebe7e8a11bfdd902410906be9d351",
+              "bytes": 590
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "6ec0b50483da9751b1d416e0c3df2680961eb24029ba334faf91115e276dba0b",
+            "csv_sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+            "native_xy_sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 155738624,
+            "sha256": null,
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "hash_scope": "Original job fingerprint skipped hashes above 64 MiB; no full startup hash claimed"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_ten_curves_log_axes_and_r0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Ten curves",
+          "labels": {
+            "x": "Displacement (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 10,
+          "legend": true,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "log",
+            "y_scale": "log",
+            "requested_x_range": [
+              0.1,
+              10.0
+            ],
+            "requested_y_range": [
+              0.1,
+              1000.0
+            ],
+            "native_axes_token": "Log-Log",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "C1",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 6.053273771122747e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 2
+            },
+            {
+              "number": 2,
+              "label": "C2",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.679238033299953e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 3,
+              "label": "C3",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.8363857157719394e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 4,
+              "label": "C4",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.5488780888972542e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 5,
+              "label": "C5",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 5.349957976630293e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 6,
+              "label": "C6",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 7.67477143170936e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 7,
+              "label": "C7",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.2945073513701573e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 8,
+              "label": "C8",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.0937561916744016e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 9,
+              "label": "C9",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.4560535846e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 10,
+              "label": "C10",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.070991595408799e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "60882e65713576ca14f934e2ca1ad58fbc492d19b95eea250b50130332f0466e",
+              "bytes": 87103,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+              "bytes": 1135
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+              "bytes": 1926
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "64c6404766589112c21f6d1b5be30497db2048f882f0080c2ffee96d7b2ac68f",
+              "bytes": 694
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "60882e65713576ca14f934e2ca1ad58fbc492d19b95eea250b50130332f0466e",
+            "csv_sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+            "native_xy_sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 155738624,
+            "sha256": null,
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "hash_scope": "Original job fingerprint skipped hashes above 64 MiB; no full startup hash claimed"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_ten_curves_log_axes_and_r0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Ten curves",
+          "labels": {
+            "x": "Displacement (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 10,
+          "legend": true,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "linear",
+            "y_scale": "linear",
+            "requested_x_range": null,
+            "requested_y_range": null,
+            "native_axes_token": "Lin-Lin",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "C1",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 6.053273771122747e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 2,
+              "label": "C2",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.679238033299953e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 3,
+              "label": "C3",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.8363857157719394e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 4,
+              "label": "C4",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.5488780888972542e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 5,
+              "label": "C5",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 5.349957976630293e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 6,
+              "label": "C6",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 7.67477143170936e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 7,
+              "label": "C7",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.2945073513701573e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 8,
+              "label": "C8",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.0937561916744016e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 9,
+              "label": "C9",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.4560535846e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 10,
+              "label": "C10",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.070991595408799e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "bf9985ab0458ade08378a41194760940ccfffba3ad9e5fa032e6b5261884ea5c",
+              "bytes": 75462,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+              "bytes": 1135
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+              "bytes": 1926
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "c590761760169a5d25fe0aac6781c284218cc13d1a9eda6925bd26178f8606b4",
+              "bytes": 568
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "bf9985ab0458ade08378a41194760940ccfffba3ad9e5fa032e6b5261884ea5c",
+            "csv_sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+            "native_xy_sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 155738624,
+            "sha256": null,
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "hash_scope": "Original job fingerprint skipped hashes above 64 MiB; no full startup hash claimed"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_three_load_cases_force_di0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Three load cases",
+          "labels": {
+            "x": "Displacement (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 3,
+          "legend": true,
+          "legend_title": "Load case",
+          "axes": {
+            "x_scale": "linear",
+            "y_scale": "linear",
+            "requested_x_range": [
+              0.0,
+              4.0
+            ],
+            "requested_y_range": [
+              0.0,
+              25.0
+            ],
+            "native_axes_token": "Lin-Lin",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "Case A",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 2,
+              "label": "Case B",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 3,
+              "label": "Case C",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "79f34494b7bac7f01e0a848aaafc0c8de5d074aa5b1ced40912614f4cd266d53",
+              "bytes": 69862,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "47f0d1aa4e00b9f7221165b274392647c2d0b59c22dad9388cb0dcce053614d4",
+              "bytes": 186
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "4558fda1047a57bd285abac47ebaf3d89bcee466eafd70cb98ce4d2e4df3cb48",
+              "bytes": 666
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "3e1ef8bb131c8efb2d16802c8d538cfbd2dc12358ab46771916b8c6fecc7c4c7",
+              "bytes": 472
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "79f34494b7bac7f01e0a848aaafc0c8de5d074aa5b1ced40912614f4cd266d53",
+            "csv_sha256": "47f0d1aa4e00b9f7221165b274392647c2d0b59c22dad9388cb0dcce053614d4",
+            "native_xy_sha256": "4558fda1047a57bd285abac47ebaf3d89bcee466eafd70cb98ce4d2e4df3cb48"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 155738624,
+            "sha256": null,
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "hash_scope": "Original job fingerprint skipped hashes above 64 MiB; no full startup hash claimed"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        }
+      ]
+    },
+    {
+      "run_id": "r410a",
+      "actual_git_revision": "4f148fb0a130f8b85ce2b6ded2968033a6aacd2d",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "passed": 3,
+      "failed": 0,
+      "report": "r410a-batch-report.md",
+      "report_sha256": "5da5526467894498123a36163660a4be2d42896ae084cfd6ba39ea63407dcdbe",
+      "source_identities": [
+        {
+          "path": "tests/test_native_xyplot_batch.py",
+          "git_blob_id": "f6d5be7c14dd629f4aa13c1f13ac9e27c38fb08c",
+          "sha256_lf": "cd2b38ac92ac461d9d0a9d8ec38c1a3e41d8cc97a7139a954dcb862acf543be9"
+        },
+        {
+          "path": "src/ls_prepost_mcp/gui_curves.py",
+          "git_blob_id": "94fcfdff9ce26f096a57e862f35b4672c9b0b4cc",
+          "sha256_lf": "aa864338c66d014cf25f1a888af7da5e92f821a825ddc92461026b9eefde8f07"
+        },
+        {
+          "path": "src/ls_prepost_mcp/native/commands.py",
+          "git_blob_id": "30365f098ae09ec3653b2abada8d056515581c90",
+          "sha256_lf": "266dc1f72ec33f0fe0a60ea3a0977b380053a47bda7439568e1f7a2456dd1cb2"
+        },
+        {
+          "path": "src/ls_prepost_mcp/engine/batch.py",
+          "git_blob_id": "de879b24895c1a88d90829968cff49f9549efc83",
+          "sha256_lf": "40239c8ceafa301fc319d666432c1e0630d034d84d9122053e04a36818135d8c"
+        }
+      ],
+      "jobs": [
+        {
+          "case": "test_single_curve_and_semilog_0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Growth",
+          "labels": {
+            "x": "Time (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 1,
+          "legend": false,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "linear",
+            "y_scale": "log",
+            "requested_x_range": null,
+            "requested_y_range": null,
+            "native_axes_token": "Log-Lin",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "Growth",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "2390ffb9f5d998c81a8d8458edc68307fe1ca05fd1be34befd421963ff51570d",
+              "bytes": 80193,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+              "bytes": 61
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb",
+              "bytes": 180
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "ced0db6eb81951af07eff650e5d6ab31c379e7f12bb6aa8978b30b45640a48f7",
+              "bytes": 279
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "2390ffb9f5d998c81a8d8458edc68307fe1ca05fd1be34befd421963ff51570d",
+            "csv_sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+            "native_xy_sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 149149184,
+            "sha256": null,
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "hash_scope": "Original job fingerprint skipped hashes above 64 MiB; no full startup hash claimed"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_single_curve_and_semilog_0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Growth",
+          "labels": {
+            "x": "Time (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 1,
+          "legend": true,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "linear",
+            "y_scale": "linear",
+            "requested_x_range": [
+              0.5,
+              2.5
+            ],
+            "requested_y_range": null,
+            "native_axes_token": "Lin-Lin",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "Growth",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 2
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "732a0a19549541c1c342f314d1c6da966380a654ddb63cfc145dabcbc6ef6c64",
+              "bytes": 71024,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+              "bytes": 61
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb",
+              "bytes": 180
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "0b7ea72c7f460ef51d26ddac7927cd6aaccbc8483d4c5dcb116312ebef434be1",
+              "bytes": 326
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "732a0a19549541c1c342f314d1c6da966380a654ddb63cfc145dabcbc6ef6c64",
+            "csv_sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+            "native_xy_sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 149149184,
+            "sha256": null,
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "hash_scope": "Original job fingerprint skipped hashes above 64 MiB; no full startup hash claimed"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_ten_curves_log_axes_and_r0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Ten curves",
+          "labels": {
+            "x": "Displacement (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 10,
+          "legend": true,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "log",
+            "y_scale": "log",
+            "requested_x_range": [
+              0.1,
+              10.0
+            ],
+            "requested_y_range": [
+              0.1,
+              1000.0
+            ],
+            "native_axes_token": "Log-Log",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "C1",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 6.053273771122747e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 2
+            },
+            {
+              "number": 2,
+              "label": "C2",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.679238033299953e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 3,
+              "label": "C3",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.8363857157719394e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 4,
+              "label": "C4",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.5488780888972542e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 5,
+              "label": "C5",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 5.349957976630293e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 6,
+              "label": "C6",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 7.67477143170936e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 7,
+              "label": "C7",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.2945073513701573e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 8,
+              "label": "C8",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.0937561916744016e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 9,
+              "label": "C9",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.4560535846e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 10,
+              "label": "C10",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.070991595408799e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "3bb5baff37b8377d9462f24429523a851103ef611e2c849aceb7901ff26e0a0d",
+              "bytes": 87283,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+              "bytes": 1135
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+              "bytes": 1926
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "64c6404766589112c21f6d1b5be30497db2048f882f0080c2ffee96d7b2ac68f",
+              "bytes": 694
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "3bb5baff37b8377d9462f24429523a851103ef611e2c849aceb7901ff26e0a0d",
+            "csv_sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+            "native_xy_sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 149149184,
+            "sha256": null,
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "hash_scope": "Original job fingerprint skipped hashes above 64 MiB; no full startup hash claimed"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_ten_curves_log_axes_and_r0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Ten curves",
+          "labels": {
+            "x": "Displacement (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 10,
+          "legend": true,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "log",
+            "y_scale": "log",
+            "requested_x_range": null,
+            "requested_y_range": null,
+            "native_axes_token": "Log-Log",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "C1",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 6.053273771122747e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 2,
+              "label": "C2",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.679238033299953e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 3,
+              "label": "C3",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.8363857157719394e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 4,
+              "label": "C4",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.5488780888972542e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 5,
+              "label": "C5",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 5.349957976630293e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 6,
+              "label": "C6",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 7.67477143170936e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 7,
+              "label": "C7",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.2945073513701573e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 8,
+              "label": "C8",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.0937561916744016e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 9,
+              "label": "C9",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.4560535846e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 10,
+              "label": "C10",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.070991595408799e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "3fc0f2fc530284d8105cf01b95bc62581dc0d4ed9f394918f70e0e6144097f66",
+              "bytes": 83143,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+              "bytes": 1135
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+              "bytes": 1926
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "cdab5a424609a2206a4b333c0220d7a4ed8ebe7e8a11bfdd902410906be9d351",
+              "bytes": 590
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "3fc0f2fc530284d8105cf01b95bc62581dc0d4ed9f394918f70e0e6144097f66",
+            "csv_sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+            "native_xy_sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 149149184,
+            "sha256": null,
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "hash_scope": "Original job fingerprint skipped hashes above 64 MiB; no full startup hash claimed"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_ten_curves_log_axes_and_r0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Ten curves",
+          "labels": {
+            "x": "Displacement (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 10,
+          "legend": true,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "linear",
+            "y_scale": "linear",
+            "requested_x_range": null,
+            "requested_y_range": null,
+            "native_axes_token": "Lin-Lin",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "C1",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 6.053273771122747e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 2,
+              "label": "C2",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.679238033299953e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 3,
+              "label": "C3",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.8363857157719394e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 4,
+              "label": "C4",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.5488780888972542e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 5,
+              "label": "C5",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 5.349957976630293e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 6,
+              "label": "C6",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 7.67477143170936e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 7,
+              "label": "C7",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.2945073513701573e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 8,
+              "label": "C8",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.0937561916744016e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 9,
+              "label": "C9",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.4560535846e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 10,
+              "label": "C10",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.070991595408799e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "c23f574976312730da4ecea1bb6a60a0c54fa3056fd0ecccb7e2e3b926eaee45",
+              "bytes": 103915,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+              "bytes": 1135
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+              "bytes": 1926
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "c590761760169a5d25fe0aac6781c284218cc13d1a9eda6925bd26178f8606b4",
+              "bytes": 568
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "c23f574976312730da4ecea1bb6a60a0c54fa3056fd0ecccb7e2e3b926eaee45",
+            "csv_sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+            "native_xy_sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 149149184,
+            "sha256": null,
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "hash_scope": "Original job fingerprint skipped hashes above 64 MiB; no full startup hash claimed"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_three_load_cases_force_di0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Three load cases",
+          "labels": {
+            "x": "Displacement (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 3,
+          "legend": true,
+          "legend_title": "Load case",
+          "axes": {
+            "x_scale": "linear",
+            "y_scale": "linear",
+            "requested_x_range": [
+              0.0,
+              4.0
+            ],
+            "requested_y_range": [
+              0.0,
+              25.0
+            ],
+            "native_axes_token": "Lin-Lin",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "Case A",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 2,
+              "label": "Case B",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 3,
+              "label": "Case C",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "bf7a59141fcf092d78b63c329fcfb035da19b98a43bef0ce3e486a3290ef94b0",
+              "bytes": 94081,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "47f0d1aa4e00b9f7221165b274392647c2d0b59c22dad9388cb0dcce053614d4",
+              "bytes": 186
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "4558fda1047a57bd285abac47ebaf3d89bcee466eafd70cb98ce4d2e4df3cb48",
+              "bytes": 666
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "3e1ef8bb131c8efb2d16802c8d538cfbd2dc12358ab46771916b8c6fecc7c4c7",
+              "bytes": 472
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "bf7a59141fcf092d78b63c329fcfb035da19b98a43bef0ce3e486a3290ef94b0",
+            "csv_sha256": "47f0d1aa4e00b9f7221165b274392647c2d0b59c22dad9388cb0dcce053614d4",
+            "native_xy_sha256": "4558fda1047a57bd285abac47ebaf3d89bcee466eafd70cb98ce4d2e4df3cb48"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 149149184,
+            "sha256": null,
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "hash_scope": "Original job fingerprint skipped hashes above 64 MiB; no full startup hash claimed"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        }
+      ]
+    },
+    {
+      "run_id": "r413b",
+      "actual_git_revision": "c48e3d7a227b71aeda6545dcf852124dced517ac",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "passed": 3,
+      "failed": 0,
+      "report": "r413b-batch-report.md",
+      "report_sha256": "a419e2f15559ce7213f1c278cac3cd26977483a5edcb853d69c0c4ad0937f2eb",
+      "source_identities": [
+        {
+          "path": "tests/test_native_xyplot_batch.py",
+          "git_blob_id": "acc8555a1fa8a8c54df016edb3932d07b13f2b78",
+          "sha256_lf": "9a168153612998dba6e129e52cc1b9fdbf0547f5964e0fd8f270e4426c2cc9c1"
+        },
+        {
+          "path": "src/ls_prepost_mcp/gui_curves.py",
+          "git_blob_id": "94fcfdff9ce26f096a57e862f35b4672c9b0b4cc",
+          "sha256_lf": "aa864338c66d014cf25f1a888af7da5e92f821a825ddc92461026b9eefde8f07"
+        },
+        {
+          "path": "src/ls_prepost_mcp/native/commands.py",
+          "git_blob_id": "30365f098ae09ec3653b2abada8d056515581c90",
+          "sha256_lf": "266dc1f72ec33f0fe0a60ea3a0977b380053a47bda7439568e1f7a2456dd1cb2"
+        },
+        {
+          "path": "src/ls_prepost_mcp/engine/batch.py",
+          "git_blob_id": "de879b24895c1a88d90829968cff49f9549efc83",
+          "sha256_lf": "40239c8ceafa301fc319d666432c1e0630d034d84d9122053e04a36818135d8c"
+        }
+      ],
+      "jobs": [
+        {
+          "case": "test_single_curve_and_semilog_0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Growth",
+          "labels": {
+            "x": "Time (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 1,
+          "legend": false,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "linear",
+            "y_scale": "log",
+            "requested_x_range": null,
+            "requested_y_range": null,
+            "native_axes_token": "Log-Lin",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "Growth",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "388c68fa28aa0ab0075482e6306fb4e73bec3581ff5bf5085c4b88ccde983c82",
+              "bytes": 48339,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+              "bytes": 61
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb",
+              "bytes": 180
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "ced0db6eb81951af07eff650e5d6ab31c379e7f12bb6aa8978b30b45640a48f7",
+              "bytes": 279
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "388c68fa28aa0ab0075482e6306fb4e73bec3581ff5bf5085c4b88ccde983c82",
+            "csv_sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+            "native_xy_sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 155738624,
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414",
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "hash_scope": "Full executable/config SHA256 before and after the module run",
+            "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_single_curve_and_semilog_0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Growth",
+          "labels": {
+            "x": "Time (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 1,
+          "legend": true,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "linear",
+            "y_scale": "linear",
+            "requested_x_range": [
+              0.5,
+              2.5
+            ],
+            "requested_y_range": null,
+            "native_axes_token": "Lin-Lin",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "Growth",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 2
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "2f4fa3dbc47c021e520e2acc002e2e1313edfd80a69f10030caafbddf61b1fbe",
+              "bytes": 49965,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+              "bytes": 61
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb",
+              "bytes": 180
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "0b7ea72c7f460ef51d26ddac7927cd6aaccbc8483d4c5dcb116312ebef434be1",
+              "bytes": 326
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "2f4fa3dbc47c021e520e2acc002e2e1313edfd80a69f10030caafbddf61b1fbe",
+            "csv_sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+            "native_xy_sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 155738624,
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414",
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "hash_scope": "Full executable/config SHA256 before and after the module run",
+            "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_ten_curves_log_axes_and_r0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Ten curves",
+          "labels": {
+            "x": "Displacement (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 10,
+          "legend": true,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "linear",
+            "y_scale": "linear",
+            "requested_x_range": null,
+            "requested_y_range": null,
+            "native_axes_token": "Lin-Lin",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "C1",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 6.053273771122747e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 2,
+              "label": "C2",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.679238033299953e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 3,
+              "label": "C3",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.8363857157719394e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 4,
+              "label": "C4",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.5488780888972542e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 5,
+              "label": "C5",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 5.349957976630293e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 6,
+              "label": "C6",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 7.67477143170936e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 7,
+              "label": "C7",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.2945073513701573e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 8,
+              "label": "C8",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.0937561916744016e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 9,
+              "label": "C9",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.4560535846e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 10,
+              "label": "C10",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.070991595408799e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "bf9985ab0458ade08378a41194760940ccfffba3ad9e5fa032e6b5261884ea5c",
+              "bytes": 75462,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+              "bytes": 1135
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+              "bytes": 1926
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "c590761760169a5d25fe0aac6781c284218cc13d1a9eda6925bd26178f8606b4",
+              "bytes": 568
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "bf9985ab0458ade08378a41194760940ccfffba3ad9e5fa032e6b5261884ea5c",
+            "csv_sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+            "native_xy_sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 155738624,
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414",
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "hash_scope": "Full executable/config SHA256 before and after the module run",
+            "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_ten_curves_log_axes_and_r0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Ten curves",
+          "labels": {
+            "x": "Displacement (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 10,
+          "legend": true,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "log",
+            "y_scale": "log",
+            "requested_x_range": [
+              0.1,
+              10.0
+            ],
+            "requested_y_range": [
+              0.1,
+              1000.0
+            ],
+            "native_axes_token": "Log-Log",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "C1",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 6.053273771122747e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 2
+            },
+            {
+              "number": 2,
+              "label": "C2",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.679238033299953e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 3,
+              "label": "C3",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.8363857157719394e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 4,
+              "label": "C4",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.5488780888972542e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 5,
+              "label": "C5",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 5.349957976630293e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 6,
+              "label": "C6",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 7.67477143170936e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 7,
+              "label": "C7",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.2945073513701573e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 8,
+              "label": "C8",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.0937561916744016e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 9,
+              "label": "C9",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.4560535846e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 10,
+              "label": "C10",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.070991595408799e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "60882e65713576ca14f934e2ca1ad58fbc492d19b95eea250b50130332f0466e",
+              "bytes": 87103,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+              "bytes": 1135
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+              "bytes": 1926
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "64c6404766589112c21f6d1b5be30497db2048f882f0080c2ffee96d7b2ac68f",
+              "bytes": 694
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "60882e65713576ca14f934e2ca1ad58fbc492d19b95eea250b50130332f0466e",
+            "csv_sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+            "native_xy_sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 155738624,
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414",
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "hash_scope": "Full executable/config SHA256 before and after the module run",
+            "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_ten_curves_log_axes_and_r0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Ten curves",
+          "labels": {
+            "x": "Displacement (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 10,
+          "legend": true,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "log",
+            "y_scale": "log",
+            "requested_x_range": null,
+            "requested_y_range": null,
+            "native_axes_token": "Log-Log",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "C1",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 6.053273771122747e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 2,
+              "label": "C2",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.679238033299953e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 3,
+              "label": "C3",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.8363857157719394e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 4,
+              "label": "C4",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.5488780888972542e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 5,
+              "label": "C5",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 5.349957976630293e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 6,
+              "label": "C6",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 7.67477143170936e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 7,
+              "label": "C7",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.2945073513701573e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 8,
+              "label": "C8",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.0937561916744016e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 9,
+              "label": "C9",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.4560535846e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 10,
+              "label": "C10",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.070991595408799e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "6ec0b50483da9751b1d416e0c3df2680961eb24029ba334faf91115e276dba0b",
+              "bytes": 81127,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+              "bytes": 1135
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+              "bytes": 1926
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "cdab5a424609a2206a4b333c0220d7a4ed8ebe7e8a11bfdd902410906be9d351",
+              "bytes": 590
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "6ec0b50483da9751b1d416e0c3df2680961eb24029ba334faf91115e276dba0b",
+            "csv_sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+            "native_xy_sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 155738624,
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414",
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "hash_scope": "Full executable/config SHA256 before and after the module run",
+            "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_three_load_cases_force_di0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Three load cases",
+          "labels": {
+            "x": "Displacement (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 3,
+          "legend": true,
+          "legend_title": "Load case",
+          "axes": {
+            "x_scale": "linear",
+            "y_scale": "linear",
+            "requested_x_range": [
+              0.0,
+              4.0
+            ],
+            "requested_y_range": [
+              0.0,
+              25.0
+            ],
+            "native_axes_token": "Lin-Lin",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "Case A",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 2,
+              "label": "Case B",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 3,
+              "label": "Case C",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "79f34494b7bac7f01e0a848aaafc0c8de5d074aa5b1ced40912614f4cd266d53",
+              "bytes": 69862,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "47f0d1aa4e00b9f7221165b274392647c2d0b59c22dad9388cb0dcce053614d4",
+              "bytes": 186
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "4558fda1047a57bd285abac47ebaf3d89bcee466eafd70cb98ce4d2e4df3cb48",
+              "bytes": 666
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "3e1ef8bb131c8efb2d16802c8d538cfbd2dc12358ab46771916b8c6fecc7c4c7",
+              "bytes": 472
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "79f34494b7bac7f01e0a848aaafc0c8de5d074aa5b1ced40912614f4cd266d53",
+            "csv_sha256": "47f0d1aa4e00b9f7221165b274392647c2d0b59c22dad9388cb0dcce053614d4",
+            "native_xy_sha256": "4558fda1047a57bd285abac47ebaf3d89bcee466eafd70cb98ce4d2e4df3cb48"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 155738624,
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414",
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "hash_scope": "Full executable/config SHA256 before and after the module run",
+            "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        }
+      ]
+    },
+    {
+      "run_id": "r410b",
+      "actual_git_revision": "c48e3d7a227b71aeda6545dcf852124dced517ac",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "passed": 3,
+      "failed": 0,
+      "report": "r410b-batch-report.md",
+      "report_sha256": "4b28f91673325bb4e634db2472f38f828d4638503405042722783858e6c70850",
+      "source_identities": [
+        {
+          "path": "tests/test_native_xyplot_batch.py",
+          "git_blob_id": "acc8555a1fa8a8c54df016edb3932d07b13f2b78",
+          "sha256_lf": "9a168153612998dba6e129e52cc1b9fdbf0547f5964e0fd8f270e4426c2cc9c1"
+        },
+        {
+          "path": "src/ls_prepost_mcp/gui_curves.py",
+          "git_blob_id": "94fcfdff9ce26f096a57e862f35b4672c9b0b4cc",
+          "sha256_lf": "aa864338c66d014cf25f1a888af7da5e92f821a825ddc92461026b9eefde8f07"
+        },
+        {
+          "path": "src/ls_prepost_mcp/native/commands.py",
+          "git_blob_id": "30365f098ae09ec3653b2abada8d056515581c90",
+          "sha256_lf": "266dc1f72ec33f0fe0a60ea3a0977b380053a47bda7439568e1f7a2456dd1cb2"
+        },
+        {
+          "path": "src/ls_prepost_mcp/engine/batch.py",
+          "git_blob_id": "de879b24895c1a88d90829968cff49f9549efc83",
+          "sha256_lf": "40239c8ceafa301fc319d666432c1e0630d034d84d9122053e04a36818135d8c"
+        }
+      ],
+      "jobs": [
+        {
+          "case": "test_single_curve_and_semilog_0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Growth",
+          "labels": {
+            "x": "Time (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 1,
+          "legend": true,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "linear",
+            "y_scale": "linear",
+            "requested_x_range": [
+              0.5,
+              2.5
+            ],
+            "requested_y_range": null,
+            "native_axes_token": "Lin-Lin",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "Growth",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 2
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "732a0a19549541c1c342f314d1c6da966380a654ddb63cfc145dabcbc6ef6c64",
+              "bytes": 71024,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+              "bytes": 61
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb",
+              "bytes": 180
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "0b7ea72c7f460ef51d26ddac7927cd6aaccbc8483d4c5dcb116312ebef434be1",
+              "bytes": 326
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "732a0a19549541c1c342f314d1c6da966380a654ddb63cfc145dabcbc6ef6c64",
+            "csv_sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+            "native_xy_sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 149149184,
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b",
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "hash_scope": "Full executable/config SHA256 before and after the module run",
+            "source_config_sha256": "eca6f2b10e30e5a1f39577b68ab4e3957d127f4fd3d281e1d3ef7577ec6995c7"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_single_curve_and_semilog_0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Growth",
+          "labels": {
+            "x": "Time (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 1,
+          "legend": false,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "linear",
+            "y_scale": "log",
+            "requested_x_range": null,
+            "requested_y_range": null,
+            "native_axes_token": "Log-Lin",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "Growth",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "2390ffb9f5d998c81a8d8458edc68307fe1ca05fd1be34befd421963ff51570d",
+              "bytes": 80193,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+              "bytes": 61
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb",
+              "bytes": 180
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "ced0db6eb81951af07eff650e5d6ab31c379e7f12bb6aa8978b30b45640a48f7",
+              "bytes": 279
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "2390ffb9f5d998c81a8d8458edc68307fe1ca05fd1be34befd421963ff51570d",
+            "csv_sha256": "aa73d8596dba5726dad9465855f0a31c6f4a763d37a4852fd8ab96e91f860b43",
+            "native_xy_sha256": "8e6aaeafc9eee7bd6aa17b90432bb943bc7dc80819cbc128a3be5036753a6fbb"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 149149184,
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b",
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "hash_scope": "Full executable/config SHA256 before and after the module run",
+            "source_config_sha256": "eca6f2b10e30e5a1f39577b68ab4e3957d127f4fd3d281e1d3ef7577ec6995c7"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_ten_curves_log_axes_and_r0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Ten curves",
+          "labels": {
+            "x": "Displacement (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 10,
+          "legend": true,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "log",
+            "y_scale": "log",
+            "requested_x_range": [
+              0.1,
+              10.0
+            ],
+            "requested_y_range": [
+              0.1,
+              1000.0
+            ],
+            "native_axes_token": "Log-Log",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "C1",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 6.053273771122747e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 2
+            },
+            {
+              "number": 2,
+              "label": "C2",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.679238033299953e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 3,
+              "label": "C3",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.8363857157719394e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 4,
+              "label": "C4",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.5488780888972542e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 5,
+              "label": "C5",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 5.349957976630293e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 6,
+              "label": "C6",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 7.67477143170936e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 7,
+              "label": "C7",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.2945073513701573e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 8,
+              "label": "C8",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.0937561916744016e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 9,
+              "label": "C9",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.4560535846e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 10,
+              "label": "C10",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.070991595408799e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "3bb5baff37b8377d9462f24429523a851103ef611e2c849aceb7901ff26e0a0d",
+              "bytes": 87283,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+              "bytes": 1135
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+              "bytes": 1926
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "64c6404766589112c21f6d1b5be30497db2048f882f0080c2ffee96d7b2ac68f",
+              "bytes": 694
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "3bb5baff37b8377d9462f24429523a851103ef611e2c849aceb7901ff26e0a0d",
+            "csv_sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+            "native_xy_sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 149149184,
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b",
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "hash_scope": "Full executable/config SHA256 before and after the module run",
+            "source_config_sha256": "eca6f2b10e30e5a1f39577b68ab4e3957d127f4fd3d281e1d3ef7577ec6995c7"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_ten_curves_log_axes_and_r0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Ten curves",
+          "labels": {
+            "x": "Displacement (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 10,
+          "legend": true,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "linear",
+            "y_scale": "linear",
+            "requested_x_range": null,
+            "requested_y_range": null,
+            "native_axes_token": "Lin-Lin",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "C1",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 6.053273771122747e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 2,
+              "label": "C2",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.679238033299953e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 3,
+              "label": "C3",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.8363857157719394e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 4,
+              "label": "C4",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.5488780888972542e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 5,
+              "label": "C5",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 5.349957976630293e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 6,
+              "label": "C6",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 7.67477143170936e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 7,
+              "label": "C7",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.2945073513701573e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 8,
+              "label": "C8",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.0937561916744016e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 9,
+              "label": "C9",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.4560535846e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 10,
+              "label": "C10",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.070991595408799e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "c23f574976312730da4ecea1bb6a60a0c54fa3056fd0ecccb7e2e3b926eaee45",
+              "bytes": 103915,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+              "bytes": 1135
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+              "bytes": 1926
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "c590761760169a5d25fe0aac6781c284218cc13d1a9eda6925bd26178f8606b4",
+              "bytes": 568
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "c23f574976312730da4ecea1bb6a60a0c54fa3056fd0ecccb7e2e3b926eaee45",
+            "csv_sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+            "native_xy_sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 149149184,
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b",
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "hash_scope": "Full executable/config SHA256 before and after the module run",
+            "source_config_sha256": "eca6f2b10e30e5a1f39577b68ab4e3957d127f4fd3d281e1d3ef7577ec6995c7"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_ten_curves_log_axes_and_r0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Ten curves",
+          "labels": {
+            "x": "Displacement (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 10,
+          "legend": true,
+          "legend_title": null,
+          "axes": {
+            "x_scale": "log",
+            "y_scale": "log",
+            "requested_x_range": null,
+            "requested_y_range": null,
+            "native_axes_token": "Log-Log",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "C1",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 6.053273771122747e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 2,
+              "label": "C2",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.679238033299953e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 3,
+              "label": "C3",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.8363857157719394e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 4,
+              "label": "C4",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.5488780888972542e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 5,
+              "label": "C5",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 5.349957976630293e-09,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 6,
+              "label": "C6",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 7.67477143170936e-07,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 7,
+              "label": "C7",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.2945073513701573e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 8,
+              "label": "C8",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 3.0937561916744016e-06,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            },
+            {
+              "number": 9,
+              "label": "C9",
+              "numeric_verification": {
+                "sample_count": 3,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 9.4560535846e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 3
+            },
+            {
+              "number": 10,
+              "label": "C10",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 1.070991595408799e-08,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "3fc0f2fc530284d8105cf01b95bc62581dc0d4ed9f394918f70e0e6144097f66",
+              "bytes": 83143,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+              "bytes": 1135
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603",
+              "bytes": 1926
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "cdab5a424609a2206a4b333c0220d7a4ed8ebe7e8a11bfdd902410906be9d351",
+              "bytes": 590
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "3fc0f2fc530284d8105cf01b95bc62581dc0d4ed9f394918f70e0e6144097f66",
+            "csv_sha256": "a4565ad5d62e8775cc41b75ba617ea356ca1398e67451bbf342e18857640e77f",
+            "native_xy_sha256": "92d6c1615ffd29aa62095c757b90054d596cfa6a4dfd0d0181ffad8a4f17a603"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 149149184,
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b",
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "hash_scope": "Full executable/config SHA256 before and after the module run",
+            "source_config_sha256": "eca6f2b10e30e5a1f39577b68ab4e3957d127f4fd3d281e1d3ef7577ec6995c7"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        },
+        {
+          "case": "test_three_load_cases_force_di0",
+          "status": "succeeded",
+          "backend": "lsprepost-native-xyplot-batch",
+          "route": "batch",
+          "visible_gui": false,
+          "title": "Three load cases",
+          "labels": {
+            "x": "Displacement (mm)",
+            "y": "Force (kN)"
+          },
+          "units": {
+            "x": "mm",
+            "y": "kN"
+          },
+          "curve_count": 3,
+          "legend": true,
+          "legend_title": "Load case",
+          "axes": {
+            "x_scale": "linear",
+            "y_scale": "linear",
+            "requested_x_range": [
+              0.0,
+              4.0
+            ],
+            "requested_y_range": [
+              0.0,
+              25.0
+            ],
+            "native_axes_token": "Lin-Lin",
+            "range_policy": {
+              "x": "Requested X limits are displayed as requested on linear and logarithmic axes.",
+              "y": "Native XYPlot may widen requested Y limits outward to the next tick (linear) or decade (logarithmic).",
+              "readback": "Rendered axis extents are not read back."
+            }
+          },
+          "curves": [
+            {
+              "number": 1,
+              "label": "Case A",
+              "numeric_verification": {
+                "sample_count": 5,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 5
+            },
+            {
+              "number": 2,
+              "label": "Case B",
+              "numeric_verification": {
+                "sample_count": 4,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 4
+            },
+            {
+              "number": 3,
+              "label": "Case C",
+              "numeric_verification": {
+                "sample_count": 6,
+                "native_storage_dtype": "float32",
+                "relative_tolerance_to_native_storage": 5e-11,
+                "absolute_tolerance": 0,
+                "maximum_absolute_difference": 0.0,
+                "row_order_preserved": true
+              },
+              "samples_in_requested_range": 6
+            }
+          ],
+          "artifacts": [
+            {
+              "name": "plot.png",
+              "kind": "png",
+              "sha256": "bf7a59141fcf092d78b63c329fcfb035da19b98a43bef0ce3e486a3290ef94b0",
+              "bytes": 94081,
+              "dimensions": [
+                3300,
+                2550
+              ]
+            },
+            {
+              "name": "curves.csv",
+              "kind": "csv",
+              "sha256": "47f0d1aa4e00b9f7221165b274392647c2d0b59c22dad9388cb0dcce053614d4",
+              "bytes": 186
+            },
+            {
+              "name": "native.xy",
+              "kind": "text",
+              "sha256": "4558fda1047a57bd285abac47ebaf3d89bcee466eafd70cb98ce4d2e4df3cb48",
+              "bytes": 666
+            },
+            {
+              "name": "commands.cfile",
+              "kind": "text",
+              "sha256": "3e1ef8bb131c8efb2d16802c8d538cfbd2dc12358ab46771916b8c6fecc7c4c7",
+              "bytes": 472
+            }
+          ],
+          "png_csv_consistency": {
+            "same_native_plot_window": true,
+            "readback_after_png": true,
+            "csv_equals_native_readback": "per-curve float32 storage check, rtol 5e-11, absolute tolerance 0",
+            "png_sha256": "bf7a59141fcf092d78b63c329fcfb035da19b98a43bef0ce3e486a3290ef94b0",
+            "csv_sha256": "47f0d1aa4e00b9f7221165b274392647c2d0b59c22dad9388cb0dcce053614d4",
+            "native_xy_sha256": "4558fda1047a57bd285abac47ebaf3d89bcee466eafd70cb98ce4d2e4df3cb48"
+          },
+          "source_csvs_unchanged": true,
+          "executable": {
+            "size": 149149184,
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b",
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "hash_scope": "Full executable/config SHA256 before and after the module run",
+            "source_config_sha256": "eca6f2b10e30e5a1f39577b68ab4e3957d127f4fd3d281e1d3ef7577ec6995c7"
+          },
+          "process": {
+            "returncode": 0,
+            "graphics": false,
+            "timed_out": false,
+            "nographics": true
+          }
+        }
+      ]
+    }
+  ],
+  "integration_baseline": {
+    "revision": "c48e3d7a227b71aeda6545dcf852124dced517ac",
+    "unchanged_render_source_blobs": [
+      {
+        "path": "src/ls_prepost_mcp/gui_curves.py",
+        "git_blob_id": "94fcfdff9ce26f096a57e862f35b4672c9b0b4cc"
+      },
+      {
+        "path": "src/ls_prepost_mcp/native/commands.py",
+        "git_blob_id": "30365f098ae09ec3653b2abada8d056515581c90"
+      },
+      {
+        "path": "src/ls_prepost_mcp/engine/batch.py",
+        "git_blob_id": "de879b24895c1a88d90829968cff49f9549efc83"
+      }
+    ]
+  },
+  "limits": [
+    "ASCII plot text; unsupported labels are refused",
+    "Native XY uses declared float32 storage; quantization is explicit, no broad comparison tolerance",
+    "Requested Y limits can widen to native ticks/decades; rendered axis extents are not automatically read back",
+    "These are synthetic input curves, not public solver cases",
+    "Visible-session behavior and 4.8 were not retested"
+  ]
+}
