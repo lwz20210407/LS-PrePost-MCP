@@ -161,6 +161,8 @@ tasks:
     evidence:
       - tests/test_keyword_absolute_save.py
       - docs/decisions/evidence/p02-absolute-save/report.md
+      - tests/test_save_include_resolution_review02.py
+      - docs/decisions/evidence/p02-resolution-review02/report.md
       - docs/decisions/evidence/p02-expression-commas/report.md
     acceptance:
       - corpus:include_contact 上改一张卡的一个字段，保存后只有该卡所在文件变化，其余文件字节级不变

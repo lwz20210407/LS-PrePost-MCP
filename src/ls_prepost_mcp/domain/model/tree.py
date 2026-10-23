@@ -193,6 +193,8 @@ def include_tree(deck: KeywordDeck) -> dict:
             entry = {"name": ref.name, "kind": ref.kind, "keyword": ref.block.name, "line": ref.block.line_number,
                      "path": str(ref.child.path) if ref.child else (str(res.path) if res and res.path else None),
                      "rule": res.rule if res else None, "missing": bool(res and res.path is None),
+                     "search_directory": str(res.search_directory) if res and res.search_directory else None,
+                     "search_directory_index": res.search_directory_index if res else None,
                      "ambiguous": bool(res and res.ambiguous), "cycle": ref.cycle, "repeated": ref.repeated}
             if ref.child and not ref.cycle and not ref.repeated:
                 entry["includes"] = node(ref.child, stack + [identity(ref.child.path)])
