@@ -340,7 +340,7 @@
 缺口：
 
 - d3plot Part/global、tshell/beam 与更广 shell 原生对照仍缺；缺真实 part_ids 的 d3plot 部件时程明确拒绝，不用标题序号猜 PID；登记的显式壳槽位子集不将 Q05 升为 done
-- 单元 CSV 保留 alive/deletion_status/首次删除状态；缺数据显式 unknown。现有 stored_point 与独立 native_sampling 支持的壳历史在两版本各三配对及一错配拒绝通过，但非通用层映射；其他曲线消费者尚不自动应用 alive 掩码
+- 单元 CSV 保留 alive/deletion_status/首次删除状态；缺数据显式 unknown。现有 stored_point 与独立 native_sampling 支持的壳历史在两版本各三配对及一错配拒绝通过，但非通用层映射；曲线运算拒绝显式 deleted/unknown，不自动裁剪或插值，其他消费者的有效性仍须逐项验证
 - 原生 d3plot 对照限节点及显式选点单元量、最多1000状态；Part/global 对照需显式单文件 binout；多点均值不映射为层，原生层选择独立于读取器槽位；MPP合并口径保留，4.8未验
 
 ### Q06 binout / ASCII 全库曲线
@@ -382,6 +382,7 @@
 缺口：
 
 - 滤波结果尚未与 LS-PrePost XYPlot 同参数滤波对比（L2），首尾填充约定是否与 LS-PrePost 一致未知
+- CSV 若带 alive 列，曲线运算及共享历史运算入口要求所有样本严格为1；deleted/unknown/畸形标记拒绝，不自动丢样本或插值。无 alive 的 CSV 仍按调用者数据处理并在 curve_ops 标为 not_declared，不推断其物理有效性；其他消费者和原生滤波对照仍缺
 
 ### Q08 XYPlot 出图
 
