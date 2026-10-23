@@ -161,7 +161,10 @@ def _times(arrays: dict) -> np.ndarray:
 
 
 def _index(ids: np.ndarray, wanted: list[int], kind: str) -> np.ndarray:
-    position = {int(v): i for i, v in enumerate(np.asarray(ids).reshape(-1))}
+    stored=np.asarray(ids)
+    if stored.ndim!=1 or stored.dtype.kind not in "iu" or np.any(stored<=0) or len(set(map(int,stored)))!=stored.size:
+        raise ResultsError(f"{kind} result IDs must be unique positive stored integers")
+    position = {int(v): i for i, v in enumerate(stored)}
     missing = [w for w in wanted if int(w) not in position]
     if missing:
         raise ResultsError(f"{kind} IDs not in the result: {missing[:10]}")
@@ -213,8 +216,12 @@ def history(path: str | Path, kind: str, quantity: str, ids: list[int] | None = 
         key = f"global_{quantity}"
         if key not in arrays:
             raise ResultsError(f"No global {quantity!r}; available: {sorted(k[7:] for k in arrays if k.startswith('global_'))}")
-        return [{"entity": None, "quantity": quantity, "time": times.tolist(),
-                 "values": np.asarray(arrays[key], dtype=float).reshape(times.size, -1)[:, 0].tolist()}]
+        values=np.asarray(arrays[key],dtype=float)
+        if values.shape==(times.size,1):
+            values=values[:,0]
+        if values.shape!=times.shape:
+            raise ResultsError("Global history needs one scalar value per state; no implicit vector-component selection")
+        return [{"entity": None, "quantity": quantity, "time": times.tolist(), "values": values.tolist()}]
     if not ids:
         raise ResultsError(f"{kind} histories need entity IDs")
     if kind == "node":
