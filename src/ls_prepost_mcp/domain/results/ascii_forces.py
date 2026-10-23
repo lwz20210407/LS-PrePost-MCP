@@ -28,10 +28,11 @@ SECTION_HEADERS = (
 )
 
 
-def _lines(path):
+def _lines(path, metadata):
     if Path(path).stat().st_size > MAX_BYTES:
         raise ResultsError("ASCII forces input exceeds 256 MiB")
     legend = False
+    titles = metadata.setdefault("legend_titles", {})
     with open(path, encoding="utf-8-sig", errors="replace") as stream:
         while line := stream.readline(MAX_RECORD_CHARS + 1):
             if len(line) > MAX_RECORD_CHARS:
@@ -46,7 +47,20 @@ def _lines(path):
                     raise ResultsError("Unmatched ASCII legend ending")
                 legend = False
                 continue
-            if not legend and line.strip():
+            if legend and line.strip():
+                match = re.fullmatch(r"\s*(\d+)\s+(.+?)\s*", line)
+                if match and int(match[1]) > 0:
+                    key, title = str(int(match[1])), match[2]
+                    if key in titles and titles[key] != title:
+                        titles[key] = None
+                        metadata.setdefault("ambiguous_legend_ids", {})[key] = True
+                    if key not in titles and len(titles) >= MAX_RECORDS:
+                        raise ResultsError("ASCII legend exceeds one million entries")
+                    if key not in metadata.get("ambiguous_legend_ids", {}):
+                        titles[key] = title
+                else:
+                    metadata["unparsed_legend_lines"] = metadata.get("unparsed_legend_lines", 0) + 1
+            elif not legend and line.strip():
                 yield line.strip()
     if legend:
         raise ResultsError("Truncated ASCII legend")
@@ -73,7 +87,7 @@ def _contact(path, component, metadata):
         raise ResultsError(f"RCFORC component must be one of {list(CONTACT_FIELDS)}")
     seen = False
     undefined = set()
-    for line in _lines(path):
+    for line in _lines(path, metadata):
         if match := UNDEFINED.fullmatch(line):
             undefined.add(_id(match[1]))
             continue
@@ -101,7 +115,7 @@ def _section(path, component, metadata):
     if component not in SECTION_FIELDS:
         raise ResultsError(f"SECFORC component must be one of {list(SECTION_FIELDS)}")
     headers, pending, systems = [], [], {}
-    for line in _lines(path):
+    for line in _lines(path, metadata):
         normalized = " ".join(line.lower().split())
         if normalized.startswith("line#"):
             if pending:
@@ -120,13 +134,15 @@ def _section(path, component, metadata):
                 raise ResultsError("SECFORC force row needs section ID, time and four components")
             pending = [_id(tokens[0]), _number(tokens[1]), [_number(v) for v in tokens[2:]]]
         elif len(pending) == 3:
-            match = re.fullmatch(r"ac\s+ID\s*=\s*(\d+)\s+(.+)", line, re.I)
-            tokens = match[2].split() if match else line.split()
-            coordinate = int(match[1]) if match else None
+            match = re.fullmatch(r"(ac\s+ID\s*=\s*(\d+))\s+(.+)", line, re.I)
+            tokens = match[3].split() if match else line.split()
+            coordinate = int(match[2]) if match else None
             pid = pending[0]
-            if pid in systems and systems[pid] != coordinate:
-                raise ResultsError("SECFORC coordinate-system ID changes within one section history")
-            systems[pid] = coordinate
+            reference = systems.setdefault(pid, {"id": coordinate, "prefixes": []})
+            if reference["id"] != coordinate:
+                raise ResultsError("SECFORC local-frame reference changes within one section history")
+            if match and match[1] not in reference["prefixes"]:
+                reference["prefixes"].append(match[1])
             if len(tokens) != 4:
                 raise ResultsError("SECFORC moment row needs four components")
             pending.append([_number(v) for v in tokens])
@@ -139,7 +155,7 @@ def _section(path, component, metadata):
             pending = []
     if pending or len(headers) % 3:
         raise ResultsError("Truncated SECFORC three-line record or header")
-    metadata["coordinate_systems"] = systems
+    metadata["frame_references"] = systems
 
 
 def read(path, database, component):
@@ -167,6 +183,11 @@ def read(path, database, component):
     if any([t for t, _ in series[key]] != times for key in keys):
         raise ResultsError("ASCII force entity time grids differ; no missing values are inferred")
     warnings = []
+    if metadata.get("ambiguous_legend_ids"):
+        metadata["ambiguous_legend_ids"] = sorted(metadata["ambiguous_legend_ids"], key=int)
+        warnings.append("Conflicting ASCII legend titles left null; see ambiguous_legend_ids")
+    if metadata.get("unparsed_legend_lines"):
+        warnings.append("Some ASCII legend lines could not be associated with positive stored IDs; see unparsed_legend_lines")
     if database == "rcforc":
         metadata["side"] = [key[1] for key in keys]
         metadata["side_meaning"] = {"0": "slave/SURFA (secondary)", "1": "master/SURFB (main)"}
@@ -174,8 +195,8 @@ def read(path, database, component):
             warnings.append("Undefined single-surface resultants omitted for interface IDs "
                             + str(metadata["undefined_interface_ids"]))
     else:
-        systems = metadata.pop("coordinate_systems")
-        metadata["coordinate_system_ids"] = [systems[key[0]] for key in keys]
+        systems = metadata.pop("frame_references")
+        metadata["local_frame_reference"] = [systems[key[0]] for key in keys]
     return {"backend": "ls-dyna-ascii", "source_format": database, "time": times,
             "ids": [key[0] for key in keys],
             "values": [[series[key][i][1] for key in keys] for i in range(len(times))],
