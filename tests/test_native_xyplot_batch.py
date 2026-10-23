@@ -1,7 +1,8 @@
-"""Q08 no-graphics native XYPlot acceptance on original public CSV curves."""
+"""Q08 no-graphics native XYPlot acceptance on original synthetic CSV curves."""
 
 import csv
 import hashlib
+import json
 from pathlib import Path
 
 import numpy as np
@@ -10,12 +11,13 @@ from PIL import Image, ImageChops
 
 from ls_prepost_mcp.config import Settings
 from ls_prepost_mcp.service import Service
+from tests.test_save_model_native import installation as installation
 
 pytestmark = pytest.mark.native
 
 
 @pytest.fixture
-def xyplot_case(tmp_path, pytestconfig):
+def xyplot_case(tmp_path, pytestconfig, installation):
     if not pytestconfig.getoption("--run-native"):
         pytest.skip("Native regression requires explicit --run-native")
     executable = pytestconfig.getoption("--native-executable")
@@ -23,6 +25,13 @@ def xyplot_case(tmp_path, pytestconfig):
         if pytestconfig.getoption("--native-strict"):
             pytest.fail("Q08 native XYPlot requires an LS-PrePost executable")
         pytest.skip("Set --native-executable or LSPP_ENGINE_EXECUTABLE for Q08 native XYPlot")
+    verified_executable, binary, config_sha = installation
+    assert Path(executable) == verified_executable
+    (pytestconfig._native_root / "installation.json").write_text(
+        json.dumps({"executable": binary, "source_config_sha256": config_sha,
+                    "hash_scope": "Full executable/config SHA256 before and after the module run"}, indent=2) + "\n",
+        encoding="utf8",
+    )
     inputs = tmp_path / "inputs"
     inputs.mkdir()
     # Job manifests and artifacts stay under the external --native-output basetemp.

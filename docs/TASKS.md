@@ -376,7 +376,7 @@
 
 ### Q08 XYPlot 出图
 
-状态：partial；版本：v0.5；里程碑：M2；层：T1
+状态：done；版本：v0.5；里程碑：M2；层：T1
 
 把 3 个工况的力-位移曲线画在一张图上，带图例，导出 PNG 和 CSV
 
@@ -386,7 +386,7 @@
 - PNG 与同时导出的 CSV 数值一致
 - 批处理上下文可用（不依赖可见 GUI），依据 E5 结论
 
-现有入口：`export_gui_curve_plot`
+现有入口：`render_xyplot`, `export_gui_curve_plot`
 
 ### Q09 动画导出
 

@@ -568,8 +568,14 @@ tasks:
     milestone: M2
     layer: T1
     target_tools: [render_xyplot]
-    status: partial
-    existing: [export_gui_curve_plot]
+    status: done
+    verification_level: L2
+    existing: [render_xyplot, export_gui_curve_plot]
+    evidence:
+      - src/ls_prepost_mcp/gui_curves.py
+      - tests/test_native_curve_plot.py
+      - tests/test_native_xyplot_batch.py
+      - docs/decisions/evidence/q08-batch/report.md
     acceptance:
       - 最多 10 条曲线同图；图例、坐标轴标题与范围、对数轴可设
       - PNG 与同时导出的 CSV 数值一致
