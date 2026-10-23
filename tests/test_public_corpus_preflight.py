@@ -37,7 +37,7 @@ def test_variant_policy_is_distinct_from_missing_input(tmp_path):
     (tmp_path / "child.k").write_text("*KEYWORD\n*END\n")
     report, _ = input_tree(main, [main], keyword=True)
     assert report["ok"]
-    assert input_classification(report) == "unsupported_native_include_variant"
+    assert input_classification(report) == "product_unsupported_include_variant"
 
 
 def test_result_family_has_explicit_scope_and_all_file_hashes(tmp_path):
