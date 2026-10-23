@@ -362,8 +362,8 @@ def field(path: str | Path, family: str, quantity: str, state: int = -1, mask: s
     """Element values of one state with IDs, the alive mask and extrema (Q03/Q04).
 
     ``state`` is a 0-based index (negative counts from the end); an index outside the stored
-    states is refused, never wrapped. ``part_ids`` (user part IDs, resolved through part_ids or
-    part_titles_ids) restricts the returned elements and the extrema to those parts."""
+    states is refused, never wrapped. ``part_ids`` requires a confirmed user Part-ID table;
+    title ordinals never drive the element/Part association."""
     if stored_point is not None and (type(stored_point) is not int or stored_point < 1):
         raise ResultsError("stored_point must be a positive 1-based integer")
     arrays = _arrays(path)
