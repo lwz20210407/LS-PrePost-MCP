@@ -14,7 +14,7 @@ from .blocks import Block, SourceFile, make_blocks
 from .fields import FieldError, FieldSlot, format_value, is_free_format, parse_number, read_text, write_text
 from .includes import identity
 from .layouts import RowMap
-from .parameters import field_expression, reference, resolve_field
+from .parameters import field_expression, reference, resolve_field, validate_expression_assignment
 from .schema import FieldInfo, Layout, Unsupported, block_format
 from .schema import layout as block_layout
 from .scope import ParameterRecord
@@ -209,6 +209,8 @@ class KeywordDeck:
         """Write one named field; only that field's columns change. Verified by re-reading."""
         lay = self.layout(block)
         info = lay.lookup(name, card, row)
+        if block.name.startswith("*PARAMETER_EXPRESSION") and info.name == "expression":
+            validate_expression_assignment(block.name, block.data(), info.slot.line, str(value), self.lookup(block))
         width = info.slot.width if info.slot.token is None else 40
         ref = (isinstance(value, str) and info.kind != "str" and field_expression(value) is not None)
         if ref:
@@ -251,7 +253,7 @@ class KeywordDeck:
         if not 0 <= data_index < len(data):
             raise IndexError(f"{block.name} has {len(data)} data lines")
         index, line = data[data_index]
-        if is_free_format(line):
+        if is_free_format(line, block.name):
             if field_index is None:
                 raise FieldError("Comma-separated line: give field_index")
             slot = FieldSlot(index, 0, width, field_index)
