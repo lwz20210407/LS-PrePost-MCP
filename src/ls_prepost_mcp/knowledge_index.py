@@ -27,6 +27,7 @@ ENGLISH_STOPWORDS = frozenset((
     "how", "what", "which", "where", "why", "do", "does", "can", "i", "my", "with", "by", "from", "this", "that"))
 SIBILANT_ENDINGS = ("s", "x", "z", "ch", "sh")
 MAX_QUERY_CONCEPTS = 32
+API_TOKENIZATION = "identifier-parts-v2"
 
 
 def _cleanup_owned_temp(path, original):
@@ -118,17 +119,21 @@ def terms(text):
     return list(dict.fromkeys(result))
 
 
+def _identifier_parts(identifier):
+    """Split underscores first; plural acronyms such as IDs stay whole."""
+    return [word.casefold() for part in identifier.split("_") for word in re.findall(
+        r"[A-Z]{2,}s(?=[A-Z0-9]|$)|[A-Z]+(?=[A-Z][a-z]|[0-9]|$)|[A-Z]?[a-z]+|[0-9]+", part)]
+
+
 def _api_terms(text):
     """Index API identifiers intact plus case/underscore word boundaries.
 
-    Source text, document identity and query normalization remain unchanged.
+    Source text and document identity remain unchanged. Queries share these boundaries.
     Acronyms stay whole: SCLGetData -> SCL/Get/Data, not S/C/L.
     """
     expanded = []
     for identifier in re.findall(r"[A-Za-z][A-Za-z0-9_]*", text):
-        words = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1 \2", identifier)
-        words = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", words)
-        expanded.extend(terms(words))
+        expanded.extend(_identifier_parts(identifier))
     return list(dict.fromkeys([*terms(text), *expanded]))
 
 
@@ -246,7 +251,7 @@ def build_index(destination, documents, fields=(), fieldless=()):
             db.execute("CREATE INDEX keyword_lookup ON keyword_fields(entity_key,field)")
             db.execute("CREATE TABLE keyword_without_fields (document_id TEXT PRIMARY KEY, entity_key TEXT UNIQUE, provider_structure TEXT, card_kinds TEXT, verdict TEXT, review TEXT)")
             db.execute("CREATE TABLE metadata (schema_version INTEGER, api_tokenization TEXT)")
-            db.execute("INSERT INTO metadata VALUES (2, 'identifier-parts-v1')")
+            db.execute("INSERT INTO metadata VALUES (2, ?)", (API_TOKENIZATION,))
             seen = set()
             for row in rows:
                 data = asdict(row)
@@ -376,9 +381,10 @@ def plan_query(query):
     terms (matched as Chinese or as their English phrases) and unmatched Chinese text.
     """
     entries, stopwords = glossary()
-    latin = [value for value in terms(query) if not value.startswith("zh_")]
-    content = [value for value in latin if value not in ENGLISH_STOPWORDS]
-    latin = content or latin
+    identifiers = list(dict.fromkeys(re.findall(r"[A-Za-z0-9_]+", query)))
+    content = [value for value in identifiers if value.casefold() not in ENGLISH_STOPWORDS]
+    identifiers = content or identifiers
+    latin = [value.casefold() for value in identifiers]
     concepts, expansion, fallback = [], [], []
     concept_expansions, concept_highlights = {}, {}
     for run in re.findall(r"[\u3400-\u9fff]+", query):
@@ -410,10 +416,19 @@ def plan_query(query):
     expansion = [item for item in {item["term"]: item for item in expansion}.values()
                  if concept_expansions[item["term"]] in concepts]
     highlights = set(latin)
+    highlights.update(word for identifier in identifiers for word in _identifier_parts(identifier))
     for concept in concepts:
         highlights.update(concept_highlights.get(concept, ()))
     entities = [match.upper() for match in re.findall(r"\*([A-Za-z][A-Za-z0-9_/-]*)", query)]
-    return dict(latin=" AND ".join(_word_expression(value) for value in latin),
+    expressions = []
+    for identifier in identifiers:
+        original = identifier.casefold()
+        parts = _identifier_parts(identifier)
+        expression = _word_expression(original)
+        if parts and parts != [original]:
+            expression = "(" + expression + " OR (" + " AND ".join(_word_expression(word) for word in parts) + "))"
+        expressions.append(expression)
+    return dict(latin=" AND ".join(expressions),
                 literal=" AND ".join(_quote(value) for value in latin), concepts=concepts,
                 expansion=expansion, entities=["*" + entity for entity in dict.fromkeys(entities)],
                 highlights=_highlight_forms(highlights), concepts_truncated=concept_total > len(concepts),
@@ -486,6 +501,13 @@ def search_index(path, query, *, category=None, limit=10, include_private=False,
         db.row_factory = sqlite3.Row
         if db.execute("SELECT schema_version FROM metadata").fetchone()[0] != 2:
             raise ValueError("Unsupported knowledge index schema")
+        columns = {row[1] for row in db.execute("PRAGMA table_info(metadata)")}
+        tokenization = db.execute("SELECT api_tokenization FROM metadata").fetchone()[0] if "api_tokenization" in columns else "legacy"
+        tokenization = tokenization or "legacy"
+        index_warnings = []
+        if tokenization != API_TOKENIZATION:
+            index_warnings.append("API identifier tokenization is outdated; explicitly rebuild the reference index for complete identifier recall")
+            logging.getLogger(__name__).warning(index_warnings[0])
         if keyword_filter is None:
             sql = "SELECT documents.*, bm25(search_terms) AS rank"
             params = []
@@ -562,6 +584,9 @@ def search_index(path, query, *, category=None, limit=10, include_private=False,
         text = data.pop("text")
         data["snippet"] = _snippet(text, query, plan["highlights"])
         data["query_expansion"] = plan["expansion"]
+        data["index_tokenization"] = tokenization
+        if index_warnings:
+            data["warnings"] = list(index_warnings)
         data.update(concepts_truncated=plan["concepts_truncated"], concepts_total=plan["concepts_total"],
                     concepts_used=len(plan["concepts"]), concept_limit=plan["concept_limit"])
         data.update(status="reference_unverified", executable=False, private=data["visibility"] == "private")
