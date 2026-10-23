@@ -17,7 +17,9 @@ pytestmark = pytest.mark.native
 
 CASES = [("synthetic-solid", "solid", None, None, "mid", "succeeded"),
          ("synthetic-shell", "shell", None, None, "mid", "succeeded"),
-         ("public-solid", "solid", [1], None, "mid", "succeeded"),
+         # This public file has title ordinals but no verified user Part-ID table.
+         # Compare its explicit returned element IDs without inventing a Part filter.
+         ("public-solid", "solid", None, None, "mid", "succeeded"),
          # Numerical agreement for this fixture only: stored order is not depth order.
          ("public-shell-mid", "shell", [3000], 1, "mid", "succeeded"),
          ("public-shell-inner", "shell", [3000], 2, "inner", "succeeded"),

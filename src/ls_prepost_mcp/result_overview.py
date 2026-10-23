@@ -10,16 +10,18 @@ With ``native_check`` the same file family is opened by LS-PrePost (the existing
 """
 from __future__ import annotations
 
+import hashlib
 import math
 import os
 import re
 from pathlib import Path
 
-from .core.contracts import CheckResult, JobResult
+from .core.contracts import Artifact, CheckResult, JobResult
 from .jobs import atomic_json
 
 TIME_RELATIVE_TOLERANCE = 1e-6
 HEADER_MEANING = "header words: extra values per integration point, including stored strain tensors"
+INLINE_TIME_LIMIT = 10000
 
 
 def result_info(tools, path: str, native_check: bool) -> dict:
@@ -47,8 +49,6 @@ def result_info(tools, path: str, native_check: bool) -> dict:
             "binout": {"files": overview["binout_files"], "databases": overview["binout_databases"],
                        "entries": overview["binout_entries"], "split_over_shards": overview["binout_split"]},
             "ascii_files": overview["ascii_files"]}
-    if overview["times"] is None:
-        warnings.append("The reader did not return the complete state-time vector; only time_range is reported")
     checks = [CheckResult(name="lasso_overview", status="passed")]
     identity_unconfirmed = (overview.get("part_id_scope") == "unconfirmed_title_ids"
                             or overview.get("part_title_mapping") == "unconfirmed")
@@ -63,10 +63,36 @@ def result_info(tools, path: str, native_check: bool) -> dict:
         checks.append(_agreement(overview, native, data))
     else:
         checks.append(CheckResult(name="backends_agree", status="not_applicable"))
-    status = "partial" if error or overview["times"] is None or identity_unconfirmed else "succeeded"
-    result = _result(status, data, manifest["job_id"], checks=checks, warnings=tuple(warnings), error=error,
+    status = "partial" if error or identity_unconfirmed else "succeeded"
+    artifacts = ()
+    try:
+        artifacts = _clock_artifacts(directory, data)
+    except OSError as failure:
+        status, error = "failed", _error(failure)
+        checks.append(CheckResult(name="time_artifact", status="failed"))
+    result = _result(status, data, manifest["job_id"], checks=checks, artifacts=artifacts, warnings=tuple(warnings), error=error,
                      backend="lasso+lsprepost" if native_check else "lasso")
     return _record(directory, manifest, result)
+
+
+def _clock_artifacts(directory, data):
+    native = data.get("lsprepost") or {}
+    if max(len(data["times"]), len(native.get("times") or [])) <= INLINE_TIME_LIMIT:
+        return ()
+    payload = {"reader_times": data["times"], "native_times": native.get("times"),
+               "state_index_base": 1, "time_units": data["time_units"]}
+    # Compare the full vectors first; response bounds do not truncate validation.
+    data.update(times=None, times_storage="artifact", inline_time_limit=INLINE_TIME_LIMIT)
+    if "times" in native:
+        native.update(times=None, times_storage="artifact")
+    output = directory / "state-times.json"
+    atomic_json(output, payload)
+    with output.open("rb") as stream:
+        digest = hashlib.file_digest(stream, "sha256").hexdigest()
+    return (Artifact(path=str(output), kind="json", sha256=digest, size_bytes=output.stat().st_size,
+                     verification="verified", metadata={"reader_states": len(payload["reader_times"]),
+                     "native_states": len(payload["native_times"]) if payload["native_times"] is not None else None,
+                     "state_index_base": 1, "time_units": data["time_units"]}),)
 
 
 def _confine_family(tools, source: Path) -> None:
@@ -118,6 +144,11 @@ def _native(tools, path: str) -> tuple[dict, dict | None]:
         job = tools.inspect_model(path, "d3plot")
     except Exception as error:  # configuration / staging refusals happen before a native job exists
         return {"status": "failed", "job_id": None}, _error(error)
+    if job.get("status") != "succeeded":
+        return {"status": job.get("status"), "job_id": job.get("job_id"),
+                "executable": job.get("executable")}, {
+            "message": "LS-PrePost inspect_model did not succeed: "
+            + str((job.get("error") or {}).get("message") or job.get("status")), "native": job.get("error")}
     reply = job.get("data") or {}
     native = {"status": job.get("status"), "job_id": job.get("job_id"),
               "states": (reply.get("counts") or {}).get("states"), "times": reply.get("state_times"),
@@ -136,9 +167,6 @@ def _native(tools, path: str) -> tuple[dict, dict | None]:
         native["times"] = [float(t) for t in times]
     if invalid:
         native["observation_errors"] = invalid
-    if job.get("status") != "succeeded":
-        return native, {"message": "LS-PrePost inspect_model did not succeed: "
-                        + str((job.get("error") or {}).get("message") or job.get("status")), "native": job.get("error")}
     if invalid:
         return native, {"message": "LS-PrePost returned an invalid observation: " + "; ".join(invalid)}
     return native, None
@@ -154,7 +182,7 @@ def _finite_times(times: object) -> bool:
 
 
 def _agreement(overview: dict, native: dict, data: dict) -> CheckResult:
-    if native.get("states") is None or native.get("times") is None or overview["times"] is None:
+    if native.get("states") is None or native.get("times") is None:
         return CheckResult(name="backends_agree", status="missing")
     lasso_times, native_times = overview["times"], [float(t) for t in native["times"]]
     same_count = overview["states"] == native["states"] == len(native_times)

@@ -153,7 +153,7 @@ def test_panel_preparation_is_owned_by_session_engine_and_never_replayed(tmp_pat
             assert "panel_fault" in result["error"]["message"]
     directory = next((manager.directory(sid) / "requests").iterdir())
     proof = json.loads((directory / "engine-result.json").read_text())
-    assert proof["status"] == {None: "succeeded", "exception": "unverified", "diagnostic": "failed"}[panel_error]
+    assert proof["status"] == {None: "succeeded", "exception": "failed", "diagnostic": "failed"}[panel_error]
     assert proof["job_id"] == directory.name
 
 

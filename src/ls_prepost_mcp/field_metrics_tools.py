@@ -108,7 +108,8 @@ class FieldMetricsTools:
         - stress components: sxx, syy, szz, sxy, syz, szx
         - stress: all six components together, CSV/NPZ through the shared exporter (Q03).
           Requires explicit units. stored_point selects an explicit 1-based stored point without averaging;
-          omit it for a stored-point mean. It is not a shell top/mid/bottom label.
+          multiple shell/tshell points require it; solids may omit it for a reported point mean.
+          It is not a shell top/mid/bottom label. Scalar quantities use the same explicit point.
           native_check=true independently checks up to 1000 returned entities against native SCL;
           means require one stored point, explicit points require numerical agreement with the native selector.
           native_sampling is the independent native mid/inner/outer or numbered selector; it is never
@@ -120,8 +121,8 @@ class FieldMetricsTools:
         Mask options: 'alive' (default), 'all', 'deleted'.
         Returned ids/values and CSV/NPZ rows follow the mask; data.mask_policy gives the excluded count.
         Without stored deletion data, mask alive/deleted is refused and mask all reports the deletion status unknown.
-        Elements with several stored integration points / shell layers are averaged over them before the
-        invariants are computed (shells: through-thickness mean; see data.note).
+        Solid integration points may be averaged before invariants; multiple shell/tshell points require
+        stored_point. No arithmetic mean is described as a thickness-direction integral.
         Returns JobResult/v1 with extrema (element ID and 1-based state), formula conventions, and CSV/NPZ artifacts.
         """
         if not isinstance(path, str) or not path.strip():
@@ -153,22 +154,22 @@ class FieldMetricsTools:
             raise ValueError("native_check must be true or false")
         if stored_point is not None and (type(stored_point) is not int or stored_point < 1):
             raise ValueError("stored_point must be a positive 1-based integer")
-        if norm_quantity == "stress":
-            from .tensor_field import tensor_field
-
-            return tensor_field(self, path, norm_family, state_number, norm_mask, units, norm_fmt, parts,
-                                native_check, stored_point, native_sampling)
-        if native_check or stored_point is not None or native_sampling != "mid":
-            raise ValueError("native_check/stored_point currently require the six-component stress quantity")
+        if norm_quantity != "stress" and (native_check or native_sampling != "mid"):
+            raise ValueError("native_check/native_sampling currently require the six-component stress quantity")
 
         if units is not None and not isinstance(units, str):
             raise ValueError("Units must be a string or None")
 
         source = self.settings.input_path(path)
+        # Both tensor/scalar metadata readers must pass exactly the same family
+        # confinement, state and deletion checks before any job or native work.
+        with self._guard():
+            self._result_family(str(source))
 
         try:
-            state_count = int(lb.state_times(source).size)
-            deletion_stored = bool(lb.header(source)["deletion_data_stored"])
+            with self._guard():
+                state_count = int(lb.state_times(source).size)
+                deletion_stored = bool(lb.header(source)["deletion_data_stored"])
         except Exception:  # unreadable file: the job below reads it again and records the error
             state_count, deletion_stored = None, None
         if deletion_stored is False and norm_mask != "all":
@@ -178,6 +179,11 @@ class FieldMetricsTools:
             raise ValueError(f"State {state_number} is out of range; this d3plot has states 1..{state_count}")
         if state_count is not None and state_count == 0:
             raise ValueError("This d3plot has no stored states")
+        if norm_quantity == "stress":
+            from .tensor_field import tensor_field
+
+            return tensor_field(self, str(source), norm_family, state_number, norm_mask, units, norm_fmt, parts,
+                                native_check, stored_point, native_sampling)
         state_index = -1 if state_number == -1 else state_number - 1
 
         parameters = {
@@ -189,6 +195,7 @@ class FieldMetricsTools:
             "units": units,
             "output_format": norm_fmt,
             "part_ids": parts,
+            "stored_point": stored_point,
         }
         directory, manifest = self.jobs.create("extract_field", parameters)
 
@@ -201,7 +208,8 @@ class FieldMetricsTools:
         raw: dict[str, Any] = {}
 
         try:
-            raw = lb.field(source, norm_family, norm_quantity, state=state_index, mask=norm_mask, part_ids=parts)
+            raw = lb.field(source, norm_family, norm_quantity, state=state_index, mask=norm_mask,
+                           part_ids=parts, stored_point=stored_point)
 
             state_out = int(raw["state"]) + 1  # public 1-based state number
             state_time = float(raw["time"])
@@ -268,6 +276,7 @@ class FieldMetricsTools:
                 "mask": norm_mask,
                 "part_ids": parts,
                 "note": raw.get("note", "stored value"),
+                "sampling": raw.get("sampling"),
                 "formula": formula,
                 "conventions": dict(inv.CONVENTIONS),
                 "element_count": element_count,
@@ -276,9 +285,12 @@ class FieldMetricsTools:
                 "mask_policy": mask_policy,
                 "active_count": int(np.count_nonzero(raw["alive"]))
                 if mask_policy["deletion_status"] == "stored" else None,
+                "alive_total_count": int(np.count_nonzero(alive_all))
+                if mask_policy["deletion_status"] == "stored" else None,
                 "finite_count": int(extrema["count"]),
                 "count_policy": {
                     "active_count": "stored alive flags among returned rows; null when deletion status is unknown",
+                    "alive_total_count": "stored alive flags before the mask, within the selected parts; null when unknown",
                     "finite_count": "finite scalar values among returned rows participating in extrema",
                 },
                 "extrema": extrema,

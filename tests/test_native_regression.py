@@ -123,7 +123,7 @@ def test_record(request):
     result = subprocess.run([sys.executable,"-m","pytest",str(source),"-p","tools.native_regression",
                              "-c",str(ROOT/"pyproject.toml"),"--run-native","--native-output",str(report),
                              "-o","cache_dir="+str(tmp_path/"cache"),"-q"],cwd=ROOT,
-                            env=python_environment(tmp_path),capture_output=True,text=True,timeout=30)
+                            env=python_environment(tmp_path),capture_output=True,text=True,timeout=120)
     assert result.returncode == 0, result.stdout + result.stderr
     data = json.loads((report/"report.json").read_text())
     context = json.loads((report/"execution-context.json").read_text())

@@ -305,6 +305,7 @@
 
 - extract_field(quantity=stress) 已复用共享读取/导出器输出六分量 CSV/NPZ，支持 Part、存储点及删除掩码；4.13/4.10 各八项原生对照通过，包含 548 个公开实体与壳内/中/外层的显式存储点配对，以及两个错配拒绝负例；本项仍缺通用壳层映射与多后端入口归并
 - 8 个工具按后端各一份；壳层未认证；实体积分点 2-8 原生返回错值被拒绝
+- review02 已拒绝多存储点壳/厚壳的隐式平均，显式 stored_point 对张量与标量共用；未解释 CMPFLG，坐标口径为 as stored。张量仍以两次整族 SHA256 检查执行期间输入不变，大结果性能优化待安全方案
 - PR #90（反重力，2026-10-22 关闭未合，分支 antigravity/Q03-field-extraction 保留）未解决：backend="native" 不跑 LSPP 却标 lsprepost；壳 layer/integration_point 只改元数据不改数值；越界 state 被取模；另写导出器，CSV 用共享 read_field 读不回；LSPP 与 LASSO 一致性证据是回写比较；部分 entity_ids 缺失被丢弃。重做时须复用 lasso_backend.field / export
 
 ### Q04 工程量与失效掩码
@@ -359,7 +360,7 @@
 缺口：
 
 - extract_database（LASSO，不启动 LSPP）已按存储列名读取 12 类 binout 库，自动合并同目录 MPP 分片；重复 ID（RCFORC 的 side 0/1）按存储列区分。公开 binout（Bolt_B_Explicit、pyansys-heart）的 glstat / rcforc / nodout 与 lasso 直读逐值一致
-- ASCII RCFORC/SECFORC 已按名称接入 extract_database，接触两侧与截面坐标系保留，五份公开文件逐行核对；三向力现支持显式 native_check，4.13/4.10 各七项原生测试通过（含错分量拒绝），原 I04 两个 ASCII 用例两版各通过；其余 ASCII 库与力矩等原生对照仍缺
+- ASCII RCFORC/SECFORC 保留接触两侧、legend 标题和截面 ac ID 原文参考标记（不推断坐标系）；五份公开文件全部可用列已核对。三向力的旧登记代码在 4.13/4.10 各七项原生对照通过；当前元数据、其余 ASCII 库和力矩/重心等原生对照仍缺
 - MPP 合并结果与单机结果一致性未验证：公开语料中没有同一模型的 MPP/SMP 成对算例（corpus:mpp_binout）；分片合并只有合成 LSDA 用例
 - 两份公开 ASCII 力文件已有 2952 个正例时间/数值对照；这不代表 binout 全库的 LSPP/LASSO 一致性，后者仍待完成
 
@@ -640,7 +641,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 - 查询侧已加通用中英词表与排序；公开索引下留出集 B 前 3 命中 13/24（基线 5/24），旧留出集 16/24；开发集与旧二十题为调优集，不作完成依据
 - holdout B 的独立性未经可复核证明：文件 blob e8d7728b 首次出现在 ecae976，与代码提交 3703de5 同一秒提交，Git 不能证明调优前冻结；以后的留出集须先公布哈希再调优
-- 私有 Scripting API/用户指南来源路径未经用户确认（I05 缺口），正式口径 API 类 0/4；SCL 驼峰函数名的索引拆词已由 I05 补齐，指南 PDF 抽取断词仍待处理
+- 私有 Scripting API/用户指南来源路径未经用户确认（I05 缺口），正式口径 API 类 0/4；I05 已修查询与索引的标识符边界，API 真实召回仍需经授权来源重建验证，指南 PDF 抽取断词仍待处理
 - 不写关键字名的字段语义问题（holdout B HB09/HB11/HB12）仍未命中；holdout B 有 6 题答案目标与开发集重合，去除后 10/18
 - 审阅 P2（#93 合入时未修）：evidence.json 的逐题返回列表仍是 f04843a 的记录，最终修订改变了 6 题的前 3 条，未重新生成；扩展词形覆盖率无自动测试
 
