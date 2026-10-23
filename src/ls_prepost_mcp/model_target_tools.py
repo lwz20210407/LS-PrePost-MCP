@@ -152,6 +152,7 @@ class ModelTargetTools:
 
     def _edit(self, operation: str, model: str, edits: list[dict], allowed: frozenset | None,
               allow_new_dangling: bool) -> dict:
+        from .domain.model import preflight_includes
         from .domain.model.operations import edit_deck
 
         if not isinstance(edits, list) or not edits or not all(isinstance(e, dict) and "op" in e for e in edits):
@@ -166,6 +167,8 @@ class ModelTargetTools:
             with self._guard():
                 outcome = edit_deck(str(source), edits, output_dir=str(directory / "deck"),
                                     allow_new_dangling=allow_new_dangling)
+                if outcome["status"] == "succeeded" and outcome.get("written"):
+                    outcome["reload_report"] = preflight_includes(outcome["save"]["main"])
         except (ValueError, KeyError, TypeError, OSError, RecursionError) as error:
             outcome = {"status": "failed", "error": f"{type(error).__name__}: {error}", "written": False}
         data = {k: outcome.get(k) for k in ("changes", "summaries", "diff", "diff_truncated", "new_dangling",
@@ -188,12 +191,13 @@ class ModelTargetTools:
                                   status="failed" if outcome["new_dangling"] else "passed",
                                   required=not allow_new_dangling),
                       CheckResult(name="saved_deck_reloads",
-                                  status="failed" if save["reload_warnings"] else "passed")]
+                                  status="passed" if outcome["reload_report"]["ok"] else "failed")]
             data["main"] = save["main"]
             if any(c.required and c.status in {"failed", "invalid", "missing"} for c in checks):
                 artifacts = [a.model_copy(update={"verification": "unverified"}) for a in artifacts]
             result = _result(operation, "succeeded", data, job_id=manifest["job_id"], artifacts=tuple(artifacts),
-                             checks=checks, warnings=tuple(str(w) for w in outcome.get("warnings", [])[:50]),
+                             checks=checks, warnings=tuple(dict.fromkeys(
+                                 str(w) for w in [*outcome.get("warnings", []), *save["reload_warnings"]]))[:50],
                              scope="input deck unchanged; edited copy in the job directory")
         atomic_json(directory / "job.json", {**manifest, "status": result["status"], "result": result})
         return result

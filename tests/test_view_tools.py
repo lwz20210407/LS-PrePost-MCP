@@ -120,7 +120,7 @@ def test_selector_centering_fails_closed_without_dispatch(session_service, tmp_p
     result = service.set_view("session", session_id=SESSION, view="front", center_on=selector)
     JobResult.model_validate(result)
     assert result["status"] == "failed" and result["error"]["type"] == "unsupported"
-    assert result["checks"] == [dict(name="selector_centering", status="missing", source_path=[])]
+    assert result["checks"] == [dict(name="selector_centering", status="missing", required=True, source_path=[])]
     assert sessions.calls == [] and sessions.journals == []
     assert not (tmp_path / "workspace").exists()
     with pytest.raises(ValueError):
