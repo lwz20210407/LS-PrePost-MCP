@@ -4,7 +4,8 @@ histories, Q06 binout curves and element fields for Q03/Q04.
 Decision D2 lets numbers come from LASSO; the cross-check against LS-PrePost belongs to the
 native track. Values are returned in the model's own units (nothing is converted). d3plot stores
 current nodal coordinates, so displacements are current minus initial coordinates. Element
-values with several stored integration points are averaged over them and the metadata says so.
+Solid integration points use a reported point mean by default. Multiple shell/tshell
+stored points require an explicit index; they are never silently treated as a thickness average.
 """
 from __future__ import annotations
 
@@ -206,32 +207,36 @@ def _index(ids: np.ndarray, wanted: list[int], kind: str) -> np.ndarray:
     return np.asarray([position[int(w)] for w in wanted])
 
 
+def _stored_point_values(values: np.ndarray, family: str, point: int | None, point_dimensions: int):
+    if values.ndim not in (point_dimensions, point_dimensions - 1):
+        raise ResultsError(f"Unsupported {family} stored-point array shape")
+    count = values.shape[2] if values.ndim == point_dimensions else 1
+    if count < 1:
+        raise ResultsError("Stored-point array has no points")
+    if point is not None and (type(point) is not int or not 1 <= point <= count):
+        raise ResultsError(f"stored_point must be a 1-based index within 1..{count}")
+    if point is None and count > 1 and family in {"shell", "tshell"}:
+        raise ResultsError(f"{family} has {count} stored points; specify stored_point explicitly; "
+                           "an arithmetic point mean is not a shell layer or thickness integral")
+    if values.ndim == point_dimensions:
+        if point is not None:
+            return values[:, :, point - 1], f"stored point {point} (1-based); no averaging"
+        return values.mean(axis=2), f"mean of {count} stored points"
+    return values, "stored point 1 (1-based); no averaging" if point is not None else "stored value"
+
+
 def _element_values(arrays: dict, family: str, quantity: str, stored_point: int | None = None) -> tuple[np.ndarray, str]:
-    """(states, elements) values of a stress component, invariant or plastic strain; IP-averaged."""
+    """(states, elements) scalar/tensor values; shell points are always explicit when multiple."""
     _, _, _, _, stress_key, eps_key = FAMILIES[family]
     if quantity == "effective_plastic_strain":
         if eps_key not in arrays:
             raise ResultsError(f"No effective plastic strain for {family} elements in this d3plot")
         values = np.asarray(arrays[eps_key], dtype=float)
-        note = "stored value"
-        if values.ndim == 3:
-            values, note = values.mean(axis=2), f"mean of {values.shape[2]} stored points"
-        return values, note
+        return _stored_point_values(values, family, stored_point, 3)
     if stress_key not in arrays:
         raise ResultsError(f"No stresses for {family} elements in this d3plot")
     stress = np.asarray(arrays[stress_key], dtype=float)
-    note = "stored value"
-    if stress.ndim == 4:  # states, elements, points, 6
-        if stored_point is not None:
-            if stored_point > stress.shape[2]:
-                raise ResultsError("Stored integration point is outside the stress array")
-            stress, note = stress[:, :, stored_point-1, :], f"stored point {stored_point} (1-based); no averaging"
-        else:
-            stress, note = stress.mean(axis=2), f"mean of {stress.shape[2]} stored points"
-    elif stored_point is not None:
-        if stored_point != 1:
-            raise ResultsError("This stress array has one stored point")
-        note = "stored point 1 (1-based); no averaging"
+    stress, note = _stored_point_values(stress, family, stored_point, 4)
     if quantity == "stress":
         return stress, note
     if quantity in STRESS:
@@ -361,8 +366,6 @@ def field(path: str | Path, family: str, quantity: str, state: int = -1, mask: s
     part_titles_ids) restricts the returned elements and the extrema to those parts."""
     if stored_point is not None and (type(stored_point) is not int or stored_point < 1):
         raise ResultsError("stored_point must be a positive 1-based integer")
-    if stored_point is not None and quantity != "stress":
-        raise ResultsError("Explicit stored_point currently requires the six-component stress quantity")
     arrays = _arrays(path)
     times = _times(arrays)
     if isinstance(state, bool) or not isinstance(state, (int, np.integer)) or not -times.size <= state < times.size:
@@ -390,12 +393,13 @@ def field(path: str | Path, family: str, quantity: str, state: int = -1, mask: s
             "time": float(times[state_index]), "ids": ids, "values": row, "alive": alive,
             "mask": mask, "part_ids": parts, "extrema": extrema, "note": note,
             "deletion_data": deletion_data}
+    stored = np.asarray(arrays[FAMILIES[family][5 if quantity == "effective_plastic_strain" else 4]])
+    point_dimensions = 3 if quantity == "effective_plastic_strain" else 4
+    result["sampling"] = {"kind": "stored_point" if stored_point else "mean_stored_points",
+                          "count": int(stored.shape[2]) if stored.ndim == point_dimensions else 1,
+                          "index": stored_point, "native_layer_equivalence": "not inferred"}
     if quantity == "stress":
-        stored = np.asarray(arrays[FAMILIES[family][4]])
-        result.update(components=list(STRESS), sampling={"kind": "stored_point" if stored_point else "mean_stored_points",
-                      "count": int(stored.shape[2]) if stored.ndim == 4 else 1,
-                      "index": stored_point,
-                      "native_layer_equivalence": "not inferred"})
+        result["components"] = list(STRESS)
     return result
 
 

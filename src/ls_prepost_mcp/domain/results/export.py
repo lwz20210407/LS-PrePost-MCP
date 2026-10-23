@@ -23,7 +23,7 @@ FORMATS = ("csv", "npz")
 def _meta(result: dict, units: str | None) -> dict:
     meta = {"quantity": result["quantity"], "family": result["family"], "state": result["state"],
             "time": result["time"], "points": result.get("note", "stored value"), "mask": result["mask"],
-            "coordinate_system": result.get("coordinate_system", "global (as stored in d3plot)"), "backend": result["backend"],
+            "coordinate_system": result.get("coordinate_system", "as stored"), "backend": result["backend"],
             "units": units or "model units, not converted (unit system not declared)",
             "rows": int(np.asarray(result["ids"]).size), "extrema": result.get("extrema"),
             "formula": inv.definition(result["quantity"]), "conventions": dict(inv.CONVENTIONS)}

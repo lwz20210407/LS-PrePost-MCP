@@ -44,10 +44,12 @@ def _native_agreement(service, source, raw, selector):
             raise ValueError("Native comparison state/time differs from reader selection")
         values.append([float(row[k]) for k in fields])
     values = np.asarray(values)
-    if not np.all(np.isfinite(values)) or not np.allclose(values, raw["values"], rtol=2e-5, atol=1e-6):
+    atol = 1e-6 * np.max(np.abs(values), axis=0)
+    if not np.all(np.isfinite(values)) or not np.allclose(values, raw["values"], rtol=2e-5, atol=atol):
         raise ValueError("Native/LASSO six-component stress disagreement; check sampling and frame")
     return {"backend": "lsprepost", "job_id": native["job_id"], "entities": len(ids),
-            "components": list(lb.STRESS), "rtol": 2e-5, "atol": 1e-6,
+            "components": list(lb.STRESS), "rtol": 2e-5, "atol": atol.tolist(),
+            "atol_rule": "1e-6 times each native component's maximum absolute value; zero for zero components",
             "max_absolute_error": float(np.max(np.abs(values - raw["values"]))),
             "native_selector": selector, "reader_sampling": raw["sampling"],
             "sampling": "numerical agreement for this explicit selection; no general shell layer remapping"}
@@ -88,7 +90,7 @@ def tensor_field(service, path, family, state, mask, units, output_format, parts
             raise ValueError("Nonfinite stress component in returned entities")
         raw = {**raw, "ids": ids[keep], "values": values[keep], "alive": alive[keep],
                "state": int(raw["state"])+1, "state_index_base": 1, "units": units,
-               "coordinate_system": "as stored; no coordinate transformation or inferred global/material frame"}
+               "coordinate_system": "as stored"}
         raw["extrema"] = {key: inv.extrema(raw["values"][:,i], raw["ids"], np.ones(keep.sum(), bool))
                           for i,key in enumerate(lb.STRESS)}
         raw["mask_policy"] = {"mode": mask, "rule": inv.MASKS[mask], "elements": int(ids.size),
@@ -98,7 +100,13 @@ def tensor_field(service, path, family, state, mask, units, output_format, parts
                                     "units", "sampling", "mask_policy", "extrema", "part_ids", "note")}
         data.update(shape=list(raw["values"].shape), row_count=int(keep.sum()), state_index_base=1,
                     coordinate_system=raw["coordinate_system"],
+                    coordinate_system_note="No coordinate transform or inferred global/material frame; CMPFLG not interpreted",
                     active_count=int(raw["alive"].sum()) if raw["deletion_data"] else None,
+                    alive_total_count=int(alive.sum()) if raw["deletion_data"] else None,
+                    finite_count=int(np.all(np.isfinite(raw["values"]), axis=1).sum()),
+                    count_policy={"active_count": "stored alive flags among returned rows; null when deletion status is unknown",
+                                  "alive_total_count": "stored alive flags before the mask, within the selected parts; null when unknown",
+                                  "finite_count": "returned rows with all six components finite"},
                     preview={"ids": raw["ids"][:20].tolist(), "values": raw["values"][:20].tolist()},
                     preview_truncated=int(keep.sum()) > 20, full_data="CSV/NPZ artifacts; no full tensor array in MCP")
         if native_check:
