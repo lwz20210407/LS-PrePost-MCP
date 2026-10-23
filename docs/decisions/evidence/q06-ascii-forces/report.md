@@ -1,5 +1,7 @@
 # Q06：按名称读取 ASCII 接触力与截面力
 
+本页保留初次实现的历史 API/验证口径；当前元数据、全部列核对及差异策略见 [review02 记录](../q06-ascii-metadata-review02/report.md)。下文 coordinate_system_ids 已被 local_frame_reference 取代，不作为坐标系语义认证。
+
 `extract_database` 可直接读取显式的 `rcforc` / `secforc` 文件，输出沿用
 JobResult 和已校验 CSV。保持原工具名、签名及二进制 MPP 合并入口。
 

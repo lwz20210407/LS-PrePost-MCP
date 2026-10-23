@@ -2,6 +2,9 @@
 
 ## 0.4.0 (development)
 
+- Q06：ASCII SECFORC 的 `coordinate_system_ids` 改为 `local_frame_reference`（保留写入编号/前缀，不推断坐标系）；RCFORC/SECFORC 保留 `legend_titles`，冲突标题置 null 并告警。ASCII 重复时间拒绝与 binout 相同值重复时间折叠是不同的明确策略。
+- Q06：RCFORC 的 CSV 在存在 side 元数据时始终包含 `side`，即使只存一侧；ASCII/binout 均如此，调用者应按列名和 `column_key` 读取。
+
 ### 从 Skill 迁入的更新记录
 
 - `automation.md`：For normal reversal on large keyword meshes, `reverse_gui_shell_normals` now supports standard Tri3/Quad4 all/explicit scopes through complete streamed orientation/preservation checks. Native100,000-shell full/partial reversal and save/reopen passed. It preserves part visibility and every unrequested connectivity/coordinate; it does not implement automatic outward/seed-based unification, thick-shell normals or material-axis changes. Other snapshot-based merge/renumber/quality paths retain their documented limits.
