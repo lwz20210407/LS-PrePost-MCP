@@ -50,7 +50,7 @@ def definition(quantity: str) -> str:
     if quantity == "effective_plastic_strain":
         return "stored effective plastic strain (as written to d3plot)"
     if quantity.startswith("s") and quantity[1:] in CONVENTIONS["components"]:
-        return f"stored stress component {quantity} (global frame, as written to d3plot)"
+        return f"stored stress component {quantity} (as stored; no frame transformation)"
     return quantity
 QUANTITIES = ("von_mises", "mean_stress", "pressure", "triaxiality", "principal_1", "principal_2", "principal_3",
               "max_shear", "lode_parameter", "lode_angle_rad", "lode_angle_parameter")
