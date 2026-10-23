@@ -81,8 +81,8 @@ def test_guard_regression_does_not_replace_os_dependencies(tmp_path, monkeypatch
     test(tmp_path, monkeypatch)
 
 
-def test_known_issues_records_prelaunch_refusal_and_observed_failures():
-    text = KNOWN_ISSUES.read_text(encoding="utf8")
+def test_historical_prelaunch_refusal_and_observed_failures_remain_archived():
+    text = (ROOT / "docs/archive/2026-10/known-issues-before-review02.md").read_text(encoding="utf8")
     section = text.split("## I01：批处理输入路径暂存补修", 1)[1].split("\n## ", 1)[0]
     for fact in ("Windows", "含 INCLUDE 的非 ASCII 根路径", "创建作业前", "ValueError",
                  "0xC0000005", "rc=0", "test_engine_native.py", "i04-diagnostics/report.md"):
@@ -90,11 +90,12 @@ def test_known_issues_records_prelaunch_refusal_and_observed_failures():
     assert "非 Windows" in section and "严格 xfail" in section
 
 
-def test_known_issues_keeps_unicode_member_paths_unverified():
+def test_current_notes_keep_remaining_paths_separate_from_historical_refusals():
     text = KNOWN_ISSUES.read_text(encoding="utf8")
     section = text.split("## I01：批处理输入路径暂存补修", 1)[1].split("\n## ", 1)[0]
-    for fact in ("未验证", "非 ASCII 的 INCLUDE 成员名", "*INCLUDE_PATH", "根路径"):
+    for fact in ("4.8", "未认证", "TRANSFORM", "嵌套 INCLUDE_PATH_RELATIVE", "原路径证据"):
         assert fact in section
+    assert "非 ASCII 的 INCLUDE 成员名" not in section
 
 
 def test_known_issues_records_shared_guard_and_remaining_lasso_tail_gap():
