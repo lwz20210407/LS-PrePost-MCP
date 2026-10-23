@@ -1332,16 +1332,14 @@ metadata.api_tokenization=identifier-parts-v1 标记新构建口径；旧 schema
 没有隐式迁移，需在仓库外新路径显式重建才获得新 token。真实私有来源仍未补齐，见
 [I05 API 索引回归](decisions/evidence/i05-api-identifiers/report.md)。
 
-## Q05：批量时程与源数据语义（2026-10-23）
+## Q05 时程的未验证范围（跟踪：Q05）
 
-extract_history 提供节点、单元、Part 与全局曲线，复用共享 d3plot / binout 读取；单位需声明且不换算。
-每请求最多 100 实体、一百万总样本，完整数组只在 CSV 中；请求落为 ModelRef/CurveSpec。
-d3plot 重复时间原样保留；MPP binout 由共享合并器排序合并并折叠相同样本，合并口径明确记录。
-Part/binout 是存储的 MATSUM ID，不与另一个模型的 Part 关联。原生对照 d3plot 只接受已支持的
-节点/单存储点单元量；Part/global 需显式单文件 binout，不把多分片悄悄降为一个分片。
-全局向量不再默取第一列，重复/非整数源 ID 明确拒绝。时间与数值使用不同的对照容差，
-避免小幅时间错位被数值容差掩盖。四种模式在 4.13/4.10 均有真跑证据，见
-[Q05 时程验收](decisions/evidence/q05-history/report.md)。4.8 未验。
+默认 d3plot 的 Part/global、shell/tshell/beam 时程仍缺少原生对照，4.8 未验证。
+原生 d3plot 对照限节点及单存储点单元量、最多1000状态；Part/global 对照需显式单文件 binout，
+不会把多分片降为单分片。没有真实 part_ids 的 d3plot 部件时程拒绝猜测用户 PID。
+多存储点层选择接口待完善；其他曲线消费者尚不自动应用新增 alive 列，使用者需指定有效时间区间。
+删除样本的原始值保留并标无效；未知删除状态不当作全活。已修经过与限定原生证据见
+[审核02时程记录](decisions/evidence/q05-deletion-review02/report.md)，Q05 保持 partial。
 
 ## G04 实体查询的输入与结果边界（2026-10-23）
 

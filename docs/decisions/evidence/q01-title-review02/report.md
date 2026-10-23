@@ -23,3 +23,7 @@ python -m pytest tests/test_part_title_identity_review02.py tests/test_part_titl
 ```
 
 Q01 remains partial pending broader native/HSV/deletion checks and independent review. Unconfirmed user-PID tables remain an explicit operational limitation; they are not treated as certified identifiers. No raw corpus, title text or local absolute path is published.
+
+## Q05 shared-reader refresh
+
+After history validity/filter changes in lasso_backend, the three paired public keyword/title cases were rerun on clean 8c972f58f45344fbd45543b2dc85dfd0c6f9e4c5: 3 passed, 16 Parts, all input bytes unchanged. The initial 7c5d801 capture is retained in previous_captures; active product blobs/cases refer to this fresh run. No native title claim is added.
