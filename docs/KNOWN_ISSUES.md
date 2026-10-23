@@ -1276,20 +1276,13 @@ MATSUM 保留续行 HG、真实存储 ID 及独立时间轴，不重采样到 GL
 原用户配置未改，原始日志留在仓库外；身份与结果见
 [Q01 对照记录](decisions/evidence/q01-native-comparison/report.md)。
 
-## P11：普通 Include 树保存与原生准入（2026-10-23）
+## P11 未覆盖的保存重开与路径情形（跟踪：P11 / I03）
 
-`save_model` 用关键字引擎保真另存磁盘树，再自动无图形重开，比对节点/单元计数与 Part ID。
-`edit_keywords` 等工具返回的 `data.main` 可交给它；旧 `export_keyword` 的独立模型导出接口保持原状。
-保存失败返回观察和差异，没有 verified 输出。源树文件与目录清单、输出 SHA256 都有复核。
-
-只有注释的普通 `*INCLUDE` 是禁用的备选段：共享预检记为 warning，先前原生准入误拒绝。
-公开 Bolt 原样读入与独立计数一致，已放开这一个情形；缺文件、越界、网络、非首列/END 后卡片，
-以及空的非普通 Include 变体仍拒绝。预检从一开始就在模型访问守卫内执行。
-
-初次证据为 4.13 七项与 4.10 两项子集；后续规范化副本验证补齐 4.10 普通 Include 七项与
-非 ASCII 源路径，见前述 I01 补验。P11 仍 partial：TRANSFORM 等变体、嵌套相对搜索路径、
-GUI 未保存的编辑尚未闭环，4.8 本项未复验。
-历史失败、干净执行 revision 与验证口径见 [P11 保存记录](decisions/evidence/p11-save/report.md)。
+P11 仍为 partial。TRANSFORM/opaque、参数化文件名及嵌套 INCLUDE_PATH_RELATIVE 仍拒绝；
+GUI 未保存编辑、4.8 和非 ASCII 另存文件名未验。没有节点的树仍被原生读取检查拒绝。
+为防止原生数据库覆盖资产，另存根目录已经含有 lspost.db 时在启动前拒绝。
+当前真实路径重开与产品绑定范围见 [审核02记录](decisions/evidence/p11-raw-review02/report.md)；
+旧规范化副本或早期 revision 的记录不能外推为当前另存路径解析通过。
 
 ## P02：绝对外部依赖另存的修改保护（2026-10-23）
 
@@ -1298,15 +1291,6 @@ GUI 未保存的编辑尚未闭环，4.8 本项未复验。
 相对搜索目录、绝对父文件中的 main-dir 回退和普通相对 opaque 资产仍保持原另存行为。
 不自动改写用户未指定的路径卡，也不覆盖源文件。反例与范围见
 [P02 外部依赖记录](decisions/evidence/p02-absolute-save/report.md)。
-
-## P11：搜索路径的保真保存（2026-10-23）
-
-公开百例中的三个大模型已可读取，但 save_model 仍误用只接受普通 Include 的旧准入而拒绝保存。
-现与规范化原生读取共用受限路径校验，允许已验证的主文件 INCLUDE_PATH / INCLUDE_PATH_RELATIVE；
-相对空搜索目录也参与输出布局计算并保留，避免原样路径卡在另存后悬空。
-4.13 和 4.10 各四个后台保存重开用例通过，证据绑定干净 revision，见
-[P11 搜索路径保存](decisions/evidence/p11-search-path-save/report.md)。这八项是小模型验证，
-不将公开大模型的历史失败改判为通过。绝对依赖显式 external_unchanged；修改固定外部依赖仍拒绝。
 
 ## I04：当前原生底座的公开百例复跑（2026-10-23）
 

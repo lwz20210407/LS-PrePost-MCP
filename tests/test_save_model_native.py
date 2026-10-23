@@ -116,4 +116,9 @@ def test_native_save_and_reopen(installation, pytestconfig, record_property, cas
     assert all(j["status"] == "succeeded" and j["returncode"] == 0 and j["timed_out"] is False
                and j["graphics"] is False and j["nographics"] for j in jobs)
     assert result.data["observations"]["before_save"]["counts"] == result.data["observations"]["after_reopen"]["counts"]
+    opened = result.data["observations"]["after_reopen"]["input_open"]
+    saved_main = Path(result.data["main"])
+    assert opened["normalized"] is False and opened["load_name"] == saved_main.name
+    assert Path(opened["cwd"]).resolve() == saved_main.parent.resolve()
+    assert Path(opened["resolved_main"]).resolve() == saved_main.resolve()
     assert all(sha(a.path) == a.sha256 for a in result.artifacts)

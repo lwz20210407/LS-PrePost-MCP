@@ -1,3 +1,5 @@
+> 当前有效性：本报告是历史实现记录；后续规范化读取改变了路径，不能由它证明当前另存树的原生路径解析。当前产品绑定与真实原路径重开见 [审核02复跑](../p11-raw-review02/report.md)。旧运行与失败记录保留。
+
 # P11: search-path layout preservation
 
 The public-100 run on clean c46bb9d reached native reading for three large decks but save_model

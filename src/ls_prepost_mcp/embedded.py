@@ -520,6 +520,7 @@ def run(request_path, response_path):
         if action in ("extract_nodal", "node_history"):
             nv.require_vector_abi(sys.version_info)
         job_directory = request.get("job_directory", os.getcwd())
+        input_open = None
         if request.get("safe_beam_connectivity"):
             dc = BeamSafeDataCenter(dc, job_directory)
         if request.get("model"):
@@ -536,6 +537,9 @@ def run(request_path, response_path):
                     else os.path.basename(source)
                 )
                 lp.execute_command(nc.open_model(load_name, kind, openc=kind == "d3plot"))
+                if request.get("raw_keyword_tree"):
+                    input_open = {"cwd": os.getcwd(), "load_name": load_name,
+                                  "resolved_main": os.path.abspath(load_name), "normalized": False}
             finally:
                 os.chdir(job_directory)
             if int(dc.get_data("num_nodes")) <= 0 and request.get("expected_empty") is not True:
@@ -1157,6 +1161,8 @@ def run(request_path, response_path):
             }
         else:
             raise ValueError("Unsupported bridge action: " + action)
+        if input_open is not None:
+            data["input_open"] = input_open
         response.update(ok=True, data=data)
     except Exception as exc:
         response.update(

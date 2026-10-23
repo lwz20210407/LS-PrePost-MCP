@@ -35,13 +35,15 @@ def _expectations(counts, parts):
 
 
 def _observe(service, model, phase, data):
-    native = service._native("inspect_model", {}, model=str(model))
+    native = service._native("inspect_model", {}, model=str(model), raw_keyword_tree=phase == "after_reopen")
     values = native.get("data") or {}
     if not isinstance(values, dict):
         data["differences"].append({"phase": phase, "field": "data", "reason": "invalid native observation"})
         raise ValueError(f"{phase}: native data must be an object")
     observation = {"job_id": native.get("job_id"), "status": native.get("status"),
                    "counts": values.get("counts"), "part_ids": values.get("part_ids")}
+    if phase == "after_reopen":
+        observation["input_open"] = values.get("input_open")
     data.setdefault("observations", {})[phase] = _plain(observation)
     if native.get("status") != "succeeded":
         diagnostic = (native.get("error") or {}).get("message") or "Native inspect did not succeed"
@@ -104,6 +106,9 @@ def save_model(service, model, expected_counts=None, expected_part_ids=None):
                         search_directories=saved["search_directories"],
                         saved_files=len(saved["files"]), structure="relative layout and untouched bytes preserved")
             warnings.extend(str(w) for w in saved["reload_warnings"])
+            saved_folders = {Path(item["dest"]).parent for item in saved["files"]}
+            saved_folders.update(Path(item["dest"]) for item in saved["search_directories"])
+            saved_listings = {p: sorted(f.name for f in p.iterdir()) for p in saved_folders}
             after = _observe(service, saved["main"], "after_reopen", data)
             data["differences"].extend(_compare(expected, after, "after_reopen"))
             if data["differences"]:
@@ -113,6 +118,8 @@ def save_model(service, model, expected_counts=None, expected_part_ids=None):
                 raise ValueError("Input tree files or directory listing changed during save/reopen")
             if any(_sha(item["dest"]) != item["sha256"] for item in saved["files"]):
                 raise ValueError("Saved tree changed during native reopen")
+            if any(names != sorted(f.name for f in p.iterdir()) for p, names in saved_listings.items()):
+                raise ValueError("Saved tree directory listing changed during native reopen")
             checks = [CheckResult(name=name, status="passed") for name in
                       ("input_tree_unchanged", "saved_bytes_verified", "native_reopen_counts", "native_reopen_parts")]
             artifacts = tuple(Artifact(path=item["dest"], kind="keyword", sha256=item["sha256"],

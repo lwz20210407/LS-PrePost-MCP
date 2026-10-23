@@ -2,6 +2,7 @@
 import json
 import os
 import re
+import stat
 import subprocess
 from pathlib import Path
 
@@ -67,9 +68,14 @@ class Service(EnergyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTool
 
     def _native(self, action: str, parameters: dict, model: str | None = None,
                 file_type: str = "keyword", graphics: bool = False,
-                artifacts: tuple[tuple[str, str], ...] = (), export: bool = False) -> dict:
+                artifacts: tuple[tuple[str, str], ...] = (), export: bool = False,
+                raw_keyword_tree: bool = False) -> dict:
+        if type(raw_keyword_tree) is not bool:
+            raise ValueError("raw_keyword_tree must be a boolean")
         executor = self._native_context.executor
         if executor is not None:
+            if raw_keyword_tree:
+                raise ValueError("Raw owned-tree reopen requires a headless batch")
             if model is not None:
                 raise ValueError("Session operations cannot load a batch input")
             return executor(action=action, parameters=parameters, file_type=file_type,
@@ -78,6 +84,14 @@ class Service(EnergyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTool
         if file_type not in ("keyword", "d3plot"):
             raise ValueError("file_type must be keyword or d3plot")
         source = self.settings.input_path(model) if model else None
+        if raw_keyword_tree and (source is None or file_type != "keyword" or action != "inspect_model"
+                or graphics or export or not source.is_relative_to(self.jobs.root.resolve())):
+            raise ValueError("Raw tree reopen is restricted to an owned saved keyword tree and headless inspect")
+        # LSPP creates this database in the directory active at open time. Never
+        # let a raw reopen overwrite an existing saved asset with that name.
+        native_database = source.parent / "lspost.db" if raw_keyword_tree else None
+        if native_database is not None and os.path.lexists(native_database):
+            raise ValueError("Raw saved-tree reopen reserves lspost.db for the native auxiliary database")
         include_bearing, keyword_report = False, None
         if source and file_type == "keyword":
             with self._guard():
@@ -98,7 +112,13 @@ class Service(EnergyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTool
         staged_sources, source_identities, keyword_snapshot = [], [], None
         if source:
             manifest["input"] = fingerprint(source)
-            if not include_bearing:
+            if raw_keyword_tree:
+                request["raw_keyword_tree"] = True
+                manifest["input_staging"] = "Raw owned saved tree; no filename or search-path rewriting"
+                manifest["input_tree"] = {"tree_sha256": keyword_report["tree_sha256"],
+                                          "tree_sha256_version": keyword_report["tree_sha256_version"],
+                                          "files": keyword_report["files"], "normalized": False}
+            elif not include_bearing:
                 staged_sources, source_identities = stage_native_input(
                     self.settings, source, directory, family=file_type == "d3plot")
                 request["model"] = str(directory / ("d3plot" if file_type == "d3plot" else "input_data"))
@@ -168,6 +188,23 @@ class Service(EnergyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTool
                 manifest["bridge_error"] = response.get("error")
                 raise RuntimeError(response.get("error", {}).get("message", "Embedded action failed"))
             manifest["data"] = response["data"]
+            if raw_keyword_tree:
+                opened = response["data"].get("input_open") or {}
+                def same_path(a, b):
+                    return isinstance(a, str) and os.path.normcase(os.path.abspath(a)) == os.path.normcase(str(b))
+                if (opened.get("normalized") is not False or opened.get("load_name") != source.name
+                        or not same_path(opened.get("cwd"), source.parent)
+                        or not same_path(opened.get("resolved_main"), source)):
+                    raise RuntimeError("Raw saved-tree reopen did not attest the saved root and relative main filename")
+                if os.path.lexists(native_database):
+                    if not stat.S_ISREG(native_database.lstat().st_mode):
+                        raise RuntimeError("Native auxiliary lspost.db is not a regular file; retained without moving")
+                    side_effects = directory / "native-open-side-effects"
+                    side_effects.mkdir()  # exclusive owned destination; never replace a pre-existing directory
+                    auxiliary = check_artifact(native_database, "native_auxiliary")
+                    native_database.rename(side_effects / "lspost.db")
+                    manifest["native_open_auxiliary"] = {"name": "lspost.db", "sha256": auxiliary["sha256"],
+                        "size": auxiliary["size"], "relocated_to": "native-open-side-effects/lspost.db"}
             if source and action == "inspect_model" and not response["data"].get("counts", {}).get("nodes"):
                 raise RuntimeError("Input did not produce a nonempty model")
             for name, kind in artifacts:
