@@ -12,7 +12,7 @@ The same-algorithm zip oracle was removed. Three external d3plot headers are com
 | result.saudbinayed__binout.LS-DYNA-sample | 2 | internal_ordinal | 对登记产品 blob 当前有效 |
 | result.hu-shuhan__editOpeniGame.test.Format_Validation_Test.lsdyna.Bolt_B_Explicit | 7 | internal_ordinal | 对登记产品 blob 当前有效 |
 
-Clean execution revision: `7c5d8018a136ed4815fa4a91fd2f14bc97fc0063`. [evidence.json](evidence.json) binds key product-module blobs as well as the test blob. This evidence is not automatically extended to later product changes. The old q01-validity title claims are revoked (null, with historical values retained); inventory/time/file-identity history remains separately scoped.
+Initial clean execution revision: `7c5d8018a136ed4815fa4a91fd2f14bc97fc0063`. [evidence.json](evidence.json) binds key product-module blobs as well as the test blob. This evidence is not automatically extended to later product changes. The old q01-validity title claims are revoked (null, with historical values retained); inventory/time/file-identity history remains separately scoped.
 
 Baseline 0563045: 11 new identity regressions failed / one genuine direct-ID control passed; all three paired-keyword tests failed with actual title mismatches. One initial baseline harness attempt imported a newer helper and failed to import; it is retained locally but is not counted as a product regression. Corrected tests use keyword APIs available on both revisions. Current identity contract: 12 passed; paired public keyword checks: 3 passed. No LS-PrePost or solver run is claimed.
 
@@ -27,3 +27,5 @@ Q01 remains partial pending broader native/HSV/deletion checks and independent r
 ## Q05 shared-reader refresh
 
 After history validity/filter changes in lasso_backend, the three paired public keyword/title cases were rerun on clean 8c972f58f45344fbd45543b2dc85dfd0c6f9e4c5: 3 passed, 16 Parts, all input bytes unchanged. The initial 7c5d801 capture is retained in previous_captures; active product blobs/cases refer to this fresh run. No native title claim is added.
+
+Review02 wrapper refresh: the three independent keyword oracles were rerun at `35df3aa1fc87dea130d9dc3bfa75f8225dd38512` (3 passed, 16 Parts). The active product blobs and prior captures are in evidence.json; the initial revision above remains historical.

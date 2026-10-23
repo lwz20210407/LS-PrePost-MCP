@@ -7,6 +7,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
+MAX_EVIDENCE_JSON_BYTES = 512 * 1024
 
 
 def json_doc_paths(value):
@@ -33,6 +34,10 @@ def main():
     for relative in sorted(set(files)):
         path = ROOT / relative
         if path.suffix == ".json" and path.is_file():
+            if (path.is_relative_to(ROOT / "docs/decisions/evidence")
+                    and path.stat().st_size > MAX_EVIDENCE_JSON_BYTES):
+                errors.append(f"{relative}: evidence JSON exceeds 512 KiB; compact or split the evidence")
+                continue
             for target in json_doc_paths(json.loads(path.read_text(encoding="utf-8"))):
                 checked += 1
                 if not (ROOT / target).is_file():
@@ -50,7 +55,7 @@ def main():
             if not (path.parent / target).exists():
                 errors.append(f"{relative}: {target}")
     if errors:
-        raise SystemExit("Missing local link targets:\n" + "\n".join(errors))
+        raise SystemExit("Missing local link targets or invalid evidence size:\n" + "\n".join(errors))
     print(
         f"local Markdown/JSON file links: {checked} checked, no missing files (external URLs/anchors not checked)"
     )
