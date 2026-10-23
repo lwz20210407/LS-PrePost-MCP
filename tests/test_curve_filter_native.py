@@ -62,7 +62,8 @@ def test_sae_native_full_record_and_interior(installation, pytestconfig, cfc, un
     context = pytestconfig._native_identity
     result = dict(actual_git_revision=context["actual_git_head"], working_tree_dirty=context["working_tree_dirty"],
         git_diff_sha256=context["git_diff_sha256"], executable=binary, source_config_sha256=config_sha,
-        cfc=cfc, time_unit=unit, native_command=command, force_zero_start=False, samples=len(times),
+        cfc=cfc, time_unit=unit, native_command=command, trailing_option=0,
+        trailing_option_semantics="not independently read back", force_zero_start=None, samples=len(times),
         control=control, comparisons=comparisons, source_sha256=source_sha,
         filtered_sha256=hashlib.sha256((root / "filtered.xy").read_bytes()).hexdigest(),
         verdict="agrees" if comparisons["odd"]["agrees"] else "mismatch",

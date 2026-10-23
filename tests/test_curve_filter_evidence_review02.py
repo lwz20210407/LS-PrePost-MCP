@@ -25,6 +25,9 @@ def test_sae_native_evidence_keeps_all_eight_mismatches_and_product_identity(pyt
             assert case["verdict"] == "mismatch" and not case["comparisons"]["odd"]["agrees"]
             assert case["actual_git_revision"] == run["actual_git_revision"]
             assert case["samples"] == case["control"]["sample_count"] == 4001
+            assert case["force_zero_start"] is None
+            assert case["unverified_original_host_assertions"]["force_zero_start"] is False
+            assert case["trailing_option"] == 0
             assert case["native_process"] == dict(returncode=0, graphics=False, timed_out=False)
             assert case["comparisons"]["odd"]["max_absolute_error"] > 0
     shallow = subprocess.run(["git","rev-parse","--is-shallow-repository"],cwd=root,text=True,capture_output=True)
