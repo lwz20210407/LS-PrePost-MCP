@@ -231,6 +231,12 @@ tools:
     task_id: Q04
     legacy_until: null
     note: M2 target tool on domain.results (lasso_backend / invariants); returns JobResult/v1
+  extract_history:
+    target: extract_history
+    task_id: Q05
+    legacy_until: null
+    note: Q05 multi-entity d3plot/binout histories with explicit units and optional
+      native comparison; JobResult/v1
   extract_lsreader_nodal:
     target: extract_field
     task_id: Q03

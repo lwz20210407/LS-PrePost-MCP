@@ -1,8 +1,9 @@
 """Result tools shared by MCP and CLI; each export has a recorded, isolated job."""
 import math
 import re
+from typing import Literal
 
-from pydantic import StrictInt
+from pydantic import StrictBool, StrictInt
 
 from .curve_target_tools import CurveTargetTools
 from .field_contracts import FieldSpec, ResultSelection, SamplingSpec
@@ -144,6 +145,23 @@ class PostTools(CurveTargetTools):
         """Q01 JobResult/v1 overview of a d3plot: state count, every state time (1-based states, model time unit), LASSO variables, header and readable history-variable counts, parts, element families with deletions at the last state (null without deletion data), and the binout shards/databases and ASCII files beside it. native_check=true explicitly opens the family in LS-PrePost and checks that state count and times agree."""
         from .result_overview import result_info
         return result_info(self, path, native_check)
+
+    def extract_history(self, path: str, domain: Literal["node", "solid", "shell", "tshell", "beam", "part", "global"],
+                        quantity: str, entity_ids: list[StrictInt] | None = None, *, units: str, time_units: str,
+                        source_kind: Literal["d3plot", "binout"] = "d3plot", native_check: StrictBool = False) -> dict:
+        """Q05: multiple node/solid/shell/tshell/beam/part or global histories, one verified CSV per entity.
+
+        Explicit units/time_units label stored values; no unit conversion, filling or extra resampling.
+        d3plot time order stays unchanged; the shared binout merger's time policy is reported.
+        d3plot uses the shared LASSO history reader; binout explicitly supports Part (MATSUM) and
+        global (GLSTAT), through the shared MPP merger. Global curves have entity_id=null.
+        native_check independently compares SCL output (d3plot node/one-point element quantities,
+        or a single-file binout Part/global database); unsupported comparisons fail explicitly.
+        At most 100 entity curves and one million total samples; full samples stay in CSV artifacts.
+        """
+        from .history_tools import extract_history
+
+        return extract_history(self, path, domain, quantity, entity_ids, units, time_units, source_kind, native_check)
 
     def inspect_result_fields(self, path: str, state: int = 1) -> dict:
         """Inventory LASSO fields at one 1-based state, stored axis sizes and bounded user-ID samples. Missing fields cannot be reconstructed."""

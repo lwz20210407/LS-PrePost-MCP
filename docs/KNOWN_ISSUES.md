@@ -1347,3 +1347,14 @@ API 文档中的 SCLGetDataCenterFloatArray 等函数现在同时按完整标识
 metadata.api_tokenization=identifier-parts-v1 标记新构建口径；旧 schema-v2 索引仍可只读查询，
 没有隐式迁移，需在仓库外新路径显式重建才获得新 token。真实私有来源仍未补齐，见
 [I05 API 索引回归](decisions/evidence/i05-api-identifiers/report.md)。
+
+## Q05：批量时程与源数据语义（2026-10-23）
+
+extract_history 提供节点、单元、Part 与全局曲线，复用共享 d3plot / binout 读取；单位需声明且不换算。
+每请求最多 100 实体、一百万总样本，完整数组只在 CSV 中；请求落为 ModelRef/CurveSpec。
+d3plot 重复时间原样保留；MPP binout 由共享合并器排序合并并折叠相同样本，合并口径明确记录。
+Part/binout 是存储的 MATSUM ID，不与另一个模型的 Part 关联。原生对照 d3plot 只接受已支持的
+节点/单存储点单元量；Part/global 需显式单文件 binout，不把多分片悄悄降为一个分片。
+全局向量不再默取第一列，重复/非整数源 ID 明确拒绝。时间与数值使用不同的对照容差，
+避免小幅时间错位被数值容差掩盖。四种模式在 4.13/4.10 均有真跑证据，见
+[Q05 时程验收](decisions/evidence/q05-history/report.md)。4.8 未验。

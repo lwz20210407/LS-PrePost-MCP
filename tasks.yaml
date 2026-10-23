@@ -480,6 +480,7 @@ tasks:
       - 掩码策略 alive / all / deleted 可选；极值附带实体 ID 与状态
 
   - id: Q05
+    owner: codex
     group: post
     title: 时程曲线（History）
     story: 提取节点 1001 的 Z 位移和单元 500 的 Mises 随时间变化，以及 Part 2 的动能
@@ -488,10 +489,18 @@ tasks:
     milestone: M2
     layer: T1
     target_tools: [extract_history]
-    status: partial
-    existing: [extract_node_history]
-    gaps:
-      - 只有节点；没有单元 / 部件 / 全局；不能批量
+    status: done
+    verification_level: L2
+    existing: [extract_history, extract_node_history]
+    evidence:
+      - src/ls_prepost_mcp/history_tools.py
+      - tests/test_history_tools.py
+      - tests/test_history_axes.py
+      - tests/test_history_native.py
+      - docs/decisions/evidence/q05-history/report.md
+    notes:
+      - 四种模式在 4.13/4.10 各有真实原生对照；多实体、单位、分量、CSV 与共享 LASSO 读回一致；请求消费 ModelRef/CurveSpec
+      - 原生 d3plot 对照限节点及单存储点单元量、最多 1000 状态；Part/global 原生对照需显式单文件 binout；多点均值不映射为层；MPP 数值复用既有合并规则且记录时间合并口径；4.8 未验
     acceptance:
       - 节点、单元、部件、全局四种模式各一个用例
       - 一次请求多个实体，返回多条曲线，每条带实体 ID、分量、单位
