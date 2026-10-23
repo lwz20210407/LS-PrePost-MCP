@@ -6,6 +6,8 @@ On baseline 0563045 the new tests had 8 failures / 5 safety controls passed: all
 
 Clean execution revision: 5b2a055978e1f84dc87a0145f92ca7d6a3d5afce. Built a fresh public-only external index: 68,309 documents, 66,900 keyword field rows, 3,171/3,171 keyword catalog entries processed; API category absent. The binary index is not committed and will be removed after verification; its hash and byte count are recorded. No private manuals, local-book contents, API excerpts or private derived text are published.
 
+Query-file identities use Git blob IDs and SHA256 after CRLF-to-LF normalization for portable verification; the original executed-byte SHA256 is retained separately. Initial Linux CI exposed a raw-Windows-byte comparison; correcting the identity check does not alter questions, product code or replay results.
+
 | Unmodified replay set | top-3 hits | 当前有效 / 已被取代 |
 |---|---:|---|
 | Existing development set | 14/20 | 对登记代码与公开索引有效 |

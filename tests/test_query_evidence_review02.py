@@ -17,7 +17,7 @@ def test_query_replay_includes_unavailable_sources_in_overall_denominators():
     assert [(r["hits_at_3"], r["queries"]) for r in evidence["replay"]] == [(14, 20), (16, 24), (13, 24)]
     for replay in evidence["replay"]:
         raw = (ROOT / "tests/data" / replay["cases"]).read_bytes()
-        assert hashlib.sha256(raw).hexdigest() == replay["queries_sha256"]
+        assert hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest() == replay["queries_sha256"]
         assert len(replay["results"]) == replay["queries"]
         assert sum(row["hit_at_3"] for row in replay["results"]) == replay["hits_at_3"]
 
