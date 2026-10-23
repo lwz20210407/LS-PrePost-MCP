@@ -59,7 +59,7 @@
 | `extract_d3plot_stress` | Q03 | path*: string; element_type*: string; element_ids*: array; states*: array; integration_point*: integer; units*: string; relative_tolerance: number; validity_policy: string |
 | `extract_database` | Q06 | path*: string; database*: string; component*: string; units*: string; branch: union/ref; shard: union/ref; entity_ids: union/ref; time_units: string |
 | `extract_field` | Q03, Q04 | path*: string; family*: string; quantity*: string; state: union/ref; mask: string; units: union/ref; output_format: string; part_ids: union/ref; native_check: boolean; stored_point: union/ref; native_sampling: string |
-| `extract_history` | I08 | path*: string; domain*: string; quantity*: string; entity_ids: union/ref; units: string; time_units: string; source_kind: string; native_check: boolean |
+| `extract_history` | Q05 | path*: string; domain*: string; quantity*: string; entity_ids: union/ref; units*: string; time_units*: string; source_kind: string; native_check: boolean |
 | `extract_lsreader_nodal` | Q03 | path*: string; node_ids*: array; quantity*: string; states*: array; units*: string |
 | `extract_native_ascii_curve` | Q06 | path*: string; database*: string; component*: integer; units*: string; entity_id: union/ref |
 | `extract_native_binout_curve` | Q06 | path*: string; branch*: string; quantity*: string; units*: string; entity_id: union/ref; session_id: union/ref |

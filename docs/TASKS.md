@@ -322,7 +322,7 @@
 
 ### Q05 时程曲线（History）
 
-状态：partial；版本：v0.5；里程碑：M2；层：T1
+状态：done；版本：v0.5；里程碑：M2；层：T1
 
 提取节点 1001 的 Z 位移和单元 500 的 Mises 随时间变化，以及 Part 2 的动能
 
@@ -332,11 +332,7 @@
 - 一次请求多个实体，返回多条曲线，每条带实体 ID、分量、单位
 - 与 LASSO 读回的同一量一致（容差内）
 
-现有入口：`extract_node_history`
-
-缺口：
-
-- 只有节点；没有单元 / 部件 / 全局；不能批量
+现有入口：`extract_history`, `extract_node_history`
 
 ### Q06 binout / ASCII 全库曲线
 

@@ -64,6 +64,7 @@ def test_four_history_domains_emit_exact_ordered_curves(
         and spec.sign == "as_stored"
         and spec.alignment == "none"
     )
+    assert spec.source.units is None  # Quantity/time labels do not define the model's complete unit system.
     assert [c["entity_id"] for c in result["data"]["curves"]] == (ids or [None])
     for artifact, values in zip(result["artifacts"], expected):
         with open(artifact["path"], newline="", encoding="utf8") as stream:
@@ -236,3 +237,47 @@ def test_binout_native_time_grid_is_not_compared_with_value_absolute_tolerance(t
         native_check=True,
     )
     assert result["status"] == "failed" and not result["artifacts"]
+
+
+def test_written_csv_is_checked_against_reader_samples_not_only_its_hash(
+    history_model, tmp_path, monkeypatch
+):
+    import hashlib
+
+    from ls_prepost_mcp import history_tools
+
+    service = Service(Settings(tmp_path / "work", allowed_roots=(history_model.parent,)))
+    original = history_tools.write_csv
+
+    def corrupted(path, *a, **k):
+        record = original(path, *a, **k)
+        text = path.read_text(encoding="utf8").replace("0.0,0.0", "0.0,999.0", 1)
+        path.write_text(text, encoding="utf8")
+        record["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+        return record
+
+    monkeypatch.setattr(history_tools, "write_csv", corrupted)
+    result = service.extract_history(
+        str(history_model), "node", "displacement_z", [2], units="mm", time_units="ms"
+    )
+    assert result["status"] == "failed" and not result["artifacts"]
+
+
+def test_mcp_history_schema_requires_unit_declarations_and_explicit_modes(tmp_path):
+    import asyncio
+
+    from ls_prepost_mcp.server import build_server
+
+    tools = asyncio.run(build_server(Settings(tmp_path / "work"), "full").list_tools())
+    schema = next(t for t in tools if t.name == "extract_history").inputSchema
+    assert {"units", "time_units"} <= set(schema["required"])
+    assert set(schema["properties"]["domain"]["enum"]) == {
+        "node",
+        "solid",
+        "shell",
+        "tshell",
+        "beam",
+        "part",
+        "global",
+    }
+    assert set(schema["properties"]["source_kind"]["enum"]) == {"d3plot", "binout"}

@@ -1,6 +1,7 @@
 """Result tools shared by MCP and CLI; each export has a recorded, isolated job."""
 import math
 import re
+from typing import Literal
 
 from pydantic import StrictBool, StrictInt
 
@@ -145,12 +146,13 @@ class PostTools(CurveTargetTools):
         from .result_overview import result_info
         return result_info(self, path, native_check)
 
-    def extract_history(self, path: str, domain: str, quantity: str,
-                        entity_ids: list[StrictInt] | None = None, units: str = "", time_units: str = "",
-                        source_kind: str = "d3plot", native_check: StrictBool = False) -> dict:
+    def extract_history(self, path: str, domain: Literal["node", "solid", "shell", "tshell", "beam", "part", "global"],
+                        quantity: str, entity_ids: list[StrictInt] | None = None, *, units: str, time_units: str,
+                        source_kind: Literal["d3plot", "binout"] = "d3plot", native_check: StrictBool = False) -> dict:
         """Q05: multiple node/solid/shell/tshell/beam/part or global histories, one verified CSV per entity.
 
-        Explicit units/time_units label stored values; nothing converted, sorted, filled or resampled.
+        Explicit units/time_units label stored values; no unit conversion, filling or extra resampling.
+        d3plot time order stays unchanged; the shared binout merger's time policy is reported.
         d3plot uses the shared LASSO history reader; binout explicitly supports Part (MATSUM) and
         global (GLSTAT), through the shared MPP merger. Global curves have entity_id=null.
         native_check independently compares SCL output (d3plot node/one-point element quantities,

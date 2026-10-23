@@ -179,7 +179,7 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
             FileIdentity(path=str(p), sha256=before[str(p)], size_bytes=p.stat().st_size) for p in family
         )
     spec = CurveSpec(
-        source=ModelRef(kind=source_kind, units=units, files=identities),
+        source=ModelRef(kind=source_kind, files=identities),
         database=source_kind if source_kind == "d3plot" else ("matsum" if domain == "part" else "glstat"),
         entity_type=domain,
         entity_ids=tuple(ids or ()),
@@ -249,6 +249,10 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
             exported = write_csv(
                 output, ["time", "value"], zip(record["time"].tolist(), record["values"].tolist())
             )
+            with output.open(newline="", encoding="utf8") as stream:
+                saved = np.asarray([[float(r["time"]), float(r["value"])] for r in csv.DictReader(stream)])
+            if not np.array_equal(saved, np.column_stack((record["time"], record["values"]))):
+                raise ValueError("Saved history CSV differs from the original reader samples")
             meta = {
                 "domain": domain,
                 "entity_id": record["entity"],
