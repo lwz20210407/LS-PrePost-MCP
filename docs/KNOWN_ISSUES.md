@@ -482,15 +482,9 @@ UU 的历史 12 格有提交绑定记录；剩余 13 格 runc/原生宏仍属 I0
 
 - 跟踪：I03 / I01
 
-- 中文 job 目录还可能找不到已生成的 binout.scl；[binout 路径原生用例](../tests/test_scl_binout_paths_native.py)保持严格 xfail，实测范围见 [I03 SCL 字面量证据](decisions/evidence/i03-scl-literals/report.md)。
-- I03 新增显式 `LSPP_NATIVE_ALIAS_ROOT` 选项：Windows 无图形批处理通过独占 ASCII 目录联接访问原作业；模型和产物仍位于原路径，结束后校验别名身份再清理。4.10/4.13 各 7 项后台用例通过、1 项图形回调跳过，见[提交绑定证据](decisions/evidence/i03-workspace-alias/report.md)；未配置、4.8、宏及图形路径仍保留 gap，任务状态不变。配置方法见[安装说明](INSTALL.md)。
-- I01 后续修复：仅 BatchEngine 的 ASCII 路径将两个工作目录配置字段改为 `.`，绝对日志路径不变；GUI/队列保留绝对工作目录。ASCII 空格目录的保存、PNG、重开已补测。
-- 非 ASCII job 目录仍为 gap：4.13 使用相对配置的完整链路出现 `0xC0000374` 退出错误，未启用该实验路径，也未因文件已生成而标通过。非 ASCII 源文件会暂存到安全名称，与 job 目录限制分别报告。
-- 优先级：高于其余 P2；普通用户目录也可能触发，必须优先处理。
-- 现象：4.13.4 与 4.10.1 的 job 工作目录含空格或“中文 空格”时，原生未找到已暂存的 input_data，并报告 SCL parsing -2；进程仍可能返回 0。4.13 日志中的路径在空格前截断。
-- 已验证子集：ASCII 工作目录中，可暂存中文/空格源文件名并运行 PNG、keyword 保存和原生重开。
-- 处理：集中路径构建器拒绝分号、引号和控制字符；cfile 统一 UTF-8。中文 job 目录限制保留为严格 xfail；ASCII 空格批处理目录已通过。
-- 证据：[路径原生回归](../tests/test_engine_native.py)；去路径报告随本 PR 附件保留，原始日志留在仓库外。GUI/Movie 路径仍待集中窗口。
+未配置别名、4.8、宏和图形路径的非 ASCII job 场景仍缺完整覆盖；GUI/Movie 需集中窗口。源文件名与 job 目录须分别判断，不能把安全名称暂存外推为任意工作目录通过。
+显式 LSPP_NATIVE_ALIAS_ROOT 只适用于支持联接的本地 NTFS ASCII 根目录；按 [安装说明](INSTALL.md) 配置，已登记子集见 [工作区别名证据](decisions/evidence/i03-workspace-alias/report.md)。
+中文目录的部分 SCL 路线仍有严格 xfail，条件见 [binout 路径用例](../tests/test_scl_binout_paths_native.py) 和 [SCL 字面量证据](decisions/evidence/i03-scl-literals/report.md)。未知构建下生成了文件也不足以认证成功，仍须核对进程、回执、输入与产物。
 
 ## KI-050 缺少用户配置时拒绝启动
 
