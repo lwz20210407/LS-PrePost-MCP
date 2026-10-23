@@ -73,7 +73,7 @@ def _csv_curve(service, result):
         return list(csv.DictReader(stream))
 
 
-def _native(service, source, family, source_kind, domain, quantity, records, units):
+def _native(service, source, family, source_kind, domain, quantity, records, units, native_sampling="mid"):
     expected = {r["entity"]: r for r in records}
     value_atol = {uid: 1e-6 * float(np.max(np.abs(r["values"]))) for uid, r in expected.items()}
     if source_kind == "binout":
@@ -125,11 +125,14 @@ def _native(service, source, family, source_kind, domain, quantity, records, uni
         field = NATIVE_STRESS_MAP.get(quantity[1:] if quantity in lb.STRESS else quantity)
     if field is None:
         raise ValueError(f"Native {domain} history comparison does not support quantity {quantity!r}")
+    from .field_contracts import SamplingSpec
+
+    SamplingSpec.native_fields(domain, native_sampling, [field])
     times = np.asarray(records[0]["time"])
     if times.size > 1000:
         raise ValueError("Native history comparison supports at most 1000 states")
     result = service.extract_native_fields(
-        str(source), domain, list(expected), list(range(1, times.size + 1)), [field], "mid", units
+        str(source), domain, list(expected), list(range(1, times.size + 1)), [field], native_sampling, units
     )
     rows = _csv_curve(service, result)
     seen, error = set(), 0.0
@@ -159,7 +162,8 @@ def _native(service, source, family, source_kind, domain, quantity, records, uni
     }
 
 
-def extract_history(service, path, domain, quantity, ids, units, time_units, source_kind, native_check):
+def extract_history(service, path, domain, quantity, ids, units, time_units, source_kind, native_check,
+                    stored_point=None, native_sampling="mid"):
     units, time_units = unit_label(units), unit_label(time_units)
     if not isinstance(domain, str) or domain not in DOMAINS or source_kind not in ("d3plot", "binout"):
         raise ValueError("Unknown history domain/source_kind")
@@ -167,6 +171,11 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
         raise ValueError("quantity must be a named stored/engineering component")
     if type(native_check) is not bool:
         raise ValueError("native_check must be Boolean")
+    if stored_point is not None and (type(stored_point) is not int or stored_point < 1
+            or source_kind != "d3plot" or domain not in lb.FAMILIES):
+        raise ValueError("stored_point must be a positive 1-based index for d3plot element histories")
+    if not isinstance(native_sampling, str) or (native_sampling != "mid" and (not native_check or source_kind != "d3plot" or domain not in lb.FAMILIES)):
+        raise ValueError("native_sampling requires native_check on a d3plot element history")
     if domain == "global":
         if ids is not None:
             raise ValueError("Global history has no entity IDs; omit entity_ids")
@@ -193,6 +202,7 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
         component=quantity,
         units=units,
         time_units=time_units,
+        stored_point=stored_point,
     )
     parameters = dict(
         path=str(source),
@@ -203,6 +213,8 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
         time_units=time_units,
         source_kind=source_kind,
         native_check=native_check,
+        stored_point=stored_point,
+        native_sampling=native_sampling,
     )
     directory, manifest = service.jobs.create("extract_history", parameters)
     manifest["parameters"]["curve_spec"] = spec.model_dump(mode="json")
@@ -211,7 +223,8 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
     try:
         with service._guard():
             records = (
-                lb.history(source, domain, quantity, ids)
+                (lb.history(source, domain, quantity, ids) if stored_point is None else
+                 lb.history(source, domain, quantity, ids, stored_point=stored_point))
                 if source_kind == "d3plot"
                 else _binout(source, domain, quantity, ids)
             )
@@ -249,11 +262,12 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
                     record.update(alive=None, deletion_status="unknown", deleted_from_state=None)
                     warnings.append(f"{domain} {record['entity']}: deletion status unknown; no alive data stored")
         comparison = (
-            _native(service, source, family, source_kind, domain, quantity, records, units)
+            _native(service, source, family, source_kind, domain, quantity, records, units, native_sampling)
             if native_check
             else None
         )
         if comparison is not None:
+            comparison["native_sampling"] = native_sampling
             comparison["tolerances"] = {
                 "time": {"rtol": 1e-6, "atol": 0.0, "units": time_units, "reference": "reader time; no time-unit floor"},
                 "value": {"rtol": 2e-5, "atol_rule": "1e-6 * max(abs(reference curve)); zero curve has zero atol",
@@ -294,6 +308,8 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
                 "samples": int(record["time"].size),
                 "columns": columns,
                 "sampling": record.get("note", "as stored; no interpolation"),
+                "stored_point": stored_point,
+                "sampling_spec": record.get("sampling"),
                 "validity": record.get("validity", "raw stored history; no deletion filtering"),
                 "time_policy": record.get(
                     "time_policy", "original order and duplicate times retained; no sorting/resampling"
