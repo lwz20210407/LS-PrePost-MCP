@@ -63,6 +63,8 @@ class Resolution:
     path: Path | None
     rule: str
     candidates: list[str] = field(default_factory=list)
+    search_directory: Path | None = None
+    search_directory_index: int | None = None
 
     @property
     def ambiguous(self) -> bool:
@@ -102,15 +104,16 @@ def resolve(name: str, including_dir: Path, main_dir: Path, search_dirs: list[Pa
         access.require(target)
         return Resolution(target if target.is_file() else None, "absolute",
                           [identity(target)] if target.is_file() else [])
-    ordered = [("including_dir", including_dir), ("main_dir", main_dir)]
-    ordered += [("include_path", d) for d in search_dirs]
-    found: list[tuple[str, Path]] = []
-    for rule, directory in ordered:
+    ordered = [("including_dir", including_dir, None), ("main_dir", main_dir, None)]
+    ordered += [("include_path", d, i) for i, d in enumerate(search_dirs)]
+    found: list[tuple[str, Path, Path, int | None]] = []
+    for rule, directory, index in ordered:
         candidate = joined(directory, target)
         access.require(candidate)  # before the stat: a refused path is not probed either
-        if candidate.is_file() and identity(candidate) not in {identity(p) for _, p in found}:
-            found.append((rule, candidate))
+        if candidate.is_file() and identity(candidate) not in {identity(p) for _, p, _, _ in found}:
+            found.append((rule, candidate, directory, index))
     if not found:
         return Resolution(None, "missing", [])
-    rule, chosen = found[0]
-    return Resolution(chosen, rule, [identity(p) for _, p in found])
+    rule, chosen, directory, index = found[0]
+    return Resolution(chosen, rule, [identity(p) for _, p, _, _ in found],
+                      directory if rule == "include_path" else None, index)

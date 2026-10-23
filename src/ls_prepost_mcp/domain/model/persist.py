@@ -93,13 +93,22 @@ def _unified(old: list[str], new: list[str], fromfile: str, tofile: str, context
 
 
 def _relocation_plan(deck: KeywordDeck, out_dir: Path) -> tuple[dict[Path, Path], list[str], dict[Path, Path]]:
-    absolute = {identity(r.child.path) for r in deck.includes if r.child and Path(r.name).is_absolute()}
-    # Absolute search directories still point at the source tree after a raw
-    # save-as. A modified copy there would be unused when the saved main reloads.
-    absolute_dirs = [Path(r.name) for r in deck.includes if r.kind == "path" and Path(r.name).is_absolute()]
+    # Only the lookup that won *at this reference* determines whether a raw
+    # save retains an external source. A later path card cannot act retroactively,
+    # nor can an unused absolute candidate override an including_dir match.
+    active_absolute = [p.is_absolute() for p in deck.base_search_dirs]
+    external_refs: set[int] = set()
     for ref in deck.includes:
-        if ref.child and any(identity(directory / ref.name) == identity(ref.child.path) for directory in absolute_dirs):
-            absolute.add(identity(ref.child.path))
+        if ref.kind == "path":
+            active_absolute.append(Path(ref.name).is_absolute())
+            continue
+        res = ref.resolution
+        if res is not None and (res.rule == "absolute" or (
+                res.rule == "include_path" and res.search_directory_index is not None
+                and res.search_directory_index < len(active_absolute)
+                and active_absolute[res.search_directory_index])):
+            external_refs.add(id(ref))
+    absolute = {identity(r.child.path) for r in deck.includes if r.child and id(r) in external_refs}
     # An external parent also keeps its relative descendants external. Otherwise
     # their edited output copies would be disconnected from the saved main deck.
     while True:
@@ -115,17 +124,28 @@ def _relocation_plan(deck: KeywordDeck, out_dir: Path) -> tuple[dict[Path, Path]
         if deck.files[key].modified:
             raise ValueError(f"{deck.files[key].path} is included by absolute path or search path and was edited; save in place")
     reachable = {identity(deck.main.path)} | {identity(r.child.path) for r in deck.includes if r.child}
-    movable = [f.path for k, f in deck.files.items() if k not in absolute and k in reachable]
+    # A repeated source may have both external and local incoming references.
+    # The local spelling still needs its own unchanged copy in the saved tree.
+    local = {identity(deck.main.path)}
+    while True:
+        expanded = local | {
+            identity(r.child.path) for r in deck.includes if r.child and id(r) not in external_refs
+            and r.resolution is not None and (identity(r.parent.path) in local
+                                             or r.resolution.rule in {"main_dir", "include_path"})}
+        if expanded == local:
+            break
+        local = expanded
+    movable = [f.path for k, f in deck.files.items() if k in reachable and (k not in absolute or k in local)]
     opaque = []
     for ref in deck.includes:
         if ref.kind != "opaque" or not ref.resolution or not ref.resolution.path:
             continue
         path = ref.resolution.path
-        if (Path(ref.name).is_absolute()
-                or (identity(ref.parent.path) in absolute and ref.resolution.rule == "including_dir")
-                or any(identity(directory / ref.name) == identity(path) for directory in absolute_dirs)):
+        external_ref = (id(ref) in external_refs
+                        or (identity(ref.parent.path) in absolute and ref.resolution.rule == "including_dir"))
+        if external_ref:
             external.append(str(path))
-        else:
+        if not external_ref or (id(ref) not in external_refs and identity(ref.parent.path) in local):
             opaque.append(path)
     external = list(dict.fromkeys(external))
     directories = []
