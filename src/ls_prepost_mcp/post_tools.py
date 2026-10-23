@@ -150,7 +150,8 @@ class PostTools(CurveTargetTools):
 
     def extract_history(self, path: str, domain: Literal["node", "solid", "shell", "tshell", "beam", "part", "global"],
                         quantity: str, entity_ids: list[StrictInt] | None = None, *, units: str, time_units: str,
-                        source_kind: Literal["d3plot", "binout"] = "d3plot", native_check: StrictBool = False) -> dict:
+                        source_kind: Literal["d3plot", "binout"] = "d3plot", native_check: StrictBool = False,
+                        stored_point: StrictInt | None = None, native_sampling: str = "mid") -> dict:
         """Q05: multiple node/solid/shell/tshell/beam/part or global histories, one verified CSV per entity.
 
         Explicit units/time_units label stored values; no unit conversion, filling or extra resampling.
@@ -160,10 +161,13 @@ class PostTools(CurveTargetTools):
         native_check independently compares SCL output (d3plot node/one-point element quantities,
         or a single-file binout Part/global database); unsupported comparisons fail explicitly.
         At most 100 entity curves and one million total samples; full samples stay in CSV artifacts.
+        Multiple shell/tshell points require explicit 1-based stored_point. Native sampling is an
+        independent mid/inner/outer/numbered selector; no geometric equivalence is inferred.
         """
         from .history_tools import extract_history
 
-        return extract_history(self, path, domain, quantity, entity_ids, units, time_units, source_kind, native_check)
+        return extract_history(self, path, domain, quantity, entity_ids, units, time_units, source_kind, native_check,
+                               stored_point, native_sampling)
 
     def inspect_result_fields(self, path: str, state: int = 1) -> dict:
         """Inventory LASSO fields at one 1-based state, stored axis sizes and bounded user-ID samples. Missing fields cannot be reconstructed."""

@@ -248,8 +248,11 @@ def _element_values(arrays: dict, family: str, quantity: str, stored_point: int 
                        "or effective_plastic_strain")
 
 
-def history(path: str | Path, kind: str, quantity: str, ids: list[int] | None = None) -> list[dict]:
+def history(path: str | Path, kind: str, quantity: str, ids: list[int] | None = None,
+            stored_point: int | None = None) -> list[dict]:
     """Q05 time histories: kind node / solid / shell / part / global; one curve per entity."""
+    if stored_point is not None and (type(stored_point) is not int or stored_point < 1 or kind not in FAMILIES):
+        raise ResultsError("stored_point must be a positive 1-based index for element histories")
     needed = ["timesteps"]
     if kind in {"part", "global"}:
         needed.append(f"{kind}_{quantity}")
@@ -266,11 +269,14 @@ def history(path: str | Path, kind: str, quantity: str, ids: list[int] | None = 
     else:
         raise ResultsError("kind must be node, solid, shell, tshell, beam, part or global")
     arrays = _arrays(path, state_arrays=needed)
-    return _history_from_arrays(arrays, kind, quantity, ids)
+    return _history_from_arrays(arrays, kind, quantity, ids, stored_point)
 
 
-def _history_from_arrays(arrays: dict, kind: str, quantity: str, ids: list[int] | None = None) -> list[dict]:
+def _history_from_arrays(arrays: dict, kind: str, quantity: str, ids: list[int] | None = None,
+                         stored_point: int | None = None) -> list[dict]:
     """Shared quantity/ID math for an existing reader snapshot, including filtered states."""
+    if stored_point is not None and (type(stored_point) is not int or stored_point < 1 or kind not in FAMILIES):
+        raise ResultsError("stored_point must be a positive 1-based index for element histories")
     times = validate_d3plot_times(_times(arrays))
     if kind == "global":
         key = f"global_{quantity}"
@@ -307,7 +313,7 @@ def _history_from_arrays(arrays: dict, kind: str, quantity: str, ids: list[int] 
                 for i, w in zip(ids, where)]
     if kind not in FAMILIES:
         raise ResultsError("kind must be node, solid, shell, tshell, beam, part or global")
-    values, note = _element_values(arrays, kind, quantity)
+    values, note = _element_values(arrays, kind, quantity, stored_point)
     stored_ids = np.asarray(arrays[FAMILIES[kind][0]]).reshape(-1)
     if values.shape != (times.size, stored_ids.size):
         raise ResultsError("Scalar history state/element axes do not match the stored user-ID registry")
@@ -328,6 +334,7 @@ def _history_from_arrays(arrays: dict, kind: str, quantity: str, ids: list[int] 
         deleted = np.flatnonzero(~alive) if alive is not None else []
         records.append({"entity": int(i), "quantity": quantity, "time": times.tolist(),
                         "values": values[:, w].tolist(), "note": note,
+                        "sampling": _sampling(arrays, kind, quantity, stored_point),
                         "alive": alive.tolist() if alive is not None else None,
                         "deletion_status": "stored" if alive is not None else "unknown",
                         "deleted_from_state": int(deleted[0]) + 1 if len(deleted) else None,
@@ -355,6 +362,14 @@ def _part_elements(arrays: dict, family: str, part_ids: list[int]) -> np.ndarray
     if empty:
         raise ResultsError(f"Parts {empty} have no {family} elements")
     return np.isin(owner, where)
+
+
+def _sampling(arrays, family, quantity, stored_point):
+    stored = np.asarray(arrays[FAMILIES[family][5 if quantity == "effective_plastic_strain" else 4]])
+    dimensions = 3 if quantity == "effective_plastic_strain" else 4
+    return {"kind": "stored_point" if stored_point else "mean_stored_points",
+            "count": int(stored.shape[2]) if stored.ndim == dimensions else 1,
+            "index": stored_point, "native_layer_equivalence": "not inferred"}
 
 
 def field(path: str | Path, family: str, quantity: str, state: int = -1, mask: str = "alive",
@@ -393,11 +408,7 @@ def field(path: str | Path, family: str, quantity: str, state: int = -1, mask: s
             "time": float(times[state_index]), "ids": ids, "values": row, "alive": alive,
             "mask": mask, "part_ids": parts, "extrema": extrema, "note": note,
             "deletion_data": deletion_data}
-    stored = np.asarray(arrays[FAMILIES[family][5 if quantity == "effective_plastic_strain" else 4]])
-    point_dimensions = 3 if quantity == "effective_plastic_strain" else 4
-    result["sampling"] = {"kind": "stored_point" if stored_point else "mean_stored_points",
-                          "count": int(stored.shape[2]) if stored.ndim == point_dimensions else 1,
-                          "index": stored_point, "native_layer_equivalence": "not inferred"}
+    result["sampling"] = _sampling(arrays, family, quantity, stored_point)
     if quantity == "stress":
         result["components"] = list(STRESS)
     return result
