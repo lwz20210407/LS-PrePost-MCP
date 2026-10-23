@@ -180,6 +180,7 @@ f=fopen("inventory.json","w");
 fprintf(f,"{\\"nodes\\":%d}\\n",n);
 fclose(f);
 }
+main();
 ''')
     cfile = directory / "commands.cfile"
     nc.write_cfile(cfile, [nc.open_model(source), nc.run_script("inventory.scl", "scl"), "exit"])
