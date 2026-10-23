@@ -302,6 +302,7 @@ class CurveSpec(Contract):
     units: Text
     time_units: Text
     time_column: Text = "time"
+    stored_point: Identifier | None = None
     time_range: Annotated[tuple[Number, Number], BeforeValidator(freeze_sequence)] | None = None
     sign: Literal["as_stored", "negated"] = "as_stored"
     alignment: Literal["none", "intersection_linear"] = "none"
@@ -309,6 +310,8 @@ class CurveSpec(Contract):
 
     @model_validator(mode="after")
     def curve_identity(self):
+        if self.stored_point is not None and (self.database != "d3plot" or self.entity_type not in {"solid", "shell", "tshell", "beam"}):
+            raise ValueError("stored_point applies only to d3plot element histories")
         if (self.entity_type == "global") != (not self.entity_ids):
             raise ValueError("Global curves omit entity IDs; other curves require them")
         if len(set(self.entity_ids)) != len(self.entity_ids):
