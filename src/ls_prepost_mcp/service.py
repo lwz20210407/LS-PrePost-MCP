@@ -2,6 +2,7 @@
 import json
 import os
 import re
+import stat
 import subprocess
 from pathlib import Path
 
@@ -86,6 +87,11 @@ class Service(EnergyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTool
         if raw_keyword_tree and (source is None or file_type != "keyword" or action != "inspect_model"
                 or graphics or export or not source.is_relative_to(self.jobs.root.resolve())):
             raise ValueError("Raw tree reopen is restricted to an owned saved keyword tree and headless inspect")
+        # LSPP creates this database in the directory active at open time. Never
+        # let a raw reopen overwrite an existing saved asset with that name.
+        native_database = source.parent / "lspost.db" if raw_keyword_tree else None
+        if native_database is not None and os.path.lexists(native_database):
+            raise ValueError("Raw saved-tree reopen reserves lspost.db for the native auxiliary database")
         include_bearing, keyword_report = False, None
         if source and file_type == "keyword":
             with self._guard():
@@ -190,6 +196,15 @@ class Service(EnergyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTool
                         or not same_path(opened.get("cwd"), source.parent)
                         or not same_path(opened.get("resolved_main"), source)):
                     raise RuntimeError("Raw saved-tree reopen did not attest the saved root and relative main filename")
+                if os.path.lexists(native_database):
+                    if not stat.S_ISREG(native_database.lstat().st_mode):
+                        raise RuntimeError("Native auxiliary lspost.db is not a regular file; retained without moving")
+                    side_effects = directory / "native-open-side-effects"
+                    side_effects.mkdir()  # exclusive owned destination; never replace a pre-existing directory
+                    auxiliary = check_artifact(native_database, "native_auxiliary")
+                    native_database.rename(side_effects / "lspost.db")
+                    manifest["native_open_auxiliary"] = {"name": "lspost.db", "sha256": auxiliary["sha256"],
+                        "size": auxiliary["size"], "relocated_to": "native-open-side-effects/lspost.db"}
             if source and action == "inspect_model" and not response["data"].get("counts", {}).get("nodes"):
                 raise RuntimeError("Input did not produce a nonempty model")
             for name, kind in artifacts:
