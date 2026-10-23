@@ -636,7 +636,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 - 查询侧已加通用中英词表与排序；公开索引下留出集 B 前 3 命中 13/24（基线 5/24），旧留出集 16/24；开发集与旧二十题为调优集，不作完成依据
 - holdout B 的独立性未经可复核证明：文件 blob e8d7728b 首次出现在 ecae976，与代码提交 3703de5 同一秒提交，Git 不能证明调优前冻结；以后的留出集须先公布哈希再调优
-- 私有 Scripting API/用户指南来源路径未经用户确认（I05 缺口），正式口径 API 类 0/4；SCL 驼峰函数名建索引时不拆分、指南 PDF 抽取断词属于 I05 构建范围
+- 私有 Scripting API/用户指南来源路径未经用户确认（I05 缺口），正式口径 API 类 0/4；SCL 驼峰函数名的索引拆词已由 I05 补齐，指南 PDF 抽取断词仍待处理
 - 不写关键字名的字段语义问题（holdout B HB09/HB11/HB12）仍未命中；holdout B 有 6 题答案目标与开发集重合，去除后 10/18
 - 审阅 P2（#93 合入时未修）：evidence.json 的逐题返回列表仍是 f04843a 的记录，最终修订改变了 6 题的前 3 条，未重新生成；扩展词形覆盖率无自动测试
 
@@ -779,7 +779,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：partial；验证：L1
 
-证据：[src/ls_prepost_mcp/knowledge_index.py](../src/ls_prepost_mcp/knowledge_index.py), [src/ls_prepost_mcp/keyword_documentation.py](../src/ls_prepost_mcp/keyword_documentation.py), [src/ls_prepost_mcp/data/keyword_fieldless_review.json](../src/ls_prepost_mcp/data/keyword_fieldless_review.json), [tools/build_knowledge_index.py](../tools/build_knowledge_index.py), [tests/test_knowledge_index.py](../tests/test_knowledge_index.py), [tests/test_keyword_index_coverage.py](../tests/test_keyword_index_coverage.py), [docs/decisions/evidence/i05-catalog/report.md](../docs/decisions/evidence/i05-catalog/report.md), [docs/decisions/evidence/i05-catalog/fieldless-review.json](../docs/decisions/evidence/i05-catalog/fieldless-review.json)
+证据：[src/ls_prepost_mcp/knowledge_index.py](../src/ls_prepost_mcp/knowledge_index.py), [src/ls_prepost_mcp/keyword_documentation.py](../src/ls_prepost_mcp/keyword_documentation.py), [src/ls_prepost_mcp/data/keyword_fieldless_review.json](../src/ls_prepost_mcp/data/keyword_fieldless_review.json), [tools/build_knowledge_index.py](../tools/build_knowledge_index.py), [tests/test_knowledge_index.py](../tests/test_knowledge_index.py), [tests/test_keyword_index_coverage.py](../tests/test_keyword_index_coverage.py), [docs/decisions/evidence/i05-catalog/report.md](../docs/decisions/evidence/i05-catalog/report.md), [docs/decisions/evidence/i05-catalog/fieldless-review.json](../docs/decisions/evidence/i05-catalog/fieldless-review.json), [docs/decisions/evidence/i05-api-identifiers/report.md](../docs/decisions/evidence/i05-api-identifiers/report.md)
 
 - 命令表、Scripting API、关键字定义、用户指南章节、配方、KNOWN_ISSUES 建立索引
 - 公开部分可入仓库；私有课程资料的索引在仓库外

@@ -1327,3 +1327,11 @@ GUI 未保存的编辑尚未闭环，4.8 本项未复验。
 4.13/4.10 各两项函数结果坐标读回通过。三个公开大模型在修复前均因四条警告返回 failed；
 修复后保存重开为 succeeded，计数/Part 身份一致且源树未改，未重跑全量节点坐标分页。
 证据与保留的失败见 [P02 参数函数修复](decisions/evidence/p02-expression-commas/report.md)。
+
+## I05：API 函数名的分词与旧索引（2026-10-23）
+
+API 文档中的 SCLGetDataCenterFloatArray 等函数现在同时按完整标识符与词边界建索引。
+这只改 API 文档的搜索 token，不改原文、行定位、查询、词表、许可或私有可见性。
+metadata.api_tokenization=identifier-parts-v1 标记新构建口径；旧 schema-v2 索引仍可只读查询，
+没有隐式迁移，需在仓库外新路径显式重建才获得新 token。真实私有来源仍未补齐，见
+[I05 API 索引回归](decisions/evidence/i05-api-identifiers/report.md)。
