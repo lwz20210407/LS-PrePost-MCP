@@ -20,3 +20,9 @@ python -m pytest tests/test_required_checks_review02.py tests/test_core_contract
 ```
 
 Use PYTHONPATH=src plus repository root, the shared locked environment, PYTHONDONTWRITEBYTECODE=1 and OPENBLAS_NUM_THREADS=1. No task status is upgraded by this fix.
+
+## CI follow-up
+
+The initial exact PR head failed full CI on a benign repeated-Include warning and the view fixture missing the new required flag. This was not treated as infrastructure failure. Reload certification now uses the structured shared preflight ok verdict inside confinement, rather than treating every reload warning as an error. Missing files remain failed; repeated Includes remain warnings. The diagnostic warning text is retained. The strict view fixture includes required=true.
+
+Final clean follow-up execution: `15540a968294806017d284de1310870396a17c4f`, 372 passed / 6 skipped across the related suites, including confinement and view tests. The earlier 319-case capture is retained as previous_capture with its original product identities. The final product identities are recorded separately; this is offline evidence, not a native pass.
