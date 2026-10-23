@@ -1,4 +1,4 @@
-"""Q04 target tool ``extract_field`` on ``domain.results.lasso_backend`` and ``invariants``, returning JobResult/v1.
+"""Q03/Q04 target tool ``extract_field`` on shared result backends, returning JobResult/v1.
 
 Calculates stress invariants (von Mises, principal stresses, triaxiality, Lode parameter and angle),
 effective plastic strain, and field quantities on solid, shell and thick shell elements.

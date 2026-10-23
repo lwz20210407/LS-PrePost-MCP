@@ -121,7 +121,7 @@ def tensor_field(service, path, family, state, mask, units, output_format, parts
         checks.extend(CheckResult(name=name, status="passed") for name in ("input_family_unchanged", "mask_applied"))
         result = JobResult(operation="extract_field", status="succeeded", backend=lb.backend(),
                            job_id=manifest["job_id"], data=data, checks=tuple(checks), artifacts=tuple(artifacts),
-                           scope="Six stored stress components; mean of stored points; no coordinate transform")
+                           scope="Six stored stress components; explicit sampling/frame in metadata; no coordinate transform")
     except Exception as error:
         result = JobResult(operation="extract_field", status="failed", backend=lb.backend(),
                            job_id=manifest["job_id"], data=data,

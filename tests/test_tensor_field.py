@@ -160,3 +160,38 @@ def test_native_user_id_conditions_fit_scl_physical_lines_without_losing_ids():
     assert max(map(len, script.splitlines())) < 512
     assert [int(v) for v in re.findall(r"(?<!\w)uid==([0-9]+)", script)] == ids
     assert "keep_uid=0;" in script and "if(keep_uid==1)" in script
+
+
+def test_tensor_does_not_invent_deletion_flags(model, tmp_path, monkeypatch):
+    arrays=lb._arrays(model)
+    arrays.pop("element_solid_is_alive")
+    monkeypatch.setattr(lb, "_arrays", lambda *a, **k: arrays)
+    service=Service(Settings(tmp_path / "work", allowed_roots=(model.parent,)))
+    for mask in ("alive", "deleted"):
+        result=service.extract_field(str(model), "solid", "stress", units="MPa", mask=mask)
+        assert result["status"]=="failed" and not result["artifacts"]
+    result=service.extract_field(str(model), "solid", "stress", units="MPa", mask="all")
+    assert result["status"]=="succeeded" and result["data"]["active_count"] is None
+    assert "unknown" in result["artifacts"][0]["metadata"]["deletion_status"]
+
+
+def test_tensor_full_data_stays_in_artifacts_and_preview_is_bounded(model, tmp_path, monkeypatch):
+    arrays=lb._arrays(model)
+    arrays["element_solid_ids"]=np.arange(1,31)
+    arrays["element_solid_stress"]=np.ones((3,30,1,6))
+    arrays["element_solid_is_alive"]=np.ones((3,30))
+    monkeypatch.setattr(lb, "_arrays", lambda *a, **k: arrays)
+    service=Service(Settings(tmp_path / "work", allowed_roots=(model.parent,)))
+    result=service.extract_field(str(model), "solid", "stress", units="MPa", mask="all")
+    assert result["status"]=="succeeded" and result["data"]["shape"]==[30,6]
+    assert result["data"]["preview_truncated"] and len(result["data"]["preview"]["values"])==20
+    assert exp.read_field(result["artifacts"][0]["path"])["values"].shape==(30,6)
+
+
+def test_tensor_nonfinite_returned_values_fail_without_artifacts(model, tmp_path, monkeypatch):
+    arrays=lb._arrays(model)
+    arrays["element_solid_stress"][-1,0,0,0]=np.nan
+    monkeypatch.setattr(lb, "_arrays", lambda *a, **k: arrays)
+    service=Service(Settings(tmp_path / "work", allowed_roots=(model.parent,)))
+    result=service.extract_field(str(model), "solid", "stress", units="MPa", mask="all")
+    assert result["status"]=="failed" and not result["artifacts"] and "Nonfinite" in result["error"]["message"]
