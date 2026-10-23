@@ -95,7 +95,7 @@ def _native(service, source, family, source_kind, domain, quantity, records, uni
             wanted = np.column_stack((record["time"], record["values"]))
             if (
                 actual.shape != wanted.shape
-                or not np.allclose(actual[:, 0], wanted[:, 0], rtol=1e-6, atol=1e-9)
+                or not np.allclose(actual[:, 0], wanted[:, 0], rtol=1e-6, atol=0.0)
                 or not np.allclose(actual[:, 1], wanted[:, 1], rtol=2e-5, atol=value_atol[record["entity"]])
             ):
                 raise ValueError("Native/LASSO binout history disagreement")
@@ -145,7 +145,7 @@ def _native(service, source, family, source_kind, domain, quantity, records, uni
         value, time = float(row[field]), float(row["time"])
         wanted = expected[uid]["values"][state - 1]
         if (
-            not np.isclose(time, times[state - 1], rtol=1e-6, atol=1e-9)
+            not np.isclose(time, times[state - 1], rtol=1e-6, atol=0.0)
             or not np.isfinite(value)
             or not np.isclose(value, wanted, rtol=2e-5, atol=value_atol[uid])
         ):
@@ -269,7 +269,7 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
         if comparison is not None:
             comparison["native_sampling"] = native_sampling
             comparison["tolerances"] = {
-                "time": {"rtol": 1e-6, "atol": 1e-9, "units": time_units},
+                "time": {"rtol": 1e-6, "atol": 0.0, "units": time_units, "reference": "reader time; no time-unit floor"},
                 "value": {"rtol": 2e-5, "atol_rule": "1e-6 * max(abs(reference curve)); zero curve has zero atol",
                           "atol_by_entity": comparison["value_atol_by_entity"], "units": units},
             }
