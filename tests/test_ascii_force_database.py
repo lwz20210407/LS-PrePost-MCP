@@ -86,7 +86,7 @@ def test_section_three_line_records(tmp_path, component, expected):
     result = extract(tmp_path, "secforc", SECTION, component)
     assert result.status == "succeeded", result.error
     assert result.data["ids"] == [9] and result.data["state_count"] == 2
-    assert result.data["entity_metadata"]["coordinate_system_ids"] == [123]
+    assert result.data["entity_metadata"]["local_frame_reference"] == [{"id": 123, "prefixes": ["ac ID = 123"]}]
     assert [float(r[-1]) for r in rows(result)[1:]] == expected
 
 
@@ -131,14 +131,14 @@ def test_ascii_database_name_must_match_explicit_path(tmp_path):
     assert result["status"] == "failed" and not result["artifacts"]
 
 
-def test_multiple_sections_keep_their_coordinate_systems_and_stored_ids(tmp_path):
+def test_multiple_sections_keep_their_frame_references_and_stored_ids(tmp_path):
     other = SECTION[SECTION.index(" 9 0.0"):].replace(" 9 ", " 3 ").replace("ID = 123", "ID = 456")
     result = extract(tmp_path, "secforc", SECTION + other, "z_moment", entity_ids=[3, 9])
     assert result.status == "succeeded", result.error
     assert result.data["ids"] == [3, 9]
     # Metadata is explicitly aligned to stored columns; selection exposes that index mapping.
     assert result.data["stored_columns"] == [1, 0]
-    assert result.data["entity_metadata"]["coordinate_system_ids"] == [123, 456]
+    assert [r["id"] for r in result.data["entity_metadata"]["local_frame_reference"]] == [123, 456]
     assert len(rows(result)) == 5
 
 
