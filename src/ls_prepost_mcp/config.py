@@ -97,18 +97,31 @@ class Settings:
     def _keyword_report(self, path, native_cwd, max_references, *, allow_paths):
         if isinstance(max_references, bool) or not isinstance(max_references, int) or max_references < 0:
             raise ValueError("max_references must be an integer >= 0")
-        from .domain.model import preflight_includes
+        from .domain.model import access, preflight_includes
 
         source = self.input_path(str(path))
-        report = preflight_includes(source, max_references=max_references)
+        root_check = access.root_guard((self.workspace, *self.allowed_roots))
+        def guard(candidate):
+            try:
+                root_check(candidate)
+            except access.OutsideRoots as error:
+                raise ValueError(str(error)) from error
+        try:
+            with access.confined(guard):
+                report = preflight_includes(source, max_references=max_references)
+        except access.OutsideRoots as error:
+            raise ValueError(str(error)) from error
         references = report["references"]
         # Confinement errors take precedence over diagnostics about external contents.
         for entry in report["files"]:
+            guard(Path(entry["path"]))
             self.input_path(entry["path"])
         for ref in references:
             for candidate in ref["candidates"]:
+                guard(Path(candidate))
                 self.input_path(candidate)
             if allow_paths and ref["kind"] == "path" and ref["path"] is not None:
+                guard(Path(ref["path"]))
                 self.input_directory(ref["path"])
         failure = ""
         if not report["ok"]:
@@ -147,6 +160,7 @@ class Settings:
                 # Native batches run in the job directory, not the source directory.
                 # A cwd-relative alternative must not bypass the preflight tree.
                 alternate = native_cwd / ref["name"]
+                guard(alternate)
                 if alternate.exists():
                     checked = self.input_path(str(alternate))
                     if ref["path"] is None or checked != Path(ref["path"]).resolve():
