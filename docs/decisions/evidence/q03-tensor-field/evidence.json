@@ -1,0 +1,1629 @@
+{
+  "task": "Q03",
+  "runs": [
+    {
+      "actual_git_revision": "8915ac97c97a1f2a51e43e42a6eae4e08da385d5",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "executable": {
+        "name": "lsprepost4.13.exe",
+        "version": "4.13",
+        "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+      },
+      "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+      "run_id": "r413a",
+      "context": "batch",
+      "passed": 3,
+      "failed": 3,
+      "cases": [
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "public-shell-inner",
+          "actual_git_revision": "8915ac97c97a1f2a51e43e42a6eae4e08da385d5",
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "failed",
+          "error": {
+            "type": "ValueError",
+            "message": "Native/LASSO six-component stress disagreement; check sampling and frame"
+          },
+          "family": "shell",
+          "sampling": {
+            "kind": "stored_point",
+            "count": 5,
+            "index": 1,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            8,
+            6
+          ],
+          "state": 7,
+          "time": 100.0,
+          "comparison": null,
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "547527c2c00a3921fbc2ebc67f8d83257681afe8e4184829df3152ac56ae5dd8",
+          "artifact_sha256": [],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "expected_status": "succeeded",
+          "test_status": "failed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "public-shell-mid",
+          "actual_git_revision": "8915ac97c97a1f2a51e43e42a6eae4e08da385d5",
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "failed",
+          "error": {
+            "type": "ValueError",
+            "message": "Native/LASSO six-component stress disagreement; check sampling and frame"
+          },
+          "family": "shell",
+          "sampling": {
+            "kind": "stored_point",
+            "count": 5,
+            "index": 3,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            8,
+            6
+          ],
+          "state": 7,
+          "time": 100.0,
+          "comparison": null,
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "547527c2c00a3921fbc2ebc67f8d83257681afe8e4184829df3152ac56ae5dd8",
+          "artifact_sha256": [],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "expected_status": "succeeded",
+          "test_status": "failed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "public-shell-outer",
+          "actual_git_revision": "8915ac97c97a1f2a51e43e42a6eae4e08da385d5",
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "succeeded",
+          "error": null,
+          "family": "shell",
+          "sampling": {
+            "kind": "stored_point",
+            "count": 5,
+            "index": 5,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            8,
+            6
+          ],
+          "state": 7,
+          "time": 100.0,
+          "comparison": {
+            "backend": "lsprepost",
+            "job_id": "cb672a8e47d34be8ae6fe6b72fe19fb2",
+            "entities": 8,
+            "components": [
+              "sxx",
+              "syy",
+              "szz",
+              "sxy",
+              "syz",
+              "szx"
+            ],
+            "rtol": 2e-05,
+            "atol": 1e-06,
+            "max_absolute_error": 0.0,
+            "native_selector": "outer",
+            "reader_sampling": {
+              "kind": "stored_point",
+              "count": 5,
+              "index": 5,
+              "native_layer_equivalence": "not inferred"
+            },
+            "sampling": "numerical agreement for this explicit selection; no general shell layer remapping"
+          },
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "547527c2c00a3921fbc2ebc67f8d83257681afe8e4184829df3152ac56ae5dd8",
+          "artifact_sha256": [
+            "67dc4f58d0049e61893940a56e7b9ad189b5135a9c946394e894f02709ddb428",
+            "1daa21252b92e166ca720281c62534e6cdd2481d67faf4b248dcf8374085b57f"
+          ],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "expected_status": "succeeded",
+          "test_status": "passed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "public-solid",
+          "actual_git_revision": "8915ac97c97a1f2a51e43e42a6eae4e08da385d5",
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "failed",
+          "error": {
+            "type": "ValueError",
+            "message": "Native batch failed: timeout=False, returncode=0, diagnostics=['*** Error while compiling function definition, last read line 43', '*** Error while compiling function definition, last read line 43', 'error occurred in parsing script : -8']"
+          },
+          "family": "solid",
+          "sampling": {
+            "kind": "mean_stored_points",
+            "count": 1,
+            "index": null,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            548,
+            6
+          ],
+          "state": 22,
+          "time": 0.0010001613991335034,
+          "comparison": null,
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "bfd22fb49006a3bdae3b80cb4b3a62c9cd6a8c607b482c9f20de31ee8abf09bf",
+          "artifact_sha256": [],
+          "native_jobs": [
+            {
+              "status": "failed",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "expected_status": "succeeded",
+          "test_status": "failed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "synthetic-shell",
+          "actual_git_revision": "8915ac97c97a1f2a51e43e42a6eae4e08da385d5",
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "succeeded",
+          "error": null,
+          "family": "shell",
+          "sampling": {
+            "kind": "mean_stored_points",
+            "count": 1,
+            "index": null,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            4,
+            6
+          ],
+          "state": 3,
+          "time": 1.0,
+          "comparison": {
+            "backend": "lsprepost",
+            "job_id": "6f2f29d4e0814910be6c6c6bdf3ec8e9",
+            "entities": 4,
+            "components": [
+              "sxx",
+              "syy",
+              "szz",
+              "sxy",
+              "syz",
+              "szx"
+            ],
+            "rtol": 2e-05,
+            "atol": 1e-06,
+            "max_absolute_error": 0.0,
+            "native_selector": "mid",
+            "reader_sampling": {
+              "kind": "mean_stored_points",
+              "count": 1,
+              "index": null,
+              "native_layer_equivalence": "not inferred"
+            },
+            "sampling": "numerical agreement for this explicit selection; no general shell layer remapping"
+          },
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "a8113b5c614e16c71b5177653b21c0230ca9d76310c2feaa2c15efd2accccf25",
+          "artifact_sha256": [
+            "b5b3324a22d0c61fafb0cc4ed6135584eb6aec04ffc8c4a56424472af1ee407e",
+            "3557eabf0c33cb890a1296b0e67988136e4fa305cdeba8bd2f9e73e5b420423e"
+          ],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "expected_status": "succeeded",
+          "test_status": "passed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "synthetic-solid",
+          "actual_git_revision": "8915ac97c97a1f2a51e43e42a6eae4e08da385d5",
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "succeeded",
+          "error": null,
+          "family": "solid",
+          "sampling": {
+            "kind": "mean_stored_points",
+            "count": 1,
+            "index": null,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            4,
+            6
+          ],
+          "state": 3,
+          "time": 1.0,
+          "comparison": {
+            "backend": "lsprepost",
+            "job_id": "2e6afd5d9ffd4e6692a1d085828e6be9",
+            "entities": 4,
+            "components": [
+              "sxx",
+              "syy",
+              "szz",
+              "sxy",
+              "syz",
+              "szx"
+            ],
+            "rtol": 2e-05,
+            "atol": 1e-06,
+            "max_absolute_error": 0.0,
+            "native_selector": "mid",
+            "reader_sampling": {
+              "kind": "mean_stored_points",
+              "count": 1,
+              "index": null,
+              "native_layer_equivalence": "not inferred"
+            },
+            "sampling": "numerical agreement for this explicit selection; no general shell layer remapping"
+          },
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "a8113b5c614e16c71b5177653b21c0230ca9d76310c2feaa2c15efd2accccf25",
+          "artifact_sha256": [
+            "8900462d710c57044b3613117b2df5db22d8d7504e6c12820a1ebe2f9b33702a",
+            "ffb80f01cb11953af65050119b6a057b487d00e710214299943e44761195762f"
+          ],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "expected_status": "succeeded",
+          "test_status": "passed"
+        }
+      ],
+      "test_source_identities": [
+        {
+          "path": "tests/test_tensor_field_native.py",
+          "git_blob_id": "2a91b75599a2a2c8317e6a13d56e1bdfe34a635e",
+          "sha256_lf": "0009751295698f2b679ee314d4c784be381e73159b1c36145bd9aed4a571e540",
+          "newline_basis": "LF normalized Git blob"
+        },
+        {
+          "path": "src/ls_prepost_mcp/native_results.py",
+          "git_blob_id": "4ebf584853040c4eafa01486caa97b20783ba067",
+          "sha256_lf": "7735b79c56d7734cb46612ceeefc1468b0b0d241939fc6c6c6903b7f576a10d5",
+          "newline_basis": "LF normalized Git blob"
+        },
+        {
+          "path": "src/ls_prepost_mcp/tensor_field.py",
+          "git_blob_id": "9c6f970c45ad6095e94a3da6551afdb5baff198f",
+          "sha256_lf": "cf5296b4cf3c767f661c2e4efb5d19b4bfdb9643ba948ef15d34b1656f2c9d6a",
+          "newline_basis": "LF normalized Git blob"
+        }
+      ],
+      "report": "r413a-batch-report.md",
+      "report_sha256": "9059fb23307473ad4044c1089c69b5f4415fd8efee9c591dd48ccd74383452bc"
+    },
+    {
+      "actual_git_revision": "1be3f454544d6aab64867722cf66075f555d0ec5",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "executable": {
+        "name": "lsprepost4.13.exe",
+        "version": "4.13",
+        "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+      },
+      "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+      "run_id": "r413b",
+      "context": "batch",
+      "passed": 8,
+      "failed": 0,
+      "cases": [
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "public-shell-inner",
+          "actual_git_revision": "1be3f454544d6aab64867722cf66075f555d0ec5",
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "succeeded",
+          "error": null,
+          "expected_status": "succeeded",
+          "family": "shell",
+          "sampling": {
+            "kind": "stored_point",
+            "count": 5,
+            "index": 2,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            8,
+            6
+          ],
+          "state": 7,
+          "time": 100.0,
+          "comparison": {
+            "backend": "lsprepost",
+            "job_id": "ecdbde8e3e3e410a8f2e0fa802c81503",
+            "entities": 8,
+            "components": [
+              "sxx",
+              "syy",
+              "szz",
+              "sxy",
+              "syz",
+              "szx"
+            ],
+            "rtol": 2e-05,
+            "atol": 1e-06,
+            "max_absolute_error": 0.0,
+            "native_selector": "inner",
+            "reader_sampling": {
+              "kind": "stored_point",
+              "count": 5,
+              "index": 2,
+              "native_layer_equivalence": "not inferred"
+            },
+            "sampling": "numerical agreement for this explicit selection; no general shell layer remapping"
+          },
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "547527c2c00a3921fbc2ebc67f8d83257681afe8e4184829df3152ac56ae5dd8",
+          "artifact_sha256": [
+            "3334b0a91d8412f39af615741b013fe18b8deaa4d7fe24d50c678e16ab28713f",
+            "82438a224ac07d980b6cd321516737728354abb7eaed364075faadc65e77fb49"
+          ],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "test_status": "passed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "public-shell-mid",
+          "actual_git_revision": "1be3f454544d6aab64867722cf66075f555d0ec5",
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "succeeded",
+          "error": null,
+          "expected_status": "succeeded",
+          "family": "shell",
+          "sampling": {
+            "kind": "stored_point",
+            "count": 5,
+            "index": 1,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            8,
+            6
+          ],
+          "state": 7,
+          "time": 100.0,
+          "comparison": {
+            "backend": "lsprepost",
+            "job_id": "37ab6a755d8f4ff3a995fc0273b8a697",
+            "entities": 8,
+            "components": [
+              "sxx",
+              "syy",
+              "szz",
+              "sxy",
+              "syz",
+              "szx"
+            ],
+            "rtol": 2e-05,
+            "atol": 1e-06,
+            "max_absolute_error": 0.0,
+            "native_selector": "mid",
+            "reader_sampling": {
+              "kind": "stored_point",
+              "count": 5,
+              "index": 1,
+              "native_layer_equivalence": "not inferred"
+            },
+            "sampling": "numerical agreement for this explicit selection; no general shell layer remapping"
+          },
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "547527c2c00a3921fbc2ebc67f8d83257681afe8e4184829df3152ac56ae5dd8",
+          "artifact_sha256": [
+            "7f1d470edfa5a85fceaf14e0de869354d1bdcee388a8c7fefaae118bfd06fc62",
+            "1e9e4ef4d4d93f0a683727307863bd33a8a0a97fd2ebcaa7ac7443c4bdd31046"
+          ],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "test_status": "passed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "public-shell-outer",
+          "actual_git_revision": "1be3f454544d6aab64867722cf66075f555d0ec5",
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "succeeded",
+          "error": null,
+          "expected_status": "succeeded",
+          "family": "shell",
+          "sampling": {
+            "kind": "stored_point",
+            "count": 5,
+            "index": 5,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            8,
+            6
+          ],
+          "state": 7,
+          "time": 100.0,
+          "comparison": {
+            "backend": "lsprepost",
+            "job_id": "6f23dcec969a45c5ad1f74b652e6bbc6",
+            "entities": 8,
+            "components": [
+              "sxx",
+              "syy",
+              "szz",
+              "sxy",
+              "syz",
+              "szx"
+            ],
+            "rtol": 2e-05,
+            "atol": 1e-06,
+            "max_absolute_error": 0.0,
+            "native_selector": "outer",
+            "reader_sampling": {
+              "kind": "stored_point",
+              "count": 5,
+              "index": 5,
+              "native_layer_equivalence": "not inferred"
+            },
+            "sampling": "numerical agreement for this explicit selection; no general shell layer remapping"
+          },
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "547527c2c00a3921fbc2ebc67f8d83257681afe8e4184829df3152ac56ae5dd8",
+          "artifact_sha256": [
+            "67dc4f58d0049e61893940a56e7b9ad189b5135a9c946394e894f02709ddb428",
+            "1daa21252b92e166ca720281c62534e6cdd2481d67faf4b248dcf8374085b57f"
+          ],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "test_status": "passed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "public-shell-wrong-inner",
+          "actual_git_revision": "1be3f454544d6aab64867722cf66075f555d0ec5",
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "failed",
+          "error": {
+            "type": "ValueError",
+            "message": "Native/LASSO six-component stress disagreement; check sampling and frame"
+          },
+          "expected_status": "failed",
+          "family": "shell",
+          "sampling": {
+            "kind": "stored_point",
+            "count": 5,
+            "index": 1,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            8,
+            6
+          ],
+          "state": 7,
+          "time": 100.0,
+          "comparison": null,
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "547527c2c00a3921fbc2ebc67f8d83257681afe8e4184829df3152ac56ae5dd8",
+          "artifact_sha256": [],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "test_status": "passed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "public-shell-wrong-mid",
+          "actual_git_revision": "1be3f454544d6aab64867722cf66075f555d0ec5",
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "failed",
+          "error": {
+            "type": "ValueError",
+            "message": "Native/LASSO six-component stress disagreement; check sampling and frame"
+          },
+          "expected_status": "failed",
+          "family": "shell",
+          "sampling": {
+            "kind": "stored_point",
+            "count": 5,
+            "index": 3,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            8,
+            6
+          ],
+          "state": 7,
+          "time": 100.0,
+          "comparison": null,
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "547527c2c00a3921fbc2ebc67f8d83257681afe8e4184829df3152ac56ae5dd8",
+          "artifact_sha256": [],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "test_status": "passed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "public-solid",
+          "actual_git_revision": "1be3f454544d6aab64867722cf66075f555d0ec5",
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "succeeded",
+          "error": null,
+          "expected_status": "succeeded",
+          "family": "solid",
+          "sampling": {
+            "kind": "mean_stored_points",
+            "count": 1,
+            "index": null,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            548,
+            6
+          ],
+          "state": 22,
+          "time": 0.0010001613991335034,
+          "comparison": {
+            "backend": "lsprepost",
+            "job_id": "c42d23c2e73c4a7d90ea5ea4cdb3d7f6",
+            "entities": 548,
+            "components": [
+              "sxx",
+              "syy",
+              "szz",
+              "sxy",
+              "syz",
+              "szx"
+            ],
+            "rtol": 2e-05,
+            "atol": 1e-06,
+            "max_absolute_error": 0.0,
+            "native_selector": "mid",
+            "reader_sampling": {
+              "kind": "mean_stored_points",
+              "count": 1,
+              "index": null,
+              "native_layer_equivalence": "not inferred"
+            },
+            "sampling": "numerical agreement for this explicit selection; no general shell layer remapping"
+          },
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "bfd22fb49006a3bdae3b80cb4b3a62c9cd6a8c607b482c9f20de31ee8abf09bf",
+          "artifact_sha256": [
+            "3c46bb9a7f8a3c4d9aea09377a9c7dc571f30145d0c534424a36e16a374721ad",
+            "a6466e767fe31027fc2db2e20b995a380c0d4f4164968dd65e01830e166a2412"
+          ],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "test_status": "passed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "synthetic-shell",
+          "actual_git_revision": "1be3f454544d6aab64867722cf66075f555d0ec5",
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "succeeded",
+          "error": null,
+          "expected_status": "succeeded",
+          "family": "shell",
+          "sampling": {
+            "kind": "mean_stored_points",
+            "count": 1,
+            "index": null,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            4,
+            6
+          ],
+          "state": 3,
+          "time": 1.0,
+          "comparison": {
+            "backend": "lsprepost",
+            "job_id": "3bd39d1ad286458892adeb7f8ebc18b8",
+            "entities": 4,
+            "components": [
+              "sxx",
+              "syy",
+              "szz",
+              "sxy",
+              "syz",
+              "szx"
+            ],
+            "rtol": 2e-05,
+            "atol": 1e-06,
+            "max_absolute_error": 0.0,
+            "native_selector": "mid",
+            "reader_sampling": {
+              "kind": "mean_stored_points",
+              "count": 1,
+              "index": null,
+              "native_layer_equivalence": "not inferred"
+            },
+            "sampling": "numerical agreement for this explicit selection; no general shell layer remapping"
+          },
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "a8113b5c614e16c71b5177653b21c0230ca9d76310c2feaa2c15efd2accccf25",
+          "artifact_sha256": [
+            "b5b3324a22d0c61fafb0cc4ed6135584eb6aec04ffc8c4a56424472af1ee407e",
+            "3557eabf0c33cb890a1296b0e67988136e4fa305cdeba8bd2f9e73e5b420423e"
+          ],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "test_status": "passed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "synthetic-solid",
+          "actual_git_revision": "1be3f454544d6aab64867722cf66075f555d0ec5",
+          "executable": {
+            "name": "lsprepost4.13.exe",
+            "version": "4.13",
+            "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+          },
+          "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+          "status": "succeeded",
+          "error": null,
+          "expected_status": "succeeded",
+          "family": "solid",
+          "sampling": {
+            "kind": "mean_stored_points",
+            "count": 1,
+            "index": null,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            4,
+            6
+          ],
+          "state": 3,
+          "time": 1.0,
+          "comparison": {
+            "backend": "lsprepost",
+            "job_id": "cd2d66ba698947b5abfce27276351206",
+            "entities": 4,
+            "components": [
+              "sxx",
+              "syy",
+              "szz",
+              "sxy",
+              "syz",
+              "szx"
+            ],
+            "rtol": 2e-05,
+            "atol": 1e-06,
+            "max_absolute_error": 0.0,
+            "native_selector": "mid",
+            "reader_sampling": {
+              "kind": "mean_stored_points",
+              "count": 1,
+              "index": null,
+              "native_layer_equivalence": "not inferred"
+            },
+            "sampling": "numerical agreement for this explicit selection; no general shell layer remapping"
+          },
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "a8113b5c614e16c71b5177653b21c0230ca9d76310c2feaa2c15efd2accccf25",
+          "artifact_sha256": [
+            "8900462d710c57044b3613117b2df5db22d8d7504e6c12820a1ebe2f9b33702a",
+            "ffb80f01cb11953af65050119b6a057b487d00e710214299943e44761195762f"
+          ],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "test_status": "passed"
+        }
+      ],
+      "test_source_identities": [
+        {
+          "path": "tests/test_tensor_field_native.py",
+          "git_blob_id": "4e16b83b011129d40f8af1f28ffed22789ef9c3f",
+          "sha256_lf": "bf4a578b6a8bf2f29416b66b59d82322aadb60e7fabe013f7abccf28d7c99e8d",
+          "newline_basis": "LF normalized Git blob"
+        },
+        {
+          "path": "src/ls_prepost_mcp/native_results.py",
+          "git_blob_id": "067b19c1ac7ff0cd6a809e7691096a31d706dc7e",
+          "sha256_lf": "88c8f91511be58a904a16aa4dad116c292c74d4d2a24784097cfe4913d298b80",
+          "newline_basis": "LF normalized Git blob"
+        },
+        {
+          "path": "src/ls_prepost_mcp/tensor_field.py",
+          "git_blob_id": "9c6f970c45ad6095e94a3da6551afdb5baff198f",
+          "sha256_lf": "cf5296b4cf3c767f661c2e4efb5d19b4bfdb9643ba948ef15d34b1656f2c9d6a",
+          "newline_basis": "LF normalized Git blob"
+        }
+      ],
+      "report": "r413b-batch-report.md",
+      "report_sha256": "13ced109b259c96ab5253ea4103f049371c96026f20de2b1464ab363d1e111d6"
+    },
+    {
+      "actual_git_revision": "1be3f454544d6aab64867722cf66075f555d0ec5",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "executable": {
+        "name": "lsprepost4.10_x64.exe",
+        "version": "4.10",
+        "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+      },
+      "source_config_sha256": "959297ded531d422057bfed84061b9e6f8907cbd8cdcefc28b0baf69468dfeac",
+      "run_id": "r410a",
+      "context": "batch",
+      "passed": 8,
+      "failed": 0,
+      "cases": [
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "public-shell-inner",
+          "actual_git_revision": "1be3f454544d6aab64867722cf66075f555d0ec5",
+          "executable": {
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+          },
+          "source_config_sha256": "959297ded531d422057bfed84061b9e6f8907cbd8cdcefc28b0baf69468dfeac",
+          "status": "succeeded",
+          "error": null,
+          "expected_status": "succeeded",
+          "family": "shell",
+          "sampling": {
+            "kind": "stored_point",
+            "count": 5,
+            "index": 2,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            8,
+            6
+          ],
+          "state": 7,
+          "time": 100.0,
+          "comparison": {
+            "backend": "lsprepost",
+            "job_id": "0cfbf86cf5464395be076cbd65eff30b",
+            "entities": 8,
+            "components": [
+              "sxx",
+              "syy",
+              "szz",
+              "sxy",
+              "syz",
+              "szx"
+            ],
+            "rtol": 2e-05,
+            "atol": 1e-06,
+            "max_absolute_error": 0.0,
+            "native_selector": "inner",
+            "reader_sampling": {
+              "kind": "stored_point",
+              "count": 5,
+              "index": 2,
+              "native_layer_equivalence": "not inferred"
+            },
+            "sampling": "numerical agreement for this explicit selection; no general shell layer remapping"
+          },
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "547527c2c00a3921fbc2ebc67f8d83257681afe8e4184829df3152ac56ae5dd8",
+          "artifact_sha256": [
+            "3334b0a91d8412f39af615741b013fe18b8deaa4d7fe24d50c678e16ab28713f",
+            "82438a224ac07d980b6cd321516737728354abb7eaed364075faadc65e77fb49"
+          ],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "test_status": "passed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "public-shell-mid",
+          "actual_git_revision": "1be3f454544d6aab64867722cf66075f555d0ec5",
+          "executable": {
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+          },
+          "source_config_sha256": "959297ded531d422057bfed84061b9e6f8907cbd8cdcefc28b0baf69468dfeac",
+          "status": "succeeded",
+          "error": null,
+          "expected_status": "succeeded",
+          "family": "shell",
+          "sampling": {
+            "kind": "stored_point",
+            "count": 5,
+            "index": 1,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            8,
+            6
+          ],
+          "state": 7,
+          "time": 100.0,
+          "comparison": {
+            "backend": "lsprepost",
+            "job_id": "175de644e1f949a6b45fabdb556f6b18",
+            "entities": 8,
+            "components": [
+              "sxx",
+              "syy",
+              "szz",
+              "sxy",
+              "syz",
+              "szx"
+            ],
+            "rtol": 2e-05,
+            "atol": 1e-06,
+            "max_absolute_error": 0.0,
+            "native_selector": "mid",
+            "reader_sampling": {
+              "kind": "stored_point",
+              "count": 5,
+              "index": 1,
+              "native_layer_equivalence": "not inferred"
+            },
+            "sampling": "numerical agreement for this explicit selection; no general shell layer remapping"
+          },
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "547527c2c00a3921fbc2ebc67f8d83257681afe8e4184829df3152ac56ae5dd8",
+          "artifact_sha256": [
+            "7f1d470edfa5a85fceaf14e0de869354d1bdcee388a8c7fefaae118bfd06fc62",
+            "1e9e4ef4d4d93f0a683727307863bd33a8a0a97fd2ebcaa7ac7443c4bdd31046"
+          ],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "test_status": "passed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "public-shell-outer",
+          "actual_git_revision": "1be3f454544d6aab64867722cf66075f555d0ec5",
+          "executable": {
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+          },
+          "source_config_sha256": "959297ded531d422057bfed84061b9e6f8907cbd8cdcefc28b0baf69468dfeac",
+          "status": "succeeded",
+          "error": null,
+          "expected_status": "succeeded",
+          "family": "shell",
+          "sampling": {
+            "kind": "stored_point",
+            "count": 5,
+            "index": 5,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            8,
+            6
+          ],
+          "state": 7,
+          "time": 100.0,
+          "comparison": {
+            "backend": "lsprepost",
+            "job_id": "65dd022a72aa41b7b930873efd2399e4",
+            "entities": 8,
+            "components": [
+              "sxx",
+              "syy",
+              "szz",
+              "sxy",
+              "syz",
+              "szx"
+            ],
+            "rtol": 2e-05,
+            "atol": 1e-06,
+            "max_absolute_error": 0.0,
+            "native_selector": "outer",
+            "reader_sampling": {
+              "kind": "stored_point",
+              "count": 5,
+              "index": 5,
+              "native_layer_equivalence": "not inferred"
+            },
+            "sampling": "numerical agreement for this explicit selection; no general shell layer remapping"
+          },
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "547527c2c00a3921fbc2ebc67f8d83257681afe8e4184829df3152ac56ae5dd8",
+          "artifact_sha256": [
+            "67dc4f58d0049e61893940a56e7b9ad189b5135a9c946394e894f02709ddb428",
+            "1daa21252b92e166ca720281c62534e6cdd2481d67faf4b248dcf8374085b57f"
+          ],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "test_status": "passed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "public-shell-wrong-inner",
+          "actual_git_revision": "1be3f454544d6aab64867722cf66075f555d0ec5",
+          "executable": {
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+          },
+          "source_config_sha256": "959297ded531d422057bfed84061b9e6f8907cbd8cdcefc28b0baf69468dfeac",
+          "status": "failed",
+          "error": {
+            "type": "ValueError",
+            "message": "Native/LASSO six-component stress disagreement; check sampling and frame"
+          },
+          "expected_status": "failed",
+          "family": "shell",
+          "sampling": {
+            "kind": "stored_point",
+            "count": 5,
+            "index": 1,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            8,
+            6
+          ],
+          "state": 7,
+          "time": 100.0,
+          "comparison": null,
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "547527c2c00a3921fbc2ebc67f8d83257681afe8e4184829df3152ac56ae5dd8",
+          "artifact_sha256": [],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "test_status": "passed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "public-shell-wrong-mid",
+          "actual_git_revision": "1be3f454544d6aab64867722cf66075f555d0ec5",
+          "executable": {
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+          },
+          "source_config_sha256": "959297ded531d422057bfed84061b9e6f8907cbd8cdcefc28b0baf69468dfeac",
+          "status": "failed",
+          "error": {
+            "type": "ValueError",
+            "message": "Native/LASSO six-component stress disagreement; check sampling and frame"
+          },
+          "expected_status": "failed",
+          "family": "shell",
+          "sampling": {
+            "kind": "stored_point",
+            "count": 5,
+            "index": 3,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            8,
+            6
+          ],
+          "state": 7,
+          "time": 100.0,
+          "comparison": null,
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "547527c2c00a3921fbc2ebc67f8d83257681afe8e4184829df3152ac56ae5dd8",
+          "artifact_sha256": [],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "test_status": "passed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "public-solid",
+          "actual_git_revision": "1be3f454544d6aab64867722cf66075f555d0ec5",
+          "executable": {
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+          },
+          "source_config_sha256": "959297ded531d422057bfed84061b9e6f8907cbd8cdcefc28b0baf69468dfeac",
+          "status": "succeeded",
+          "error": null,
+          "expected_status": "succeeded",
+          "family": "solid",
+          "sampling": {
+            "kind": "mean_stored_points",
+            "count": 1,
+            "index": null,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            548,
+            6
+          ],
+          "state": 22,
+          "time": 0.0010001613991335034,
+          "comparison": {
+            "backend": "lsprepost",
+            "job_id": "377c60073af14b36afa889e64c9ea135",
+            "entities": 548,
+            "components": [
+              "sxx",
+              "syy",
+              "szz",
+              "sxy",
+              "syz",
+              "szx"
+            ],
+            "rtol": 2e-05,
+            "atol": 1e-06,
+            "max_absolute_error": 0.0,
+            "native_selector": "mid",
+            "reader_sampling": {
+              "kind": "mean_stored_points",
+              "count": 1,
+              "index": null,
+              "native_layer_equivalence": "not inferred"
+            },
+            "sampling": "numerical agreement for this explicit selection; no general shell layer remapping"
+          },
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "bfd22fb49006a3bdae3b80cb4b3a62c9cd6a8c607b482c9f20de31ee8abf09bf",
+          "artifact_sha256": [
+            "3c46bb9a7f8a3c4d9aea09377a9c7dc571f30145d0c534424a36e16a374721ad",
+            "a6466e767fe31027fc2db2e20b995a380c0d4f4164968dd65e01830e166a2412"
+          ],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "test_status": "passed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "synthetic-shell",
+          "actual_git_revision": "1be3f454544d6aab64867722cf66075f555d0ec5",
+          "executable": {
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+          },
+          "source_config_sha256": "959297ded531d422057bfed84061b9e6f8907cbd8cdcefc28b0baf69468dfeac",
+          "status": "succeeded",
+          "error": null,
+          "expected_status": "succeeded",
+          "family": "shell",
+          "sampling": {
+            "kind": "mean_stored_points",
+            "count": 1,
+            "index": null,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            4,
+            6
+          ],
+          "state": 3,
+          "time": 1.0,
+          "comparison": {
+            "backend": "lsprepost",
+            "job_id": "0b75f0ac41f840e4b3874619bdf672c5",
+            "entities": 4,
+            "components": [
+              "sxx",
+              "syy",
+              "szz",
+              "sxy",
+              "syz",
+              "szx"
+            ],
+            "rtol": 2e-05,
+            "atol": 1e-06,
+            "max_absolute_error": 0.0,
+            "native_selector": "mid",
+            "reader_sampling": {
+              "kind": "mean_stored_points",
+              "count": 1,
+              "index": null,
+              "native_layer_equivalence": "not inferred"
+            },
+            "sampling": "numerical agreement for this explicit selection; no general shell layer remapping"
+          },
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "a8113b5c614e16c71b5177653b21c0230ca9d76310c2feaa2c15efd2accccf25",
+          "artifact_sha256": [
+            "b5b3324a22d0c61fafb0cc4ed6135584eb6aec04ffc8c4a56424472af1ee407e",
+            "3557eabf0c33cb890a1296b0e67988136e4fa305cdeba8bd2f9e73e5b420423e"
+          ],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "test_status": "passed"
+        },
+        {
+          "working_tree_dirty": false,
+          "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_diff_scope": {
+            "base": "HEAD",
+            "included": "All tracked staged and unstaged changes",
+            "excluded_paths": [],
+            "untracked_included": false
+          },
+          "case": "synthetic-solid",
+          "actual_git_revision": "1be3f454544d6aab64867722cf66075f555d0ec5",
+          "executable": {
+            "name": "lsprepost4.10_x64.exe",
+            "version": "4.10",
+            "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+          },
+          "source_config_sha256": "959297ded531d422057bfed84061b9e6f8907cbd8cdcefc28b0baf69468dfeac",
+          "status": "succeeded",
+          "error": null,
+          "expected_status": "succeeded",
+          "family": "solid",
+          "sampling": {
+            "kind": "mean_stored_points",
+            "count": 1,
+            "index": null,
+            "native_layer_equivalence": "not inferred"
+          },
+          "shape": [
+            4,
+            6
+          ],
+          "state": 3,
+          "time": 1.0,
+          "comparison": {
+            "backend": "lsprepost",
+            "job_id": "4989886b273742d8baf2d32a3fe66a78",
+            "entities": 4,
+            "components": [
+              "sxx",
+              "syy",
+              "szz",
+              "sxy",
+              "syz",
+              "szx"
+            ],
+            "rtol": 2e-05,
+            "atol": 1e-06,
+            "max_absolute_error": 0.0,
+            "native_selector": "mid",
+            "reader_sampling": {
+              "kind": "mean_stored_points",
+              "count": 1,
+              "index": null,
+              "native_layer_equivalence": "not inferred"
+            },
+            "sampling": "numerical agreement for this explicit selection; no general shell layer remapping"
+          },
+          "source_unchanged": true,
+          "directory_unchanged": true,
+          "source_tree_sha256": "a8113b5c614e16c71b5177653b21c0230ca9d76310c2feaa2c15efd2accccf25",
+          "artifact_sha256": [
+            "8900462d710c57044b3613117b2df5db22d8d7504e6c12820a1ebe2f9b33702a",
+            "ffb80f01cb11953af65050119b6a057b487d00e710214299943e44761195762f"
+          ],
+          "native_jobs": [
+            {
+              "status": "succeeded",
+              "returncode": 0,
+              "nographics": true,
+              "graphics": false,
+              "timed_out": false
+            }
+          ],
+          "test_status": "passed"
+        }
+      ],
+      "test_source_identities": [
+        {
+          "path": "tests/test_tensor_field_native.py",
+          "git_blob_id": "4e16b83b011129d40f8af1f28ffed22789ef9c3f",
+          "sha256_lf": "bf4a578b6a8bf2f29416b66b59d82322aadb60e7fabe013f7abccf28d7c99e8d",
+          "newline_basis": "LF normalized Git blob"
+        },
+        {
+          "path": "src/ls_prepost_mcp/native_results.py",
+          "git_blob_id": "067b19c1ac7ff0cd6a809e7691096a31d706dc7e",
+          "sha256_lf": "88c8f91511be58a904a16aa4dad116c292c74d4d2a24784097cfe4913d298b80",
+          "newline_basis": "LF normalized Git blob"
+        },
+        {
+          "path": "src/ls_prepost_mcp/tensor_field.py",
+          "git_blob_id": "9c6f970c45ad6095e94a3da6551afdb5baff198f",
+          "sha256_lf": "cf5296b4cf3c767f661c2e4efb5d19b4bfdb9643ba948ef15d34b1656f2c9d6a",
+          "newline_basis": "LF normalized Git blob"
+        }
+      ],
+      "report": "r410a-batch-report.md",
+      "report_sha256": "c11f3692cc14977dd900c141bbf6fbe396754082c4ba767da2868d979ed469f2"
+    }
+  ]
+}

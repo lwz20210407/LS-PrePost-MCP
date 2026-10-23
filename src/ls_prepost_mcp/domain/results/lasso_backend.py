@@ -168,7 +168,7 @@ def _index(ids: np.ndarray, wanted: list[int], kind: str) -> np.ndarray:
     return np.asarray([position[int(w)] for w in wanted])
 
 
-def _element_values(arrays: dict, family: str, quantity: str) -> tuple[np.ndarray, str]:
+def _element_values(arrays: dict, family: str, quantity: str, stored_point: int | None = None) -> tuple[np.ndarray, str]:
     """(states, elements) values of a stress component, invariant or plastic strain; IP-averaged."""
     _, _, _, _, stress_key, eps_key = FAMILIES[family]
     if quantity == "effective_plastic_strain":
@@ -184,7 +184,18 @@ def _element_values(arrays: dict, family: str, quantity: str) -> tuple[np.ndarra
     stress = np.asarray(arrays[stress_key], dtype=float)
     note = "stored value"
     if stress.ndim == 4:  # states, elements, points, 6
-        stress, note = stress.mean(axis=2), f"mean of {stress.shape[2]} stored points"
+        if stored_point is not None:
+            if stored_point > stress.shape[2]:
+                raise ResultsError("Stored integration point is outside the stress array")
+            stress, note = stress[:, :, stored_point-1, :], f"stored point {stored_point} (1-based); no averaging"
+        else:
+            stress, note = stress.mean(axis=2), f"mean of {stress.shape[2]} stored points"
+    elif stored_point is not None:
+        if stored_point != 1:
+            raise ResultsError("This stress array has one stored point")
+        note = "stored point 1 (1-based); no averaging"
+    if quantity == "stress":
+        return stress, note
     if quantity in STRESS:
         return stress[..., STRESS.index(quantity)], note
     if quantity in inv.QUANTITIES:
@@ -257,19 +268,23 @@ def _part_elements(arrays: dict, family: str, part_ids: list[int]) -> np.ndarray
 
 
 def field(path: str | Path, family: str, quantity: str, state: int = -1, mask: str = "alive",
-          part_ids: list[int] | None = None) -> dict:
+          part_ids: list[int] | None = None, stored_point: int | None = None) -> dict:
     """Element values of one state with IDs, the alive mask and extrema (Q03/Q04).
 
     ``state`` is a 0-based index (negative counts from the end); an index outside the stored
     states is refused, never wrapped. ``part_ids`` (user part IDs, resolved through part_ids or
     part_titles_ids) restricts the returned elements and the extrema to those parts."""
+    if stored_point is not None and (type(stored_point) is not int or stored_point < 1):
+        raise ResultsError("stored_point must be a positive 1-based integer")
+    if stored_point is not None and quantity != "stress":
+        raise ResultsError("Explicit stored_point currently requires the six-component stress quantity")
     arrays = _arrays(path)
     times = _times(arrays)
     if isinstance(state, bool) or not isinstance(state, (int, np.integer)) or not -times.size <= state < times.size:
         raise ResultsError(f"State index {state!r} is out of range for {times.size} states "
                            f"(0-based, negative from the end)")
     state_index = int(state) % times.size
-    values, note = _element_values(arrays, family, quantity)
+    values, note = _element_values(arrays, family, quantity, stored_point)
     ids = np.asarray(arrays[FAMILIES[family][0]]).reshape(-1)
     row = np.asarray(values[state_index])
     alive_key = FAMILIES[family][1]
@@ -284,10 +299,19 @@ def field(path: str | Path, family: str, quantity: str, state: int = -1, mask: s
         keep = _part_elements(arrays, family, parts)
         ids, row, alive = ids[keep], row[keep], alive[keep]
     selection = inv.masked(alive, mask)
-    return {"backend": backend(), "family": family, "quantity": quantity, "state": state_index,
+    extrema = ({component: inv.extrema(row[:, i], ids, selection) for i, component in enumerate(STRESS)}
+               if quantity == "stress" else inv.extrema(row, ids, selection))
+    result = {"backend": backend(), "family": family, "quantity": quantity, "state": state_index,
             "time": float(times[state_index]), "ids": ids, "values": row, "alive": alive,
-            "mask": mask, "part_ids": parts, "extrema": inv.extrema(row, ids, selection), "note": note,
+            "mask": mask, "part_ids": parts, "extrema": extrema, "note": note,
             "deletion_data": deletion_data}
+    if quantity == "stress":
+        stored = np.asarray(arrays[FAMILIES[family][4]])
+        result.update(components=list(STRESS), sampling={"kind": "stored_point" if stored_point else "mean_stored_points",
+                      "count": int(stored.shape[2]) if stored.ndim == 4 else 1,
+                      "index": stored_point,
+                      "native_layer_equivalence": "not inferred"})
+    return result
 
 
 def binout_curves(path: str | Path, database: str, component: str, branch: str | None = None,

@@ -298,10 +298,11 @@
 - 实体与壳各一个用例；LSPP 与 LASSO 结果逐实体一致（容差内）
 - 删除单元按 Q04 掩码策略处理并在元数据中注明
 
-现有入口：`extract_native_fields`, `extract_native_stress`, `extract_d3plot_field`, `extract_d3plot_stress`, `extract_nodal_results`, `extract_d3plot_nodal`, `extract_lsreader_nodal`, `export_dpf_result`
+现有入口：`extract_field`, `extract_native_fields`, `extract_native_stress`, `extract_d3plot_field`, `extract_d3plot_stress`, `extract_nodal_results`, `extract_d3plot_nodal`, `extract_lsreader_nodal`, `export_dpf_result`
 
 缺口：
 
+- extract_field(quantity=stress) 已复用共享读取/导出器输出六分量 CSV/NPZ，支持 Part、存储点及删除掩码；4.13/4.10 各八项原生对照通过，包含 548 个公开实体与壳内/中/外层的显式存储点配对，以及两个错配拒绝负例；本项仍缺通用壳层映射与多后端入口归并
 - 8 个工具按后端各一份；壳层未认证；实体积分点 2-8 原生返回错值被拒绝
 - PR #90（反重力，2026-10-22 关闭未合，分支 antigravity/Q03-field-extraction 保留）未解决：backend="native" 不跑 LSPP 却标 lsprepost；壳 layer/integration_point 只改元数据不改数值；越界 state 被取模；另写导出器，CSV 用共享 read_field 读不回；LSPP 与 LASSO 一致性证据是回写比较；部分 entity_ids 缺失被丢弃。重做时须复用 lasso_backend.field / export
 

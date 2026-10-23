@@ -1328,6 +1328,18 @@ GUI 未保存的编辑尚未闭环，4.8 本项未复验。
 修复后保存重开为 succeeded，计数/Part 身份一致且源树未改，未重跑全量节点坐标分页。
 证据与保留的失败见 [P02 参数函数修复](decisions/evidence/p02-expression-commas/report.md)。
 
+## Q03：应力六分量、存储点与原生对照（2026-10-23）
+
+extract_field(quantity="stress") 通过既有共享读取器、掩码和导出器，生成带语义元数据的 CSV/NPZ。
+stored_point 是读取器的 1-based 槽位；native_sampling 独立指定原生层/点，二者不自动映射。
+公开 order_d3plot 样本的 MID/INNER/OUTER 数值分别匹配存储槽位 1/2/5，不能按几何深度顺序猜测；
+两个错配负例均返回 failed 且无 verified 产物。坐标系明确为原样存储，不宣称做了局部/材料坐标变换。
+原生对照最多 1000 个返回实体，不接受多点平均与原生层的隐式等价；不启用对照时导出上限一百万实体，
+完整张量留在产物中，MCP 只返回至多二十行预览。
+真实 548 实体用例还揭示 SCL 单行超长导致编译失败；现按每行至多二十个 ID 条件生成，保留全部 ID。
+4.13/4.10 各八项测试通过，含六正例与两拒绝负例；首轮三项失败保留，见
+[Q03 原生与格式回归](decisions/evidence/q03-tensor-field/report.md)。Q03 仍 partial。
+
 ## I05：API 函数名的分词与旧索引（2026-10-23）
 
 API 文档中的 SCLGetDataCenterFloatArray 等函数现在同时按完整标识符与词边界建索引。
