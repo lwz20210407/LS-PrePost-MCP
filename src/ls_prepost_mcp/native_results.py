@@ -200,9 +200,14 @@ def native_fields(settings, jobs, source, domain, entity_ids, states, fields, in
                          params, source, build, parse, family=True)
 
 
-def native_ascii(settings, jobs, source, database, component, entity_id, units):
-    if database not in ("glstat", "nodout", "matsum", "spcforc", "secforc", "rbdout"):
+def native_ascii(settings, jobs, source, database, component, entity_id, units, side=None):
+    if database not in ("glstat", "nodout", "matsum", "spcforc", "secforc", "rbdout", "rcforc"):
         raise ValueError("Unsupported native ASCII database")
+    if database == "rcforc":
+        if type(side) is not int or side not in (0, 1):
+            raise ValueError("RCFORC requires explicit side 0 (slave/SURFA) or 1 (master/SURFB)")
+    elif side is not None:
+        raise ValueError("side only applies to RCFORC")
     ids([component], "component", 1000)
     if component > 1000:
         raise ValueError("ASCII component code must be 1..1000")
@@ -211,7 +216,12 @@ def native_ascii(settings, jobs, source, database, component, entity_id, units):
     if database != "glstat":
         ids([entity_id], "entity_id")
     def build(directory):
-        selector = str(component) + (" " + str(entity_id) if entity_id is not None else "")
+        label = str(entity_id)
+        if database == "secforc":
+            label = "Sec-" + label
+        elif database == "rcforc":
+            label = ("Sl-" if side == 0 else "Ma-") + label
+        selector = str(component) + (" " + label if entity_id is not None else "")
         commands = ["new", 'ascii %s open "input_data" 0' % database,
                     'ascii %s plot %s' % (database, selector), nc.save_xypair("curve.xy"), "exit"]
         nc.write_cfile(directory / "commands.cfile", commands)
@@ -230,10 +240,11 @@ def native_ascii(settings, jobs, source, database, component, entity_id, units):
         artifact = write_csv(directory / "curve.csv", ["time", "value"], rows)
         return {"backend": "lsprepost", "native_channel": "command_file", "database": database,
                 "component_code": component, "entity_id": entity_id, "row_count": len(rows),
+                "side": side,
                 "component_semantics": "LS-PrePost ASCII dialog component number; version-specific",
                 "read_only": "LS-PrePost opened staged copy only"}, [artifact]
     return finish_native(settings, jobs, "extract_native_ascii_curve",
-                         dict(database=database, component=component, entity_id=entity_id, units=units), source, build, parse)
+                         dict(database=database, component=component, entity_id=entity_id, units=units, side=side), source, build, parse)
 
 
 def native_binout(settings, jobs, source, branch, quantity, entity_id, units, executor=None):

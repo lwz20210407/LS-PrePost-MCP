@@ -103,10 +103,12 @@ class PostTools(CurveTargetTools):
                              validity_policy=validity_policy)
 
     def extract_native_ascii_curve(self, path: str, database: str, component: int, units: str,
-                                   entity_id: int | None = None) -> dict:
-        """Use native LS-PrePost ASCII/XYPlot to export GLSTAT or an explicit entity history. Component codes come from the native ASCII dialog; source is staged."""
+                                   entity_id: int | None = None, side: StrictInt | None = None) -> dict:
+        """Use native LS-PrePost ASCII/XYPlot to export GLSTAT or an explicit entity history.
+        Component codes come from the native ASCII dialog; source is staged. RCFORC requires
+        explicit side 0 (slave/SURFA) or 1 (master/SURFB); SECFORC uses a native Sec-ID label."""
         from .native_results import native_ascii
-        return native_ascii(self.settings, self.jobs, self.settings.input_path(path), database, component, entity_id, units)
+        return native_ascii(self.settings, self.jobs, self.settings.input_path(path), database, component, entity_id, units, side)
 
     def _post_job(self, action, parameters, sources, callback):
         units = parameters.get("units", "")

@@ -7,7 +7,8 @@ reading and the merge rules live in :mod:`domain.results.lasso_backend` and
 :mod:`domain.results.mpp_shards`; this module is a thin, recorded wrapper over them: it confines
 the input path, writes a verified CSV to a job directory and returns a JobResult. Component names
 are the stored column names (no UI component numbers); values stay in the model's own units and
-``units`` / ``time_units`` are declarations, nothing is converted. No LS-PrePost is launched.
+``units`` / ``time_units`` are declarations, nothing is converted. LS-PrePost is only launched
+by explicit native_check for supported ASCII force components.
 """
 from __future__ import annotations
 
@@ -16,6 +17,8 @@ import hashlib
 import re
 import struct
 from pathlib import Path
+
+from pydantic import StrictBool
 
 from .core.contracts import Artifact, JobResult
 from .jobs import atomic_json, check_artifact
@@ -35,7 +38,8 @@ class ResultsTargetTools:
 
     def extract_database(self, path: str, database: str, component: str, units: str,
                          branch: str | None = None, shard: str | None = None,
-                         entity_ids: list[int] | None = None, time_units: str = "time") -> dict:
+                         entity_ids: list[int] | None = None, time_units: str = "time",
+                         native_check: StrictBool = False) -> dict:
         """Q06: read a named binout component across MPP shards, or one explicit ASCII rcforc/secforc.
 
         ``path`` is one binout file (``binout`` or ``binout0000``); the other shards beside it are
@@ -49,20 +53,43 @@ class ResultsTargetTools:
         match database; branch/shard are not applicable. Text components: x_force/y_force/z_force,
         x_moment/y_moment/z_moment; rcforc also mass, secforc also force_magnitude/moment_magnitude,
         x_centroid/y_centroid/z_centroid/area. Written sides and coordinate-system IDs are retained;
-        no frame transform, missing-value fill or interpolation. No LS-PrePost."""
+        no frame transform, missing-value fill or interpolation. native_check=true independently
+        exports up to 16 ASCII rcforc/secforc entity/side curves for x_force/y_force/z_force in
+        headless LS-PrePost and compares all times/values. Reader values are never replaced.
+        Other modes do not launch LS-PrePost; unsupported native comparisons fail explicitly."""
         try:
+            if type(native_check) is not bool:
+                raise ValueError("native_check must be true or false")
             parameters = self._database_parameters(database, component, units, branch, shard, entity_ids, time_units)
         except ValueError as error:
             return _result("failed", {"database": database, "component": component, "backend": BACKEND},
                            error=_error(error))
         try:
             source = self._database_source(path, parameters)
+            if native_check:
+                from .database_native import FORCE_COMPONENTS
+
+                if source.name not in ("rcforc", "secforc") or component not in FORCE_COMPONENTS:
+                    raise ValueError("native_check currently supports explicit ASCII RCFORC/SECFORC x_force/y_force/z_force only")
         except (ValueError, OSError) as error:
             return _result("failed", {"database": database, "component": component, "backend": BACKEND},
                            error=_error(error))
-        directory, manifest = self.jobs.create("extract_database", {"source": str(source), **parameters})
+        directory, manifest = self.jobs.create("extract_database", {"source": str(source), **parameters,
+                                                                   "native_check": native_check})
         try:
+            before = _sha256(source) if native_check else None
             result = self._read_database(directory, source, parameters)
+            if native_check:
+                from .database_native import compare_ascii_forces
+
+                comparison = compare_ascii_forces(self, source, result)
+                if _sha256(source) != before:
+                    raise ValueError("ASCII source changed during native force comparison")
+                manifest["inputs"] = [{"path": str(source), "sha256": before}]
+                result["data"]["native_comparison"] = comparison
+                result["checks"] = [{"name": "native_force_agreement", "status": "passed"},
+                                    {"name": "input_bytes_unchanged", "status": "passed"}]
+                result = JobResult.model_validate(result).model_dump(mode="json")
         except (ValueError, KeyError, TypeError, OSError, IndexError, EOFError, struct.error) as error:
             result = _result("failed", {"database": database, "branch": branch, "component": component,
                                         "backend": "ls-dyna-ascii" if source.name in ("rcforc", "secforc")
@@ -220,4 +247,4 @@ def _sha256(path: Path) -> str:
 
 
 def _error(error: Exception) -> dict:
-    return {"type": type(error).__name__, "message": str(error) or type(error).__name__}
+    return {"type": type(error).__name__, "message": str(error).strip() or type(error).__name__}
