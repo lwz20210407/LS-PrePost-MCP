@@ -937,6 +937,12 @@ tasks:
     acceptance:
       - 节点 / 单元 / Part 的 ID、坐标、连接、所属 Part / 材料、指定状态的结果值
       - 结果值与 Q03 同一量一致
+    evidence:
+      - src/ls_prepost_mcp/entity_query.py
+      - tests/test_entity_query.py
+      - tests/test_entity_sparse_index.py
+      - tests/test_entity_query_native.py
+      - docs/decisions/evidence/g04-entity-query/report.md
 
 # ---------------------------------------------------------------------------
 # 基础设施（不计入用户任务进度，但里程碑退出依赖它们）

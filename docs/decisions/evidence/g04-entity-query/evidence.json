@@ -1,0 +1,488 @@
+{
+  "schema_version": 1,
+  "task": "G04",
+  "status": "partial",
+  "runs": [
+    {
+      "run_id": "r413a",
+      "actual_git_revision": "60edd973e852b51432c40e8b2447bdc7707b52db",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "passed": 1,
+      "failed": 2,
+      "report": "r413a-batch-report.md",
+      "report_sha256": "d9ec249fdfbc4ab1bda1dd2aa3d2ee65bb78632f48c9e2fde13155a148dece50",
+      "test_source_identities": [
+        {
+          "path": "tests/test_entity_query_native.py",
+          "git_blob_id": "5101dd3f5e2f0b4eb999ec248cbbf4162cbe8b18",
+          "sha256_lf": "85df936881715877d6f37f212313034b534329aa00d7e048f2643dbaaaa6f41f"
+        },
+        {
+          "path": "tests/test_entity_query.py",
+          "git_blob_id": "395df37b7342b28402000e42b789d3d72ac8fcfc",
+          "sha256_lf": "882d6e2cf25a4ed3ccdd24a1d3caf1c1c0ed11e2610e9c4cc14810a04fe78e5c"
+        },
+        {
+          "path": "tests/test_save_model_native.py",
+          "git_blob_id": "6ff79dbda00d47bbdcd5239c89edd68d20e6f1a3",
+          "sha256_lf": "75eeb9778455e0c899d220345f37693afa46a20ee2e2a12fb20119de56cc7b83"
+        }
+      ],
+      "cases": [
+        {
+          "case": "keyword-include",
+          "status": "passed",
+          "proof": {
+            "working_tree_dirty": false,
+            "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "git_diff_scope": {
+              "base": "HEAD",
+              "included": "All tracked staged and unstaged changes",
+              "excluded_paths": [],
+              "untracked_included": false
+            },
+            "case": "keyword-include",
+            "actual_git_revision": "60edd973e852b51432c40e8b2447bdc7707b52db",
+            "executable": {
+              "name": "lsprepost4.13.exe",
+              "version": "4.13",
+              "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+            },
+            "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+            "query_status": "succeeded",
+            "node_count": 4,
+            "source_tree_sha256": "254b57992affb9bf70d2e8a9861c8f277b8ce973cf929fc399cd22e9840a7dd1",
+            "result_error": null,
+            "connectivity_equal": true,
+            "material_known": true,
+            "source_unchanged": true,
+            "directory_unchanged": true,
+            "native_jobs": [
+              {
+                "status": "succeeded",
+                "returncode": 0,
+                "graphics": false,
+                "nographics": true,
+                "timed_out": false
+              },
+              {
+                "status": "succeeded",
+                "returncode": 0,
+                "graphics": false,
+                "nographics": true,
+                "timed_out": false
+              }
+            ]
+          },
+          "reason": null
+        },
+        {
+          "case": "public-solid",
+          "status": "failed",
+          "proof": null,
+          "reason": "Unsupported or duplicate native fields: test used reader quantity names instead of native public names"
+        },
+        {
+          "case": "public-shell",
+          "status": "failed",
+          "proof": null,
+          "reason": "Unsupported or duplicate native fields: test used reader quantity names instead of native public names"
+        }
+      ]
+    },
+    {
+      "run_id": "r413b",
+      "actual_git_revision": "2b81ae38dab3be05d9d57b065c9f104047249dce",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "passed": 3,
+      "failed": 0,
+      "report": "r413b-batch-report.md",
+      "report_sha256": "45d0933181f74f0c9b32f8b74a8d7e8db8341ba528bc9fce1f2c855c8d2eba67",
+      "test_source_identities": [
+        {
+          "path": "tests/test_entity_query_native.py",
+          "git_blob_id": "fecf4c6a9240185158ed54c3dc1100603f8e04cf",
+          "sha256_lf": "3b406c421640f1db8b2a28ac0d7a673254f1ffa4168c4e83f656528068dce418"
+        },
+        {
+          "path": "tests/test_entity_query.py",
+          "git_blob_id": "9b71e8203dfdaf62d958b17642456943ff098f2d",
+          "sha256_lf": "de1977a244962e263af8b809f815c0fb198e48e2a4bec8e1ec7b3ada6a6ddea5"
+        },
+        {
+          "path": "tests/test_save_model_native.py",
+          "git_blob_id": "6ff79dbda00d47bbdcd5239c89edd68d20e6f1a3",
+          "sha256_lf": "75eeb9778455e0c899d220345f37693afa46a20ee2e2a12fb20119de56cc7b83"
+        }
+      ],
+      "cases": [
+        {
+          "case": "keyword-include",
+          "status": "passed",
+          "proof": {
+            "working_tree_dirty": false,
+            "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "git_diff_scope": {
+              "base": "HEAD",
+              "included": "All tracked staged and unstaged changes",
+              "excluded_paths": [],
+              "untracked_included": false
+            },
+            "case": "keyword-include",
+            "actual_git_revision": "2b81ae38dab3be05d9d57b065c9f104047249dce",
+            "executable": {
+              "name": "lsprepost4.13.exe",
+              "version": "4.13",
+              "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+            },
+            "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+            "query_status": "succeeded",
+            "node_count": 4,
+            "source_tree_sha256": "254b57992affb9bf70d2e8a9861c8f277b8ce973cf929fc399cd22e9840a7dd1",
+            "result_error": null,
+            "connectivity_equal": true,
+            "material_known": true,
+            "source_unchanged": true,
+            "directory_unchanged": true,
+            "native_jobs": [
+              {
+                "status": "succeeded",
+                "returncode": 0,
+                "graphics": false,
+                "nographics": true,
+                "timed_out": false
+              },
+              {
+                "status": "succeeded",
+                "returncode": 0,
+                "graphics": false,
+                "nographics": true,
+                "timed_out": false
+              }
+            ]
+          },
+          "reason": null
+        },
+        {
+          "case": "public-solid",
+          "status": "passed",
+          "proof": {
+            "working_tree_dirty": false,
+            "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "git_diff_scope": {
+              "base": "HEAD",
+              "included": "All tracked staged and unstaged changes",
+              "excluded_paths": [],
+              "untracked_included": false
+            },
+            "case": "public-solid",
+            "actual_git_revision": "2b81ae38dab3be05d9d57b065c9f104047249dce",
+            "executable": {
+              "name": "lsprepost4.13.exe",
+              "version": "4.13",
+              "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+            },
+            "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+            "query_status": "partial",
+            "node_count": 10,
+            "source_tree_sha256": "bfd22fb49006a3bdae3b80cb4b3a62c9cd6a8c607b482c9f20de31ee8abf09bf",
+            "result_error": 0.0,
+            "connectivity_equal": true,
+            "material_known": false,
+            "source_unchanged": true,
+            "directory_unchanged": true,
+            "native_jobs": [
+              {
+                "status": "succeeded",
+                "returncode": 0,
+                "graphics": false,
+                "nographics": true,
+                "timed_out": false
+              },
+              {
+                "status": "succeeded",
+                "returncode": 0,
+                "graphics": false,
+                "nographics": true,
+                "timed_out": false
+              },
+              {
+                "status": "succeeded",
+                "returncode": 0,
+                "graphics": false,
+                "nographics": true,
+                "timed_out": false
+              }
+            ]
+          },
+          "reason": null
+        },
+        {
+          "case": "public-shell",
+          "status": "passed",
+          "proof": {
+            "working_tree_dirty": false,
+            "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "git_diff_scope": {
+              "base": "HEAD",
+              "included": "All tracked staged and unstaged changes",
+              "excluded_paths": [],
+              "untracked_included": false
+            },
+            "case": "public-shell",
+            "actual_git_revision": "2b81ae38dab3be05d9d57b065c9f104047249dce",
+            "executable": {
+              "name": "lsprepost4.13.exe",
+              "version": "4.13",
+              "sha256": "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+            },
+            "source_config_sha256": "a5f6239393e5011b9146eaa3b7b3185f9f3dfd753925d4f28d0e3ad7dba06bf6",
+            "query_status": "partial",
+            "node_count": 10,
+            "source_tree_sha256": "547527c2c00a3921fbc2ebc67f8d83257681afe8e4184829df3152ac56ae5dd8",
+            "result_error": 0.0,
+            "connectivity_equal": true,
+            "material_known": false,
+            "source_unchanged": true,
+            "directory_unchanged": true,
+            "native_jobs": [
+              {
+                "status": "succeeded",
+                "returncode": 0,
+                "graphics": false,
+                "nographics": true,
+                "timed_out": false
+              },
+              {
+                "status": "succeeded",
+                "returncode": 0,
+                "graphics": false,
+                "nographics": true,
+                "timed_out": false
+              },
+              {
+                "status": "succeeded",
+                "returncode": 0,
+                "graphics": false,
+                "nographics": true,
+                "timed_out": false
+              }
+            ]
+          },
+          "reason": null
+        }
+      ]
+    },
+    {
+      "run_id": "r410b",
+      "actual_git_revision": "2b81ae38dab3be05d9d57b065c9f104047249dce",
+      "working_tree_dirty": false,
+      "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_diff_scope": {
+        "base": "HEAD",
+        "included": "All tracked staged and unstaged changes",
+        "excluded_paths": [],
+        "untracked_included": false
+      },
+      "passed": 3,
+      "failed": 0,
+      "report": "r410b-batch-report.md",
+      "report_sha256": "bdf7adfbe49658862398896f5d1e9ec1a4d8461cd85a297bcbaf39492e980913",
+      "test_source_identities": [
+        {
+          "path": "tests/test_entity_query_native.py",
+          "git_blob_id": "fecf4c6a9240185158ed54c3dc1100603f8e04cf",
+          "sha256_lf": "3b406c421640f1db8b2a28ac0d7a673254f1ffa4168c4e83f656528068dce418"
+        },
+        {
+          "path": "tests/test_entity_query.py",
+          "git_blob_id": "9b71e8203dfdaf62d958b17642456943ff098f2d",
+          "sha256_lf": "de1977a244962e263af8b809f815c0fb198e48e2a4bec8e1ec7b3ada6a6ddea5"
+        },
+        {
+          "path": "tests/test_save_model_native.py",
+          "git_blob_id": "6ff79dbda00d47bbdcd5239c89edd68d20e6f1a3",
+          "sha256_lf": "75eeb9778455e0c899d220345f37693afa46a20ee2e2a12fb20119de56cc7b83"
+        }
+      ],
+      "cases": [
+        {
+          "case": "keyword-include",
+          "status": "passed",
+          "proof": {
+            "working_tree_dirty": false,
+            "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "git_diff_scope": {
+              "base": "HEAD",
+              "included": "All tracked staged and unstaged changes",
+              "excluded_paths": [],
+              "untracked_included": false
+            },
+            "case": "keyword-include",
+            "actual_git_revision": "2b81ae38dab3be05d9d57b065c9f104047249dce",
+            "executable": {
+              "name": "lsprepost4.10_x64.exe",
+              "version": "4.10",
+              "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+            },
+            "source_config_sha256": "f292798c75a3c43ac16034b024b4af045447e2327edc0e96ea0a022226b84d6a",
+            "query_status": "succeeded",
+            "node_count": 4,
+            "source_tree_sha256": "254b57992affb9bf70d2e8a9861c8f277b8ce973cf929fc399cd22e9840a7dd1",
+            "result_error": null,
+            "connectivity_equal": true,
+            "material_known": true,
+            "source_unchanged": true,
+            "directory_unchanged": true,
+            "native_jobs": [
+              {
+                "status": "succeeded",
+                "returncode": 0,
+                "graphics": false,
+                "nographics": true,
+                "timed_out": false
+              },
+              {
+                "status": "succeeded",
+                "returncode": 0,
+                "graphics": false,
+                "nographics": true,
+                "timed_out": false
+              }
+            ]
+          },
+          "reason": null
+        },
+        {
+          "case": "public-solid",
+          "status": "passed",
+          "proof": {
+            "working_tree_dirty": false,
+            "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "git_diff_scope": {
+              "base": "HEAD",
+              "included": "All tracked staged and unstaged changes",
+              "excluded_paths": [],
+              "untracked_included": false
+            },
+            "case": "public-solid",
+            "actual_git_revision": "2b81ae38dab3be05d9d57b065c9f104047249dce",
+            "executable": {
+              "name": "lsprepost4.10_x64.exe",
+              "version": "4.10",
+              "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+            },
+            "source_config_sha256": "f292798c75a3c43ac16034b024b4af045447e2327edc0e96ea0a022226b84d6a",
+            "query_status": "partial",
+            "node_count": 10,
+            "source_tree_sha256": "bfd22fb49006a3bdae3b80cb4b3a62c9cd6a8c607b482c9f20de31ee8abf09bf",
+            "result_error": 0.0,
+            "connectivity_equal": true,
+            "material_known": false,
+            "source_unchanged": true,
+            "directory_unchanged": true,
+            "native_jobs": [
+              {
+                "status": "succeeded",
+                "returncode": 0,
+                "graphics": false,
+                "nographics": true,
+                "timed_out": false
+              },
+              {
+                "status": "succeeded",
+                "returncode": 0,
+                "graphics": false,
+                "nographics": true,
+                "timed_out": false
+              },
+              {
+                "status": "succeeded",
+                "returncode": 0,
+                "graphics": false,
+                "nographics": true,
+                "timed_out": false
+              }
+            ]
+          },
+          "reason": null
+        },
+        {
+          "case": "public-shell",
+          "status": "passed",
+          "proof": {
+            "working_tree_dirty": false,
+            "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "git_diff_scope": {
+              "base": "HEAD",
+              "included": "All tracked staged and unstaged changes",
+              "excluded_paths": [],
+              "untracked_included": false
+            },
+            "case": "public-shell",
+            "actual_git_revision": "2b81ae38dab3be05d9d57b065c9f104047249dce",
+            "executable": {
+              "name": "lsprepost4.10_x64.exe",
+              "version": "4.10",
+              "sha256": "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b"
+            },
+            "source_config_sha256": "f292798c75a3c43ac16034b024b4af045447e2327edc0e96ea0a022226b84d6a",
+            "query_status": "partial",
+            "node_count": 10,
+            "source_tree_sha256": "547527c2c00a3921fbc2ebc67f8d83257681afe8e4184829df3152ac56ae5dd8",
+            "result_error": 0.0,
+            "connectivity_equal": true,
+            "material_known": false,
+            "source_unchanged": true,
+            "directory_unchanged": true,
+            "native_jobs": [
+              {
+                "status": "succeeded",
+                "returncode": 0,
+                "graphics": false,
+                "nographics": true,
+                "timed_out": false
+              },
+              {
+                "status": "succeeded",
+                "returncode": 0,
+                "graphics": false,
+                "nographics": true,
+                "timed_out": false
+              },
+              {
+                "status": "succeeded",
+                "returncode": 0,
+                "graphics": false,
+                "nographics": true,
+                "timed_out": false
+              }
+            ]
+          },
+          "reason": null
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "node/solid/shell/Part; no beam/tshell",
+    "d3plot ID predicates only; no implicit companion keyword",
+    "material/section keyword IDs in d3plot remain unknown",
+    "extreme sparse-ID regressions are offline, not native stress tests",
+    "No GUI visibility or 4.8 evidence"
+  ]
+}
