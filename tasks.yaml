@@ -1004,6 +1004,8 @@ infrastructure:
       - tests/test_keyword_native_snapshot.py
       - tests/test_keyword_native_snapshot_native.py
       - docs/decisions/evidence/i01-keyword-snapshot/report.md
+      - tests/test_keyword_preflight_access_point.py
+      - docs/decisions/evidence/i01-preflight-confinement-review02/report.md
     acceptance:
       - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
       - 删除 gui_session_action 中运行时替换 _native 的做法
