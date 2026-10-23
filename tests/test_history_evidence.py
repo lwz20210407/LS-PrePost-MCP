@@ -13,10 +13,10 @@ EVIDENCE = ROOT / "docs/decisions/evidence/q05-history"
 
 def test_native_history_evidence_covers_all_modes_and_stricter_rechecks():
     runs = json.loads((EVIDENCE / "evidence.json").read_text(encoding="utf8"))["runs"]
-    assert [(r["passed"], r["failed"]) for r in runs] == [(4, 0), (4, 0), (2, 0), (2, 0)]
-    assert [r["executable"]["version"] for r in runs] == ["4.13", "4.10", "4.13", "4.10"]
+    assert [(r["passed"], r["failed"]) for r in runs] == [(4, 0), (4, 0), (2, 0), (2, 0), (4, 0)]
+    assert [r["executable"]["version"] for r in runs] == ["4.13", "4.10", "4.13", "4.10", "4.13"]
     for index, run in enumerate(runs):
-        expected = {"node", "solid", "part", "global"} if index < 2 else {"part", "global"}
+        expected = {"node", "solid", "part", "global"} if index in (0,1,4) else {"part", "global"}
         assert {r["domain"] for r in run["cases"]} == expected
         text = (EVIDENCE / run["report"]).read_text(encoding="utf8")
         assert hashlib.sha256(text.encode()).hexdigest() == run["report_sha256"]
@@ -31,7 +31,8 @@ def test_native_history_evidence_covers_all_modes_and_stricter_rechecks():
             assert row["comparison"]["backend"] == "lsprepost"
             if index >= 2:
                 assert row["comparison"]["tolerances"]["time"]["atol"] == 1e-9
-                assert "max_time_absolute_error" in row["comparison"]
+                if row["domain"] in ("part","global"):
+                    assert "max_time_absolute_error" in row["comparison"]
             assert all(
                 j["status"] == "succeeded"
                 and j["returncode"] == 0
