@@ -15,10 +15,11 @@ import os
 import re
 from collections.abc import Callable
 from pathlib import Path
+from typing import Literal
 
 from pydantic import StrictInt
 
-from .core.contracts import Artifact, CheckResult, JobResult
+from .core.contracts import Artifact, CheckResult, JobResult, Selector
 from .jobs import atomic_json
 
 BACKEND = "keyword-engine"
@@ -47,6 +48,20 @@ def _result(operation: str, status: str, data: dict, **fields: object) -> dict:
 
 class ModelTargetTools:
     """Mixed into Service: needs ``self.settings`` (input paths) and ``self.jobs`` (job directories)."""
+
+    def query_entities(self, path: str, selector: Selector, source_kind: Literal["keyword", "d3plot"] = "keyword",
+                       state: StrictInt | None = None, quantity: str | None = None, units: str | None = None) -> dict:
+        """G04: identify node/solid/shell/Part IDs, coordinates, connectivity and Part/material links from disk.
+
+        Keyword uses the shared Include/parameter engine and reference Selector. d3plot currently
+        requires explicit ID selectors; state is 1-based, deformed selectors use their own explicit state.
+        Optional quantity/state/units gives a shared-reader scalar result. Missing binary material user
+        IDs remain null with partial status, never guessed from MAT type or a neighboring .k file.
+        At most 1000 identified entities; coordinates/quantities stay as stored, no unit/frame transform.
+        """
+        from .entity_query import query_entities
+
+        return query_entities(self, path, selector, source_kind, state, quantity, units)
 
     def save_model(self, model: str, expected_counts: dict[str, StrictInt] | None = None,
                    expected_part_ids: list[StrictInt] | None = None) -> dict:
