@@ -8,6 +8,10 @@ from ..core.native_log import LogCursor, native_errors
 from .jobs import SessionJob
 
 
+class HostPreparationError(RuntimeError):
+    """Host callback failed before transport submission; panel effects may remain."""
+
+
 class SessionEngine:
     def run(self, job: SessionJob) -> JobResult:
         complete = job.directory / "complete.json"
@@ -58,9 +62,11 @@ class SessionEngine:
                     raise TimeoutError("Native operation outcome uncertain; inspect session or restore checkpoint")
                 time.sleep(0.05)
         except Exception as exc:
+            if isinstance(exc, HostPreparationError):
+                submitted = False
             message = str(exc)
             log_error = None
-            if cursor is not None and submitted:
+            if cursor is not None and (submitted or isinstance(exc, HostPreparationError)):
                 try:
                     raw_log = cursor.read_bytes()
                     (job.directory / "native-session.log").write_bytes(raw_log)
@@ -69,7 +75,10 @@ class SessionEngine:
                         json.dumps(dict(source=str(cursor.path), offset=cursor.offset, **log_info)), encoding="utf8")
                 except (OSError, ValueError, LookupError) as log_exc:
                     log_error = str(log_exc)
+            details = dict(submitted=submitted, replayed=False, log_error=log_error)
+            if isinstance(exc, HostPreparationError):
+                details["phase"] = "host_preparation"
             return JobResult(operation=job.operation, job_id=job.directory.name, backend="lsprepost",
                              status="unverified" if submitted else "failed",
-                             data=dict(submitted=submitted, replayed=False, log_error=log_error),
+                             data=details,
                              error=dict(type=type(exc).__name__, message=message if message.strip() else type(exc).__name__))
