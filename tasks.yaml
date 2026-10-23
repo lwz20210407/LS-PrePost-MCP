@@ -876,7 +876,7 @@ tasks:
     gaps:
       - 查询侧已加通用中英词表与排序；公开索引下留出集 B 前 3 命中 13/24（基线 5/24），旧留出集 16/24；开发集与旧二十题为调优集，不作完成依据
       - holdout B 的独立性未经可复核证明：文件 blob e8d7728b 首次出现在 ecae976，与代码提交 3703de5 同一秒提交，Git 不能证明调优前冻结；以后的留出集须先公布哈希再调优
-      - 私有 Scripting API/用户指南来源路径未经用户确认（I05 缺口），正式口径 API 类 0/4；SCL 驼峰函数名的索引拆词已由 I05 补齐，指南 PDF 抽取断词仍待处理
+      - 私有 Scripting API/用户指南来源路径未经用户确认（I05 缺口），正式口径 API 类 0/4；I05 已修查询与索引的标识符边界，API 真实召回仍需经授权来源重建验证，指南 PDF 抽取断词仍待处理
       - 不写关键字名的字段语义问题（holdout B HB09/HB11/HB12）仍未命中；holdout B 有 6 题答案目标与开发集重合，去除后 10/18
       - '审阅 P2（#93 合入时未修）：evidence.json 的逐题返回列表仍是 f04843a 的记录，最终修订改变了 6 题的前 3 条，未重新生成；扩展词形覆盖率无自动测试'
     existing: [search_commands, search_knowledge, search_workflows, list_pydyna_keywords, describe_pydyna_keyword]
@@ -1113,7 +1113,7 @@ infrastructure:
     gaps:
       - 38 个空字段项已按提供者结构与 R17 手册复核分类：23 无数据卡、1 自由文本已确认；10 项手册有字段而 keyword_docs 未返回布局（Claude 提供者范围），4 项手册无独立章节待定
       - 3171 个标识均已入索引（66900 字段 + 38 关键字级文档）；新头上的 API 类只用合成私有夹具验证管线，真实私有 Scripting API/用户指南复验待用户提供本机来源；不替代 A10 留出集评测
-      - API 文档索引已补驼峰/缩写边界拆词并保留完整标识符；旧 schema-v2 索引只读兼容，须显式重建获得新 token；真实 API/指南来源与 A10 独立留出证据仍缺
+      - 查询与 API 索引复用驼峰/下划线/复数缩写边界，完整标识符 OR 全部拆词；旧 schema-v2 索引只读兼容并提示重建，零命中时提示仅在诊断日志中；真实 API/指南来源与 A10 新独立留出证据仍缺
     verification_level: L1
     evidence:
       - src/ls_prepost_mcp/knowledge_index.py

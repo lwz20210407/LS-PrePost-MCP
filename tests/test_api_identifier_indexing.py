@@ -28,7 +28,7 @@ def test_spaced_query_finds_api_identifier_without_rewriting_reference(tmp_path,
     assert search_index(path, identifier, category="api", include_private=True)
     with closing(sqlite3.connect(path)) as db:
         assert db.execute("SELECT text FROM documents").fetchone()[0]==text
-        assert db.execute("SELECT api_tokenization FROM metadata").fetchone()[0]=="identifier-parts-v1"
+        assert db.execute("SELECT api_tokenization FROM metadata").fetchone()[0]=="identifier-parts-v2"
 
 
 def test_non_api_sources_keep_legacy_tokenization(tmp_path):
