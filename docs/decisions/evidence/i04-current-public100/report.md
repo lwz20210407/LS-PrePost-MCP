@@ -1,3 +1,5 @@
+> 历史状态记录：下文原45/5/50数字保留；50个限制中11条是合法但产品不支持的变体，解释应为45/61可运行例通过、16失败/产品缺口、39真实输入限制。当前定点复跑与逐例执行提交见 [review02账本](../i04-variant-review02/report.md)，不把混合提交账本当全量同头通过。
+
 # I04: current canonical-save public-100 run
 
 Actual Git revision: `c46bb9d41ecdad2d055638c93d70a5d1d5d84bbe`; working tree clean. LS-PrePost 4.13, serial headless batch.

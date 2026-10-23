@@ -39,6 +39,9 @@ def test_failed_native_reference_is_not_replaced_by_an_input_exemption(monkeypat
     monkeypatch.setattr(runner, "keyword_variant_reference", native, raising=False)
     request = SimpleNamespace(node=SimpleNamespace(user_properties=[]))
     record = dict(input_tree=tree(), checks=[])
-    with pytest.raises(AssertionError, match="native read failed"):
-        runner.test_public_corpus({"kind": "keyword"}, (object(), "owned-source", record), request)
+    try:
+        with pytest.raises(AssertionError, match="native read failed"):
+            runner.test_public_corpus({"kind": "keyword"}, (object(), "owned-source", record), request)
+    except pytest.xfail.Exception:
+        pytest.fail("Product failure was exempted before running the native reference")
     assert not request.node.user_properties
