@@ -712,3 +712,13 @@ binout 全库、力矩/质心及 MPP/SMP 原生一致性仍未完成；ac ID 只
 仅有 `part_titles_ids` 的 d3plot 尚不能确认用户 PID，不能自动把标题序号当成 PID。
 这类库存观察显式标为未确认并返回 partial；按用户 PID 过滤与部件历史当前拒绝，
 待补充原生/编号表证据后再扩展，跟踪 Q01、Q03、Q05。
+
+## Q07：SAE 默认填充与原生 XYPlot 数值不一致
+
+- 跟踪：Q07
+
+4.13/4.10 对固定波形的 SAE60/600 × 秒/毫秒共8项对照均不满足当前逐样本容差，
+pytest 记录为 xfail，不是通过。Python odd/constant 两种填充在端点和中段均有差异；
+没有按输出拟合参数，尚不能承诺 curve_ops 的 SAE 输出与原生 XYPlot 等价。
+Butterworth 与工程波形也未完成原生核对。版本、输入、命令和误差见
+[原生滤波取证](decisions/evidence/q07-native-filter-review02/report.md)。
