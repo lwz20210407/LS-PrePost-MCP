@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from .core.contracts import Artifact, CheckResult, JobResult
@@ -137,8 +137,11 @@ class CurveTargetTools:
         """Q07: curve operations on CSV histories; every result is a CSV with formula, parameters and units.
 
         inputs: [{"name", "path", "time_unit" (s/ms/us/ns), "value_unit", "time_column"="time",
-        "value_column"="value"}]; time must increase strictly. operations run in order, each with a new
-        "output" name: convert_units(input, abscissa_unit?, value_unit?), resample(input, dt in the
+        "value_column"="value"}]; time must increase strictly.
+        An optional alive CSV column must be 1 at every sample; deleted/unknown/malformed flags
+        are refused without dropping or filling samples. Unmarked CSVs have undeclared validity.
+        Operations run in order, each with a new "output" name:
+        convert_units(input, abscissa_unit?, value_unit?), resample(input, dt in the
         curve's time unit; filter before coarsening), differentiate(input), integrate(input, initial?),
         sae_filter(input, cfc, padding?), butterworth_filter(input, order, cutoff_hz, padding?),
         spectrum(input), cross_plot(x, y), difference(a, b, alignment? = "exact"; identical declared
@@ -206,15 +209,18 @@ def _step(spec: _Op, step: dict, curves: dict):
         for axis, wanted in (("abscissa", spec.abscissa), ("ordinate", spec.ordinate)):
             if wanted and curve.meta[axis] != wanted:
                 raise CurveError(f"{key} must have the {axis} {wanted!r}; {step[key]!r} has {curve.meta[axis]!r}")
-    return spec.run(*given, {k: step[k] for k in (*spec.required, *spec.optional) if k in step})
+    result = spec.run(*given, {k: step[k] for k in (*spec.required, *spec.optional) if k in step})
+    validity = {name: record for curve in given for name, record in curve.meta["input_validity"].items()}
+    return replace(result, meta={**result.meta, "input_validity": validity})
 
 
 def _input_curve(item: dict, path, read_curve):
     from .domain.results.curves import history
 
     columns = {"time_column": item.get("time_column", "time"), "value_column": item.get("value_column", "value")}
-    t, y = read_curve(path, columns["time_column"], columns["value_column"])
-    return history(t, y, t_unit=item["time_unit"], y_unit=item["value_unit"], **columns)
+    t, y, validity = read_curve(path, columns["time_column"], columns["value_column"], include_validity=True)
+    result = history(t, y, t_unit=item["time_unit"], y_unit=item["value_unit"], **columns)
+    return replace(result, meta={**result.meta, "input_validity": {item["name"]: validity}})
 
 
 def _write(directory, name: str, curve) -> Artifact:
@@ -229,7 +235,8 @@ def _write(directory, name: str, curve) -> Artifact:
         raise CurveError(f"writing {name}.csv: {failure}") from None
     return Artifact(path=saved["path"], kind="csv", sha256=saved["sha256"], size_bytes=saved["size"],
                     verification="verified" if saved["sha256"] else "unverified",
-                    metadata={"curve": name, "columns": header, "units": meta["units"], "rows": saved["row_count"]})
+                    metadata={"curve": name, "columns": header, "units": meta["units"], "rows": saved["row_count"],
+                              "input_validity": meta["input_validity"]})
 
 
 def _recheck(artifacts: list[Artifact]) -> tuple[list[Artifact], list[str]]:

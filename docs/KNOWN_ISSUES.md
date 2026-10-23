@@ -684,7 +684,9 @@ R11 启动横幅后超时，控制算例同样失败，求解器侧解释尚未�
 默认 d3plot 的 Part/global、tshell/beam 和更广 shell 时程仍缺少原生对照，4.8 未验证。
 原生 d3plot 对照限节点及显式选点单元量、最多1000状态；Part/global 对照需显式单文件 binout，
 不会把多分片降为单分片。没有真实 part_ids 的 d3plot 部件时程拒绝猜测用户 PID。
-显式 stored_point 与独立 native_sampling 已有登记壳槽位子集对照，通用层映射仍待完善；其他曲线消费者尚不自动应用 alive 列，使用者需指定有效时间区间。
+显式 stored_point 与独立 native_sampling 已有登记壳槽位子集对照，通用层映射仍待完善。
+曲线运算遇到 alive 列中的 deleted/unknown/畸形标记直接拒绝；不自动裁剪、补值或跨删除区间插值。
+没有 alive 列的数据仍由调用者负责有效性，curve_ops 标为 not_declared；其他消费者尚未逐项验证。
 删除样本的原始值保留并标无效；未知删除状态不当作全活。已修经过与限定原生证据见
 [审核02时程记录](decisions/evidence/q05-deletion-review02/report.md)，Q05 保持 partial。
 
