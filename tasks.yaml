@@ -1027,6 +1027,8 @@ infrastructure:
       - src/ls_prepost_mcp/field_contract_adapter.py
       - tests/test_field_contract_adapter.py
       - docs/decisions/evidence/i02-field-adapter/report.md
+      - tests/test_required_checks_review02.py
+      - docs/decisions/evidence/i02-required-checks-review02/report.md
     verification_level: L1
     acceptance:
       - ModelRef、Selector、FieldSpec、CurveSpec、JobResult、Artifact 以 pydantic 定义

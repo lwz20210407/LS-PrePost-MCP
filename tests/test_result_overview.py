@@ -139,7 +139,8 @@ def test_native_check_agrees(service: Service, monkeypatch: pytest.MonkeyPatch) 
 def test_native_check_reports_disagreement(service: Service, monkeypatch: pytest.MonkeyPatch, states, times) -> None:
     monkeypatch.setattr(service, "inspect_model", lambda path, file_type: _native(states, times))
     result = _valid(service.result_info("run/d3plot", native_check=True))
-    assert result.status == "succeeded" and result.check_status == "failed"
+    assert result.status == "failed" and result.check_status == "failed"
+    assert "backends_agree" in result.error["message"]
     assert not (result.data["comparison"]["state_counts_equal"] and result.data["comparison"]["times_equal"])
 
 

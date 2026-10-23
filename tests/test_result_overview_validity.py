@@ -62,7 +62,8 @@ def test_finite_clock_difference_overflow_is_json_safe_disagreement(service, mon
         **original(path), "states": 2, "times": [-1.7e308, -1.6e308], "time_range": [-1.7e308, -1.6e308]})
     monkeypatch.setattr(service, "inspect_model", lambda *args: _native(2, [1.6e308, 1.7e308]))
     result = JobResult.model_validate_json(json.dumps(service.result_info("d3plot", native_check=True), allow_nan=False))
-    assert result.status == "succeeded" and result.check_status == "failed"
+    assert result.status == "failed" and result.check_status == "failed"
+    assert "backends_agree" in result.error["message"]
     assert result.data["comparison"]["max_abs_time_difference"] is None
     assert result.data["comparison"]["times_equal"] is False
 
