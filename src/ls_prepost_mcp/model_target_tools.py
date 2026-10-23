@@ -11,8 +11,6 @@ Selections may be ``core.contracts.Selector`` objects (``"selector"`` in an edit
 from __future__ import annotations
 
 import math
-import os
-import re
 from collections.abc import Callable
 from pathlib import Path
 from typing import Literal
@@ -198,45 +196,20 @@ class ModelTargetTools:
         return result
 
 
-_EXTENDED_DRIVE = re.compile(r"^[\\/]{2}\?[\\/][A-Za-z]:[\\/]")
 
 
 def _local(text: str) -> str:
-    r"""An extended-length drive path (``\\?\C:\...``, either separator) without its prefix.
+    """Compatibility alias for the shared path spelling normalizer."""
+    from .domain.model.access import local_path_text
 
-    Every other ``\\?\`` or ``\\.\`` form (``UNC``, ``GLOBALROOT\Device\Mup``, devices) is returned
-    unchanged, so :func:`is_network` refuses it before anything resolves it.
-    """
-    return text[4:] if _EXTENDED_DRIVE.match(text) else text
+    return local_path_text(text)
 
 
 def _include_check(roots: tuple[Path, ...]) -> Callable[[Path], None]:
-    """Refuse a UNC or device name, or a path outside ``roots``, before the engine stats or reads it.
+    """Compatibility alias; new callers use domain.model.access.root_guard."""
+    from .domain.model.access import root_guard
 
-    The test is lexical first, so a refused path is not probed (its existence is not revealed);
-    an existing path inside a root must also resolve inside one (links and junctions).
-    """
-    from .domain.model.access import OutsideRoots
-    from .domain.model.includes import is_network
-
-    bases = {Path(os.path.abspath(root)) for root in roots}
-    for root in roots:
-        try:
-            bases.add(root.resolve())
-        except OSError:
-            continue
-
-    def check(path: Path) -> None:
-        text = _local(str(path))
-        if is_network(text):
-            raise OutsideRoots(f"Network path {str(path)!r} is not followed")
-        lexical = Path(os.path.normpath(os.path.abspath(text)))
-        if not any(lexical.is_relative_to(base) for base in bases):
-            raise OutsideRoots(f"{str(path)!r} is outside the allowed roots")
-        if os.path.lexists(lexical) and not any(lexical.resolve().is_relative_to(base) for base in bases):
-            raise OutsideRoots(f"{str(path)!r} leads outside the allowed roots")
-
-    return check
+    return root_guard(roots)
 
 
 def _error(error: Exception) -> dict:

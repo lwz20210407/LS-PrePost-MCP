@@ -6,7 +6,6 @@ from contextlib import nullcontext
 from pathlib import Path
 
 from ls_prepost_mcp.domain.model import access, preflight_includes
-from ls_prepost_mcp.model_target_tools import _include_check
 from tools.fetch_corpus import io_root, plain_path
 
 
@@ -15,7 +14,7 @@ def input_tree(source, family, *, keyword, allowed_roots=None):
     source = plain_path(source).absolute()
     family = [plain_path(path).absolute() for path in family]
     if keyword:
-        guard = (access.confined(_include_check(tuple(plain_path(p) for p in allowed_roots)))
+        guard = (access.confined(access.root_guard(tuple(plain_path(p) for p in allowed_roots)))
                  if allowed_roots is not None else nullcontext())
         with guard:
             report = preflight_includes(source)
