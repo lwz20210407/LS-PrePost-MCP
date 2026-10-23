@@ -2,7 +2,7 @@
 
 让支持 MCP 的 AI Agent 通过自然语言操作 LS-PrePost，完成 LS-DYNA 模型检查、有限范围的编辑、结果提取和出图，并返回可核查的产物与日志。
 
-**当前为 Private 开发仓库，版本 v0.4；v0.5 尚未完成。** 主要原生证据来自 Windows LS-PrePost 4.13.4；4.10/4.8 的已验证子集见 [兼容性](docs/COMPATIBILITY.md)。
+**当前为公开开发仓库，版本 v0.4；v0.5 尚未完成。** 主要原生证据来自 Windows LS-PrePost 4.13.4；4.10/4.8 的已验证子集见 [兼容性](docs/COMPATIBILITY.md)。
 
 ## 能做什么
 
