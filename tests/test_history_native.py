@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from ls_prepost_mcp.config import Settings
@@ -37,9 +38,22 @@ def test_four_history_modes_match_real_native_curves(installation, pytestconfig,
     root.mkdir()
     if domain in ("node", "solid"):
         source = plain_path(resolve(registry["solid_d3plot"], corpus))
-        arrays = lb._arrays(source)
+        arrays = lb._arrays(source, state_arrays=["timesteps", "node_displacement"] if domain == "node" else ["timesteps"])
         stored = arrays["node_ids" if domain == "node" else "element_solid_ids"]
-        ids = [int(stored[0]), int(stored[len(stored) // 2])]
+        if domain == "node":
+            motion = np.asarray(arrays["node_displacement"])[:, :, 2] - np.asarray(arrays["node_coordinates"])[None, :, 2]
+            peaks = np.max(np.abs(motion), axis=0)
+            ranked = np.argsort(peaks)[::-1]
+            first = int(ranked[0])
+            assert peaks[first] > 0, "The native ID oracle needs nonzero displacement"
+            second = next((int(i) for i in ranked[1:] if peaks[i] > 0
+                           and np.max(np.abs(motion[:, i] - motion[:, first])) > 1e-3 * peaks[first]), None)
+            assert second is not None, "Need two distinguishable nonzero curves, not a degenerate ID oracle"
+            ids = [int(stored[first]), int(stored[second])]
+            node_oracle = {"peaks": [float(peaks[i]) for i in (first, second)],
+                           "max_curve_separation": float(np.max(np.abs(motion[:, first] - motion[:, second])))}
+        else:
+            ids = [int(stored[0]), int(stored[len(stored) // 2])]
         source_kind = "d3plot"
     else:
         source = (
@@ -76,6 +90,7 @@ def test_four_history_modes_match_real_native_curves(installation, pytestconfig,
     proof = {k: identity[k] for k in ("working_tree_dirty", "git_diff_sha256", "git_diff_scope")}
     proof.update(
         domain=domain,
+        entity_ids=ids,
         quantity=quantity,
         source_kind=source_kind,
         actual_git_revision=identity["actual_git_head"],
@@ -91,6 +106,8 @@ def test_four_history_modes_match_real_native_curves(installation, pytestconfig,
         directory_unchanged=directory_snapshot(family) == listing,
         artifact_sha256=[a["sha256"] for a in result["artifacts"]],
     )
+    if domain == "node":
+        proof["nonzero_node_oracle"] = node_oracle
     jobs = []
     for directory in service.jobs.root.iterdir():
         if (directory / "job.json").is_file():
