@@ -260,6 +260,7 @@
         "rcforc"
       ],
       "database": "rcforc",
+      "side": 0,
       "entity_id": 1,
       "component": 1
     },

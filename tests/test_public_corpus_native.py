@@ -229,23 +229,35 @@ def binout_round_trip(service, source, record, case, request):
 def ascii_cross_check(service, source, record, case, request):
     import numpy as np
 
+    options = {"side": case["side"]} if case["database"] == "rcforc" else {}
     try:
         result = service.extract_native_ascii_curve(str(source), case["database"], case["component"],
-                                                    "source_native_units", entity_id=case["entity_id"])
+                                                    "source_native_units", entity_id=case["entity_id"], **options)
     except ValueError as exc:
         if str(exc) == "Unsupported native ASCII database":
             unsupported(record, request, "Legacy native ASCII tool does not support " + case["database"])
         raise
     checked(record, "native_ascii_curve", result)
     expected = []
-    for line in source.read_text(errors="strict").splitlines():
-        fields = line.split()
-        if len(fields) == 6 and fields[0] == str(case["entity_id"]):
-            expected.append([float(fields[1]), float(fields[2])])
+    if case["database"] == "rcforc":
+        from ls_prepost_mcp.domain.results.ascii_forces import read
+
+        curve = read(source, "rcforc", {1: "x_force", 2: "y_force", 3: "z_force"}[case["component"]])
+        matching = [i for i, uid in enumerate(curve["ids"])
+                    if uid == case["entity_id"] and curve["entity_metadata"]["side"][i] == case["side"]]
+        assert len(matching) == 1
+        expected = [[t, row[matching[0]]] for t, row in zip(curve["time"], curve["values"])]
+    else:
+        for line in source.read_text(errors="strict").splitlines():
+            fields = line.split()
+            if len(fields) == 6 and fields[0] == str(case["entity_id"]):
+                expected.append([float(fields[1]), float(fields[2])])
     assert len(expected) > 1
     actual = [[float(row["time"]), float(row["value"])] for row in curve_rows(result)]
     assert np.shape(actual) == np.shape(expected) and np.allclose(actual, expected, rtol=2e-5, atol=1e-8)
-    record["scope"] = "Native SECFORC component 1 compared to the fixture's labeled x-force records"
+    record["scope"] = ("Native RCFORC explicit side compared to the shared named ASCII reader"
+                       if case["database"] == "rcforc" else
+                       "Native SECFORC component 1 compared to the fixture's labeled x-force records")
 
 
 @pytest.mark.native
