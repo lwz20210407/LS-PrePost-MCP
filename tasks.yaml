@@ -398,10 +398,12 @@ tasks:
     milestone: M2
     layer: T1
     target_tools: [result_info]
-    status: done
+    status: partial
+    verification_level: L1
     existing: [result_info, inspect_d3plot_scl, inspect_d3plot_database, inspect_result_fields, inspect_binout, inspect_binout_variable, inspect_lsreader, inspect_dpf_results]
     gaps:
-      - 4.8 按 D3 尽力验证：本机默认 Python-home 无效，隔离配置复核进程退出且无回执，未认证该原生路径；4.13 四例与 4.10 两例（均含 2001 状态）已通过
+      - 审核02 P0-1：part_titles_ids 可能是内部序号，既有标题 ID 连接及循环测试不能证明用户 PID/标题关联；需修复并用关键字或原生独立核对
+      - 审核02 P1-8：原生对照只覆盖状态数/时间；HSV、部件/标题、删除计数仍需独立核对。4.8 的 result_info 崩溃由 I04 跟踪
     evidence: [tests/test_result_overview.py, tests/test_result_overview_validity.py, docs/decisions/evidence/q01/report.md, docs/decisions/evidence/q01-validity/report.md, tests/test_result_overview_native.py, docs/decisions/evidence/q01-native-comparison/report.md, docs/decisions/evidence/q01-native-comparison/evidence.json]
     acceptance:
       - 返回状态数、每个状态时间、可用变量（含 HSV 数量）、部件、单元类型、删除单元计数
@@ -489,8 +491,8 @@ tasks:
     milestone: M2
     layer: T1
     target_tools: [extract_history]
-    status: done
-    verification_level: L2
+    status: partial
+    verification_level: L1
     existing: [extract_history, extract_node_history]
     evidence:
       - src/ls_prepost_mcp/history_tools.py
@@ -499,7 +501,9 @@ tasks:
       - tests/test_history_native.py
       - docs/decisions/evidence/q05-history/report.md
     notes:
-      - 四种模式在 4.13/4.10 各有真实原生对照；多实体、单位、分量、CSV 与共享 LASSO 读回一致；请求消费 ModelRef/CurveSpec
+      - 既有原生记录覆盖节点/solid 的 d3plot 与 Part/global 的 binout；请求消费 ModelRef/CurveSpec，保留历史记录但不据此标全任务完成
+    gaps:
+      - 审核02 P1-6/P1-7：删除后的单元样本缺少有效性标记；缺少 d3plot Part/global、shell/tshell/beam 原生对照，节点用例需改为可鉴别的非零位移；Part 用户 ID 回退口径需随 P0-1 修复
       - 原生 d3plot 对照限节点及单存储点单元量、最多 1000 状态；Part/global 原生对照需显式单文件 binout；多点均值不映射为层；MPP 数值复用既有合并规则且记录时间合并口径；4.8 未验
     acceptance:
       - 节点、单元、部件、全局四种模式各一个用例
@@ -1073,6 +1077,7 @@ infrastructure:
       - tests/test_native_remote.py
       - tests/test_native_input_preconditions.py
     gaps:
+      - 审核02 P1-8：result_info 的 4.8 Python 路径退出 0xC0000409，原因未定，当前不可用；须定位并复跑，不能以退出或其他 SCL 路径证据替代
       - extra-keyword-064 的历史非 ASCII INCLUDE 拒绝已由自有规范化副本路线补齐：4.13/4.10 读取、保存重开均为 35656 节点/30420 单元且原树不变。extra-result-03 的 EOF 异常时间仍由共享时间轴准入拒绝，完整/元数据/state_filter 前置路径一致；未删状态或改源文件，上游边界解析及有限有序尾数据检测仍缺
       - 干净 c46bb9d 的新增公开 100 例串行 4.13 后台复跑为 45 passed / 5 failed / 50 输入限制；29 个旧失败通过、11 个旧失败改为输入限制而非功能修复，100 份树字节与目录清单不变；三个搜索路径保存拒绝、参数重载警告及读取器 EOF 异常时间仍保留失败
       - 当前 55 个 tools/run_* 入口已全部收编为 57 个 pytest 用例（保留原生/文件及 batch/GUI 变体）；CLI 参数发现已逐一验证。
