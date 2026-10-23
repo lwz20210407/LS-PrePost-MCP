@@ -154,6 +154,59 @@ def keyword_round_trip(service, source, record):
     record["scope"] = "Native counts, Part IDs and all reference-node IDs/coordinates through bounded pages; not all keyword card semantics"
 
 
+def keyword_variant_reference(service, source, record):
+    """Independent raw read only; this does not grant product support to a variant.
+
+    The complete tree is confined before launch. There is no normalization, save,
+    GUI or source-directory chdir. All generated scripts/observations stay in an
+    isolated job; the fixture checks source bytes and recursive directory names.
+    """
+    from ls_prepost_mcp.native import commands as nc
+    from ls_prepost_mcp.runner import run_batch
+
+    source = service.settings.input_path(str(source))
+    current, _ = input_tree(source, [source], keyword=True,
+                            allowed_roots=(service.settings.workspace, *service.settings.allowed_roots))
+    if not current["ok"] or current != record["input_tree"]:
+        raise ValueError("Raw native reference requires an unchanged, complete confined input tree")
+    directory, manifest = service.jobs.create("public_include_reference", {"source": str(source)})
+    nc.write_scl(directory / "inventory.scl", '''/*LS-SCRIPT*/
+define:
+void main(void){
+FILE *f;
+Int n;
+n=SCLGetDataCenterInt("num_nodes");
+f=fopen("inventory.json","w");
+fprintf(f,"{\\"nodes\\":%d}\\n",n);
+fclose(f);
+}
+main();
+''')
+    cfile = directory / "commands.cfile"
+    nc.write_cfile(cfile, [nc.open_model(source), nc.run_script("inventory.scl", "scl"), "exit"])
+    execution = run_batch(service.settings.native_executable(), cfile, directory,
+                          timeout=service.settings.timeout, graphics=False, operation=manifest["action"])
+    manifest["engine_result"] = execution.model_dump(mode="json")
+    record["native_variant_process"] = {key: execution.data.get(key) for key in
+        ("returncode", "timed_out", "graphics", "elapsed_seconds")}
+    record["native_variant_process"]["nographics"] = "-nographics" in execution.data.get("argv", [])
+    try:
+        if execution.status == "failed" or execution.error:
+            raise ValueError((execution.error or {}).get("message") or "Raw native read failed")
+        observation = json.loads((directory / "inventory.json").read_text(encoding="utf8"))
+        if type(observation.get("nodes")) is not int or observation["nodes"] < 1:
+            raise ValueError("Raw native reference did not observe a nonempty nodal model")
+        result = {"status": "succeeded", "data": observation, "error": None}
+        manifest.update(status="succeeded", observation=observation)
+    except (OSError, ValueError) as error:
+        result = {"status": "failed", "error": {"type": type(error).__name__, "message": str(error)}}
+        manifest.update(status="failed", error=result["error"])
+    finally:
+        atomic_json(directory / "job.json", manifest)
+    checked(record, "native_variant_reference", result)
+    record["native_variant_observation"] = result["data"]
+
+
 def d3plot_cross_reader(service, source, record, request):
     import numpy as np
 
@@ -266,6 +319,10 @@ def test_public_corpus(case, public_case, request):
     service, source, record = public_case
     if case["kind"] == "keyword":
         classification = input_classification(record["input_tree"])
+        record["input_classification"] = classification
+        if classification == "product_unsupported_include_variant":
+            keyword_variant_reference(service, source, record)
+            pytest.fail("product_unsupported_include_variant: raw native read completed; product round trip remains unsupported")
         if classification != "preflight_ok_requires_native_diagnosis":
             reason = "输入限制：" + classification
             record.update(status="input_limited", reason=reason)
