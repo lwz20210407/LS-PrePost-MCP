@@ -11,7 +11,7 @@ import math
 from typing import Any
 
 import numpy as np
-from pydantic import StrictInt
+from pydantic import StrictBool, StrictInt
 
 from .core.contracts import Artifact, CheckResult, JobResult
 from .domain.results import export as exp
@@ -93,6 +93,9 @@ class FieldMetricsTools:
         units: str | None = None,
         output_format: str = "csv",
         part_ids: list[StrictInt] | None = None,
+        native_check: StrictBool = False,
+        stored_point: StrictInt | None = None,
+        native_sampling: str = "mid",
     ) -> dict[str, Any]:
         """Extract an element field or compute stress invariants with failure masking (tasks.yaml Q04).
 
@@ -103,6 +106,14 @@ class FieldMetricsTools:
         - lode_parameter, lode_angle_rad, lode_angle_parameter
         - effective_plastic_strain
         - stress components: sxx, syy, szz, sxy, syz, szx
+        - stress: all six components together, CSV/NPZ through the shared exporter (Q03).
+          Requires explicit units. stored_point selects an explicit 1-based stored point without averaging;
+          omit it for a stored-point mean. It is not a shell top/mid/bottom label.
+          native_check=true independently checks up to 1000 returned entities against native SCL;
+          means require one stored point, explicit points require numerical agreement with the native selector.
+          native_sampling is the independent native mid/inner/outer or numbered selector; it is never
+          inferred from stored_point. A numerical mismatch fails rather than changing either selection.
+          Values remain LASSO-derived, with the native validation backend reported separately.
         state is the 1-based state number (1 = first stored state); -1 or 'last' (default) is the last
         state. Numbers outside 1..n are refused before a job is created.
         part_ids (user part IDs) restricts the elements and extrema to those parts, e.g. the target plate.
@@ -138,6 +149,17 @@ class FieldMetricsTools:
 
         state_number = _state_number(state)
         parts = _part_list(part_ids)
+        if type(native_check) is not bool:
+            raise ValueError("native_check must be true or false")
+        if stored_point is not None and (type(stored_point) is not int or stored_point < 1):
+            raise ValueError("stored_point must be a positive 1-based integer")
+        if norm_quantity == "stress":
+            from .tensor_field import tensor_field
+
+            return tensor_field(self, path, norm_family, state_number, norm_mask, units, norm_fmt, parts,
+                                native_check, stored_point, native_sampling)
+        if native_check or stored_point is not None or native_sampling != "mid":
+            raise ValueError("native_check/stored_point currently require the six-component stress quantity")
 
         if units is not None and not isinstance(units, str):
             raise ValueError("Units must be a string or None")
