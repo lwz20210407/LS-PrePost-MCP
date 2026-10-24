@@ -717,8 +717,7 @@ binout 全库、力矩/质心及 MPP/SMP 原生一致性仍未完成；ac ID 只
 
 - 跟踪：Q07
 
-4.13/4.10 对固定波形的 SAE60/600 × 秒/毫秒共8项对照均不满足当前逐样本容差，
-pytest 记录为 xfail，不是通过。Python odd/constant 两种填充在端点和中段均有差异；
-没有按输出拟合参数，尚不能承诺 curve_ops 的 SAE 输出与原生 XYPlot 等价。
-Butterworth 与工程波形也未完成原生核对。版本、输入、命令和误差见
-[原生滤波取证](decisions/evidence/q07-native-filter-review02/report.md)。
+默认 j211 是 Butterworth，原生 legacy SAE 是 Chebyshev；不能仅凭相同CFC就认为设计相同。
+显式 convention=lsprepost 已有登记的 s/ms、SAE60/600 子集对照；其他波形、版本与
+Butterworth 原生对照仍缺，不得外推。初始化与float32精度也应随记录保留。
+旧差异及当前范围见 [修复口径](decisions/evidence/q07-sae-fix/report.md)。
