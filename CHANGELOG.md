@@ -2,6 +2,8 @@
 
 ## 0.4.0 (development)
 
+- Q07：SAE 增加显式 `convention="lsprepost"`，用于原生 legacy SAE 的 Chebyshev/float32/恒值初始化口径；默认 `j211` 的 Butterworth/odd 数值不变。两种设计不可互称等价。
+
 - Q07 / Q05：曲线算术及共享历史运算读取器不再忽略 CSV 的 `alive` 列；仅接受所有样本严格为 `1`，`0`、空值及畸形标记失败，不自动丢样本。无该列的普通 CSV 保留既有用法，`curve_ops` 的步骤和产物元数据标为 `not_declared`；该变化不认证无标记数据的物理有效性。
 - Q06：ASCII SECFORC 的 `coordinate_system_ids` 改为 `local_frame_reference`（保留写入编号/前缀，不推断坐标系）；RCFORC/SECFORC 保留 `legend_titles`，冲突标题置 null 并告警。ASCII 重复时间拒绝与 binout 相同值重复时间折叠是不同的明确策略。
 - Q06：RCFORC 的 CSV 在存在 side 元数据时始终包含 `side`，即使只存一侧；ASCII/binout 均如此，调用者应按列名和 `column_key` 读取。

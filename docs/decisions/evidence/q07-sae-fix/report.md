@@ -1,0 +1,29 @@
+# Q07 SAE 数值口径修复
+
+根因：此前把不同滤波设计当作同一算法比较。Python 默认是 SAE J211 Butterworth
+`2.0775*CFC`、双精度状态、odd扩展；LS-PrePost 原生 legacy SAE 滤波的输出行为
+与归一化二阶 Chebyshev-I（0.25dB、1.3*CFC）、双向恒值初始化一致。
+依据是对原生滤波的黑盒冲激响应辨识，以及登记波形的逐点对照；只记录数学合同与程序身份（版本与哈希）。
+float32 逐点反馈属于推断：在现有登记波形上改用 float64 反馈同样落在容差内，原生证据不能区分；
+恒值初始化有区分力（改为零初始化时最大误差约 1.09）。
+
+新增显式 `convention="lsprepost"`，默认 `j211` 保持历史数值。
+curve_ops 的 SAE operation 可选同名参数，所有步骤保留实际公式、系数、频率、精度及初始化。
+兼容口径目前只接受s/ms和恒值初始化；矛盾padding、浮点溢出或时间丢序拒绝。
+这不把两种算法混称为同一标准，不改变 Butterworth 操作。
+
+```json
+{"op":"sae_filter","input":"signal","output":"filtered","cfc":600,"convention":"lsprepost"}
+```
+
+回归4项在原始0563045失败：domain不接受convention、curve_ops拒绝该参数。
+修复前8项差异记录保留在 [历史报告](../q07-native-filter-review02/report.md)。
+新运行继续记录旧j211 odd/constant差异，以兼容profile逐点核对同一完整输出，
+仍用原定rtol=2e-5、atol=1e-6*max|reference|，不裁掉端点或放宽容差。
+程序参数末尾0的语义仍不外推；只对登记的完整命令负责。
+
+干净提交、每项误差、测试和产品blob见 [evidence.json](evidence.json)。
+本次不把Q07改为done：Butterworth原生对照、更广波形/版本及独立审阅仍待补。
+
+最终频率准入（CFC<=采样率/3.3）和输入下溢保护在干净43f2162重跑两版各4项，仍全部通过。
+e1c3128首批成功记录保留为历史；两条保护回归在该提交的产品模块上均失败。

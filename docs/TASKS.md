@@ -381,8 +381,8 @@
 
 缺口：
 
-- 固定波形 SAE60/600 × s/ms 已在干净 d5bc5c2 由4.13/4.10各四项无图形对照；8项均有数值差异并记 xfail，未达到L2等价性验收，不是通过。Python odd/constant 与原生端点和中段均有差异，原因和匹配口径仍待核实
-- 两种填充及中段/端点误差见 q07-native-filter-review02；本次未按输出拟合 Python 参数，Butterworth 原生对照和工程波形覆盖仍缺
+- 历史 d5bc5c2 的8项差异保留；根因是把 J211 Butterworth 与原生 legacy Chebyshev 混比。显式 convention=lsprepost 的归一化二阶0.25dB/1.3CFC、恒值初始化与float32反馈在干净 e1c3128 由4.13/4.10各4项逐点通过，未放宽容差；默认j211数值不变
+- 本次仅登记 SAE60/600 × s/ms 固定波形子集；不同设计不保证等价，Butterworth 原生对照、工程波形覆盖及更广版本仍缺，不升为done
 - CSV 若带 alive 列，曲线运算及共享历史运算入口要求所有样本严格为1；deleted/unknown/畸形标记拒绝，不自动丢样本或插值。无 alive 的 CSV 仍按调用者数据处理并在 curve_ops 标为 not_declared，不推断其物理有效性；其他消费者和原生滤波对照仍缺
 
 ### Q08 XYPlot 出图
