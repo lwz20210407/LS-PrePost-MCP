@@ -307,7 +307,11 @@ def sae_filter(t: object, y: object, cfc: float, *, t_unit: str, y_unit: str | N
             clock, data = t.astype(np.float32), y.astype(np.float32)
         if not np.isfinite(clock).all() or not np.isfinite(data).all() or np.any(np.diff(clock) <= 0):
             raise CurveError("Native float32 storage loses finite samples or time ordering")
+        if np.any((y != 0) & (data == 0)):
+            raise CurveError("Native float32 storage underflow would erase nonzero samples")
         fs = float(np.float32(np.float32(t.size - 1) / np.float32(clock[-1] - clock[0]))) / _seconds(t_unit)
+        if cfc > fs / float(np.float32(3.3)):
+            raise CurveError("Native SAE requires CFC <= sampling rate / 3.3")
         cutoff = float(np.float32(np.float32(cfc) * np.float32(1.3)))
         if not math.isfinite(cutoff) or cutoff >= fs / 2:
             raise CurveError("Native SAE cutoff 1.3*CFC must be below Nyquist")

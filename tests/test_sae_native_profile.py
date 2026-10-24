@@ -25,6 +25,13 @@ def test_native_profile_never_silently_ignores_incompatible_padding():
         sae_filter([0,.001,.002],[1,2,3],60,t_unit="s",convention="lsprepost",padding="odd")
 
 
+def test_native_profile_respects_native_frequency_admission_and_underflow():
+    with pytest.raises(CurveError,match="3.3"):
+        sae_filter(np.arange(10)*.0001,np.ones(10),3500,t_unit="s",convention="lsprepost")
+    with pytest.raises(CurveError,match="underflow"):
+        sae_filter(np.arange(10)*.0001,np.full(10,1e-100),60,t_unit="s",convention="lsprepost")
+
+
 def test_native_profile_is_available_through_curve_ops(tmp_path):
     from ls_prepost_mcp.config import Settings
     from ls_prepost_mcp.service import Service
