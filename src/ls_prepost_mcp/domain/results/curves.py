@@ -291,10 +291,55 @@ def _zero_phase(y: np.ndarray, sections: list, padding: object) -> tuple[np.ndar
 
 
 def sae_filter(t: object, y: object, cfc: float, *, t_unit: str, y_unit: str | None = None,
-               padding: str = "odd") -> Curve:
+               padding: str | None = None, convention: str = "j211") -> Curve:
     """SAE J211/1 CFC filter (module docstring); ``cfc`` as in the SAEFilter contract, in Hz."""
     t, y = _xy(t, y)
     cfc = _positive(cfc, "CFC")
+    if convention not in ("j211", "lsprepost"):
+        raise CurveError("SAE convention must be j211 or lsprepost")
+    if padding is None:
+        padding = "constant" if convention == "lsprepost" else "odd"
+    if convention == "lsprepost":
+        if padding != "constant" or t_unit not in ("s", "ms") or t.size < 3:
+            raise CurveError("lsprepost SAE requires constant initialization, s/ms time and >=3 samples")
+        _step(t)
+        with np.errstate(over="ignore", invalid="ignore"):
+            clock, data = t.astype(np.float32), y.astype(np.float32)
+        if not np.isfinite(clock).all() or not np.isfinite(data).all() or np.any(np.diff(clock) <= 0):
+            raise CurveError("Native float32 storage loses finite samples or time ordering")
+        fs = float(np.float32(np.float32(t.size - 1) / np.float32(clock[-1] - clock[0]))) / _seconds(t_unit)
+        cutoff = float(np.float32(np.float32(cfc) * np.float32(1.3)))
+        if not math.isfinite(cutoff) or cutoff >= fs / 2:
+            raise CurveError("Native SAE cutoff 1.3*CFC must be below Nyquist")
+        # Independently construct the normalized 2-pole Chebyshev-I section.
+        # This is the legacy native SAE profile, not SAE J211 Butterworth.
+        mu = math.asinh(1 / math.sqrt(10 ** (.25 / 10) - 1)) / 2
+        angle = 3.1415927 / 4
+        pole = complex(-math.sinh(mu) * math.sin(angle), math.cosh(mu) * math.cos(angle))
+        pole *= math.tan(3.1415927 * cutoff / fs)
+        digital = (1 + pole) / (1 - pole)
+        if abs(digital) >= 1:
+            raise CurveError("Native-compatible SAE section is not numerically stable")
+        a1, a2 = -2 * digital.real, abs(digital) ** 2
+        b0 = (1 + a1 + a2) / 4
+        for direction in (1, -1):
+            inputs = data[::direction].copy()
+            output = np.empty_like(inputs)
+            x1 = x2 = y1 = y2 = float(inputs[0])
+            for i, value in enumerate(inputs):
+                x = float(value)
+                out = np.float32((2*b0*x1 + b0*x2) + b0*x - a2*y2 - a1*y1)
+                output[i] = out
+                x2, x1, y2, y1 = x1, x, y1, float(out)
+            data = output[::direction]
+        if not np.isfinite(data).all():
+            raise CurveError("Native-compatible SAE recurrence overflowed float32")
+        return Curve(t, data.astype(float), _meta("sae_filter",
+            "Legacy LS-PrePost SAE: normalized Chebyshev-I, order 2, ripple .25 dB, cutoff 1.3*CFC; forward/backward",
+            (t_unit, y_unit), ("time", "value"), cfc=cfc, convention=convention,
+            padding="constant", padding_samples=0, padding_complete=None, precision="float32 stored feedback; double coefficients",
+            design_frequency_hz=cutoff, sampling_rate_hz=fs, ripple_db=.25,
+            coefficients={"b0":b0,"b1":2*b0,"b2":b0,"a1":a1,"a2":a2}))
     dt = _step(t)
     dt_s = dt * _seconds(t_unit)
     design = SAE_DESIGN_RATIO * cfc
@@ -310,7 +355,7 @@ def sae_filter(t: object, y: object, cfc: float, *, t_unit: str, y_unit: str | N
     return Curve(t, filtered, _meta(
         "sae_filter", "SAE J211/1 App. C: 2-pole Butterworth, f_d = 2.0775*CFC, w_a = tan(pi f_d T), "
         "forward + backward (phaseless 4-pole)", (t_unit, y_unit), ("time", "value"), cfc=cfc,
-        standard_class=cfc in SAE_CLASSES, design_frequency_hz=design, sampling_rate_hz=1 / dt_s, dt=dt,
+        convention=convention, standard_class=cfc in SAE_CLASSES, design_frequency_hz=design, sampling_rate_hz=1 / dt_s, dt=dt,
         coefficients={"a0": a0, "a1": 2 * a0, "a2": a0, "b1": a[0], "b2": a[1]}, **ends))
 
 

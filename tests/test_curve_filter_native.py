@@ -1,4 +1,4 @@
-"""Q07 empirical SAE reference; mismatches are reported xfail, never native passes."""
+"""Q07 native compatibility; old J211 differences retained, explicit profile must agree."""
 import hashlib
 import json
 
@@ -51,14 +51,15 @@ def test_sae_native_full_record_and_interior(installation, pytestconfig, cfc, un
     # do not silently reinterpret that jitter as nonuniform input sampling.
     input_values = native_plot_values(xy)[:, 1]
     comparisons = {}
-    for padding in ["odd", "constant"]:
-        reference = sae_filter(times, input_values, cfc, t_unit=unit, padding=padding).y
+    for padding in ["odd", "constant", "lsprepost"]:
+        reference = sae_filter(times, input_values, cfc, t_unit=unit,
+            **({"convention":"lsprepost"} if padding == "lsprepost" else {"padding":padding})).y
         errors = np.abs(actual[:, 1] - reference)
         atol = 1e-6 * float(np.max(np.abs(reference)))
         comparisons[padding] = dict(agrees=bool(np.allclose(actual[:, 1], reference, rtol=2e-5, atol=atol)),
             max_absolute_error=float(errors.max()), interior_max_absolute_error=float(errors[1000:-1000].max()),
             endpoint_errors=[float(errors[0]), float(errors[-1])], rtol=2e-5, atol=atol,
-            formula=sae_filter(times, input_values, cfc, t_unit=unit, padding=padding).meta["formula"])
+            formula="explicit " + padding + " profile; see product source identity")
     context = pytestconfig._native_identity
     result = dict(actual_git_revision=context["actual_git_head"], working_tree_dirty=context["working_tree_dirty"],
         git_diff_sha256=context["git_diff_sha256"], executable=binary, source_config_sha256=config_sha,
@@ -66,8 +67,7 @@ def test_sae_native_full_record_and_interior(installation, pytestconfig, cfc, un
         trailing_option_semantics="not independently read back", force_zero_start=None, samples=len(times),
         control=control, comparisons=comparisons, source_sha256=source_sha,
         filtered_sha256=hashlib.sha256((root / "filtered.xy").read_bytes()).hexdigest(),
-        verdict="agrees" if comparisons["odd"]["agrees"] else "mismatch",
+        verdict="agrees" if comparisons["lsprepost"]["agrees"] else "mismatch",
         scope="Frozen synthetic waveform only; no universal native filter equivalence or Butterworth claim")
     (root / "comparison.json").write_text(json.dumps(result,separators=(",", ":"))+"\n", encoding="utf8")
-    if not comparisons["odd"]["agrees"]:
-        pytest.xfail("Q07 native SAE differs from Python odd-padding default; see comparison.json, not a pass")
+    assert comparisons["lsprepost"]["agrees"], comparisons
