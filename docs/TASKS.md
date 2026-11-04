@@ -381,8 +381,7 @@
 
 缺口：
 
-- 历史 d5bc5c2 的8项差异保留；根因是把 J211 Butterworth 与原生 legacy Chebyshev 混比。显式 convention=lsprepost 的归一化二阶0.25dB/1.3CFC、恒值初始化与float32反馈在干净 e1c3128 由4.13/4.10各4项逐点通过，未放宽容差；默认j211数值不变
-- 本次仅登记 SAE60/600 × s/ms 固定波形子集；不同设计不保证等价，Butterworth 原生对照、工程波形覆盖及更广版本仍缺，不升为done
+- 原生兼容 BW 仅登记二阶、60/600 Hz、s/ms 与四类固定合成波形；SAE 仍为固定混合正弦子集。真实工程数据、其他原生版本及独立审阅/证据抽查仍缺，保持partial
 - CSV 若带 alive 列，曲线运算及共享历史运算入口要求所有样本严格为1；deleted/unknown/畸形标记拒绝，不自动丢样本或插值。无 alive 的 CSV 仍按调用者数据处理并在 curve_ops 标为 not_declared，不推断其物理有效性；其他消费者和原生滤波对照仍缺
 
 ### Q08 XYPlot 出图

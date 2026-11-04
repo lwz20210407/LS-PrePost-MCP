@@ -713,11 +713,13 @@ binout 全库、力矩/质心及 MPP/SMP 原生一致性仍未完成；ac ID 只
 这类库存观察显式标为未确认并返回 partial；按用户 PID 过滤与部件历史当前拒绝，
 待补充原生/编号表证据后再扩展，跟踪 Q01、Q03、Q05。
 
-## Q07：SAE 默认填充与原生 XYPlot 数值不一致
+## Q07：原生滤波兼容口径的覆盖边界
 
 - 跟踪：Q07
 
-默认 j211 是 Butterworth，原生 legacy SAE 是 Chebyshev；不能仅凭相同CFC就认为设计相同。
-显式 convention=lsprepost 已有登记的 s/ms、SAE60/600 子集对照；其他波形、版本与
-Butterworth 原生对照仍缺，不得外推。初始化与float32精度也应随记录保留。
-旧差异及当前范围见 [修复口径](decisions/evidence/q07-sae-fix/report.md)。
+默认 SAE j211 与原生 legacy SAE、默认 standard Butterworth 与原生 XYPlot BW 的设计口径不同。
+需要匹配登记的原生操作时须显式选择 convention=lsprepost；BW 仅支持二阶、s/ms 与固定反射初始化，
+短记录或不可表示的 float32 输入会被拒绝。现有原生证据只覆盖登记版本与固定合成输入，
+真实工程数据、更多 SAE 波形和其他版本仍待验；不能由子集对照外推全部场景或原生内部精度。
+SAE 的历史差异见 [原报告](decisions/evidence/q07-sae-fix/report.md)，
+本轮 BW 与 SAE 回归范围见 [整段对照报告](decisions/evidence/q07-butterworth-native/report.md)。
