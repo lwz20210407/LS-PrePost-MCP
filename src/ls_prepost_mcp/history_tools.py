@@ -203,6 +203,11 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
         raise ValueError("History needs 1..100 unique positive user entity IDs")
     if source_kind == "binout" and domain not in ("part", "global"):
         raise ValueError("Binout history supports explicit Part/MATSUM or global/GLSTAT modes")
+    if beam_force and native_check:
+        # Validate the requested resource without enumerating or hashing its family.
+        with service._guard():
+            service.settings.input_path(path)
+        raise ValueError("Native beam history comparison is unsupported; no binout substitution is performed")
     with service._guard():
         source, family = _sources(service, path, source_kind)
         before = {str(p): _sha(p) for p in family}

@@ -42,6 +42,24 @@ def test_beam_axial_history_reads_only_force_time_and_alive_states(monkeypatch):
     assert lb.history("owned fake input", "beam", "axial_force", [71])[0]["values"] == [4., 5., 0.]
 
 
+def test_beam_axial_history_selects_user_columns_before_widening_storage(monkeypatch):
+    data = arrays()
+    data["element_beam_axial_force"] = data["element_beam_axial_force"].astype(np.float32)
+    original_asarray = np.asarray
+    widened_shapes = []
+
+    def observe_widening(value, dtype=None, *args, **kwargs):
+        if isinstance(value, np.ndarray) and value.dtype == np.float32 and value.ndim == 2:
+            if dtype is not None and np.dtype(dtype) == np.dtype(float):
+                widened_shapes.append(value.shape)
+        return original_asarray(value, dtype, *args, **kwargs)
+
+    monkeypatch.setattr(lb.np, "asarray", observe_widening)
+    record = lb._history_from_arrays(data, "beam", "axial_force", [19])[0]
+    assert record["values"] == [-8., -9., -10.]
+    assert widened_shapes and all(shape == (3, 1) for shape in widened_shapes), widened_shapes
+
+
 def test_beam_axial_history_does_not_guess_alive_when_missing():
     record = lb._history_from_arrays(arrays(False), "beam", "axial_force", [71])[0]
     assert record["alive"] is None and record["deletion_status"] == "unknown"
@@ -124,11 +142,39 @@ def test_beam_native_check_is_explicitly_unsupported_without_starting_a_native_j
     monkeypatch.setattr(lb, "_arrays", lambda *args, **kwargs: arrays())
     service = Service(Settings(tmp_path / "jobs", allowed_roots=(tmp_path,)))
     monkeypatch.setattr(service, "extract_native_fields", lambda *a, **kw: pytest.fail("No native beam mapping exists"))
-    result = service.extract_history(str(source), "beam", "axial_force", [71], units="N", time_units="s",
-                                     native_check=True)
-    assert result["status"] == "failed"
-    assert "Native beam history comparison is unsupported" in result["error"]["message"]
-    assert not result["artifacts"]
+    with pytest.raises(ValueError, match="Native beam history comparison is unsupported"):
+        service.extract_history(str(source), "beam", "axial_force", [71], units="N", time_units="s",
+                                native_check=True)
+    assert service.jobs.list() == []
+
+
+def test_unsupported_beam_native_check_avoids_family_reads_and_hashing(tmp_path, monkeypatch):
+    from ls_prepost_mcp import history_tools
+
+    source = tmp_path / "d3plot"
+    source.write_bytes(b"owned source; must not be read")
+    service = Service(Settings(tmp_path / "jobs", allowed_roots=(tmp_path,)))
+    monkeypatch.setattr(service, "_result_family", lambda *a, **kw: pytest.fail("Unneeded family discovery"))
+    monkeypatch.setattr(history_tools, "_sha", lambda *a, **kw: pytest.fail("Unneeded file hashing"))
+    monkeypatch.setattr(lb, "_arrays", lambda *a, **kw: pytest.fail("Unneeded LASSO state loading"))
+    with pytest.raises(ValueError, match="Native beam history comparison is unsupported"):
+        service.extract_history(str(source), "beam", "axial_force", [71], units="N", time_units="s",
+                                native_check=True)
+    assert service.jobs.list() == []
+
+
+def test_unsupported_beam_native_check_still_enforces_the_path_guard(tmp_path, monkeypatch):
+    allowed = tmp_path / "allowed"
+    allowed.mkdir()
+    outside = tmp_path / "outside-d3plot"
+    outside.write_bytes(b"not an allowed input")
+    service = Service(Settings(allowed / "jobs", allowed_roots=(allowed,)))
+    monkeypatch.setattr(service, "_result_family", lambda *a, **kw: pytest.fail("Unneeded family discovery"))
+    monkeypatch.setattr(lb, "_arrays", lambda *a, **kw: pytest.fail("Unneeded LASSO loading"))
+    with pytest.raises(ValueError, match="outside"):
+        service.extract_history(str(outside), "beam", "axial_force", [71], units="N", time_units="s",
+                                native_check=True)
+    assert service.jobs.list() == []
 
 
 @pytest.mark.parametrize("units,time_units", [("MPa", "s"), ("J", "s"), ("N", "mm")])

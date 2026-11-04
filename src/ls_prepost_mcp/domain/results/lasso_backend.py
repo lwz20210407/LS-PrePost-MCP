@@ -331,7 +331,7 @@ def _history_from_arrays(arrays: dict, kind: str, quantity: str, ids: list[int] 
         if np.asarray(arrays[FAMILIES[kind][0]]).ndim != 1:
             raise ResultsError("Beam history IDs must be a one-dimensional user-ID registry")
         try:
-            values = np.asarray(arrays[BEAM_AXIAL_FORCE], dtype=float)
+            values = np.asarray(arrays[BEAM_AXIAL_FORCE])
         except (TypeError, ValueError) as error:
             raise ResultsError("Stored beam axial_force must be numeric") from error
         note = "stored beam axial force; no averaging or coordinate transformation"
@@ -344,8 +344,13 @@ def _history_from_arrays(arrays: dict, kind: str, quantity: str, ids: list[int] 
     if values.shape != (times.size, stored_ids.size):
         raise ResultsError("Scalar history state/element axes do not match the stored user-ID registry")
     where = _index(stored_ids, ids, kind.capitalize())
-    if beam_force and not np.all(np.isfinite(values[:, where])):
-        raise ResultsError("Selected beam axial_force contains non-finite samples")
+    if beam_force:
+        try:
+            selected_values = np.asarray(values[:, where], dtype=float)
+        except (TypeError, ValueError) as error:
+            raise ResultsError("Stored beam axial_force must be numeric") from error
+        if not np.all(np.isfinite(selected_values)):
+            raise ResultsError("Selected beam axial_force contains non-finite samples")
     alive_key = FAMILIES[kind][1]
     selected_alive = None
     if alive_key in arrays:
@@ -361,7 +366,7 @@ def _history_from_arrays(arrays: dict, kind: str, quantity: str, ids: list[int] 
         alive = selected_alive[:, n] if selected_alive is not None else None
         deleted = np.flatnonzero(~alive) if alive is not None else []
         record = {"entity": int(i), "quantity": quantity, "time": times.tolist(),
-                        "values": values[:, w].tolist(), "note": note,
+                        "values": (selected_values[:, n] if beam_force else values[:, w]).tolist(), "note": note,
                         "sampling": dict(sampling),
                         "alive": alive.tolist() if alive is not None else None,
                         "deletion_status": "stored" if alive is not None else "unknown",
