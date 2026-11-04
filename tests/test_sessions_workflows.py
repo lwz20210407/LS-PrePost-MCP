@@ -185,6 +185,9 @@ def test_failed_host_preparation_has_terminal_recovery_without_native_receipt(tm
         def preflight(self):
             pass
 
+        def probe_idle(self):
+            return dict(pid=123, responsive=True, enabled=True, probe="WM_NULL")
+
         def submit(self, command):
             pytest.fail("Preparation failed before native dispatch")
 
@@ -292,6 +295,14 @@ def test_host_failure_is_not_promoted_by_a_success_receipt(tmp_path, monkeypatch
     atomic_json(directory / "host-preparation-failed.json", dict(job_id=rid, phase="host_preparation",
         dispatch_submitted=False, error=dict(message="Host preparation failed")))
     atomic_json(directory / "complete.json", dict(job_id=rid, ok=True, data=dict(counts=dict(nodes=8))))
+    class ResponsiveTransport:
+        def __init__(self, pid):
+            pass
+
+        def probe_idle(self):
+            return dict(pid=123, responsive=True, enabled=True, probe="WM_NULL")
+
+    monkeypatch.setattr("ls_prepost_mcp.sessions.WindowsCommandTransport", ResponsiveTransport)
     result = Service(manager.settings).recover_gui_session(sid)
     assert result["state"] == "uncertain" and result["requires_host_validation"]
     assert result["last_checkpoint"] == "trusted.k"

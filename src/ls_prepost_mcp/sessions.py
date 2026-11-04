@@ -69,9 +69,37 @@ def _recover_host_preparation_failure(manager, ident, meta, directory):
             or marker.get("dispatch_submitted") is not False or not isinstance(error, dict)
             or not isinstance(error.get("message"), str) or not error["message"].strip()):
         raise ValueError("Invalid or uncorrelated host preparation terminal record")
+    # An exception after Apply is not evidence that its GUI thread is idle. A
+    # read-only response probe is a necessary gate, never model validation or
+    # proof that background effects have stopped. On any uncertainty keep the
+    # request so a new command/reopen cannot interleave with this callback.
+    probe = dict(status="process_exited")
+    if meta["process_alive"]:
+        try:
+            if meta.get("engine_transport", "win32") != "win32":
+                raise RuntimeError("Host preparation recovery requires an owned Win32 response probe")
+            response = WindowsCommandTransport(meta["process"]["pid"]).probe_idle()
+            if (not isinstance(response, dict) or response.get("pid") != meta["process"]["pid"]
+                    or response.get("responsive") is not True or response.get("enabled") is not True):
+                raise RuntimeError("Owned GUI response probe did not confirm this enabled process")
+            if not alive(meta["process"]):
+                raise RuntimeError("Owned process identity changed during recovery probe")
+            probe = {**response, "status": "responded"}
+        except Exception as exc:
+            probe = dict(status="blocked", error=dict(type=type(exc).__name__,
+                         message=str(exc).strip() or type(exc).__name__))
+            meta.update(state="uncertain", last_error=error["message"])
+            if meta["model_kind"] == "keyword":
+                meta["dirty"] = True
+            atomic_json(directory / "recovery-probe.json", probe)
+            manager.save(ident, meta)
+            return dict(**meta, recovery="Owned GUI response not confirmed; request retained; nothing replayed",
+                        host_error=error, dispatch_submitted=False, requires_host_validation=True,
+                        recovery_probe=probe)
+    atomic_json(directory / "recovery-probe.json", probe)
     recovery = dict(session_id=ident, request_id=directory.name, status="failed", error=error,
                     phase="host_preparation", dispatch_submitted=False, replayed=False,
-                    requires_host_validation=True,
+                    requires_host_validation=True, idle_probe=probe,
                     scope="Host preparation raised before native dispatch; panel side effects remain unverified")
     atomic_json(directory / "recovery.json", recovery)
     meta.update(state="uncertain" if meta["process_alive"] else "exited", active_request=None,
@@ -80,7 +108,7 @@ def _recover_host_preparation_failure(manager, ident, meta, directory):
         meta["dirty"] = True
     manager.save(ident, meta)
     return dict(**meta, recovery="Host preparation failed; restore or validate the model; nothing replayed",
-                host_error=error, dispatch_submitted=False, requires_host_validation=True)
+                host_error=error, dispatch_submitted=False, requires_host_validation=True, recovery_probe=probe)
 
 
 def process_identity(pid):
