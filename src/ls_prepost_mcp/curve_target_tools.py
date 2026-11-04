@@ -74,9 +74,10 @@ def _ops() -> dict[str, _Op]:
             c.t, c.y, p.get("initial", 0.0), **_units(c), abscissa=c.meta["abscissa"])),
         "sae_filter": _Op(("input",), ("cfc",), ("padding", "convention"), "time", lambda c, p: cv.sae_filter(
             c.t, c.y, p["cfc"], **_units(c), padding=p.get("padding"), convention=p.get("convention", "j211"))),
-        "butterworth_filter": _Op(("input",), ("order", "cutoff_hz"), ("padding",), "time",
+        "butterworth_filter": _Op(("input",), ("order", "cutoff_hz"), ("padding", "convention"), "time",
                                   lambda c, p: cv.butterworth_filter(c.t, c.y, p["order"], p["cutoff_hz"], **_units(c),
-                                                                     padding=p.get("padding", "odd"))),
+                                                                     padding=p.get("padding"),
+                                                                     convention=p.get("convention", "standard"))),
         "spectrum": _Op(("input",), (), (), "time", lambda c, p: cv.spectrum(c.t, c.y, **_units(c))),
         "cross_plot": _Op(("x", "y"), (), (), "time", _cross),
         "difference": _Op(("a", "b"), (), ("alignment",), "time", _difference),
@@ -145,7 +146,7 @@ class CurveTargetTools:
         curve's time unit; filter before coarsening), differentiate(input), integrate(input, initial?),
         sae_filter(input, cfc, padding?, convention?="j211"; explicit "lsprepost" selects the
         legacy native Chebyshev profile, constant initialization, float32 stored feedback, s/ms only),
-        butterworth_filter(input, order, cutoff_hz, padding?),
+        butterworth_filter(input, order, cutoff_hz, padding?, convention? = standard/lsprepost),
         spectrum(input), cross_plot(x, y), difference(a, b, alignment? = "exact"; identical declared
         units/times required, "intersection" opts into common-interval linear interpolation without
         extrapolation), engineering_stress_strain(input = cross_plot of force on

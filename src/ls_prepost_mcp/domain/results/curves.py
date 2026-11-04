@@ -28,6 +28,10 @@ Filters (both zero phase: run forward, then backward over the reversed result):
   ``cutoff_hz``, unit DC gain, second-order sections. Forward + backward gives |H|^2 =
   1 / (1 + (tan(pi f T) / tan(pi f_c T))^(2n)): 1/2 (-6 dB) at the cutoff, i.e. ``cutoff_hz`` is the
   -3 dB frequency of one pass (the scipy ``filtfilt`` convention).
+  Explicit ``convention="lsprepost"`` instead selects the legacy order-2 XYPlot BW profile:
+  its nominal frequency is multiplied by 1.25, it uses reflected initialization and float32
+  storage between passes. That profile accepts s/ms and records its actual design frequency;
+  it refuses contradictory padding, unsafe reflection lengths and unrepresentable native data.
 
 Record ends (``padding``; J211 fixes the recursion and the two passes, the end treatment is this
 module's convention and is recorded in ``meta``):
@@ -252,12 +256,15 @@ def integrate(t: object, y: object, initial: float = 0.0, *, t_unit: str | None 
                                           initial=initial))
 
 
-def _recursive(x: np.ndarray, b: tuple[float, float, float], a: tuple[float, float], start: float) -> np.ndarray:
+def _recursive(x: np.ndarray, b: tuple[float, float, float], a: tuple[float, float], start: float, *,
+               input_history: tuple[float, float] | None = None,
+               output_history: tuple[float, float] | None = None) -> np.ndarray:
     """y[i] = b0 x[i] + b1 x[i-1] + b2 x[i-2] + a1 y[i-1] + a2 y[i-2], history = ``start``."""
     (b0, b1, b2), (a1, a2) = b, a
     out = []
     append = out.append
-    x1 = x2 = y1 = y2 = float(start)
+    x1, x2 = (float(start), float(start)) if input_history is None else input_history
+    y1, y2 = (float(start), float(start)) if output_history is None else output_history
     for xi in x.tolist():
         yi = b0 * xi + b1 * x1 + b2 * x2 + a1 * y1 + a2 * y2
         append(yi)
@@ -381,13 +388,85 @@ def _sections(order: int, cutoff: float, fs: float) -> list[tuple[tuple[float, f
     return sections
 
 
+def _native_butterworth(t: np.ndarray, y: np.ndarray, cutoff_hz: float, t_unit: str,
+                        y_unit: str | None, padding: str | None) -> Curve:
+    """Declared legacy XYPlot BW profile; supported range is intentionally explicit."""
+    if padding not in (None, "lsprepost"):
+        raise CurveError("Native Butterworth requires its reflected initialization; omit padding")
+    if t_unit not in ("s", "ms"):
+        raise CurveError("Native Butterworth profile supports declared s or ms time")
+    _step(t)
+    if t.size < 3:
+        raise CurveError("Native Butterworth reflection requires at least 3 samples")
+    with np.errstate(over="ignore", invalid="ignore", divide="ignore", under="ignore"):
+        clock, data = t.astype(np.float32), y.astype(np.float32)
+        native_frequency = float(np.float32(cutoff_hz))
+        rate = float(np.float32(np.float32(t.size - 1) / np.float32(clock[-1] - clock[0])))
+    if not np.isfinite(clock).all() or not np.isfinite(data).all() or np.any(np.diff(clock) <= 0):
+        raise CurveError("Native float32 storage loses finite samples or time ordering")
+    if np.any((y != 0) & (data == 0)):
+        raise CurveError("Native float32 storage underflow would erase nonzero samples")
+    fs = rate / _seconds(t_unit)
+    if not math.isfinite(fs) or not math.isfinite(native_frequency) or native_frequency <= 0:
+        raise CurveError("Native float32 clock or frequency overflow/underflow")
+    with np.errstate(over="ignore", invalid="ignore"):
+        design = float(np.float32(native_frequency * 1.25))
+    if not math.isfinite(design) or design >= fs / 2:
+        raise CurveError("Native Butterworth design frequency 1.25*cutoff must be below Nyquist")
+    reflected = max(1, int(.1 * fs / native_frequency))
+    if reflected >= data.size:
+        raise CurveError("Native Butterworth reflection needs a longer input record")
+    sections = _sections(2, design, fs)
+    _settling(sections)  # Check numerical stability without substituting standard padding.
+    b, a = sections[0]
+    with np.errstate(over="ignore", invalid="ignore"):
+        first = float(np.float32(data[0] + data[0]))
+    if not math.isfinite(first):
+        raise CurveError("Native endpoint reflection would overflow float32")
+    x_history = (first - float(data[reflected - 1]), first - float(data[reflected]))
+    mean = float(np.mean(data[reflected // 2 + 1:reflected + 1].astype(float)))
+    warmup = first - data[1:reflected - 1][::-1].astype(float)
+    forward = _recursive(np.concatenate([warmup, data]), b, a, 0.,
+                         input_history=x_history, output_history=(first - mean, first - mean))[warmup.size:]
+    with np.errstate(over="ignore", invalid="ignore"):
+        forward = forward.astype(np.float32)
+        last = np.float32(forward[-1] + forward[-1])
+        reverse_history = (float(np.float32(last - forward[-2])), float(np.float32(last - forward[-3])))
+    if not np.isfinite(forward).all() or not np.isfinite(reverse_history).all():
+        raise CurveError("Native forward pass or endpoint reflection overflowed float32")
+    backward = _recursive(forward[::-1], b, a, 0., input_history=reverse_history,
+                          output_history=reverse_history)[::-1]
+    with np.errstate(over="ignore", invalid="ignore"):
+        result = backward.astype(np.float32).astype(float)
+    if not np.isfinite(result).all():
+        raise CurveError("Native Butterworth output overflowed float32")
+    return Curve(t, result, _meta("butterworth_filter",
+        "Legacy XYPlot BW profile: order-2 Butterworth, design frequency 1.25*nominal cutoff; "
+        "forward/backward with reflected initialization", (t_unit, y_unit), ("time", "value"),
+        order=2, cutoff_hz=cutoff_hz, stored_nominal_frequency_hz=native_frequency,
+        design_frequency_hz=design, sampling_rate_hz=fs, convention="lsprepost", padding="lsprepost",
+        reflection_samples=reflected, padding_samples=reflected, padding_complete=None,
+        precision="float32 stored samples and between-pass storage; float64 coefficient/state profile",
+        initialization="left reflected half-prefix mean; right two reflected forward-pass samples",
+        coefficients={"b": list(b), "feedback": list(a)}))
+
+
 def butterworth_filter(t: object, y: object, order: int, cutoff_hz: float, *, t_unit: str,
-                       y_unit: str | None = None, padding: str = "odd") -> Curve:
-    """Zero-phase Butterworth low-pass (ButterworthFilter contract: order 1..16, cutoff_hz)."""
+                       y_unit: str | None = None, padding: str | None = None,
+                       convention: str = "standard") -> Curve:
+    """Standard order-1..16 two-pass Butterworth, or the explicit legacy native order-2 profile."""
     t, y = _xy(t, y)
     if isinstance(order, bool) or not isinstance(order, int) or not 1 <= order <= 16:
         raise CurveError("order must be an integer in 1..16")
     cutoff_hz = _positive(cutoff_hz, "cutoff_hz")
+    if convention not in ("standard", "lsprepost"):
+        raise CurveError("Butterworth convention must be standard or lsprepost")
+    if convention == "lsprepost":
+        if order != 2:
+            raise CurveError("Native Butterworth supports order 2 only")
+        return _native_butterworth(t, y, cutoff_hz, t_unit, y_unit, padding)
+    if padding is None:
+        padding = "odd"
     dt = _step(t)
     dt_s = dt * _seconds(t_unit)
     if cutoff_hz >= 0.5 / dt_s:
@@ -396,7 +475,8 @@ def butterworth_filter(t: object, y: object, order: int, cutoff_hz: float, *, t_
     return Curve(t, filtered, _meta(
         "butterworth_filter", "Butterworth low-pass, bilinear transform pre-warped at the cutoff, forward + "
         "backward (zero phase, |H|^2 = 1/(1 + (tan(pi f T)/tan(pi f_c T))^(2n)))", (t_unit, y_unit),
-        ("time", "value"), order=order, cutoff_hz=cutoff_hz, sampling_rate_hz=1 / dt_s, dt=dt, **ends))
+        ("time", "value"), order=order, cutoff_hz=cutoff_hz, sampling_rate_hz=1 / dt_s, dt=dt,
+        convention=convention, **ends))
 
 
 def spectrum(t: object, y: object, *, t_unit: str, y_unit: str | None = None) -> Curve:
