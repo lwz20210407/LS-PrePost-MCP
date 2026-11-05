@@ -22,6 +22,11 @@ PART_KEYS = {"inten": "internal_energy", "kinen": "kinetic_energy", "hgeng": "ho
              "eroded_ie": "eroded_internal_energy", "eroded_ke": "eroded_kinetic_energy",
              "eroded_hg": "eroded_hourglass_energy"}
 PART_PAIR = re.compile(r"\b(" + "|".join(PART_KEYS) + r")\s*=\s*(\S+)", re.I)
+MATSUM_RESERVED = frozenset(("time", "mat.#", *PART_KEYS))
+# Written in the supported public layouts; retained as ignored auxiliary fields,
+# not promoted to Q06 energy components or used for inferred physics.
+MATSUM_AUXILIARY = frozenset(("x-mom", "y-mom", "z-mom", "x-rbv", "y-rbv", "z-rbv", "+mass", "eroded_he"))
+MATSUM_ASSIGNMENT = re.compile(r"(mat\.\s*#|[A-Za-z_+][A-Za-z0-9_.#+-]*)\s*=\s*(\S+)", re.I)
 MAX_RECORD_CHARS = 16_384
 
 
@@ -147,23 +152,34 @@ def _matsum_records(lines, details=None):
     def strict_record(line):
         """Validate complete assignment identities without changing the legacy numeric loop."""
         text = line.strip()
-        if re.fullmatch(r"(?:time|mat\.\s*#)\s*=?", text, re.I):
-            issue("Truncated MATSUM time or part identifier record")
+        first = re.match(r"(mat\.\s*#[^\s=]*|[^\s=]+)(.*)", text, re.I)
+        if first is None:
             return
-        if re.fullmatch(r"(?:" + "|".join(PART_KEYS) + r")\s*=?", text, re.I):
-            issue("MATSUM field missing number")
-            return
+        first_name = re.sub(r"\s+", "", first[1]).casefold()
+        rest = first[2].lstrip()
+        reserved_like = any(first_name.startswith(name) or
+                            re.search(r"[-_/]" + re.escape(name) + r"(?:$|[-_/])", first_name)
+                            for name in MATSUM_RESERVED)
+        # A known record followed by a number is data even if '=' is absent.
+        # Ordinary prose such as 'Time spent by ...' remains unclaimed prose.
+        candidate = ((first_name in MATSUM_RESERVED and
+                      (not rest or rest.startswith("=") or re.match(r"[+\-.\d]", rest)))
+                     or (reserved_like and rest.startswith("=")))
         pairs = list(PART_PAIR.finditer(text))
         mat_heads = list(re.finditer(r"mat\.\s*#\s*=", text, re.I))
         time_heads = list(re.finditer(r"(?<!\S)time\s*=", text, re.I))
-        if not (pairs or mat_heads or time_heads):
+        if not (candidate or pairs or mat_heads or time_heads):
             return
+        if first_name in MATSUM_RESERVED:
+            if not rest.startswith("="):
+                issue(f"Malformed MATSUM {first_name} record: missing assignment '='")
+            elif not rest[1:].strip():
+                issue(f"MATSUM {first_name} field missing number")
         if len(mat_heads) > 1 or len(time_heads) > 1 or (mat_heads and time_heads):
             issue("Multiple MATSUM time/material headers in one record")
         assignments, position = [], 0
-        grammar = re.compile(r"(mat\.\s*#|[A-Za-z_+][A-Za-z0-9_.#+-]*)\s*=\s*(\S+)", re.I)
         while position < len(text):
-            match = grammar.match(text, position)
+            match = MATSUM_ASSIGNMENT.match(text, position)
             if match is None:
                 issue("Malformed MATSUM assignment record")
                 return
@@ -172,12 +188,16 @@ def _matsum_records(lines, details=None):
             while position < len(text) and text[position].isspace():
                 position += 1
         names = [re.sub(r"\s+", "", match[1]).casefold() for match in assignments]
+        if any(name not in MATSUM_RESERVED | MATSUM_AUXILIARY for name in names):
+            issue("Unsupported or damaged MATSUM assignment label")
+        if len(names) != len(set(names)):
+            issue("Duplicate MATSUM assignment in one record")
         known_starts = {match.start(1) for match, name in zip(assignments, names) if name in PART_KEYS}
         if any(pair.start(1) not in known_starts for pair in pairs):
             issue("Malformed MATSUM known assignment label")
         if mat_heads and (names.count("mat.#") != 1 or names[0] != "mat.#"):
             issue("Malformed MATSUM part identifier record")
-        if time_heads and (names.count("time") != 1 or names[0] != "time" or pairs):
+        if time_heads and names != ["time"]:
             issue("Malformed MATSUM time record")
         if pairs and not mat_heads and current is None:
             issue("MATSUM energy field outside a material record")

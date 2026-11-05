@@ -271,6 +271,37 @@ def test_real_unknown_continuation_columns_are_not_misrepresented_as_supported(t
     assert result["data"]["source_column_names"]["value"] == ["kinen"]
 
 
+RESERVED = ["time", "mat.#", "inten", "kinen", "hgeng", "eroded_ie", "eroded_ke"]
+STRICT_BASE = "time = 0\nmat.#= 1 inten= 1 kinen= 2 hgeng= 3 eroded_ie= 0 eroded_ke= 0\n"
+
+
+@pytest.mark.parametrize("label", RESERVED)
+@pytest.mark.parametrize("kind", ["bare", "empty", "missing-equal", "duplicate", "bad-suffix", "bad-prefix"])
+def test_supported_matsum_record_grammar_matrix(tmp_path, label, kind):
+    tail = {"bare": label, "empty": label + "=", "missing-equal": label + " 4",
+            "duplicate": label + "=4 " + label + "=5", "bad-suffix": label + "__damaged=4",
+            "bad-prefix": "invalid-" + label + "=4"}[kind]
+    result = extract(tmp_path, STRICT_BASE + tail + "\n")
+    assert result["status"] == "failed" and not result["artifacts"]
+
+
+def test_unrecognized_extra_assignment_cannot_be_silently_discarded_on_a_material_record(tmp_path):
+    result = extract(tmp_path, STRICT_BASE.replace("hgeng= 3", "hgeng= 3 unexpected= 7"))
+    assert result["status"] == "failed" and not result["artifacts"]
+
+
+def test_unknown_prose_and_legends_do_not_become_strict_record_tokens(tmp_path):
+    prose = "A normal explanatory prose line\nTime spent by the output writer\nkinen values are shown below\n"
+    result = extract(tmp_path, prose + TEXT + prose)
+    assert result["status"] == "succeeded", result["error"]
+
+
+@pytest.mark.parametrize("title", ["Timeless", "Timeless 2026", "intensify", "hgengine"])
+def test_reserved_word_prefixes_do_not_turn_normal_titles_into_fields(tmp_path, title):
+    result = extract(tmp_path, title + "\n" + TEXT + title + "\n")
+    assert result["status"] == "succeeded", result["error"]
+
+
 @pytest.mark.parametrize("name", ["MAX_BYTES", "MAX_RECORD_CHARS", "MAX_ROWS"])
 def test_matsum_resource_bounds(tmp_path, monkeypatch, name):
     from ls_prepost_mcp.domain.results import ascii_matsum
