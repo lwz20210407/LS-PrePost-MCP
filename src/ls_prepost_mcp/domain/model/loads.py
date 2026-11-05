@@ -21,6 +21,7 @@ from . import geometry, selectors, sets
 from ._identity import exact_integer
 from .cards import insert_card
 from .fields import FieldError, single_line
+from .text import is_keyword
 
 if TYPE_CHECKING:
     from .deck import KeywordDeck
@@ -51,10 +52,20 @@ def _append_boundary(function):
             deck.files.clear()
             deck.files.update(files)
             main.invalidate_line_numbers()
-            deck._rebuild()
+            # No P05 block is structural. Do not rebuild/re-read a loaded
+            # Include tree: its resources may have changed outside this AST.
+            deck._layouts.clear()
             deck.warnings[:] = warnings
             raise
     return apply
+
+
+def _boundary_title(title, label):
+    if title:
+        single_line(title, label)
+        if is_keyword(title):
+            raise FieldError(f"{label} may not introduce a keyword line")
+    return title
 
 
 def _node_target(deck: KeywordDeck, target: dict) -> dict:
@@ -83,7 +94,7 @@ def _node_target(deck: KeywordDeck, target: dict) -> dict:
         raise FieldError("The target selects no nodes")
     if np.any(~np.isin(ids, NodeSets(deck).ids)):
         raise FieldError("The target refers to undefined nodes")
-    return {"nodes": ids, "title": target.get("title")}
+    return {"nodes": ids, "title": _boundary_title(target.get("title"), "Node-set title")}
 
 
 def _node_set(deck: KeywordDeck, target: dict) -> int:
@@ -108,7 +119,7 @@ def _segment_target(deck: KeywordDeck, target: dict) -> dict:
     rows = [[exact_integer(value, "Segment node ID") for value in row] for row in rows]
     if not rows:
         raise FieldError("The segment target selects no segments")
-    return {"segments": rows, "title": target.get("title")}
+    return {"segments": rows, "title": _boundary_title(target.get("title"), "Segment-set title")}
 
 
 def _segment_set(deck: KeywordDeck, target: dict) -> int:
@@ -131,7 +142,7 @@ def ensure_curve(deck: KeywordDeck, spec: dict) -> int:
     if len(points) < 2:
         raise FieldError("A curve needs at least two points")
     lcid = max(defined, default=0) + 1
-    title = spec.get("title")
+    title = _boundary_title(spec.get("title"), "Curve title")
     head = ["*DEFINE_CURVE_TITLE", single_line(title, "Curve title")] if title else ["*DEFINE_CURVE"]
     blocks = deck.insert("\n".join(head + [f"{lcid:>10}", "0.0 0.0"]) + "\n")
     deck.set_points(blocks[0], points)

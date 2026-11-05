@@ -65,3 +65,62 @@ def test_final_card_failure_preserves_existing_edits_block_identity_and_missing_
         loads.add_nodal_load(deck, {"nodes": [1, 2]}, "z", {"points": [[0., 0.], [1., 1.]]})
     assert state(deck) == before
     assert deck.get(part, "heading", row=1).value == "caller-owned prior edit"
+
+
+@pytest.mark.parametrize("stage", ["early", "late"])
+@pytest.mark.parametrize("filesystem_change", ["rename", "replace"])
+def test_rollback_preserves_loaded_include_blocks_parameters_and_context_without_resource_reload(
+        tmp_path, monkeypatch, stage, filesystem_change):
+    child = tmp_path / "child.k"
+    child.write_text("*PARAMETER\nRscale,2.0\n*NODE\n1,0,0,0\n2,1,0,0\n", encoding="ascii")
+    main = tmp_path / "main.k"
+    main.write_text("*KEYWORD\n*INCLUDE\nchild.k\n*DEFINE_CURVE\n1\n0.0,0.0\n1.0,1.0\n*END\n",
+                    encoding="ascii")
+    deck = KeywordDeck.load(main)
+    curve = deck.blocks("*DEFINE_CURVE")[0]
+    deck.warnings.append("caller warning retained")
+    before = state(deck)
+    sequence, includes, scopes = tuple(deck.iter_blocks()), deck.includes, deck._scopes
+    files = tuple(deck.files.items())
+    parameters, warnings = tuple(deck.parameters), tuple(deck.warnings)
+    lookup = deck.lookup(curve)
+    if filesystem_change == "rename":
+        child.rename(tmp_path / "held-child.k")  # owned fixture only; the loaded AST must remain usable
+    else:
+        child.write_text("*PARAMETER\nRscale,9.0\n*NODE\n99,9,9,9\n", encoding="ascii")
+    if stage == "late":
+        original = loads.insert_card
+
+        def fail_after_insertion(*args, **kwargs):
+            original(*args, **kwargs)
+            raise FieldError("Injected final card failure")
+
+        monkeypatch.setattr(loads, "insert_card", fail_after_insertion)
+    with pytest.raises((FieldError, ValueError)):
+        loads.add_nodal_load(deck, {"nodes": [1, 2]}, "z", {"points": [[0., 0.], [1., 1.]]},
+                             sf="bad" if stage == "early" else 1.)
+    assert state(deck) == before and tuple(deck.iter_blocks()) == sequence
+    assert deck.includes is includes and deck._scopes is scopes
+    assert tuple(deck.files.items()) == files and tuple(deck.parameters) == parameters
+    assert tuple(deck.warnings) == warnings and deck.lookup(curve) == lookup
+
+
+@pytest.mark.parametrize("consumer", ["curve", "node_set", "segment_set"])
+@pytest.mark.parametrize("title", ["*INCLUDE", "*PARAMETER", "*KEYWORD"])
+def test_consumed_title_cannot_turn_an_append_only_boundary_into_a_structural_edit(
+        tmp_path, monkeypatch, consumer, title):
+    deck = KeywordDeck.load(source_model(tmp_path / "source"))
+    before = state(deck)
+
+    def forbidden_rebuild():
+        pytest.fail("An append-only boundary must not activate structural input or reload resources")
+
+    monkeypatch.setattr(deck, "_rebuild", forbidden_rebuild)
+    with pytest.raises(FieldError):
+        if consumer == "curve":
+            loads.ensure_curve(deck, {"points": [[0., 0.], [1., 1.]], "title": title})
+        elif consumer == "node_set":
+            loads.add_spc(deck, {"nodes": [1, 2], "title": title}, "all")
+        else:
+            loads.add_non_reflecting(deck, {"segments": [[1, 2, 3, 4]], "title": title})
+    assert state(deck) == before
