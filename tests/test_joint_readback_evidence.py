@@ -1,5 +1,6 @@
 """Only selected immutable native runs must match the current portable source blobs."""
 
+import ast
 import copy
 import json
 import re
@@ -13,6 +14,11 @@ from tools.verify_p12_joint_roundtrip import CAPTURE_SOURCE_PATHS
 
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "docs/decisions/evidence/p12-joint-readback/evidence.json"
+LOADS = "src/ls_prepost_mcp/domain/model/loads.py"
+PRODUCER = "tools/verify_p12_joint_roundtrip.py"
+LEGACY_REVISION = "1289eb4edadb77b71d3ee90928d3fec0716e8465"
+LEGACY_CHECKPOINT = "typed-writes-1289-private-source40"
+LEGACY_INSTRUMENTATION = {PRODUCER, "tests/test_joint_source_identity.py"}
 
 
 @lru_cache(maxsize=None)
@@ -30,6 +36,32 @@ def _blob(revision, path):
 def _dependency_blob(revision, path):
     return subprocess.check_output(["git", "rev-parse", revision + ":" + path],
                                    cwd=ROOT, text=True, timeout=10).strip()
+
+
+@lru_cache(maxsize=None)
+def _declared_capture_paths(revision):
+    """Read only the recorded producer's two literal declarations, never execute it."""
+    source = subprocess.check_output(["git", "show", revision + ":" + PRODUCER], cwd=ROOT, text=True, timeout=10)
+    assignments = {target.id: node.value for node in ast.parse(source).body if isinstance(node, ast.Assign)
+                   for target in node.targets if isinstance(target, ast.Name)}
+    product = assignments["PRODUCT_PATHS"]
+    assert isinstance(product, ast.Call) and isinstance(product.func, ast.Name) and product.func.id == "tuple"
+    assert len(product.args) == 1 and not product.keywords and isinstance(product.args[0], ast.GeneratorExp)
+    generator = product.args[0]
+    assert len(generator.generators) == 1 and isinstance(generator.elt, ast.BinOp) and isinstance(generator.elt.op, ast.Add)
+    loop = generator.generators[0]
+    assert isinstance(loop.target, ast.Name) and not loop.ifs and not loop.is_async
+    assert isinstance(generator.elt.right, ast.Name) and generator.elt.right.id == loop.target.id
+    prefix, suffixes = ast.literal_eval(generator.elt.left), ast.literal_eval(loop.iter)
+    assert isinstance(prefix, str) and isinstance(suffixes, tuple) and all(isinstance(item, str) for item in suffixes)
+    capture = assignments["CAPTURE_SOURCE_PATHS"]
+    assert isinstance(capture, ast.BinOp) and isinstance(capture.op, ast.Add)
+    assert isinstance(capture.left, ast.Name) and capture.left.id == "PRODUCT_PATHS"
+    auxiliary = ast.literal_eval(capture.right)
+    assert isinstance(auxiliary, tuple) and all(isinstance(item, str) for item in auxiliary)
+    paths = tuple(prefix + suffix for suffix in suffixes) + auxiliary
+    assert len(paths) == len(set(paths))
+    return paths
 
 
 def _configuration(run):
@@ -68,29 +100,44 @@ def _configuration(run):
             assert after["bytes_equal_before"] and all(after[k] == before[k] for k in ("sha256", "size", "mtime_ns"))
 
 
-def _active(data):
-    checkpoint = data["source_checkpoints"][data["active_source_checkpoint"]]
-    assert checkpoint["id"] == data["active_source_checkpoint"]
+def _source_identity(checkpoint):
     sources = checkpoint["capture_source_identity"]
-    assert set(sources) == set(CAPTURE_SOURCE_PATHS)
+    declared = set(_declared_capture_paths(checkpoint["actual_git_revision"]))
+    legacy = LOADS not in declared
+    if legacy:
+        assert checkpoint["actual_git_revision"] == LEGACY_REVISION and checkpoint["id"] == LEGACY_CHECKPOINT
+        assert declared == set(CAPTURE_SOURCE_PATHS) - {LOADS} and len(declared) == 40
+    else:
+        assert declared == set(CAPTURE_SOURCE_PATHS) and len(declared) == 41
+    assert set(sources) == declared
     assert "src/ls_prepost_mcp/domain/model/matching.py" in sources
     assert "src/ls_prepost_mcp/domain/model/_identity.py" in sources
     for path, identity in sources.items():
         assert re.fullmatch(r"[0-9a-f]{64}", identity["captured_file_sha256"])
         assert _blob(checkpoint["actual_git_revision"], path) == identity["git_blob_id"]
-        assert _blob("HEAD", path) == identity["git_blob_id"], path
-    path = "src/ls_prepost_mcp/domain/model/loads.py"
-    dependency = checkpoint["post_capture_dependency_identity"][path]
-    assert path not in sources and len(sources) == 40
+        if not (legacy and path in LEGACY_INSTRUMENTATION):
+            assert _blob("HEAD", path) == identity["git_blob_id"], path
+    if not legacy:
+        return sources
+    # The two legacy instrumentation files bind their actual recorded bytes, not current instrumentation.
+    dependency = checkpoint["post_capture_dependency_identity"][LOADS]
+    assert LOADS not in sources and len(sources) == 40
     assert dependency["actual_git_revision"] == checkpoint["actual_git_revision"]
     assert dependency["archival_kind"] == "post_capture_dependency_from_actual_full_snapshot_not_original_explicit40"
-    assert _dependency_blob(checkpoint["actual_git_revision"], path) == dependency["git_blob_id"]
-    assert _dependency_blob("HEAD", path) == dependency["git_blob_id"], path
+    assert _dependency_blob(checkpoint["actual_git_revision"], LOADS) == dependency["git_blob_id"]
+    assert _dependency_blob("HEAD", LOADS) == dependency["git_blob_id"], LOADS
     assert {row["version"] for row in dependency["contexts"]} == {"4.13", "4.10"}
     for context in dependency["contexts"]:
         assert context["full_source_snapshot_sha256"] == checkpoint["source_snapshot_sha256"]
         assert context["captured_file_sha256"] == dependency["captured_file_sha256"]
         assert re.fullmatch(r"[0-9a-f]{64}", context["execution_context_raw_sha256"])
+    return sources
+
+
+def _active(data):
+    checkpoint = data["source_checkpoints"][data["active_source_checkpoint"]]
+    assert checkpoint["id"] == data["active_source_checkpoint"]
+    sources = _source_identity(checkpoint)
     identifiers = data["active_run_ids"]
     assert len(identifiers) == len(set(identifiers)) == 6
     runs = {run["id"]: run for run in data["native_captures"]}
@@ -196,3 +243,81 @@ def test_changed_current_loads_dependency_rejects_an_otherwise_complete_capture(
                         lambda revision, item: "0" * 40 if revision == "HEAD" and item == path else original(revision, item))
     with pytest.raises(AssertionError):
         _active(data)
+
+
+def test_legacy40_uses_its_actual_literal_producer_declaration_and_required_archive():
+    data = json.loads(EVIDENCE.read_text(encoding="utf8"))
+    checkpoint = data["source_checkpoints"][data["active_source_checkpoint"]]
+    paths = _declared_capture_paths(LEGACY_REVISION)
+    assert len(paths) == 40 and LOADS not in paths
+    assert set(paths) == set(checkpoint["capture_source_identity"])
+    del checkpoint["post_capture_dependency_identity"][LOADS]
+    with pytest.raises(KeyError):
+        _source_identity(checkpoint)
+
+
+def test_recorded_capture_declaration_is_only_parsed_and_not_executed(monkeypatch):
+    source = subprocess.check_output(["git", "show", LEGACY_REVISION + ":" + PRODUCER], cwd=ROOT, text=True, timeout=10)
+    # Executing this Git source would raise; extracting the two literal declarations does not.
+    monkeypatch.setattr(subprocess, "check_output", lambda *args, **kwargs: "raise RuntimeError('never execute')\n" + source)
+    assert len(_declared_capture_paths("e" * 40)) == 40
+
+
+@pytest.mark.parametrize("path", ["src/ls_prepost_mcp/domain/model/joints.py", "tests/data/p12-roundtrip-fixtures.json"])
+def test_legacy40_transition_does_not_exempt_other_runtime_or_auxiliary_sources(monkeypatch, path):
+    data = json.loads(EVIDENCE.read_text(encoding="utf8"))
+    checkpoint = data["source_checkpoints"][data["active_source_checkpoint"]]
+    original = _blob
+    monkeypatch.setattr(__import__(__name__, fromlist=["_blob"]), "_blob",
+                        lambda revision, item: "0" * 40 if revision == "HEAD" and item == path else original(revision, item))
+    with pytest.raises(AssertionError):
+        _source_identity(checkpoint)
+
+
+@pytest.mark.parametrize("fault", ["revision", "checkpoint", "producer_blob", "source_test_blob"])
+def test_legacy40_transition_cannot_accept_another_capture_or_changed_recorded_instrumentation(fault):
+    data = json.loads(EVIDENCE.read_text(encoding="utf8"))
+    checkpoint = data["source_checkpoints"][data["active_source_checkpoint"]]
+    if fault == "revision":
+        checkpoint["actual_git_revision"] = "5d178d7c962c68b7414acad47ac4615828d72197"
+    elif fault == "checkpoint":
+        checkpoint["id"] = "unregistered-legacy40"
+    else:
+        path = PRODUCER if fault == "producer_blob" else "tests/test_joint_source_identity.py"
+        checkpoint["capture_source_identity"][path]["git_blob_id"] = "0" * 40
+    with pytest.raises(AssertionError):
+        _source_identity(checkpoint)
+
+
+@pytest.fixture
+def future41_checkpoint(monkeypatch):
+    """Synthetic source-policy fixture, not a native run or published capture."""
+    data = json.loads(EVIDENCE.read_text(encoding="utf8"))
+    checkpoint = copy.deepcopy(data["source_checkpoints"][data["active_source_checkpoint"]])
+    dependency = checkpoint.pop("post_capture_dependency_identity")[LOADS]
+    checkpoint["actual_git_revision"], checkpoint["id"] = "f" * 40, "synthetic-future41"
+    checkpoint["capture_source_identity"][LOADS] = {
+        "git_blob_id": dependency["git_blob_id"], "captured_file_sha256": dependency["captured_file_sha256"]}
+    blobs = {path: item["git_blob_id"] for path, item in checkpoint["capture_source_identity"].items()}
+    monkeypatch.setattr(__import__(__name__, fromlist=["_blob"]), "_blob", lambda revision, path: blobs[path])
+    monkeypatch.setattr(__import__(__name__, fromlist=["_declared_capture_paths"]), "_declared_capture_paths",
+                        lambda revision: CAPTURE_SOURCE_PATHS)
+    return checkpoint, blobs
+
+
+def test_future41_requires_explicit_helper_without_post_capture_fallback(future41_checkpoint):
+    checkpoint, _ = future41_checkpoint
+    assert len(_source_identity(checkpoint)) == 41
+    del checkpoint["capture_source_identity"][LOADS]
+    with pytest.raises(AssertionError):
+        _source_identity(checkpoint)
+
+
+@pytest.mark.parametrize("path", [LOADS, PRODUCER, "tests/test_joint_source_identity.py",
+                                  "src/ls_prepost_mcp/domain/model/matching.py"])
+def test_future41_keeps_every_current_product_and_instrumentation_identity_strict(future41_checkpoint, monkeypatch, path):
+    checkpoint, blobs = future41_checkpoint
+    monkeypatch.setattr(__import__(__name__, fromlist=["_blob"]), "_blob",
+                        lambda revision, item: "0" * 40 if revision == "HEAD" and item == path else blobs[item])
+    with pytest.raises(AssertionError):
+        _source_identity(checkpoint)
