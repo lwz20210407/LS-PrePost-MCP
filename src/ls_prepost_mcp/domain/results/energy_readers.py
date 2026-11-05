@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 
 from . import lasso_backend
-from .ascii_records import RecordTooLong, bounded_lines, tokenize_scalar
+from .ascii_records import ByteBudgetExceeded, RecordTooLong, bounded_lines, tokenize_scalar
 from .energy import ENERGIES, MAX_ROWS, PART_FIELDS, EnergyBalanceError
 from .lasso_backend import MissingComponentError
 from .mpp_shards import SHARD
@@ -25,15 +25,17 @@ PART_PAIR = re.compile(r"\b(" + "|".join(PART_KEYS) + r")\s*=\s*(\S+)", re.I)
 MAX_RECORD_CHARS = 16_384
 
 
-def _lines(path, *, errors="replace", max_record_chars=None):
+def _lines(path, *, errors="replace", max_record_chars=None, max_bytes=None):
     # Bound mistaken binary input / enormous records without buffering a whole line.
     if max_record_chars is None:
         max_record_chars = MAX_RECORD_CHARS
-    with open(path, encoding="utf-8-sig", errors=errors) as stream:
-        while line := stream.readline(max_record_chars + 1):
-            if len(line) > max_record_chars:
-                raise EnergyBalanceError("ASCII energy record exceeds 16384 characters; unsupported input")
-            yield line
+    try:
+        yield from bounded_lines(path, max_record_chars=max_record_chars, encoding="utf-8-sig", errors=errors,
+                                 max_bytes=max_bytes)
+    except RecordTooLong as error:
+        raise EnergyBalanceError("ASCII energy record exceeds 16384 characters; unsupported input") from error
+    except ByteBudgetExceeded as error:
+        raise EnergyBalanceError("ASCII energy input exceeds its byte limit while reading") from error
 
 
 def _number(value, context):
@@ -106,14 +108,15 @@ def read_ascii_matsum(path):
     return _matsum_records(_lines(path))
 
 
-def read_ascii_matsum_details(path, *, max_record_chars=None):
+def read_ascii_matsum_details(path, *, max_record_chars=None, max_bytes=None):
     """Expose raw block/field identity for Q06; keep Q12's nullable wrapper unchanged.
 
     The material-record parsing and numeric conversion are shared. Observations
     about empty blocks, legends and lexical identity do not impose a Q12 policy.
     """
     details = {"blocks": [], "source_column_names": {"time": [], "id": []}, "issues": []}
-    details["parts"] = _matsum_records(_lines(path, errors="strict", max_record_chars=max_record_chars), details)
+    details["parts"] = _matsum_records(_lines(path, errors="strict", max_record_chars=max_record_chars,
+                                             max_bytes=max_bytes), details)
     return details
 
 
@@ -141,6 +144,44 @@ def _matsum_records(lines, details=None):
             elif value == 0 and re.search("[1-9]", re.split("[eEdD]", token)[0]):
                 issue(f"MATSUM numeric token underflows float64 for {key}")
 
+    def strict_record(line):
+        """Validate complete assignment identities without changing the legacy numeric loop."""
+        text = line.strip()
+        if re.fullmatch(r"(?:time|mat\.\s*#)\s*=?", text, re.I):
+            issue("Truncated MATSUM time or part identifier record")
+            return
+        if re.fullmatch(r"(?:" + "|".join(PART_KEYS) + r")\s*=?", text, re.I):
+            issue("MATSUM field missing number")
+            return
+        pairs = list(PART_PAIR.finditer(text))
+        mat_heads = list(re.finditer(r"mat\.\s*#\s*=", text, re.I))
+        time_heads = list(re.finditer(r"(?<!\S)time\s*=", text, re.I))
+        if not (pairs or mat_heads or time_heads):
+            return
+        if len(mat_heads) > 1 or len(time_heads) > 1 or (mat_heads and time_heads):
+            issue("Multiple MATSUM time/material headers in one record")
+        assignments, position = [], 0
+        grammar = re.compile(r"(mat\.\s*#|[A-Za-z_+][A-Za-z0-9_.#+-]*)\s*=\s*(\S+)", re.I)
+        while position < len(text):
+            match = grammar.match(text, position)
+            if match is None:
+                issue("Malformed MATSUM assignment record")
+                return
+            assignments.append(match)
+            position = match.end()
+            while position < len(text) and text[position].isspace():
+                position += 1
+        names = [re.sub(r"\s+", "", match[1]).casefold() for match in assignments]
+        known_starts = {match.start(1) for match, name in zip(assignments, names) if name in PART_KEYS}
+        if any(pair.start(1) not in known_starts for pair in pairs):
+            issue("Malformed MATSUM known assignment label")
+        if mat_heads and (names.count("mat.#") != 1 or names[0] != "mat.#"):
+            issue("Malformed MATSUM part identifier record")
+        if time_heads and (names.count("time") != 1 or names[0] != "time" or pairs):
+            issue("Malformed MATSUM time record")
+        if pairs and not mat_heads and current is None:
+            issue("MATSUM energy field outside a material record")
+
     for line in lines:
         if "{BEGIN LEGEND}" in line:
             if legend:
@@ -153,6 +194,8 @@ def _matsum_records(lines, details=None):
             continue
         if legend:
             continue
+        if details is not None:
+            strict_record(line)
         tm = re.match(r"\s*(time)\s*=\s*(\S+)", line, re.I)
         if tm:
             time, current = _number(tm[2], "matsum time"), None

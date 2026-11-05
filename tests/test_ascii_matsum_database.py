@@ -221,6 +221,56 @@ def test_q12_existing_line_limit_keeps_its_runtime_value(tmp_path, monkeypatch):
         energy_readers.read_ascii_matsum(source)
 
 
+@pytest.mark.parametrize("text", [
+    "time = 0\nmat.#= 1 inten= 1 kinen= 2 hgeng= 3\nmat.#",
+    "time = 0\nmat.#= 1 inten= 1 kinen= 2 hgeng= 3\ntime",
+    "time = 0\nmat.#= 1 inten= 1 kinen= 2 hgeng= 3 mat.#= 2\n",
+    "time = 0\nmat.#= 1 inten= 1 not-kinen= 2 hgeng= 3\n",
+], ids=["bare-material-tail", "bare-time-tail", "second-material-on-line", "prefixed-known-label"])
+def test_strict_matsum_rejects_ambiguous_or_incomplete_known_records(tmp_path, text):
+    result = extract(tmp_path, text)
+    assert result["status"] == "failed" and not result["artifacts"]
+    assert "matsum" in result["error"]["message"].lower()
+
+
+def test_matsum_growth_during_parse_stops_before_following_the_extra_data(tmp_path, monkeypatch):
+    from ls_prepost_mcp.domain.results import ascii_matsum, energy_readers
+
+    original_validate, original_lines = ascii_matsum.validate_size, energy_readers._lines
+    observed = dict(validations=0, consumed_chars=0)
+    monkeypatch.setattr(ascii_matsum, "MAX_BYTES", 200)
+
+    def grows_after_parse_size_check(path):
+        original_validate(path)
+        observed["validations"] += 1
+        if observed["validations"] == 2:
+            with Path(path).open("a", encoding="utf8") as stream:
+                stream.write("\n" * 1000)
+
+    def consumed(*args, **kwargs):
+        for line in original_lines(*args, **kwargs):
+            observed["consumed_chars"] += len(line)
+            yield line
+
+    monkeypatch.setattr(ascii_matsum, "validate_size", grows_after_parse_size_check)
+    monkeypatch.setattr(energy_readers, "_lines", consumed)
+    result = extract(tmp_path, "time = 0\nmat.#= 1 inten= 1 kinen= 2 hgeng= 3\n")
+    assert result["status"] == "failed" and not result["artifacts"]
+    assert observed["consumed_chars"] <= 200
+
+
+@pytest.mark.parametrize("extra", ["inten", "time = 1 time = 2", "wrong kinen= 2", "not-mat.#= 2"])
+def test_strict_known_record_validation_does_not_drop_malformed_tokens(tmp_path, extra):
+    result = extract(tmp_path, TEXT + extra)
+    assert result["status"] == "failed" and not result["artifacts"]
+
+
+def test_real_unknown_continuation_columns_are_not_misrepresented_as_supported(tmp_path):
+    result = extract(tmp_path, TEXT.replace("hgeng= 0.5", "hgeng= 0.5 +mass= 1 eroded_he= 2", 1))
+    assert result["status"] == "succeeded", result["error"]
+    assert result["data"]["source_column_names"]["value"] == ["kinen"]
+
+
 @pytest.mark.parametrize("name", ["MAX_BYTES", "MAX_RECORD_CHARS", "MAX_ROWS"])
 def test_matsum_resource_bounds(tmp_path, monkeypatch, name):
     from ls_prepost_mcp.domain.results import ascii_matsum

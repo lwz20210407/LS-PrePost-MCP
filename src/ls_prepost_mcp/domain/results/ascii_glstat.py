@@ -9,7 +9,7 @@ import math
 import re
 from pathlib import Path
 
-from .ascii_records import RecordTooLong, bounded_lines, tokenize_scalar
+from .ascii_records import ByteBudgetExceeded, RecordTooLong, bounded_lines, tokenize_scalar
 from .lasso_backend import ResultsError
 
 MAX_BYTES = 256 * 1024 * 1024
@@ -46,11 +46,14 @@ def validate_size(path):
 def _lines(path):
     validate_size(path)
     try:
-        for line in bounded_lines(path, max_record_chars=MAX_RECORD_CHARS, encoding="utf-8-sig", errors="strict"):
+        for line in bounded_lines(path, max_record_chars=MAX_RECORD_CHARS, encoding="utf-8-sig", errors="strict",
+                                  max_bytes=MAX_BYTES):
             if line.strip():
                 yield line.strip()
     except RecordTooLong as error:
         raise ResultsError("ASCII GLSTAT record exceeds 16384 characters") from error
+    except ByteBudgetExceeded as error:
+        raise ResultsError("ASCII GLSTAT input exceeds 256 MiB while reading") from error
 
 
 def read(path, component):

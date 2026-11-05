@@ -1,6 +1,7 @@
 """Bounded raw text and scalar-field lexing; no numeric or GLSTAT block policy."""
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 
 
@@ -8,12 +9,31 @@ class RecordTooLong(ValueError):
     """A caller-specified character bound was exceeded."""
 
 
-def bounded_lines(path, *, max_record_chars: int, encoding: str, errors: str):
+class ByteBudgetExceeded(ValueError):
+    """The opened source or raw reader position exceeds a caller's byte budget."""
+
+
+def bounded_lines(path, *, max_record_chars: int, encoding: str, errors: str,
+                  max_bytes: int | None = None):
     """Yield raw lines, including blanks/newlines, with caller-owned decoding policy."""
     if type(max_record_chars) is not int or max_record_chars < 1:
         raise ValueError("max_record_chars must be a positive integer")
+    if max_bytes is not None and (type(max_bytes) is not int or max_bytes < 1):
+        raise ValueError("max_bytes must be a positive integer or None")
     with open(path, encoding=encoding, errors=errors) as stream:
-        while line := stream.readline(max_record_chars + 1):
+        def check_budget():
+            # Check the already-open descriptor, not a replaceable pathname.
+            # buffer.tell() counts raw bytes including BOM/CRLF and readahead.
+            if max_bytes is not None and (os.fstat(stream.fileno()).st_size > max_bytes
+                                          or stream.buffer.tell() > max_bytes):
+                raise ByteBudgetExceeded("ASCII source exceeds the caller's byte budget while reading")
+
+        while True:
+            check_budget()
+            line = stream.readline(max_record_chars + 1)
+            check_budget()  # Growth during a read must fail before the parser sees the line.
+            if not line:
+                break
             if len(line) > max_record_chars:
                 raise RecordTooLong("ASCII record exceeds the caller's character bound")
             yield line

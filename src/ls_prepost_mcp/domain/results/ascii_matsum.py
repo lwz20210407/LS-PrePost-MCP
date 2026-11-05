@@ -26,7 +26,7 @@ def read(path, component):
     if component not in COMPONENTS:
         raise ResultsError(f"MATSUM component must be one of {list(COMPONENTS)}")
     validate_size(path)
-    details = read_ascii_matsum_details(path, max_record_chars=MAX_RECORD_CHARS)
+    details = read_ascii_matsum_details(path, max_record_chars=MAX_RECORD_CHARS, max_bytes=MAX_BYTES)
     if details["issues"]:
         raise ResultsError(details["issues"][0])
     blocks = details["blocks"]
