@@ -2,7 +2,8 @@
 
 ## Current workflow (user confirmed 2026-10-18)
 
-- Codex owns implementation, testing, review and PR integration for the entire project. The multi-AI collaboration section below is paused and is not executed during this single-agent period; the user decides whether and when to resume it. Preserve that section unchanged and do not launch other agents from its paused rules.
+- Codex owns implementation, testing, review and PR integration for the entire project. The multi-AI collaboration section below is paused and is not executed during this Codex-led period; the user decides whether and when to resume it. Preserve that section unchanged and do not launch other agents from its paused rules.
+- User confirmed on 2026-11-04 and resumed on 2026-11-05: use internal Codex subagents for independent task/file scopes. The root agent coordinates shared task/docs changes, review, CI and integration; native LS-PrePost jobs remain serial. This does not restart AO or the historical external four-agent workflow. Bind every standalone test/tool command to its worktree src and root through PYTHONPATH when reusing shared environments.
 - User-confirmed review02 gate (2026-10-23): a PR changing any task to `done` requires a user-arranged independent review before merge, including a spot check of native evidence. Self-review and CI alone do not satisfy this gate. Continue other authorized fixes while waiting; do not mark incomplete native coverage done.
 - Keep `tasks.yaml` as the scope and acceptance source. Taking ownership does not change acceptance, milestone order, release, status or the meaning of existing evidence.
 - First resolve the existing PR backlog and review findings. Preserve authorship and history; synchronize with merge commits only, never rebase or force push. Review each change and require the exact PR head's complete CI before integration. Do not treat self-review as an independent external review.
