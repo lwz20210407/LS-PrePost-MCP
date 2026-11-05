@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ACTIVE = ROOT / "docs/decisions/evidence/p03-active.json"
 MCP_REGISTRATION_PRODUCTS = {
     "src/ls_prepost_mcp/operation_registry.py",
+    "src/ls_prepost_mcp/data/operations.json",
     "src/ls_prepost_mcp/server.py",
     "src/ls_prepost_mcp/compact_server.py",
 }
@@ -31,11 +32,30 @@ def test_current_host_evidence_lists_all_consumed_mcp_registration_sources():
     require_registration_identity(read())
 
 
-def test_registration_identity_gate_rejects_a_capture_omitting_the_registry_helper():
+@pytest.mark.parametrize("missing", ["operation_registry.py", "data/operations.json"])
+def test_registration_identity_gate_rejects_omitted_consumed_code_or_data(missing):
     incomplete = {"product_source_identity": [{"path": path} for path in MCP_REGISTRATION_PRODUCTS
-                                               if not path.endswith("/operation_registry.py")]}
+                                               if not path.endswith("/" + missing)]}
     with pytest.raises(AssertionError, match="registration dependency"):
         require_registration_identity(incomplete)
+
+
+def require_current_product_identity(item, recorded):
+    current = subprocess.check_output(["git", "hash-object", item["path"]], cwd=ROOT, text=True).strip()
+    assert current == recorded, "Host recipe evidence superseded by product change: " + item["path"]
+
+
+def test_current_identity_gate_rejects_changed_registry_data_blob(monkeypatch):
+    item = {"path": "src/ls_prepost_mcp/data/operations.json"}
+    recorded = subprocess.check_output(["git", "hash-object", item["path"]], cwd=ROOT, text=True).strip()
+
+    def drifted(arguments, **kwargs):
+        assert arguments == ["git", "hash-object", item["path"]]
+        return "0" * 40 + "\n"
+
+    monkeypatch.setattr(subprocess, "check_output", drifted)
+    with pytest.raises(AssertionError, match="superseded.*data/operations.json"):
+        require_current_product_identity(item, recorded)
 
 
 def test_host_recipe_evidence_keeps_l1_scope_and_every_original_a10_object():
@@ -66,8 +86,7 @@ def test_current_host_recipe_evidence_binds_actual_product_and_test_git_objects(
             recorded = subprocess.check_output(["git", "rev-parse", evidence["actual_git_revision"] + ":" + item["path"]], cwd=ROOT, text=True).strip()
             assert recorded == item["git_blob_id"]
             if key == "product_source_identity" and evidence["validity"] == "current_for_recorded_product_blobs":
-                current = subprocess.check_output(["git", "hash-object", item["path"]], cwd=ROOT, text=True).strip()
-                assert current == recorded, "Host recipe evidence superseded by product change: " + item["path"]
+                require_current_product_identity(item, recorded)
     preserved = evidence["old_a10_objects_preserved"]
     for name, expected in preserved["git_blob_ids"].items():
         relative = preserved["directory"] + "/" + name
