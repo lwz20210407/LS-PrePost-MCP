@@ -86,3 +86,32 @@ def test_node_set_continuous_attributes_keep_existing_float_tolerance(tmp_path):
     before = deck_file(tmp_path / "a/main.k", "*SET_NODE_LIST\n20,1000000000\n2\n")
     after = deck_file(tmp_path / "b/main.k", "*SET_NODE_LIST\n20,1000000001\n2\n")
     assert compare_decks(str(before), str(after), include_mesh=False)["identical"] is True
+
+
+@pytest.mark.parametrize("key", ["sid", "SID", "sId"])
+@pytest.mark.parametrize("keyword", ["*SET_NODE_LIST", "*SET_*"])
+@pytest.mark.parametrize("operation", ["read", "set_members", "delete"])
+@pytest.mark.parametrize("existing,wanted", [(1, True), (1, 1.0000000001), (1000000000, 1000000001)])
+def test_node_set_sid_exact_matching_depends_on_actual_block_not_input_spelling(tmp_path, key, keyword, operation, existing, wanted):
+    source = deck_file(tmp_path / "main.k", f"*SET_NODE_LIST\n{existing}\n2,3\n")
+    before = source.read_bytes()
+    match = {key: wanted}
+    if operation == "read":
+        if type(wanted) is int:
+            assert read_fields(str(source), keyword, match)["count"] == 0
+        else:
+            with pytest.raises(ValueError, match="identity"):
+                read_fields(str(source), keyword, match)
+    else:
+        edit = dict(op=operation, keyword=keyword, match=match)
+        if operation == "set_members":
+            edit["members"] = [4]
+        result = edit_deck(str(source), [edit], output_dir=str(tmp_path / "out"))
+        assert result["status"] == "failed" and not result["written"]
+    assert source.read_bytes() == before and not (tmp_path / "out").exists()
+
+
+def test_glob_node_identity_filter_keeps_other_set_family_float_matching(tmp_path):
+    source = deck_file(tmp_path / "main.k", "*SET_NODE_LIST\n1000000000\n2,3\n*SET_PART_LIST\n1000000000\n1\n")
+    result = read_fields(str(source), "*SET_*", {"SID": 1000000001})
+    assert result["count"] == 1 and result["results"][0]["keyword"] == "*SET_PART_LIST"

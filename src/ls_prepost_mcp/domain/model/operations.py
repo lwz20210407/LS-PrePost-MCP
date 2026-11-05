@@ -144,14 +144,22 @@ def read_fields(path: str, keyword: str, match: dict | None = None, fields: list
 
 def _matching(deck: KeywordDeck, keyword: str, match: dict):
     """Node-set identities are discrete for both read and edit entry points."""
-    criteria = dict(match)
-    if keyword.upper().startswith("*SET_NODE") and "sid" in criteria:
-        from .node_sets import integer
+    from .node_sets import integer, is_node_set
 
-        sid = integer(criteria.pop("sid"), "Node set SID", positive=True)
-        return [(block, row) for block, row in deck.find(keyword, **criteria)
-                if integer(deck.get(block, "sid", row=row).value, "Node set SID", positive=True) == sid]
-    return deck.find(keyword, **criteria)
+    identities = [value for key, value in match.items() if key.lower() == "sid"]
+    if not identities:
+        return deck.find(keyword, **match)
+    criteria = {key: value for key, value in match.items() if key.lower() != "sid"}
+    candidates = deck.find(keyword, **criteria)
+    # Base the policy on actual AST blocks, including glob matches. Preserve
+    # legacy non-Node matching if a pattern also selects another set family.
+    if not any(is_node_set(block.name) for block, _ in candidates):
+        return deck.find(keyword, **match)
+    wanted = [integer(value, "Node set SID", positive=True) for value in identities]
+    legacy = set(deck.find(keyword, **match)) if any(not is_node_set(block.name) for block, _ in candidates) else set()
+    return [(block, row) for block, row in candidates
+            if (all(integer(deck.get(block, "sid", row=row).value, "Node set SID", positive=True) == sid for sid in wanted)
+                if is_node_set(block.name) else (block, row) in legacy)]
 
 
 def _target(deck: KeywordDeck, edit: dict) -> tuple[object, int | None]:
