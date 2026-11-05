@@ -1,5 +1,7 @@
 """Q06 synthetic GLSTAT layouts; source values are not calculated or inferred."""
 import csv
+import hashlib
+import json
 import sys
 from pathlib import Path
 
@@ -174,6 +176,72 @@ def test_ascii_glstat_does_not_require_the_optional_lasso_package(tmp_path, monk
     result = extract(tmp_path)
     assert result["status"] == "succeeded", result["error"]
     assert result["backend"] == "ls-dyna-ascii"
+
+
+def test_glstat_binds_success_to_runtime_source_hash(tmp_path):
+    result = extract(tmp_path)
+    digest = hashlib.sha256((tmp_path / "glstat").read_bytes()).hexdigest()
+    assert result["status"] == "succeeded", result["error"]
+    assert result["data"]["source_sha256"] == digest
+    manifest = json.loads(next(tmp_path.rglob("job.json")).read_text(encoding="utf8"))
+    assert manifest["inputs"] == [{"path": str(tmp_path / "glstat"), "sha256": digest}]
+
+
+def test_glstat_source_mutation_after_parse_fails_without_verified_artifact(tmp_path, monkeypatch):
+    from ls_prepost_mcp.domain.results import ascii_glstat
+
+    source = tmp_path / "glstat"
+    source.write_text(TEXT, encoding="utf8")
+    before = hashlib.sha256(source.read_bytes()).hexdigest()
+    original = ascii_glstat.read
+
+    def changed_after_parse(path, component):
+        result = original(path, component)
+        Path(path).write_text(TEXT + "\nchanged after parse\n", encoding="utf8")
+        return result
+
+    monkeypatch.setattr(ascii_glstat, "read", changed_after_parse)
+    result = Service(Settings(tmp_path)).extract_database(str(source), "glstat", "total_energy", "J")
+    assert result["status"] == "failed" and not result["artifacts"]
+    assert "changed" in result["error"]["message"].lower()
+    manifest = json.loads(next(tmp_path.rglob("job.json")).read_text(encoding="utf8"))
+    assert manifest["status"] == "failed" and manifest["inputs"][0]["sha256"] == before
+
+
+def test_glstat_cycle_head_cannot_replace_a_head_waiting_for_time(tmp_path):
+    text = TEXT.replace("time........................... 2", "dt of cycle 2 is controlled by synthetic input\n time........................... 2")
+    result = extract(tmp_path, text)
+    assert result["status"] == "failed" and "cycle" in result["error"]["message"].lower()
+
+
+@pytest.mark.parametrize("options", [{"branch": "global"}, {"shard": "binout0000"}, {"native_check": "false"}])
+def test_glstat_preparation_failures_keep_the_requested_ascii_backend(tmp_path, options):
+    result = extract(tmp_path, **options)
+    assert result["status"] == "failed"
+    assert result["backend"] == result["data"]["backend"] == "ls-dyna-ascii"
+
+
+def test_glstat_hashing_remains_bounded_if_source_grows_after_size_validation(tmp_path, monkeypatch):
+    from ls_prepost_mcp.domain.results import ascii_glstat
+
+    original = ascii_glstat.validate_size
+    monkeypatch.setattr(ascii_glstat, "MAX_BYTES", 10_000)
+
+    def growth_after_size_check(path):
+        original(path)
+        with Path(path).open("a", encoding="utf8") as stream:
+            stream.write("x" * 10_000)
+
+    def should_not_parse(*args):
+        pytest.fail("Oversized input must fail during bounded hashing before parsing")
+
+    monkeypatch.setattr(ascii_glstat, "validate_size", growth_after_size_check)
+    monkeypatch.setattr(ascii_glstat, "read", should_not_parse)
+    source = tmp_path / "glstat"
+    source.write_text(TEXT, encoding="utf8")
+    result = Service(Settings(tmp_path)).extract_database(str(source), "glstat", "total_energy", "J")
+    assert result["status"] == "failed" and not result["artifacts"]
+    assert "hashing" in result["error"]["message"]
 
 
 @pytest.mark.parametrize("name", ["MAX_BYTES", "MAX_RECORD_CHARS", "MAX_STATES"])

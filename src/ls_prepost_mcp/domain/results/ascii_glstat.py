@@ -36,9 +36,14 @@ def _number(token):
     return value
 
 
-def _lines(path):
+def validate_size(path):
+    """Reject oversized text before any caller fingerprints the entire input."""
     if Path(path).stat().st_size > MAX_BYTES:
         raise ResultsError("ASCII GLSTAT input exceeds 256 MiB")
+
+
+def _lines(path):
+    validate_size(path)
     with open(path, encoding="utf-8-sig") as stream:
         while line := stream.readline(MAX_RECORD_CHARS + 1):
             if len(line) > MAX_RECORD_CHARS:
@@ -86,6 +91,8 @@ def read(path, component):
             if current is not None and not finished:
                 raise ResultsError("Malformed GLSTAT block: expected dotted label and number")
             if re.match(r"dt\s+of\s+cycle\b", line, re.I):
+                if waiting_for_time:
+                    raise ResultsError("Truncated GLSTAT cycle: next cycle heading replaced a missing time block")
                 waiting_for_time = True
             elif current is None and len(headings) < 2:
                 headings.append(line)

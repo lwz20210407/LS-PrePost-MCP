@@ -60,15 +60,17 @@ class ResultsTargetTools:
         ASCII GLSTAT supports kinetic_energy/internal_energy/total_energy/hourglass_energy/time_step,
         returns a global scalar without entity IDs, and maps these explicit component aliases to
         the original dotted-line labels retained in source_column_names (not binout variable claims).
+        Its source SHA256 is bound before/after reading; changed inputs fail without verified output.
         Other modes do not launch LS-PrePost; unsupported native comparisons fail explicitly."""
+        selected_backend = ("ls-dyna-ascii" if isinstance(path, str) and Path(path).name.casefold() == "glstat"
+                            else BACKEND)
         try:
             if type(native_check) is not bool:
                 raise ValueError("native_check must be true or false")
             parameters = self._database_parameters(database, component, units, branch, shard, entity_ids, time_units)
         except ValueError as error:
-            return _result("failed", {"database": database, "component": component, "backend": BACKEND},
+            return _result("failed", {"database": database, "component": component, "backend": selected_backend},
                            error=_error(error))
-        selected_backend = BACKEND
         try:
             source = self._database_source(path, parameters)
             if source.name in ASCII_DATABASES:
@@ -84,15 +86,27 @@ class ResultsTargetTools:
         directory, manifest = self.jobs.create("extract_database", {"source": str(source), **parameters,
                                                                    "native_check": native_check})
         try:
-            before = _sha256(source) if native_check else None
+            glstat = source.name == "glstat"
+            max_input_bytes = None
+            if glstat:
+                from .domain.results.ascii_glstat import MAX_BYTES, validate_size
+
+                validate_size(source)
+                max_input_bytes = MAX_BYTES
+            before = _sha256(source, max_bytes=max_input_bytes) if native_check or glstat else None
+            if before is not None:
+                manifest["inputs"] = [{"path": str(source), "sha256": before}]
             result = self._read_database(directory, source, parameters)
+            if glstat:
+                if _sha256(source, max_bytes=max_input_bytes) != before:
+                    raise ValueError("ASCII GLSTAT source changed during database extraction")
+                result["data"]["source_sha256"] = before
             if native_check:
                 from .database_native import compare_ascii_forces
 
                 comparison = compare_ascii_forces(self, source, result)
                 if _sha256(source) != before:
                     raise ValueError("ASCII source changed during native force comparison")
-                manifest["inputs"] = [{"path": str(source), "sha256": before}]
                 result["data"]["native_comparison"] = comparison
                 result["checks"] = [{"name": "native_force_agreement", "status": "passed"},
                                     {"name": "input_bytes_unchanged", "status": "passed"}]
@@ -253,10 +267,14 @@ class ResultsTargetTools:
         return [(stored[i], i, tags[i]) for i in chosen], ["time", "entity_id", *key, component]
 
 
-def _sha256(path: Path) -> str:
+def _sha256(path: Path, *, max_bytes: int | None = None) -> str:
     digest = hashlib.sha256()
+    total = 0
     with path.open("rb") as stream:
         for block in iter(lambda: stream.read(1 << 20), b""):
+            total += len(block)
+            if max_bytes is not None and total > max_bytes:
+                raise ValueError("ASCII GLSTAT source exceeds its input-size bound while hashing")
             digest.update(block)
     return digest.hexdigest()
 
