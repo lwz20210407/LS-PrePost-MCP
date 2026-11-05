@@ -9,6 +9,7 @@ import math
 import re
 from pathlib import Path
 
+from .ascii_records import RecordTooLong, bounded_lines, tokenize_scalar
 from .lasso_backend import ResultsError
 
 MAX_BYTES = 256 * 1024 * 1024
@@ -44,12 +45,12 @@ def validate_size(path):
 
 def _lines(path):
     validate_size(path)
-    with open(path, encoding="utf-8-sig") as stream:
-        while line := stream.readline(MAX_RECORD_CHARS + 1):
-            if len(line) > MAX_RECORD_CHARS:
-                raise ResultsError("ASCII GLSTAT record exceeds 16384 characters")
+    try:
+        for line in bounded_lines(path, max_record_chars=MAX_RECORD_CHARS, encoding="utf-8-sig", errors="strict"):
             if line.strip():
                 yield line.strip()
+    except RecordTooLong as error:
+        raise ResultsError("ASCII GLSTAT record exceeds 16384 characters") from error
 
 
 def read(path, component):
@@ -81,10 +82,10 @@ def read(path, component):
     for line in _lines(path):
         if finished and line in headings:
             continue
-        # Split from the right so a long dot leader cannot trigger quadratic
-        # regex backtracking. The value is exactly one whitespace-delimited token.
-        parts = line.rsplit(None, 1)
-        if len(parts) != 2 or not parts[0].endswith("."):
+        field = tokenize_scalar(line)
+        # Q06 keeps its single-token grammar; suffix-aware lexing does not grant
+        # this strict reader nullable/wall-energy semantics.
+        if field is None or field.suffix.strip():
             bare_label = " ".join(line.rstrip(".").split()).casefold()
             if bare_label in keys:
                 raise ResultsError("Truncated GLSTAT field: missing number")
@@ -98,7 +99,7 @@ def read(path, component):
                 headings.append(line)
             # Solver title/version, cycle-control headings and optional summary prose.
             continue
-        label = parts[0].rstrip(".").strip()
+        label = field.raw_label
         normalized = " ".join(label.casefold().split())
         key = keys.get(normalized)
         ending = re.fullmatch(r"time per zone cycle\s*\([^()]+\)", normalized.replace(".", ""))
@@ -111,7 +112,7 @@ def read(path, component):
             continue
         if len(label) > 256:
             raise ResultsError("ASCII GLSTAT label exceeds 256 characters")
-        value = _number(parts[1])
+        value = _number(field.value_token)
         if key == "time":
             finish()
             current, finished, labels = {"time": value}, False, {normalized}

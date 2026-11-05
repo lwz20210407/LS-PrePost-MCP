@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import re
+import string
 from pathlib import Path
 
 import numpy as np
 
 from . import lasso_backend
+from .ascii_records import RecordTooLong, bounded_lines, tokenize_scalar
 from .energy import ENERGIES, MAX_ROWS, PART_FIELDS, EnergyBalanceError
 from .lasso_backend import MissingComponentError
 from .mpp_shards import SHARD
@@ -14,7 +16,7 @@ from .mpp_shards import SHARD
 LABELS = {key.replace("_", " "): key for key in ENERGIES}
 LABELS.update({"sliding interface energy": "sliding_energy", "system damping energy": "damping_energy",
                "spring and damper energy": "spring_and_damper_energy"})
-PAIR = re.compile(r"^\s*([a-zA-Z0-9_ /()#%-]+?)\s*(?:\.{2,}|:|=)\s*(\S+)(.*)$")
+GLSTAT_LABEL_CHARACTERS = frozenset(string.ascii_letters + string.digits + "_ /()#%-")
 MATERIAL = re.compile(r"mat\.\s*#\s*=\s*([+-]?\d+)", re.I)
 PART_KEYS = {"inten": "internal_energy", "kinen": "kinetic_energy", "hgeng": "hourglass_energy",
              "eroded_ie": "eroded_internal_energy", "eroded_ke": "eroded_kinetic_energy",
@@ -42,6 +44,15 @@ def _number(value, context):
     return result
 
 
+def _glstat_lines(path):
+    # Q12's replacement decoding and lack of a 256 MiB file policy are deliberate.
+    # Leave the existing _lines path for MATSUM unchanged.
+    try:
+        yield from bounded_lines(path, max_record_chars=MAX_RECORD_CHARS, encoding="utf-8-sig", errors="replace")
+    except RecordTooLong as error:
+        raise EnergyBalanceError("ASCII energy record exceeds 16384 characters; unsupported input") from error
+
+
 def _columns(records, names):
     result = {"time": [record["time"] for record in records]}
     for key in names:
@@ -53,16 +64,17 @@ def _columns(records, names):
 def read_ascii_glstat(path):
     """Read named time blocks only. Missing block fields remain null, never zero."""
     records, current, wall_names = [], None, set()
-    for line in _lines(path):
-        match = PAIR.match(line)
-        if not match:
+    for line in _glstat_lines(path):
+        field = tokenize_scalar(line, separators=".:=", minimum_dots=2, require_dot_space=False,
+                                label_characters=GLSTAT_LABEL_CHARACTERS)
+        if field is None:
             continue
-        label = " ".join(match[1].lower().split())
+        label = " ".join(field.raw_label.lower().split())
         key = "time" if label == "time" else LABELS.get(label)
-        wall = "wall#" in (label + match[3].lower())
+        wall = "wall#" in (label + field.suffix.lower())
         if key is None and not wall:
             continue
-        value = _number(match[2], f"glstat {label}")
+        value = _number(field.value_token, f"glstat {label}")
         if key == "time":
             current = {"time": value, "_walls": {}}
             records.append(current)
@@ -70,7 +82,7 @@ def read_ascii_glstat(path):
                 raise EnergyBalanceError("glstat exceeds one million samples")
         elif current is not None:
             if wall:
-                identity = label + match[3].strip().lower()
+                identity = label + field.suffix.strip().lower()
                 if identity in current["_walls"]:
                     raise EnergyBalanceError("Duplicate glstat wall energy in one time block")
                 current["_walls"][identity] = value
