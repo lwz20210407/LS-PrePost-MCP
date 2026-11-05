@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import importlib.metadata
 import json
 import math
 import re
@@ -21,6 +22,7 @@ from .jobs import atomic_json
 PACKAGE = Path(__file__).resolve().parent
 MANIFEST_RELATIVE = "src/ls_prepost_mcp/data/model_recipes.json"
 REFERENCE = re.compile(r"model:[a-z][a-z0-9_-]{0,79}")
+VERSIONED_REFERENCE = re.compile(r"(model:[a-z][a-z0-9_-]{0,79})(?:@([a-f0-9]{64}))?")
 MAX_BYTES = 1024 * 1024
 FAMILIES = {"material": MATERIALS, "eos": EOS, "section": SECTIONS}
 ID_FIELDS = {"material": "mid", "eos": "eosid", "section": "secid"}
@@ -94,7 +96,9 @@ def load_registry(repository=None):
     identity = dict(definition=dict(locator="repo://" + MANIFEST_RELATIVE, sha256=_sha(raw),
                                     sha256_lf=_sha(raw.replace(b"\r\n", b"\n")), bytes=len(raw)),
                     provider=_source(Path(__file__), "repo://src/ls_prepost_mcp/model_recipes.py"),
-                    field_contract=_source(PACKAGE / "domain/model/materials.py", "repo://src/ls_prepost_mcp/domain/model/materials.py"))
+                    field_contract=_source(PACKAGE / "domain/model/materials.py", "repo://src/ls_prepost_mcp/domain/model/materials.py"),
+                    parameter_validation=_source(PACKAGE / "automation/recipes.py", "repo://src/ls_prepost_mcp/automation/recipes.py"),
+                    unit_validation=_source(PACKAGE / "core/validation.py", "repo://src/ls_prepost_mcp/core/validation.py"))
     return found, types, payload["provider_metadata"], identity
 
 
@@ -143,10 +147,20 @@ def parameter_schema(row, types):
     return result
 
 
+def pinned_reference(row, schema, provider, identity):
+    """Content-version one selected contract; normalize source line endings only."""
+    contract = dict(recipe=row, parameters=schema, provider_snapshot=provider,
+                    source_versions={key: value["sha256_lf"] for key, value in identity.items()})
+    version = _sha(json.dumps(contract, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf8"))
+    return row["id"] + "@" + version
+
+
 def describe(row, types, provider, identity):
-    return dict(schema_version=1, id=row["id"], reference=row["id"], name=row["name"], description=row["description"],
+    schema = parameter_schema(row, types)
+    return dict(schema_version=1, id=row["id"], reference=pinned_reference(row, schema, provider, identity),
+                reference_policy="pinned", name=row["name"], description=row["description"],
                 task_id="P03", channel="keyword", backend="keyword", tier="candidate", verification_level="L1",
-                parameters=parameter_schema(row, types), tags=row["tags"], input_kind="keyword", contexts=["host"],
+                parameters=schema, tags=row["tags"], input_kind="keyword", contexts=["host"],
                 versions_verified=[], l2_case=None, native_executed=False, requires_model=True, scope=SCOPE,
                 requirements=dict(optional_extra="pydyna", package="ansys-dyna-core", field_schema_snapshot_version=provider["version"]),
                 provider_snapshot=provider, source=identity,
@@ -167,11 +181,17 @@ def candidates(wanted, task_id, channel):
     return hits
 
 
-def _provider_check(row, types):
+def _provider_check(row, types, provider):
     """Confirm the snapshot against the existing public schema provider, not a parser."""
     from .domain.model.keyword_docs import _cards
     from .domain.model.schema import _pydyna_class
 
+    try:
+        version = importlib.metadata.version(provider["package"])
+    except importlib.metadata.PackageNotFoundError as error:
+        raise ValueError("Host model recipe requires the project's pydyna extra") from error
+    if version != provider["version"]:
+        raise ValueError("Host model recipe schema-provider version changed; refresh its registered field snapshot")
     components = ({row["family"]: row["core_recipe"]} if row["family"] != "assembly" else row["components"])
     for family, name in components.items():
         keyword = FAMILIES[family][name][0]
@@ -222,12 +242,14 @@ def _operations(row, values):
 
 
 def run(service, reference, parameters, model, file_type, session_id, launch_mode):
-    if REFERENCE.fullmatch(reference) is None:
+    match = VERSIONED_REFERENCE.fullmatch(reference)
+    if match is None:
         raise ValueError("Invalid model: recipe reference")
     if session_id is not None or file_type != "keyword" or launch_mode != "c" or model is None:
         raise ValueError("Host model recipes require an explicit keyword model, no session or native launch mode")
     rows, types, provider, identity = load_registry()
-    if reference not in rows:
+    ident, selected_version = match.groups()
+    if ident not in rows:
         raise ValueError("Unknown host model recipe")
     from .automation.recipes import validate_parameters
 
@@ -237,17 +259,23 @@ def run(service, reference, parameters, model, file_type, session_id, launch_mod
         raise ValueError("Model recipe parameters must be a finite JSON object") from error
     if len(raw.encode("utf8")) > MAX_BYTES:
         raise ValueError("Model recipe parameters exceed 1 MiB")
-    row = rows[reference]
-    values = validate_parameters(parameter_schema(row, types), copy.deepcopy(parameters))
+    row = rows[ident]
+    schema = parameter_schema(row, types)
+    current_reference = pinned_reference(row, schema, provider, identity)
+    if selected_version is not None and reference != current_reference:
+        raise ValueError("Host model recipe reference is stale: definition/provider/parameter contract version changed; discover it again")
+    values = validate_parameters(schema, copy.deepcopy(parameters))
     _finite_and_printable(values)
     values["units"] = unit_label(values["units"])
-    _provider_check(row, types)
+    _provider_check(row, types, provider)
     # Freeze the complete validated definition/values before dispatch.  This is
     # exactly one existing AST transaction, never incremental output writes.
     operations = _operations(row, values)
     result = service.edit_keywords(model, operations)
     outcome = JobResult.model_validate(result)
-    metadata = dict(id=reference, origin="bundled_model_registry_snapshot", backend="keyword", verification_level="L1",
+    metadata = dict(id=ident, reference=current_reference, requested_reference=reference,
+                    reference_policy="pinned" if selected_version is not None else "explicit_latest",
+                    origin="bundled_model_registry_snapshot", backend="keyword", verification_level="L1",
                     source=identity, provider_snapshot=provider, parameters=values, native_executed=False,
                     versions_verified=[], scope=SCOPE)
     outcome = JobResult(**{**outcome.model_dump(exclude={"comparison_data"}), "operation": "run_recipe", "backend": "keyword",
@@ -262,12 +290,14 @@ def knowledge_documents(repository):
     from .knowledge_index import Document
 
     rows, types, provider, identity = load_registry(repository)
-    version = "model-registry-v1:" + ":".join(identity[key]["sha256_lf"] for key in ("definition", "provider", "field_contract"))
+    version = "model-registry-v1:" + ":".join(identity[key]["sha256_lf"] for key in sorted(identity))
     for row in rows.values():
-        body = dict(id=row["id"], keyword=row.get("keyword"), description=row["description"], tags=row["tags"],
+        schema = parameter_schema(row, types)
+        body = dict(id=row["id"], reference=pinned_reference(row, schema, provider, identity), reference_policy="pinned",
+                    keyword=row.get("keyword"), description=row["description"], tags=row["tags"],
                     channel="keyword", backend="keyword", input_kind="keyword", requires_model=True,
                     verification_level="L1", tier="candidate", versions_verified=[], native_executed=False, scope=SCOPE,
                     requirements=dict(optional_extra="pydyna", package="ansys-dyna-core", field_schema_snapshot_version=provider["version"]),
-                    parameters=parameter_schema(row, types), field_provider_snapshot=provider)
+                    parameters=schema, field_provider_snapshot=provider)
         yield Document("model-recipe-registry", "recipe", row["name"], json.dumps(body, ensure_ascii=False, sort_keys=True),
                        "repo://" + MANIFEST_RELATIVE + "#" + row["id"], "MIT", "public", version)

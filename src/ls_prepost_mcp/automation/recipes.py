@@ -127,7 +127,7 @@ def execute_prepared(service, prepared, model, file_type, graphics, session_id, 
 class RecipeTools:
     def find_recipe(self, query: str = "", task_id: str | None = None, channel: str | None = None, limit: StrictInt = 20,
                     include_candidates: bool = False) -> list[dict]:
-        """Find recipes by keyword, task ID or language with exact verification scope. include_candidates also lists installed templates/filters and model: host keyword recipes with real parameter contracts. model: candidates use channel=keyword/backend=keyword/L1, no native-version claim."""
+        """Find recipes by keyword, task ID or language with exact verification scope. include_candidates also lists installed templates/filters and model: host keyword recipes with real parameter contracts. model: candidates provide a source-version-pinned reference, use channel=keyword/backend=keyword/L1, and make no native-version claim."""
         if type(limit) is not int or not 1 <= limit <= 50:
             raise ValueError("Recipe limit must be 1..50")
         if type(include_candidates) is not bool:
@@ -172,7 +172,7 @@ class RecipeTools:
     def run_recipe(self, recipe: str, parameters: dict | None = None, model: str | None = None,
                    file_type: Literal["keyword", "d3plot"] = "keyword", session_id: str | None = None,
                    launch_mode: Literal["c", "runc"] = "c") -> dict:
-        """Validate and run a bundled ID, authorized YAML/JSON path, installed: reference or model: host recipe. model: requires explicit units/IDs and a keyword model, rejects sessions/runc/d3plot, and submits one atomic edit_keywords transaction without native execution. Installed templates take values, required units and Boolean native_check (default false); filters require a keyword model and no parameters. Return JobResult with source identity and verification scope."""
+        """Validate and run a bundled ID, authorized YAML/JSON path, installed: reference or model: host recipe. Use a discovered model:id@hash to pin its contract; a bare model:id explicitly selects latest. model: requires explicit units/IDs and a keyword model, rejects sessions/runc/d3plot, and submits one atomic edit_keywords transaction without native execution. Installed templates take values, required units and Boolean native_check (default false); filters require a keyword model and no parameters. Return JobResult with source identity and verification scope."""
         if isinstance(recipe, str) and recipe.startswith("model:"):
             from ..model_recipes import run as run_model_recipe
 

@@ -26,6 +26,7 @@ PRODUCT_PATHS = [
     "src/ls_prepost_mcp/domain/model/keyword_docs.py", "src/ls_prepost_mcp/data/search_glossary.json",
     "src/ls_prepost_mcp/model_recipes.py", "src/ls_prepost_mcp/data/model_recipes.json",
     "src/ls_prepost_mcp/automation/recipes.py", "src/ls_prepost_mcp/domain/model/materials.py",
+    "src/ls_prepost_mcp/core/validation.py",
 ]
 
 
@@ -163,6 +164,7 @@ def refresh(index, build_report, destination):
                    "docs/KNOWN_ISSUES.md", "docs/INSTALL.md", "src/ls_prepost_mcp/data/keyword_fieldless_review.json", "uv.lock"]
     input_paths += ["src/ls_prepost_mcp/model_recipes.py", "src/ls_prepost_mcp/data/model_recipes.json",
                     "src/ls_prepost_mcp/automation/recipes.py", "src/ls_prepost_mcp/domain/model/materials.py"]
+    input_paths.append("src/ls_prepost_mcp/core/validation.py")
     input_paths += [path.relative_to(ROOT).as_posix() for folder, pattern in (
         ("examples/workflows", "*.json"), ("src/ls_prepost_mcp/native/recipes", "**/recipe.yaml"))
         for path in sorted((ROOT / folder).glob(pattern))]
