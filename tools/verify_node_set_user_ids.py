@@ -61,11 +61,12 @@ try:
         internal = dc.get_data("internal_id", type=dc.Type.NODE, id=uid)
         # Never pass a negative or out-of-fixture index into another native call.
         if type(internal) is not int or not 0 <= internal <= count or internal in seen:
+            proof["failed_mapping"] = {"user_id": uid, "internal_repr": repr(internal)}
             raise ValueError("Native internal mapping is invalid or not one-to-one")
         seen.add(internal)
         returned = dc.get_data("user_id", type=dc.Type.NODE, id=internal)
         if type(returned) is not int or returned != uid:
-            proof["invalid_roundtrip_repr"] = repr(returned)
+            proof["failed_mapping"] = {"user_id": uid, "internal_id": internal, "roundtrip_repr": repr(returned)}
             raise ValueError("Named native ID roundtrip failed; no index arithmetic is allowed")
         proof["mapping"].append({"user_id": uid, "internal_id": internal, "roundtrip_user_id": returned})
     for sid in (101, 202, 303):

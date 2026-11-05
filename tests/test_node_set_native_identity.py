@@ -114,6 +114,7 @@ def test_embedded_capture_does_not_send_a_bad_index_to_native(tmp_path, monkeypa
     exec(compile(PROGRAM, "owned-node-set-capture", "exec"), {})
     observed = json.loads((tmp_path / "node-set-identities.json").read_text())
     assert "error" in observed and calls == ["num_nodes", "node_ids", "internal_id"]
+    assert observed["failed_mapping"] == dict(user_id=11, internal_repr="-1")
     with pytest.raises(ValueError):
         validate(observed)
 
