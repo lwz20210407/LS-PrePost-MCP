@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .blocks import Block, SourceFile
-from .fields import FieldError, single_line
+from .fields import FieldError, format_value, single_line
 
 if TYPE_CHECKING:
     from .deck import KeywordDeck
@@ -20,10 +20,11 @@ def next_id(deck: KeywordDeck, kind: str) -> int:
     return max(defined, default=0) + 1
 
 
-def set_text(kind: str, sid: int, items: list, title: str | None = None) -> str:
+def set_text(kind: str, sid: int, items: list, title: str | None = None, *, long=False) -> str:
     """Keyword text of a set; segments are 4-node rows (triangles repeat the third node)."""
     keyword = SET_KINDS[kind][0] + ("_TITLE" if title else "")
-    lines = [keyword] + ([single_line(title, "Set title")] if title else []) + [f"{sid:>10}"]
+    width = 20 if long else 10
+    lines = [keyword] + ([single_line(title, "Set title")] if title else []) + [format_value(sid, width, "int")[0].rjust(width)]
     if kind == "segment":
         for segment in items:
             if len(segment) != 4:
@@ -31,7 +32,8 @@ def set_text(kind: str, sid: int, items: list, title: str | None = None) -> str:
             lines.append("".join(f"{int(n):>10}" for n in segment))
     else:
         values = [int(i) for i in items]
-        lines += ["".join(f"{v:>10}" for v in values[k:k + 8]) for k in range(0, len(values), 8)]
+        lines += ["".join(format_value(v, width, "int")[0].rjust(width) for v in values[k:k + 8])
+                  for k in range(0, len(values), 8)]
     return "\n".join(lines) + "\n"
 
 
@@ -42,13 +44,19 @@ def create_set(deck: KeywordDeck, kind: str, items: list, *, sid: int | None = N
         raise FieldError(f"Unknown set kind {kind!r}; use one of {sorted(SET_KINDS)}")
     if not len(items):
         raise FieldError("The selection is empty; no set created")
+    if kind == "node":
+        from .node_sets import allocate_sid, integer
+
+        items = [integer(value, "Node-list member", positive=True) for value in items]
+        sid = allocate_sid(deck, sid)
     existing = deck.references(include_mesh=False).defined.get(SET_KINDS[kind][1], set())
     if sid is None:
         sid = max(existing, default=0) + 1
     elif sid in existing:
         raise FieldError(f"{SET_KINDS[kind][1]} {sid} already exists")
     target = file or deck.main
-    blocks = deck.insert(set_text(kind, sid, list(items), target.to_text(title) if title else None), file=target)
+    blocks = deck.insert(set_text(kind, sid, list(items), target.to_text(title) if title else None,
+                                  long=kind == "node" and deck.format == "long"), file=target)
     block = blocks[0]
     if kind == "segment":
         found = len(deck.layout(block).rows)
@@ -59,4 +67,12 @@ def create_set(deck: KeywordDeck, kind: str, items: list, *, sid: int | None = N
     if found != expected:
         deck.delete(block, force=True)
         raise FieldError(f"New {SET_KINDS[kind][0]} failed verification")
+    if kind == "node":
+        from .node_sets import NodeSets
+
+        try:
+            NodeSets(deck).resolve(sid)
+        except (FieldError, ValueError):
+            deck.delete(block, force=True)
+            raise
     return sid, blocks

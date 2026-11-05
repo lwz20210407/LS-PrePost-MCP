@@ -207,9 +207,12 @@ tasks:
     status: partial
     existing: [create_gui_entity_set, create_gui_segment_set, create_node_set_by_box, inspect_gui_entity_sets, create_entities]
     gaps:
-      - 不生成 *_GENERATE / *_ADD 集合
-      - Selector 适配不支持按特征角的外表面和变形构型
-      - 保存重开核对未做（原生侧）
+      - 节点 LIST/GENERATE/GENERATE_INCREMENT/ADD 已有创建、共享图查询/引用/联系消费者与离散定义比较 L1；其他集合族仍为既有列表范围，更多布局未完成
+      - Selector 适配不支持按特征角的外表面和变形构型；Increment 含洞/反向、参数化成员或范围、i10 紧凑创建尚未核实，明确拒绝
+      - 单次 4.13 ids_inset 诊断已执行但三组 raw 与预期用户ID均不一致，返回含义未独立确认，不猜映射/不计L2；原生成员及保存重开后ID/成员/顺序验收仍待补
+    notes:
+      - 内部审阅修复 range 尾项/超字段静默丢弃、Node 消费者有损身份与SID近似匹配/比较；精确 d139 相关515通过/1跳过，公开Include四文件1946节点四定义12成员独立L1核对通过，整体保持partial
+    evidence: [src/ls_prepost_mcp/domain/model/node_sets.py, tests/test_node_set_composition.py, tests/test_node_set_review_boundaries.py, tests/test_selector_identity_exact.py, tools/verify_node_set_composition.py, docs/decisions/evidence/p04-node-composition/report.md]
     acceptance:
       - 节点 / 单元 / Part / Segment 集合可由 Selector（ID、Part、盒、球、平面、外表面）生成
       - 集合成员与 Selector 独立计算结果逐 ID 一致

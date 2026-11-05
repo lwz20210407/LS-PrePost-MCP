@@ -62,6 +62,12 @@ def _snapshot(deck: KeywordDeck, include_mesh: bool) -> dict:
         groups = ([(None, layout.fields)] if layout.fields else []) + list(layout.rows.items())
         for row, infos in groups:
             record = {info.name: deck._value(block, info).value for info in infos}
+            if base == "*SET_NODE_LIST_GENERATE" and row is None:
+                from .node_sets import range_rows
+
+                record["node_ranges"] = range_rows(deck, block)
+            if base == "*SET_NODE_ADD" and row is None:
+                record["node_set_operands"] = tuple(deck.members(block))
             if lists.is_list_set(block.name) and base not in lists.RANGE_SETS:
                 record["members"] = tuple(sorted(deck.members(block)))
             if lists.is_curve(block.name):
@@ -105,9 +111,10 @@ def _same(a: object, b: object, rel: float, abs_tol: float) -> bool:
     return a == b
 
 
-def _record_diff(a: dict, b: dict, rel: float, abs_tol: float) -> dict:
+def _record_diff(a: dict, b: dict, rel: float, abs_tol: float, exact=()) -> dict:
     keys = sorted(set(a) | set(b))
-    return {k: {"a": a.get(k), "b": b.get(k)} for k in keys if not _same(a.get(k), b.get(k), rel, abs_tol)}
+    return {k: {"a": a.get(k), "b": b.get(k)} for k in keys
+            if not (a.get(k) == b.get(k) if k in exact else _same(a.get(k), b.get(k), rel, abs_tol))}
 
 
 def compare_decks(path_a: str, path_b: str, include_mesh: bool = True, rel_tol: float = 1e-9,
@@ -143,7 +150,8 @@ def compare_decks(path_a: str, path_b: str, include_mesh: bool = True, rel_tol: 
             entry.update(changed_count=len(changed), changed=[
                 {"id": i, "a": ra[i], "b": rb[i]} for i in changed[:SAMPLE]])
         else:
-            diffs = {i: _record_diff(ra[i], rb[i], rel_tol, abs_tol) for i in sorted(common)}
+            exact = ("sid", "members", "node_ranges", "node_set_operands") if kind == "node_set" else ()
+            diffs = {i: _record_diff(ra[i], rb[i], rel_tol, abs_tol, exact) for i in sorted(common)}
             changed = {i: d for i, d in diffs.items() if d}
             entry.update(changed_count=len(changed), changed=[{"id": i, "fields": d}
                                                               for i, d in list(changed.items())[:SAMPLE]])
@@ -151,8 +159,9 @@ def compare_decks(path_a: str, path_b: str, include_mesh: bool = True, rel_tol: 
     keywords = {}
     for name in sorted(set(a["by_keyword"]) | set(b["by_keyword"])):
         la, lb = a["by_keyword"].get(name, []), b["by_keyword"].get(name, [])
+        exact = ("sid", "bbeg", "bend", "incr", "members", "node_ranges", "node_set_operands") if name.startswith("*SET_NODE") else ()
         diffs = [{"index": i, "fields": d} for i, (x, y) in enumerate(zip(la, lb))
-                 if (d := _record_diff(x, y, rel_tol, abs_tol))]
+                 if (d := _record_diff(x, y, rel_tol, abs_tol, exact))]
         if diffs or len(la) != len(lb):
             keywords[name] = {"count_a": len(la), "count_b": len(lb), "changed": diffs[:SAMPLE]}
     parameters = _record_diff(a["parameters"], b["parameters"], rel_tol, abs_tol)

@@ -76,7 +76,13 @@ def _side(deck: KeywordDeck, spec: object, allowed: set[str], label: str, create
         raise FieldError(f"Side {label} cannot be a {kind}; allowed: {sorted(allowed)}")
     defined = deck.references(False).defined
     if key in SIDE_TYPES:
-        ident = int(value)
+        if kind == "node_set":
+            from .node_sets import NodeSets, integer
+
+            ident = integer(value, "Node set SID", positive=True)
+            NodeSets(deck, allow_collect_lists=True).resolve(ident)
+        else:
+            ident = int(value)
         if ident not in defined.get(kind, set()):
             raise FieldError(f"Side {label}: {kind} {ident} is not defined")
         return ident, SIDE_TYPES[kind]

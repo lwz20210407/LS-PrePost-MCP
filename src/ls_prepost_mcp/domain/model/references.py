@@ -142,6 +142,7 @@ class ReferenceReport:
     unverified_kinds: set[str] = field(default_factory=set)
     unverified_sites: list[tuple[str, int, Site]] = field(default_factory=list)
     unverified_count: int = 0
+    node_set_cycles: list[list[int]] = field(default_factory=list)
 
     def dangling(self) -> list[dict]:
         """Dangling references (locations capped at ``MAX_SITES``; see ``dangling_count``)."""
@@ -161,10 +162,13 @@ class ReferenceReport:
         return {kind: sorted(self.defined.get(kind, set()) - self.referenced.get(kind, set())) for kind in kinds}
 
     def summary(self) -> dict:
-        return {"defined": {k: len(v) for k, v in self.defined.items() if v},
+        result = {"defined": {k: len(v) for k, v in self.defined.items() if v},
                 "dangling": self.dangling_count, "duplicates": len(self.duplicates()),
                 "unverified_dangling": self.unverified_count, "unverified_kinds": sorted(self.unverified_kinds),
                 "unchecked_blocks": dict(self.unchecked)}
+        if self.node_set_cycles:
+            result["node_set_cycles"] = len(self.node_set_cycles)
+        return result
 
 
 def _rule(name: str, rules: list) -> object | None:
@@ -361,6 +365,12 @@ def collect(deck: KeywordDeck, include_mesh: bool = True, track: set[tuple[str, 
                 members = []
             for ident in members:
                 _refer(report, plan.members, ident, lambda: _site(plan, 0, "members", None), track)
+    from .node_sets import NodeSets
+
+    try:
+        report.node_set_cycles = NodeSets(deck).add_cycles()
+    except (FieldError, Unsupported):
+        report.unchecked["node_set_add_graph"] += 1
     return report
 
 
