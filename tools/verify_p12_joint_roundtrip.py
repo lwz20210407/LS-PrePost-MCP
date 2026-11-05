@@ -33,7 +33,7 @@ KINDS = frozenset(("SPHERICAL", "REVOLUTE", "CYLINDRICAL", "PLANAR", "UNIVERSAL"
 ATOL, RTOL = 1e-10, 1e-12
 MAX_BYTES = 10 * 1024 * 1024
 PRODUCT_PATHS = tuple("src/ls_prepost_mcp/" + path for path in (
-    "domain/model/_identity.py", "domain/model/joints.py", "domain/model/joint_checks.py",
+    "domain/model/_identity.py", "domain/model/joints.py", "domain/model/joint_checks.py", "domain/model/loads.py",
     "domain/model/deck.py", "domain/model/matching.py", "domain/model/fields.py",
     "domain/model/layouts.py", "domain/model/keyword_docs.py", "domain/model/blocks.py",
     "domain/model/text.py", "domain/model/geometry.py", "domain/model/access.py",

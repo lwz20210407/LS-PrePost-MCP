@@ -21,7 +21,8 @@
 | Q06 | #160与#163已在各精确头五CI全绿后合入，#163进入49cd217；NODOUT九平动列6公共231147值、raw/unknown life与来源门禁已有，未原生仍L1；eroded_he有限审计不足以命名映射，保留gap |
 | I01 结果族 | #162已在6212430精确头五项CI全绿后合入d946f1e；raw路径分类及P11来源过期已修，a20两版P11/beam/标题真重跑，原门禁保留；仍partial |
 | P04 | #168精确c9/正式41983364875五SUCCESS已合main15921；四owned节点/三sets有限成员成立、ADD order false。typed writes后1289另真复验413单1，旧01a/950/d139保留，private input与global passive分开，仍partial |
-| P12 | #165已按精确63b9/正式42005798693五SUCCESS合入main0c921；1289私有snapshot输入新六case/18进程已追加active，旧be0等不改；strict R1/格式分列，typed Joint识别与运动学仍未证，partial |
+| P12 | #165已合；#171 actual3da/9b3显式41含loads的两版六case/18job真复验后切active；1289原40后验补档及旧be0等对象原值保留；strict R1/格式分列，typed Joint识别与运动学仍未证，partial |
+| P05 | #171 无损身份/原子性/Include上下文恢复已修；actual3da/9b3九类单文件在两版各3job通过，strict59、37文档写出规则与6受限观察分列，剩差0；原8e failed3与analysis-only保留。P05六+P12十八共24实际job私有配置输入/源/目录守卫及内部逐账复核通过，typed/物理/R11未证，partial；待精确五CI |
 | P02 / I07 / P11 | #166已合；#169 named setter修复源码eeff，actual1289/611d unified65已完成：P11双版46+P12双版18+P04单1，批准只读private input保持、globals仅passive，旧身份不改绑。标题eeff15/3同八源不重跑；已按精确5d/正式42022286623五SUCCESS合main9301，未升级done |
 | P03 / A10 | #170精确ab252/run42015075528五SUCCESS已合main15ac：六MAT/两EOS+JC/EOS/solid/Part一次事务已接model: keyword/L1 candidate，发现/索引内容版本pin关闭首轮漂移P1；clean02b专属60项、内部有限peer/wheel实际提取与stdio控制通过。唯一公开索引原98题真实重放，root同库逐条核对一致；相关260/2skip、七checks过，另修portable来源门禁后20项过，PR/main来源按实际记录保留；原生PartData/物理验收仍gap，保持partial，不派AO；169后台deck变更后actual1ba原60 host/stdio与新offline wheel778549B真刷新，旧02b/98结果留存，不重复已回收全索引 |
 | I08 / P03来源 | #172补客户端迁移元数据，142兼容名/21现行名、默认full163/compact3及签名路由保持；合main9301后的clean7fb原60 host/stdio、新wheel778992B及迁移相关31真通过。原21显式来源及proof不改，registry数据从同次实际完整before/after归档，22口径经root核对；旧02b/1ba/98对象留存，无新索引或native。待相关门禁及精确五CI，不改完成等级 |
