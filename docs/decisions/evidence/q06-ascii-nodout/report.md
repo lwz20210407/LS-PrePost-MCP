@@ -75,3 +75,6 @@ Ruff、import contracts、validate_tasks、gen_docs --check、迁移、corpus re
 更多物理布局、部分转动/节点集合、坐标与转动输出、其他版本及原生比较仍为 gap。Q06 保持 partial。
 本分支未改 GLSTAT/MATSUM/共享 raw scanner 的产品 blob；已有读取/合同测试回归通过，但未重跑其原生，也未将历史 L2 重新绑定本提交。
 仓库只收字段白名单、源身份与报告 SHA，原生日志、私有路径、原始公共语料正文和本机上下文留在本地。
+
+根代理新增active来源门禁：在历史实际revision核对reader/wrapper/scanner blob，并要求当前产品同blob；后续改变这些产品而未真实重放时CI会失败。此验证器自身不是新的原生证据或题面拟合测试。
+根代理在7883f7b清洁验证器提交、与cdc相同的产品blob上再次真实核对六源全部231147值，源文件/目录保持；另224项解析/包装/来源门禁通过。两轮公有及重叠测试数不相加，不是原生运行。
