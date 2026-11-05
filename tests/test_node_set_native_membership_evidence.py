@@ -1,5 +1,6 @@
 """P04 finite native claims bind the actual producer, inputs and consumer blobs."""
 import ast
+import copy
 import hashlib
 import json
 import subprocess
@@ -8,7 +9,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-EVIDENCE = ROOT / "docs/decisions/evidence/p04-native-membership/evidence.json"
+EVIDENCE = ROOT / "docs/decisions/evidence/p04-typed-writes-refresh/evidence.json"
 BINARY = "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
 REQUIRED_PRODUCTS = {
     "src/ls_prepost_mcp/service.py", "src/ls_prepost_mcp/programs.py",
@@ -25,6 +26,39 @@ def evidence():
 
 def git(*args):
     return subprocess.check_output(["git", *args], cwd=ROOT, timeout=20)
+
+
+def _configuration_scope(data):
+    if data.get("configuration_source_kind") != "immutable_private_snapshot":
+        monitor = data["cross_profile_configuration_monitor"]
+        assert monitor["native_lease_released"] and monitor["no_native_processes_remain"]
+        assert monitor["both_config_bytes_unchanged"]
+        assert monitor["other_version_native_executed"] is False
+        assert monitor["generalized_global_write_protection_proven"] is False
+        assert {item["version"] for item in monitor["profiles"]} == {"4.13", "4.10"}
+        for profile in monitor["profiles"]:
+            assert profile["source_config_sha_size_mtime_unchanged"] is True
+            assert {k: profile["before"][k] for k in ("sha256", "size", "mtime_ns")} == {
+                k: profile["after"][k] for k in ("sha256", "size", "mtime_ns")}
+        return
+    guard = data["configuration_input_guards"]
+    assert guard["source_kind"] == "immutable_private_snapshot" and guard["selected_version"] == "4.13"
+    assert guard["source_and_public_tree_unchanged"] and guard["executable_fingerprints_unchanged"]
+    assert guard["no_native_processes_after_step"]
+    assert set(guard["inputs"]) == {"4.13", "4.10"}
+    for version, item in guard["inputs"].items():
+        assert item["source_kind"] == "immutable_private_snapshot" and item["version"] == version
+        assert item["readonly_origin"] and item["full_before_after_bytes_identity_verified"]
+        assert set(item["before"]) == set(item["after"]) == {"sha256", "bytes", "mtime_ns", "device", "inode"}
+        assert item["before"] == item["after"]
+    process_input = data["native_run"]["process"]["configuration_input"]
+    assert process_input["source_kind"] == "immutable_private_snapshot" and process_input["version"] == "4.13"
+    assert process_input["input_id"] == guard["selected_input_id"] == guard["inputs"]["4.13"]["input_id"]
+    assert process_input["manifest_source_matches_selected_snapshot"] and process_input["source_modified"] is False
+    assert process_input["source_sha256"] == guard["inputs"]["4.13"]["before"]["sha256"]
+    observation = data["cross_profile_configuration_monitor"]
+    assert observation["source_kind"] == "passive_environment_observation"
+    assert observation["required_input"] is False and observation["isolation_proven"] is False
 
 
 def test_current_membership_evidence_binds_consumer_producer_and_test_sources():
@@ -85,15 +119,7 @@ def test_native_membership_is_finite_and_does_not_claim_add_definition_order():
         assert sets[sid]["membership_equal"] is True
     assert [sets[sid]["definition_order_equal"] for sid in (101, 202, 303)] == [True, True, False]
     assert native["saved_tree_path_reopen_or_native_export_claim"] is False
-    monitor = data["cross_profile_configuration_monitor"]
-    assert monitor["native_lease_released"] and monitor["no_native_processes_remain"] and monitor["both_config_bytes_unchanged"]
-    assert monitor["other_version_native_executed"] is False
-    assert monitor["generalized_global_write_protection_proven"] is False
-    assert {item["version"] for item in monitor["profiles"]} == {"4.13", "4.10"}
-    for profile in monitor["profiles"]:
-        assert profile["source_config_sha_size_mtime_unchanged"] is True
-        assert {k: profile["before"][k] for k in ("sha256", "size", "mtime_ns")} == {
-            k: profile["after"][k] for k in ("sha256", "size", "mtime_ns")}
+    _configuration_scope(data)
 
 
 def test_static_provenance_does_not_publish_vendor_code_or_hide_old_refusal():
@@ -120,3 +146,24 @@ def test_static_provenance_does_not_publish_vendor_code_or_hide_old_refusal():
     assert replay["new_native_execution"] is False and replay["counts_as_fresh_native_evidence"] is False
     assert replay["original_capture_status"] == replay["old_policy_status"] == "failed"
     assert replay["original_report_sha256"] == old["private_report_raw_sha256"]
+
+
+def test_private_input_validation_does_not_mistake_global_observation_for_its_source():
+    data = copy.deepcopy(evidence())
+    data["cross_profile_configuration_monitor"]["after"]["4.10"]["sha256"] = "0" * 64
+    _configuration_scope(data)  # global files are observed, not these immutable inputs
+    data["configuration_input_guards"]["inputs"]["4.13"]["after"]["sha256"] = "1" * 64
+    with pytest.raises(AssertionError):
+        _configuration_scope(data)
+
+
+def test_original_live_configuration_contract_remains_strict_and_original_evidence_is_retained():
+    original_path = ROOT / "docs/decisions/evidence/p04-native-membership/evidence.json"
+    original = json.loads(original_path.read_text(encoding="utf8"))
+    _configuration_scope(original)
+    archived = evidence()["historical_observations"]["source01a"]
+    payload = original_path.read_bytes().replace(b"\r\n", b"\n")
+    assert hashlib.sha256(payload).hexdigest() == archived["original_evidence_repository_lf_sha256"]
+    original["cross_profile_configuration_monitor"]["profiles"][0]["after"]["sha256"] = "2" * 64
+    with pytest.raises(AssertionError):
+        _configuration_scope(original)
