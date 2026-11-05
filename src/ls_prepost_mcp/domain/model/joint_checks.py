@@ -212,19 +212,21 @@ def _int(text: str) -> int:
     return int(value) if value else 0
 
 
-def _instances(deck: KeywordDeck, block: object) -> list[tuple[dict, dict]]:
+def _instances(deck: KeywordDeck, block: object, *, all_records: bool = False) -> list[tuple[dict, dict]]:
     """(site, {n1..n6}) per joint in ``block``; one keyword may hold several joints (repeated cards)."""
     site = {"keyword": block.name, "file": str(block.file.path), "line": block.line_number}
-    try:
-        n = {i: int(deck.get(block, f"n{i}").value or 0) for i in range(1, 7)}
-        if "_ID" in block.name:
-            site["jid"] = deck.get(block, "jid").value
-        return [(site, n)]
-    except (Unsupported, FieldError, KeyError, ValueError):
-        pass
+    if not all_records:
+        try:
+            n = {i: int(deck.get(block, f"n{i}").value or 0) for i in range(1, 7)}
+            if "_ID" in block.name:
+                site["jid"] = deck.get(block, "jid").value
+            return [(site, n)]
+        except (Unsupported, FieldError, KeyError, ValueError):
+            pass
     data = [(index, line_text(line)) for index, line in enumerate(block.lines[1:], 1)
             if line_text(line).strip() and not is_comment(line)]
-    per = 1 + ("_ID" in block.name) + block.name.endswith("MOTOR") + ("_LOCAL" in block.name) \
+    kind = joint_kind(block.name) or ""
+    per = 1 + ("_ID" in block.name) + kind.endswith("MOTOR") + ("_LOCAL" in block.name) \
         + 2 * ("_FAILURE" in block.name)
     if not data or len(data) % per:
         raise FieldError(f"{len(data)} data lines do not split into joints of {per} cards")
@@ -239,6 +241,17 @@ def _instances(deck: KeywordDeck, block: object) -> list[tuple[dict, dict]]:
             here["jid"] = _int(chunk[0][1][:10])
         found.append((here, n))
     return found
+
+
+def joint_instances(deck: KeywordDeck, block: object) -> list[tuple[dict, dict]]:
+    """Enumerate every supported instance with its existing engine data-line boundary.
+
+    Verification readers may project these located records back through named
+    KeywordDeck fields. This does not certify native recognition or joint physics.
+    """
+    if joint_kind(block.name) not in RULES:
+        raise FieldError(f"Unsupported Joint instance reader for {block.name}")
+    return _instances(deck, block, all_records=True)
 
 
 def check_joints(deck: KeywordDeck) -> dict:
@@ -425,5 +438,5 @@ def _overconstrained(pairs: dict, position: dict) -> list[dict]:
     return found
 
 
-__all__ = ["FREE", "MOTOR_LAG", "RULES", "RigidBodies", "check_joints", "joint_kind", "node_set_blocks",
+__all__ = ["FREE", "MOTOR_LAG", "RULES", "RigidBodies", "check_joints", "joint_instances", "joint_kind", "node_set_blocks",
            "rigid_bodies", "uses_lagrange"]
