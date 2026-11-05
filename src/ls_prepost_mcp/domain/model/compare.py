@@ -62,6 +62,12 @@ def _snapshot(deck: KeywordDeck, include_mesh: bool) -> dict:
         groups = ([(None, layout.fields)] if layout.fields else []) + list(layout.rows.items())
         for row, infos in groups:
             record = {info.name: deck._value(block, info).value for info in infos}
+            if base == "*SET_NODE_LIST_GENERATE" and row is None:
+                from .node_sets import range_rows
+
+                record["node_ranges"] = range_rows(deck, block)
+            if base == "*SET_NODE_ADD" and row is None:
+                record["node_set_operands"] = tuple(deck.members(block))
             if lists.is_list_set(block.name) and base not in lists.RANGE_SETS:
                 record["members"] = tuple(sorted(deck.members(block)))
             if lists.is_curve(block.name):

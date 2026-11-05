@@ -91,6 +91,14 @@ def inspect_loaded_deck(deck: KeywordDeck, include_mesh: bool = False) -> dict:
                 sections.append({**_site(block), **_safe(deck, block, None, ("secid", "title"))})
             elif base.startswith("*MAT_") and not base.startswith("*MAT_ADD_"):
                 materials.append({**_site(block), **_safe(deck, block, None, ("mid", "tmid", "title"))})
+            elif base == "*SET_NODE_ADD":
+                sets.append({**_site(block), **_safe(deck, block, None, ("sid", "title")),
+                             "members": None, "member_form": "node_set_union", "operand_count": len(deck.members(block))})
+            elif base == "*SET_NODE_LIST_GENERATE_INCREMENT":
+                from .node_sets import range_rows
+
+                sets.append({**_site(block), **_safe(deck, block, None, ("sid", "title")),
+                             "members": None, "member_form": "ranges_with_increment", "range_count": len(range_rows(deck, block))})
             elif lists.is_list_set(block.name):
                 ranged = lists.base_name(block.name)[0] in lists.RANGE_SETS
                 sets.append({**_site(block), **_safe(deck, block, None, ("sid", "title")),
@@ -154,6 +162,24 @@ def _file(deck: KeywordDeck, name: str | None) -> object:
 def _create_set(deck: KeywordDeck, edit: dict) -> Change:
     """``{"op": "create_set", "kind": ..., "ids": [...] | "select": {...} | "selector": {...}, "sid"?, ...}``."""
     kind = edit["kind"]
+    representation = edit.get("representation", "list")
+    if representation != "list":
+        from .node_sets import create_compact
+
+        if kind != "node":
+            raise FieldError("Compact GENERATE/ADD creation currently supports only node sets")
+        if any(key in edit for key in ("selector", "ids", "select")):
+            raise FieldError("Compact node-set definitions cannot also specify a materialized selection")
+        allowed = {"op", "kind", "representation", "ranges", "set_ids", "sid", "title", "file"}
+        if set(edit) - allowed:
+            raise FieldError("Unknown compact node-set request fields")
+        sid, blocks, count = create_compact(deck, representation, ranges=edit.get("ranges"), set_ids=edit.get("set_ids"),
+            sid=edit.get("sid"), title=edit.get("title"), file=_file(deck, edit.get("file")))
+        change = deck.changes[-1]
+        change.description = f"created {blocks[0].name} sid={sid} with {count} resolved nodes"
+        return change
+    if any(key in edit for key in ("ranges", "set_ids")):
+        raise FieldError("ranges/set_ids require an explicit compact node-set representation")
     if "selector" in edit:
         if kind not in ("node", "shell", "solid", "part"):
             raise FieldError(f"A Selector cannot define a {kind} set; give ids or select")
@@ -374,7 +400,8 @@ def edit_deck(path: str, edits: list[dict], *, output_dir: str | None = None, in
         raise ValueError("Choose output_dir or in_place, not both")
     deck = KeywordDeck.load(path, include_paths)
     check_mesh = check_mesh or any(edit.get("op") in MESH_OPS for edit in edits)
-    dangling_before = {(d["kind"], d["id"]) for d in deck.references(check_mesh).dangling()}
+    references_before = deck.references(check_mesh)
+    dangling_before = {(d["kind"], d["id"]) for d in references_before.dangling()}
     applied, summaries = [], []
     for number, edit in enumerate(edits):
         try:
@@ -391,6 +418,9 @@ def edit_deck(path: str, edits: list[dict], *, output_dir: str | None = None, in
         applied.extend({"edit": number, "file": str(c.path), "line": c.line, "keyword": c.keyword,
                         "description": c.description, "exact": c.exact} for c in changes)
     after = deck.references(check_mesh)
+    if after.node_set_cycles:
+        return {"status": "failed", "written": False,
+                "error": f"Node-set ADD cycles prevent a verified edit: {after.node_set_cycles[:10]}"}
     new_dangling = [d for d in after.dangling() if (d["kind"], d["id"]) not in dangling_before]
     diff, truncated = persist.diff_preview(deck, MAX_DIFF)
     result = {"status": "succeeded", "changes": applied, "summaries": summaries, "diff": diff,
@@ -423,6 +453,9 @@ def check_deck(path: str, include_paths: tuple[str, ...] = (), thresholds: dict 
     errors += [{"kind": "parameter", "name": r.definition.name, "message": r.definition.error,
                 **_site(r.block)} for r in deck.parameters if r.definition.error]
     report = deck.references(include_mesh)
+    if report.node_set_cycles:
+        errors.append({"kind": "node_set_cycle", "count": len(report.node_set_cycles),
+                       "sample": report.node_set_cycles[:20], "message": "Node-set ADD graph contains cycles"})
     if report.dangling_count:
         errors.append({"kind": "dangling_references", "count": report.dangling_count, "sample": report.dangling()[:50]})
     duplicates = report.duplicates()

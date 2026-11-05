@@ -29,6 +29,10 @@ ASSUMPTIONS = ["shell contact thickness = section T1 (element thickness cards an
 
 def _set_members(deck: KeywordDeck, prefix: str, sid: int) -> list[int]:
     """Members of set ``sid``; ``_COLLECT`` blocks with that SID are merged."""
+    if prefix == "*SET_NODE":
+        from .node_sets import NodeSets
+
+        return NodeSets(deck, allow_collect_lists=True).resolve(sid, check_nodes=False)
     found = []
     for block in deck.blocks(prefix + "*"):
         try:

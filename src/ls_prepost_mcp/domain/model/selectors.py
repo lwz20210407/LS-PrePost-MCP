@@ -69,6 +69,10 @@ def _universe(deck: KeywordDeck, entity: str) -> tuple[np.ndarray, np.ndarray | 
 
 
 def _set_members(deck: KeywordDeck, set_type: str, sids: tuple[int, ...]) -> dict[int, list]:
+    if set_type == "node":
+        from .node_sets import resolve_many
+
+        return resolve_many(deck, sids)
     prefix = SET_PREFIX[set_type]
     found: dict[int, list] = {}
     for block in deck.iter_blocks():
@@ -121,6 +125,11 @@ def _predicate(deck: KeywordDeck, entity: str, predicate: object) -> np.ndarray:
                 result = np.intersect1d(result, other)
             return result
         return np.setdiff1d(parts[0], parts[1])
+    if kind == "sets" and predicate.set_type == "node":
+        if entity != "node":
+            raise FieldError(f"A node set does not select {entity} entities")
+        return np.asarray([member for group in _set_members(deck, "node", predicate.ids).values()
+                           for member in group], dtype=np.int64)
     ids, positions, pids = _universe(deck, entity)
     if kind == "all":
         return ids
