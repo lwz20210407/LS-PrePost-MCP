@@ -18,10 +18,11 @@
 | Q07 本轮 | #154 已合入9c3c614，PR/main五项CI全绿；4.13/4.10各20原生通过，默认14组数值逐位保持。任务仍partial |
 | I05 / A10 | #155零命中诊断已五项CI全绿合入；#159四冻结题集公开复跑14/20、22/30、15/24、13/24，根逐条重查引用/分数一致；补产品漂移与通用词形门禁，缺API来源与独立留出仍partial，#159精确头五项CI全绿已合入 |
 | Q05 | #156时程及#161限定4.13/default的beam轴力native_check均五项CI全绿合入；正式两样本26条力/时间差0、身份守卫通过；版本策略归统一能力表，仍partial |
-| Q06 | #160已合入；#163 NODOUT九平动列6公共231147值完成，raw/unknown life，未原生、仍L1；根补active reader/wrapper/scanner来源门禁，待精确头CI |
+| Q06 | #160与#163已在各精确头五CI全绿后合入，#163进入49cd217；NODOUT九平动列6公共231147值、raw/unknown life与来源门禁已有，未原生仍L1；eroded_he有限审计不足以命名映射，保留gap |
 | I01 结果族 | #162已在6212430精确头五项CI全绿后合入d946f1e；raw路径分类及P11来源过期已修，a20两版P11/beam/标题真重跑，原门禁保留；仍partial |
-| P04 | #164节点LIST/GENERATE/Increment/ADD组合L1及三组身份/范围审阅修复已交付准备，d139相关515/1、公开Include1946节点回放与精确内部peer通过；单次原生raw含义未确认、三组用户ID一致性false，不计L2，仍partial；CI以PR实时精确头为准 |
-| P12 | #165为身份修复与单文件Joint定义回读准备，source80冻结；探索Pilot不替代正式L2，新增reader/producer有限peer仍待闭环，typed recognition/运动学未验；共用exact_integer，不重启AO |
+| P04 | #164精确51b077d五CI全绿已合入ce8da525；节点组合L1、515/1/公开Include1946节点与内部peer已登记；新具名映射单试domain未通过，两API编号口径尚未闭环，原raw保留不猜base，不计L2，仍partial |
+| P12 | #165仍在途：reader/producer内部peer已闭；motor R1格式仅native-only窄分类且strict差异保留，e823有限peer46过；原1b九型差异失败不改绑，新正式捕获依最新共享来源另验，typed识别/运动学未证，不重启AO |
+| P02 / I07 / P11 | #166在途为FieldInfo.kind消费者修复，不称core I02完成；产品be324有限peer123、标题3capture/15pass/8source与P11 r2两版原12项/23进程实测已收编；原r1配置guard失败保留、writer未知，待PR精确头五CI集成，状态/验收不升级 |
 | I06 | 本项维护证据体积和文档关卡；后续继续 review02 未完成的 P1/P2，不以阶段汇报作为停止点 |
 
 Q01/Q05 及其他任务今后改为 done 前，须按用户安排完成独立审阅和原生证据抽查。当前不派发 AO 任务。

@@ -87,6 +87,8 @@ def test_real_result_titles_match_paired_keyword_parts(corpus_id, keyword):
             "src/ls_prepost_mcp/domain/model/deck.py",
             "src/ls_prepost_mcp/domain/model/fields.py",
             "src/ls_prepost_mcp/domain/model/layouts.py",
+            "src/ls_prepost_mcp/domain/model/matching.py",
+            "src/ls_prepost_mcp/domain/model/_identity.py",
         ]
         identities = [
             dict(

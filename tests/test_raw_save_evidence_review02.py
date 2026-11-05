@@ -20,7 +20,8 @@ def test_active_save_evidence_binds_product_sources_and_actual_revision(pytestco
         records = [r for r in legacy["runs"] if r["run_id"] in {"r413e", "r410c"}]
     assert records, "No active product-bound P11 evidence"
     required = {"src/ls_prepost_mcp/model_save.py", "src/ls_prepost_mcp/domain/model/persist.py",
-                "src/ls_prepost_mcp/service.py", "src/ls_prepost_mcp/embedded.py"}
+                "src/ls_prepost_mcp/service.py", "src/ls_prepost_mcp/embedded.py",
+                "src/ls_prepost_mcp/domain/model/matching.py", "src/ls_prepost_mcp/domain/model/_identity.py"}
     for run in records:
         products = {p["path"]: p["git_blob_id"] for p in run.get("product_source_identity", [])}
         assert required <= products.keys(), "Native claim binds only the test file, not the reopen implementation"
