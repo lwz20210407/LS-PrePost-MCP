@@ -1124,7 +1124,7 @@ infrastructure:
     gaps:
       - 38 个空字段项已按提供者结构与 R17 手册复核分类：23 无数据卡、1 自由文本已确认；10 项手册有字段而 keyword_docs 未返回布局（Claude 提供者范围），4 项手册无独立章节待定
       - 3171 个标识均已入索引（66900 字段 + 38 关键字级文档）；新头上的 API 类只用合成私有夹具验证管线，真实私有 Scripting API/用户指南复验待用户提供本机来源；不替代 A10 留出集评测
-      - 查询与 API 索引复用驼峰/下划线/复数缩写边界，完整标识符 OR 全部拆词；旧 schema-v2 索引只读兼容并提示重建，零命中时提示仅在诊断日志中；真实 API/指南来源与 A10 新独立留出证据仍缺
+      - 查询与 API 索引复用驼峰/下划线/复数缩写边界，完整标识符 OR 全部拆词；旧 schema-v2 索引只读兼容，full/compact MCP 的独立 diagnostics 在零命中时仍返回格式与重建提示；真实 API/指南来源与 A10 新独立留出证据仍缺
     verification_level: L1
     evidence:
       - src/ls_prepost_mcp/knowledge_index.py
@@ -1136,6 +1136,8 @@ infrastructure:
       - docs/decisions/evidence/i05-catalog/report.md
       - docs/decisions/evidence/i05-catalog/fieldless-review.json
       - docs/decisions/evidence/i05-api-identifiers/report.md
+      - tests/test_knowledge_diagnostics.py
+      - docs/decisions/evidence/i05-zero-hit-diagnostics/report.md
     acceptance:
       - 命令表、Scripting API、关键字定义、用户指南章节、配方、KNOWN_ISSUES 建立索引
       - 公开部分可入仓库；私有课程资料的索引在仓库外
