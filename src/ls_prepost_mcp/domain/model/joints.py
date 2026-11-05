@@ -19,6 +19,7 @@ from __future__ import annotations
 import numpy as np
 
 from . import geometry, joint_checks, selectors, sets
+from ._identity import exact_integer
 from .deck import KeywordDeck
 from .fields import FieldError, format_value, single_line
 from .loads import ensure_curve
@@ -91,12 +92,12 @@ def _side_nodes(deck: KeywordDeck, spec: dict, label: str) -> tuple[str, int | N
         raise FieldError(f"Side {label}: give exactly one of part, nodal_rigid_body, nodes, select, selector")
     (key, value), = spec.items()
     if key == "nodal_rigid_body":
-        pid = int(value)
+        pid = exact_integer(value, f"Side {label} nodal_rigid_body")
         if _cnrb(deck, pid) is None:
             raise FieldError(f"Side {label}: no *CONSTRAINED_NODAL_RIGID_BODY with PID {pid}")
         return "cnrb", pid, []
     if key == "part":
-        pid = int(value)
+        pid = exact_integer(value, f"Side {label} part")
         if pid not in deck.references(False).defined.get("part", set()):
             raise FieldError(f"Side {label}: part {pid} is not defined")
         if pid not in _rigid_parts(deck):
@@ -104,8 +105,12 @@ def _side_nodes(deck: KeywordDeck, spec: dict, label: str) -> tuple[str, int | N
                              "deformable part that the joint should hold (nodes / select / selector)")
         return "part", pid, []
     if key == "nodes":
-        ids = [int(n) for n in value]
+        ids = [exact_integer(n, f"Side {label} node") for n in value]
     elif key == "select":
+        if not isinstance(value, dict):
+            raise FieldError(f"Side {label}: select must be a selection mapping")
+        for pid in value.get("parts") or []:
+            exact_integer(pid, f"Side {label} selected part")
         ids = geometry.select_nodes(deck, **value).tolist()
     elif key == "selector":
         chosen = selectors.selector(value)
@@ -209,6 +214,15 @@ def add_joint(deck: KeywordDeck, kind: str, a: dict, b: dict, origin: list[float
     name = KINDS.get(str(kind).lower())
     if name is None:
         raise FieldError(f"Unknown joint kind {kind!r}; use one of {sorted(KINDS)}")
+    # Normalize caller identities before inserting any nodes, sets or curves.
+    # Continuous quantities and flags (including LOCAL LST) are deliberately unchanged.
+    jid = exact_integer(jid, "Joint jid") if jid is not None else None
+    if local:
+        local = {**local, "raid": exact_integer(local["raid"], "LOCAL raid")}
+    if failure and "cid" in failure:
+        failure = {**failure, "cid": exact_integer(failure["cid"], "FAILURE cid")}
+    if isinstance(motor, dict) and isinstance(motor.get("curve"), dict) and "lcid" in motor["curve"]:
+        motor = {**motor, "curve": {**motor["curve"], "lcid": exact_integer(motor["curve"]["lcid"], "Motor curve lcid")}}
     p0 = np.asarray(origin, dtype=float).reshape(3)
     unit = None if name == "SPHERICAL" else _unit(axis if axis is not None else [], "axis")
     second = perp = None
@@ -243,7 +257,7 @@ def add_joint(deck: KeywordDeck, kind: str, a: dict, b: dict, origin: list[float
     new_a = _write_nodes(deck, first, pos_a, target)
     new_b = _write_nodes(deck, first + len(new_a), pos_b, target)
     defined = deck.references(False).defined
-    jid = int(jid) if jid is not None else max(defined.get("joint", set()) | _joint_ids(deck), default=0) + 1
+    jid = jid if jid is not None else max(defined.get("joint", set()) | _joint_ids(deck), default=0) + 1
     label = (title or f"{kind} joint")[:70]
     attach_a = _attach(deck, sides[0], new_a, target, f"{label} A")
     attach_b = _attach(deck, sides[1], new_b, target, f"{label} B")
