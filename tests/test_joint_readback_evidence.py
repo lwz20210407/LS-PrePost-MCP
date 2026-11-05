@@ -41,7 +41,7 @@ def _dependency_blob(revision, path):
 @lru_cache(maxsize=None)
 def _declared_capture_paths(revision):
     """Read only the recorded producer's two literal declarations, never execute it."""
-    source = subprocess.check_output(["git", "show", revision + ":" + PRODUCER], cwd=ROOT, text=True, timeout=10)
+    source = subprocess.check_output(["git", "show", revision + ":" + PRODUCER], cwd=ROOT, text=True, encoding="utf8", timeout=10)
     assignments = {target.id: node.value for node in ast.parse(source).body if isinstance(node, ast.Assign)
                    for target in node.targets if isinstance(target, ast.Name)}
     product = assignments["PRODUCT_PATHS"]
@@ -237,17 +237,19 @@ def test_legacy_live_context_still_rejects_changed_global_configuration_inputs()
 
 def test_changed_current_loads_dependency_rejects_an_otherwise_complete_capture(monkeypatch):
     data = json.loads(EVIDENCE.read_text(encoding="utf8"))
-    original = _dependency_blob
-    path = "src/ls_prepost_mcp/domain/model/loads.py"
-    monkeypatch.setattr(__import__(__name__, fromlist=["_dependency_blob"]), "_dependency_blob",
-                        lambda revision, item: "0" * 40 if revision == "HEAD" and item == path else original(revision, item))
+    original, current = _dependency_blob, _blob
+    module = __import__(__name__, fromlist=["_dependency_blob", "_blob"])
+    monkeypatch.setattr(module, "_dependency_blob",
+                        lambda revision, item: "0" * 40 if revision == "HEAD" and item == LOADS else original(revision, item))
+    monkeypatch.setattr(module, "_blob",
+                        lambda revision, item: "0" * 40 if revision == "HEAD" and item == LOADS else current(revision, item))
     with pytest.raises(AssertionError):
         _active(data)
 
 
 def test_legacy40_uses_its_actual_literal_producer_declaration_and_required_archive():
     data = json.loads(EVIDENCE.read_text(encoding="utf8"))
-    checkpoint = data["source_checkpoints"][data["active_source_checkpoint"]]
+    checkpoint = data["source_checkpoints"][LEGACY_CHECKPOINT]
     paths = _declared_capture_paths(LEGACY_REVISION)
     assert len(paths) == 40 and LOADS not in paths
     assert set(paths) == set(checkpoint["capture_source_identity"])
@@ -257,7 +259,7 @@ def test_legacy40_uses_its_actual_literal_producer_declaration_and_required_arch
 
 
 def test_recorded_capture_declaration_is_only_parsed_and_not_executed(monkeypatch):
-    source = subprocess.check_output(["git", "show", LEGACY_REVISION + ":" + PRODUCER], cwd=ROOT, text=True, timeout=10)
+    source = subprocess.check_output(["git", "show", LEGACY_REVISION + ":" + PRODUCER], cwd=ROOT, text=True, encoding="utf8", timeout=10)
     # Executing this Git source would raise; extracting the two literal declarations does not.
     monkeypatch.setattr(subprocess, "check_output", lambda *args, **kwargs: "raise RuntimeError('never execute')\n" + source)
     assert len(_declared_capture_paths("e" * 40)) == 40
@@ -266,7 +268,7 @@ def test_recorded_capture_declaration_is_only_parsed_and_not_executed(monkeypatc
 @pytest.mark.parametrize("path", ["src/ls_prepost_mcp/domain/model/joints.py", "tests/data/p12-roundtrip-fixtures.json"])
 def test_legacy40_transition_does_not_exempt_other_runtime_or_auxiliary_sources(monkeypatch, path):
     data = json.loads(EVIDENCE.read_text(encoding="utf8"))
-    checkpoint = data["source_checkpoints"][data["active_source_checkpoint"]]
+    checkpoint = data["source_checkpoints"][LEGACY_CHECKPOINT]
     original = _blob
     monkeypatch.setattr(__import__(__name__, fromlist=["_blob"]), "_blob",
                         lambda revision, item: "0" * 40 if revision == "HEAD" and item == path else original(revision, item))
@@ -277,7 +279,7 @@ def test_legacy40_transition_does_not_exempt_other_runtime_or_auxiliary_sources(
 @pytest.mark.parametrize("fault", ["revision", "checkpoint", "producer_blob", "source_test_blob"])
 def test_legacy40_transition_cannot_accept_another_capture_or_changed_recorded_instrumentation(fault):
     data = json.loads(EVIDENCE.read_text(encoding="utf8"))
-    checkpoint = data["source_checkpoints"][data["active_source_checkpoint"]]
+    checkpoint = data["source_checkpoints"][LEGACY_CHECKPOINT]
     if fault == "revision":
         checkpoint["actual_git_revision"] = "5d178d7c962c68b7414acad47ac4615828d72197"
     elif fault == "checkpoint":
@@ -293,7 +295,7 @@ def test_legacy40_transition_cannot_accept_another_capture_or_changed_recorded_i
 def future41_checkpoint(monkeypatch):
     """Synthetic source-policy fixture, not a native run or published capture."""
     data = json.loads(EVIDENCE.read_text(encoding="utf8"))
-    checkpoint = copy.deepcopy(data["source_checkpoints"][data["active_source_checkpoint"]])
+    checkpoint = copy.deepcopy(data["source_checkpoints"][LEGACY_CHECKPOINT])
     dependency = checkpoint.pop("post_capture_dependency_identity")[LOADS]
     checkpoint["actual_git_revision"], checkpoint["id"] = "f" * 40, "synthetic-future41"
     checkpoint["capture_source_identity"][LOADS] = {
