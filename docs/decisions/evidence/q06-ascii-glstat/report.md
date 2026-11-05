@@ -13,8 +13,8 @@ extract_database 增加ASCII GLSTAT的 kinetic_energy/internal_energy/total_ener
 
 | 检查 | 范围 | 结果 | 有效性 |
 |---|---|---|---|
-| 公共ASCII读测 | 6输入/28曲线/12123值 | 数值一致，源SHA不变 | 当前有效（登记范围） |
-| 4.13 headless原生 | 已登记Steel_Explicit/glstat的kinetic/internal各101帧 | 2通过，全记录固定容差 | 当前有效（登记范围） |
+| 公共ASCII读测 | 6输入/28曲线/12123值 | 数值一致，源SHA不变 | 历史有效（旧产品blob；新扫描见下表） |
+| 4.13 headless原生 | 已登记Steel_Explicit/glstat的kinetic/internal各101帧 | 2通过，全记录固定容差 | 历史有效（旧产品blob；新扫描见下表） |
 
 正式原生提交be51589e25b4a718e67ad57428dff7594cbd94d9工作树干净。
 时间rtol=1e-6/atol=0；值rtol=2e-5、atol=1e-6*maxabs；未裁点或调宽。
@@ -31,4 +31,19 @@ python -B -m pytest tests/test_ascii_glstat_native.py --run-native --native-stri
 原探测88a340e记录留本机为历史，正式记录不改写其revision。
 
 Q06保持partial：其余ASCII库、更多GLSTAT布局/分量/版本、完整binout原生与真实MPP/SMP配对仍待补。
-现严格GLSTAT适配与Q12 nullable能量读取合同不同，共享低层scanner及wall后缀等特例留单独后续PR，不能把缺项null硬改成严格拒绝。
+严格GLSTAT适配与Q12 nullable能量读取合同不同；以下共享扫描只复用原始读行和词法，不把缺项null改成严格拒绝。
+
+## 共享扫描后复核（#158）
+
+干净产品提交 `0fffdda6aa8770bca5b801408be3b20c225f43d6` 再次执行同一正式原生测试，2 passed，两个分量各101帧，时间及数值最大差与上一轮相同，固定容差不改。
+源文件族、目录清单、配置及二进制身份均未变，headless实际进程退出正常。上述旧be51589记录完整保留，其产品blob不代表新扫描器。
+
+| 检查 | 范围 | 结果 | 有效性 |
+|---|---|---|---|
+| 读取兼容性 | 11合成与6公共源、两上层102项完整返回/错误 | 与e232848一致；7个非GLSTAT函数AST不变 | 当前有效（结构等价范围） |
+| 词法兼容性 | 两种策略各4320项 | 无差异 | 当前有效（登记范围） |
+| 4.13 headless | 同一已登记GLSTAT，KE/IE各101帧 | 2通过，输入/程序/配置守卫通过 | 当前有效（0fffdda产品blob） |
+
+相关测试worker141通过/4跳过，根独立本地重跑116通过。此为内部复核，不是独立外部审阅，也未新增Q12原生能量验收。
+新run同时登记共享`ascii_records`、严格读取器及nullable读取器的产品blob，原始报告与空patch的SHA登记在evidence.json。
+Q06/Q12仍partial；binout、MATSUM、MPP与生产native_check均不在本结构抽取范围。
