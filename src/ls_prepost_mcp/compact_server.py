@@ -6,7 +6,14 @@ from typing import Any, Literal, get_type_hints
 from pydantic import ConfigDict, StrictInt, create_model
 
 from . import knowledge
-from .operation_registry import KNOWLEDGE_TOOLS, SERVICE_TOOLS, domain_for, resolve_operation
+from .operation_registry import (
+    KNOWLEDGE_TOOLS,
+    SERVICE_TOOLS,
+    domain_for,
+    migration_description,
+    migration_metadata,
+    resolve_operation,
+)
 from .workflow_runtime import operation_route
 
 KNOWLEDGE = KNOWLEDGE_TOOLS
@@ -31,12 +38,10 @@ class CompactTools:
         terms = query.lower().split()
         rows = []
         for name, function in self.functions.items():
-            record = resolve_operation(name)
             group = self.domains.get(name, "unassigned")
             description = inspect.getdoc(function) or ""
             if (domain is None or group == domain) and all(t in (name+" "+description).lower() for t in terms):
-                rows.append(dict(name=name, operation_id=record.operation_id, domain=group,
-                                 legacy_until=record.legacy_until, migration_target=record.target,
+                rows.append(dict(name=name, domain=group, **migration_metadata(name),
                                  summary=description.split(". ")[0][:220]))
         rows.sort(key=lambda item: (item["domain"], item["name"]))
         return dict(operations=rows[offset:offset+limit], total=len(rows), domains=domains,
@@ -71,10 +76,11 @@ class CompactTools:
                                 session_id: str | None = None) -> dict:
         """Return one operation's strict argument schema and explicit execution route. GUI context removes implicit model/session arguments; never falls back to another process."""
         function, route, model = self._resolve(operation, execution, session_id)
-        return dict(operation=operation, description=inspect.getdoc(function), execution=execution,
+        return dict(operation=operation, description=migration_description(function, operation), execution=execution,
                     route=route.kind if route else "direct", method=route.method if route else operation,
                     input_schema=model.model_json_schema(),
-                    native_availability="Not established by schema discovery; inspect capabilities/environment/session")
+                    native_availability="Not established by schema discovery; inspect capabilities/environment/session",
+                    **migration_metadata(operation))
 
     def lspp_run_operation(self, operation: str, arguments: dict, execution: Literal["direct", "gui"],
                            session_id: str | None = None, preview: bool = False) -> Any:

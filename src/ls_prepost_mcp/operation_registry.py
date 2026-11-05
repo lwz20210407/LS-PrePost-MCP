@@ -63,6 +63,7 @@ GUI_ACTIONS = frozenset(r.name for r in OPERATIONS if r.workflow and r.session_r
 WORKFLOW_ACTIONS = frozenset(r.name for r in OPERATIONS if r.workflow) | WORKFLOW_ALIASES.keys()
 MUTATIONS = frozenset(r.name for r in OPERATIONS if r.mutation)
 GUI_BATCH_ACTIONS = frozenset(r.name for r in OPERATIONS if r.gui_transform)
+MIGRATION_META_NAMESPACE = "ls-prepost-mcp"
 
 
 def resolve_operation(name):
@@ -74,6 +75,27 @@ def resolve_operation(name):
 
 def domain_for(name):
     return resolve_operation(WORKFLOW_ALIASES.get(name, name)).domain
+
+
+def migration_metadata(name):
+    """Expose registry facts; a registered migration target is not an equivalent call."""
+    record = resolve_operation(name)
+    return dict(operation_id=record.operation_id, migration_target=record.target,
+                legacy_until=record.legacy_until, compatibility_alias=record.name != record.target,
+                migration_target_registered=record.target in BY_NAME)
+
+
+def migration_description(function, name):
+    """Keep canonical docs intact and make compatibility guidance visible to clients."""
+    description = inspect.getdoc(function)
+    metadata = migration_metadata(name)
+    if not metadata["compatibility_alias"]:
+        return description
+    status = "registered operation; inspect its schema" if metadata["migration_target_registered"] else "not a registered tool"
+    hint = (f"Compatibility name retained until {metadata['legacy_until']}. "
+            f"Migration target: {metadata['migration_target']} ({status}). "
+            "Migration guidance is not an equivalent-call or native-support guarantee.")
+    return (description + "\n\n" if description else "") + hint
 
 
 def bind_alias(function, name):
