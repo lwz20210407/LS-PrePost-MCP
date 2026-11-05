@@ -41,6 +41,15 @@ def _checked(path: Path, guard: Guard) -> None:
         guard(path)
 
 
+def _source_path(source: str | Path) -> Path:
+    raw = os.fspath(source)
+    # Preserve Windows UNC/device syntax before a POSIX Path can prefix its cwd.
+    # Classification must remain lexical and precede listing, stat or resolution.
+    if is_network(raw) or PureWindowsPath(raw).is_reserved():
+        raise ValueError("Network and device result paths are not supported")
+    return Path(access.local_path_text(raw)).expanduser().absolute()
+
+
 def plan_family(source: str | Path, guard: Guard = access.require) -> FamilyPlan:
     """Admit names before stat/read, and refuse SDK/literal discovery disagreements.
 
@@ -48,7 +57,7 @@ LASSO stats every directory entry before testing its regex, so even nonmatching 
 must pass the active root/link guard. This intentionally refuses an unrelated escaping
 link in the directory rather than silently allowing the SDK to follow it for metadata.
 """
-    source = Path(access.local_path_text(os.fspath(source))).expanduser().absolute()
+    source = _source_path(source)
     _checked(source, guard)
     _checked(source.parent, guard)
     if any(character in source.name for character in r"^$*+?{}[]\|()"):
@@ -177,7 +186,7 @@ class FamilyReader:
 
 @contextmanager
 def _reading_scope(source, guard, snapshot, *, hash_contents):
-    source = Path(access.local_path_text(os.fspath(source))).expanduser().absolute()
+    source = _source_path(source)
     if snapshot is not None and snapshot.plan.source != source:
         raise ValueError("Result family snapshot belongs to a different source")
     active = _ACTIVE.get()
