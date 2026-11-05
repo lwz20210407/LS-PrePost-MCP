@@ -31,3 +31,7 @@ python -B -m pytest tests/test_save_model_native.py tests/test_save_search_paths
 # 4.13完整结束、无live native且两profile守卫通过后，再执行：
 python -B -m pytest tests/test_save_model_native.py tests/test_save_search_paths_native.py -x -q -p no:cacheprovider --run-native --native-strict --native-executable "<已登记4.10程序>" --native-output "<全新410输出>"
 ```
+
+### 2026-11-05 后续旁证（不改旧 r1 结论）
+
+用户明确报告13:24:59未手工更改LSPP配置。独立外部4.10渲染任务的owned进程回执（PID2344，13:24:50.182）、版本banner/日志末尾（13:24:59.594）与配置mtime（13:24:59.502）及最近命令标记相符；该launcher没有显式MCP偏好隔离，仅设置TEMP/TMP。证据级别为corroborated inference，无内核WriteFile归属审计，不能据此认定MCP4.13写入全局配置。旧r1仍为failed，r2是独立的新成功窗口；外项目路径、模型和原始日志不公开。
