@@ -8,6 +8,8 @@ with associated entity IDs and states. Exports data as CSV / NPZ with embedded m
 from __future__ import annotations
 
 import math
+import sys
+from contextlib import ExitStack
 from typing import Any
 
 import numpy as np
@@ -17,7 +19,8 @@ from .core.contracts import Artifact, CheckResult, JobResult
 from .domain.results import export as exp
 from .domain.results import invariants as inv
 from .domain.results import lasso_backend as lb
-from .jobs import atomic_json, fingerprint
+from .domain.results.family import reading_family
+from .jobs import atomic_json
 
 BACKEND = "lasso-invariants"
 
@@ -160,14 +163,15 @@ class FieldMetricsTools:
         if units is not None and not isinstance(units, str):
             raise ValueError("Units must be a string or None")
 
-        source = self.settings.input_path(path)
+        source = self._result_source(path)
         # Both tensor/scalar metadata readers must pass exactly the same family
         # confinement, state and deletion checks before any job or native work.
         with self._guard():
             self._result_family(str(source))
+            family_before = self._result_plan(str(source)).capture()
 
         try:
-            with self._guard():
+            with self._guard(), reading_family(source, snapshot=family_before):
                 state_count = int(lb.state_times(source).size)
                 deletion_stored = bool(lb.header(source)["deletion_data_stored"])
         except Exception:  # unreadable file: the job below reads it again and records the error
@@ -183,7 +187,7 @@ class FieldMetricsTools:
             from .tensor_field import tensor_field
 
             return tensor_field(self, str(source), norm_family, state_number, norm_mask, units, norm_fmt, parts,
-                                native_check, stored_point, native_sampling)
+                                native_check, stored_point, native_sampling, source_identity=family_before)
         state_index = -1 if state_number == -1 else state_number - 1
 
         parameters = {
@@ -199,17 +203,20 @@ class FieldMetricsTools:
         }
         directory, manifest = self.jobs.create("extract_field", parameters)
 
-        before_fp = fingerprint(source)
+        manifest["inputs"] = list(family_before.records)
         error: dict[str, Any] | None = None
         artifacts: list[Artifact] = []
         data: dict[str, Any] = {}
         checks: list[CheckResult] = []
         warnings: list[str] = []
         raw: dict[str, Any] = {}
+        reader_scope = ExitStack()
 
         try:
-            raw = lb.field(source, norm_family, norm_quantity, state=state_index, mask=norm_mask,
-                           part_ids=parts, stored_point=stored_point)
+            with self._guard():
+                reader_scope.enter_context(reading_family(source, snapshot=family_before))
+                raw = lb.field(source, norm_family, norm_quantity, state=state_index, mask=norm_mask,
+                               part_ids=parts, stored_point=stored_point)
 
             state_out = int(raw["state"]) + 1  # public 1-based state number
             state_time = float(raw["time"])
@@ -300,8 +307,9 @@ class FieldMetricsTools:
                 if mask_policy["deletion_status"] == "stored" else None,
             }
 
-            after_fp = fingerprint(source)
-            unchanged = (after_fp == before_fp)
+            with self._guard():
+                reader_scope.close()
+            unchanged = True
             checks.append(CheckResult(name="inputs_unchanged", status="passed" if unchanged else "failed"))
             checks.append(CheckResult(name="mask_policy_applied", status="passed"))
             checks.append(CheckResult(name="extrema_found", status="passed" if extrema["count"] > 0 else "not_applicable"))
@@ -313,10 +321,16 @@ class FieldMetricsTools:
                 error = {"type": "RuntimeError", "message": "Input source file changed during field extraction"}
 
         except Exception as exc:
+            with self._guard():
+                reader_scope.__exit__(*sys.exc_info())
             error = {"type": type(exc).__name__, "message": str(exc) or type(exc).__name__}
+            artifacts = []
             data = {"path": str(source), "family": norm_family, "quantity": norm_quantity, "state": state_number,
                     "mask": norm_mask, "part_ids": parts}
 
+        finally:
+            with self._guard():
+                reader_scope.__exit__(*sys.exc_info())
         status = "failed" if error else "succeeded"
         backend_name = raw.get("backend", lb.backend()) if not error else BACKEND
 

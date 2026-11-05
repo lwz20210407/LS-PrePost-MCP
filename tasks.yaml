@@ -355,6 +355,7 @@ tasks:
       - 主文件 INCLUDE_PATH / INCLUDE_PATH_RELATIVE 与相对空搜索目录已有真实树读回；INCLUDE_TRANSFORM、opaque、参数化文件名与嵌套 INCLUDE_PATH_RELATIVE 仍拒绝；根目录已有 lspost.db 的树在原生启动前拒绝，防止覆盖资产
       - save_model 读取磁盘树而非 GUI 未保存编辑；GUI、4.8 与非 ASCII 另存文件名仍未验证；没有节点的模型仍被原生读取检查拒绝
     evidence:
+      - docs/decisions/evidence/p11-family-refresh/report.md
       - src/ls_prepost_mcp/model_save.py
       - tests/test_save_model.py
       - tests/test_save_model_native.py
@@ -1017,6 +1018,9 @@ infrastructure:
       - 原生 d3plot 输入超过 1000 文件或 2 GiB 时在启动前明确拒绝；两版原地只读回退实验均崩溃，暂不提供该回退
       - INCLUDE 引用总数上限已接入原生准入：默认 20000，按读取顺序计数，含重复子树与未解析引用；L1 启动前拒绝回归通过，不代表 I01 全项完成
       - 普通 Include 与主文件中的 INCLUDE_PATH/INCLUDE_PATH_RELATIVE 已通过自有临时副本规范化读取：4.13/4.10 各八例含 UTF-8/GBK 中文文件名、中文作业目录、SCL；公开 35656 节点模型两版均保存重开一致。参数化文件名、Transform/opaque 变体、嵌套 INCLUDE_PATH_RELATIVE 仍拒绝；4.8 本次仅 SCL 一例，不覆盖其 Python 环境
+      - 共享LASSO读取只支持与字面数字续文件一致的已锁定SDK候选；危险正则basename/设备/网络/无关越界链接明确拒绝，大族全内容SHA仍有IO成本，第三方SDK未新增统一时间或内存预算
+    notes:
+      - 结果族准入/统一factory与业务末尾成员和SHA复核已覆盖canonical及legacy读取；e5清洁产品两beam26条原生零差，f31三标题oracle含family真实依赖，其他GUI/队列/版本缺口不据此关闭
     evidence:
       - src/ls_prepost_mcp/engine/batch.py
       - src/ls_prepost_mcp/engine/session.py
@@ -1046,6 +1050,10 @@ infrastructure:
       - docs/decisions/evidence/i01-keyword-snapshot/report.md
       - tests/test_keyword_preflight_access_point.py
       - docs/decisions/evidence/i01-preflight-confinement-review02/report.md
+      - src/ls_prepost_mcp/domain/results/family.py
+      - tests/test_result_family_confinement.py
+      - docs/decisions/evidence/i01-result-family/report.md
+      - docs/decisions/evidence/p11-family-refresh/report.md
     acceptance:
       - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
       - 删除 gui_session_action 中运行时替换 _native 的做法
