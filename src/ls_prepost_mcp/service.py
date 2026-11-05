@@ -418,9 +418,12 @@ class Service(EnergyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTool
         """Read file metadata through optional LASSO, without launching LS-PrePost."""
         from .domain.results.family import reading_family
 
-        source = self.settings.input_path(path)
-        with self._guard(), reading_family(source) as reader:
-            db = reader.open(state_array_filter=["timesteps"], buffered_reading=True)
+        plan = self._result_plan(path)
+        source = plan.source
+        from lasso.dyna import D3plot
+
+        with self._guard(), reading_family(source, guard=plan.guard) as reader:
+            db = reader.open(constructor=D3plot, state_array_filter=["timesteps"], buffered_reading=True)
             times = validate_d3plot_times(db.arrays.get("timesteps", []))
             return {"backend": "lasso", "source": str(source), "node_count": int(db.header.n_nodes),
                     "shell_count": int(db.header.n_shells), "solid_count": int(db.header.n_solids),
@@ -532,15 +535,17 @@ class Service(EnergyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTool
         native_states = [integer(i, "state") for i in states]
         if len(set(ids_requested)) != len(ids_requested) or len(set(native_states)) != len(native_states):
             raise ValueError("Duplicate IDs or states")
-        source = self.settings.input_path(path)
-        self._result_family(str(source))
+        plan = self._result_plan(path)
+        source = plan.source
+        from lasso.dyna import D3plot
+
         directory, manifest = self.jobs.create("extract_d3plot_nodal", {"backend": "lasso", "quantity": quantity,
                           "node_ids": ids_requested, "states": native_states, "units": unit_label(units)})
         try:
-            with self._guard(), reading_family(source) as reader:
+            with self._guard(), reading_family(source, guard=plan.guard) as reader:
                 manifest["inputs"] = list(reader.snapshot.records)
                 key = "node_" + quantity
-                db = reader.open(state_array_filter=[key, "timesteps"], buffered_reading=True)
+                db = reader.open(constructor=D3plot, state_array_filter=[key, "timesteps"], buffered_reading=True)
                 times = validate_d3plot_times(db.arrays["timesteps"])
                 vectors = lasso_vectors(db.arrays, quantity)
                 user_ids = np.asarray(db.arrays["node_ids"])
@@ -559,7 +564,8 @@ class Service(EnergyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTool
                         for uid in ids_requested:
                             vec = vectors[state - 1, lookup[uid]]
                             writer.writerow([state, float(times[state - 1]), uid, *vec, float(np.linalg.norm(vec))])
-            manifest.update(status="succeeded", artifacts=[check_artifact(output, "csv")],
+                artifact = check_artifact(output, "csv")
+            manifest.update(status="succeeded", artifacts=[artifact],
                             data={"row_count": len(native_states)*len(ids_requested), "id_kind": "user",
                                   "state_index_base": 1, "backend": "lasso", "quantity": quantity,
                                   "displacement_reference": "initial_geometry" if quantity == "displacement" else None})

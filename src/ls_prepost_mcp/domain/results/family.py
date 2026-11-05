@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import hashlib
 import os
-import re
 import stat
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
@@ -21,6 +20,17 @@ from ..model.includes import is_network
 
 Guard = Callable[[Path], None]
 _ACTIVE: ContextVar[FamilyReader | None] = ContextVar("result_family_reader", default=None)
+
+
+def _digits(text: str) -> bool:
+    return bool(text) and all("0" <= character <= "9" for character in text)
+
+
+def _sdk_continuation(basename: str, candidate: str) -> bool:
+    """Linear mirror of the admitted fixed-length subset; never run a user regex."""
+    width = len(basename)
+    return (len(candidate) > width and _digits(candidate[width:])
+            and all(left == "." or left == right for left, right in zip(basename, candidate[:width])))
 
 
 def _checked(path: Path, guard: Guard) -> None:
@@ -41,24 +51,25 @@ link in the directory rather than silently allowing the SDK to follow it for met
     source = Path(access.local_path_text(os.fspath(source))).expanduser().absolute()
     _checked(source, guard)
     _checked(source.parent, guard)
-    try:
-        sdk = re.compile(f"({source.name})[0-9]+$")
-    except re.error as error:
-        raise ValueError("Result family basename is not supported by SDK discovery") from error
-    literal = re.compile(re.escape(source.name) + r"[0-9]+$")
+    if any(character in source.name for character in r"^$*+?{}[]\|()"):
+        raise ValueError("Result family basename contains unsupported SDK regex operators")
+    if any(ord(character) < 32 or ord(character) == 127 for character in source.name):
+        raise ValueError("Result family basename contains unsupported control characters")
     entries = [source.parent / name for name in sorted(os.listdir(source.parent))]
     # Authorize all names before any is_file follows a link, including unrelated entries.
     for candidate in entries:
         _checked(candidate, guard)
+        if any(ord(character) < 32 or ord(character) == 127 for character in candidate.name):
+            raise ValueError("Result directory contains unsupported control-character names")
     if not source.is_file():
         raise ValueError("Result family main input must be a regular file")
     predicted, expected = [], []
     for candidate in entries:
         _checked(candidate, guard)
         if candidate.is_file():
-            if sdk.match(candidate.name):
+            if _sdk_continuation(source.name, candidate.name):
                 predicted.append(candidate)
-            if literal.fullmatch(candidate.name):
+            if candidate.name.startswith(source.name) and _digits(candidate.name[len(source.name):]):
                 expected.append(candidate)
     if set(predicted) != set(expected):
         raise ValueError("Result family SDK discovery differs from the literal numeric continuation family")
@@ -100,15 +111,32 @@ def _fingerprint(path: Path, guard: Guard) -> dict:
     before = path.stat()
     if not stat.S_ISREG(before.st_mode):
         raise ValueError("Result family contains a non-regular file")
-    with path.open("rb") as stream:
-        digest = hashlib.file_digest(stream, "sha256").hexdigest()
+    keys = ("st_size", "st_mtime_ns", "st_ino", "st_dev")
+    digest = hashlib.sha256()
+    # Raw reads cannot prefetch beyond the initial byte budget. A growing input
+    # must not keep a streaming hash chasing EOF indefinitely.
+    with path.open("rb", buffering=0) as stream:
+        opened = os.fstat(stream.fileno())
+        if any(getattr(before, key) != getattr(opened, key) for key in keys):
+            raise ValueError("Result family input identity changed between stat and open")
+        remaining = before.st_size
+        while remaining:
+            block = stream.read(min(1024 * 1024, remaining))
+            if not block:
+                raise ValueError("Result family input was truncated while hashing")
+            remaining -= len(block)
+            digest.update(block)
+        if stream.read(1):
+            raise ValueError("Result family input grew while hashing")
+        closed = os.fstat(stream.fileno())
+        if any(getattr(opened, key) != getattr(closed, key) for key in keys):
+            raise ValueError("Result family open input changed while hashing")
     _checked(path, guard)
     after = path.stat()
-    keys = ("st_size", "st_mtime_ns", "st_ino", "st_dev")
     if any(getattr(before, key) != getattr(after, key) for key in keys) or str(path.resolve(strict=True)) != target:
         raise ValueError("Result family input changed while hashing")
     return dict(path=str(path), resolved_path=target, size_bytes=after.st_size, mtime_ns=after.st_mtime_ns,
-                inode=after.st_ino, device=after.st_dev, sha256=digest)
+                inode=after.st_ino, device=after.st_dev, sha256=digest.hexdigest())
 
 
 @dataclass(frozen=True)
@@ -123,7 +151,7 @@ class FamilySnapshot:
         current = tuple(record(path, self.plan.guard) for path in self.plan.paths)
         self.plan.same_membership()
         if current != self.records:
-            raise ValueError("Result family input identity changed during extraction")
+            raise ValueError("Result family changed: input identity changed during extraction")
 
 
 class FamilyReader:
@@ -154,14 +182,47 @@ def _reading_scope(source, guard, snapshot, *, hash_contents):
         raise ValueError("Result family snapshot belongs to a different source")
     active = _ACTIVE.get()
     if active is not None and active.snapshot.plan.source == source:
+        if hash_contents and not active.snapshot.hashed:
+            raise ValueError("A metadata admission reader cannot be reused for a strong result operation")
         if snapshot is not None and snapshot.records != active.snapshot.records:
             raise ValueError("Result family active snapshot differs from the requested identity")
-        admitted = plan_family(source, guard)
+        def combined(candidate):
+            active.snapshot.plan.guard(candidate)
+            if guard is not access.require and guard is not active.snapshot.plan.guard:
+                guard(candidate)
+
+        admitted = plan_family(source, combined)
         if admitted.paths != active.snapshot.plan.paths:
             raise ValueError("Result family membership changed during extraction")
-        yield active
+        nested = FamilyReader(FamilySnapshot(admitted, active.snapshot.records, active.snapshot.hashed))
+        token = _ACTIVE.set(nested)
+        try:
+            yield nested
+        except BaseException as primary:
+            try:
+                admitted.same_membership()
+            except Exception as identity_error:
+                primary.add_note("Result family verification also failed: " + str(identity_error))
+            raise
+        else:
+            admitted.same_membership()
+        finally:
+            _ACTIVE.reset(token)
         return
-    snapshot = snapshot or plan_family(source, guard).capture(hash_contents=hash_contents)
+    if snapshot is not None:
+        original = snapshot
+
+        def combined(candidate):
+            original.plan.guard(candidate)
+            if guard is not access.require and guard is not original.plan.guard:
+                guard(candidate)
+
+        admitted = plan_family(source, combined)
+        if admitted.paths != original.plan.paths:
+            raise ValueError("Result family membership changed during extraction")
+        snapshot = FamilySnapshot(admitted, original.records, original.hashed)
+    else:
+        snapshot = plan_family(source, guard).capture(hash_contents=hash_contents)
     reader = FamilyReader(snapshot)
     token = _ACTIVE.set(reader)
     try:

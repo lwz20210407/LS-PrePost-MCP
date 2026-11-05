@@ -21,17 +21,18 @@ def ids(values, name, maximum=100000):
 
 def selected_database(path, states, fields):
     import numpy as np
+    from lasso.dyna import D3plot
     if not dependency_supported("lasso-python", version("lasso-python")):
         raise RuntimeError("Result layout is verified against LASSO 2.0.4")
     ids(states, "states", 10000)
     # Read only time metadata first, then only selected states/fields.
     with reading_family(path) as reader:
-        meta = reader.open(state_array_filter=["timesteps"], buffered_reading=True)
+        meta = reader.open(constructor=D3plot, state_array_filter=["timesteps"], buffered_reading=True)
         times = validate_d3plot_times(meta.arrays["timesteps"])
         if max(states) > len(times):
             raise ValueError("State outside database")
         selected = sorted(states)
-        db = reader.open(state_filter={s-1 for s in selected},
+        db = reader.open(constructor=D3plot, state_filter={s-1 for s in selected},
                          state_array_filter=[*fields, "timesteps"], buffered_reading=True)
         if not np.array_equal(db.arrays["timesteps"], times[[s-1 for s in selected]]):
             raise ValueError("Reader state selection did not match requested time mapping")

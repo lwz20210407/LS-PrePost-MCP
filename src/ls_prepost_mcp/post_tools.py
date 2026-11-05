@@ -122,7 +122,8 @@ class PostTools(CurveTargetTools):
             manifest["inputs"] = [fingerprint(p) for p in sources]
         try:
             if result_family:
-                with self._guard(), reading_family(sources[0]) as reader:
+                plan = self._result_plan(str(sources[0]))
+                with self._guard(), reading_family(sources[0], guard=plan.guard) as reader:
                     manifest["inputs"] = list(reader.snapshot.records)
                     data, artifacts = callback(directory)
             else:
@@ -136,14 +137,35 @@ class PostTools(CurveTargetTools):
         atomic_json(directory / "job.json", manifest)
         return manifest
 
-    def _result_family(self, path):
+    def _result_source(self, path):
+        from pathlib import Path
+
+        from .domain.model import access
+
+        candidate = Path(access.local_path_text(str(path))).expanduser()
+        if not candidate.is_absolute():
+            candidate = self.settings.workspace / candidate
+        guard = access.root_guard((self.settings.workspace, *self.settings.allowed_roots))
+        try:
+            guard(candidate)
+        except access.OutsideRoots as error:
+            raise ValueError(str(error).replace("outside the allowed roots", "outside the configured allowed roots")) from error
+        return self.settings.input_path(str(candidate))
+
+    def _result_plan(self, path):
+        from .domain.model import access
         from .domain.results.family import plan_family
 
-        source = self.settings.input_path(path)
+        source = self._result_source(path)
+        guard = access.root_guard((self.settings.workspace, *self.settings.allowed_roots))
         with self._guard():
-            family = plan_family(source)
+            family = plan_family(source, guard)
             for candidate in family.paths:
                 self.settings.input_path(str(candidate))
+        return family
+
+    def _result_family(self, path):
+        family = self._result_plan(path)
         return list(family.paths)
 
     def compute_stress_invariants(self, stresses: list[list[float]], units: str,
@@ -193,8 +215,9 @@ class PostTools(CurveTargetTools):
 
         from .domain.results.family import reading_family
 
-        source = self.settings.input_path(path)
-        with self._guard(), reading_family(source):
+        plan = self._result_plan(path)
+        source = plan.source
+        with self._guard(), reading_family(source, guard=plan.guard):
             db, _ = selected_database(source, [state], ArrayType.get_state_array_names())
             fields = []
             for key, value in db.arrays.items():

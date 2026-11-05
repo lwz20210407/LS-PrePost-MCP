@@ -15,7 +15,7 @@ import math
 from pathlib import Path
 
 from .core.contracts import Artifact, CheckResult, JobResult
-from .domain.results.family import plan_family, reading_family
+from .domain.results.family import reading_family
 from .jobs import atomic_json
 
 TIME_RELATIVE_TOLERANCE = 1e-6
@@ -28,11 +28,11 @@ def result_info(tools, path: str, native_check: bool) -> dict:
 
     if type(native_check) is not bool:
         raise ValueError("native_check must be true or false")
-    source = tools.settings.input_path(path)
-    _confine_family(tools, source)
+    source = tools._result_source(path)
+    plan = _confine_family(tools, source)
     directory, manifest = tools.jobs.create("result_info", {"path": str(source), "native_check": native_check})
     try:
-        with tools._guard(), reading_family(source) as reader:
+        with tools._guard(), reading_family(source, guard=plan.guard) as reader:
             manifest["inputs"] = list(reader.snapshot.records)
             overview = lb.overview(source)
             header = {**lb.header(source), "meaning": HEADER_MEANING}
@@ -110,13 +110,14 @@ def _confine_family(tools, source: Path) -> None:
 
     folder = source.parent
     with tools._guard():
-        family = plan_family(source)
+        family = tools._result_plan(str(source))
         for candidate in family.paths:
             tools.settings.input_path(str(candidate))
     if any(mpp_shards.SHARD.match(p.name) for p in folder.iterdir()):
         for shard in mpp_shards.shards(folder):
             for file in mpp_shards.lasso_reads(shard):
                 tools.settings.input_path(str(file))
+    return family
 
 
 def _elements(overview: dict, header: dict, families: dict, warnings: list[str]) -> dict:

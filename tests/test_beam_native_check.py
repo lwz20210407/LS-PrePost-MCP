@@ -16,6 +16,8 @@ from ls_prepost_mcp.native import versions
 from ls_prepost_mcp.service import Service
 from tests.test_beam_axial_history import arrays
 
+REAL_ADMISSION = lb._admission_state_times
+
 
 @pytest.fixture
 def case(tmp_path, monkeypatch):
@@ -33,7 +35,7 @@ def case(tmp_path, monkeypatch):
     monkeypatch.setattr(Settings, "native_executable", lambda self: self.executable)
     monkeypatch.setattr(versions, "require_capability", lambda *a: dict(profile))
     monkeypatch.setattr(environment, "locate_config", lambda *a: config)
-    monkeypatch.setattr(lb, "state_times", lambda *a: arrays()["timesteps"])
+    monkeypatch.setattr(lb, "_admission_state_times", lambda *a: arrays()["timesteps"])
     monkeypatch.setattr(lb, "_arrays", lambda *a, **kw: arrays())
     context = dict(service=service, source=source, executable=executable, config=config,
                    profile=profile, executions=[], mutation=None, fault=None)
@@ -134,9 +136,27 @@ def test_unsupported_beam_profiles_reject_before_family_or_lasso(case, monkeypat
 
 
 def test_state_budget_rejects_before_force_reads_hashes_or_staging(case, monkeypatch):
-    monkeypatch.setattr(lb, "state_times", lambda *a: np.arange(1001, dtype=float))
+    monkeypatch.setattr(lb, "_admission_state_times", lambda *a: np.arange(1001, dtype=float))
     monkeypatch.setattr(lb, "_arrays", lambda *a, **kw: pytest.fail("Unneeded force read"))
     monkeypatch.setattr(history_tools, "_sha", lambda *a: pytest.fail("Unneeded family hash"))
+    with pytest.raises(ValueError, match="1000 states"):
+        extract(case)
+    assert not case["executions"] and not case["service"].jobs.list()
+
+
+def test_real_admission_path_rejects_1001_states_before_any_sha_force_job(case, monkeypatch):
+    from types import SimpleNamespace
+
+    from ls_prepost_mcp.domain.results import family
+
+    def metadata(*args, **kwargs):
+        assert kwargs == {"state_array_filter": ["timesteps"]}
+        return SimpleNamespace(arrays={"timesteps": np.arange(1001, dtype=float)})
+
+    monkeypatch.setattr(lb, "_admission_state_times", REAL_ADMISSION)
+    monkeypatch.setattr(lb, "_lasso", lambda: (SimpleNamespace(global_timesteps="timesteps"), None, metadata))
+    monkeypatch.setattr(family, "_fingerprint", lambda *a: pytest.fail("Hash before state budget admission"))
+    monkeypatch.setattr(lb, "_arrays", lambda *a, **kw: pytest.fail("Force/history reader before admission"))
     with pytest.raises(ValueError, match="1000 states"):
         extract(case)
     assert not case["executions"] and not case["service"].jobs.list()
@@ -146,7 +166,7 @@ def test_staging_budget_rejects_before_time_read_or_hash(case, monkeypatch):
     from ls_prepost_mcp import native_results
 
     monkeypatch.setattr(native_results, "exceeds_staging_limit", lambda *a: True)
-    monkeypatch.setattr(lb, "state_times", lambda *a: pytest.fail("Unneeded times read"))
+    monkeypatch.setattr(lb, "_admission_state_times", lambda *a: pytest.fail("Unneeded times read"))
     monkeypatch.setattr(history_tools, "_sha", lambda *a: pytest.fail("Unneeded family hash"))
     with pytest.raises(ValueError, match="1000 files / 2 GiB"):
         extract(case)
@@ -159,7 +179,7 @@ def test_regex_basename_is_refused_before_lasso_discovery_or_jobs(case, monkeypa
     case["source"].rename(source)
     case["source"] = source
     (source.parent / "modelXd3plot02").write_bytes(b"literal budget does not admit this file")
-    monkeypatch.setattr(lb, "state_times", lambda *a: pytest.fail("LASSO discovery must not run"))
+    monkeypatch.setattr(lb, "_admission_state_times", lambda *a: pytest.fail("LASSO discovery must not run"))
     monkeypatch.setattr(lb, "_arrays", lambda *a, **kw: pytest.fail("LASSO must not open any extra file"))
     with pytest.raises(ValueError, match="basename.*regex"):
         extract(case)
@@ -231,7 +251,7 @@ def test_full_sha_guard_does_not_accept_metadata_only_large_file_fingerprints(ca
 
 
 def test_history_time_registry_must_match_the_admission_snapshot(case, monkeypatch):
-    monkeypatch.setattr(lb, "state_times", lambda *a: np.array([0., .5, 2.]))
+    monkeypatch.setattr(lb, "_admission_state_times", lambda *a: np.array([0., .5, 2.]))
     result = extract(case)
     assert result["status"] == "failed" and "state times changed" in result["error"]["message"]
     assert not case["executions"]
