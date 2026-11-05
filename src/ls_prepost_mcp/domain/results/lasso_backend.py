@@ -373,7 +373,8 @@ def _history_from_arrays(arrays: dict, kind: str, quantity: str, ids: list[int] 
                         "validity": "Raw values retained; per-sample alive flags are authoritative; "
                                     "deleted_from_state is the first observed deleted state, 1-based"}
         if beam_force:
-            record.update(source_array=BEAM_AXIAL_FORCE, coordinate_frame="as stored", quantity_dimension="force")
+            record.update(source_array=BEAM_AXIAL_FORCE, coordinate_frame="as stored", quantity_dimension="force",
+                          stored_entity_count=int(stored_ids.size))
         records.append(record)
     return records
 

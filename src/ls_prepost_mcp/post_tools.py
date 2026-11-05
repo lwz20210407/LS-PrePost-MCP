@@ -170,7 +170,9 @@ class PostTools(CurveTargetTools):
         Explicit units/time_units label stored values; no unit conversion, filling or extra resampling.
         d3plot beam axial_force is a stored scalar, as stored; stored_point is not applicable.
         Its known units must have force/time dimensions; custom labels remain caller-declared/unverified.
-        Beam axial_force native_check is unsupported and rejects before loading its result family.
+        Beam axial_force native_check requires a verified 4.13 resource and explicit native_sampling='default';
+        its binding-default ipt semantics remain unconfirmed (as stored), with at most 1000 states/1000 files/2GiB.
+        Other beam versions/quantities and regex-metacharacter basenames fail before heavy reader IO.
         d3plot time order stays unchanged; the shared binout merger's time policy is reported.
         d3plot uses the shared LASSO history reader; binout explicitly supports Part (MATSUM) and
         global (GLSTAT), through the shared MPP merger. Global curves have entity_id=null.
