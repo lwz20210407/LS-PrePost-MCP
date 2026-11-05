@@ -14,6 +14,7 @@ from .blocks import Block, SourceFile, make_blocks
 from .fields import FieldError, FieldSlot, format_value, is_free_format, parse_number, read_text, write_text
 from .includes import identity
 from .layouts import RowMap
+from .matching import scalar_equal
 from .parameters import field_expression, reference, resolve_field
 from .schema import FieldInfo, Layout, Unsupported, block_format
 from .schema import layout as block_layout
@@ -200,7 +201,8 @@ class KeywordDeck:
             groups = ([(None, lay.fields)] if lay.fields else []) + (list(lay.rows.items()) if lay.key else [])
             for row, infos in groups:
                 by_name = {info.name: info for info in infos}
-                if all(k.lower() in by_name and _equal(self._value(block, by_name[k.lower()]).value, v)
+                if all(k.lower() in by_name and scalar_equal(self._value(block, by_name[k.lower()]).value, v,
+                                                             by_name[k.lower()].kind, mode="find", abs_tol=1e-30)
                        for k, v in criteria.items()):
                     found.append((block, row))
         return found
@@ -433,11 +435,3 @@ def _matches(name: str, pattern: str) -> bool:
     if name == pattern:
         return True
     return name.startswith(pattern + "_") and name[len(pattern) + 1:] in _OPTION_SUFFIXES
-
-
-def _equal(actual: object, expected: object) -> bool:
-    if isinstance(expected, str) or isinstance(actual, str):
-        return str(actual).strip().lower() == str(expected).strip().lower()
-    if actual is None or expected is None:
-        return actual is expected
-    return math.isclose(float(actual), float(expected), rel_tol=1e-9, abs_tol=1e-30)
