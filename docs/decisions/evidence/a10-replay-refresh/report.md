@@ -32,7 +32,7 @@ A10 保持 **partial / L1**。本轮没有修改排名、领域词表、检索�
 只构建一份仓库外索引：68,286 个公开文档；命令 1,250、关键字 66,938（字段 66,900 + 无字段关键字 38）、已知问题 79、配方 15、指南 4、API **0**。提供者目录完成 3,171/3,171，原始字段记录 66,902，按已有去重规则存储 66,900。
 API 原始来源仍缺失，不能用命令/配方证据冒充 API 文档；0/4（开发集 0/5）留在总分母中。一般性领域词表不覆盖的概念及指南公开来源不足也未解决。
 
-最终重放来自 JSON 中 `actual_git_revision` 登记的干净提交。`working_tree_dirty=false`，空 diff 的 SHA256 为 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`；diff 范围是全部 tracked staged/unstaged 相对 HEAD，untracked 不在 diff 中。报告文件在执行结束后写入，未冒充执行时已经存在。
+最终重放来自干净提交 `a03e4a1755487149739c54599f9fa9c1081452bf`，与 JSON 的 `actual_git_revision` 相同。`working_tree_dirty=false`，空 diff 的 SHA256 为 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`；diff 范围是全部 tracked staged/unstaged 相对 HEAD，untracked 不在 diff 中。报告文件在执行结束后写入，未冒充执行时已经存在。
 
 索引 SHA256 为 `17e57f79a18d0a7d2da4261f0817cf69db604ac1dde51c0ebb4b3d3da6f2e7fb`，大小 110,776,320 bytes。证据同时记录：产品/执行工具/测试的 Git blob 与 LF SHA256；构建输入的 revision、Git blob/LF SHA256；提供者版本和 package metadata SHA256；所有文档的稳定位置+文本哈希清单摘要，以及包含来源版本/许可的清单摘要。实际查询源位于构建 revision，工具源位于执行 revision，二者均明确登记。未保存正文、私有路径或索引文件到仓库。
 
@@ -74,3 +74,5 @@ python -B -m pytest tests/test_a10_current_replay_evidence.py tests/test_knowled
 该测试和内部核对只验证重放记录与当前程序一致，不证明题集独立、答案忠实、原生执行或工程结果正确。缺真实来源、中文语义覆盖和新独立留出集的问题继续保留；旧报告及其首次结果仍在 [历史记录](../a10-cross-language/report.md) 中，不删失败或重写旧成绩。
 
 当前有效的产品绑定除校验历史 blob，还检查当前工作树 LF SHA256 与 HEAD blob；未来改动检索产品代码而未重放时，校验会失败。独立小 fixture 在保存的历史身份仍自洽时修改产品文本，断言该漂移被拒绝，不伪造重绑。
+
+本地相关检查：`test_knowledge*.py`、`test_a10_current_replay_evidence.py`、`test_query_identifiers_review02.py`、`test_query_evidence_review02.py`、`test_api_identifier_indexing.py`、`test_keyword_field_lookup.py` 共 **133 passed**；Ruff、lint-imports、validate_tasks、gen_docs --check、validate_tool_migration、fetch_corpus --check-registry、check_doc_links 全部通过。没有运行本地全量或原生测试；完整平台矩阵交给 PR CI。
