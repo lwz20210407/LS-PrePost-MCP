@@ -23,11 +23,11 @@ PART_PAIR = re.compile(r"\b(" + "|".join(PART_KEYS) + r")\s*=\s*(\S+)", re.I)
 MAX_RECORD_CHARS = 16_384
 
 
-def _lines(path):
+def _lines(path, *, errors="replace", max_record_chars=MAX_RECORD_CHARS):
     # Bound mistaken binary input / enormous records without buffering a whole line.
-    with open(path, encoding="utf-8-sig", errors="replace") as stream:
-        while line := stream.readline(MAX_RECORD_CHARS + 1):
-            if len(line) > MAX_RECORD_CHARS:
+    with open(path, encoding="utf-8-sig", errors=errors) as stream:
+        while line := stream.readline(max_record_chars + 1):
+            if len(line) > max_record_chars:
                 raise EnergyBalanceError("ASCII energy record exceeds 16384 characters; unsupported input")
             yield line
 
@@ -89,26 +89,84 @@ def read_ascii_glstat(path):
 
 def read_ascii_matsum(path):
     """Read each material record including its HG continuation lines, skipping legends."""
+    return _matsum_records(_lines(path))
+
+
+def read_ascii_matsum_details(path, *, max_record_chars=MAX_RECORD_CHARS):
+    """Expose raw block/field identity for Q06; keep Q12's nullable wrapper unchanged.
+
+    The material-record parsing and numeric conversion are shared. Observations
+    about empty blocks, legends and lexical identity do not impose a Q12 policy.
+    """
+    details = {"blocks": [], "source_column_names": {"time": [], "id": []}, "issues": []}
+    details["parts"] = _matsum_records(_lines(path, errors="strict", max_record_chars=max_record_chars), details)
+    return details
+
+
+def _matsum_records(lines, details=None):
     records, current, time, legend, count = {}, None, None, False, 0
-    for line in _lines(path):
+    block = None
+
+    def issue(message):
+        if details is not None and len(details["issues"]) < 16:
+            details["issues"].append(message)
+
+    def label(key, value):
+        if details is not None:
+            names = details["source_column_names"].setdefault(key, [])
+            if value not in names:
+                if len(names) >= 64:
+                    issue("Too many MATSUM source label variants")
+                else:
+                    names.append(value)
+
+    def numeric_token(key, token, value):
+        if details is not None:
+            if not re.fullmatch(r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eEdD][+-]?\d+)?", token):
+                issue(f"Invalid MATSUM numeric token for {key}")
+            elif value == 0 and re.search("[1-9]", re.split("[eEdD]", token)[0]):
+                issue(f"MATSUM numeric token underflows float64 for {key}")
+
+    for line in lines:
         if "{BEGIN LEGEND}" in line:
+            if legend:
+                issue("Nested MATSUM legend")
             legend = True
         if "{END LEGEND}" in line:
+            if not legend:
+                issue("Unmatched MATSUM legend ending")
             legend = False
             continue
         if legend:
             continue
-        tm = re.match(r"\s*time\s*=\s*(\S+)", line, re.I)
+        tm = re.match(r"\s*(time)\s*=\s*(\S+)", line, re.I)
         if tm:
-            time, current = _number(tm[1], "matsum time"), None
+            time, current = _number(tm[2], "matsum time"), None
+            numeric_token("time", tm[2], time)
+            label("time", tm[1])
+            if details is not None:
+                if len(details["blocks"]) >= MAX_ROWS:
+                    raise EnergyBalanceError("MATSUM exceeds one million time blocks")
+                block = {"time": time, "ids": [], "rows": []}
+                details["blocks"].append(block)
             continue
+        if re.match(r"\s*time\s*=", line, re.I):
+            issue("Malformed MATSUM time record")
         mat = MATERIAL.search(line)
+        raw_id = re.search(r"(mat\.\s*#)\s*=\s*(\S*)", line, re.I)
+        if raw_id:
+            label("id", raw_id[1])
+            if not re.fullmatch(r"[+-]?\d+", raw_id[2]):
+                issue("Malformed MATSUM part identifier")
         if mat:
             if time is None or int(mat[1]) <= 0:
                 raise EnergyBalanceError("MATSUM record needs a time and positive stored part ID")
             pid = int(mat[1])
             current = {"time": time}
             records.setdefault(pid, []).append(current)
+            if details is not None and block is not None:
+                block["ids"].append(pid)
+                block["rows"].append(current)
             count += 1
             if count > MAX_ROWS:
                 raise EnergyBalanceError("MATSUM exceeds one million part rows")
@@ -118,7 +176,13 @@ def read_ascii_matsum(path):
                 if key in current:
                     raise EnergyBalanceError(f"Duplicate MATSUM {key} in one part record")
                 current[key] = _number(pair[2], f"matsum {key}")
+                label(key, pair[1])
+                numeric_token(key, pair[2], current[key])
+    if legend:
+        issue("Truncated MATSUM legend")
     if not records:
+        if details is not None and details["issues"]:
+            return {}
         raise EnergyBalanceError("No LS-DYNA matsum time/material records recognized")
     return {pid: _columns(rows, PART_FIELDS) for pid, rows in records.items()}
 
