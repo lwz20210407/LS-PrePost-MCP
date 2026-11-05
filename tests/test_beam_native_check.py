@@ -153,6 +153,37 @@ def test_staging_budget_rejects_before_time_read_or_hash(case, monkeypatch):
     assert not case["executions"] and not case["service"].jobs.list()
 
 
+@pytest.mark.parametrize("basename", ["model.d3plot", "model+", "beam(1)", "beam[1]", "beam{1}", "beam^", "beam$"])
+def test_regex_basename_is_refused_before_lasso_discovery_or_jobs(case, monkeypatch, basename):
+    source = case["source"].with_name(basename)
+    case["source"].rename(source)
+    case["source"] = source
+    (source.parent / "modelXd3plot02").write_bytes(b"literal budget does not admit this file")
+    monkeypatch.setattr(lb, "state_times", lambda *a: pytest.fail("LASSO discovery must not run"))
+    monkeypatch.setattr(lb, "_arrays", lambda *a, **kw: pytest.fail("LASSO must not open any extra file"))
+    with pytest.raises(ValueError, match="basename.*regex"):
+        extract(case)
+    assert not case["executions"] and not case["service"].jobs.list()
+
+
+@pytest.mark.parametrize("basename", ["beam-history", "beam history", "beam#history", "beam_模型"])
+def test_literal_nonregex_basename_is_not_unnecessarily_refused(case, basename):
+    source = case["source"].with_name(basename)
+    case["source"].rename(source)
+    case["source"] = source
+    result = extract(case)
+    assert result["status"] == "succeeded", result.get("error")
+
+
+def test_locked_lasso_discovery_really_expands_a_regex_basename(tmp_path):
+    dyna = pytest.importorskip("lasso.dyna")
+    source = tmp_path / "model.d3plot"
+    for name in (source.name, "model.d3plot01", "modelXd3plot02"):
+        (tmp_path / name).write_bytes(b"discovery-only fixture, never parsed as a d3plot")
+    discovered = {Path(path).name for path in dyna.D3plot._find_dyna_result_files(str(source))}
+    assert discovered == {"model.d3plot01", "modelXd3plot02"}
+
+
 @pytest.mark.parametrize("fault", ["duplicate", "missing", "wrong_id", "wrong_state", "nonfinite",
     "value", "time", "marker", "count", "abi", "sampling", "no_marker", "engine"])
 def test_unverified_native_outputs_never_publish_verified_curves(case, fault):

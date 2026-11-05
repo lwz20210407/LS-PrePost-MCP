@@ -224,11 +224,16 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
     if beam_native:
         # Validate the requested resource without enumerating or hashing its family.
         with service._guard():
-            service.settings.input_path(path)
+            admitted_source = service.settings.input_path(path)
         if not beam_force:
             raise ValueError("Native beam history comparison is unsupported for this quantity; only axial_force is admitted")
         if native_sampling != "default":
             raise ValueError("Native beam history comparison is unsupported without explicit native_sampling='default'")
+        # LASSO 2.0.4 interpolates this basename into an unescaped regex.
+        # With no regex syntax its discovered numeric continuations are literal;
+        # otherwise they could bypass our allowed-family budget and SHA list.
+        if any(char in admitted_source.name for char in r".^$*+?{}[]\|()"):
+            raise ValueError("Native beam history basename contains regex metacharacters; this reader layout is unsupported")
         from .native_beam_history import require_profile
 
         require_profile(service.settings)
