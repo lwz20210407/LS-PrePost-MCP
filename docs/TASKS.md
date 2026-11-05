@@ -814,7 +814,7 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 状态：done；验证：L1
 
-证据：[src/ls_prepost_mcp/domain/model/deck.py](../src/ls_prepost_mcp/domain/model/deck.py), [tests/test_keyword_engine.py](../tests/test_keyword_engine.py), [tests/test_keyword_engine_formats.py](../tests/test_keyword_engine_formats.py), [tests/test_keyword_engine_parameters.py](../tests/test_keyword_engine_parameters.py), [tests/test_keyword_engine_long.py](../tests/test_keyword_engine_long.py)
+证据：[docs/decisions/evidence/p02-typed-matching/report.md](../docs/decisions/evidence/p02-typed-matching/report.md), [src/ls_prepost_mcp/domain/model/matching.py](../src/ls_prepost_mcp/domain/model/matching.py), [tests/test_model_typed_compare.py](../tests/test_model_typed_compare.py), [src/ls_prepost_mcp/domain/model/deck.py](../src/ls_prepost_mcp/domain/model/deck.py), [tests/test_keyword_engine.py](../tests/test_keyword_engine.py), [tests/test_keyword_engine_formats.py](../tests/test_keyword_engine_formats.py), [tests/test_keyword_engine_parameters.py](../tests/test_keyword_engine_parameters.py), [tests/test_keyword_engine_long.py](../tests/test_keyword_engine_long.py)
 
 - 按块解析、Include / INCLUDE_PATH / PARAMETER 树、定点写回、字节级往返测试
 - 字段宽度取自关键字定义，不硬编码

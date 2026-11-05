@@ -723,3 +723,12 @@ binout 全库、力矩/质心及 MPP/SMP 原生一致性仍未完成；ac ID 只
 真实工程数据、更多 SAE 波形和其他版本仍待验；不能由子集对照外推全部场景或原生内部精度。
 SAE 的历史差异见 [原报告](decisions/evidence/q07-sae-fix/report.md)，
 本轮 BW 与 SAE 回归范围见 [整段对照报告](decisions/evidence/q07-butterworth-native/report.md)。
+
+## I01：全局偏好文件写入隔离尚未证实
+
+- 跟踪：I01
+
+typed匹配后的P11首轮r1观察到4.10全局窗口/打印偏好文件真实hash变化；时间窗落在4.13套件期间，但没有写入者证据，不能归因于某版程序或I02代码。
+原batch按总身份guard失败保留。新r2对两个profile的配置前后完整字节、size/mtime等实测保持，但仅证明该次窗口，不等于已修复全局写保护。
+现有source_modified=false只描述既有metadata检查范围，尚未证明整个APPDATA的写隔离；后续仍须串行授权和显式全局偏好监控。
+配置正文、具体值及本机路径不公开；新测量与旧失败的分界见[P11 typed来源刷新](decisions/evidence/p11-typed-matching-refresh/report.md)。
