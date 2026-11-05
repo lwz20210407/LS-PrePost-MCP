@@ -4,12 +4,15 @@ from __future__ import annotations
 import logging
 import math
 import os
+import re
 from collections import Counter
 from collections.abc import Iterator
 from dataclasses import dataclass
+from numbers import Complex, Number, Real
 from pathlib import Path
 
 from . import lists, persist, references, scope, tree
+from ._identity import exact_integer
 from .blocks import Block, SourceFile, make_blocks
 from .fields import FieldError, FieldSlot, format_value, is_free_format, parse_number, read_text, write_text
 from .includes import identity
@@ -213,8 +216,32 @@ class KeywordDeck:
         info = lay.lookup(name, card, row)
         width = info.slot.width if info.slot.token is None else 40
         ref = (isinstance(value, str) and info.kind != "str" and field_expression(value) is not None)
+        numeric = resolve_field(value, self.lookup(block)) if ref else value
+        if info.kind in ("int", "float"):
+            blank = isinstance(numeric, str) and not numeric.strip()
+            if blank:
+                numeric = None  # A deliberate blank still requests the keyword's default.
+            elif info.kind == "int":
+                if isinstance(numeric, str) and re.fullmatch(r"[+-]?[0-9]+", numeric.strip()) is None:
+                    raise FieldError(f"Integer field {info.name!r} requires integer text or an exact numeric scalar")
+                numeric = exact_integer(numeric, f"Integer field {info.name!r}")
+            else:
+                if isinstance(numeric, str):
+                    numeric = parse_number(numeric)
+                if isinstance(numeric, bool):
+                    raise FieldError("Boolean values are not LS-DYNA field values")
+                if not isinstance(numeric, Number) or (isinstance(numeric, Complex) and not isinstance(numeric, Real)):
+                    raise FieldError(f"Float field {info.name!r} requires a real numeric scalar")
+                try:
+                    finite = math.isfinite(float(numeric))
+                except (TypeError, ValueError, OverflowError) as error:
+                    raise FieldError(f"Float field {info.name!r} requires a finite real scalar") from error
+                if not finite:
+                    raise FieldError("Non-finite values cannot be written")
+        # Validate the new row key before touching memory. A blank or invalid
+        # identifier must not leave a partially edited AST if int() would fail.
+        check_row = exact_integer(numeric, "Row identity") if lay.key and name.lower() == lay.key and not ref else row
         if ref:
-            resolve_field(value, self.lookup(block))  # raises FieldError for undefined names
             text, exact = value.strip(), True
         else:
             if info.kind == "str":
@@ -226,7 +253,6 @@ class KeywordDeck:
         index = info.slot.line
         before = block.lines[index]
         block.lines[index] = write_text(before, info.slot, text, "left" if info.kind == "str" else "right")
-        check_row = int(value) if lay.key and name.lower() == lay.key and not ref else row
         # A value inside a table row cannot change the table structure: re-read the cell.
         # Anything else (card activity, row keys) is verified with a fresh layout.
         quick = isinstance(lay.rows, RowMap) and row is not None and name.lower() != lay.key

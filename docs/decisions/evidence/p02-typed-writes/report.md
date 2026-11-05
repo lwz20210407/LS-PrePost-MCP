@@ -1,0 +1,37 @@
+# P02/I07：named numeric 写入准入与内存原子性
+
+本修复只在已有 `FieldInfo.kind` 的 named setter 校验数值，并把新行标识的验证前移；不重新解码关键字、不改布局、provider、物理公式或任务验收。P02仍partial。
+
+旧 main `dba51d0` 上，`edit_keywords` 将 Part.mid 的字符串 `"1.5"`、`"NaN"` 写入并返回 succeeded；引用扫描不能代替字段类型准入。直接 setter 的空行 ID 还会在修改内存后才抛 ValueError。
+
+实现提交 `eeff496c168cf5f02afee66e76bb97adc5d2744f`：整数字段复用 `exact_integer`，浮点文本沿用既有 `parse_number`，参数沿用 `resolve_field`；全部校验在修改前发生。
+整数文本要求可选符号和ASCII数字；小数/科学记法的**字符串**不作为整数字面量接受。整数值的数值标量（如JSON数字2.0）、signed/前导零整数文本及求值为整数的参数保持支持。浮点字段保留Fortran D/隐含指数与有限实数标量；布尔、数组、复数和非有限值拒绝。普通空白默认值、文本标题和API控制标志保持原路径。
+
+| 检查 | 实际结果 | 范围与有效性 |
+|---|---|---|
+| 旧dba51，仓库外新测试 | 23 failed / 22 passed | 有效夹具；包含准入收紧策略、旧有合法控制和原子性断言，不是23个独立缺陷 |
+| 新typed-write首轮 | 45 passed | WIP初测后Ruff整理了import顺序；此轮不冒称逐字节等于eeff，clean45后来包含在peer56中 |
+| 完整有限模型 | 601 passed / 1 skipped | 源实现WIP；其中旧active门禁仍对父HEAD，不当作新源码证据 |
+| clean eeff内部有限peer | 56 passed | 45已有+11独立控制；不是独立外审或原生数量 |
+| clean eeff公共标题oracle | 15 passed / 3 capture | 16个Part；非native；8产品blob在组合1246源相同 |
+| clean组合1246 | 254 passed；三装配离线通过 | 继承P12 be0和main15921；1/11/4 Joint，仅host创建/检查，无新native |
+
+各命令重叠，不累加为覆盖数。初版单元夹具遗漏Part的row参数产生的35失败日志，以及最初T1探针误用fields字典产生的KeyError，明确作废；都不作为代码缺陷或有效红例。
+
+本修复也有明确行为收紧：过去raw字符串绕过类型检查的表示不再由named整数setter接受。未被本次typed入口覆盖的未知布局或显式raw操作，不据此声称已作完整语义验证。
+
+> 历史检查点（完成65新上下文之前的原始阶段说明，保留原话与数值；当前结果见下节）：当前新源P11/P12/P04原生来源刷新仍待完成，旧捕获保留原revision，不重绑为新代码。完成新的实际运行、七项检查和精确PR头五项CI后才能集成；没有升级任何任务为done。
+
+
+## 新实际1289来源刷新
+
+本轮实现/旧红/45回归/601WIP/56peer与eeff15/3标题oracle的真实身份保留，未改绑。新的native actual source是`1289eb4edadb77b71d3ee90928d3fec0716e8465`，source snapshot `611d3bbb306a082a370743dfe5e722ab0e847dc450d3a8185c7343216c3af2a8`。
+P11两版每12 assertions/23真实进程、各10success/1partial/1expectedfailed；P12两版各三case/9进程、semantic差异0而严格R1卡片差异独立保留；P04仅413自有四节点/三sets成员单case/1进程。按65唯一job事件计数，PID可重用，不把artifact或assertions当进程。
+
+实际source输入为immutable_private_snapshot（413 b07/410 d018）；每job source关系与SHA、完整源字节/stat、source40/相关14或10/exe/public守卫核对。globals只passive observation，可变化，未作为这轮配置input；不写全球保持或APPDATA隔离已证明。最早Root169 live410预检变化后0native停止也保留，未当成功case。
+见[P11新上下文](../p11-typed-writes-refresh/report.md)、[P12新选择](../p12-joint-readback/typed-writes-refresh-1289.md)及[P04新私有输入当前记录](../p04-typed-writes-refresh/report.md)。P04 ADD顺序仍不同，P12 typed识别/运动学未验；旧native对象全部保留。任务验收/状态/release不升级，仍需精确PR头正式五CI。
+
+## 同一后台变更触发的P03 host来源刷新
+
+合并已验#170后，原P03 product evidence正确识别deck旧blob f23不等于当前076；没有降级该门禁或改绑旧02b。实际clean1ba重放原四文件60 L1（含full/compact两stdio）并offline重建778549B轮子，新deck GitLF已入wheel；extract-only用同source-doc生成pin执行成功/keyword/noNative。
+旧P03目录原始对象/当时测试与原98题结果全部留存，原唯一SQLite已回收，本轮没有重读或新建全文索引；只核11 retrieval产品身份不变。当前host指针见[p03-active](../p03-active.json)与[新host上下文](../p03-typed-writes-refresh/report.md)。

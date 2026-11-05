@@ -1,0 +1,1 @@
+{"schema_version":1,"task_id":"P03","active_product_evidence":"docs/decisions/evidence/p03-typed-writes-refresh/evidence.json","previous_active_evidence":"docs/decisions/evidence/p03-model-recipes/evidence.json","reason":"Actual new keyword backend source requires fresh original host/stdio/wheel scope; original host and A10 objects are not rebound"}
