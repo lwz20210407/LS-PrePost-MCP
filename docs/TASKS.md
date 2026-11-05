@@ -342,8 +342,7 @@
 - d3plot Part/global、tshell、其他梁量及更广 shell/版本原生对照仍缺；缺真实 part_ids 的 d3plot 部件时程明确拒绝，不用标题序号猜 PID；登记的显式壳槽位子集不将 Q05 升为 done
 - 单元 CSV 保留 alive/deletion_status/首次删除状态；缺数据显式 unknown。现有 stored_point 与独立 native_sampling 支持的壳历史在两版本各三配对及一错配拒绝通过，但非通用层映射；曲线运算拒绝显式 deleted/unknown，不自动裁剪或插值，其他消费者的有效性仍须逐项验证
 - 原生 d3plot 对照限节点及显式选点单元量、最多1000状态；Part/global 对照需显式单文件 binout；多点均值不映射为层，原生层选择独立于读取器槽位；MPP合并口径保留，4.8未验
-- tests/test_beam_axial_history.py
-- docs/decisions/evidence/q05-beam-axial/report.md
+- 梁轴力native_check仅4.13且显式native_sampling=default，两公开源26条对照通过；默认ipt语义未确认，正则元字符basename明确拒绝，其他版本/梁量未支持。共享非原生族身份另由I01防护
 
 ### Q06 binout / ASCII 全库曲线
 
@@ -643,11 +642,10 @@ LSPP 里给 Segment 集加压力的命令怎么写？*CONTACT_ERODING 的 SFS �
 
 缺口：
 
-- 查询侧已加通用中英词表与排序；公开索引下留出集 B 前 3 命中 13/24（基线 5/24），旧留出集 16/24；开发集与旧二十题为调优集，不作完成依据
+- 查询侧通用中英词表与排序已有；当前公开索引历史B集13/24、旧24题15/24（历史16/24，HI02目标KI-052已从当前语料移除）。开发/旧20题为调优集，旧24题已暴露，B调优前独立性未证；不作完成依据
 - holdout B 的独立性未经可复核证明：文件 blob e8d7728b 首次出现在 ecae976，与代码提交 3703de5 同一秒提交，Git 不能证明调优前冻结；以后的留出集须先公布哈希再调优
-- 私有 Scripting API/用户指南来源路径未经用户确认（I05 缺口），正式口径 API 类 0/4；I05 已修查询与索引的标识符边界，API 真实召回仍需经授权来源重建验证，指南 PDF 抽取断词仍待处理
+- 真实 Scripting API/用户指南来源仍缺（I05 缺口），当前公开索引API文档为0，三套历史题API类0/4、开发集0/5。I05标识符边界已修，真实召回仍须授权来源重建验证；指南PDF抽取断词待处理
 - 不写关键字名的字段语义问题（holdout B HB09/HB11/HB12）仍未命中；holdout B 有 6 题答案目标与开发集重合，去除后 10/18
-- 审阅 P2（#93 合入时未修）：evidence.json 的逐题返回列表仍是 f04843a 的记录，最终修订改变了 6 题的前 3 条，未重新生成；扩展词形覆盖率无自动测试
 
 ## 通用
 
