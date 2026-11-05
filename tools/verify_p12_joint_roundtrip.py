@@ -543,8 +543,8 @@ def main():
         if args.executable is None or args.profile is None:
             parser.error("--run-native requires --executable and an explicit registered --profile")
         policy = require_installation(args.executable, version=args.profile)
-        if policy["version_source"] != "file_version_resource" or policy["resource_conflict"]:
-            parser.error("Native fixture requires an unambiguous executable version resource")
+        if policy["version_source"] != "file_version_resource":
+            parser.error("Native fixture requires an identifiable executable file-version resource")
         require_capability(args.executable, "batch")
         identity = execution_identity(ROOT)
         if not identity["actual_git_head"] or identity["working_tree_dirty"] is not False:

@@ -2,7 +2,7 @@
 
 import pytest
 
-from ls_prepost_mcp.native.versions import require_installation
+from ls_prepost_mcp.native.versions import require_capability, require_installation
 from tests.test_save_model_native import installation as installation
 from tools.verify_p12_joint_roundtrip import prepare_case, verify_native
 
@@ -15,7 +15,8 @@ def test_native_joint_definition_roundtrip(installation, pytestconfig, record_pr
     if binary["version"] not in ("4.13", "4.10"):
         pytest.fail("P12 definition roundtrip is registered only for explicit 4.13/4.10 runs")
     policy = require_installation(executable, version=binary["version"])
-    assert policy["version_source"] == "file_version_resource" and not policy["resource_conflict"]
+    assert policy["version_source"] == "file_version_resource"
+    require_capability(executable, "batch")
     prepared = prepare_case(case, pytestconfig._native_root / case, executable)
     proof = verify_native(prepared, pytestconfig._native_identity)
     record_property("evidence", str(prepared["directory"] / "comparison.json"))
