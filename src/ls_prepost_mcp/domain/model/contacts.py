@@ -10,9 +10,11 @@ other field keeps the LS-DYNA default unless given.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 from . import geometry, links, sets
+from ._identity import exact_integer
 from .cards import insert_card
 from .fields import FieldError
 from .schema import _pydyna_class
@@ -61,8 +63,33 @@ def _code(spec: object) -> int | None:
     return None
 
 
+def _identity_sequence(value: object, label: str) -> list[int]:
+    """Do not interpret scalar text, bytes or mapping keys as several user IDs."""
+    if isinstance(value, (str, bytes, bytearray, memoryview, Mapping)):
+        raise FieldError(f"{label} needs a sequence of integer identities, not text, bytes or a mapping")
+    try:
+        return [exact_integer(item, label) for item in value]
+    except TypeError as error:
+        raise FieldError(f"{label} needs a sequence of integer identities") from error
+
+
+def _identity_spec(spec: object, label: str) -> object:
+    """Normalize only identities, without allocating a set or changing physical filters."""
+    if not isinstance(spec, dict) or len(spec) != 1:
+        return spec
+    (key, value), = spec.items()
+    if key in SIDE_TYPES:
+        value = exact_integer(value, f"Side {label}: {key} ID")
+    elif key in ("parts", "nodes"):
+        value = _identity_sequence(value, f"Side {label}: {key} member ID")
+    elif key in ("exterior", "select") and isinstance(value, dict) and value.get("parts") is not None:
+        value = {**value, "parts": _identity_sequence(value["parts"], f"Side {label}: selected Part ID")}
+    return {key: value}
+
+
 def _side(deck: KeywordDeck, spec: object, allowed: set[str], label: str, created: list[dict]) -> tuple[int, int]:
     """``(id, type code)`` of one side; creates the set a selection needs."""
+    spec = _identity_spec(spec, label)
     if spec == "all":
         if "all" not in allowed:
             raise FieldError(f"Side {label} cannot be 'all'")
@@ -82,15 +109,15 @@ def _side(deck: KeywordDeck, spec: object, allowed: set[str], label: str, create
             ident = integer(value, "Node set SID", positive=True)
             NodeSets(deck, allow_collect_lists=True).resolve(ident)
         else:
-            ident = int(value)
+            ident = exact_integer(value, f"Side {label}: {kind} ID")
         if ident not in defined.get(kind, set()):
             raise FieldError(f"Side {label}: {kind} {ident} is not defined")
         return ident, SIDE_TYPES[kind]
     if key == "parts":
-        missing = sorted(set(map(int, value)) - defined.get("part", set()))
+        missing = sorted(set(value) - defined.get("part", set()))
         if missing:
             raise FieldError(f"Side {label}: parts {missing} are not defined")
-        ident = sets.create_set(deck, "part", [int(v) for v in value])[0]
+        ident = sets.create_set(deck, "part", value)[0]
     elif key == "exterior":
         ident = sets.create_set(deck, "segment", geometry.exterior_segments(deck, **value).tolist())[0]
     else:
@@ -109,6 +136,10 @@ def add_contact(deck: KeywordDeck, recipe: str, a: object, b: object = None, *, 
     allowed_a, allowed_b = SIDES[recipe]
     if (b is None) != (allowed_b is None):
         raise FieldError(f"{keyword} needs {'no' if allowed_b is None else 'a'} side B")
+    # Normalize identities on both sides and CID before allocating dependencies.
+    # Remaining target-shape, reference and physical checks keep their stages.
+    a, b = _identity_spec(a, "A"), _identity_spec(b, "B")
+    cid = exact_integer(cid, "Contact CID") if cid is not None else None
     names = links.field_names(keyword)
     side_a, type_a, side_b, type_b = (("surfa", "surfatyp", "surfb", "surfbtyp") if "surfa" in names
                                       else ("ssid", "sstyp", "msid", "mstyp"))
@@ -132,7 +163,7 @@ def add_contact(deck: KeywordDeck, recipe: str, a: object, b: object = None, *, 
     if cid is not None or title:
         if cid is None:
             raise FieldError("A contact title needs a contact ID (cid)")
-        keyword, fields = keyword + "_ID", {"cid": int(cid), "heading": title or "", **fields}
+        keyword, fields = keyword + "_ID", {"cid": cid, "heading": title or "", **fields}
     block = insert_card(deck, keyword, fields, file=file)[0]
     return {"keyword": keyword, "file": str(block.file.path), "line": block.line_number, "created_sets": created,
             "sides": {"a": [fields[side_a], fields[type_a]],
