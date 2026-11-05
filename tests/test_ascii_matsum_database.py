@@ -205,6 +205,22 @@ def test_matsum_growth_is_bounded_before_parser(tmp_path, monkeypatch):
     assert not result["artifacts"]
 
 
+def test_trailing_empty_assignment_cannot_hide_behind_an_earlier_value(tmp_path):
+    result = extract(tmp_path, TEXT + "inten=\n")
+    assert result["status"] == "failed" and not result["artifacts"]
+    assert "missing number" in result["error"]["message"].lower()
+
+
+def test_q12_existing_line_limit_keeps_its_runtime_value(tmp_path, monkeypatch):
+    from ls_prepost_mcp.domain.results import energy_readers
+
+    source = tmp_path / "matsum"
+    source.write_text(TEXT)
+    monkeypatch.setattr(energy_readers, "MAX_RECORD_CHARS", 1)
+    with pytest.raises(ValueError, match="record exceeds"):
+        energy_readers.read_ascii_matsum(source)
+
+
 @pytest.mark.parametrize("name", ["MAX_BYTES", "MAX_RECORD_CHARS", "MAX_ROWS"])
 def test_matsum_resource_bounds(tmp_path, monkeypatch, name):
     from ls_prepost_mcp.domain.results import ascii_matsum

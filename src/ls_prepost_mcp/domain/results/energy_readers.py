@@ -25,8 +25,10 @@ PART_PAIR = re.compile(r"\b(" + "|".join(PART_KEYS) + r")\s*=\s*(\S+)", re.I)
 MAX_RECORD_CHARS = 16_384
 
 
-def _lines(path, *, errors="replace", max_record_chars=MAX_RECORD_CHARS):
+def _lines(path, *, errors="replace", max_record_chars=None):
     # Bound mistaken binary input / enormous records without buffering a whole line.
+    if max_record_chars is None:
+        max_record_chars = MAX_RECORD_CHARS
     with open(path, encoding="utf-8-sig", errors=errors) as stream:
         while line := stream.readline(max_record_chars + 1):
             if len(line) > max_record_chars:
@@ -104,7 +106,7 @@ def read_ascii_matsum(path):
     return _matsum_records(_lines(path))
 
 
-def read_ascii_matsum_details(path, *, max_record_chars=MAX_RECORD_CHARS):
+def read_ascii_matsum_details(path, *, max_record_chars=None):
     """Expose raw block/field identity for Q06; keep Q12's nullable wrapper unchanged.
 
     The material-record parsing and numeric conversion are shared. Observations
@@ -183,6 +185,10 @@ def _matsum_records(lines, details=None):
             if count > MAX_ROWS:
                 raise EnergyBalanceError("MATSUM exceeds one million part rows")
         if current is not None:
+            if details is not None:
+                assignments = re.finditer(r"\b(" + "|".join(PART_KEYS) + r")\s*=\s*(\S*)", line, re.I)
+                if any(not match[2] for match in assignments):
+                    issue("MATSUM field missing number")
             for pair in PART_PAIR.finditer(line):
                 key = PART_KEYS[pair[1].lower()]
                 if key in current:
