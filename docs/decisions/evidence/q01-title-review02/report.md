@@ -37,3 +37,5 @@ Beam-force follow-up: the independent title suite was genuinely rerun on clean `
 2026-11-05 Q05原生接入更新共享读取层后，在干净0a9d74145ac4a6bb6b73a1afe29cc6bd6dfcc82e实际重跑三份独立关键字标题oracle：15通过、16Parts，标题/关键字树/结果族均不变。此前eda5935及更早捕获完整保留；仍非原生证据、Q01仍partial。
 
 2026-11-05 I01结果族防护后，在干净f31b06eb047ed3d97d58b2c8e1ab23424951997c真实再跑15项标题测试、3配对输入/16Parts，标题与源树/结果族均不变。源身份现列入真实依赖family.py，存在性及active blob门禁均要求覆盖它；旧e5及更早捕获保留在独有I01台账与previous_captures，不改写执行revision，仍不是原生标题验收。
+
+2026-11-05 CI路径分类修复后，在干净a20d70e8b609f1c00a78b48266a3d4ff516f6f29再次真实15测试/3捕获通过，16Parts与配对关键字一致、源不变；新增family源blob由本次实跑绑定，旧f31等全部捕获保留，不将旧数据改绑新代码。

@@ -60,3 +60,8 @@ python -B -m pytest tests/test_beam_native_check_native.py --run-native --native
 原生需显式授权与单一 lease，前置标题对照通过及清洁头核对；不自动启动 GUI 或 solver。Ruff、lint-imports、validate_tasks、gen_docs --check、validate_tool_migration、fetch_corpus --check-registry、check_doc_links 已通过。
 
 同一业务 scope 的多次 SDK 构造共享一份身份快照，一般需要两次全族 SHA。既有 metadata 预读/特殊路径可能额外 hash；因此大族仍有明确 IO 成本，不能用尺寸/mtime 冒充内容身份。每个自有 hash 有初始尺寸读取边界，但第三方 SDK 本身没有新增统一的时间/内存总预算；不声称防御任意 OS 级并发篡改。无关越界链接也拒绝，因为 SDK 在匹配前会探测目录项。其他版本、梁公式及 UI/队列场景的覆盖限制继续保留，整体仍为 partial。
+
+
+## CI完整来源刷新
+
+首轮CI指出POSIX的raw Windows路径分类诊断两项和旧P11 service blob过期一项。a20d70e把网络/设备判定移到宿主Path规范化之前，原断言保留、162相关通过。该干净头重新真实运行：4.13完整P11十二项加beam两项共14通过；4.10同P11十二项通过。P11每版业务10成功/1partial/1预期失败、各23次实际原生启动，beam另2次，不将拒绝对照计成业务正例。全部源/配置/程序守卫通过。新active P11记录见 [本次报告](../p11-family-refresh/report.md)，旧p11-raw-review02全部run对象保留不改；共享标题15/3及beam26条也实跑刷新。没有降低或删除来源门禁。

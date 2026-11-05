@@ -355,6 +355,7 @@ tasks:
       - 主文件 INCLUDE_PATH / INCLUDE_PATH_RELATIVE 与相对空搜索目录已有真实树读回；INCLUDE_TRANSFORM、opaque、参数化文件名与嵌套 INCLUDE_PATH_RELATIVE 仍拒绝；根目录已有 lspost.db 的树在原生启动前拒绝，防止覆盖资产
       - save_model 读取磁盘树而非 GUI 未保存编辑；GUI、4.8 与非 ASCII 另存文件名仍未验证；没有节点的模型仍被原生读取检查拒绝
     evidence:
+      - docs/decisions/evidence/p11-family-refresh/report.md
       - src/ls_prepost_mcp/model_save.py
       - tests/test_save_model.py
       - tests/test_save_model_native.py
@@ -1052,6 +1053,7 @@ infrastructure:
       - src/ls_prepost_mcp/domain/results/family.py
       - tests/test_result_family_confinement.py
       - docs/decisions/evidence/i01-result-family/report.md
+      - docs/decisions/evidence/p11-family-refresh/report.md
     acceptance:
       - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
       - 删除 gui_session_action 中运行时替换 _native 的做法
