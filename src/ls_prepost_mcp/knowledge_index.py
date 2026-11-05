@@ -17,6 +17,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from .keyword_documentation import KeywordField, KeywordWithoutFields, fieldless_review
+from .knowledge_results import ReferenceResults
 
 CATEGORIES = frozenset(("command", "api", "keyword", "user_guide", "recipe", "known_issue"))
 PUBLIC_LICENSES = frozenset(("MIT", "Apache-2.0", "BSD-3-Clause", "CC0-1.0"))
@@ -474,6 +475,11 @@ def _snippet(text, query, highlights, width=600):
     return text[begin:begin + width]
 
 
+def _unsearched_results():
+    return ReferenceResults(diagnostics=dict(search_executed=False, reason="no_searchable_terms",
+        schema_version=None, index_tokenization=None, expected_index_tokenization=API_TOKENIZATION, warnings=[]))
+
+
 def search_index(path, query, *, category=None, limit=10, include_private=False, keyword_filter=None):
     if not isinstance(query, str) or not query.strip() or len(query) > 1000 or type(limit) is not int or not 1 <= limit <= 50:
         raise ValueError("Provide a bounded query and limit 1..50")
@@ -487,18 +493,19 @@ def search_index(path, query, *, category=None, limit=10, include_private=False,
                 or keyword_filter[1] is not None and not isinstance(keyword_filter[1], str)):
             raise ValueError("Structured keyword lookup requires a keyword prefix and optional field")
     if not terms(query):
-        return []
+        return _unsearched_results()
     plan = plan_query(query)
     latin_expression = plan["latin"]
     chinese_expression = " OR ".join(plan["concepts"])
     if not latin_expression and not chinese_expression:
-        return []
+        return _unsearched_results()
     mixed = bool(latin_expression and chinese_expression)
     expression = ("(" + latin_expression + ") OR (" + chinese_expression + ")"
                   if mixed else latin_expression or chinese_expression)
     uri = Path(path).resolve(strict=True).as_uri() + "?mode=ro"
     with closing(sqlite3.connect(uri, uri=True)) as db:
         db.row_factory = sqlite3.Row
+        db.execute("BEGIN")  # Bind format diagnostics and rows to the same readonly snapshot.
         if db.execute("SELECT schema_version FROM metadata").fetchone()[0] != 2:
             raise ValueError("Unsupported knowledge index schema")
         columns = {row[1] for row in db.execute("PRAGMA table_info(metadata)")}
@@ -508,6 +515,10 @@ def search_index(path, query, *, category=None, limit=10, include_private=False,
         if tokenization != API_TOKENIZATION:
             index_warnings.append("API identifier tokenization is outdated; explicitly rebuild the reference index for complete identifier recall")
             logging.getLogger(__name__).warning(index_warnings[0])
+        diagnostics = dict(search_executed=True, schema_version=2, index_tokenization=tokenization,
+                           expected_index_tokenization=API_TOKENIZATION, warnings=list(index_warnings),
+                           concepts_truncated=plan["concepts_truncated"], concepts_total=plan["concepts_total"],
+                           concepts_used=len(plan["concepts"]), concept_limit=plan["concept_limit"])
         if keyword_filter is None:
             sql = "SELECT documents.*, bm25(search_terms) AS rank"
             params = []
@@ -603,7 +614,7 @@ def search_index(path, query, *, category=None, limit=10, include_private=False,
                 field[key] = json.loads(field[key])
             data["keyword_field"] = field
         results.append(data)
-    return results
+    return ReferenceResults(results, diagnostics=diagnostics)
 
 
 def recipe_verification(text):

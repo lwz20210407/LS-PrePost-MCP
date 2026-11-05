@@ -10,7 +10,7 @@ def records() -> list[dict]:
 
 
 def search_knowledge(query: str, limit: int = 10, include_private: bool = False, category: str | None = None) -> list[dict]:
-    """Search LSPP_KNOWLEDGE_INDEX when configured; private records require explicit opt-in."""
+    """Search LSPP_KNOWLEDGE_INDEX when configured; private records require explicit opt-in. Configured-index queries preserve separate diagnostics even when no reference matches."""
     if not query.strip() or not 1 <= limit <= 50:
         raise ValueError("Provide a query and limit 1..50")
     configured = os.environ.get("LSPP_KNOWLEDGE_INDEX")
@@ -60,7 +60,7 @@ def search_workflows(query: str, limit: int = 10) -> list[dict]:
 
 
 def search_docs(query: str, category: str | None = None, limit: int = 10, include_private: bool = False) -> list[dict]:
-    """Search command/API/keyword/guide/recipe/known-issue references in LSPP_KNOWLEDGE_INDEX; return source, version and scoped evidence level. Private text requires explicit opt-in."""
+    """Search command/API/keyword/guide/recipe/known-issue references in LSPP_KNOWLEDGE_INDEX; return source, version and scoped evidence level. Query/index diagnostics are separate from hit rows and survive empty results. Private text requires explicit opt-in."""
     from .knowledge_index import search_index
 
     configured=os.environ.get("LSPP_KNOWLEDGE_INDEX")
