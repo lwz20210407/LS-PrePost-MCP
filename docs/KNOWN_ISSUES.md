@@ -732,3 +732,5 @@ typed匹配后的P11首轮r1观察到4.10全局窗口/打印偏好文件真实ha
 原batch按总身份guard失败保留。新r2对两个profile的配置前后完整字节、size/mtime等实测保持，但仅证明该次窗口，不等于已修复全局写保护。
 现有source_modified=false只描述既有metadata检查范围，尚未证明整个APPDATA的写隔离；后续仍须串行授权和显式全局偏好监控。
 配置正文、具体值及本机路径不公开；新测量与旧失败的分界见[P11 typed来源刷新](decisions/evidence/p11-typed-matching-refresh/report.md)。
+
+I01 后续旁证（2026-11-05）：用户报告13:24:59没有手工改配置。独立外部4.10渲染任务的owned回执（PID2344，13:24:50.182）、日志末尾13:24:59.594、配置mtime13:24:59.502及最近命令标记相符，其launcher未显式使用MCP偏好隔离；仅作corroborated inference，无内核writer归属，不归因MCP4.13。旧r1失败与新r2独立成功均保留，详见[P11后续旁证](decisions/evidence/p11-typed-matching-refresh/report.md)。
