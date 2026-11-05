@@ -80,7 +80,9 @@ def _cnrb(deck: KeywordDeck, pid: int) -> tuple[object, int | None] | None:
     for block in deck.iter_blocks():
         if block.name.startswith("*CONSTRAINED_NODAL_RIGID_BODY"):
             hits = deck.find(block.name, pid=pid)
-            hits = [(b, r) for b, r in hits if b is block]
+            # Generic find intentionally tolerates physical floating fields;
+            # a discrete body PID must never use that approximate match.
+            hits = [(b, r) for b, r in hits if b is block and deck.get(b, "pid", row=r).value == pid]
             if hits:
                 return hits[0]
     return None
