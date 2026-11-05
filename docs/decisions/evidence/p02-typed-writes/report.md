@@ -20,7 +20,7 @@
 
 本修复也有明确行为收紧：过去raw字符串绕过类型检查的表示不再由named整数setter接受。未被本次typed入口覆盖的未知布局或显式raw操作，不据此声称已作完整语义验证。
 
-当前新源P11/P12/P04原生来源刷新仍待完成，旧捕获保留原revision，不重绑为新代码。完成新的实际运行、七项检查和精确PR头五项CI后才能集成；没有升级任何任务为done。
+> 历史检查点（完成65新上下文之前的原始阶段说明，保留原话与数值；当前结果见下节）：当前新源P11/P12/P04原生来源刷新仍待完成，旧捕获保留原revision，不重绑为新代码。完成新的实际运行、七项检查和精确PR头五项CI后才能集成；没有升级任何任务为done。
 
 
 ## 新实际1289来源刷新
@@ -30,3 +30,8 @@ P11两版每12 assertions/23真实进程、各10success/1partial/1expectedfailed
 
 实际source输入为immutable_private_snapshot（413 b07/410 d018）；每job source关系与SHA、完整源字节/stat、source40/相关14或10/exe/public守卫核对。globals只passive observation，可变化，未作为这轮配置input；不写全球保持或APPDATA隔离已证明。最早Root169 live410预检变化后0native停止也保留，未当成功case。
 见[P11新上下文](../p11-typed-writes-refresh/report.md)、[P12新选择](../p12-joint-readback/typed-writes-refresh-1289.md)及[P04新私有输入当前记录](../p04-typed-writes-refresh/report.md)。P04 ADD顺序仍不同，P12 typed识别/运动学未验；旧native对象全部保留。任务验收/状态/release不升级，仍需精确PR头正式五CI。
+
+## 同一后台变更触发的P03 host来源刷新
+
+合并已验#170后，原P03 product evidence正确识别deck旧blob f23不等于当前076；没有降级该门禁或改绑旧02b。实际clean1ba重放原四文件60 L1（含full/compact两stdio）并offline重建778549B轮子，新deck GitLF已入wheel；extract-only用同source-doc生成pin执行成功/keyword/noNative。
+旧P03目录原始对象/当时测试与原98题结果全部留存，原唯一SQLite已回收，本轮没有重读或新建全文索引；只核11 retrieval产品身份不变。当前host指针见[p03-active](../p03-active.json)与[新host上下文](../p03-typed-writes-refresh/report.md)。

@@ -7,11 +7,14 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-EVIDENCE = ROOT / "docs/decisions/evidence/p03-model-recipes/evidence.json"
+ACTIVE = ROOT / "docs/decisions/evidence/p03-active.json"
 
 
 def read():
-    return json.loads(EVIDENCE.read_text(encoding="utf8"))
+    pointer = json.loads(ACTIVE.read_text(encoding="utf8"))
+    evidence = ROOT / pointer["active_product_evidence"]
+    assert evidence.resolve().is_relative_to((ROOT / "docs/decisions/evidence").resolve())
+    return json.loads(evidence.read_text(encoding="utf8"))
 
 
 def test_host_recipe_evidence_keeps_l1_scope_and_every_original_a10_object():
@@ -50,3 +53,20 @@ def test_current_host_recipe_evidence_binds_actual_product_and_test_git_objects(
         historical = subprocess.check_output(["git", "rev-parse", preserved["git_source_revision"] + ":" + relative], cwd=ROOT, text=True).strip()
         current = subprocess.check_output(["git", "hash-object", relative], cwd=ROOT, text=True).strip()
         assert historical == current == expected, "Historical A10 Git object changed: " + relative
+
+
+def test_new_backend_refresh_preserves_original_host_bytes_and_does_not_claim_new_a10_replay():
+    evidence = read()
+    previous = evidence["previous_host_evidence"]
+    assert previous["original_objects_rewritten"] is False
+    old_directory = ROOT / "docs/decisions/evidence/p03-model-recipes"
+    for name, expected in previous["repository_lf_sha256"].items():
+        raw = (old_directory / name).read_bytes().replace(b"\r\n", b"\n")
+        assert hashlib.sha256(raw).hexdigest() == expected
+    assert evidence["wheel"]["actual_source_revision"] == evidence["actual_git_revision"]
+    assert evidence["wheel"]["new_typed_deck_git_lf_in_wheel"] is True
+    assert evidence["wheel"]["source_document_pin_accepted"] is True
+    retrieval = evidence["retrieval_dependency_check"]
+    assert retrieval["original_11_retrieval_product_git_blobs_unchanged"] is True
+    assert retrieval["original_98_queries_replayed"] is False and retrieval["full_index_rebuilt"] is False
+    assert retrieval["old_sqlite_reopened"] is False

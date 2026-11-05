@@ -202,9 +202,10 @@ tasks:
       - model: 候选只验证主机 AST/L1；更多可选参数组合、布局与版本尚未核实，依赖 pydyna extra，不外推物理校准正确性
       - 新 T2 配方保存重开后的原生 Part Data ID/字段/关联回读仍未做，通用 P11 不替代此项验收
     notes:
+      - typed named后台deck076变更后以actual1ba重放原四文件60 L1及full/compact stdio，offline wheel778549B确含新deck并以source-doc pin执行；旧02b/P03目录和98题结果不改，retrieval11源未变不重建已回收索引，仍非native物理验收
       - 六 MAT/两个 EOS 及一个 JC+Gruneisen+solid+Part 原子配方已登记为 model: keyword/L1 candidate；find/index 给来源/schema pin，旧引用漂移先拒，bare ID 显式 latest；无新T1或原生执行
       - clean02b1a9d专属60项通过，内部有限peer及实体离线wheel/提取目录/MCP full与compact另有控制，不累计重叠数；新增9条公开配方来源后的原98题真实重放保留全部历史与API缺口
-    evidence: [src/ls_prepost_mcp/model_recipes.py, src/ls_prepost_mcp/data/model_recipes.json, tests/test_model_recipes.py, tests/test_model_recipe_pins.py, tests/test_model_recipe_knowledge.py, tests/test_model_recipes_mcp.py, docs/decisions/evidence/p03-model-recipes/report.md, docs/decisions/evidence/a10-model-recipes-refresh/report.md]
+    evidence: [src/ls_prepost_mcp/model_recipes.py, src/ls_prepost_mcp/data/model_recipes.json, tests/test_model_recipes.py, tests/test_model_recipe_pins.py, tests/test_model_recipe_knowledge.py, tests/test_model_recipes_mcp.py, docs/decisions/evidence/p03-model-recipes/report.md, docs/decisions/evidence/a10-model-recipes-refresh/report.md, docs/decisions/evidence/p03-typed-writes-refresh/report.md]
     acceptance:
       - 常用材料族 MAT_001/003/015/020/024/098 及 EOS 至少各一个配方，字段名来自关键字定义
       - Part 关联修改后引用检查通过，原生重开后 Part Data 读回一致
