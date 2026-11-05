@@ -45,6 +45,32 @@ CAPTURE_SOURCE_PATHS = PRODUCT_PATHS + (
     "tests/test_boundary_native_readback.py",
     "pyproject.toml", "uv.lock",
 )
+MANUAL_SOURCE = dict(release="R11", volume="I",
+    sha256="3f1cf3cc8c8222ad059459aca2c452f6af6afcce263b8eb8ba157495684da343")
+MANUAL_PAGES = {
+    "vid": (575, "5-47"), "initial": (2337, "24-95"), "icid": (2338, "24-96"),
+    "node_sets": (2872, "39-20"), "part_sets": (2882, "39-30"),
+    "segment_sets": (2887, "39-35"), "curves": (1716, "15-74"),
+    "wall_id": (2731, "36-15"),
+}
+SDK_SOURCES = {
+    "motion": "b063e5dc7937d792e78152e37fa2e7c4d37ac990f758adab2c9f54ea3a837b5e",
+    "initial": "e4c36a223f9c0cdb710d62a6418cf0ed838a19e08fff2bc650fe758ba392d572",
+    "node_sets": "9dcad2a77977e44212ce2ad256b7f435cd1678b4d63ae07e490102d57c274312",
+    "segment_sets": "b03e41fb2b00e7912463c5e6ff9ca0d45c0d8c422f2fb57a4a37a790ba3d7908",
+    "part_sets": "4f8c17211910a14ada4a7c54c766eaf66ef68292e898e8f9cf6fcad57bda32ed",
+    "curves": "ebb3f922a3e58676a19aba2b892076c6ebc093db2b19dc55690c59d2c3da2fed",
+    "wall_id": "9a53a669d629830186e73062067052462b047c0172d88956cf8765fc8ad011a7",
+}
+INITIAL_CARD = dict(xc=0., yc=0., zc=0., nx=0., ny=0., nz=0., phase=0, irigid=0)
+CURVE_DEFAULTS = dict(sidr=0, sfa=1., sfo=1., offa=0., offo=0., dattyp=0, lcint=0)
+OBSERVED_EXPORT_BUILDS = {
+    "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414": "4.13 observed calibration",
+    "e24c2d20f5ccae3b125c553f7469cffe9f910ea25a1e38abff7d940298d0087b": "4.10 transfer check, not an independent default source",
+}
+EXPORT_CALIBRATION = dict(actual_git_revision="8e247c16c05e099b49d31fc6300789f7a4cf7807",
+    export_sha256="ca8297369884d2d8d264582a16e580947dbe47132ba2b5c7910ee97534c714fa",
+    capture_status="failed", scope="Observed writer representation only; not a prior native acceptance pass")
 
 
 def sha(path):
@@ -142,7 +168,7 @@ def _regular(path):
         raise ValueError("Expected a bounded owned regular keyword file")
 
 
-def snapshot(path):
+def snapshot(path, *, native_export=False, metadata=None):
     """Use the existing guarded AST and named fields; never parse another grammar."""
     path = Path(path).absolute()
     guard = access.root_guard((path.parent,))
@@ -160,7 +186,9 @@ def snapshot(path):
                  "*CONTROL_TERMINATION"}
         for block in deck.iter_blocks():
             name = block.name
-            if name in wanted:
+            if name in wanted or (native_export and name == "*RIGIDWALL_PLANAR_ID"):
+                if name == "*RIGIDWALL_PLANAR_ID" and (block.keyword.flag or block.keyword.extra):
+                    raise ValueError("Unverified native wall keyword flags or trailing options")
                 rows = _rows(deck, block)
                 if len(rows) != 1:
                     raise ValueError("This fixture requires one complete boundary instance per exact keyword")
@@ -180,9 +208,13 @@ def snapshot(path):
                 group = "node_sets" if name == "*SET_NODE_LIST" else "part_sets"
                 _unique(result[group], str(deck.get(block, "sid").value),
                         dict(header=_headers(deck, block), members=deck.members(block)))
+                if metadata is not None and name == "*SET_NODE_LIST":
+                    _its_metadata(deck, block, group, metadata)
             elif name == "*SET_SEGMENT":
                 _unique(result["segment_sets"], str(deck.get(block, "sid").value),
                         dict(header=_headers(deck, block), rows=_rows(deck, block)))
+                if metadata is not None:
+                    _its_metadata(deck, block, "segment_sets", metadata)
             elif name == "*DEFINE_CURVE":
                 _unique(result["curves"], str(deck.get(block, "lcid").value),
                         dict(header=_headers(deck, block), points=[list(point) for point in deck.points(block)]))
@@ -191,7 +223,20 @@ def snapshot(path):
         refs = deck.references()
         if refs.dangling_count:
             raise ValueError("Readback has undefined keyword references")
+        if metadata is not None:
+            metadata["single_file_no_include_or_cosim"] = True
         return result
+
+
+def _its_metadata(deck, block, group, metadata):
+    value = deck.get(block, "its")
+    sid = deck.get(block, "sid").value
+    metadata.setdefault("set_its", {})[f"definition.{group}.{sid}.header.its"] = dict(
+        raw=value.raw, raw_token=value.raw.strip(), decoded_value=value.value,
+        ast_kind=deck.layout(block).lookup("its").kind,
+        sdk_declared_kind="str" if group == "node_sets" else "int",
+        sdk_declared_default="1" if group == "node_sets" else None,
+        sdk_class_sha256=SDK_SOURCES[group])
 
 
 def projection_differences(actual, expected):
@@ -245,6 +290,120 @@ def expected_projection(spec):
 
 def compare(path, spec):
     return projection_differences(snapshot(path), expected_projection(spec))
+
+
+def _exact_written(value, wanted):
+    if type(wanted) is float:
+        return type(value) in (int, float) and math.isfinite(value) and value == wanted
+    return type(value) is type(wanted) and value == wanted
+
+
+def _basis(group, *, page=None):
+    number, printed = MANUAL_PAGES[page or group]
+    result = dict(manual={**MANUAL_SOURCE, "pdf_page": number, "printed_page": printed},
+                  sdk=dict(package="ansys-dyna-core", version="0.12.1", class_sha256=SDK_SOURCES[group]))
+    if group == "curves":
+        result["manual"]["lcint_note"] = "LCINT0 inherits CONTROL_SOLUTION (pdf1718); it does not mean zero interpolation points"
+    return result
+
+
+def native_projection_comparison(actual, spec, metadata, executable_sha256):
+    """Finite documented forms of this owned fixture; the source oracle stays strict.
+
+    Added wall ID and ITS are observed representations, not documented defaults.
+    Every source/actual field and newly introduced metadata remains available.
+    """
+    source = expected_projection(spec)
+    expected = copy.deepcopy(source)
+    strict = projection_differences(actual, source)
+    formats, observations = [], []
+    no_include = metadata.get("single_file_no_include_or_cosim") is True
+
+    def write(target, observed, field, value, path, basis, group):
+        if field in target and target[field] is None and field in observed and _exact_written(observed[field], value):
+            target[field] = value
+            formats.append(dict(field=path + "." + field, expected=None, actual=observed[field],
+                                rule=group, source=basis))
+
+    motion = "*BOUNDARY_PRESCRIBED_MOTION_RIGID"
+    wanted, observed = expected["boundaries"].get(motion, {}), actual.get("boundaries", {}).get(motion, {})
+    if all(type(record.get("dof")) is int and record["dof"] == 2
+           and type(record.get("vad")) is int and record["vad"] == 0 for record in (wanted, observed)):
+        write(wanted, observed, "vid", 0, "definition.boundaries." + motion,
+              _basis("motion", page="vid"), "documented_motion_vid_default_in_owned_dof2_vad0")
+    initial = "*INITIAL_VELOCITY_GENERATION"
+    wanted, observed = expected["boundaries"].get(initial, {}), actual.get("boundaries", {}).get(initial, {})
+    initial_context = no_include and all(
+        type(record.get("styp")) is int and record["styp"] == 1
+        and type(record.get("id")) is int and record["id"] == 301
+        and _exact_written(record.get("omega"), 0.) for record in (wanted, observed))
+    if initial_context:
+        write(wanted, observed, "icid", 0, "definition.boundaries." + initial,
+              _basis("initial", page="icid"), "documented_initial_global_coordinate_default")
+        if (not (INITIAL_CARD.keys() & wanted.keys()) and set(observed) == set(wanted) | INITIAL_CARD.keys()
+                and all(_exact_written(observed[key], value) for key, value in INITIAL_CARD.items())):
+            wanted.update(INITIAL_CARD)
+            formats.append(dict(field="definition.boundaries." + initial + ".added_card2",
+                expected="absent", actual={key: observed[key] for key in INITIAL_CARD},
+                rule="documented_complete_zero_default_initial_card2", source=_basis("initial")))
+    for group in ("node_sets", "part_sets", "segment_sets", "curves"):
+        defaults = CURVE_DEFAULTS if group == "curves" else dict(da1=0., da2=0., da3=0., da4=0., solver="MECH")
+        for uid, record in expected[group].items():
+            header = record["header"]
+            observed_header = actual.get(group, {}).get(uid, {}).get("header", {})
+            prefix = f"definition.{group}.{uid}.header"
+            for field, value in defaults.items():
+                write(header, observed_header, field, value, prefix, _basis(group), "documented_" + group + "_header_default")
+            # ITS is not in R11's header table. It is only a recorded, exact
+            # non-applicable slot in this one no-Include/COSIM fixture/build.
+            if group not in ("node_sets", "segment_sets") or not no_include or executable_sha256 not in OBSERVED_EXPORT_BUILDS:
+                continue
+            value = 1 if group == "node_sets" else 0
+            detail = metadata.get("set_its", {}).get(prefix + ".its", {})
+            sdk_kind = "str" if group == "node_sets" else "int"
+            sdk_default = "1" if group == "node_sets" else None
+            if ("its" in header and header["its"] is None and _exact_written(observed_header.get("its"), value)
+                    and _exact_written(detail.get("decoded_value"), value) and detail.get("ast_kind") == "int"
+                    and detail.get("sdk_declared_kind") == sdk_kind and detail.get("raw_token") == str(value)
+                    and "sdk_declared_default" in detail and detail["sdk_declared_default"] == sdk_default
+                    and detail.get("sdk_class_sha256") == SDK_SOURCES[group]
+                    and isinstance(detail.get("raw"), str) and detail["raw"].strip() == str(value)):
+                header["its"] = value
+                observations.append(dict(field=prefix + ".its", expected=None, actual=value,
+                    metadata=copy.deepcopy(detail), rule="inapplicable_ITS_slot_in_owned_no_include_fixture",
+                    documented_R11_default=False, general_ITS_semantics="unverified",
+                    sdk=dict(package="ansys-dyna-core", version="0.12.1", declared_kind=sdk_kind,
+                             declared_default=sdk_default,
+                             class_sha256=SDK_SOURCES[group], applicability="Only IncludeCosim coupling sets are described"),
+                    calibration=copy.deepcopy(EXPORT_CALIBRATION), build_scope=OBSERVED_EXPORT_BUILDS[executable_sha256]))
+    plain, identified = "*RIGIDWALL_PLANAR", "*RIGIDWALL_PLANAR_ID"
+    wall = actual.get("boundaries", {}).get(identified, {})
+    body = {key: value for key, value in wall.items() if key not in ("id", "title")}
+    if (no_include and executable_sha256 in OBSERVED_EXPORT_BUILDS and plain in expected["boundaries"]
+            and identified not in expected["boundaries"] and plain not in actual.get("boundaries", {})
+            and sum(name.startswith("*RIGIDWALL") for name in expected["boundaries"]) == 1
+            and sum(name.startswith("*RIGIDWALL") for name in actual.get("boundaries", {})) == 1
+            and set(wall) == set(expected["boundaries"][plain]) | {"id", "title"}
+            and type(wall.get("id")) is int and wall["id"] == 1 and wall.get("title") is None
+            and not projection_differences(body, expected["boundaries"][plain])):
+        expected["boundaries"][identified] = {**expected["boundaries"].pop(plain), "id": 1, "title": None}
+        observations.append(dict(field="definition.boundaries." + identified, expected_keyword=plain,
+            actual_keyword=identified, added_fields=dict(id=wall["id"], title=wall["title"]),
+            rule="exact_single_nonDISPLAY_wall_native_ID_representation", documented_R11_default=False,
+            source=_basis("wall_id"), calibration=copy.deepcopy(EXPORT_CALIBRATION),
+            scope="R11 permits RWID but gives no default; title comes from SDK, not that R11 table",
+            build_scope=OBSERVED_EXPORT_BUILDS[executable_sha256]))
+    return dict(strict_card_differences=strict, documented_default_writes=formats,
+                observed_representation=observations, differences=projection_differences(actual, expected),
+                source_definition_projection=source, native_expected_projection=expected,
+                native_definition_projection=actual, native_metadata=metadata,
+                general_ITS_semantics="unverified", typed_boundary_recognition="unverified", physical_response="not_run")
+
+
+def native_export_comparison(path, spec, executable_sha256):
+    metadata = {}
+    actual = snapshot(path, native_export=True, metadata=metadata)
+    return native_projection_comparison(actual, spec, metadata, executable_sha256)
 
 
 def _one_file(path):
@@ -393,7 +552,7 @@ def verify_native(prepared, identity):
                       if item.get("kind") == "keyword" and Path(item.get("path", "")) == readback]
         if len(registered) != 1 or registered[0].get("sha256") != sha(readback):
             raise ValueError("Exported definition lacks an exact registered artifact")
-        proof["differences"] = compare(readback, prepared["spec"])
+        proof.update(native_export_comparison(readback, prepared["spec"], executable_before["sha256"]))
         if proof["differences"]:
             raise ValueError("Exported definitions differ from handwritten expectations")
         if len(proof["native_job_ids"]) != 3 or len(set(proof["native_job_ids"])) != 3:

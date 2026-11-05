@@ -191,7 +191,10 @@ def test_fixture_expected_values_are_not_rewritten_by_comparison(prepared):
 
 @pytest.mark.parametrize("fault", [None, "save_failed", "wrong_saved_root", "normalized_saved",
                                   "stage_mutated", "raw_tree", "export_failed", "wrong_output", "cfg_changed",
-                                  "missing_before", "duplicate_observation"])
+                                  "missing_before", "duplicate_observation",
+                                  "documented_vid", "documented_icid", "documented_iv_card",
+                                  "documented_set_headers", "documented_curve_headers",
+                                  "observed_its_headers", "observed_wall_id", "complete_native_representation"])
 def test_simulated_api_chain_requires_actual_saved_tree_exact_stage_and_all_guards(tmp_path, monkeypatch, fault):
     """Synthetic receipts exercise the producer only; these are not native passes."""
     prepared = verifier.prepare_case(tmp_path / "case")
@@ -207,6 +210,8 @@ def test_simulated_api_chain_requires_actual_saved_tree_exact_stage_and_all_guar
     monkeypatch.setattr(verifier, "locate_config", lambda *a: config)
     monkeypatch.setattr(verifier, "require_installation", lambda *a: dict(version="4.13", version_source="file_version_resource"))
     monkeypatch.setattr(verifier, "require_capability", lambda *a: None)
+    if hasattr(verifier, "OBSERVED_EXPORT_BUILDS"):
+        monkeypatch.setitem(verifier.OBSERVED_EXPORT_BUILDS, verifier.sha(executable), "synthetic unit fixture, not native calibration")
 
     def job(action, engine=True):
         directory, manifest = service.jobs.create(action, {})
@@ -254,6 +259,8 @@ def test_simulated_api_chain_requires_actual_saved_tree_exact_stage_and_all_guar
             deck = KeywordDeck.load(output)
             deck.set(deck.blocks("*LOAD_BODY_Z")[0], "sf", 9.81)
             output.write_text(deck.main.text(), encoding="utf8")
+        if fault in NATIVE_FORMS:
+            write_native_form(output, fault)
         if fault == "cfg_changed":
             config.write_bytes(b"changed source configuration")
         value = result(manifest)
@@ -264,7 +271,7 @@ def test_simulated_api_chain_requires_actual_saved_tree_exact_stage_and_all_guar
 
     monkeypatch.setattr(service, "save_model", save)
     monkeypatch.setattr(service, "export_keyword", export)
-    if fault is None:
+    if fault is None or fault in NATIVE_FORMS:
         proof = verifier.verify_native(prepared, identity)
         assert proof["status"] == "passed" and len(proof["native_job_ids"]) == 3
         assert proof["saved_sha256"] == proof["staged_input_sha256"]
@@ -273,3 +280,243 @@ def test_simulated_api_chain_requires_actual_saved_tree_exact_stage_and_all_guar
             verifier.verify_native(prepared, identity)
         proof = json.loads((prepared["directory"] / "comparison.json").read_text(encoding="utf8"))
         assert proof["status"] == "failed"
+
+
+NATIVE_FORMS = {"documented_vid", "documented_icid", "documented_iv_card", "documented_set_headers",
+                "documented_curve_headers", "observed_its_headers", "observed_wall_id", "complete_native_representation"}
+
+
+def write_native_form(path, form="complete_native_representation"):
+    """Independent tiny writer fixture, following the predeclared manual tables."""
+    from ls_prepost_mcp.domain.model.cards import card_text
+
+    deck = KeywordDeck.load(path)
+    all_fields = form == "complete_native_representation"
+    if all_fields or form == "documented_vid":
+        deck.set(deck.blocks("*BOUNDARY_PRESCRIBED_MOTION_RIGID")[0], "vid", 0)
+    if all_fields or form == "documented_icid":
+        deck.set(deck.blocks("*INITIAL_VELOCITY_GENERATION")[0], "icid", 0)
+    if all_fields or form == "documented_iv_card":
+        block = deck.blocks("*INITIAL_VELOCITY_GENERATION")[0]
+        while block.lines[-1].strip() == "":
+            block.lines.pop()
+        block.lines.append("".join(f"{v:>10}" for v in (0., 0., 0., 0., 0., 0., 0, 0)) + "\n")
+        deck._layouts.clear()
+    if all_fields or form == "documented_set_headers":
+        for name in ("*SET_NODE_LIST", "*SET_PART_LIST"):
+            for block in deck.blocks(name):
+                for field in ("da1", "da2", "da3", "da4"):
+                    deck.set(block, field, 0.)
+                deck.set(block, "solver", "MECH")
+    if all_fields or form == "documented_curve_headers":
+        for block in deck.blocks("*DEFINE_CURVE"):
+            for field, value in dict(sidr=0, sfa=1., sfo=1., offa=0., offo=0., dattyp=0, lcint=0).items():
+                deck.set(block, field, value)
+    if all_fields or form == "observed_its_headers":
+        for name, value in (("*SET_NODE_LIST", 1), ("*SET_SEGMENT", 0)):
+            for block in deck.blocks(name):
+                deck.set(block, "its", value)
+    if all_fields or form == "observed_wall_id":
+        body = verifier.fixture()["expected"]["boundaries"]["*RIGIDWALL_PLANAR"]
+        deck.delete(deck.blocks("*RIGIDWALL_PLANAR")[0], force=True)
+        deck.insert(card_text("*RIGIDWALL_PLANAR_ID", {**body, "id": 1, "title": None}))
+    path.write_text(deck.main.text(), encoding="utf8", newline="\n")
+
+
+CALIBRATED_413 = "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
+
+
+@pytest.fixture(scope="module")
+def native_projection(prepared, tmp_path_factory):
+    directory = tmp_path_factory.mktemp("p05-writer-unit")
+    path = directory / "writer.k"
+    path.write_bytes(prepared["edited"].read_bytes())
+    write_native_form(path)
+    metadata = {}
+    actual = verifier.snapshot(path, native_export=True, metadata=metadata)
+    return path, actual, metadata, prepared["spec"]
+
+
+def native_result(native_projection, mutate=None, *, build=CALIBRATED_413):
+    _, actual, metadata, spec = native_projection
+    actual, metadata, spec = copy.deepcopy(actual), copy.deepcopy(metadata), copy.deepcopy(spec)
+    if mutate is not None:
+        mutate(actual, metadata, spec)
+    return verifier.native_projection_comparison(actual, spec, metadata, build)
+
+
+def test_all_raw_differences_and_new_fields_survive_the_native_representation_audit(native_projection):
+    proof = native_result(native_projection)
+    assert proof["differences"] == [] and proof["strict_card_differences"]
+    assert len(proof["documented_default_writes"]) == 37
+    assert len(proof["observed_representation"]) == 6
+    assert proof["general_ITS_semantics"] == "unverified"
+    assert proof["native_definition_projection"]["boundaries"]["*RIGIDWALL_PLANAR_ID"]["id"] == 1
+    assert proof["native_definition_projection"]["boundaries"]["*RIGIDWALL_PLANAR_ID"]["title"] is None
+    assert len(next(row for row in proof["documented_default_writes"] if row["rule"].endswith("card2"))["actual"]) == 8
+    node = proof["native_metadata"]["set_its"]["definition.node_sets.101.header.its"]
+    assert type(node["decoded_value"]) is int and node["decoded_value"] == 1
+    assert node["raw_token"] == "1" and node["ast_kind"] == "int" and node["sdk_declared_kind"] == "str"
+    assert node["sdk_declared_default"] == "1"
+    assert all(row["documented_R11_default"] is False for row in proof["observed_representation"])
+
+
+def test_default_offline_comparison_still_refuses_the_added_native_option(native_projection):
+    path, _, _, spec = native_projection
+    with pytest.raises(ValueError, match="Unverified"):
+        verifier.compare(path, spec)
+
+
+DEFAULT_SLOT_PATHS = [
+    ("boundaries", "*BOUNDARY_PRESCRIBED_MOTION_RIGID", "vid"),
+    ("boundaries", "*INITIAL_VELOCITY_GENERATION", "icid"),
+    *[("boundaries", "*INITIAL_VELOCITY_GENERATION", field) for field in ("xc", "yc", "zc", "nx", "ny", "nz", "phase", "irigid")],
+    *[(group, sid, "header", field) for group, ids in (("node_sets", ("101", "102", "103")), ("part_sets", ("301",)))
+      for sid in ids for field in ("da1", "da2", "da3", "da4", "solver")],
+    *[("curves", sid, "header", field) for sid in ("701", "702") for field in ("sidr", "sfa", "sfo", "offa", "offo", "dattyp", "lcint")],
+    *[(group, sid, "header", "its") for group, ids in (("node_sets", ("101", "102", "103")), ("segment_sets", ("201", "202"))) for sid in ids],
+    ("boundaries", "*RIGIDWALL_PLANAR_ID", "id"), ("boundaries", "*RIGIDWALL_PLANAR_ID", "title"),
+]
+
+
+def set_path(record, path, value, *, remove=False):
+    for key in path[:-1]:
+        record = record[key]
+    if remove:
+        record.pop(path[-1])
+    else:
+        record[path[-1]] = value
+
+
+@pytest.mark.parametrize("path", DEFAULT_SLOT_PATHS)
+def test_each_nondefault_written_slot_remains_a_difference(native_projection, path):
+    value = "UNEXPECTED" if path[-1] in ("title", "solver") else 3.25
+    proof = native_result(native_projection, lambda actual, *_: set_path(actual, path, value))
+    assert proof["differences"], path
+
+
+@pytest.mark.parametrize("field", ["xc", "yc", "zc", "nx", "ny", "nz", "phase", "irigid"])
+@pytest.mark.parametrize("value", [True, float("nan"), float("inf"), 1e-20])
+def test_added_initial_card_requires_all_exact_finite_defaults(native_projection, field, value):
+    proof = native_result(native_projection, lambda actual, *_: set_path(
+        actual, ("boundaries", "*INITIAL_VELOCITY_GENERATION", field), value))
+    assert proof["differences"]
+    assert not any(row["rule"].endswith("card2") for row in proof["documented_default_writes"])
+
+
+@pytest.mark.parametrize("field", ["xc", "yc", "zc", "nx", "ny", "nz", "phase", "irigid"])
+def test_a_partial_added_initial_card_is_not_normalized(native_projection, field):
+    proof = native_result(native_projection, lambda actual, *_: set_path(
+        actual, ("boundaries", "*INITIAL_VELOCITY_GENERATION", field), None, remove=True))
+    assert proof["differences"]
+    assert not any(row["rule"].endswith("card2") for row in proof["documented_default_writes"])
+
+
+@pytest.mark.parametrize("fault", ["extra_card_field", "source_partial_card", "motion_dof4", "motion_vad1",
+                                   "initial_styp2", "initial_id_changed", "initial_rotation", "source_missing_vid",
+                                   "source_missing_icid", "source_explicit_vid", "source_explicit_icid"])
+def test_documented_defaults_require_the_exact_owned_source_context(native_projection, fault):
+    def mutate(actual, metadata, spec):
+        motion, initial = "*BOUNDARY_PRESCRIBED_MOTION_RIGID", "*INITIAL_VELOCITY_GENERATION"
+        if fault == "extra_card_field":
+            actual["boundaries"][initial]["unverified"] = 0
+        elif fault == "source_partial_card":
+            spec["expected"]["boundaries"][initial]["xc"] = 0.
+        elif fault in ("motion_dof4", "motion_vad1", "initial_styp2", "initial_id_changed", "initial_rotation"):
+            keyword, field, value = {"motion_dof4": (motion, "dof", 4), "motion_vad1": (motion, "vad", 1),
+                "initial_styp2": (initial, "styp", 2), "initial_id_changed": (initial, "id", 10),
+                "initial_rotation": (initial, "omega", 2.)}[fault]
+            actual["boundaries"][keyword][field] = value
+            spec["expected"]["boundaries"][keyword][field] = value
+        elif fault.endswith("vid"):
+            fields, key = spec["expected"]["boundaries"][motion], "vid"
+            fields.pop(key) if "missing" in fault else fields.update(vid=4)
+        else:
+            fields, key = spec["expected"]["boundaries"][initial], "icid"
+            fields.pop(key) if "missing" in fault else fields.update(icid=4)
+
+    assert native_result(native_projection, mutate)["differences"]
+
+
+@pytest.mark.parametrize("group,sid,value", [("node_sets", "101", 1), ("segment_sets", "201", 0)])
+@pytest.mark.parametrize("fault", ["missing_record", "bool", "float", "string", "raw_plus", "raw_zeros",
+                                   "raw_other", "raw_float", "wrong_ast_kind", "wrong_sdk_kind", "wrong_sdk_hash",
+                                   "wrong_sdk_default", "missing_sdk_default"])
+def test_its_requires_exact_raw_ast_and_sdk_inventory(native_projection, group, sid, value, fault):
+    def mutate(actual, metadata, spec):
+        key = f"definition.{group}.{sid}.header.its"
+        detail = metadata["set_its"][key]
+        if fault == "missing_record":
+            metadata["set_its"].pop(key)
+        elif fault in ("bool", "float", "string"):
+            bad = {"bool": bool(value), "float": float(value), "string": str(value)}[fault]
+            actual[group][sid]["header"]["its"] = detail["decoded_value"] = bad
+        elif fault.startswith("raw_"):
+            raw = {"raw_plus": "+" + str(value), "raw_zeros": "0" + str(value), "raw_other": "3", "raw_float": f"{value}.0"}[fault]
+            detail.update(raw=raw, raw_token=raw)
+        elif fault == "wrong_ast_kind":
+            detail["ast_kind"] = "str"
+        elif fault == "wrong_sdk_kind":
+            detail["sdk_declared_kind"] = "other"
+        elif fault == "wrong_sdk_default":
+            detail["sdk_declared_default"] = 9
+        elif fault == "missing_sdk_default":
+            detail.pop("sdk_declared_default")
+        else:
+            detail["sdk_class_sha256"] = "0" * 64
+
+    assert native_result(native_projection, mutate)["differences"]
+
+
+@pytest.mark.parametrize("fault", ["no_include_false", "no_include_string", "unknown_build", "id_bool", "id_float",
+                                   "id_other", "title_changed", "title_missing", "body_changed", "body_missing",
+                                   "both_keywords", "display_keyword", "source_second_wall"])
+def test_observed_wall_representation_cannot_be_generalized(native_projection, fault):
+    def mutate(actual, metadata, spec):
+        plain, identified = "*RIGIDWALL_PLANAR", "*RIGIDWALL_PLANAR_ID"
+        wall = actual["boundaries"][identified]
+        if fault.startswith("no_include"):
+            metadata["single_file_no_include_or_cosim"] = False if fault.endswith("false") else "true"
+        elif fault in ("id_bool", "id_float", "id_other"):
+            wall["id"] = {"id_bool": True, "id_float": 1., "id_other": 2}[fault]
+        elif fault == "title_changed":
+            wall["title"] = "unrequested descriptor"
+        elif fault == "title_missing":
+            wall.pop("title")
+        elif fault == "body_changed":
+            wall["zt"] = 2.
+        elif fault == "body_missing":
+            wall.pop("nsid")
+        elif fault == "both_keywords":
+            actual["boundaries"][plain] = spec["expected"]["boundaries"][plain]
+        elif fault == "display_keyword":
+            actual["boundaries"][identified + "_DISPLAY"] = actual["boundaries"].pop(identified)
+        elif fault == "source_second_wall":
+            spec["expected"]["boundaries"][plain + "_DISPLAY"] = spec["expected"]["boundaries"][plain]
+
+    build = "0" * 64 if fault == "unknown_build" else CALIBRATED_413
+    proof = native_result(native_projection, mutate, build=build)
+    assert proof["differences"]
+    assert not any(row["rule"].startswith("exact_single") for row in proof["observed_representation"])
+
+
+def test_native_representation_never_rewrites_the_handwritten_source_oracle(native_projection):
+    _, actual, metadata, spec = native_projection
+    before = copy.deepcopy(spec)
+    fixture_sha = verifier.sha(verifier.FIXTURE)
+    proof = verifier.native_projection_comparison(actual, spec, metadata, CALIBRATED_413)
+    assert proof["differences"] == [] and spec == before and verifier.sha(verifier.FIXTURE) == fixture_sha
+    assert proof["source_definition_projection"]["node_sets"]["101"]["header"]["its"] is None
+    assert proof["native_expected_projection"]["node_sets"]["101"]["header"]["its"] == 1
+    assert "*RIGIDWALL_PLANAR" in proof["source_definition_projection"]["boundaries"]
+    assert "*RIGIDWALL_PLANAR_ID" in proof["native_expected_projection"]["boundaries"]
+    assert proof["source_definition_projection"]["boundaries"]["*INITIAL_VELOCITY_GENERATION"]["icid"] is None
+
+
+@pytest.mark.parametrize("suffix", ["_DISPLAY", "+", " garbage", ",UNVERIFIED"])
+def test_native_wall_option_is_exact_not_a_prefix_or_generic_id_strip(native_projection, tmp_path, suffix):
+    path = tmp_path / "wrong-option.k"
+    source = native_projection[0].read_text(encoding="utf8")
+    path.write_text(source.replace("*RIGIDWALL_PLANAR_ID\n", "*RIGIDWALL_PLANAR_ID" + suffix + "\n"), encoding="utf8")
+    with pytest.raises(ValueError, match="Unverified"):
+        verifier.native_export_comparison(path, native_projection[3], CALIBRATED_413)
