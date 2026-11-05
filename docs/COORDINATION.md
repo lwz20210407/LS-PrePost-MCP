@@ -20,10 +20,10 @@
 | Q05 | #156时程及#161限定4.13/default的beam轴力native_check均五项CI全绿合入；正式两样本26条力/时间差0、身份守卫通过；版本策略归统一能力表，仍partial |
 | Q06 | #160与#163已在各精确头五CI全绿后合入，#163进入49cd217；NODOUT九平动列6公共231147值、raw/unknown life与来源门禁已有，未原生仍L1；eroded_he有限审计不足以命名映射，保留gap |
 | I01 结果族 | #162已在6212430精确头五项CI全绿后合入d946f1e；raw路径分类及P11来源过期已修，a20两版P11/beam/标题真重跑，原门禁保留；仍partial |
-| P04 | #164已五CI合入ce8；新P04/I06 #168已合入main159；01a/ce76自有四节点三组成员单次原生通过，LIST/Gen顺序true而ADD false；完整注册表/具名回环与静态有限条件先闭合，950真实failed与d139 raw不改，不外推通用编号/Include/其他版本，仍partial，保留原实际源与失败历史 |
-| P12 | #165同be0两版三fixture共18个真实headless进程已收编，active run/checkpoint与40便携Git来源门禁锁定；中断后只fresh续跑未执行组，strict R1原差/format/semantic分列且双cfg守卫保持。仅单文件定义往返，typed识别/Include/运动学/R11仍未证，保持partial；待精确PR CI集成，不重启AO |
-| P02 / I07 / P11 | #166精确d9/run41979486002五SUCCESS已合main0598；FieldInfo.kind消费者修复、be324标题3capture/15pass/source8与P11 r2两版原12项/23进程已收编；原r1配置guard失败与writer未知保留，不称core I02或全局写隔离完成 |
-| P03 | 内部Agent已接独立树，复用六材料/两EOS与section/Part原子操作接T2配方；实现及真实检索来源刷新在推进，未发布或派发外部AI，不改变原验收/partial |
+| P04 | #168精确c9/正式41983364875五SUCCESS已合main15921；四owned节点/三sets有限成员成立、ADD order false。typed writes后1289另真复验413单1，旧01a/950/d139保留，private input与global passive分开，仍partial |
+| P12 | #165已按精确63b9/正式42005798693五SUCCESS合入main0c921；1289私有snapshot输入新六case/18进程已追加active，旧be0等不改；strict R1/格式分列，typed Joint识别与运动学仍未证，partial |
+| P02 / I07 / P11 | #166已合；#169 named setter修复源码eeff，actual1289/611d unified65已完成：P11双版46+P12双版18+P04单1，批准只读private input保持、globals仅passive，旧身份不改绑。标题eeff15/3同八源不重跑；本分支正收编待精确五CI，未升级done |
+| P03 | 内部Agent的六MAT/两EOS及JC复合T2接线已实现L1候选，discovery/index pin漂移P1修后6533有限10控制与实际wheel跨pin复核过；唯一公开all-keyword index/四冻结题集真实重放推进，不调题/排名、不宣称native物理或done |
 | I06 | #167独立历史hash口径P2已在精确689f764/正式41981372125五SUCCESS后合入main dba51d；旧raw SHA/原run/active指针不改，另记GitLF身份。P04新来源门禁与受限证据在本分支收尾，不夹无关P2 |
 
 Q01/Q05 及其他任务今后改为 done 前，须按用户安排完成独立审阅和原生证据抽查。当前不派发 AO 任务。

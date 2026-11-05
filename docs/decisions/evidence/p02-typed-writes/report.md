@@ -21,3 +21,12 @@
 本修复也有明确行为收紧：过去raw字符串绕过类型检查的表示不再由named整数setter接受。未被本次typed入口覆盖的未知布局或显式raw操作，不据此声称已作完整语义验证。
 
 当前新源P11/P12/P04原生来源刷新仍待完成，旧捕获保留原revision，不重绑为新代码。完成新的实际运行、七项检查和精确PR头五项CI后才能集成；没有升级任何任务为done。
+
+
+## 新实际1289来源刷新
+
+本轮实现/旧红/45回归/601WIP/56peer与eeff15/3标题oracle的真实身份保留，未改绑。新的native actual source是`1289eb4edadb77b71d3ee90928d3fec0716e8465`，source snapshot `611d3bbb306a082a370743dfe5e722ab0e847dc450d3a8185c7343216c3af2a8`。
+P11两版每12 assertions/23真实进程、各10success/1partial/1expectedfailed；P12两版各三case/9进程、semantic差异0而严格R1卡片差异独立保留；P04仅413自有四节点/三sets成员单case/1进程。按65唯一job事件计数，PID可重用，不把artifact或assertions当进程。
+
+实际source输入为immutable_private_snapshot（413 b07/410 d018）；每job source关系与SHA、完整源字节/stat、source40/相关14或10/exe/public守卫核对。globals只passive observation，可变化，未作为这轮配置input；不写全球保持或APPDATA隔离已证明。最早Root169 live410预检变化后0native停止也保留，未当成功case。
+见[P11新上下文](../p11-typed-writes-refresh/report.md)、[P12新选择](../p12-joint-readback/typed-writes-refresh-1289.md)及[P04新私有输入当前记录](../p04-typed-writes-refresh/report.md)。P04 ADD顺序仍不同，P12 typed识别/运动学未验；旧native对象全部保留。任务验收/状态/release不升级，仍需精确PR头正式五CI。
