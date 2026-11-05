@@ -160,9 +160,12 @@ tasks:
       - 绝对 Include/搜索目录的外部依赖修改后保真另存会明确拒绝，避免写出未被主文件引用的修改副本；未改外部子树显式保留，相对路径与 main-dir 回退仍可另存，绝对依赖的可移植路径重写尚未提供
       - 布局内部的 symlink/junction 目前明确拒绝另存，尚未实现链接物化/保真复制；写入失败可能在 job 内保留部分树或空目录，不能当作验证通过的产物
     notes:
+      - named数值写入按FieldInfo.kind在修改前校验；整数literal/精确数值与有限real、参数、blank默认及str路径明确分离，eeff host45/peer56通过，row空标识不再遗留内存半修改；新源原生来源复验待完成，不升级本项
       - P02/I07 的 FieldInfo.kind 消费者已按声明int精确匹配与比较，物理float及坐标阈值不变；be324有限peer123通过，完整模型546/1为提交前WIP另命令，原红12及合法比较4保留，不升级任务完成
       - P11 typed后r2两版各12断言/23真实进程及三标题oracle来源已实测刷新；r1全局410配置偏好变化仍为失败历史，不由新r2稳定推断全局写隔离已修
     evidence:
+      - tests/test_model_typed_writes.py
+      - docs/decisions/evidence/p02-typed-writes/report.md
       - docs/decisions/evidence/p02-typed-matching/report.md
       - tests/test_model_typed_matching.py
       - tests/test_model_typed_compare.py
