@@ -355,6 +355,7 @@ tasks:
       - 主文件 INCLUDE_PATH / INCLUDE_PATH_RELATIVE 与相对空搜索目录已有真实树读回；INCLUDE_TRANSFORM、opaque、参数化文件名与嵌套 INCLUDE_PATH_RELATIVE 仍拒绝；根目录已有 lspost.db 的树在原生启动前拒绝，防止覆盖资产
       - save_model 读取磁盘树而非 GUI 未保存编辑；GUI、4.8 与非 ASCII 另存文件名仍未验证；没有节点的模型仍被原生读取检查拒绝
     evidence:
+      - docs/decisions/evidence/p11-family-refresh/report.md
       - src/ls_prepost_mcp/model_save.py
       - tests/test_save_model.py
       - tests/test_save_model_native.py
@@ -552,7 +553,9 @@ tasks:
       - MPP 合并结果与单机结果一致性未验证：公开语料中没有同一模型的 MPP/SMP 成对算例（corpus:mpp_binout）；分片合并只有合成 LSDA 用例
       - 两份公开 ASCII 力文件已有 2952 个正例时间/数值对照；这不代表 binout 全库的 LSPP/LASSO 一致性，后者仍待完成
       - ASCII MATSUM已接5个具名能量列并在3公共源49460值逐值核对；直接MATSUM原生具名对照、更多布局/列仍缺，eroded_he尚无受支持映射且对应量明确拒绝；不可把共享GLSTAT回归当MATSUM原生证据
+      - ASCII NODOUT仅9个具名平动分量，保留原始节点ID/写出框架且删除有效性unknown；更多布局、坐标/转动导出和具名原生比较仍缺。合法MLP隐式指数下溢属产品float64表示限制，不当源错误或静默填0
     notes:
+      - NODOUT干净cdc1957在6公共正例54曲线231147值逐值一致；双表同step/time按平动/转动区分，转动只验完整性不导出，436相关/9跳过及两拒绝负例分计。无NODOUT原生记录，仍L1
       - 新增严格ASCII GLSTAT全局能量/时间步曲线，输入SHA前后绑定；6公开文件28曲线12123值相等。干净be51589及共享扫描后的0fffdda在4.13已登记样本kinetic/internal全101帧各通过；共享原始扫描保留Q12 nullable/wall策略，102项读取与两策略各4320项词法兼容；仅有限L2，不启用通用native_check
     evidence:
       - src/ls_prepost_mcp/domain/results/ascii_forces.py
@@ -572,6 +575,13 @@ tasks:
       - tests/test_ascii_matsum_corpus.py
       - tools/verify_ascii_matsum_corpus.py
       - docs/decisions/evidence/q06-ascii-matsum/report.md
+      - src/ls_prepost_mcp/domain/results/ascii_nodout.py
+      - tests/test_ascii_nodout_parser.py
+      - tests/test_ascii_nodout_database.py
+      - tests/test_ascii_nodout_evidence.py
+      - tests/test_ascii_nodout_corpus.py
+      - tools/verify_ascii_nodout_corpus.py
+      - docs/decisions/evidence/q06-ascii-nodout/report.md
     acceptance:
       - GLSTAT、MATSUM、RCFORC、SECFORC、NODOUT、ELOUT、SLEOUT、NODFOR、SPCFORC、RBDOUT、NCFORC、DEFORC 各一个用例
       - 按名称指定分量（不用 UI 编号）；返回单位与原始列名
@@ -1017,6 +1027,9 @@ infrastructure:
       - 原生 d3plot 输入超过 1000 文件或 2 GiB 时在启动前明确拒绝；两版原地只读回退实验均崩溃，暂不提供该回退
       - INCLUDE 引用总数上限已接入原生准入：默认 20000，按读取顺序计数，含重复子树与未解析引用；L1 启动前拒绝回归通过，不代表 I01 全项完成
       - 普通 Include 与主文件中的 INCLUDE_PATH/INCLUDE_PATH_RELATIVE 已通过自有临时副本规范化读取：4.13/4.10 各八例含 UTF-8/GBK 中文文件名、中文作业目录、SCL；公开 35656 节点模型两版均保存重开一致。参数化文件名、Transform/opaque 变体、嵌套 INCLUDE_PATH_RELATIVE 仍拒绝；4.8 本次仅 SCL 一例，不覆盖其 Python 环境
+      - 共享LASSO读取只支持与字面数字续文件一致的已锁定SDK候选；危险正则basename/设备/网络/无关越界链接明确拒绝，大族全内容SHA仍有IO成本，第三方SDK未新增统一时间或内存预算
+    notes:
+      - 结果族准入/统一factory与业务末尾成员和SHA复核已覆盖canonical及legacy读取；e5清洁产品两beam26条原生零差，f31三标题oracle含family真实依赖，其他GUI/队列/版本缺口不据此关闭
     evidence:
       - src/ls_prepost_mcp/engine/batch.py
       - src/ls_prepost_mcp/engine/session.py
@@ -1046,6 +1059,10 @@ infrastructure:
       - docs/decisions/evidence/i01-keyword-snapshot/report.md
       - tests/test_keyword_preflight_access_point.py
       - docs/decisions/evidence/i01-preflight-confinement-review02/report.md
+      - src/ls_prepost_mcp/domain/results/family.py
+      - tests/test_result_family_confinement.py
+      - docs/decisions/evidence/i01-result-family/report.md
+      - docs/decisions/evidence/p11-family-refresh/report.md
     acceptance:
       - 现有 5 个批处理调用方与 GUI 会话统一到 Engine.run(job) -> JobResult
       - 删除 gui_session_action 中运行时替换 _native 的做法

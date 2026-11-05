@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import sys
+from contextlib import ExitStack
 
 import numpy as np
 
@@ -10,6 +12,7 @@ from .core.contracts import Artifact, CheckResult, JobResult
 from .domain.results import export as exp
 from .domain.results import invariants as inv
 from .domain.results import lasso_backend as lb
+from .domain.results.family import reading_family
 from .jobs import atomic_json
 
 
@@ -56,7 +59,8 @@ def _native_agreement(service, source, raw, selector):
             "sampling": "numerical agreement for this explicit selection; no general shell layer remapping"}
 
 
-def tensor_field(service, path, family, state, mask, units, output_format, parts, native_check, stored_point, native_sampling):
+def tensor_field(service, path, family, state, mask, units, output_format, parts, native_check, stored_point, native_sampling,
+                 source_identity=None):
     if not isinstance(units, str) or not units.strip() or len(units) > 100:
         raise ValueError("Six-component stress extraction requires explicit units (up to 100 characters)")
     if native_check:
@@ -65,18 +69,21 @@ def tensor_field(service, path, family, state, mask, units, output_format, parts
         SamplingSpec.native_fields(family, native_sampling, ["stress_x"])
     elif native_sampling != "mid":
         raise ValueError("native_sampling requires native_check=true")
-    source = service.settings.input_path(path)
+    source = service._result_source(path)
     with service._guard():
-        sources = service._result_family(str(source))
-        before = {str(p): _sha(p) for p in sources}
+        service._result_family(str(source))
+        source_identity = source_identity or service._result_plan(str(source)).capture()
+        before = {row["path"]: row["sha256"] for row in source_identity.records}
     parameters = dict(path=str(source), family=family, quantity="stress", state=state, mask=mask,
                       units=units, output_format=output_format, part_ids=parts, native_check=native_check,
                       stored_point=stored_point, native_sampling=native_sampling)
     directory, manifest = service.jobs.create("extract_field", parameters)
     manifest["inputs"] = [{"path": path, "sha256": sha} for path, sha in before.items()]
     artifacts, checks, data = [], [], {}
+    reader_scope = ExitStack()
     try:
         with service._guard():
+            reader_scope.enter_context(reading_family(source, snapshot=source_identity))
             raw = lb.field(source, family, "stress", state=-1 if state == -1 else state-1, mask=mask,
                            part_ids=parts, stored_point=stored_point)
         ids = np.asarray(raw["ids"])
@@ -124,17 +131,20 @@ def tensor_field(service, path, family, state, mask, units, output_format, parts
             artifacts.append(Artifact(path=str(output), kind=fmt, sha256=exported["sha256"],
                                       size_bytes=output.stat().st_size, verification="verified", metadata=exported["meta"]))
         with service._guard():
-            after = {str(p): _sha(p) for p in service._result_family(str(source))}
-        if before != after:
-            raise ValueError("Input result family changed during tensor extraction")
+            reader_scope.close()
         checks.extend(CheckResult(name=name, status="passed") for name in ("input_family_unchanged", "mask_applied"))
         result = JobResult(operation="extract_field", status="succeeded", backend=lb.backend(),
                            job_id=manifest["job_id"], data=data, checks=tuple(checks), artifacts=tuple(artifacts),
                            scope="Six stored stress components; explicit sampling/frame in metadata; no coordinate transform")
     except Exception as error:
+        with service._guard():
+            reader_scope.__exit__(*sys.exc_info())
         result = JobResult(operation="extract_field", status="failed", backend=lb.backend(),
                            job_id=manifest["job_id"], data=data,
                            error={"type": type(error).__name__, "message": str(error) or type(error).__name__})
+    finally:
+        with service._guard():
+            reader_scope.__exit__(*sys.exc_info())
     payload = result.model_dump(mode="json")
     atomic_json(directory / "job.json", {**manifest, "status": result.status, "result": payload})
     return payload

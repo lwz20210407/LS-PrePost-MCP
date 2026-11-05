@@ -111,15 +111,25 @@ class PostTools(CurveTargetTools):
         return native_ascii(self.settings, self.jobs, self.settings.input_path(path), database, component, entity_id, units, side)
 
     def _post_job(self, action, parameters, sources, callback):
+        from .domain.results.family import reading_family
+
         units = parameters.get("units", "")
         if not isinstance(units, str) or not units.strip() or len(units) > 100:
             raise ValueError("Explicit unit-system label required")
         directory, manifest = self.jobs.create(action, parameters)
-        manifest["inputs"] = [fingerprint(p) for p in sources]
+        result_family = action in {"inspect_result_validity", "extract_d3plot_field", "extract_d3plot_stress"}
+        if not result_family:
+            manifest["inputs"] = [fingerprint(p) for p in sources]
         try:
-            data, artifacts = callback(directory)
-            if [fingerprint(p) for p in sources] != manifest["inputs"]:
-                raise RuntimeError("Source changed during extraction")
+            if result_family:
+                plan = self._result_plan(str(sources[0]))
+                with self._guard(), reading_family(sources[0], guard=plan.guard) as reader:
+                    manifest["inputs"] = list(reader.snapshot.records)
+                    data, artifacts = callback(directory)
+            else:
+                data, artifacts = callback(directory)
+                if [fingerprint(p) for p in sources] != manifest["inputs"]:
+                    raise RuntimeError("Source changed during extraction")
             manifest.update(status="succeeded", data=data, artifacts=artifacts)
         except Exception as exc:
             manifest.update(status="failed", error={"type": type(exc).__name__, "message": str(exc)})
@@ -127,11 +137,36 @@ class PostTools(CurveTargetTools):
         atomic_json(directory / "job.json", manifest)
         return manifest
 
+    def _result_source(self, path):
+        from pathlib import Path
+
+        from .domain.model import access
+
+        candidate = Path(access.local_path_text(str(path))).expanduser()
+        if not candidate.is_absolute():
+            candidate = self.settings.workspace / candidate
+        guard = access.root_guard((self.settings.workspace, *self.settings.allowed_roots))
+        try:
+            guard(candidate)
+        except access.OutsideRoots as error:
+            raise ValueError(str(error).replace("outside the allowed roots", "outside the configured allowed roots")) from error
+        return self.settings.input_path(str(candidate))
+
+    def _result_plan(self, path):
+        from .domain.model import access
+        from .domain.results.family import plan_family
+
+        source = self._result_source(path)
+        guard = access.root_guard((self.settings.workspace, *self.settings.allowed_roots))
+        with self._guard():
+            family = plan_family(source, guard)
+            for candidate in family.paths:
+                self.settings.input_path(str(candidate))
+        return family
+
     def _result_family(self, path):
-        source = self.settings.input_path(path)
-        family = [source] + sorted(p for p in source.parent.iterdir()
-                                   if p.name.startswith(source.name) and p.name[len(source.name):].isdigit())
-        return [self.settings.input_path(str(p)) for p in family]
+        family = self._result_plan(path)
+        return list(family.paths)
 
     def compute_stress_invariants(self, stresses: list[list[float]], units: str,
                                   relative_tolerance: float = 1e-12) -> dict:
@@ -177,28 +212,33 @@ class PostTools(CurveTargetTools):
     def inspect_result_fields(self, path: str, state: int = 1) -> dict:
         """Inventory LASSO fields at one 1-based state, stored axis sizes and bounded user-ID samples. Missing fields cannot be reconstructed."""
         from lasso.dyna import ArrayType
-        source = self.settings.input_path(path)
-        db, _ = selected_database(source, [state], ArrayType.get_state_array_names())
-        fields = []
-        for key, value in db.arrays.items():
-            try:
-                domain = field_domain(key)
-            except ValueError:
-                continue
-            entry = {"field": key, "domain": domain, "shape": list(value.shape),
-                     "component_frame": "as_stored; no coordinate transformation"}
-            try:
-                if domain != "global":
-                    uids = result_ids(db.arrays, domain, value.shape[1])
-                    entry.update(id_sample=[int(i) for i in uids[:50]], trailing_axis_sizes=list(value.shape[2:]))
-                else:
-                    entry["trailing_axis_sizes"] = list(value.shape[1:])
-                entry["extractable"] = True
-            except (ValueError, KeyError, IndexError) as exc:
-                entry.update(extractable=False, reason=str(exc))
-            fields.append(entry)
-        return {"backend": "lasso", "state": state, "time": float(db.arrays["timesteps"][0]), "fields": fields,
-                "selection": "slot indices are 1-based stored indices; no shell top/bottom or material-history meaning inferred"}
+
+        from .domain.results.family import reading_family
+
+        plan = self._result_plan(path)
+        source = plan.source
+        with self._guard(), reading_family(source, guard=plan.guard):
+            db, _ = selected_database(source, [state], ArrayType.get_state_array_names())
+            fields = []
+            for key, value in db.arrays.items():
+                try:
+                    domain = field_domain(key)
+                except ValueError:
+                    continue
+                entry = {"field": key, "domain": domain, "shape": list(value.shape),
+                         "component_frame": "as_stored; no coordinate transformation"}
+                try:
+                    if domain != "global":
+                        uids = result_ids(db.arrays, domain, value.shape[1])
+                        entry.update(id_sample=[int(i) for i in uids[:50]], trailing_axis_sizes=list(value.shape[2:]))
+                    else:
+                        entry["trailing_axis_sizes"] = list(value.shape[1:])
+                    entry["extractable"] = True
+                except (ValueError, KeyError, IndexError) as exc:
+                    entry.update(extractable=False, reason=str(exc))
+                fields.append(entry)
+            return {"backend": "lasso", "state": state, "time": float(db.arrays["timesteps"][0]), "fields": fields,
+                    "selection": "slot indices are 1-based stored indices; no shell top/bottom or material-history meaning inferred"}
 
     def extract_d3plot_field(self, path: str, field: str, states: list[StrictInt], units: str,
                              entity_ids: list[StrictInt] | None = None,

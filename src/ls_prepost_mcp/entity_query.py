@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import re
+import sys
+from contextlib import ExitStack
 
 import numpy as np
 
@@ -13,6 +15,7 @@ from .domain.model import KeywordDeck, geometry
 from .domain.model.operations import inspect_loaded_deck
 from .domain.model.selectors import resolve
 from .domain.results import lasso_backend as lb
+from .domain.results.family import reading_family
 from .jobs import atomic_json
 from .post_backend import selected_database
 
@@ -144,7 +147,7 @@ def query_entities(service, path, selector, source_kind, state, quantity, units)
         raise ValueError("Unknown entity-query source_kind")
     if source_kind == "keyword" and (state is not None or quantity is not None):
         raise ValueError("Keyword identity has reference geometry only; state results require d3plot")
-    source = service.settings.input_path(path)
+    source = service._result_source(path) if source_kind == "d3plot" else service.settings.input_path(path)
     directory, manifest = service.jobs.create(
         "query_entities",
         dict(
@@ -157,6 +160,7 @@ def query_entities(service, path, selector, source_kind, state, quantity, units)
         ),
     )
     data = {}
+    reader_scope = ExitStack()
     try:
         warnings = set()
         with service._guard():
@@ -191,7 +195,9 @@ def query_entities(service, path, selector, source_kind, state, quantity, units)
                 arrays = None
             else:
                 files = service._result_family(str(source))
-                before = {str(p): _sha(p) for p in files}
+                identity = service._result_plan(str(source)).capture()
+                before = {row["path"]: row["sha256"] for row in identity.records}
+                reader_scope.enter_context(reading_family(source, snapshot=identity))
                 if chosen.predicate.kind != "ids":
                     raise ValueError(
                         "Result identification currently requires explicit ID predicates; other predicates belong to G03"
@@ -283,7 +289,11 @@ def query_entities(service, path, selector, source_kind, state, quantity, units)
                         "backend": lb.backend(),
                         "sampling": result.get("note", "as stored"),
                     }
-            after = {str(p): _sha(p) for p in files}
+            if source_kind == "d3plot":
+                reader_scope.close()
+                after = before
+            else:
+                after = {str(p): _sha(p) for p in files}
             if before != after:
                 raise ValueError("Entity source files changed during identification")
         manifest["inputs"] = [{"path": p, "sha256": sha} for p, sha in before.items()]
@@ -318,6 +328,8 @@ def query_entities(service, path, selector, source_kind, state, quantity, units)
             scope="Disk entities; no GUI visibility or source mutation",
         )
     except Exception as error:
+        with service._guard():
+            reader_scope.__exit__(*sys.exc_info())
         result = JobResult(
             operation="query_entities",
             status="failed",
@@ -326,6 +338,9 @@ def query_entities(service, path, selector, source_kind, state, quantity, units)
             data={},
             error={"type": type(error).__name__, "message": str(error).strip() or type(error).__name__},
         )
+    finally:
+        with service._guard():
+            reader_scope.__exit__(*sys.exc_info())
     payload = result.model_dump(mode="json")
     atomic_json(directory / "job.json", {**manifest, "status": result.status, "result": payload})
     return payload

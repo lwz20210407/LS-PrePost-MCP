@@ -5,12 +5,15 @@ from __future__ import annotations
 import csv
 import hashlib
 import re
+import sys
+from contextlib import ExitStack
 
 import numpy as np
 
 from .core.contracts import Artifact, CheckResult, CurveSpec, FileIdentity, JobResult, ModelRef
 from .core.validation import unit_label
 from .domain.results import lasso_backend as lb
+from .domain.results.family import reading_family
 from .jobs import atomic_json
 from .post_backend import write_csv
 from .units import Unit
@@ -25,8 +28,8 @@ def _sha(path):
 
 def _sources(service, path, kind):
     if kind == "d3plot":
-        source = service.settings.input_path(path)
-        return source, service._result_family(str(source))
+        family = service._result_family(path)
+        return family[0], family
     from .domain.results.mpp_shards import lasso_reads, shards
 
     source = service._database_source(path)
@@ -224,7 +227,7 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
     if beam_native:
         # Validate the requested resource without enumerating or hashing its family.
         with service._guard():
-            admitted_source = service.settings.input_path(path)
+            admitted_source = service._result_source(path)
         if not beam_force:
             raise ValueError("Native beam history comparison is unsupported for this quantity; only axial_force is admitted")
         if native_sampling != "default":
@@ -244,12 +247,14 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
 
             if exceeds_staging_limit(family):
                 raise ValueError("Native read-only staging limit: 1000 files / 2 GiB")
-            preview_times = np.asarray(lb.state_times(source), dtype=float)
+            preview_times = np.asarray(lb._admission_state_times(source), dtype=float)
             if preview_times.ndim != 1 or not 1 <= preview_times.size <= 1000:
                 raise ValueError("Native history comparison supports 1..1000 states")
             if not np.all(np.isfinite(preview_times)) or np.any(np.diff(preview_times) < 0):
                 raise ValueError("History requires finite nondecreasing state times")
-        before = {str(p): _sha(p) for p in family}
+        source_identity = service._result_plan(str(source)).capture() if source_kind == "d3plot" else None
+        before = ({row["path"]: row["sha256"] for row in source_identity.records} if source_identity
+                  else {str(p): _sha(p) for p in family})
         identities = tuple(
             FileIdentity(path=str(p), sha256=before[str(p)], size_bytes=p.stat().st_size) for p in family
         )
@@ -281,8 +286,11 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
     data, artifacts, warnings = {}, [], []
     if "caller_declared_unverified" in unit_validation.values():
         warnings.append("Custom beam force/time unit labels retained without dimensional verification or conversion")
+    reader_scope = ExitStack()
     try:
         with service._guard():
+            if source_identity is not None:
+                reader_scope.enter_context(reading_family(source, snapshot=source_identity))
             records = (
                 (lb.history(source, domain, quantity, ids) if stored_point is None else
                  lb.history(source, domain, quantity, ids, stored_point=stored_point))
@@ -405,8 +413,12 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
                 }
             )
         with service._guard():
-            _, after_family = _sources(service, path, source_kind)
-            after = {str(p): _sha(p) for p in after_family}
+            if source_identity is not None:
+                reader_scope.close()
+                after = before  # scope verified membership, resolved targets, metadata and SHA
+            else:
+                _, after_family = _sources(service, path, source_kind)
+                after = {str(p): _sha(p) for p in after_family}
         if before != after or any(_sha(service.settings.input_path(a.path)) != a.sha256 for a in artifacts):
             raise ValueError("History inputs or outputs changed during extraction")
         data = dict(
@@ -437,6 +449,8 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
             scope="Stored histories; shared merge policy reported; no unit conversion or added resampling",
         )
     except Exception as error:
+        with service._guard():
+            reader_scope.__exit__(*sys.exc_info())
         result = JobResult(
             operation="extract_history",
             status="failed",
@@ -445,6 +459,9 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
             data=data,
             error={"type": type(error).__name__, "message": str(error) or type(error).__name__},
         )
+    finally:
+        with service._guard():
+            reader_scope.__exit__(*sys.exc_info())
     payload = result.model_dump(mode="json")
     atomic_json(directory / "job.json", {**manifest, "status": result.status, "result": payload})
     return payload
