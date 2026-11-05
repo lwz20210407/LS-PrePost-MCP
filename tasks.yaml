@@ -399,11 +399,16 @@ tasks:
     depends_on: [P04]
     status: partial
     existing: [create_entities, check_model]
+    notes:
+      - 九类 add_joint 与双向刚体 Part/已有节点刚体/新节点刚体连接已有实现；本轮修复无损身份校验、CNRB 大 PID 精确查找及合并 MOTOR_ID 卡片边界
+      - docs/decisions/evidence/p12-joint-readback/report.md 登记同 be0 源的 4.13/4.10 各三份自有单文件定义往返，六 case 共 18 个真实 headless 进程；按手工预置核对节点、Part/连接、Joint 字段、集合及曲线，R1 严格原差与窄格式分类分列，40 来源仅为 provenance 而非全功能覆盖
+      - 原控制器在前两组成功后遇只读库存超时，新目录只续跑剩余四组；源码与双版本配置字节/stat 保持，原失败和各实际 revision 不重绑；活动 run/checkpoint 独立选择
+      - docs/decisions/evidence/p12 的 R11 解析解、官方示例与真实模型检查保留原历史；不能据此宣称当前源码的运动学或所有真实模型已复验
     gaps:
-      - 九类运动副（球铰、转动、圆柱、平面、万向、移动、锁定、转动电机、移动电机）由 add_joint 写出；两侧可为刚体 Part（额外节点）、已有节点刚体，或由所选节点新建的节点刚体
-      - 证据在 docs/decisions/evidence/p12：R11 解析解算例；5 个官方示例删除原运动副后重建，4 个逐值相同、1 个动能差 1e-6；真实模型检查的误报已清零
-      - 由所选节点新建节点刚体（变形体一侧）只有单元测试，尚无 R11 算例
-      - 未做：*CONSTRAINED_JOINT_STIFFNESS（限位、摩擦）的创建；齿轮、齿条、滑轮、螺旋、等速、HARMONIC 只登记，不做几何检查；LSPP 原生重开核对（P11）
+      - 仅验证普通单文件关键字定义保存/实际重开/导出往返；Include 树、typed Joint 原生对象识别、GUI 会话及其他版本仍未覆盖
+      - 当前源码的运动学/R11 与所选变形体节点新建节点刚体的动态算例尚未完成；广泛真实模型误报和过约束仍需相应复核
+      - 未做：*CONSTRAINED_JOINT_STIFFNESS（限位、摩擦）的创建；齿轮、齿条、滑轮、螺旋、等速、HARMONIC 只登记，不做几何检查
+    evidence: [src/ls_prepost_mcp/domain/model/joints.py, src/ls_prepost_mcp/domain/model/joint_checks.py, tests/test_joint_identity_inputs.py, tests/test_joint_exact_body_lookup.py, tests/test_joint_instance_reader.py, tests/test_joint_native_format.py, tests/test_joint_source_identity.py, tests/test_joint_native_readback.py, tests/test_joint_readback_evidence.py, tools/verify_p12_joint_roundtrip.py, docs/decisions/evidence/p12-joint-readback/report.md, docs/decisions/evidence/p12/report.md]
     acceptance:
       - 九类运动副各一个配方，节点对按 R17 Vol I *CONSTRAINED_JOINT 的规则放置，两侧刚体归属正确，引用检查通过
       - 每类运动副的 R11 算例与解析解或官方示例一致，运动学量误差小于 1%
