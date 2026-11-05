@@ -416,15 +416,20 @@ class Service(EnergyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTool
 
     def inspect_d3plot_database(self, path: str) -> dict:
         """Read file metadata through optional LASSO, without launching LS-PrePost."""
+        from .domain.results.family import reading_family
+
+        plan = self._result_plan(path)
+        source = plan.source
         from lasso.dyna import D3plot
-        source = self.settings.input_path(path)
-        db = D3plot(str(source), state_array_filter=["timesteps"], buffered_reading=True)
-        times = validate_d3plot_times(db.arrays.get("timesteps", []))
-        return {"backend": "lasso", "source": str(source), "node_count": int(db.header.n_nodes),
-                "shell_count": int(db.header.n_shells), "solid_count": int(db.header.n_solids),
-                "state_count": len(times), "state_times": [float(t) for t in times[:10000]],
-                "time_list_truncated": len(times) > 10000,
-                "array_shapes": {str(k): list(v.shape) for k, v in db.arrays.items()}}
+
+        with self._guard(), reading_family(source, guard=plan.guard) as reader:
+            db = reader.open(constructor=D3plot, state_array_filter=["timesteps"], buffered_reading=True)
+            times = validate_d3plot_times(db.arrays.get("timesteps", []))
+            return {"backend": "lasso", "source": str(source), "node_count": int(db.header.n_nodes),
+                    "shell_count": int(db.header.n_shells), "solid_count": int(db.header.n_solids),
+                    "state_count": len(times), "state_times": [float(t) for t in times[:10000]],
+                    "time_list_truncated": len(times) > 10000,
+                    "array_shapes": {str(k): list(v.shape) for k, v in db.arrays.items()}}
 
     def inspect_keyword_deck(self, model: str) -> dict:
         """Inventory a deck using PyDYNA; no solver or include expansion is performed."""
@@ -520,7 +525,8 @@ class Service(EnergyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTool
         import csv
 
         import numpy as np
-        from lasso.dyna import D3plot
+
+        from .domain.results.family import reading_family
         if quantity not in ("displacement", "velocity"):
             raise ValueError("LASSO vector quantity must be displacement or velocity")
         if not node_ids or not states or len(node_ids) * len(states) > 100000:
@@ -529,31 +535,37 @@ class Service(EnergyTools, FieldMetricsTools, RecipeTools, ScriptTools, PostTool
         native_states = [integer(i, "state") for i in states]
         if len(set(ids_requested)) != len(ids_requested) or len(set(native_states)) != len(native_states):
             raise ValueError("Duplicate IDs or states")
-        source = self.settings.input_path(path)
+        plan = self._result_plan(path)
+        source = plan.source
+        from lasso.dyna import D3plot
+
         directory, manifest = self.jobs.create("extract_d3plot_nodal", {"backend": "lasso", "quantity": quantity,
                           "node_ids": ids_requested, "states": native_states, "units": unit_label(units)})
         try:
-            key = "node_" + quantity
-            db = D3plot(str(source), state_array_filter=[key, "timesteps"], buffered_reading=True)
-            times = validate_d3plot_times(db.arrays["timesteps"])
-            vectors = lasso_vectors(db.arrays, quantity)
-            user_ids = np.asarray(db.arrays["node_ids"])
-            if vectors.ndim != 3 or vectors.shape != (len(times), len(user_ids), 3):
-                raise ValueError("Unexpected nodal result dimensions")
-            if max(native_states) > len(times):
-                raise ValueError("Requested state is not in the database")
-            lookup = {int(uid): i for i, uid in enumerate(user_ids)}
-            if any(uid not in lookup for uid in ids_requested):
-                raise ValueError("Requested user node ID is not in the database")
-            output = directory / "nodal.csv"
-            with output.open("w", newline="", encoding="utf-8") as f:
-                writer = csv.writer(f)
-                writer.writerow(["state", "time", "node_id", "x", "y", "z", "magnitude"])
-                for state in native_states:
-                    for uid in ids_requested:
-                        vec = vectors[state - 1, lookup[uid]]
-                        writer.writerow([state, float(times[state - 1]), uid, *vec, float(np.linalg.norm(vec))])
-            manifest.update(status="succeeded", artifacts=[check_artifact(output, "csv")],
+            with self._guard(), reading_family(source, guard=plan.guard) as reader:
+                manifest["inputs"] = list(reader.snapshot.records)
+                key = "node_" + quantity
+                db = reader.open(constructor=D3plot, state_array_filter=[key, "timesteps"], buffered_reading=True)
+                times = validate_d3plot_times(db.arrays["timesteps"])
+                vectors = lasso_vectors(db.arrays, quantity)
+                user_ids = np.asarray(db.arrays["node_ids"])
+                if vectors.ndim != 3 or vectors.shape != (len(times), len(user_ids), 3):
+                    raise ValueError("Unexpected nodal result dimensions")
+                if max(native_states) > len(times):
+                    raise ValueError("Requested state is not in the database")
+                lookup = {int(uid): i for i, uid in enumerate(user_ids)}
+                if any(uid not in lookup for uid in ids_requested):
+                    raise ValueError("Requested user node ID is not in the database")
+                output = directory / "nodal.csv"
+                with output.open("w", newline="", encoding="utf-8") as f:
+                    writer = csv.writer(f)
+                    writer.writerow(["state", "time", "node_id", "x", "y", "z", "magnitude"])
+                    for state in native_states:
+                        for uid in ids_requested:
+                            vec = vectors[state - 1, lookup[uid]]
+                            writer.writerow([state, float(times[state - 1]), uid, *vec, float(np.linalg.norm(vec))])
+                artifact = check_artifact(output, "csv")
+            manifest.update(status="succeeded", artifacts=[artifact],
                             data={"row_count": len(native_states)*len(ids_requested), "id_kind": "user",
                                   "state_index_base": 1, "backend": "lasso", "quantity": quantity,
                                   "displacement_reference": "initial_geometry" if quantity == "displacement" else None})

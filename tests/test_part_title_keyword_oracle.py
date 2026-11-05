@@ -62,7 +62,8 @@ def test_real_result_titles_match_paired_keyword_parts(corpus_id, keyword):
                 expected[int(pid)] = deck.get(block, "heading", row=pid).value.strip()
         elif block.name == "*PART_CONTACT":
             expected[int(deck.get(block, "pid").value)] = deck.get(block, "title").value.strip()
-    arrays = lb._arrays(directory / "d3plot", state_arrays=["timesteps"])
+    with access.confined(public_path):
+        arrays = lb._arrays(directory / "d3plot", state_arrays=["timesteps"])
     actual, warnings = lb._part_titles(arrays)
     ids = [int(p) for p in arrays["part_ids"]]
     assert set(ids) <= set(expected), (
@@ -81,6 +82,7 @@ def test_real_result_titles_match_paired_keyword_parts(corpus_id, keyword):
         assert not subprocess.check_output(["git", "status", "--porcelain"], cwd=repo)
         product_paths = [
             "src/ls_prepost_mcp/domain/results/lasso_backend.py",
+            "src/ls_prepost_mcp/domain/results/family.py",
             "src/ls_prepost_mcp/result_overview.py",
             "src/ls_prepost_mcp/domain/model/deck.py",
             "src/ls_prepost_mcp/domain/model/fields.py",
