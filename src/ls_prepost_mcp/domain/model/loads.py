@@ -15,6 +15,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from . import geometry, selectors, sets
+from ._identity import exact_integer
 from .cards import insert_card
 from .fields import FieldError, single_line
 
@@ -25,43 +26,68 @@ DOFS = {"x": 1, "y": 2, "z": 3, "rx": 5, "ry": 6, "rz": 7}
 MOTION = {"velocity": 0, "acceleration": 1, "displacement": 2}
 
 
-def _node_set(deck: KeywordDeck, target: dict) -> int:
-    if "node_set" in target:
-        from .node_sets import NodeSets, integer
+def _node_target(deck: KeywordDeck, target: dict) -> dict:
+    """Resolve and validate with existing readers before allocating dependencies."""
+    from .node_sets import NodeSets, integer
 
+    if "node_set" in target:
         sid = integer(target["node_set"], "Node set SID", positive=True)
         if sid not in deck.references(False).defined.get("node_set", set()):
             raise FieldError(f"Node set {sid} is not defined")
         if not NodeSets(deck).resolve(sid):
             raise FieldError("The target node set selects no nodes")
-        return sid
+        return {"node_set": sid}
     if "selector" in target:
         chosen = selectors.selector(target["selector"])
         if chosen.entity_type != "node":
             raise FieldError("A load or boundary target Selector must select nodes")
         ids = selectors.resolve(deck, chosen).tolist()
     else:
-        ids = target["nodes"] if "nodes" in target else geometry.select_nodes(deck, **target["select"]).tolist()
+        select = dict(target.get("select") or {})
+        if "parts" in select:
+            select["parts"] = [exact_integer(value, "Selected Part ID") for value in select["parts"]]
+        ids = target["nodes"] if "nodes" in target else geometry.select_nodes(deck, **select).tolist()
+    ids = [integer(value, "Target node ID", positive=True) for value in ids]
     if not ids:
         raise FieldError("The target selects no nodes")
-    return sets.create_set(deck, "node", ids, title=target.get("title"))[0]
+    return {"nodes": ids, "title": target.get("title")}
+
+
+def _node_set(deck: KeywordDeck, target: dict) -> int:
+    target = _node_target(deck, target)
+    if "node_set" in target:
+        return target["node_set"]
+    return sets.create_set(deck, "node", target["nodes"], title=target.get("title"))[0]
+
+
+def _segment_target(deck: KeywordDeck, target: dict) -> dict:
+    if "segment_set" in target:
+        sid = exact_integer(target["segment_set"], "Segment set SID")
+        if sid not in deck.references(False).defined.get("segment_set", set()):
+            raise FieldError(f"Segment set {sid} is not defined")
+        return {"segment_set": sid}
+    exterior = dict(target.get("exterior") or {})
+    if "parts" in exterior:
+        exterior["parts"] = [exact_integer(value, "Exterior Part ID") for value in exterior["parts"]]
+    rows = target["segments"] if "segments" in target else geometry.exterior_segments(deck, **exterior).tolist()
+    rows = [[exact_integer(value, "Segment node ID") for value in row] for row in rows]
+    if not rows:
+        raise FieldError("The segment target selects no segments")
+    return {"segments": rows, "title": target.get("title")}
 
 
 def _segment_set(deck: KeywordDeck, target: dict) -> int:
+    target = _segment_target(deck, target)
     if "segment_set" in target:
-        sid = int(target["segment_set"])
-        if sid not in deck.references(False).defined.get("segment_set", set()):
-            raise FieldError(f"Segment set {sid} is not defined")
-        return sid
-    rows = target["segments"] if "segments" in target else geometry.exterior_segments(deck, **target["exterior"]).tolist()
-    return sets.create_set(deck, "segment", rows, title=target.get("title"))[0]
+        return target["segment_set"]
+    return sets.create_set(deck, "segment", target["segments"], title=target.get("title"))[0]
 
 
 def ensure_curve(deck: KeywordDeck, spec: dict) -> int:
     """Existing curve ID, or a new *DEFINE_CURVE from ``points`` (next free ID)."""
     defined = deck.references(False).defined.get("curve", set())
     if "lcid" in spec:
-        lcid = int(spec["lcid"])
+        lcid = exact_integer(spec["lcid"], "Curve LCID")
         if lcid not in defined:
             raise FieldError(f"Curve {lcid} is not defined")
         return lcid
@@ -86,6 +112,7 @@ def add_spc(deck: KeywordDeck, target: dict, dofs: list[str] | str, cid: int = 0
     wanted = set(DOFS) if dofs == "all" else {d.lower() for d in dofs}
     if not wanted or wanted - set(DOFS):
         raise FieldError(f"dofs must come from {sorted(DOFS)} or be 'all'")
+    cid = exact_integer(cid, "SPC coordinate-system CID")
     nsid = _node_set(deck, target)
     fields = {"nsid": nsid, "cid": cid, **{f"dof{d}": int(d in wanted) for d in DOFS}}
     return _card(deck, "*BOUNDARY_SPC_SET", fields, nsid=nsid)
@@ -94,12 +121,16 @@ def add_spc(deck: KeywordDeck, target: dict, dofs: list[str] | str, cid: int = 0
 def add_prescribed_motion(deck: KeywordDeck, target: dict, dof: str, motion: str, curve: dict,
                           sf: float = 1.0) -> dict:
     """*BOUNDARY_PRESCRIBED_MOTION_SET, or _RIGID when ``target`` is ``{"rigid_part": pid}``."""
-    lcid = ensure_curve(deck, curve)
-    fields = {"dof": DOFS[dof.lower()], "vad": MOTION[motion.lower()], "lcid": lcid, "sf": float(sf)}
+    fields = {"dof": DOFS[dof.lower()], "vad": MOTION[motion.lower()], "sf": float(sf)}
     if "rigid_part" in target:
-        pid = int(target["rigid_part"])
+        pid = exact_integer(target["rigid_part"], "Rigid Part ID")
         if pid not in deck.references(False).defined.get("part", set()):
             raise FieldError(f"Part {pid} is not defined")
+    else:
+        target = _node_target(deck, target)
+    lcid = ensure_curve(deck, curve)
+    fields["lcid"] = lcid
+    if "rigid_part" in target:
         return _card(deck, "*BOUNDARY_PRESCRIBED_MOTION_RIGID", {"pid": pid, **fields}, pid=pid, lcid=lcid)
     nsid = _node_set(deck, target)
     return _card(deck, "*BOUNDARY_PRESCRIBED_MOTION_SET", {"nsid": nsid, **fields}, nsid=nsid, lcid=lcid)
@@ -107,14 +138,17 @@ def add_prescribed_motion(deck: KeywordDeck, target: dict, dof: str, motion: str
 
 def add_nodal_load(deck: KeywordDeck, target: dict, dof: str, curve: dict, sf: float = 1.0) -> dict:
     """*LOAD_NODE_SET (force for x/y/z, moment for rx/ry/rz)."""
+    target = _node_target(deck, target)
+    dof = DOFS[dof.lower()]
     lcid = ensure_curve(deck, curve)
     nsid = _node_set(deck, target)
-    fields = {"nsid": nsid, "dof": DOFS[dof.lower()], "lcid": lcid, "sf": float(sf)}
+    fields = {"nsid": nsid, "dof": dof, "lcid": lcid, "sf": float(sf)}
     return _card(deck, "*LOAD_NODE_SET", fields, nsid=nsid, lcid=lcid)
 
 
 def add_pressure(deck: KeywordDeck, target: dict, curve: dict, sf: float = 1.0) -> dict:
     """*LOAD_SEGMENT_SET (positive pressure acts against the segment normal)."""
+    target = _segment_target(deck, target)
     lcid = ensure_curve(deck, curve)
     ssid = _segment_set(deck, target)
     return _card(deck, "*LOAD_SEGMENT_SET", {"ssid": ssid, "lcid": lcid, "sf": float(sf)}, ssid=ssid, lcid=lcid)
@@ -135,7 +169,7 @@ def add_initial_velocity(deck: KeywordDeck, target: dict, velocity: list[float])
     defined = deck.references(False).defined
     if "part" in target or "part_set" in target:
         kind, styp = ("part", 2) if "part" in target else ("part_set", 1)
-        ident = int(target[kind])
+        ident = exact_integer(target[kind], "Initial-velocity " + kind + " ID")
         if ident not in defined.get(kind, set()):
             raise FieldError(f"{kind} {ident} is not defined")
         fields = {"id": ident, "styp": styp, "omega": 0.0, "vx": vx, "vy": vy, "vz": vz}
@@ -159,11 +193,11 @@ def add_rigid_wall(deck: KeywordDeck, point: list[float], normal: list[float], t
 
 def add_nodal_rigid_body(deck: KeywordDeck, target: dict, pid: int | None = None) -> dict:
     """*CONSTRAINED_NODAL_RIGID_BODY; ``pid`` defaults to the next ID above every part ID."""
-    nsid = _node_set(deck, target)
     defined = deck.references(False).defined.get("part", set())
-    pid = max(defined, default=0) + 1 if pid is None else int(pid)
+    pid = max(defined, default=0) + 1 if pid is None else exact_integer(pid, "Nodal rigid-body PID")
     if pid in defined:
         raise FieldError(f"Part ID {pid} is already used by a part")
+    nsid = _node_set(deck, target)
     block = deck.insert(f"*CONSTRAINED_NODAL_RIGID_BODY\n{pid:>10}{0:>10}{nsid:>10}\n")[0]
     if deck.get(block, "nsid", row=pid).value != nsid:
         deck.delete(block, force=True)
