@@ -115,3 +115,49 @@ def test_translation_membership_cannot_shrink_without_unknown_samples():
     text = TEXT.replace(row(90, SECOND[1][1]), "", 1)
     with pytest.raises(ValueError, match="membership"):
         parse(text.splitlines(True), "x_displacement")
+
+
+@pytest.mark.parametrize("time_token,step_token", [("0 .1", "1"), ("0", "1 2"), ("1E -3", "1")])
+def test_step_and_time_tokens_cannot_be_rewritten_by_removing_internal_spaces(time_token, step_token):
+    text = table(0, 1, "translation", FIRST)
+    text = text.replace("0.0000000E+00", time_token).replace("      1 (", step_token + " (")
+    with pytest.raises(ValueError, match="header"):
+        parse(text.splitlines(True), "x_displacement")
+
+
+def test_normal_header_label_spacing_keeps_exact_numeric_tokens():
+    data = parse(table(.1, 12, "translation", FIRST).splitlines(True), "x_displacement")
+    assert data["time"] == [.1] and data["entity_metadata"]["solver_step_range"] == [12, 12]
+
+
+@pytest.mark.parametrize("title", ["Nodal Point Model", "12345", "12345678901", "Nodal printout summary"])
+def test_preface_titles_are_not_classified_by_a_word_or_numeric_prefix(title):
+    result = parse((title+"\n"+TEXT).splitlines(True), "x_displacement")
+    assert result["values"][0] == [1., -11.]
+
+
+@pytest.mark.parametrize("orphan", [TRANSLATION+"\n", row(90, FIRST[0][1])])
+def test_complete_table_syntax_without_its_time_context_is_not_title_prose(orphan):
+    with pytest.raises(ValueError):
+        parse((orphan+TEXT).splitlines(True), "x_displacement")
+
+
+def test_numeric_title_does_not_hide_a_truncated_data_row_inside_an_active_table():
+    with pytest.raises(ValueError, match="row"):
+        parse(("12345\n"+TEXT+"12345\n").splitlines(True), "x_displacement")
+
+
+@pytest.mark.parametrize("width", [9, 12])
+@pytest.mark.parametrize("node_token", ["1", "-1", "0", "**********", "bad-id", ""])
+@pytest.mark.parametrize("field_token", ["1.00000E+00", "NaN", "Infinity", "************", "bad", ""])
+def test_orphan_record_shape_does_not_disappear_when_its_numeric_semantics_are_invalid(
+    width, node_token, field_token
+):
+    orphan = f"{node_token:>10}" + f"{field_token:>12}" + f"{2.:12.5E}" * (width-1) + "\n"
+    with pytest.raises(ValueError, match="outside an active time block"):
+        parse((orphan+TEXT).splitlines(True), "x_displacement")
+
+
+@pytest.mark.parametrize("title", ["Nodal Point Model", "12345", "12345678901", "A normal long model title "*10])
+def test_preface_controls_remain_titles_outside_complete_reserved_record_shapes(title):
+    assert parse((title+"\n"+TEXT).splitlines(True), "x_displacement")["ids"] == [90, 10]

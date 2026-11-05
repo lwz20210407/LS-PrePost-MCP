@@ -21,8 +21,18 @@ COMPONENTS = {f"{axis}_{quantity}": (offset+i, f"{axis}-{raw}")
               for quantity, offset, raw in [("displacement", 0, "disp"), ("velocity", 3, "vel"),
                                              ("acceleration", 6, "accl")]
               for i, axis in enumerate("xyz")}
-NUMBER = re.compile(r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eEdD][+-]?\d+)?")
-IMPLICIT_EXPONENT = re.compile(r"([+-]?(?:\d+(?:\.\d*)?|\.\d+))([+-]\d{3})")
+NUMBER = re.compile(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eEdD][+-]?[0-9]+)?")
+IMPLICIT_EXPONENT = re.compile(r"([+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+))([+-][0-9]{3})")
+
+
+def _spaced_label(text):
+    return r"[ \t]*".join(re.escape(letter) for letter in text)
+
+
+TIME_PREFIX = re.compile(_spaced_label("nodalprintout"), re.I)
+TIME_RECORD_PREFIX = re.compile(_spaced_label("nodalprintoutfortimestep") + r"(?=$|[ \t(0-9])", re.I)
+TIME_HEADER = re.compile(_spaced_label("nodalprintoutfortimestep") +
+                         r"[ \t]+([0-9]+)[ \t]*\([ \t]*at[ \t]+time[ \t]+(\S+)[ \t]*\)", re.I)
 
 
 def _number(token):
@@ -47,8 +57,6 @@ def validate_size(path):
 
 def read(path, component):
     """Use the shared bounded source reader; it must supply the explicit byte budget API."""
-    # Delayed only to allow pure record-parser tests before the shared API merges.
-    # No fallback or weakened budget is permitted when opening a real source.
     from .ascii_records import ByteBudgetExceeded, RecordTooLong, bounded_lines
 
     validate_size(path)
@@ -78,6 +86,17 @@ def parse(lines, component):
             raise ResultsError("Empty or truncated NODOUT table")
         tables.append(current)
 
+    def fixed_row_shape(raw):
+        # Reserve the physical I10+E12 slots before asking whether their contents
+        # are valid. A NaN/negative ID/overflow marker must not turn a damaged
+        # orphan record into an innocuous model title.
+        raw = raw.rstrip("\r\n")
+        for width in (9, 12):
+            end = 10+12*width
+            if len(raw) >= end and not raw[end:].strip():
+                return True
+        return False
+
     for line in lines:
         text = line.strip()
         if not text:
@@ -98,18 +117,29 @@ def parse(lines, component):
             continue
         if legend:
             continue
-        compact = re.sub(r"\s+", "", text).casefold()
-        if compact.startswith("nodalprintout"):
-            header = re.fullmatch(r"nodalprintoutfortimestep(\d+)\(attime(.+)\)", compact)
+        normalized = " ".join(text.casefold().split())
+        if current is not None and text in preamble and text[0] not in "+-*0123456789":
+            continue
+        if (TIME_RECORD_PREFIX if current is None else TIME_PREFIX).match(text):
+            # Whitespace flexibility belongs to the label, never the numeric
+            # tokens: '0 .1', '1E -3' and a split step ID are not rewrites of data.
+            header = TIME_HEADER.fullmatch(text)
             if header is None:
                 raise ResultsError("Malformed or truncated NODOUT time/step header")
             finish()
             current = dict(time=_number(header[2]), step=int(header[1]), kind=None, rows={})
             continue
-        if " ".join(text.casefold().split()).startswith("nodal point"):
+        if current is None:
+            # The preface can contain a node-like word or a purely numeric model
+            # title. Reserve complete table syntax, not loose word prefixes.
+            if normalized in (TRANSLATION, ROTATION) or fixed_row_shape(line):
+                raise ResultsError("NODOUT complete table syntax outside an active time block")
+            if len(preamble) < 16:
+                preamble.add(text)
+            continue
+        if normalized.startswith("nodal point"):
             if current is None or current["kind"] is not None:
                 raise ResultsError("NODOUT duplicate column header or header without a time block")
-            normalized = " ".join(text.casefold().split())
             if normalized not in (TRANSLATION, ROTATION):
                 raise ResultsError("Unsupported or truncated NODOUT column header")
             current["kind"] = "translation" if normalized == TRANSLATION else "rotation"
@@ -120,14 +150,6 @@ def parse(lines, component):
                         raise ResultsError("Too many NODOUT source label variants")
                     source_labels.append(original)
             continue
-        if current is None:
-            if re.fullmatch(r"[+\-]?\d+", text) or (len(line) >= 10 and line[:10].strip().isdigit()):
-                raise ResultsError("NODOUT data row outside an active time/table")
-            if len(preamble) < 16:
-                preamble.add(text)
-            continue
-        if text in preamble:
-            continue
         if current["kind"] is None:
             raise ResultsError("NODOUT record before its column header")
         width = 12 if current["kind"] == "translation" else 9
@@ -136,7 +158,7 @@ def parse(lines, component):
         if "\t" in raw or len(raw) < expected or raw[expected:].strip():
             raise ResultsError("Malformed or truncated fixed-width NODOUT row")
         identity = raw[:10].strip()
-        if not re.fullmatch(r"\d+", identity) or int(identity) <= 0:
+        if not re.fullmatch(r"[0-9]+", identity) or int(identity) <= 0:
             raise ResultsError("NODOUT needs a positive printed node ID")
         node = int(identity)
         if node in current["rows"]:
