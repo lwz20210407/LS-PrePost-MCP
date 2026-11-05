@@ -47,7 +47,7 @@ class RowMap(Mapping[int, list[FieldInfo]]):
     def __getitem__(self, key: int) -> list[FieldInfo]:
         result = []
         for columns, card, index in zip(self.template, self.cards, self._rows[key]):
-            free = is_free_format(self.block.lines[index])
+            free = is_free_format(self.block.lines[index], self.block.name)
             for token, column in enumerate(columns):
                 if column.name.startswith("unused"):
                     continue
@@ -84,7 +84,7 @@ class RowMap(Mapping[int, list[FieldInfo]]):
         if position >= len(indices):
             return ""  # optional trailing card absent in this row
         line = self.block.lines[indices[position]]
-        return read_text(line, FieldSlot(0, offset, width, token if is_free_format(line) else None))
+        return read_text(line, FieldSlot(0, offset, width, token if is_free_format(line, self.block.name) else None))
 
 
 @dataclass

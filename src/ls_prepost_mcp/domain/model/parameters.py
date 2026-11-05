@@ -8,7 +8,7 @@ import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
-from .fields import FieldError, FieldSlot, parse_number
+from .fields import FieldError, FieldSlot, parameter_expression_separator, parse_number
 from .text import body, is_blank
 
 TYPES = {"R": "real", "I": "integer", "C": "character"}
@@ -129,11 +129,8 @@ def parse_definitions(keyword: str, data: list[tuple[int, str]]) -> tuple[list[P
         if expression:
             # Commas inside max(a,b), atan2(a,b), etc. belong to the
             # expression. A free-format separator must follow a complete name.
-            try:
-                free = "," in text and _split_name(text.split(",", 1)[0]) is not None
-            except FieldError:
-                free = False
-            if free:
+            separator = parameter_expression_separator(line)
+            if separator is not None:
                 prmr, raw = text.split(",", 1)
                 # The expression occupies the remainder, not one comma token.
                 # A character span lets edits retain nested argument commas.
@@ -157,6 +154,19 @@ def parse_definitions(keyword: str, data: list[tuple[int, str]]) -> tuple[list[P
             result.append(ParameterDef(name=name, type=kind, raw=raw.strip(), expression=expression,
                                        local=local, data_line=index, value_slot=slot))
     return result, problems
+
+
+def validate_expression_assignment(keyword: str, data: list[tuple[int, str]], index: int,
+                                   value: str, lookup: Mapping[str, object]) -> None:
+    """Use the same safe evaluator/type rules for a named expression-field edit."""
+    definitions, problems = parse_definitions(keyword, data)
+    if problems:
+        raise FieldError("; ".join(problems))
+    definition = next(d for d in definitions if d.data_line == index)
+    definition.raw = value
+    evaluate_definition(definition, lookup)
+    if definition.error:
+        raise FieldError(definition.error)
 
 
 def evaluate_definition(definition: ParameterDef, lookup: Mapping[str, float | int | str]) -> None:

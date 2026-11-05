@@ -13,7 +13,7 @@ import warnings
 from functools import lru_cache
 from typing import TYPE_CHECKING
 
-from .fields import FieldError
+from .fields import FieldError, data_tokens, is_free_format
 from .layouts import RowMap, Unsupported
 from .lists import is_curve
 from .parameters import field_expression
@@ -60,8 +60,15 @@ def long_free_items(deck: KeywordDeck, limit: int = 50) -> tuple[int, list[dict]
     """
     found: list[dict] = []
     for block in deck.iter_blocks():
-        comma = {i for i, line in enumerate(block.lines[1:], 1) if not is_comment(line) and "," in body(line)}
+        comma = {i for i, line in enumerate(block.lines[1:], 1)
+                 if not is_comment(line) and is_free_format(line, block.name)}
         if not comma:
+            continue
+        if block.name.startswith("*PARAMETER_EXPRESSION") and not deck._long(block):
+            for index in sorted(comma):
+                name, expression = data_tokens(block.lines[index], block.name)
+                _flag(found, block, index, "prmr", name, 10)
+                _flag(found, block, index, "expression", expression, 70)
             continue
         try:
             layout = deck.layout(block)

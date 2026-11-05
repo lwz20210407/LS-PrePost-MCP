@@ -36,9 +36,31 @@ def long_spans(widths: list[int]) -> list[tuple[int, int]]:
     return spans
 
 
-def is_free_format(line: str) -> bool:
-    """LS-DYNA treats a data line containing a comma as free (comma separated) format."""
+def parameter_expression_separator(line: str) -> int | None:
+    """Only a comma after a complete typed parameter name separates this card.
+
+    max(a,b) and other argument commas belong to the expression suffix, including
+    on fixed-width cards. Keep this decision shared by evaluation/layout/checks.
+    """
+    text = body(line)
+    prefix, separator, _ = text.partition(",")
+    return len(prefix) if separator and re.fullmatch(r"[RICric]\s*[A-Za-z_][A-Za-z0-9_]*", prefix.strip()) else None
+
+
+def is_free_format(line: str, keyword: str = "") -> bool:
+    """Ordinary comma cards, with PARAMETER_EXPRESSION's name/suffix exception."""
+    if keyword.startswith("*PARAMETER_EXPRESSION"):
+        return parameter_expression_separator(line) is not None
     return "," in body(line)
+
+
+def data_tokens(line: str, keyword: str = "") -> list[str]:
+    """Free-card fields; an expression suffix is one field, not function arguments."""
+    text = body(line)
+    if keyword.startswith("*PARAMETER_EXPRESSION"):
+        separator = parameter_expression_separator(line)
+        return [text[:separator], text[separator + 1:]] if separator is not None else [text[:10], text[10:]]
+    return text.split(",")
 
 
 def read_text(line: str, slot: FieldSlot) -> str:
@@ -188,7 +210,8 @@ def _zero(token: str) -> bool:
         return False
 
 
-def stray_text(line: str, spans: list[tuple[int, int]], long: bool = False, tolerant: bool | None = None) -> str | None:
+def stray_text(line: str, spans: list[tuple[int, int]], long: bool = False, tolerant: bool | None = None,
+               keyword: str = "") -> str | None:
     """Text of ``line`` outside the fields that suggests cards matched to the wrong lines.
 
     Fixed format: non-blank characters within the card width (80, long 160) that no span
@@ -200,8 +223,8 @@ def stray_text(line: str, spans: list[tuple[int, int]], long: bool = False, tole
     """
     text = body(line)
     tolerant = len(spans) >= 3 if tolerant is None else tolerant
-    if is_free_format(line):
-        extra = [token.strip() for token in text.split(",")[len(spans):] if token.strip()]
+    if is_free_format(line, keyword):
+        extra = [token.strip() for token in data_tokens(line, keyword)[len(spans):] if token.strip()]
         if not extra or (tolerant and all(_zero(token) for token in extra)):
             return None
         return ",".join(extra)

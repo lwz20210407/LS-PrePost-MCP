@@ -31,13 +31,14 @@ from .fields import (
     format_value,
     is_free_format,
     long_spans,
+    parameter_expression_separator,
     parse_number,
     read_text,
     stray_text,
     write_text,
 )
 from .layouts import Column, FieldInfo, Layout, RowMap, Unsupported
-from .parameters import field_expression, resolve_field
+from .parameters import field_expression, parse_definitions, resolve_field
 from .text import body, ending, is_blank
 
 logger = logging.getLogger(__name__)
@@ -341,7 +342,7 @@ def _chunk_fields(cls: type, block: Block, lookup: Mapping[str, object],
         slots.setdefault(info.slot.line, []).append(info.slot)
     infos, missing, sources, coverage = build(_load(cls, _substituted_text(block, indices, lookup, slots, long)))
     for card_name, index, spans, tolerant in coverage:
-        stray = stray_text(block.lines[index], spans, long, tolerant)
+        stray = stray_text(block.lines[index], spans, long, tolerant, keyword=block.name)
         if stray:
             raise Unsupported(f"Text outside the fields of {card_name} on line {index} ({stray[:40]!r}): "
                               "the PyDYNA cards do not match this block")
@@ -570,6 +571,19 @@ def layout(block: Block, lookup: Mapping[str, object], deck_format: str = "stand
     if fmt == "i10":
         raise Unsupported("i10 format blocks support positional editing only")
     long = fmt == "long"
+    if block.name.startswith("*PARAMETER_EXPRESSION") and not long:
+        definitions, problems = parse_definitions(block.name, block.data())
+        if problems:
+            raise Unsupported("; ".join(problems))
+        rows = {}
+        for row, definition in enumerate(definitions, 1):
+            index = definition.data_line
+            separator = parameter_expression_separator(block.lines[index])
+            # The name can use a comma token. The expression MUST use its full
+            # character span, so argument commas never become column separators.
+            rows[row] = [FieldInfo("prmr", "str", FieldSlot(index, 0, 10, 0 if separator is not None else None), "row"),
+                         FieldInfo("expression", "str", definition.value_slot, "row")]
+        return Layout(block.name, rows=rows, key="row", source="builtin-parameter-expression")
     if block.name == "*NODE":
         return _node_layout(block, long)
     if block.name == "*PART":
