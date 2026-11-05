@@ -7,7 +7,13 @@ from . import knowledge
 from .compact_server import CompactTools
 from .config import Settings
 from .knowledge_mcp import reference_tool
-from .operation_registry import KNOWLEDGE_TOOLS, bind_alias
+from .operation_registry import (
+    KNOWLEDGE_TOOLS,
+    MIGRATION_META_NAMESPACE,
+    bind_alias,
+    migration_description,
+    migration_metadata,
+)
 from .registry import SERVICE_TOOLS
 from .service import Service
 
@@ -25,9 +31,13 @@ def build_server(settings: Settings | None = None, tool_profile: str | None = No
             server.tool(name=name)(reference_tool(function) if name == "lspp_run_operation" else function)
         return server
     for name in SERVICE_TOOLS:
-        server.tool(name=name)(bind_alias(getattr(service, name), name))
+        function = bind_alias(getattr(service, name), name)
+        server.tool(name=name, description=migration_description(function, name),
+                    meta={MIGRATION_META_NAMESPACE: migration_metadata(name)})(function)
     for name in KNOWLEDGE_TOOLS:
-        server.tool(name=name)(reference_tool(bind_alias(getattr(knowledge, name), name)))
+        function = bind_alias(getattr(knowledge, name), name)
+        server.tool(name=name, description=migration_description(function, name),
+                    meta={MIGRATION_META_NAMESPACE: migration_metadata(name)})(reference_tool(function))
     return server
 
 
