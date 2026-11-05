@@ -50,4 +50,6 @@
 
 证据收编阶段的进程内可选 SDK 缺席控制为43 passed / 15 skipped（配方、知识、pin 三文件）；过期 pin 的三个拒绝用例无需 SDK，已取消不必要的 skip 并真实执行。另11项 pin/证据门禁通过。这是测试仪表收口，不改产品源码，也不将旧 clean02b 的60项记录重新绑定到新测试文件。
 
+Ready 后核实旧七个 A10 工作树 raw SHA 与 Git LF 对象均不同，直接用前者校验 Linux checkout 会误报，原规则对真实 Git LF 内容七项均失败。修正只追加真实02b Git blob/LF SHA 与 hash_convention，portable 门禁比对该对象；原 Windows raw 七 SHA、原文件和运行记录均保留，不把另算的 LF 身份冒称当时 raw 测量。四个相关证据/pin 文件20项通过；没有产品、索引或题目变化。
+
 原生重开后的 Part Data ID/字段/关联回读、材料物理校准、更多可选参数组合及版本覆盖仍未完成。此轮不提升 P03 为 done，不继承旧卡片的 R11 历史结果作为新 T2 流程 L2。

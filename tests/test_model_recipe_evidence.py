@@ -22,8 +22,10 @@ def test_host_recipe_evidence_keeps_l1_scope_and_every_original_a10_object():
     assert evidence["l1_run"]["passed"] == len(evidence["l1_run"]["cases"])
     assert evidence["wheel"]["offline_build"] and not evidence["wheel"]["pip_install_performed"]
     preserved = evidence["old_a10_objects_preserved"]
-    for name, expected in preserved["raw_sha256"].items():
-        assert hashlib.sha256((ROOT / preserved["directory"] / name).read_bytes()).hexdigest() == expected
+    assert preserved["raw_sha256"].keys() == preserved["sha256_git_lf"].keys() == preserved["git_blob_ids"].keys()
+    for name, expected in preserved["sha256_git_lf"].items():
+        contents = (ROOT / preserved["directory"] / name).read_bytes().replace(b"\r\n", b"\n")
+        assert hashlib.sha256(contents).hexdigest() == expected
     assert evidence["a10"]["queries_total"] == sum(row["queries"] for row in evidence["a10"]["sets"].values())
     assert evidence["a10"]["generated_field_descriptors"] - evidence["a10"]["indexed_keyword_fields"] == evidence["a10"]["exact_duplicates"]
     text = json.dumps(evidence, ensure_ascii=False)
@@ -42,3 +44,9 @@ def test_current_host_recipe_evidence_binds_actual_product_and_test_git_objects(
             if key == "product_source_identity" and evidence["validity"] == "current_for_recorded_product_blobs":
                 current = subprocess.check_output(["git", "hash-object", item["path"]], cwd=ROOT, text=True).strip()
                 assert current == recorded, "Host recipe evidence superseded by product change: " + item["path"]
+    preserved = evidence["old_a10_objects_preserved"]
+    for name, expected in preserved["git_blob_ids"].items():
+        relative = preserved["directory"] + "/" + name
+        historical = subprocess.check_output(["git", "rev-parse", preserved["git_source_revision"] + ":" + relative], cwd=ROOT, text=True).strip()
+        current = subprocess.check_output(["git", "hash-object", relative], cwd=ROOT, text=True).strip()
+        assert historical == current == expected, "Historical A10 Git object changed: " + relative

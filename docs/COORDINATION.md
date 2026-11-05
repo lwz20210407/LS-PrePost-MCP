@@ -23,7 +23,7 @@
 | P04 | #164已五CI合入ce8；新P04/I06 #168已合入main159；01a/ce76自有四节点三组成员单次原生通过，LIST/Gen顺序true而ADD false；完整注册表/具名回环与静态有限条件先闭合，950真实failed与d139 raw不改，不外推通用编号/Include/其他版本，仍partial，保留原实际源与失败历史 |
 | P12 | #165同be0两版三fixture共18个真实headless进程已收编，active run/checkpoint与40便携Git来源门禁锁定；中断后只fresh续跑未执行组，strict R1原差/format/semantic分列且双cfg守卫保持。仅单文件定义往返，typed识别/Include/运动学/R11仍未证，保持partial；待精确PR CI集成，不重启AO |
 | P02 / I07 / P11 | #166精确d9/run41979486002五SUCCESS已合main0598；FieldInfo.kind消费者修复、be324标题3capture/15pass/source8与P11 r2两版原12项/23进程已收编；原r1配置guard失败与writer未知保留，不称core I02或全局写隔离完成 |
-| P03 / A10 | #170 Draft：六MAT/两EOS+JC/EOS/solid/Part一次事务已接model: keyword/L1 candidate，发现/索引内容版本pin关闭首轮漂移P1；clean02b专属60项、内部有限peer/wheel实际提取与stdio控制通过。唯一公开索引原98题真实重放，root同库逐条核对一致；原生PartData/物理验收仍gap，保持partial，待相关门禁与精确CI，不派AO |
+| P03 / A10 | #170 Ready：六MAT/两EOS+JC/EOS/solid/Part一次事务已接model: keyword/L1 candidate，发现/索引内容版本pin关闭首轮漂移P1；clean02b专属60项、内部有限peer/wheel实际提取与stdio控制通过。唯一公开索引原98题真实重放，root同库逐条核对一致；相关260/2skip、七checks过，另修portable来源门禁后20项过，等新精确头五CI；原生PartData/物理验收仍gap，保持partial，不派AO |
 | I06 | #167独立历史hash口径P2已在精确689f764/正式41981372125五SUCCESS后合入main dba51d；旧raw SHA/原run/active指针不改，另记GitLF身份。P04新来源门禁与受限证据在本分支收尾，不夹无关P2 |
 
 Q01/Q05 及其他任务今后改为 done 前，须按用户安排完成独立审阅和原生证据抽查。当前不派发 AO 任务。
