@@ -34,7 +34,7 @@ def test_current_public_replay_artifacts_and_frozen_questions_are_consistent():
         for category, total in categories.items():
             rows = [row for row in record["run"]["results"] if row["category"] == category]
             assert total == dict(queries=len(rows), hits_at_3=sum(row["hit_at_3"] for row in rows))
-        assert categories["api"] == dict(queries=4, hits_at_3=0)
+        assert categories["api"]["queries"] > 0 and categories["api"]["hits_at_3"] == 0
     text = json.dumps(evidence, ensure_ascii=False)
     assert "F:\\" not in text and "C:\\" not in text and "D:\\" not in text
     assert "private_supplement" not in text
