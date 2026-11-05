@@ -8,6 +8,11 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 ACTIVE = ROOT / "docs/decisions/evidence/p03-active.json"
+MCP_REGISTRATION_PRODUCTS = {
+    "src/ls_prepost_mcp/operation_registry.py",
+    "src/ls_prepost_mcp/server.py",
+    "src/ls_prepost_mcp/compact_server.py",
+}
 
 
 def read():
@@ -15,6 +20,22 @@ def read():
     evidence = ROOT / pointer["active_product_evidence"]
     assert evidence.resolve().is_relative_to((ROOT / "docs/decisions/evidence").resolve())
     return json.loads(evidence.read_text(encoding="utf8"))
+
+
+def require_registration_identity(evidence):
+    paths = {item["path"] for item in evidence["product_source_identity"]}
+    assert MCP_REGISTRATION_PRODUCTS <= paths, "Host/stdio evidence omitted a consumed MCP registration dependency"
+
+
+def test_current_host_evidence_lists_all_consumed_mcp_registration_sources():
+    require_registration_identity(read())
+
+
+def test_registration_identity_gate_rejects_a_capture_omitting_the_registry_helper():
+    incomplete = {"product_source_identity": [{"path": path} for path in MCP_REGISTRATION_PRODUCTS
+                                               if not path.endswith("/operation_registry.py")]}
+    with pytest.raises(AssertionError, match="registration dependency"):
+        require_registration_identity(incomplete)
 
 
 def test_host_recipe_evidence_keeps_l1_scope_and_every_original_a10_object():
