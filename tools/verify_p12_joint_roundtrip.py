@@ -31,6 +31,21 @@ KINDS = frozenset(("SPHERICAL", "REVOLUTE", "CYLINDRICAL", "PLANAR", "UNIVERSAL"
                    "LOCKING", "ROTATIONAL_MOTOR", "TRANSLATIONAL_MOTOR"))
 ATOL, RTOL = 1e-10, 1e-12
 MAX_BYTES = 10 * 1024 * 1024
+MOTOR_R1_KEYWORDS = frozenset(("*CONSTRAINED_JOINT_ROTATIONAL_MOTOR_ID",
+                               "*CONSTRAINED_JOINT_TRANSLATIONAL_MOTOR_ID"))
+MOTOR_R1_FORMAT_SOURCE = {
+    "manual": {"release": "R11", "volume": "I", "pdf_page": 735, "printed_page": "10-57",
+               "sha256": "3f1cf3cc8c8222ad059459aca2c452f6af6afcce263b8eb8ba157495684da343",
+               "scope": "R1 radius applies to gear/pulley; this does not establish a motor blank=zero default"},
+    "sdk": {"package": "ansys-dyna-core", "version": "0.12.1", "field": "r1", "columns": "31-40",
+            "scope": "Both motor classes mark R1 not to be defined; schema blank default is None",
+            "class_sha256": {
+                "constrained_joint_rotational_motor.py": "8d0d3b5445f2a05ab70fe2dd2ad0be72bc578c046381d47cec98db1a27e54be9",
+                "constrained_joint_translational_motor.py": "1371ab91335160cda6611c5b3ab4e61e38f7f519f89f62fe03d61a218912596f"}},
+    "observed_capture": {"actual_git_revision": "1b7fc6047c61b9df9f9f14f1cfc2d1a4001445f3",
+                         "comparison_sha256": "bb4d4dfca9cebf4a6547da90e2d54cfe5c991cfabc494beaaa0feaede8b9049d",
+                         "scope": "4.13 export changed blank R1 to 0.0 for the two registered type-0 motors"},
+}
 
 
 def plain(value):
@@ -207,7 +222,11 @@ def snapshot(path):
 
 
 def compare(path, expected):
-    actual = snapshot(path)
+    """Strict named-field comparison, including the blank motor R1 slot."""
+    return _projection_differences(snapshot(path), expected)
+
+
+def _projection_differences(actual, expected):
     differences = []
 
     def equal(field, wanted, observed):
@@ -258,6 +277,32 @@ def compare(path, expected):
     equal("cnrbs", {r["pid"]: {"nsid": r["nsid"], "members": sorted(r["members"])} for r in expected["cnrbs"]}, actual["cnrbs"])
     equal("curves", {int(k): [tuple(p) for p in v] for k, v in expected["curves"].items()}, actual["curves"])
     return differences
+
+
+def native_export_comparison(path, expected):
+    """Audit writer representation separately; never relax default/offline comparison."""
+    actual = snapshot(path)
+    strict = _projection_differences(actual, expected)
+    eligible = {}
+    for joint in expected["joints"]:
+        observed = actual["joints"].get(joint["jid"], {})
+        keyword = joint.get("keyword")
+        value = observed.get("r1")
+        if (keyword in MOTOR_R1_KEYWORDS and observed.get("keyword") == keyword
+                and "r1" in joint and joint["r1"] is None and "r1" in observed
+                and type(joint.get("type")) is int and joint["type"] == 0
+                and type(observed.get("type")) is int and observed["type"] == 0
+                and type(value) in (int, float) and value == 0):
+            eligible[f"Joint {joint['jid']}.r1"] = value
+    normalizations, differences = [], []
+    for difference in strict:
+        field = difference["field"]
+        if field in eligible:
+            normalizations.append(dict(field=field, expected=None, actual=eligible[field],
+                rule="native_motor_type0_inapplicable_r1_zero_fill", source=copy.deepcopy(MOTOR_R1_FORMAT_SOURCE)))
+        else:
+            differences.append(difference)
+    return dict(strict_card_differences=strict, format_normalizations=normalizations, differences=differences)
 
 
 def _one_file(path):
@@ -330,7 +375,7 @@ def verify_native(prepared, identity):
         typed_joint_recognition="unverified", motion_verification="not_run",
         executable_sha256=binary_sha, source_config_sha256=config_sha,
         scope="Owned synthetic single-file definition export roundtrip in a separate export process",
-        differences=[])
+        differences=[], strict_card_differences=None, format_normalizations=[])
     saved_main, saved_before = None, None
 
     def remember_process(result):
@@ -389,7 +434,7 @@ def verify_native(prepared, identity):
                       and Path(a.get("path", "")) == readback]
         if len(registered) != 1 or registered[0].get("sha256") != sha(readback):
             raise ValueError("Native exported keyword differs from its registered artifact")
-        proof["differences"] = compare(readback, prepared["spec"]["expected"])
+        proof.update(native_export_comparison(readback, prepared["spec"]["expected"]))
         if proof["differences"]:
             raise ValueError("Native Joint definition readback differs from hand-written expectations")
         if _one_file(saved_main) != saved_before or _one_file(edited) != prepared["edited_identity"]:
