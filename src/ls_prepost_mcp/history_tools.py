@@ -13,6 +13,7 @@ from .core.validation import unit_label
 from .domain.results import lasso_backend as lb
 from .jobs import atomic_json
 from .post_backend import write_csv
+from .units import Unit
 
 DOMAINS = {"node", "solid", "shell", "tshell", "beam", "part", "global"}
 
@@ -174,6 +175,20 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
     if stored_point is not None and (type(stored_point) is not int or stored_point < 1
             or source_kind != "d3plot" or domain not in lb.FAMILIES):
         raise ValueError("stored_point must be a positive 1-based index for d3plot element histories")
+    beam_force = source_kind == "d3plot" and domain == "beam" and quantity == "axial_force"
+    unit_validation = {}
+    if beam_force:
+        if stored_point is not None:
+            raise ValueError("stored_point is not applicable to scalar beam axial_force")
+        for key, label, dimension in (("value", units, (1, 1, -2)), ("time", time_units, (0, 0, 1))):
+            try:
+                parsed = Unit.parse(label)
+            except ValueError:
+                unit_validation[key] = "caller_declared_unverified"
+            else:
+                if parsed.dimensions != dimension:
+                    raise ValueError("Beam axial_force requires a force value unit and a time unit")
+                unit_validation[key] = "dimension_checked; scale not converted"
     if not isinstance(native_sampling, str) or (native_sampling != "mid" and (not native_check or source_kind != "d3plot" or domain not in lb.FAMILIES)):
         raise ValueError("native_sampling requires native_check on a d3plot element history")
     if domain == "global":
@@ -188,6 +203,11 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
         raise ValueError("History needs 1..100 unique positive user entity IDs")
     if source_kind == "binout" and domain not in ("part", "global"):
         raise ValueError("Binout history supports explicit Part/MATSUM or global/GLSTAT modes")
+    if beam_force and native_check:
+        # Validate the requested resource without enumerating or hashing its family.
+        with service._guard():
+            service.settings.input_path(path)
+        raise ValueError("Native beam history comparison is unsupported; no binout substitution is performed")
     with service._guard():
         source, family = _sources(service, path, source_kind)
         before = {str(p): _sha(p) for p in family}
@@ -220,6 +240,8 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
     manifest["parameters"]["curve_spec"] = spec.model_dump(mode="json")
     manifest["inputs"] = [{"path": p, "sha256": h} for p, h in before.items()]
     data, artifacts, warnings = {}, [], []
+    if "caller_declared_unverified" in unit_validation.values():
+        warnings.append("Custom beam force/time unit labels retained without dimensional verification or conversion")
     try:
         with service._guard():
             records = (
@@ -320,6 +342,9 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
             if element_validity:
                 meta.update(deletion_status=record["deletion_status"], deleted_from_state=record["deleted_from_state"],
                             alive_column="1=active, 0=deleted, empty=unknown; no samples removed or backfilled")
+            if beam_force:
+                meta.update(source_array=record["source_array"], coordinate_frame=record["coordinate_frame"],
+                            quantity_dimension="force", unit_validation=unit_validation)
             artifacts.append(
                 Artifact(
                     path=str(output),
