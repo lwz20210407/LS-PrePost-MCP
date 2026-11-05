@@ -31,6 +31,7 @@ FAMILIES = {  # family -> (ids, alive, part indexes, history variables, stress, 
              "element_beam_history_vars", None, None),
 }
 STRESS = ("sxx", "syy", "szz", "sxy", "syz", "szx")
+BEAM_AXIAL_FORCE = "element_beam_axial_force"
 
 
 class ResultsError(ValueError):
@@ -250,9 +251,11 @@ def _element_values(arrays: dict, family: str, quantity: str, stored_point: int 
 
 def history(path: str | Path, kind: str, quantity: str, ids: list[int] | None = None,
             stored_point: int | None = None) -> list[dict]:
-    """Q05 time histories: kind node / solid / shell / part / global; one curve per entity."""
+    """Q05 stored histories; beam supports scalar axial_force, without layer or frame inference."""
     if stored_point is not None and (type(stored_point) is not int or stored_point < 1 or kind not in FAMILIES):
         raise ResultsError("stored_point must be a positive 1-based index for element histories")
+    if kind == "beam" and quantity == "axial_force" and stored_point is not None:
+        raise ResultsError("stored_point is not applicable to scalar beam axial_force")
     needed = ["timesteps"]
     if kind in {"part", "global"}:
         needed.append(f"{kind}_{quantity}")
@@ -262,7 +265,8 @@ def history(path: str | Path, kind: str, quantity: str, ids: list[int] | None = 
             raise ResultsError("Node quantities: displacement_/velocity_ + x, y, z or magnitude")
         needed.append("node_displacement" if base == "displacement" else "node_velocity")
     elif kind in FAMILIES:
-        key = FAMILIES[kind][5 if quantity == "effective_plastic_strain" else 4]
+        key = (BEAM_AXIAL_FORCE if kind == "beam" and quantity == "axial_force" else
+               FAMILIES[kind][5 if quantity == "effective_plastic_strain" else 4])
         if key is None:
             raise ResultsError(f"No {quantity} history support for {kind} elements")
         needed += [key, FAMILIES[kind][1]]
@@ -277,7 +281,13 @@ def _history_from_arrays(arrays: dict, kind: str, quantity: str, ids: list[int] 
     """Shared quantity/ID math for an existing reader snapshot, including filtered states."""
     if stored_point is not None and (type(stored_point) is not int or stored_point < 1 or kind not in FAMILIES):
         raise ResultsError("stored_point must be a positive 1-based index for element histories")
+    if kind == "beam" and quantity == "axial_force" and stored_point is not None:
+        raise ResultsError("stored_point is not applicable to scalar beam axial_force")
     times = validate_d3plot_times(_times(arrays))
+    beam_force = kind == "beam" and quantity == "axial_force"
+    if beam_force and (not isinstance(ids, list) or not ids or any(type(v) is not int or v <= 0 for v in ids)
+                       or len(set(ids)) != len(ids)):
+        raise ResultsError("Beam histories need unique positive user IDs")
     if kind == "global":
         key = f"global_{quantity}"
         if key not in arrays:
@@ -313,11 +323,34 @@ def _history_from_arrays(arrays: dict, kind: str, quantity: str, ids: list[int] 
                 for i, w in zip(ids, where)]
     if kind not in FAMILIES:
         raise ResultsError("kind must be node, solid, shell, tshell, beam, part or global")
-    values, note = _element_values(arrays, kind, quantity, stored_point)
+    if beam_force:
+        if BEAM_AXIAL_FORCE not in arrays:
+            raise ResultsError("No stored axial_force for beam elements in this d3plot")
+        if FAMILIES[kind][0] not in arrays:
+            raise ResultsError("No stored beam user-ID registry in this d3plot")
+        if np.asarray(arrays[FAMILIES[kind][0]]).ndim != 1:
+            raise ResultsError("Beam history IDs must be a one-dimensional user-ID registry")
+        try:
+            values = np.asarray(arrays[BEAM_AXIAL_FORCE])
+        except (TypeError, ValueError) as error:
+            raise ResultsError("Stored beam axial_force must be numeric") from error
+        note = "stored beam axial force; no averaging or coordinate transformation"
+        sampling = dict(kind="stored_scalar", count=1, index=None, source_array=BEAM_AXIAL_FORCE,
+                        coordinate_frame="as stored", native_layer_equivalence="not applicable")
+    else:
+        values, note = _element_values(arrays, kind, quantity, stored_point)
+        sampling = _sampling(arrays, kind, quantity, stored_point)
     stored_ids = np.asarray(arrays[FAMILIES[kind][0]]).reshape(-1)
     if values.shape != (times.size, stored_ids.size):
         raise ResultsError("Scalar history state/element axes do not match the stored user-ID registry")
     where = _index(stored_ids, ids, kind.capitalize())
+    if beam_force:
+        try:
+            selected_values = np.asarray(values[:, where], dtype=float)
+        except (TypeError, ValueError) as error:
+            raise ResultsError("Stored beam axial_force must be numeric") from error
+        if not np.all(np.isfinite(selected_values)):
+            raise ResultsError("Selected beam axial_force contains non-finite samples")
     alive_key = FAMILIES[kind][1]
     selected_alive = None
     if alive_key in arrays:
@@ -332,14 +365,17 @@ def _history_from_arrays(arrays: dict, kind: str, quantity: str, ids: list[int] 
     for n, (i, w) in enumerate(zip(ids, where)):
         alive = selected_alive[:, n] if selected_alive is not None else None
         deleted = np.flatnonzero(~alive) if alive is not None else []
-        records.append({"entity": int(i), "quantity": quantity, "time": times.tolist(),
-                        "values": values[:, w].tolist(), "note": note,
-                        "sampling": _sampling(arrays, kind, quantity, stored_point),
+        record = {"entity": int(i), "quantity": quantity, "time": times.tolist(),
+                        "values": (selected_values[:, n] if beam_force else values[:, w]).tolist(), "note": note,
+                        "sampling": dict(sampling),
                         "alive": alive.tolist() if alive is not None else None,
                         "deletion_status": "stored" if alive is not None else "unknown",
                         "deleted_from_state": int(deleted[0]) + 1 if len(deleted) else None,
                         "validity": "Raw values retained; per-sample alive flags are authoritative; "
-                                    "deleted_from_state is the first observed deleted state, 1-based"})
+                                    "deleted_from_state is the first observed deleted state, 1-based"}
+        if beam_force:
+            record.update(source_array=BEAM_AXIAL_FORCE, coordinate_frame="as stored", quantity_dimension="force")
+        records.append(record)
     return records
 
 
