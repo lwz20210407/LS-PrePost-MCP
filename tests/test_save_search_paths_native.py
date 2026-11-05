@@ -10,12 +10,13 @@ from ls_prepost_mcp.domain.model import preflight_includes
 from ls_prepost_mcp.service import Service
 from tests.test_keyword_native_snapshot_native import sha, source_tree
 from tests.test_save_model_native import installation as installation
+from tests.test_save_model_native import matching_product_identity as matching_product_identity
 
 pytestmark = pytest.mark.native
 
 
 @pytest.mark.parametrize("case", ["search", "relative-search", "unused-search", "edited-search"])
-def test_search_path_preserved_save(installation, pytestconfig, record_property, case):
+def test_search_path_preserved_save(installation, matching_product_identity, pytestconfig, record_property, case):
     executable, binary, config_sha = installation
     root = pytestconfig._native_root / case
     main = source_tree(root, "relative-search" if case == "relative-search" else "search")
@@ -42,6 +43,7 @@ def test_search_path_preserved_save(installation, pytestconfig, record_property,
                      "timed_out": process["timed_out"], "nographics": "-nographics" in process["argv"]})
     saved = preflight_includes(result.data["main"]) if result.status == "succeeded" else None
     proof = {"case": case, "actual_git_revision": identity["actual_git_head"],
+        "matching_product_source_identity": matching_product_identity,
         "working_tree_dirty": identity["working_tree_dirty"], "git_diff_sha256": identity["git_diff_sha256"],
         "git_diff_scope": identity["git_diff_scope"], "executable": binary, "source_config_sha256": config_sha,
         "status": result.status, "error": result.error, "original_tree_sha256": original["tree_sha256"],

@@ -61,3 +61,11 @@ def test_current_title_evidence_includes_guarded_family_reader_dependency():
         assert "src/ls_prepost_mcp/domain/results/family.py" in {
             identity["path"] for identity in evidence["product_source_identity"]
         }, "Active title evidence omits the guarded result-family reader dependency"
+
+
+def test_current_title_evidence_includes_typed_model_matching_dependencies():
+    evidence = json.loads(EVIDENCE.read_text(encoding="utf8"))
+    if evidence["validity"] == "current_for_recorded_product_blobs":
+        assert {"src/ls_prepost_mcp/domain/model/matching.py", "src/ls_prepost_mcp/domain/model/_identity.py"} <= {
+            identity["path"] for identity in evidence["product_source_identity"]
+        }, "Active title evidence omits the typed keyword matching dependency"

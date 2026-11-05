@@ -2,6 +2,7 @@
 import hashlib
 import json
 import os
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -17,10 +18,25 @@ from tools.fetch_corpus import entries, load_registry, plain_path, resolve
 
 pytestmark = pytest.mark.native
 
+MATCHING_DEPENDENCIES = ("src/ls_prepost_mcp/domain/model/matching.py", "src/ls_prepost_mcp/domain/model/_identity.py")
+
 
 def sha(path):
     with Path(path).open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+@pytest.fixture(scope="session")
+def matching_product_identity(pytestconfig):
+    """New runs bind the actual imported scalar policy, not a historical rebinding."""
+    if not pytestconfig.getoption("--run-native"):
+        pytest.skip("P11 source capture requires explicit --run-native")
+    identity = pytestconfig._native_identity
+    assert identity["actual_git_head"] and identity["working_tree_dirty"] is False
+    root = Path(pytestconfig.rootpath)
+    return [dict(path=path, git_blob_id=subprocess.check_output(
+        ["git", "rev-parse", identity["actual_git_head"] + ":" + path], cwd=root, text=True, timeout=10).strip(),
+        sha256=identity["source_files"][path]) for path in MATCHING_DEPENDENCIES]
 
 
 @pytest.fixture(scope="module")
@@ -45,7 +61,7 @@ def installation(pytestconfig):
 
 
 @pytest.mark.parametrize("case", ["standalone", "empty", "placeholder", "include", "edited", "public-include", "public-edited", "mismatch"])
-def test_native_save_and_reopen(installation, pytestconfig, record_property, case):
+def test_native_save_and_reopen(installation, matching_product_identity, pytestconfig, record_property, case):
     executable, binary, config_sha = installation
     root = pytestconfig._native_root / case
     root.mkdir(parents=True, exist_ok=True)
@@ -93,6 +109,7 @@ def test_native_save_and_reopen(installation, pytestconfig, record_property, cas
                      "graphics": process.get("graphics"), "nographics": "-nographics" in process.get("argv", [])})
     identity = pytestconfig._native_identity
     proof = {"case": case, "corpus_id": corpus_id, "actual_git_revision": identity["actual_git_head"],
+             "matching_product_source_identity": matching_product_identity,
              "working_tree_dirty": identity["working_tree_dirty"], "git_diff_sha256": identity["git_diff_sha256"],
              "git_diff_scope": identity["git_diff_scope"], "executable": binary, "source_config_sha256": config_sha,
              "status": result.status, "error": result.error, "expected": result.data.get("expected"),
