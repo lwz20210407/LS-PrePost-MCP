@@ -179,8 +179,10 @@ def test_ascii_entry_is_not_swapped_for_a_binout_beside_it(tmp_path: Path) -> No
     (tmp_path / "glstat").write_text(" ascii glstat placeholder\n", encoding="utf-8")
     result = _valid(_service(tmp_path).extract_database(str(tmp_path / "glstat"), "glstat",
                                                         "kinetic_energy", "mJ"))
-    assert result.status == "failed" and "binout" in result.error["message"]
-    assert result.job_id is None
+    assert result.status == "failed" and "ASCII GLSTAT" in result.error["message"]
+    # GLSTAT is now an admitted format; invalid contents fail within its own job,
+    # rather than being substituted with the binary database beside the input.
+    assert result.job_id is not None and not result.artifacts
 
 
 def test_a_linked_shard_outside_the_allowed_roots_is_refused(tmp_path: Path) -> None:
