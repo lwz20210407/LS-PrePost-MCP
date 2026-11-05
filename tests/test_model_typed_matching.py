@@ -11,8 +11,10 @@ from ls_prepost_mcp.service import Service
 
 
 def source_file(folder: Path, *, family="part", identity=1000000000):
+    if family == "material":
+        pytest.importorskip("ansys.dyna.core")
     folder.mkdir(parents=True, exist_ok=True)
-    text = (f"*PART\npublic audit part\n{identity},1,1\n*SECTION_SOLID\n1,1\n*MAT_ELASTIC\n1,1,1000000000,0.3\n"
+    text = (f"*PART\npublic audit part\n{identity},0,0\n"
             if family == "part" else f"*MAT_ELASTIC\n{identity},1,1000000000,0.3\n")
     path = folder / "model.k"
     path.write_text("*KEYWORD_LONG\n" + text + "*END\n", encoding="ascii")
@@ -48,8 +50,8 @@ def test_integer_mat_field_rejects_boolean_or_fractional_identity(tmp_path, bad)
 
 @pytest.mark.parametrize("legal", [1, 1.0, "1"])
 def test_exact_legacy_integer_input_forms_are_preserved(tmp_path, legal):
-    source = source_file(tmp_path, family="material", identity=1)
-    assert len(KeywordDeck.load(source).find("*MAT_ELASTIC", mid=legal)) == 1
+    source = source_file(tmp_path, identity=1)
+    assert len(KeywordDeck.load(source).find("*PART", pid=legal)) == 1
 
 
 def test_public_edit_keywords_cannot_publish_wrong_nearby_material(tmp_path):
@@ -60,13 +62,14 @@ def test_public_edit_keywords_cannot_publish_wrong_nearby_material(tmp_path):
 
 
 def test_integer_text_in_real_float_field_keeps_field_type_and_tolerance(tmp_path):
-    source = source_file(tmp_path, family="material", identity=1)
+    source = tmp_path / "node.k"
+    source.write_text("*KEYWORD\n*NODE\n1,1000000000,0,0\n*END\n", encoding="ascii")
     deck = KeywordDeck.load(source)
-    block = deck.blocks("*MAT_ELASTIC")[0]
-    assert deck.layout(block).lookup("e").kind == "float"
-    assert type(deck.get(block, "e").value) is int  # lexical spelling cannot choose the policy
-    assert deck.find("*MAT_ELASTIC", e=1000000001) == [(block, None)]
-    assert not deck.find("*MAT_ELASTIC", e=1000000010)
+    block = deck.blocks("*NODE")[0]
+    assert deck.layout(block).lookup("x", row=1).kind == "float"
+    assert type(deck.get(block, "x", row=1).value) is int  # lexical spelling cannot choose the policy
+    assert deck.find("*NODE", x=1000000001) == [(block, 1)]
+    assert not deck.find("*NODE", x=1000000010)
 
 
 def test_text_and_none_policies_do_not_change_between_callers():
@@ -88,7 +91,8 @@ def test_discrete_zero_negative_codes_are_not_subject_to_id_range_policy():
 
 
 def test_boolean_operation_flags_are_not_integer_field_inputs(tmp_path):
-    source = source_file(tmp_path, family="material", identity=1)
-    result = edit_deck(str(source), [dict(op="set", keyword="*MAT_ELASTIC", match=dict(mid=1), field="e", value=1000000000)],
+    source = tmp_path / "node.k"
+    source.write_text("*KEYWORD\n*NODE\n1,1000000000,0,0\n*END\n", encoding="ascii")
+    result = edit_deck(str(source), [dict(op="set", keyword="*NODE", match=dict(nid=1), field="x", value=1000000000)],
                        in_place=False, check_mesh=True, allow_new_dangling=False)
     assert result["status"] == "succeeded" and not result["written"]

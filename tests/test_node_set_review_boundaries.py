@@ -130,7 +130,7 @@ def test_node_set_sid_exact_matching_depends_on_actual_block_not_input_spelling(
     assert source.read_bytes() == before and not (tmp_path / "out").exists()
 
 
-def test_glob_node_identity_filter_keeps_other_set_family_float_matching(tmp_path):
+def test_glob_int_identities_are_exact_across_node_and_other_set_families(tmp_path):
     source = deck_file(tmp_path / "main.k", "*SET_NODE_LIST\n1000000000\n2,3\n*SET_PART_LIST\n1000000000\n1\n")
     result = read_fields(str(source), "*SET_*", {"SID": 1000000001})
-    assert result["count"] == 1 and result["results"][0]["keyword"] == "*SET_PART_LIST"
+    assert result["count"] == 0
