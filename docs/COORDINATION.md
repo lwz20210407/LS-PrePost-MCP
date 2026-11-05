@@ -23,7 +23,7 @@
 | P04 | #168精确c9/正式41983364875五SUCCESS已合main15921；四owned节点/三sets有限成员成立、ADD order false。typed writes后1289另真复验413单1，旧01a/950/d139保留，private input与global passive分开，仍partial |
 | P12 | #165已按精确63b9/正式42005798693五SUCCESS合入main0c921；1289私有snapshot输入新六case/18进程已追加active，旧be0等不改；strict R1/格式分列，typed Joint识别与运动学仍未证，partial |
 | P02 / I07 / P11 | #166已合；#169 named setter修复源码eeff，actual1289/611d unified65已完成：P11双版46+P12双版18+P04单1，批准只读private input保持、globals仅passive，旧身份不改绑。标题eeff15/3同八源不重跑；本分支正收编待精确五CI，未升级done |
-| P03 | 内部Agent的六MAT/两EOS及JC复合T2接线已实现L1候选，discovery/index pin漂移P1修后6533有限10控制与实际wheel跨pin复核过；唯一公开all-keyword index/四冻结题集真实重放推进，不调题/排名、不宣称native物理或done |
+| P03 / A10 | #170精确ab252/run42015075528五SUCCESS已合main15ac：六MAT/两EOS+JC/EOS/solid/Part一次事务已接model: keyword/L1 candidate，发现/索引内容版本pin关闭首轮漂移P1；clean02b专属60项、内部有限peer/wheel实际提取与stdio控制通过。唯一公开索引原98题真实重放，root同库逐条核对一致；相关260/2skip、七checks过，另修portable来源门禁后20项过，PR/main来源按实际记录保留；原生PartData/物理验收仍gap，保持partial，不派AO |
 | I06 | #167独立历史hash口径P2已在精确689f764/正式41981372125五SUCCESS后合入main dba51d；旧raw SHA/原run/active指针不改，另记GitLF身份。P04新来源门禁与受限证据在本分支收尾，不夹无关P2 |
 
 Q01/Q05 及其他任务今后改为 done 前，须按用户安排完成独立审阅和原生证据抽查。当前不派发 AO 任务。

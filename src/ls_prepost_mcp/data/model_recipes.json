@@ -1,0 +1,289 @@
+{
+  "schema_version": 1,
+  "provider_metadata": {
+    "package": "ansys-dyna-core",
+    "version": "0.12.1",
+    "source": "Public FieldSchema via existing keyword_docs provider; field/type facts only",
+    "license": "MIT",
+    "private_manual_used": false
+  },
+  "parameter_types": {
+    "material": {
+      "elastic": {
+        "ro": "float",
+        "e": "float",
+        "pr": "float",
+        "da": "float",
+        "db": "float"
+      },
+      "plastic_kinematic": {
+        "ro": "float",
+        "e": "float",
+        "pr": "float",
+        "sigy": "float",
+        "etan": "float",
+        "beta": "float",
+        "src": "float",
+        "srp": "float",
+        "fs": "float",
+        "vp": "float"
+      },
+      "johnson_cook": {
+        "ro": "float",
+        "g": "float",
+        "a": "float",
+        "b": "float",
+        "n": "float",
+        "c": "float",
+        "m": "float",
+        "tm": "float",
+        "tr": "float",
+        "epso": "float",
+        "cp": "float",
+        "e": "float",
+        "pr": "float",
+        "dtf": "float",
+        "vp": "float",
+        "rateop": "float",
+        "pc": "float",
+        "spall": "float",
+        "it": "float",
+        "d1": "float",
+        "d2": "float",
+        "d3": "float",
+        "d4": "float",
+        "d5": "float",
+        "c2_p_xnp_d": "float",
+        "erod": "float",
+        "efmin": "float",
+        "numint": "float",
+        "k": "float",
+        "eps1": "float"
+      },
+      "rigid": {
+        "ro": "float",
+        "e": "float",
+        "pr": "float",
+        "n": "float",
+        "couple": "float",
+        "m": "float",
+        "alias": "str",
+        "cmo": "float",
+        "con1": "float",
+        "con2": "float",
+        "lco_or_a1": "float",
+        "a2": "float",
+        "a3": "float",
+        "v1": "float",
+        "v2": "float",
+        "v3": "float"
+      },
+      "piecewise_linear_plasticity": {
+        "ro": "float",
+        "e": "float",
+        "pr": "float",
+        "sigy": "float",
+        "etan": "float",
+        "fail": "float",
+        "tdel": "float",
+        "c": "float",
+        "p": "float",
+        "lcss": "int",
+        "lcsr": "int",
+        "vp": "float",
+        "eps1": "float",
+        "eps2": "float",
+        "eps3": "float",
+        "eps4": "float",
+        "eps5": "float",
+        "eps6": "float",
+        "eps7": "float",
+        "eps8": "float",
+        "es1": "float",
+        "es2": "float",
+        "es3": "float",
+        "es4": "float",
+        "es5": "float",
+        "es6": "float",
+        "es7": "float",
+        "es8": "float"
+      },
+      "simplified_johnson_cook": {
+        "ro": "float",
+        "e": "float",
+        "pr": "float",
+        "a": "float",
+        "b": "float",
+        "n": "float",
+        "c": "float",
+        "vp": "float",
+        "epso": "float",
+        "psfail": "float",
+        "sigmax": "float",
+        "sigsat": "float"
+      }
+    },
+    "eos": {
+      "linear_polynomial": {
+        "c0": "float",
+        "c1": "float",
+        "c2": "float",
+        "c3": "float",
+        "c4": "float",
+        "c5": "float",
+        "c6": "float",
+        "e0": "float",
+        "v0": "float"
+      },
+      "gruneisen": {
+        "c": "float",
+        "s1": "float",
+        "gamao": "float",
+        "s2": "float",
+        "s3": "float",
+        "a": "float",
+        "e0": "float",
+        "v0": "float",
+        "lcid": "int"
+      }
+    },
+    "section": {
+      "solid": {
+        "elform": "int",
+        "aet": "int"
+      }
+    }
+  },
+  "recipes": [
+    {
+      "id": "model:mat-001-elastic",
+      "family": "material",
+      "core_recipe": "elastic",
+      "name": "Elastic 弹性材料 MAT_001",
+      "keyword": "*MAT_ELASTIC",
+      "description": "在调用方声明的单位制下创建 *MAT_ELASTIC；所有必需物理值均由调用方提供，不作单位换算。",
+      "tags": [
+        "P03",
+        "material",
+        "elastic",
+        "*MAT_ELASTIC"
+      ]
+    },
+    {
+      "id": "model:mat-003-plastic-kinematic",
+      "family": "material",
+      "core_recipe": "plastic_kinematic",
+      "name": "Plastic kinematic 塑性随动硬化材料 MAT_003",
+      "keyword": "*MAT_PLASTIC_KINEMATIC",
+      "description": "在调用方声明的单位制下创建 *MAT_PLASTIC_KINEMATIC；所有必需物理值均由调用方提供，不作单位换算。",
+      "tags": [
+        "P03",
+        "material",
+        "plastic_kinematic",
+        "*MAT_PLASTIC_KINEMATIC"
+      ]
+    },
+    {
+      "id": "model:mat-015-johnson-cook",
+      "family": "material",
+      "core_recipe": "johnson_cook",
+      "name": "Johnson-Cook 材料 MAT_015",
+      "keyword": "*MAT_JOHNSON_COOK",
+      "description": "在调用方声明的单位制下创建 *MAT_JOHNSON_COOK；所有必需物理值均由调用方提供，不作单位换算。",
+      "tags": [
+        "P03",
+        "material",
+        "johnson_cook",
+        "*MAT_JOHNSON_COOK"
+      ]
+    },
+    {
+      "id": "model:mat-020-rigid",
+      "family": "material",
+      "core_recipe": "rigid",
+      "name": "Rigid 刚体材料 MAT_020",
+      "keyword": "*MAT_RIGID",
+      "description": "在调用方声明的单位制下创建 *MAT_RIGID；所有必需物理值均由调用方提供，不作单位换算。",
+      "tags": [
+        "P03",
+        "material",
+        "rigid",
+        "*MAT_RIGID"
+      ]
+    },
+    {
+      "id": "model:mat-024-piecewise-linear-plasticity",
+      "family": "material",
+      "core_recipe": "piecewise_linear_plasticity",
+      "name": "Piecewise linear plasticity 分段线性塑性材料 MAT_024",
+      "keyword": "*MAT_PIECEWISE_LINEAR_PLASTICITY",
+      "description": "在调用方声明的单位制下创建 *MAT_PIECEWISE_LINEAR_PLASTICITY；所有必需物理值均由调用方提供，不作单位换算。",
+      "tags": [
+        "P03",
+        "material",
+        "piecewise_linear_plasticity",
+        "*MAT_PIECEWISE_LINEAR_PLASTICITY"
+      ]
+    },
+    {
+      "id": "model:mat-098-simplified-johnson-cook",
+      "family": "material",
+      "core_recipe": "simplified_johnson_cook",
+      "name": "Simplified Johnson-Cook 简化材料 MAT_098",
+      "keyword": "*MAT_SIMPLIFIED_JOHNSON_COOK",
+      "description": "在调用方声明的单位制下创建 *MAT_SIMPLIFIED_JOHNSON_COOK；所有必需物理值均由调用方提供，不作单位换算。",
+      "tags": [
+        "P03",
+        "material",
+        "simplified_johnson_cook",
+        "*MAT_SIMPLIFIED_JOHNSON_COOK"
+      ]
+    },
+    {
+      "id": "model:eos-linear-polynomial",
+      "family": "eos",
+      "core_recipe": "linear_polynomial",
+      "name": "Linear polynomial 多项式状态方程",
+      "keyword": "*EOS_LINEAR_POLYNOMIAL",
+      "description": "在调用方声明的单位制下创建 *EOS_LINEAR_POLYNOMIAL；所有必需物理值均由调用方提供，不作单位换算。",
+      "tags": [
+        "P03",
+        "eos",
+        "linear_polynomial",
+        "*EOS_LINEAR_POLYNOMIAL"
+      ]
+    },
+    {
+      "id": "model:eos-gruneisen",
+      "family": "eos",
+      "core_recipe": "gruneisen",
+      "name": "Gruneisen 状态方程",
+      "keyword": "*EOS_GRUNEISEN",
+      "description": "在调用方声明的单位制下创建 *EOS_GRUNEISEN；所有必需物理值均由调用方提供，不作单位换算。",
+      "tags": [
+        "P03",
+        "eos",
+        "gruneisen",
+        "*EOS_GRUNEISEN"
+      ]
+    },
+    {
+      "id": "model:johnson-cook-solid-part",
+      "family": "assembly",
+      "name": "Johnson-Cook 实体材料与 Part 关联",
+      "description": "一次原子编辑创建 MAT_015、Gruneisen 状态方程和实体截面，再新增或修改 Part 关联。调用方明确声明单位及全部必需物理值；尚未进行原生 Part Data 回读。",
+      "components": {
+        "material": "johnson_cook",
+        "eos": "gruneisen",
+        "section": "solid"
+      },
+      "tags": [
+        "P03",
+        "Johnson-Cook",
+        "Gruneisen",
+        "Part",
+        "solid"
+      ]
+    }
+  ]
+}
