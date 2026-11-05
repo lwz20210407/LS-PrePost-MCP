@@ -1,4 +1,4 @@
-"""Independent exact ID mapping; neither numbering base nor vector ownership is guessed."""
+"""A source-bound storage rule needs the complete independent native ID/rank table."""
 import copy
 import json
 import sys
@@ -9,20 +9,31 @@ import pytest
 from tools.verify_node_set_user_ids import EXPECTED, NODE_IDS, PROGRAM, validate
 
 
-def capture(base=1):
-    # Deliberately unrelated to array order, user ID magnitude or sorted members.
-    mapping = dict(zip(NODE_IDS, (base + 2, base, base + 3, base + 1)))
+def capture(base=0):
+    # The native registry iteration order may differ; verify ranks explicitly.
+    mapping = {uid: base + i for i, uid in enumerate(NODE_IDS)}
     return dict(protocol="named_node_id_roundtrip_v1", node_ids=[89, 121, 11, 37],
         mapping=[dict(user_id=uid, internal_id=i, roundtrip_user_id=uid) for uid, i in mapping.items()],
-        sets=[dict(sid=sid, raw_ids_inset=[mapping[uid] for uid in members]) for sid, members in EXPECTED.items()])
+        sets=[dict(sid=sid, raw_ids_inset=[mapping[uid] + 1 for uid in members]) for sid, members in EXPECTED.items()])
 
 
-@pytest.mark.parametrize("base", [0, 1])
-def test_mapping_uses_the_observed_inverse_without_guessing_a_base(base):
-    result = validate(capture(base))
+def test_mapping_admits_one_based_set_slots_only_after_the_full_native_rank_proof():
+    result = validate(capture())
     assert result["status"] == "passed"
     assert [row["native_user_ids"] for row in result["sets"]] == list(EXPECTED.values())
     assert all(row["membership_equal"] and row["definition_order_equal"] for row in result["sets"])
+
+
+def test_a_reversible_but_differently_based_native_table_is_not_silently_shifted():
+    with pytest.raises(ValueError):
+        validate(capture(1))
+
+
+def test_a_full_bijection_with_different_sorted_ranks_is_not_admitted():
+    raw = capture()
+    raw["mapping"][0]["internal_id"], raw["mapping"][1]["internal_id"] = 1, 0
+    with pytest.raises(ValueError):
+        validate(raw)
 
 
 def test_membership_and_native_order_are_reported_separately():
@@ -31,6 +42,16 @@ def test_membership_and_native_order_are_reported_separately():
     result = validate(raw)
     assert result["sets"][2]["membership_equal"] is True
     assert result["sets"][2]["definition_order_equal"] is False
+
+
+def test_observed_three_set_shapes_resolve_to_the_independent_user_id_oracle():
+    raw = capture()
+    raw["sets"] = [dict(sid=101, raw_ids_inset=[4, 2]), dict(sid=202, raw_ids_inset=[1, 2, 3]),
+                   dict(sid=303, raw_ids_inset=[1, 2, 3, 4])]
+    result = validate(raw)
+    assert [row["native_user_ids"] for row in result["sets"]] == [[121, 37], [11, 37, 89], [11, 37, 89, 121]]
+    assert [row["membership_equal"] for row in result["sets"]] == [True, True, True]
+    assert [row["definition_order_equal"] for row in result["sets"]] == [True, True, False]
 
 
 @pytest.mark.parametrize("bad", [True, False, 1.5, "1", None, -1, 5])

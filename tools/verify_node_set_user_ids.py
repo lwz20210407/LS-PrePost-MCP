@@ -1,7 +1,8 @@
 """P04 owned-fixture native membership, using an observed reversible ID mapping.
 
-This is an opt-in 4.13 verification producer, not a general node-set reader.
-Neither host nor embedded script assumes an internal numbering base.
+This is a verification producer for one observed executable and owned fixture,
+not a general node-set reader. The explicit one-based storage rule is admitted
+only after full native registry/rank and reversible-ID checks.
 """
 from __future__ import annotations
 
@@ -22,6 +23,7 @@ from tools.probe_node_set_ids_native import native_processes, sha
 
 ROOT = Path(__file__).resolve().parents[1]
 NODE_IDS = (11, 37, 89, 121)
+VERIFIED_BINARY_SHA256 = "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
 # The oracle is hand-written, never obtained from NodeSets or native output.
 EXPECTED = {101: [121, 37], 202: [11, 37, 89], 303: [121, 37, 11, 89]}
 SOURCE = "*KEYWORD\n*NODE\n11,0,0,0\n37,1,0,0\n89,2,0,0\n121,3,0,0\n*END\n"
@@ -57,12 +59,12 @@ try:
         raise ValueError("Native registry differs from the independent four-node oracle")
     proof["node_ids"] = registry
     seen = set()
-    for uid in (11, 37, 89, 121):
+    for ordinal, uid in enumerate(sorted(registry)):
         internal = dc.get_data("internal_id", type=dc.Type.NODE, id=uid)
         # Never pass a negative or out-of-fixture index into another native call.
-        if type(internal) is not int or not 0 <= internal <= count or internal in seen:
+        if type(internal) is not int or internal != ordinal or internal in seen:
             proof["failed_mapping"] = {"user_id": uid, "internal_repr": repr(internal)}
-            raise ValueError("Native internal mapping is invalid or not one-to-one")
+            raise ValueError("Native internal IDs do not match the independently sorted complete registry")
         seen.add(internal)
         returned = dc.get_data("user_id", type=dc.Type.NODE, id=internal)
         if type(returned) is not int or returned != uid:
@@ -104,10 +106,15 @@ def validate(raw):
             raise ValueError("Malformed native mapping record")
         uid, internal, returned = (row[k] for k in ("user_id", "internal_id", "roundtrip_user_id"))
         if (any(type(v) is not int for v in (uid, internal, returned)) or uid not in NODE_IDS
-                or uid in users or internal in inverse or not 0 <= internal <= len(NODE_IDS) or returned != uid):
+                or uid in users or internal + 1 in inverse or internal != NODE_IDS.index(uid) or returned != uid):
             raise ValueError("Native mapping is not an exact bijection with a successful roundtrip")
         users.add(uid)
-        inverse[internal] = uid
+        # Static evidence for this executable: keyword NODE-set lookup returns
+        # a one-based sorted-record rank; its fallback is node_lookup(...)+1.
+        # Requiring every native internal_id to equal that sorted rank minus
+        # one makes both paths identical in THIS complete four-node fixture.
+        # Do not reuse this as an unconditional production numbering adapter.
+        inverse[internal + 1] = uid
     if users != set(NODE_IDS):
         raise ValueError("Native mapping does not cover the independent registry")
     sets = raw.get("sets")
@@ -130,7 +137,7 @@ def validate(raw):
         result.append(dict(sid=sid, raw_ids_inset=values, native_user_ids=converted,
                            expected_user_ids=EXPECTED[sid], membership_equal=True,
                            definition_order_equal=converted == EXPECTED[sid]))
-    return dict(status="passed", mapping_method="native internal_id/user_id exact roundtrip; no base conversion",
+    return dict(status="passed", mapping_method="one-based keyword set slot after complete native sorted-rank/ID roundtrip validation",
                 registry_user_ids=registry, mapping=mappings, sets=result,
                 scope="Four-node single-file LIST/GENERATE/ADD membership; ordering is reported separately")
 
@@ -161,6 +168,8 @@ def run(executable, output):
     if config is None:
         raise ValueError("An initialized native configuration is required")
     before = dict(executable=sha(executable), configuration=sha(config))
+    if before["executable"] != VERIFIED_BINARY_SHA256:
+        raise ValueError("The keyword-set storage contract is verified only for the recorded executable SHA256")
     output.mkdir(parents=True)
     source_dir = output / "source"
     source_dir.mkdir()
