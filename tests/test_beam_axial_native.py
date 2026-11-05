@@ -85,7 +85,7 @@ def test_beam_axial_named_reference(installation, pytestconfig, label, corpus_id
         corpus_id=corpus_id, executable=binary, source_config_sha256=config_sha,
         reference_script_sha256=sha(REFERENCE), field="axial_force", entity_ids=entity_ids,
         requested_states=list(range(1, state_count + 1)), graphics=False,
-        ipt="binding default; semantics not independently identified", product_native_check_supported=False,
+        ipt="binding default; semantics not independently identified", this_test_uses_product_native_check=False,
         native_executed=False, status="failed", original_family_sha256=original)
     try:
         with service._guard():

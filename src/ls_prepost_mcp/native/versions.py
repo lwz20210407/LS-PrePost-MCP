@@ -23,6 +23,7 @@ else:
 
 CAPABILITIES = {
     "4.13": {"policy": "primary", "batch": True, "queue_model_identity": True,
+             "beam_axial_history": True,
              "evidence": "I01: six native regression cases; KI-048 comparison"},
     "4.10": {"policy": "regression_subset", "batch": True, "queue_model_identity": False,
              "evidence": "I01: five batch callers passed; queue source identity rejected (KI-048)"},
@@ -144,6 +145,16 @@ def require_capability(executable, capability):
     if result[capability] is not True:
         raise ValueError("Native capability {} is unavailable for {}: {}".format(
             capability, result["version"] or "unknown installation", result["evidence"]))
+    return result
+
+
+def require_beam_axial_history(executable):
+    """Admit the scoped named beam reference by central policy and file resource."""
+    result = require_capability(executable, "batch")
+    policy = CAPABILITIES.get(result["version"], {})
+    if (policy.get("beam_axial_history") is not True
+            or result["version_source"] != "file_version_resource" or result["resource_conflict"]):
+        raise ValueError("Native beam axial_force requires an unambiguous 4.13 version resource")
     return result
 
 

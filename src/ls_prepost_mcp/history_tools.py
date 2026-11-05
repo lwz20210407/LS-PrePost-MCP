@@ -74,7 +74,8 @@ def _csv_curve(service, result):
         return list(csv.DictReader(stream))
 
 
-def _native(service, source, family, source_kind, domain, quantity, records, units, native_sampling="mid"):
+def _native(service, source, family, source_kind, domain, quantity, records, units, native_sampling="mid",
+            *, input_sha256=None):
     expected = {r["entity"]: r for r in records}
     value_atol = {uid: 1e-6 * float(np.max(np.abs(r["values"]))) for uid, r in expected.items()}
     if source_kind == "binout":
@@ -111,32 +112,41 @@ def _native(service, source, family, source_kind, domain, quantity, records, uni
             "curves": len(records),
             "value_atol_by_entity": {str(k): v for k, v in value_atol.items()},
         }
-    if domain == "beam":
-        raise ValueError("Native beam history comparison is unsupported; no binout substitution is performed")
-    if domain not in {"node", "solid", "shell", "tshell"}:
+    beam = domain == "beam"
+    if domain not in {"node", "solid", "shell", "tshell", "beam"}:
         raise ValueError("Native Part/global history comparison requires explicit source_kind=binout")
     if any(re.search(r"mean of (?!1\b)\d+ stored points", r.get("note", "")) for r in records):
         raise ValueError("Native history comparison cannot infer equivalence to a multiple-point mean")
-    from .field_contract_adapter import NATIVE_NODE_MAP, NATIVE_STRESS_MAP
-
-    if domain == "node":
-        name, _, component = quantity.rpartition("_")
-        field = NATIVE_NODE_MAP.get((name, component))
-    else:
-        field = NATIVE_STRESS_MAP.get(quantity[1:] if quantity in lb.STRESS else quantity)
-    if field is None:
-        raise ValueError(f"Native {domain} history comparison does not support quantity {quantity!r}")
-    from .field_contracts import SamplingSpec
-
-    SamplingSpec.native_fields(domain, native_sampling, [field])
     times = np.asarray(records[0]["time"])
     if times.size > 1000:
         raise ValueError("Native history comparison supports at most 1000 states")
-    result = service.extract_native_fields(
-        str(source), domain, list(expected), list(range(1, times.size + 1)), [field], native_sampling, units
-    )
+    if beam:
+        if quantity != "axial_force" or native_sampling != "default" or input_sha256 is None:
+            raise ValueError("Native beam comparison is unsupported for this request; only axial_force with native_sampling='default'")
+        if any(not np.array_equal(r["time"], times) for r in records):
+            raise ValueError("Beam entity histories have inconsistent state-time registries")
+        from .native_beam_history import native_beam_history
+
+        field = "axial_force"
+        result = native_beam_history(service.settings, service.jobs, source, records, units, input_sha256)
+    else:
+        from .field_contract_adapter import NATIVE_NODE_MAP, NATIVE_STRESS_MAP
+
+        if domain == "node":
+            name, _, component = quantity.rpartition("_")
+            field = NATIVE_NODE_MAP.get((name, component))
+        else:
+            field = NATIVE_STRESS_MAP.get(quantity[1:] if quantity in lb.STRESS else quantity)
+        if field is None:
+            raise ValueError(f"Native {domain} history comparison does not support quantity {quantity!r}")
+        from .field_contracts import SamplingSpec
+
+        SamplingSpec.native_fields(domain, native_sampling, [field])
+        result = service.extract_native_fields(
+            str(source), domain, list(expected), list(range(1, times.size + 1)), [field], native_sampling, units
+        )
     rows = _csv_curve(service, result)
-    seen, error = set(), 0.0
+    seen, error, time_error = set(), 0.0, 0.0
     for row in rows:
         uid, state = int(row["entity_id"]), int(row["state"])
         key = (uid, state)
@@ -152,15 +162,21 @@ def _native(service, source, family, source_kind, domain, quantity, records, uni
         ):
             raise ValueError("Native/LASSO d3plot history disagreement")
         error = max(error, abs(value - wanted))
+        time_error = max(time_error, abs(time - times[state - 1]))
     if len(seen) != len(expected) * times.size:
         raise ValueError("Native history omitted requested states/entities")
-    return {
+    comparison = {
         "backend": "lsprepost",
         "job_ids": [result["job_id"]],
         "max_absolute_error": error,
         "curves": len(records),
         "value_atol_by_entity": {str(k): v for k, v in value_atol.items()},
     }
+    if beam:
+        comparison.update(max_time_absolute_error=time_error, native_channel="embedded_python",
+                          ipt=result["data"]["ipt"], coordinate_frame="as stored",
+                          native_identity=result["data"]["native_identity"])
+    return comparison
 
 
 def extract_history(service, path, domain, quantity, ids, units, time_units, source_kind, native_check,
@@ -203,13 +219,36 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
         raise ValueError("History needs 1..100 unique positive user entity IDs")
     if source_kind == "binout" and domain not in ("part", "global"):
         raise ValueError("Binout history supports explicit Part/MATSUM or global/GLSTAT modes")
-    if beam_force and native_check:
+    beam_native = source_kind == "d3plot" and domain == "beam" and native_check
+    preview_times = None
+    if beam_native:
         # Validate the requested resource without enumerating or hashing its family.
         with service._guard():
-            service.settings.input_path(path)
-        raise ValueError("Native beam history comparison is unsupported; no binout substitution is performed")
+            admitted_source = service.settings.input_path(path)
+        if not beam_force:
+            raise ValueError("Native beam history comparison is unsupported for this quantity; only axial_force is admitted")
+        if native_sampling != "default":
+            raise ValueError("Native beam history comparison is unsupported without explicit native_sampling='default'")
+        # LASSO 2.0.4 interpolates this basename into an unescaped regex.
+        # With no regex syntax its discovered numeric continuations are literal;
+        # otherwise they could bypass our allowed-family budget and SHA list.
+        if any(char in admitted_source.name for char in r".^$*+?{}[]\|()"):
+            raise ValueError("Native beam history basename contains regex metacharacters; this reader layout is unsupported")
+        from .native_beam_history import require_profile
+
+        require_profile(service.settings)
     with service._guard():
         source, family = _sources(service, path, source_kind)
+        if beam_native:
+            from .native_results import exceeds_staging_limit
+
+            if exceeds_staging_limit(family):
+                raise ValueError("Native read-only staging limit: 1000 files / 2 GiB")
+            preview_times = np.asarray(lb.state_times(source), dtype=float)
+            if preview_times.ndim != 1 or not 1 <= preview_times.size <= 1000:
+                raise ValueError("Native history comparison supports 1..1000 states")
+            if not np.all(np.isfinite(preview_times)) or np.any(np.diff(preview_times) < 0):
+                raise ValueError("History requires finite nondecreasing state times")
         before = {str(p): _sha(p) for p in family}
         identities = tuple(
             FileIdentity(path=str(p), sha256=before[str(p)], size_bytes=p.stat().st_size) for p in family
@@ -268,6 +307,8 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
             if total > 1_000_000:
                 raise ValueError("History exceeds one million total samples")
             record.update(time=t, values=y)
+            if beam_native and not np.array_equal(t, preview_times):
+                raise ValueError("Beam history state times changed after native admission")
             if source_kind == "d3plot" and domain in lb.FAMILIES:
                 flags = record.get("alive")
                 if record.get("deletion_status") == "stored":
@@ -284,7 +325,8 @@ def extract_history(service, path, domain, quantity, ids, units, time_units, sou
                     record.update(alive=None, deletion_status="unknown", deleted_from_state=None)
                     warnings.append(f"{domain} {record['entity']}: deletion status unknown; no alive data stored")
         comparison = (
-            _native(service, source, family, source_kind, domain, quantity, records, units, native_sampling)
+            _native(service, source, family, source_kind, domain, quantity, records, units, native_sampling,
+                    input_sha256=before)
             if native_check
             else None
         )
