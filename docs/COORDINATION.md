@@ -20,10 +20,11 @@
 | Q05 | #156时程及#161限定4.13/default的beam轴力native_check均五项CI全绿合入；正式两样本26条力/时间差0、身份守卫通过；版本策略归统一能力表，仍partial |
 | Q06 | #160与#163已在各精确头五CI全绿后合入，#163进入49cd217；NODOUT九平动列6公共231147值、raw/unknown life与来源门禁已有，未原生仍L1；eroded_he有限审计不足以命名映射，保留gap |
 | I01 结果族 | #162已在6212430精确头五项CI全绿后合入d946f1e；raw路径分类及P11来源过期已修，a20两版P11/beam/标题真重跑，原门禁保留；仍partial |
-| P04 | #164精确51b077d五CI全绿已合入ce8da525；节点组合L1、515/1/公开Include1946节点与内部peer已登记；新具名映射单试domain未通过，两API编号口径尚未闭环，原raw保留不猜base，不计L2，仍partial |
-| P12 | #165仍在途：reader/producer内部peer已闭；motor R1格式仅native-only窄分类且strict差异保留，e823有限peer46过；原1b九型差异失败不改绑，新正式捕获依最新共享来源另验，typed识别/运动学未证，不重启AO |
-| P02 / I07 / P11 | #166在途为FieldInfo.kind消费者修复，不称core I02完成；产品be324有限peer123、标题3capture/15pass/8source与P11 r2两版原12项/23进程实测已收编；原r1配置guard失败保留、writer未知，待PR精确头五CI集成，状态/验收不升级 |
-| I06 | 本项维护证据体积和文档关卡；后续继续 review02 未完成的 P1/P2，不以阶段汇报作为停止点 |
+| P04 | #164已五CI合入ce8；新P04/I06分支01a/ce76自有四节点三组成员单次原生通过，LIST/Gen顺序true而ADD false；完整注册表/具名回环与静态有限条件先闭合，950真实failed与d139 raw不改，不外推通用编号/Include/其他版本，仍partial，待本分支精确CI集成 |
+| P12 | #165在途；reader/producer与native-only motor R1格式窄分类已内部peer，原1b失败不重绑；按合入typed共享来源的新头准备正式捕获/证据，typed识别与运动学仍未证，不重启AO |
+| P02 / I07 / P11 | #166精确d9/run41979486002五SUCCESS已合main0598；FieldInfo.kind消费者修复、be324标题3capture/15pass/source8与P11 r2两版原12项/23进程已收编；原r1配置guard失败与writer未知保留，不称core I02或全局写隔离完成 |
+| P03 | 内部Agent已接独立树，复用六材料/两EOS与section/Part原子操作接T2配方；实现及真实检索来源刷新在推进，未发布或派发外部AI，不改变原验收/partial |
+| I06 | #167独立历史hash口径P2已在精确689f764/正式41981372125五SUCCESS后合入main dba51d；旧raw SHA/原run/active指针不改，另记GitLF身份。P04新来源门禁与受限证据在本分支收尾，不夹无关P2 |
 
 Q01/Q05 及其他任务今后改为 done 前，须按用户安排完成独立审阅和原生证据抽查。当前不派发 AO 任务。
 
