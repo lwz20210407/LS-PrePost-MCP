@@ -77,11 +77,7 @@ except Exception as exc:
 
 
 def require_profile(settings):
-    profile = versions.require_capability(settings.native_executable(), "batch")
-    if (profile["version"] != "4.13" or profile["version_source"] != "file_version_resource"
-            or profile["resource_conflict"]):
-        raise ValueError("Native beam axial_force requires an unambiguous 4.13 version resource")
-    return profile
+    return versions.require_beam_axial_history(settings.native_executable())
 
 
 def sha(path):
