@@ -160,9 +160,15 @@ tasks:
       - 绝对 Include/搜索目录的外部依赖修改后保真另存会明确拒绝，避免写出未被主文件引用的修改副本；未改外部子树显式保留，相对路径与 main-dir 回退仍可另存，绝对依赖的可移植路径重写尚未提供
       - 布局内部的 symlink/junction 目前明确拒绝另存，尚未实现链接物化/保真复制；写入失败可能在 job 内保留部分树或空目录，不能当作验证通过的产物
     notes:
+      - typed named setter在eeff修复int文本/real finite与row原子性，旧dba51合法夹具23红22controls、源WIP与peer身份保留；native另以1289完成统一65 job来源刷新，不改绑旧结果
+      - 新配置source_kind明确为readonly immutable_private_snapshot；globals只被动观察，不是input，仍不证明整个APPDATA隔离；标题已actualeeff15/3且1289八blob同值，不再重跑
+      - named数值写入按FieldInfo.kind在修改前校验；整数literal/精确数值与有限real、参数、blank默认及str路径明确分离，eeff host45/peer56通过，row空标识不再遗留内存半修改；新源原生来源复验待完成，不升级本项
       - P02/I07 的 FieldInfo.kind 消费者已按声明int精确匹配与比较，物理float及坐标阈值不变；be324有限peer123通过，完整模型546/1为提交前WIP另命令，原红12及合法比较4保留，不升级任务完成
       - P11 typed后r2两版各12断言/23真实进程及三标题oracle来源已实测刷新；r1全局410配置偏好变化仍为失败历史，不由新r2稳定推断全局写隔离已修
     evidence:
+      - docs/decisions/evidence/p02-typed-writes/report.md
+      - tests/test_model_typed_writes.py
+      - docs/decisions/evidence/p02-typed-writes/report.md
       - docs/decisions/evidence/p02-typed-matching/report.md
       - tests/test_model_typed_matching.py
       - tests/test_model_typed_compare.py
@@ -196,9 +202,10 @@ tasks:
       - model: 候选只验证主机 AST/L1；更多可选参数组合、布局与版本尚未核实，依赖 pydyna extra，不外推物理校准正确性
       - 新 T2 配方保存重开后的原生 Part Data ID/字段/关联回读仍未做，通用 P11 不替代此项验收
     notes:
+      - typed named后台deck076变更后以actual1ba重放原四文件60 L1及full/compact stdio，offline wheel778549B确含新deck并以source-doc pin执行；旧02b/P03目录和98题结果不改，retrieval11源未变不重建已回收索引，仍非native物理验收
       - 六 MAT/两个 EOS 及一个 JC+Gruneisen+solid+Part 原子配方已登记为 model: keyword/L1 candidate；find/index 给来源/schema pin，旧引用漂移先拒，bare ID 显式 latest；无新T1或原生执行
       - clean02b1a9d专属60项通过，内部有限peer及实体离线wheel/提取目录/MCP full与compact另有控制，不累计重叠数；新增9条公开配方来源后的原98题真实重放保留全部历史与API缺口
-    evidence: [src/ls_prepost_mcp/model_recipes.py, src/ls_prepost_mcp/data/model_recipes.json, tests/test_model_recipes.py, tests/test_model_recipe_pins.py, tests/test_model_recipe_knowledge.py, tests/test_model_recipes_mcp.py, docs/decisions/evidence/p03-model-recipes/report.md, docs/decisions/evidence/a10-model-recipes-refresh/report.md]
+    evidence: [src/ls_prepost_mcp/model_recipes.py, src/ls_prepost_mcp/data/model_recipes.json, tests/test_model_recipes.py, tests/test_model_recipe_pins.py, tests/test_model_recipe_knowledge.py, tests/test_model_recipes_mcp.py, docs/decisions/evidence/p03-model-recipes/report.md, docs/decisions/evidence/a10-model-recipes-refresh/report.md, docs/decisions/evidence/p03-typed-writes-refresh/report.md]
     acceptance:
       - 常用材料族 MAT_001/003/015/020/024/098 及 EOS 至少各一个配方，字段名来自关键字定义
       - Part 关联修改后引用检查通过，原生重开后 Part Data 读回一致
@@ -221,9 +228,10 @@ tasks:
       - Selector 适配不支持按特征角的外表面和变形构型；Increment 含洞/反向、参数化成员或范围、i10 紧凑创建尚未核实，明确拒绝
       - 旧d139原raw与950域拒绝历史保留；01a在ce76构建的自有单文件四节点/三组LIST、GENERATE、ADD仅成员有限原生通过，ADD顺序不符；Include、非4.13/其他构建、完整保存重开ID与顺序、通用table关系仍未证，不作通用编号适配
     notes:
+      - typed writes源1289重新验证同ce76构建、自有单文件四节点三sets成员仅413单次1进程，实际private配置input与global被动观察分开；旧01a/950/d139对象不改，ADD顺序仍false，不外推Include/其他构建或完整顺序验收
       - 具名完整node_ids与四项internal_id/user_id排序位置及双向回环先闭合，再按该构建已存静态路径验证集合槽位；01a新单次native三成员一致、LIST/Gen顺序一致、ADD顺序false，六own与两版本源配置SHA/size/mtime守卫通过，整体仍partial
       - 内部审阅修复 range 尾项/超字段静默丢弃、Node 消费者有损身份与SID近似匹配/比较；精确 d139 相关515通过/1跳过，公开Include四文件1946节点四定义12成员独立L1核对通过，整体保持partial
-    evidence: [src/ls_prepost_mcp/domain/model/node_sets.py, tests/test_node_set_composition.py, tests/test_node_set_review_boundaries.py, tests/test_selector_identity_exact.py, tools/verify_node_set_composition.py, docs/decisions/evidence/p04-node-composition/report.md, tools/verify_node_set_user_ids.py, tests/test_node_set_native_identity.py, tests/test_node_set_native_membership_evidence.py, docs/decisions/evidence/p04-native-membership/report.md]
+    evidence: [src/ls_prepost_mcp/domain/model/node_sets.py, tests/test_node_set_composition.py, tests/test_node_set_review_boundaries.py, tests/test_selector_identity_exact.py, tools/verify_node_set_composition.py, docs/decisions/evidence/p04-node-composition/report.md, tools/verify_node_set_user_ids.py, tests/test_node_set_native_identity.py, tests/test_node_set_native_membership_evidence.py, docs/decisions/evidence/p04-native-membership/report.md, docs/decisions/evidence/p04-typed-writes-refresh/report.md]
     acceptance:
       - 节点 / 单元 / Part / Segment 集合可由 Selector（ID、Part、盒、球、平面、外表面）生成
       - 集合成员与 Selector 独立计算结果逐 ID 一致
@@ -369,9 +377,11 @@ tasks:
       - 主文件 INCLUDE_PATH / INCLUDE_PATH_RELATIVE 与相对空搜索目录已有真实树读回；INCLUDE_TRANSFORM、opaque、参数化文件名与嵌套 INCLUDE_PATH_RELATIVE 仍拒绝；根目录已有 lspost.db 的树在原生启动前拒绝，防止覆盖资产
       - save_model 读取磁盘树而非 GUI 未保存编辑；GUI、4.8 与非 ASCII 另存文件名仍未验证；没有节点的模型仍被原生读取检查拒绝
     notes:
+      - typed writes后的1289私有配置输入新两版各原12断言/23进程，业务仍10success1partial1expectedfailed；只新active指针切换，旧live和失败对象原样；source14与source40批次上下文实际绑定
       - typed keyword matcher实际依赖新增matching/_identity，be324干净r2由4.13/4.10各原12项完整复验：10success、1partial、1预期failed，各23真实headless进程；14路径来源只是执行绑定，不代表全模块覆盖
       - r1原batch虽pytest每版12通过但总配置guard=false，永久保留失败；r2基于自然变化后输入新保存字节/stat实测两profile保持，不证明任意全局配置写保护；4.10 fixed4.9/string4.10资源冲突仍保留
     evidence:
+      - docs/decisions/evidence/p11-typed-writes-refresh/report.md
       - docs/decisions/evidence/p11-typed-matching-refresh/report.md
       - docs/decisions/evidence/p11-family-refresh/report.md
       - src/ls_prepost_mcp/model_save.py
@@ -404,6 +414,7 @@ tasks:
     status: partial
     existing: [create_entities, check_model]
     notes:
+      - 原be0/80/1b/28 capture/checkpoint/恢复计量对象保留；1289 source40私有配置source新增六case/18进程并单独切active，semantic全同、原严格R1差异/格式归一化分列；typed Joint识别仍unverified、motion未运行，整体partial
       - 九类 add_joint 与双向刚体 Part/已有节点刚体/新节点刚体连接已有实现；本轮修复无损身份校验、CNRB 大 PID 精确查找及合并 MOTOR_ID 卡片边界
       - docs/decisions/evidence/p12-joint-readback/report.md 登记同 be0 源的 4.13/4.10 各三份自有单文件定义往返，六 case 共 18 个真实 headless 进程；按手工预置核对节点、Part/连接、Joint 字段、集合及曲线，R1 严格原差与窄格式分类分列，40 来源仅为 provenance 而非全功能覆盖
       - 原控制器在前两组成功后遇只读库存超时，新目录只续跑剩余四组；源码与双版本配置字节/stat 保持，原失败和各实际 revision 不重绑；活动 run/checkpoint 独立选择
@@ -412,7 +423,7 @@ tasks:
       - 仅验证普通单文件关键字定义保存/实际重开/导出往返；Include 树、typed Joint 原生对象识别、GUI 会话及其他版本仍未覆盖
       - 当前源码的运动学/R11 与所选变形体节点新建节点刚体的动态算例尚未完成；广泛真实模型误报和过约束仍需相应复核
       - 未做：*CONSTRAINED_JOINT_STIFFNESS（限位、摩擦）的创建；齿轮、齿条、滑轮、螺旋、等速、HARMONIC 只登记，不做几何检查
-    evidence: [src/ls_prepost_mcp/domain/model/joints.py, src/ls_prepost_mcp/domain/model/joint_checks.py, tests/test_joint_identity_inputs.py, tests/test_joint_exact_body_lookup.py, tests/test_joint_instance_reader.py, tests/test_joint_native_format.py, tests/test_joint_source_identity.py, tests/test_joint_native_readback.py, tests/test_joint_readback_evidence.py, tools/verify_p12_joint_roundtrip.py, docs/decisions/evidence/p12-joint-readback/report.md, docs/decisions/evidence/p12/report.md]
+    evidence: [src/ls_prepost_mcp/domain/model/joints.py, src/ls_prepost_mcp/domain/model/joint_checks.py, tests/test_joint_identity_inputs.py, tests/test_joint_exact_body_lookup.py, tests/test_joint_instance_reader.py, tests/test_joint_native_format.py, tests/test_joint_source_identity.py, tests/test_joint_native_readback.py, tests/test_joint_readback_evidence.py, tools/verify_p12_joint_roundtrip.py, docs/decisions/evidence/p12-joint-readback/report.md, docs/decisions/evidence/p12/report.md, docs/decisions/evidence/p12-joint-readback/typed-writes-refresh-1289.md]
     acceptance:
       - 九类运动副各一个配方，节点对按 R17 Vol I *CONSTRAINED_JOINT 的规则放置，两侧刚体归属正确，引用检查通过
       - 每类运动副的 R11 算例与解析解或官方示例一致，运动学量误差小于 1%
