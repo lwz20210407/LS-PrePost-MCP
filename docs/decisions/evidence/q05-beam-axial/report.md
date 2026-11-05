@@ -55,3 +55,6 @@ python -B -m pytest tests/test_beam_native_check_native.py --run-native --native
 ```
 
 使用已有LSPP_CORPUS_DIR；无GUI、UU或求解器。Q05维持partial，未扩大到4.10/4.8或其他梁量，默认ipt的几何/力学含义尚未独立确认。
+
+
+CI后续：510b91a的架构测试指出版本比较散落于功能模块。b024cdc将同一准入策略移回统一versions能力表，不放宽检查，原架构回归及相关共171通过。干净b024cdc4c75e0bf32bc599c8af56cccb2b7096fa再次真实运行两例产品原生比较，2通过/26条、全部数值与时间差0、身份守卫通过。0a9d741和43360dc原始run完整保留；当前策略及其native_beam_history/versions等13项blob由最后一条run绑定。未把旧记录重绑为新头。
