@@ -1,4 +1,6 @@
 {
+ "validity": "historical_f04843a_public_results_superseded_private_supplement_unverified",
+ "active_public_replay_evidence": "docs/decisions/evidence/a10-replay-refresh/evidence.json",
  "schema_version": 1,
  "actual_git_revision": "f04843a530878563fc4ffd52bd785a339d206416",
  "working_tree_dirty": false,

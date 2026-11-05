@@ -31,6 +31,17 @@ def sha256(data):
     return hashlib.sha256(data).hexdigest()
 
 
+def check_active_product_sources(evidence, root=ROOT):
+    """An active replay becomes stale after product edits, even if old blobs still exist."""
+    identities = {item["path"]: item for item in evidence["product_source_identity"]}
+    if set(identities) != set(PRODUCT_PATHS):
+        raise ValueError("Active A10 replay must bind every retrieval product source")
+    for relative, identity in identities.items():
+        raw = (root / relative).read_bytes()
+        if sha256(raw.replace(b"\r\n", b"\n")) != identity["sha256_lf"]:
+            raise ValueError("Active A10 replay is stale after product source change: " + relative)
+
+
 def file_identity(relative, revision):
     """Git blobs and normalized LF hashes are portable across Windows/Linux checkouts."""
     data = subprocess.check_output(["git", "show", f"{revision}:{relative}"], cwd=ROOT, timeout=15)
@@ -102,6 +113,7 @@ def validate_suite(evidence, markdown, tables, root=ROOT):
     """Check artifacts against frozen questions, not hard-coded expected hit counts."""
     if set(evidence["sets"]) != set(SETS) or evidence["include_private"] or evidence["native_executed"]:
         raise ValueError("Unexpected evidence scope")
+    check_active_product_sources(evidence, root)
     for key, (name, role) in SETS.items():
         record = evidence["sets"][key]
         raw = (root / "tests/data" / name).read_bytes()

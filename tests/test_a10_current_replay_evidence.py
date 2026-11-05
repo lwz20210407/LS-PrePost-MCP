@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from tools.refresh_knowledge_evidence import SETS, validate_suite
+from tools.refresh_knowledge_evidence import PRODUCT_PATHS, SETS, check_active_product_sources, validate_suite
 
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "docs/decisions/evidence/a10-replay-refresh"
@@ -55,6 +55,20 @@ def test_evidence_checker_catches_stale_summary_and_reference_tables():
         validate_suite(evidence, markdown, stale)
 
 
+def test_active_product_binding_rejects_source_drift_even_with_valid_historical_records(tmp_path):
+    identities = []
+    for relative in PRODUCT_PATHS:
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"public product fixture\r\n")
+        identities.append(dict(path=relative, sha256_lf=hashlib.sha256(b"public product fixture\n").hexdigest()))
+    evidence = dict(product_source_identity=identities)
+    check_active_product_sources(evidence, tmp_path)
+    (tmp_path / PRODUCT_PATHS[0]).write_bytes(b"changed retrieval implementation\n")
+    with pytest.raises(ValueError, match="stale after product source change"):
+        check_active_product_sources(evidence, tmp_path)
+
+
 def test_evidence_has_product_runner_query_and_corpus_blob_identities():
     evidence, _, _ = artifacts()
     shallow = subprocess.run(["git", "rev-parse", "--is-shallow-repository"], cwd=ROOT,
@@ -73,3 +87,7 @@ def test_evidence_has_product_runner_query_and_corpus_blob_identities():
             data = subprocess.check_output(["git", "show", ref], cwd=ROOT, timeout=15)
             assert blob == identity["git_blob"]
             assert hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest() == identity["sha256_lf"]
+            if identity in evidence["product_source_identity"]:
+                current_blob = subprocess.check_output(["git", "rev-parse", "HEAD:" + identity["path"]],
+                                                       cwd=ROOT, text=True, timeout=15).strip()
+                assert current_blob == blob, "Active A10 evidence needs replay after product source changes"
