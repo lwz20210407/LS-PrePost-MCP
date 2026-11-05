@@ -190,6 +190,10 @@ def repository_documents(root=REPOSITORY):
     for path in sorted((root / "src/ls_prepost_mcp/native/recipes").glob("**/recipe.yaml")):
         relative = path.relative_to(root).as_posix()
         yield from chunks(path, source_id=relative, category="recipe", license="MIT", visibility="public", locator="repo://" + relative)
+    if (root / "src/ls_prepost_mcp/data/model_recipes.json").exists():
+        from .model_recipes import knowledge_documents
+
+        yield from knowledge_documents(root)
 
 
 def fieldless_document(record):
