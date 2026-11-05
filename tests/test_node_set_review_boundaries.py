@@ -50,10 +50,29 @@ def test_node_set_member_edit_never_truncates_values_before_the_shared_primitive
     assert source.read_bytes() == before
 
 
-def test_missing_node_set_member_is_a_semantic_error_not_lookup_indexerror(tmp_path):
-    source = deck_file(tmp_path / "main.k", "*SET_NODE_LIST\n1\n99\n*SET_SEGMENT\n2\n1,2,3,4\n")
+@pytest.mark.parametrize("master_kind", ["empty", "segment_set"])
+def test_missing_node_set_member_is_a_semantic_error_not_lookup_indexerror(tmp_path, master_kind):
+    # An explicitly empty master needs no optional PyDYNA table schema. The
+    # slave's undefined member must still fail before the empty-surface return.
+    master = dict(parts=[])
+    sets = "*SET_NODE_LIST\n1\n99\n"
+    if master_kind == "segment_set":
+        pytest.importorskip("ansys.dyna.core")
+        sets += "*SET_SEGMENT\n2\n1,2,3,4\n"
+        master = dict(segment_set=2)
+    source = deck_file(tmp_path / "main.k", sets)
+    deck = KeywordDeck.load(source)
     with pytest.raises(ValueError, match="missing nodes|undefined nodes"):
-        check_penetration(KeywordDeck.load(source), dict(node_set=1), dict(segment_set=2))
+        _slave(deck, dict(node_set=1))
+    with pytest.raises(ValueError, match="missing nodes|undefined nodes"):
+        check_penetration(deck, dict(node_set=1), master)
+
+
+def test_valid_node_set_with_explicitly_empty_master_has_no_penetration(tmp_path):
+    source = deck_file(tmp_path / "main.k", "*SET_NODE_LIST\n1\n1,2\n")
+    result = check_penetration(KeywordDeck.load(source), dict(node_set=1), dict(parts=[]))
+    assert result["slave_nodes"] == 2 and result["master_faces"] == 0
+    assert result["penetrating"] == 0 and result["nodes"] == []
 
 
 @pytest.mark.parametrize("existing,wanted", [(1, True), (1, 1.0000000001), (1000000000, 1000000001)])

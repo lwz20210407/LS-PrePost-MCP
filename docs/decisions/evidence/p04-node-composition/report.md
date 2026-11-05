@@ -67,3 +67,17 @@ raw记录如下，未改type、未转换、未重试：
 ## 其余gap
 
 其他集合族的紧凑表示、特征角外表面、变形构型、Increment有洞/反向、参数化成员/范围、i10紧凑创建及更广布局尚未完成；本提交不改变release/完整验收，也不将P04改done。
+
+
+## CI测试夹具依赖修正
+
+Ready头`46f4ad6`的正式run41969285926中四个full矩阵通过，minimal为2971 passed / 589 skipped / 1 failed。
+唯一失败的缺节点回归先构建了依赖可选PyDYNA的非空Segment主面，minimal在到达节点成员校验之前报`*SET_SEGMENT 2 not found`。
+保留该非空主面集成用例，并准确声明其PyDYNA依赖；同一回归另加只用builtin NODE/list与显式空主面的分支，及合法空主面控制，minimal仍验证缺节点必须拒绝。
+错误匹配未放宽，生产/producer blob均未改变。
+
+本地修改后相关命令87 passed；隔离子进程拒绝所有ansys导入后83 passed / 1 skipped，唯一跳过为显式SDK主面集成，builtin分支及合法控制实跑。
+后者是既有full环境下的依赖缺失控制，不冒充独立minimal环境；实际minimal由新提交的正式CI验证。
+原46f夹具错误已在干净头重现；将8ad的contact.py Git blob单独叠加到当前依赖/新测试后，builtin回归实际`DID NOT RAISE`，不称为历史完整clean checkout。
+上述本地检查基于46f加测试WIP，精确测试blob及日志SHA见evidence；不与d139的515/1、peer106相加。
+此修正不重新绑定或声称重跑既有原生诊断。
