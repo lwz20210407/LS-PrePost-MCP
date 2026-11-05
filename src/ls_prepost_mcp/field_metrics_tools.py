@@ -17,7 +17,8 @@ from .core.contracts import Artifact, CheckResult, JobResult
 from .domain.results import export as exp
 from .domain.results import invariants as inv
 from .domain.results import lasso_backend as lb
-from .jobs import atomic_json, fingerprint
+from .domain.results.family import plan_family
+from .jobs import atomic_json
 
 BACKEND = "lasso-invariants"
 
@@ -165,6 +166,7 @@ class FieldMetricsTools:
         # confinement, state and deletion checks before any job or native work.
         with self._guard():
             self._result_family(str(source))
+            family_before = plan_family(source).capture()
 
         try:
             with self._guard():
@@ -199,7 +201,7 @@ class FieldMetricsTools:
         }
         directory, manifest = self.jobs.create("extract_field", parameters)
 
-        before_fp = fingerprint(source)
+        manifest["inputs"] = list(family_before.records)
         error: dict[str, Any] | None = None
         artifacts: list[Artifact] = []
         data: dict[str, Any] = {}
@@ -208,8 +210,9 @@ class FieldMetricsTools:
         raw: dict[str, Any] = {}
 
         try:
-            raw = lb.field(source, norm_family, norm_quantity, state=state_index, mask=norm_mask,
-                           part_ids=parts, stored_point=stored_point)
+            with self._guard():
+                raw = lb.field(source, norm_family, norm_quantity, state=state_index, mask=norm_mask,
+                               part_ids=parts, stored_point=stored_point)
 
             state_out = int(raw["state"]) + 1  # public 1-based state number
             state_time = float(raw["time"])
@@ -300,8 +303,9 @@ class FieldMetricsTools:
                 if mask_policy["deletion_status"] == "stored" else None,
             }
 
-            after_fp = fingerprint(source)
-            unchanged = (after_fp == before_fp)
+            with self._guard():
+                family_before.verify()
+            unchanged = True
             checks.append(CheckResult(name="inputs_unchanged", status="passed" if unchanged else "failed"))
             checks.append(CheckResult(name="mask_policy_applied", status="passed"))
             checks.append(CheckResult(name="extrema_found", status="passed" if extrema["count"] > 0 else "not_applicable"))

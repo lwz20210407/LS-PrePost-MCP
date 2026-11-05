@@ -59,10 +59,9 @@ def backend() -> str:
 
 def _arrays(path: str | Path, state_arrays: list | None = None) -> dict:
     _, _, D3plot = _lasso()
-    path = Path(path)
-    if not path.exists():
-        raise ResultsError(f"{path} does not exist")
-    plot = D3plot(str(path)) if state_arrays is None else D3plot(str(path), state_array_filter=state_arrays)
+    from .family import open_d3plot
+
+    plot = open_d3plot(path, constructor=D3plot, **({} if state_arrays is None else dict(state_array_filter=state_arrays)))
     arrays = {str(getattr(key, "value", key)): value for key, value in plot.arrays.items()}
     try:
         validate_d3plot_times(arrays.get("timesteps", arrays.get("global_timesteps", [])))
@@ -383,6 +382,14 @@ def state_times(path: str | Path) -> np.ndarray:
     """Times of all states, reading no other state arrays (to validate a requested state first)."""
     ArrayType, _, _ = _lasso()
     return _times(_arrays(path, state_arrays=[ArrayType.global_timesteps]))
+
+
+def _admission_state_times(path: str | Path) -> np.ndarray:
+    """Only native budget admission; the later result operation must capture strong SHA identity."""
+    from .family import _state_admission
+
+    with _state_admission(path):
+        return state_times(path)
 
 
 def _part_elements(arrays: dict, family: str, part_ids: list[int]) -> np.ndarray:

@@ -12,11 +12,10 @@ from __future__ import annotations
 
 import hashlib
 import math
-import os
-import re
 from pathlib import Path
 
 from .core.contracts import Artifact, CheckResult, JobResult
+from .domain.results.family import plan_family, reading_family
 from .jobs import atomic_json
 
 TIME_RELATIVE_TOLERANCE = 1e-6
@@ -33,8 +32,10 @@ def result_info(tools, path: str, native_check: bool) -> dict:
     _confine_family(tools, source)
     directory, manifest = tools.jobs.create("result_info", {"path": str(source), "native_check": native_check})
     try:
-        overview = lb.overview(source)
-        header = {**lb.header(source), "meaning": HEADER_MEANING}
+        with tools._guard(), reading_family(source) as reader:
+            manifest["inputs"] = list(reader.snapshot.records)
+            overview = lb.overview(source)
+            header = {**lb.header(source), "meaning": HEADER_MEANING}
     except Exception as error:  # reader failures of any kind are reported, not raised past the job record
         result = _result("failed", {"source": str(source)}, manifest["job_id"], error=_error(error))
         return _record(directory, manifest, result)
@@ -67,9 +68,12 @@ def result_info(tools, path: str, native_check: bool) -> dict:
     artifacts = ()
     try:
         artifacts = _clock_artifacts(directory, data)
-    except OSError as failure:
+        with tools._guard():
+            reader.snapshot.verify()
+    except (OSError, ValueError) as failure:
         status, error = "failed", _error(failure)
-        checks.append(CheckResult(name="time_artifact", status="failed"))
+        artifacts = ()
+        checks.append(CheckResult(name="result_identity_or_artifact", status="failed"))
     result = _result(status, data, manifest["job_id"], checks=checks, artifacts=artifacts, warnings=tuple(warnings), error=error,
                      backend="lasso+lsprepost" if native_check else "lasso")
     return _record(directory, manifest, result)
@@ -105,10 +109,9 @@ def _confine_family(tools, source: Path) -> None:
     from .domain.results import mpp_shards
 
     folder = source.parent
-    family = re.compile(f"({os.path.basename(source)})[0-9]+$")
-    for name in sorted(os.listdir(folder)):
-        candidate = folder / name
-        if candidate.is_file() and family.match(name):
+    with tools._guard():
+        family = plan_family(source)
+        for candidate in family.paths:
             tools.settings.input_path(str(candidate))
     if any(mpp_shards.SHARD.match(p.name) for p in folder.iterdir()):
         for shard in mpp_shards.shards(folder):
