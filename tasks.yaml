@@ -550,7 +550,7 @@ tasks:
       - MPP 合并结果与单机结果一致性未验证：公开语料中没有同一模型的 MPP/SMP 成对算例（corpus:mpp_binout）；分片合并只有合成 LSDA 用例
       - 两份公开 ASCII 力文件已有 2952 个正例时间/数值对照；这不代表 binout 全库的 LSPP/LASSO 一致性，后者仍待完成
     notes:
-      - 新增严格ASCII GLSTAT全局能量/时间步曲线，输入SHA前后绑定；6公开文件28曲线12123值相等。干净be51589的4.13已登记样本kinetic/internal全101帧各通过，仅有限L2，不启用通用native_check
+      - 新增严格ASCII GLSTAT全局能量/时间步曲线，输入SHA前后绑定；6公开文件28曲线12123值相等。干净be51589及共享扫描后的0fffdda在4.13已登记样本kinetic/internal全101帧各通过；共享原始扫描保留Q12 nullable/wall策略，102项读取与两策略各4320项词法兼容；仅有限L2，不启用通用native_check
     evidence:
       - src/ls_prepost_mcp/domain/results/ascii_forces.py
       - tests/test_ascii_force_database.py
