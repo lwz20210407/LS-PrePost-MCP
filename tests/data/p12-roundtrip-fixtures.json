@@ -85,7 +85,9 @@
               0
             ],
             "rps": 0.75,
-            "damp": 0.125
+            "damp": 0.125,
+            "keyword": "*CONSTRAINED_JOINT_REVOLUTE_ID",
+            "heading": "revolute joint"
           }
         ],
         "nodes": {
@@ -873,7 +875,9 @@
               0
             ],
             "rps": 0.75,
-            "damp": 0.125
+            "damp": 0.125,
+            "keyword": "*CONSTRAINED_JOINT_SPHERICAL_ID",
+            "heading": "spherical joint"
           },
           {
             "jid": 902,
@@ -887,7 +891,9 @@
               0
             ],
             "rps": 0.75,
-            "damp": 0.125
+            "damp": 0.125,
+            "keyword": "*CONSTRAINED_JOINT_REVOLUTE_ID",
+            "heading": "revolute joint"
           },
           {
             "jid": 903,
@@ -901,7 +907,9 @@
               0
             ],
             "rps": 0.75,
-            "damp": 0.125
+            "damp": 0.125,
+            "keyword": "*CONSTRAINED_JOINT_CYLINDRICAL_ID",
+            "heading": "cylindrical joint"
           },
           {
             "jid": 904,
@@ -915,7 +923,9 @@
               0
             ],
             "rps": 0.75,
-            "damp": 0.125
+            "damp": 0.125,
+            "keyword": "*CONSTRAINED_JOINT_PLANAR_ID",
+            "heading": "planar joint"
           },
           {
             "jid": 905,
@@ -929,7 +939,9 @@
               0
             ],
             "rps": 0.75,
-            "damp": 0.125
+            "damp": 0.125,
+            "keyword": "*CONSTRAINED_JOINT_UNIVERSAL_ID",
+            "heading": "universal joint"
           },
           {
             "jid": 906,
@@ -943,7 +955,9 @@
               168
             ],
             "rps": 0.75,
-            "damp": 0.125
+            "damp": 0.125,
+            "keyword": "*CONSTRAINED_JOINT_TRANSLATIONAL_ID",
+            "heading": "translational joint"
           },
           {
             "jid": 907,
@@ -957,7 +971,9 @@
               174
             ],
             "rps": 0.75,
-            "damp": 0.125
+            "damp": 0.125,
+            "keyword": "*CONSTRAINED_JOINT_LOCKING_ID",
+            "heading": "locking joint"
           },
           {
             "jid": 908,
@@ -973,7 +989,11 @@
             "rps": 0.75,
             "damp": 0.125,
             "lcid": 701,
-            "type": 0
+            "type": 0,
+            "keyword": "*CONSTRAINED_JOINT_ROTATIONAL_MOTOR_ID",
+            "heading": "rotational_motor joint",
+            "parm": 0.0,
+            "r1": null
           },
           {
             "jid": 909,
@@ -989,7 +1009,11 @@
             "rps": 0.75,
             "damp": 0.125,
             "lcid": 702,
-            "type": 0
+            "type": 0,
+            "keyword": "*CONSTRAINED_JOINT_TRANSLATIONAL_MOTOR_ID",
+            "heading": "translational_motor joint",
+            "parm": 0.0,
+            "r1": null
           },
           {
             "jid": 910,
@@ -1003,7 +1027,9 @@
               0
             ],
             "rps": 0.75,
-            "damp": 0.125
+            "damp": 0.125,
+            "keyword": "*CONSTRAINED_JOINT_REVOLUTE_ID",
+            "heading": "revolute joint"
           },
           {
             "jid": 911,
@@ -1017,7 +1043,9 @@
               193
             ],
             "rps": 0.75,
-            "damp": 0.125
+            "damp": 0.125,
+            "keyword": "*CONSTRAINED_JOINT_TRANSLATIONAL_ID",
+            "heading": "translational joint"
           }
         ],
         "nodes": {
@@ -2721,7 +2749,9 @@
               0
             ],
             "rps": 0.75,
-            "damp": 0.125
+            "damp": 0.125,
+            "keyword": "*CONSTRAINED_JOINT_REVOLUTE_ID",
+            "heading": "revolute joint"
           },
           {
             "jid": 952,
@@ -2735,7 +2765,9 @@
               0
             ],
             "rps": 0.75,
-            "damp": 0.125
+            "damp": 0.125,
+            "keyword": "*CONSTRAINED_JOINT_REVOLUTE_ID",
+            "heading": "revolute joint"
           },
           {
             "jid": 953,
@@ -2749,7 +2781,9 @@
               0
             ],
             "rps": 0.75,
-            "damp": 0.125
+            "damp": 0.125,
+            "keyword": "*CONSTRAINED_JOINT_REVOLUTE_ID",
+            "heading": "revolute joint"
           },
           {
             "jid": 954,
@@ -2763,7 +2797,9 @@
               0
             ],
             "rps": 0.75,
-            "damp": 0.125
+            "damp": 0.125,
+            "keyword": "*CONSTRAINED_JOINT_REVOLUTE_ID",
+            "heading": "revolute joint"
           }
         ],
         "nodes": {

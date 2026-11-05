@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+import tools.verify_p12_joint_roundtrip as verifier
 from ls_prepost_mcp.domain.model import KeywordDeck, joint_checks
 from tests.test_joint_instance_reader import repeated
 from tools.verify_p12_joint_roundtrip import (
@@ -189,3 +190,75 @@ def test_process_evidence_cannot_be_replaced_by_an_output_echo(fault):
         engine["data"][fault] = dict(pid=None, graphics=True, argv=[], returncode=1, timed_out=True)[fault]
     with pytest.raises(ValueError, match="headless execution evidence"):
         _engine(manifest)
+
+
+@pytest.mark.parametrize("option,extra,field", [
+    ("LOCAL", "         0         1\n", "raid"),
+    ("FAILURE", "         0      0.25         1\n"
+                "         0         0         0         0         0         0\n", "tfail"),
+])
+@pytest.mark.parametrize("shape", ["single", "merged"])
+def test_extra_joint_options_are_definition_differences_even_when_core_values_match(
+        prepared, tmp_path, option, extra, field, shape):
+    source = prepared["pilot" if shape == "single" else "body_modes"]
+
+    def mutate(deck):
+        original = [b for b in deck.iter_blocks() if b.name == "*CONSTRAINED_JOINT_REVOLUTE_ID"]
+        replacements = [block.text().replace(block.name, block.name + "_" + option, 1) + extra
+                        for block in original]
+        for block in original:
+            deck.delete(block, force=True)
+        for text in replacements:
+            deck.insert(text)
+        if shape == "merged":
+            blocks = [b for b in deck.iter_blocks() if b.name.endswith("_ID_" + option)]
+            text = blocks[0].lines[0] + "".join("".join(b.lines[1:]) for b in blocks)
+            for block in blocks:
+                deck.delete(block, force=True)
+            deck.insert(text)
+
+    path = _copy_model(source, tmp_path, mutate)
+    actual = snapshot(path)
+    assert len(actual["joints"]) == (1 if shape == "single" else 4)
+    assert all(field in record for record in actual["joints"].values())
+    differences = compare(path, source["spec"]["expected"])
+    assert any(item["field"].endswith("keyword") for item in differences)
+    assert any(item["field"].endswith("field_names") for item in differences)
+
+
+@pytest.mark.parametrize("field", ["n5", "n6", "heading", "keyword", "unrecognized_future_option"])
+def test_missing_or_unknown_projected_joint_fields_never_count_as_equal(prepared, monkeypatch, field):
+    source = prepared["pilot"]
+    actual = snapshot(source["edited"])
+    record = actual["joints"][901]
+    if field == "unrecognized_future_option":
+        record[field] = 123
+    else:
+        del record[field]
+    monkeypatch.setattr(verifier, "snapshot", lambda path: actual)
+    differences = compare(source["edited"], source["spec"]["expected"])
+    assert any(item["field"] == "Joint 901.field_names" for item in differences)
+
+
+def test_joint_heading_is_part_of_the_handwritten_definition(prepared, tmp_path):
+    def mutate(deck):
+        block = next(b for b in deck.iter_blocks() if b.name == "*CONSTRAINED_JOINT_REVOLUTE_ID")
+        deck.set(block, "heading", "unrequested replacement title")
+
+    source = prepared["pilot"]
+    path = _copy_model(source, tmp_path, mutate)
+    assert any(item["field"] == "Joint 901.heading"
+               for item in compare(path, source["spec"]["expected"]))
+
+
+@pytest.mark.parametrize("field,value", [("parm", 3.), ("r1", 2.)])
+def test_motor_reserved_or_trailing_field_changes_cannot_hide_in_matching_core_values(
+        prepared, tmp_path, field, value):
+    def mutate(deck):
+        block, _ = deck.find("*CONSTRAINED_JOINT_ROTATIONAL_MOTOR_ID", jid=908)[0]
+        deck.set(block, field, value)
+
+    source = prepared["nine_types"]
+    path = _copy_model(source, tmp_path, mutate)
+    assert any(item["field"] == "Joint 908." + field
+               for item in compare(path, source["spec"]["expected"]))

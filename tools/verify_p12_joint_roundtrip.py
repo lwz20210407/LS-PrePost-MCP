@@ -229,11 +229,24 @@ def compare(path, expected):
     for joint in expected["joints"]:
         observed = actual["joints"].get(joint["jid"], {})
         prefix = f"Joint {joint['jid']}."
+        # This producer covers ordinary _ID cards only.  Extra LOCAL/FAILURE
+        # fields change the definition even when every core node/value matches.
+        fields = {"jid", "heading", "kind", "keyword", "rps", "damp",
+                  *(f"n{i}" for i in range(1, 7))}
+        fields.update(key for key in ("lcid", "type", "parm", "r1") if key in joint)
+        equal(prefix + "field_names", sorted(fields), sorted(observed))
+        equal(prefix + "keyword", joint["keyword"], observed.get("keyword"))
+        equal(prefix + "heading", joint["heading"], observed.get("heading"))
+        equal(prefix + "jid", joint["jid"], observed.get("jid"))
         equal(prefix + "kind", joint["kind"], observed.get("kind"))
         for index, node in enumerate(joint["nodes"], 1):
             equal(prefix + f"n{index}", node, observed.get(f"n{index}") or 0)
-        for key in ("rps", "damp"):
-            real(prefix + key, joint[key], observed.get(key))
+        for key in ("rps", "damp", "parm", "r1"):
+            if key in joint:
+                if joint[key] is None:
+                    equal(prefix + key, None, observed.get(key))
+                else:
+                    real(prefix + key, joint[key], observed.get(key))
         for key in ("lcid", "type"):
             if key in joint:
                 equal(prefix + key, joint[key], observed.get(key))
