@@ -162,13 +162,12 @@ tasks:
     notes:
       - typed named setter在eeff修复int文本/real finite与row原子性，旧dba51合法夹具23红22controls、源WIP与peer身份保留；native另以1289完成统一65 job来源刷新，不改绑旧结果
       - 新配置source_kind明确为readonly immutable_private_snapshot；globals只被动观察，不是input，仍不证明整个APPDATA隔离；标题已actualeeff15/3且1289八blob同值，不再重跑
-      - named数值写入按FieldInfo.kind在修改前校验；整数literal/精确数值与有限real、参数、blank默认及str路径明确分离，eeff host45/peer56通过，row空标识不再遗留内存半修改；新源原生来源复验待完成，不升级本项
+      - named数值写入按FieldInfo.kind在修改前校验；整数literal/精确数值与有限real、参数、blank默认及str路径明确分离。首轮45项为WIP，clean eeff内部复核56项包含这45项；row空标识在修改前拒绝。当时待补的原生来源已在1289完成刷新，原运行身份保留，本项仍partial
       - P02/I07 的 FieldInfo.kind 消费者已按声明int精确匹配与比较，物理float及坐标阈值不变；be324有限peer123通过，完整模型546/1为提交前WIP另命令，原红12及合法比较4保留，不升级任务完成
       - P11 typed后r2两版各12断言/23真实进程及三标题oracle来源已实测刷新；r1全局410配置偏好变化仍为失败历史，不由新r2稳定推断全局写隔离已修
     evidence:
       - docs/decisions/evidence/p02-typed-writes/report.md
       - tests/test_model_typed_writes.py
-      - docs/decisions/evidence/p02-typed-writes/report.md
       - docs/decisions/evidence/p02-typed-matching/report.md
       - tests/test_model_typed_matching.py
       - tests/test_model_typed_compare.py
