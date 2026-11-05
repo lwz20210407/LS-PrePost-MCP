@@ -362,9 +362,10 @@
 缺口：
 
 - extract_database（LASSO，不启动 LSPP）已按存储列名读取 12 类 binout 库，自动合并同目录 MPP 分片；重复 ID（RCFORC 的 side 0/1）按存储列区分。公开 binout（Bolt_B_Explicit、pyansys-heart）的 glstat / rcforc / nodout 与 lasso 直读逐值一致
-- ASCII RCFORC/SECFORC 保留接触两侧、legend 标题和截面 ac ID 原文参考标记（不推断坐标系）；五份公开文件全部可用列已核对。三向力的旧登记代码在 4.13/4.10 各七项原生对照通过；当前元数据、其余 ASCII 库和力矩/重心等原生对照仍缺
+- ASCII RCFORC/SECFORC 保留接触两侧、legend 标题和截面 ac ID 原文参考标记（不推断坐标系）；五份公开文件全部可用列已核对。三向力的旧登记代码在 4.13/4.10 各七项原生对照通过；当前元数据、更多 ASCII 库和力矩/重心等原生对照仍缺
 - MPP 合并结果与单机结果一致性未验证：公开语料中没有同一模型的 MPP/SMP 成对算例（corpus:mpp_binout）；分片合并只有合成 LSDA 用例
 - 两份公开 ASCII 力文件已有 2952 个正例时间/数值对照；这不代表 binout 全库的 LSPP/LASSO 一致性，后者仍待完成
+- ASCII MATSUM已接5个具名能量列并在3公共源49460值逐值核对；直接MATSUM原生具名对照、更多布局/列仍缺，eroded_he尚无受支持映射且对应量明确拒绝；不可把共享GLSTAT回归当MATSUM原生证据
 
 ### Q07 曲线运算
 
@@ -469,6 +470,7 @@
 
 - 新 check_energy 已提供八项能量/显式阈值/MATSUM 分解，缺项留空且筛查单位不变；完成 L1 和公开读测，原生 L2 全量对照仍待补
 - 非标准 binout 名明确拒绝；MPP 不同实体集合仍按共享读取器规则拒绝；未证实全部求解器输出变体
+- 真实ASCII MATSUM含eroded_he，当前共享Q12读取器未解释该字段，eroded_hourglass_energy仍unknown；不填零，Q06该量明确拒绝，需独立映射依据
 - 已关闭的 PR #57 历史能量缺陷在新实现中有针对性回归，旧代码未合入；新实现目前仅有 L1 和公开读取证据
 
 ## 自动化

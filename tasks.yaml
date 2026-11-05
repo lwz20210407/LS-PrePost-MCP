@@ -548,9 +548,10 @@ tasks:
     existing: [extract_database, extract_native_binout_curve, extract_native_ascii_curve, extract_binout_curve, extract_binout_table, extract_ascii_curve]
     gaps:
       - extract_database（LASSO，不启动 LSPP）已按存储列名读取 12 类 binout 库，自动合并同目录 MPP 分片；重复 ID（RCFORC 的 side 0/1）按存储列区分。公开 binout（Bolt_B_Explicit、pyansys-heart）的 glstat / rcforc / nodout 与 lasso 直读逐值一致
-      - ASCII RCFORC/SECFORC 保留接触两侧、legend 标题和截面 ac ID 原文参考标记（不推断坐标系）；五份公开文件全部可用列已核对。三向力的旧登记代码在 4.13/4.10 各七项原生对照通过；当前元数据、其余 ASCII 库和力矩/重心等原生对照仍缺
+      - ASCII RCFORC/SECFORC 保留接触两侧、legend 标题和截面 ac ID 原文参考标记（不推断坐标系）；五份公开文件全部可用列已核对。三向力的旧登记代码在 4.13/4.10 各七项原生对照通过；当前元数据、更多 ASCII 库和力矩/重心等原生对照仍缺
       - MPP 合并结果与单机结果一致性未验证：公开语料中没有同一模型的 MPP/SMP 成对算例（corpus:mpp_binout）；分片合并只有合成 LSDA 用例
       - 两份公开 ASCII 力文件已有 2952 个正例时间/数值对照；这不代表 binout 全库的 LSPP/LASSO 一致性，后者仍待完成
+      - ASCII MATSUM已接5个具名能量列并在3公共源49460值逐值核对；直接MATSUM原生具名对照、更多布局/列仍缺，eroded_he尚无受支持映射且对应量明确拒绝；不可把共享GLSTAT回归当MATSUM原生证据
     notes:
       - 新增严格ASCII GLSTAT全局能量/时间步曲线，输入SHA前后绑定；6公开文件28曲线12123值相等。干净be51589及共享扫描后的0fffdda在4.13已登记样本kinetic/internal全101帧各通过；共享原始扫描保留Q12 nullable/wall策略，102项读取与两策略各4320项词法兼容；仅有限L2，不启用通用native_check
     evidence:
@@ -566,6 +567,11 @@ tasks:
       - tests/test_ascii_glstat_database.py
       - tests/test_ascii_glstat_native.py
       - docs/decisions/evidence/q06-ascii-glstat/report.md
+      - src/ls_prepost_mcp/domain/results/ascii_matsum.py
+      - tests/test_ascii_matsum_database.py
+      - tests/test_ascii_matsum_corpus.py
+      - tools/verify_ascii_matsum_corpus.py
+      - docs/decisions/evidence/q06-ascii-matsum/report.md
     acceptance:
       - GLSTAT、MATSUM、RCFORC、SECFORC、NODOUT、ELOUT、SLEOUT、NODFOR、SPCFORC、RBDOUT、NCFORC、DEFORC 各一个用例
       - 按名称指定分量（不用 UI 编号）；返回单位与原始列名
@@ -689,6 +695,7 @@ tasks:
     gaps:
       - 新 check_energy 已提供八项能量/显式阈值/MATSUM 分解，缺项留空且筛查单位不变；完成 L1 和公开读测，原生 L2 全量对照仍待补
       - 非标准 binout 名明确拒绝；MPP 不同实体集合仍按共享读取器规则拒绝；未证实全部求解器输出变体
+      - 真实ASCII MATSUM含eroded_he，当前共享Q12读取器未解释该字段，eroded_hourglass_energy仍unknown；不填零，Q06该量明确拒绝，需独立映射依据
       - '已关闭的 PR #57 历史能量缺陷在新实现中有针对性回归，旧代码未合入；新实现目前仅有 L1 和公开读取证据'
     acceptance:
       - 总能量、动能、内能、沙漏能、滑移能、外功、阻尼能、侵蚀能逐项输出，并给出平衡残差

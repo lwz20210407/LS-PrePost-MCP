@@ -261,3 +261,32 @@ def test_ascii_glstat_follows_input_confinement(tmp_path):
     source.write_text(TEXT)
     result = Service(Settings(workspace)).extract_database(str(source), "glstat", "total_energy", "J")
     assert result["status"] == "failed" and "allowed roots" in result["error"]["message"]
+
+
+def test_glstat_growth_during_parse_stops_before_following_the_extra_data(tmp_path, monkeypatch):
+    from ls_prepost_mcp.domain.results import ascii_glstat
+
+    original_validate, original_lines = ascii_glstat.validate_size, ascii_glstat.bounded_lines
+    observed = dict(validations=0, consumed_chars=0)
+    monkeypatch.setattr(ascii_glstat, "MAX_BYTES", 200)
+
+    def grows_after_parse_size_check(path):
+        original_validate(path)
+        observed["validations"] += 1
+        if observed["validations"] == 2:
+            with Path(path).open("a", encoding="utf8") as stream:
+                stream.write("\n" * 1000)
+
+    def consumed(*args, **kwargs):
+        for line in original_lines(*args, **kwargs):
+            observed["consumed_chars"] += len(line)
+            yield line
+
+    monkeypatch.setattr(ascii_glstat, "validate_size", grows_after_parse_size_check)
+    monkeypatch.setattr(ascii_glstat, "bounded_lines", consumed)
+    source = tmp_path / "glstat"
+    source.write_text("time. 0\ntime step. 1\nkinetic energy. 1\ninternal energy. 2\ntotal energy. 3\n"
+                      "time per zone cycle.(nanosec).. 0\n")
+    result = Service(Settings(tmp_path)).extract_database(str(source), "glstat", "kinetic_energy", "J")
+    assert result["status"] == "failed" and not result["artifacts"]
+    assert observed["consumed_chars"] <= 200
