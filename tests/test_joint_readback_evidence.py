@@ -26,8 +26,51 @@ def _blob(revision, path):
     return _tree(revision)[path]
 
 
+@lru_cache(maxsize=None)
+def _dependency_blob(revision, path):
+    return subprocess.check_output(["git", "rev-parse", revision + ":" + path],
+                                   cwd=ROOT, text=True, timeout=10).strip()
+
+
+def _configuration(run):
+    kind = run.get("source_kind", "legacy_live_global_profile")
+    if kind == "immutable_private_snapshot":
+        guard = run.get("private_configuration_input_guards")
+        assert isinstance(guard, dict) and guard["source_kind"] == kind
+        assert guard["selected_version"] == run["profile"]["version"]
+        inputs = guard["inputs"]
+        assert set(inputs) == {"4.13", "4.10"}
+        for version, item in inputs.items():
+            assert item["source_kind"] == kind and item["version"] == version and item["readonly_origin"]
+            assert item["full_before_after_bytes_identity_verified"]
+            assert item["before"] == item["after"]
+            assert set(item["before"]) == {"sha256", "bytes", "mtime_ns", "device", "inode"}
+        selected = inputs[guard["selected_version"]]
+        assert guard["selected_input_id"] == selected["input_id"]
+        assert run["selected_configuration_sha256"] == selected["before"]["sha256"]
+        assert guard["source_and_public_tree_unchanged"] and guard["executable_fingerprints_unchanged"]
+        assert guard["no_native_processes_after_step"]
+        for process in run["processes"]:
+            source = process["configuration_input"]
+            assert source["source_kind"] == kind and source["version"] == guard["selected_version"]
+            assert source["input_id"] == selected["input_id"] and source["source_sha256"] == selected["before"]["sha256"]
+            assert source["manifest_source_matches_selected_snapshot"] is True and source["source_modified"] is False
+        observation = run["global_environment_observation"]
+        assert observation["source_kind"] == "passive_environment_observation"
+        assert observation["required_input"] is False and observation["isolation_proven"] is False
+    else:
+        assert kind == "legacy_live_global_profile"
+        guard = run.get("global_configuration_guards")
+        assert isinstance(guard, dict) and guard["before"]
+        assert set(guard["before"]) == set(guard["after"])
+        for version, before in guard["before"].items():
+            after = guard["after"][version]
+            assert after["bytes_equal_before"] and all(after[k] == before[k] for k in ("sha256", "size", "mtime_ns"))
+
+
 def _active(data):
     checkpoint = data["source_checkpoints"][data["active_source_checkpoint"]]
+    assert checkpoint["id"] == data["active_source_checkpoint"]
     sources = checkpoint["capture_source_identity"]
     assert set(sources) == set(CAPTURE_SOURCE_PATHS)
     assert "src/ls_prepost_mcp/domain/model/matching.py" in sources
@@ -36,6 +79,18 @@ def _active(data):
         assert re.fullmatch(r"[0-9a-f]{64}", identity["captured_file_sha256"])
         assert _blob(checkpoint["actual_git_revision"], path) == identity["git_blob_id"]
         assert _blob("HEAD", path) == identity["git_blob_id"], path
+    path = "src/ls_prepost_mcp/domain/model/loads.py"
+    dependency = checkpoint["post_capture_dependency_identity"][path]
+    assert path not in sources and len(sources) == 40
+    assert dependency["actual_git_revision"] == checkpoint["actual_git_revision"]
+    assert dependency["archival_kind"] == "post_capture_dependency_from_actual_full_snapshot_not_original_explicit40"
+    assert _dependency_blob(checkpoint["actual_git_revision"], path) == dependency["git_blob_id"]
+    assert _dependency_blob("HEAD", path) == dependency["git_blob_id"], path
+    assert {row["version"] for row in dependency["contexts"]} == {"4.13", "4.10"}
+    for context in dependency["contexts"]:
+        assert context["full_source_snapshot_sha256"] == checkpoint["source_snapshot_sha256"]
+        assert context["captured_file_sha256"] == dependency["captured_file_sha256"]
+        assert re.fullmatch(r"[0-9a-f]{64}", context["execution_context_raw_sha256"])
     identifiers = data["active_run_ids"]
     assert len(identifiers) == len(set(identifiers)) == 6
     runs = {run["id"]: run for run in data["native_captures"]}
@@ -53,9 +108,7 @@ def _active(data):
         assert len(run["processes"]) == 3
         assert all(p["returncode"] == 0 and p["timed_out"] is False and p["graphics"] is False
                    and p["nographics"] and type(p["pid"]) is int and p["pid"] > 0 for p in run["processes"])
-        for version, before in run["global_configuration_guards"]["before"].items():
-            after = run["global_configuration_guards"]["after"][version]
-            assert after["bytes_equal_before"] and all(after[k] == before[k] for k in ("sha256", "size", "mtime_ns"))
+        _configuration(run)
         strict, normalizations = run["strict_card_differences"], run["format_normalizations"]
         assert [item["field"] for item in strict] == [item["field"] for item in normalizations]
         assert len(strict) <= 2
@@ -103,3 +156,43 @@ def test_active_source_gate_uses_git_objects_not_platform_worktree_hashes(monkey
     # Raw Windows capture hashes remain evidence; CI must not rehash LF checkout bytes as if they were that capture.
     monkeypatch.setattr(Path, "read_bytes", lambda self: pytest.fail("Portable source gate must use Git blobs"))
     _active(data)
+
+
+def test_private_inputs_stable_with_changed_passive_globals_remain_valid():
+    data = copy.deepcopy(json.loads(EVIDENCE.read_text(encoding="utf8")))
+    for run in data["native_captures"]:
+        if run["id"] in data["active_run_ids"]:
+            assert run["source_kind"] == "immutable_private_snapshot"
+            observation = run["global_environment_observation"]
+            observation["after"] = copy.deepcopy(observation["before"])
+            observation["after"]["4.10"]["sha256"] = "0" * 64
+    _active(data)
+
+
+def test_changed_private_input_is_refused_even_when_passive_globals_are_stable():
+    data = copy.deepcopy(json.loads(EVIDENCE.read_text(encoding="utf8")))
+    run = next(row for row in data["native_captures"] if row["id"] in data["active_run_ids"])
+    observation = run["global_environment_observation"]
+    observation["after"] = copy.deepcopy(observation["before"])
+    run["private_configuration_input_guards"]["inputs"]["4.13"]["after"]["sha256"] = "0" * 64
+    with pytest.raises(AssertionError):
+        _active(data)
+
+
+def test_legacy_live_context_still_rejects_changed_global_configuration_inputs():
+    data = json.loads(EVIDENCE.read_text(encoding="utf8"))
+    run = copy.deepcopy(next(row for row in data["native_captures"] if row.get("global_configuration_guards")))
+    version = next(iter(run["global_configuration_guards"]["before"]))
+    run["global_configuration_guards"]["after"][version]["sha256"] = "0" * 64
+    with pytest.raises(AssertionError):
+        _configuration(run)
+
+
+def test_changed_current_loads_dependency_rejects_an_otherwise_complete_capture(monkeypatch):
+    data = json.loads(EVIDENCE.read_text(encoding="utf8"))
+    original = _dependency_blob
+    path = "src/ls_prepost_mcp/domain/model/loads.py"
+    monkeypatch.setattr(__import__(__name__, fromlist=["_dependency_blob"]), "_dependency_blob",
+                        lambda revision, item: "0" * 40 if revision == "HEAD" and item == path else original(revision, item))
+    with pytest.raises(AssertionError):
+        _active(data)

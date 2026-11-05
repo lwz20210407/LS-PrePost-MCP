@@ -11,7 +11,7 @@ import pytest
 from tools.refresh_knowledge_evidence import PRODUCT_PATHS, SETS, check_active_product_sources, validate_suite
 
 ROOT = Path(__file__).resolve().parents[1]
-EVIDENCE = ROOT / "docs/decisions/evidence/a10-replay-refresh"
+EVIDENCE = ROOT / "docs/decisions/evidence/a10-model-recipes-refresh"
 
 
 def artifacts():
