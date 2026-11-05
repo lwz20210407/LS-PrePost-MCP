@@ -12,7 +12,10 @@ is invented. Targets:
 """
 from __future__ import annotations
 
+from functools import wraps
 from typing import TYPE_CHECKING
+
+import numpy as np
 
 from . import geometry, selectors, sets
 from ._identity import exact_integer
@@ -24,6 +27,34 @@ if TYPE_CHECKING:
 
 DOFS = {"x": 1, "y": 2, "z": 3, "rx": 5, "ry": 6, "rz": 7}
 MOTION = {"velocity": 0, "acceleration": 1, "displacement": 2}
+
+
+def _append_boundary(function):
+    """Undo P05's appended dependencies on rejection; never clone mesh arrays."""
+    @wraps(function)
+    def apply(deck, *args, **kwargs):
+        main = deck.main
+        blocks = list(main.blocks)
+        tails = [(block, block.lines[-1]) for block in blocks if block.lines]
+        modified, changes = main.modified, len(deck.changes)
+        files, warnings = dict(deck.files), list(deck.warnings)
+        try:
+            return function(deck, *args, **kwargs)
+        except Exception:
+            # P05 only inserts main-file blocks and edits those new blocks.
+            # Core insert may also supply a missing newline on an old tail.
+            main.blocks[:] = blocks
+            for block, tail in tails:
+                block.lines[-1] = tail
+            main.modified = modified
+            del deck.changes[changes:]
+            deck.files.clear()
+            deck.files.update(files)
+            main.invalidate_line_numbers()
+            deck._rebuild()
+            deck.warnings[:] = warnings
+            raise
+    return apply
 
 
 def _node_target(deck: KeywordDeck, target: dict) -> dict:
@@ -50,6 +81,8 @@ def _node_target(deck: KeywordDeck, target: dict) -> dict:
     ids = [integer(value, "Target node ID", positive=True) for value in ids]
     if not ids:
         raise FieldError("The target selects no nodes")
+    if np.any(~np.isin(ids, NodeSets(deck).ids)):
+        raise FieldError("The target refers to undefined nodes")
     return {"nodes": ids, "title": target.get("title")}
 
 
@@ -70,6 +103,8 @@ def _segment_target(deck: KeywordDeck, target: dict) -> dict:
     if "parts" in exterior:
         exterior["parts"] = [exact_integer(value, "Exterior Part ID") for value in exterior["parts"]]
     rows = target["segments"] if "segments" in target else geometry.exterior_segments(deck, **exterior).tolist()
+    if any(len(row) != 4 for row in rows):
+        raise FieldError("Segments need 4 node IDs (repeat the third for triangles)")
     rows = [[exact_integer(value, "Segment node ID") for value in row] for row in rows]
     if not rows:
         raise FieldError("The segment target selects no segments")
@@ -83,6 +118,7 @@ def _segment_set(deck: KeywordDeck, target: dict) -> int:
     return sets.create_set(deck, "segment", target["segments"], title=target.get("title"))[0]
 
 
+@_append_boundary
 def ensure_curve(deck: KeywordDeck, spec: dict) -> int:
     """Existing curve ID, or a new *DEFINE_CURVE from ``points`` (next free ID)."""
     defined = deck.references(False).defined.get("curve", set())
@@ -107,6 +143,7 @@ def _card(deck: KeywordDeck, keyword: str, fields: dict, **ids: int) -> dict:
     return {"keyword": keyword, "file": str(block.file.path), "line": block.line_number, **ids}
 
 
+@_append_boundary
 def add_spc(deck: KeywordDeck, target: dict, dofs: list[str] | str, cid: int = 0) -> dict:
     """*BOUNDARY_SPC_SET; ``dofs`` from x, y, z, rx, ry, rz or ``"all"``."""
     wanted = set(DOFS) if dofs == "all" else {d.lower() for d in dofs}
@@ -118,6 +155,7 @@ def add_spc(deck: KeywordDeck, target: dict, dofs: list[str] | str, cid: int = 0
     return _card(deck, "*BOUNDARY_SPC_SET", fields, nsid=nsid)
 
 
+@_append_boundary
 def add_prescribed_motion(deck: KeywordDeck, target: dict, dof: str, motion: str, curve: dict,
                           sf: float = 1.0) -> dict:
     """*BOUNDARY_PRESCRIBED_MOTION_SET, or _RIGID when ``target`` is ``{"rigid_part": pid}``."""
@@ -136,33 +174,40 @@ def add_prescribed_motion(deck: KeywordDeck, target: dict, dof: str, motion: str
     return _card(deck, "*BOUNDARY_PRESCRIBED_MOTION_SET", {"nsid": nsid, **fields}, nsid=nsid, lcid=lcid)
 
 
+@_append_boundary
 def add_nodal_load(deck: KeywordDeck, target: dict, dof: str, curve: dict, sf: float = 1.0) -> dict:
     """*LOAD_NODE_SET (force for x/y/z, moment for rx/ry/rz)."""
+    sf = float(sf)
     target = _node_target(deck, target)
     dof = DOFS[dof.lower()]
     lcid = ensure_curve(deck, curve)
     nsid = _node_set(deck, target)
-    fields = {"nsid": nsid, "dof": dof, "lcid": lcid, "sf": float(sf)}
+    fields = {"nsid": nsid, "dof": dof, "lcid": lcid, "sf": sf}
     return _card(deck, "*LOAD_NODE_SET", fields, nsid=nsid, lcid=lcid)
 
 
+@_append_boundary
 def add_pressure(deck: KeywordDeck, target: dict, curve: dict, sf: float = 1.0) -> dict:
     """*LOAD_SEGMENT_SET (positive pressure acts against the segment normal)."""
+    sf = float(sf)
     target = _segment_target(deck, target)
     lcid = ensure_curve(deck, curve)
     ssid = _segment_set(deck, target)
-    return _card(deck, "*LOAD_SEGMENT_SET", {"ssid": ssid, "lcid": lcid, "sf": float(sf)}, ssid=ssid, lcid=lcid)
+    return _card(deck, "*LOAD_SEGMENT_SET", {"ssid": ssid, "lcid": lcid, "sf": sf}, ssid=ssid, lcid=lcid)
 
 
+@_append_boundary
 def add_gravity(deck: KeywordDeck, direction: str, curve: dict, sf: float = 1.0) -> dict:
     """*LOAD_BODY_X/Y/Z with the curve scaled by ``sf`` (sign convention as in LS-DYNA, not altered)."""
     axis = direction.lower()
     if axis not in ("x", "y", "z"):
         raise FieldError("direction must be x, y or z")
+    sf = float(sf)
     lcid = ensure_curve(deck, curve)
-    return _card(deck, f"*LOAD_BODY_{axis.upper()}", {"lcid": lcid, "sf": float(sf)}, lcid=lcid)
+    return _card(deck, f"*LOAD_BODY_{axis.upper()}", {"lcid": lcid, "sf": sf}, lcid=lcid)
 
 
+@_append_boundary
 def add_initial_velocity(deck: KeywordDeck, target: dict, velocity: list[float]) -> dict:
     """*INITIAL_VELOCITY_GENERATION for ``{"part": pid}`` / ``{"part_set": sid}``, else *INITIAL_VELOCITY."""
     vx, vy, vz = (float(v) for v in velocity)
@@ -178,6 +223,7 @@ def add_initial_velocity(deck: KeywordDeck, target: dict, velocity: list[float])
     return _card(deck, "*INITIAL_VELOCITY", {"nsid": nsid, "vx": vx, "vy": vy, "vz": vz}, nsid=nsid)
 
 
+@_append_boundary
 def add_rigid_wall(deck: KeywordDeck, point: list[float], normal: list[float], target: dict | None = None,
                    friction: float = 0.0) -> dict:
     """*RIGIDWALL_PLANAR through ``point`` with ``normal`` towards the model; nodes default to all."""
@@ -185,12 +231,14 @@ def add_rigid_wall(deck: KeywordDeck, point: list[float], normal: list[float], t
     head = [t + float(n) for t, n in zip(tail, normal)]
     if head == tail:
         raise FieldError("normal must not be zero")
+    friction = float(friction)
     nsid = _node_set(deck, target) if target else 0
     fields = {"nsid": nsid, "xt": tail[0], "yt": tail[1], "zt": tail[2], "xh": head[0], "yh": head[1],
-              "zh": head[2], "fric": float(friction)}
+              "zh": head[2], "fric": friction}
     return _card(deck, "*RIGIDWALL_PLANAR", fields, nsid=nsid)
 
 
+@_append_boundary
 def add_nodal_rigid_body(deck: KeywordDeck, target: dict, pid: int | None = None) -> dict:
     """*CONSTRAINED_NODAL_RIGID_BODY; ``pid`` defaults to the next ID above every part ID."""
     defined = deck.references(False).defined.get("part", set())
@@ -205,6 +253,7 @@ def add_nodal_rigid_body(deck: KeywordDeck, target: dict, pid: int | None = None
     return {"keyword": block.name, "file": str(block.file.path), "line": block.line_number, "pid": pid, "nsid": nsid}
 
 
+@_append_boundary
 def add_non_reflecting(deck: KeywordDeck, target: dict) -> dict:
     """*BOUNDARY_NON_REFLECTING on a segment set (dilatational and shear waves absorbed)."""
     ssid = _segment_set(deck, target)
