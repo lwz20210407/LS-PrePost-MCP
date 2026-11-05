@@ -82,8 +82,10 @@ def _identity_spec(spec: object, label: str) -> object:
         value = exact_integer(value, f"Side {label}: {key} ID")
     elif key in ("parts", "nodes"):
         value = _identity_sequence(value, f"Side {label}: {key} member ID")
-    elif key in ("exterior", "select") and isinstance(value, dict) and value.get("parts") is not None:
-        value = {**value, "parts": _identity_sequence(value["parts"], f"Side {label}: selected Part ID")}
+    elif key in ("exterior", "select") and isinstance(value, Mapping):
+        value = dict(value)
+        if value.get("parts") is not None:
+            value["parts"] = _identity_sequence(value["parts"], f"Side {label}: selected Part ID")
     return {key: value}
 
 

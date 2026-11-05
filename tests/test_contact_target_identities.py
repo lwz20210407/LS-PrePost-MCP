@@ -1,6 +1,7 @@
 """Contact IDs must not turn flags/fractions into another existing target."""
 import copy
 import json
+from collections import UserDict
 from decimal import Decimal
 from fractions import Fraction
 from pathlib import Path
@@ -228,3 +229,26 @@ def test_existing_part_id_sequence_forms_remain_supported_without_caller_mutatio
     assert result["sides"]["a"] == [2, 2]
     assert deck.members(deck.blocks("*SET_PART_LIST")[1]) == [1, 2]
     assert np.array_equal(target["parts"], original)
+
+
+@pytest.mark.parametrize("selection", ["select", "exterior"])
+def test_nested_mapping_filter_cannot_bypass_contact_part_identity_checks(source, selection):
+    deck = KeywordDeck.load(source)
+    target = {selection: UserDict(parts=[True])}
+    with pytest.raises(FieldError, match="integer identity"):
+        contacts.add_contact(deck, "automatic_nodes_to_surface" if selection == "select" else "automatic_surface_to_surface",
+                             target, {"part": 2}, params={"fs": .2})
+    assert not deck.changes and deck.main.text() == MODEL_TEXT
+
+
+@pytest.mark.parametrize("selection", ["select", "exterior"])
+def test_legal_nested_mapping_filter_is_preserved_without_mutating_the_caller(source, selection):
+    deck = KeywordDeck.load(source)
+    filtering = UserDict(parts=[1.0])
+    before = copy.deepcopy(filtering)
+    result = contacts.add_contact(deck, "automatic_nodes_to_surface" if selection == "select" else "automatic_surface_to_surface",
+                                  {selection: filtering}, {"part": 2}, params={"fs": .2})
+    assert filtering == before
+    assert result["created_sets"][0]["kind"] == ("node_set" if selection == "select" else "segment_set")
+    if selection == "select":
+        assert deck.members(deck.blocks("*SET_NODE_LIST")[1]) == [1, 2, 3, 4]
