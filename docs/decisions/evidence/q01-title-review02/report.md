@@ -35,3 +35,5 @@ History-point follow-up refreshed the shared-reader blob and three independent p
 Beam-force follow-up: the independent title suite was genuinely rerun on clean `eda59350720f8ebf89e1120ba1cc657f542dfb9e`: 15 tests passed, three paired-keyword cases/16 Parts matched, keyword trees and result families unchanged. Active product blobs and cases now bind that run; the preceding 2ccdc34 capture is preserved unchanged in previous_captures. This is not native title verification or a Q01 done upgrade.
 
 2026-11-05 Q05原生接入更新共享读取层后，在干净0a9d74145ac4a6bb6b73a1afe29cc6bd6dfcc82e实际重跑三份独立关键字标题oracle：15通过、16Parts，标题/关键字树/结果族均不变。此前eda5935及更早捕获完整保留；仍非原生证据、Q01仍partial。
+
+2026-11-05 I01结果族防护后，在干净f31b06eb047ed3d97d58b2c8e1ab23424951997c真实再跑15项标题测试、3配对输入/16Parts，标题与源树/结果族均不变。源身份现列入真实依赖family.py，存在性及active blob门禁均要求覆盖它；旧e5及更早捕获保留在独有I01台账与previous_captures，不改写执行revision，仍不是原生标题验收。
