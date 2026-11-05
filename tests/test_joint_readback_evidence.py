@@ -26,6 +26,12 @@ def _blob(revision, path):
     return _tree(revision)[path]
 
 
+@lru_cache(maxsize=None)
+def _dependency_blob(revision, path):
+    return subprocess.check_output(["git", "rev-parse", revision + ":" + path],
+                                   cwd=ROOT, text=True, timeout=10).strip()
+
+
 def _configuration(run):
     kind = run.get("source_kind", "legacy_live_global_profile")
     if kind == "immutable_private_snapshot":
@@ -64,6 +70,7 @@ def _configuration(run):
 
 def _active(data):
     checkpoint = data["source_checkpoints"][data["active_source_checkpoint"]]
+    assert checkpoint["id"] == data["active_source_checkpoint"]
     sources = checkpoint["capture_source_identity"]
     assert set(sources) == set(CAPTURE_SOURCE_PATHS)
     assert "src/ls_prepost_mcp/domain/model/matching.py" in sources
@@ -72,6 +79,18 @@ def _active(data):
         assert re.fullmatch(r"[0-9a-f]{64}", identity["captured_file_sha256"])
         assert _blob(checkpoint["actual_git_revision"], path) == identity["git_blob_id"]
         assert _blob("HEAD", path) == identity["git_blob_id"], path
+    path = "src/ls_prepost_mcp/domain/model/loads.py"
+    dependency = checkpoint["post_capture_dependency_identity"][path]
+    assert path not in sources and len(sources) == 40
+    assert dependency["actual_git_revision"] == checkpoint["actual_git_revision"]
+    assert dependency["archival_kind"] == "post_capture_dependency_from_actual_full_snapshot_not_original_explicit40"
+    assert _dependency_blob(checkpoint["actual_git_revision"], path) == dependency["git_blob_id"]
+    assert _dependency_blob("HEAD", path) == dependency["git_blob_id"], path
+    assert {row["version"] for row in dependency["contexts"]} == {"4.13", "4.10"}
+    for context in dependency["contexts"]:
+        assert context["full_source_snapshot_sha256"] == checkpoint["source_snapshot_sha256"]
+        assert context["captured_file_sha256"] == dependency["captured_file_sha256"]
+        assert re.fullmatch(r"[0-9a-f]{64}", context["execution_context_raw_sha256"])
     identifiers = data["active_run_ids"]
     assert len(identifiers) == len(set(identifiers)) == 6
     runs = {run["id"]: run for run in data["native_captures"]}
@@ -167,3 +186,13 @@ def test_legacy_live_context_still_rejects_changed_global_configuration_inputs()
     run["global_configuration_guards"]["after"][version]["sha256"] = "0" * 64
     with pytest.raises(AssertionError):
         _configuration(run)
+
+
+def test_changed_current_loads_dependency_rejects_an_otherwise_complete_capture(monkeypatch):
+    data = json.loads(EVIDENCE.read_text(encoding="utf8"))
+    original = _dependency_blob
+    path = "src/ls_prepost_mcp/domain/model/loads.py"
+    monkeypatch.setattr(__import__(__name__, fromlist=["_dependency_blob"]), "_dependency_blob",
+                        lambda revision, item: "0" * 40 if revision == "HEAD" and item == path else original(revision, item))
+    with pytest.raises(AssertionError):
+        _active(data)

@@ -21,3 +21,5 @@ globals独立passive observation，不是配置input；可能变化也不据此�
 4.10完整profile仍fixed4.9.0.1/string4.10.0.1/resource_conflict=true/regression_subset，不因本子集变成全面支持。
 
 旧raw/旧分析-only/失败对象保持。原生日志、配置正文、绝对路径、其他项目材料留本地；见本目录evidence新active选择及Source40上下文。不是用户安排的独立done审阅。
+
+后验依赖归档：joints直接调用的loads.ensure_curve未列原显式40，但当时两版execution-context的完整source_files已实际捕获loads raw SHA；重算完整digest仍611d，Git1289/current blob一致。独立post_capture_dependency_identity归档此事实，未改原40/旧run或伪称当时已显式列出，也没有新native测量；后续loads改变将使active来源门禁拒绝。
