@@ -27,9 +27,13 @@ MOTION = {"velocity": 0, "acceleration": 1, "displacement": 2}
 
 def _node_set(deck: KeywordDeck, target: dict) -> int:
     if "node_set" in target:
-        sid = int(target["node_set"])
+        from .node_sets import NodeSets, integer
+
+        sid = integer(target["node_set"], "Node set SID", positive=True)
         if sid not in deck.references(False).defined.get("node_set", set()):
             raise FieldError(f"Node set {sid} is not defined")
+        if not NodeSets(deck).resolve(sid):
+            raise FieldError("The target node set selects no nodes")
         return sid
     if "selector" in target:
         chosen = selectors.selector(target["selector"])

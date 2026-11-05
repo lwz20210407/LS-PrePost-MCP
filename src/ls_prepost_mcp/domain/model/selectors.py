@@ -18,11 +18,13 @@ Predicates:
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 import numpy as np
 
 from ...core import contracts as c
+from ._identity import exact_integer
 from .fields import FieldError
 from .geometry import _index, elements, exterior_segments, nodes
 
@@ -36,7 +38,47 @@ SET_PREFIX = {"node": "*SET_NODE", "shell": "*SET_SHELL", "solid": "*SET_SOLID",
 
 def selector(value: c.Selector | dict) -> c.Selector:
     """Validate a Selector given as the contract object or its JSON form."""
-    return value if isinstance(value, c.Selector) else c.Selector.model_validate(value, strict=False)
+    raw = value.model_dump(mode="python") if isinstance(value, c.Selector) else value
+    if not isinstance(raw, Mapping):
+        return c.Selector.model_validate(raw, strict=False)
+    normalized = dict(raw)
+    if raw.get("state") is not None:
+        normalized["state"] = exact_integer(raw["state"], "Selector state")
+    predicate = raw.get("predicate")
+    if isinstance(predicate, c.Contract):
+        predicate = predicate.model_dump(mode="python")
+    if isinstance(predicate, Mapping):
+        copied, pending = {}, []
+
+        def copy_predicate(item):
+            if isinstance(item, c.Contract):
+                item = item.model_dump(mode="python")
+            if not isinstance(item, Mapping):
+                return item
+            key = id(item)
+            if key not in copied:
+                copied[key] = dict(item)
+                pending.append((item, copied[key]))
+            return copied[key]
+
+        normalized["predicate"] = copy_predicate(predicate)
+        while pending:
+            original, output = pending.pop()
+            kind = original.get("kind")
+            field = "part_ids" if kind == "surface" else "ids" if kind in {"ids", "parts", "sets"} else None
+            values = original.get(field) if field else None
+            if field and values is not None and not isinstance(values, (str, bytes, Mapping)):
+                try:
+                    output[field] = tuple(exact_integer(item, f"Selector {field}") for item in values)
+                except TypeError:
+                    output[field] = values  # Let the existing contract report a malformed container.
+            operands = original.get("operands")
+            if kind == "boolean" and operands is not None and not isinstance(operands, (str, bytes, Mapping)):
+                try:
+                    output["operands"] = tuple(copy_predicate(item) for item in operands)
+                except TypeError:
+                    output["operands"] = operands
+    return c.Selector.model_validate(normalized, strict=False)
 
 
 def resolve(deck: KeywordDeck, value: c.Selector | dict) -> np.ndarray:
@@ -69,6 +111,10 @@ def _universe(deck: KeywordDeck, entity: str) -> tuple[np.ndarray, np.ndarray | 
 
 
 def _set_members(deck: KeywordDeck, set_type: str, sids: tuple[int, ...]) -> dict[int, list]:
+    if set_type == "node":
+        from .node_sets import resolve_many
+
+        return resolve_many(deck, sids)
     prefix = SET_PREFIX[set_type]
     found: dict[int, list] = {}
     for block in deck.iter_blocks():
@@ -121,6 +167,11 @@ def _predicate(deck: KeywordDeck, entity: str, predicate: object) -> np.ndarray:
                 result = np.intersect1d(result, other)
             return result
         return np.setdiff1d(parts[0], parts[1])
+    if kind == "sets" and predicate.set_type == "node":
+        if entity != "node":
+            raise FieldError(f"A node set does not select {entity} entities")
+        return np.asarray([member for group in _set_members(deck, "node", predicate.ids).values()
+                           for member in group], dtype=np.int64)
     ids, positions, pids = _universe(deck, entity)
     if kind == "all":
         return ids

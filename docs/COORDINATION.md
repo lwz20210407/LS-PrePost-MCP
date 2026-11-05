@@ -20,7 +20,8 @@
 | Q05 | #156时程及#161限定4.13/default的beam轴力native_check均五项CI全绿合入；正式两样本26条力/时间差0、身份守卫通过；版本策略归统一能力表，仍partial |
 | Q06 | #160已合入；#163 NODOUT九平动列6公共231147值完成，raw/unknown life，未原生、仍L1；根补active reader/wrapper/scanner来源门禁，待精确头CI |
 | I01 结果族 | #162已在6212430精确头五项CI全绿后合入d946f1e；raw路径分类及P11来源过期已修，a20两版P11/beam/标题真重跑，原门禁保留；仍partial |
-| P04 / P12 | 内部两Agent继续节点集合GENERATE/ADD与运动副身份/单文件回读，共用exact_integer；现main中已复现的SID/NodeID/小数布尔身份问题修复中，未交付 |
+| P04 | #164节点LIST/GENERATE/Increment/ADD组合L1及三组身份/范围审阅修复已交付准备，d139相关515/1、公开Include1946节点回放与精确内部peer通过；单次原生raw含义未确认、三组用户ID一致性false，不计L2，仍partial；CI以PR实时精确头为准 |
+| P12 | #165为身份修复与单文件Joint定义回读准备，source80冻结；探索Pilot不替代正式L2，新增reader/producer有限peer仍待闭环，typed recognition/运动学未验；共用exact_integer，不重启AO |
 | I06 | 本项维护证据体积和文档关卡；后续继续 review02 未完成的 P1/P2，不以阶段汇报作为停止点 |
 
 Q01/Q05 及其他任务今后改为 done 前，须按用户安排完成独立审阅和原生证据抽查。当前不派发 AO 任务。
