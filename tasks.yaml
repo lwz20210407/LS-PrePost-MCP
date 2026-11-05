@@ -159,7 +159,13 @@ tasks:
       - corpus:include_contact 的验收用例依赖语料，CI 中跳过
       - 绝对 Include/搜索目录的外部依赖修改后保真另存会明确拒绝，避免写出未被主文件引用的修改副本；未改外部子树显式保留，相对路径与 main-dir 回退仍可另存，绝对依赖的可移植路径重写尚未提供
       - 布局内部的 symlink/junction 目前明确拒绝另存，尚未实现链接物化/保真复制；写入失败可能在 job 内保留部分树或空目录，不能当作验证通过的产物
+    notes:
+      - P02/I07 的 FieldInfo.kind 消费者已按声明int精确匹配与比较，物理float及坐标阈值不变；be324有限peer123通过，完整模型546/1为提交前WIP另命令，原红12及合法比较4保留，不升级任务完成
+      - P11 typed后r2两版各12断言/23真实进程及三标题oracle来源已实测刷新；r1全局410配置偏好变化仍为失败历史，不由新r2稳定推断全局写隔离已修
     evidence:
+      - docs/decisions/evidence/p02-typed-matching/report.md
+      - tests/test_model_typed_matching.py
+      - tests/test_model_typed_compare.py
       - tests/test_keyword_absolute_save.py
       - docs/decisions/evidence/p02-absolute-save/report.md
       - tests/test_save_include_resolution_review02.py
@@ -209,10 +215,11 @@ tasks:
     gaps:
       - 节点 LIST/GENERATE/GENERATE_INCREMENT/ADD 已有创建、共享图查询/引用/联系消费者与离散定义比较 L1；其他集合族仍为既有列表范围，更多布局未完成
       - Selector 适配不支持按特征角的外表面和变形构型；Increment 含洞/反向、参数化成员或范围、i10 紧凑创建尚未核实，明确拒绝
-      - 单次 4.13 ids_inset 诊断已执行但三组 raw 与预期用户ID均不一致，返回含义未独立确认，不猜映射/不计L2；原生成员及保存重开后ID/成员/顺序验收仍待补
+      - 旧d139原raw与950域拒绝历史保留；01a在ce76构建的自有单文件四节点/三组LIST、GENERATE、ADD仅成员有限原生通过，ADD顺序不符；Include、非4.13/其他构建、完整保存重开ID与顺序、通用table关系仍未证，不作通用编号适配
     notes:
+      - 具名完整node_ids与四项internal_id/user_id排序位置及双向回环先闭合，再按该构建已存静态路径验证集合槽位；01a新单次native三成员一致、LIST/Gen顺序一致、ADD顺序false，六own与两版本源配置SHA/size/mtime守卫通过，整体仍partial
       - 内部审阅修复 range 尾项/超字段静默丢弃、Node 消费者有损身份与SID近似匹配/比较；精确 d139 相关515通过/1跳过，公开Include四文件1946节点四定义12成员独立L1核对通过，整体保持partial
-    evidence: [src/ls_prepost_mcp/domain/model/node_sets.py, tests/test_node_set_composition.py, tests/test_node_set_review_boundaries.py, tests/test_selector_identity_exact.py, tools/verify_node_set_composition.py, docs/decisions/evidence/p04-node-composition/report.md]
+    evidence: [src/ls_prepost_mcp/domain/model/node_sets.py, tests/test_node_set_composition.py, tests/test_node_set_review_boundaries.py, tests/test_selector_identity_exact.py, tools/verify_node_set_composition.py, docs/decisions/evidence/p04-node-composition/report.md, tools/verify_node_set_user_ids.py, tests/test_node_set_native_identity.py, tests/test_node_set_native_membership_evidence.py, docs/decisions/evidence/p04-native-membership/report.md]
     acceptance:
       - 节点 / 单元 / Part / Segment 集合可由 Selector（ID、Part、盒、球、平面、外表面）生成
       - 集合成员与 Selector 独立计算结果逐 ID 一致
@@ -357,7 +364,11 @@ tasks:
       - 原路径保存重开在干净 e3b42fb 由 4.13/4.10 各12项无图形用例覆盖；新增模板警告保留为 partial/missing，旧 a181aa1 各11项保留历史。before_save 为规范化输入观察，after_reopen 在另存根目录以相对主文件名读取实际树；仅证明登记子集，不替代完整物理检查
       - 主文件 INCLUDE_PATH / INCLUDE_PATH_RELATIVE 与相对空搜索目录已有真实树读回；INCLUDE_TRANSFORM、opaque、参数化文件名与嵌套 INCLUDE_PATH_RELATIVE 仍拒绝；根目录已有 lspost.db 的树在原生启动前拒绝，防止覆盖资产
       - save_model 读取磁盘树而非 GUI 未保存编辑；GUI、4.8 与非 ASCII 另存文件名仍未验证；没有节点的模型仍被原生读取检查拒绝
+    notes:
+      - typed keyword matcher实际依赖新增matching/_identity，be324干净r2由4.13/4.10各原12项完整复验：10success、1partial、1预期failed，各23真实headless进程；14路径来源只是执行绑定，不代表全模块覆盖
+      - r1原batch虽pytest每版12通过但总配置guard=false，永久保留失败；r2基于自然变化后输入新保存字节/stat实测两profile保持，不证明任意全局配置写保护；4.10 fixed4.9/string4.10资源冲突仍保留
     evidence:
+      - docs/decisions/evidence/p11-typed-matching-refresh/report.md
       - docs/decisions/evidence/p11-family-refresh/report.md
       - src/ls_prepost_mcp/model_save.py
       - tests/test_save_model.py
@@ -1023,6 +1034,7 @@ infrastructure:
     status: partial
     verification_level: L1
     gaps:
+      - P11 typed r1曾观察source410全局窗口/打印偏好文件真实hash变化，发生窗口落在413套件但writer未归属；r2两profile保存前后字节/stat实测不变不等于已修全局写保护，既有source_modified=false metadata亦未证明全APPDATA隔离；见p11-typed-matching-refresh报告
       - 队列饱和与不重放已在 4.13 原生集成提交 c68caef 通过；4.10 队列仍按版本能力表在启动前拒绝
       - Windows 创建窗口已通过 JOB_LIST 原子绑定关闭，并以受控进程强杀回归验证；其余原生/GUI 验收仍按各自证据范围保留
       - renumber/quality 已接入 SessionEngine（面板设置与 Apply 在已登记的会话请求内执行，迟到完成须经宿主校验）；6 项面板原生回归仅在历史集成树 3939b5b 通过，本头未重跑；Model Selection 面板与曲线窗口枚举等只读路径仍直接走 Win32；五个批处理入口已读取 JobResult，外部旧清单保留兼容输出；公开 Win32 打开、检查点和重开已补原生证据
@@ -1196,7 +1208,12 @@ infrastructure:
     milestone: M3
     status: done
     verification_level: L1
+    notes:
+      - 既有关键字FieldInfo.kind消费者补typed find/compare，int身份与序列离散精确、float物理量容差和字符串调用方规则保持；不等于core FieldSpec类型转换，也不改变I07既有验收或完成状态
     evidence:
+      - docs/decisions/evidence/p02-typed-matching/report.md
+      - src/ls_prepost_mcp/domain/model/matching.py
+      - tests/test_model_typed_compare.py
       - src/ls_prepost_mcp/domain/model/deck.py
       - tests/test_keyword_engine.py
       - tests/test_keyword_engine_formats.py
