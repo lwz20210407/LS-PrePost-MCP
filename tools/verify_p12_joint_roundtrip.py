@@ -13,6 +13,7 @@ import math
 import os
 import re
 import stat
+import subprocess
 from pathlib import Path
 
 from ls_prepost_mcp.config import Settings
@@ -31,6 +32,23 @@ KINDS = frozenset(("SPHERICAL", "REVOLUTE", "CYLINDRICAL", "PLANAR", "UNIVERSAL"
                    "LOCKING", "ROTATIONAL_MOTOR", "TRANSLATIONAL_MOTOR"))
 ATOL, RTOL = 1e-10, 1e-12
 MAX_BYTES = 10 * 1024 * 1024
+PRODUCT_PATHS = tuple("src/ls_prepost_mcp/" + path for path in (
+    "domain/model/_identity.py", "domain/model/joints.py", "domain/model/joint_checks.py",
+    "domain/model/deck.py", "domain/model/matching.py", "domain/model/fields.py",
+    "domain/model/layouts.py", "domain/model/keyword_docs.py", "domain/model/blocks.py",
+    "domain/model/text.py", "domain/model/geometry.py", "domain/model/access.py",
+    "domain/model/preflight.py", "domain/model/persist.py", "domain/model/node_sets.py",
+    "domain/model/sets.py", "domain/model/selectors.py", "domain/model/operations.py",
+    "domain/model/references.py", "model_save.py", "model_target_tools.py", "keyword_staging.py",
+    "service.py", "config.py", "jobs.py", "runner.py", "engine/batch.py", "engine/environment.py",
+    "engine/processes.py", "native/commands.py", "native/versions.py",
+))
+CAPTURE_SOURCE_PATHS = PRODUCT_PATHS + (
+    "tools/verify_p12_joint_roundtrip.py", "tools/native_regression.py",
+    "tests/data/p12-roundtrip-fixtures.json", "tests/test_joint_native_readback.py",
+    "tests/test_joint_roundtrip_contract.py", "tests/test_joint_native_format.py",
+    "tests/test_joint_source_identity.py", "pyproject.toml", "uv.lock",
+)
 MOTOR_R1_KEYWORDS = frozenset(("*CONSTRAINED_JOINT_ROTATIONAL_MOTOR_ID",
                                "*CONSTRAINED_JOINT_TRANSLATIONAL_MOTOR_ID"))
 MOTOR_R1_FORMAT_SOURCE = {
@@ -63,6 +81,37 @@ def plain(value):
 def sha(path):
     with Path(path).open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def capture_source_identity(identity):
+    """Require current critical dependencies; historical captures are never backfilled."""
+    captured = identity.get("source_files")
+    if not isinstance(captured, dict):
+        raise ValueError("Missing required capture source hashes")
+    for path in CAPTURE_SOURCE_PATHS:
+        digest = captured.get(path)
+        if not isinstance(digest, str) or re.fullmatch(r"[0-9a-f]{64}", digest) is None or not (ROOT / path).is_file():
+            raise ValueError("Missing required capture source: " + path)
+        if sha(ROOT / path) != digest:
+            raise ValueError("Required capture source changed after identity capture: " + path)
+    revision = identity.get("actual_git_head")
+    if not isinstance(revision, str) or re.fullmatch(r"[0-9a-f]{40}", revision) is None:
+        raise ValueError("Cannot resolve committed capture source revision")
+    try:
+        output = subprocess.check_output(["git", "ls-tree", "-r", revision, "--", *CAPTURE_SOURCE_PATHS],
+                                         cwd=ROOT, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError) as error:
+        raise ValueError("Cannot resolve committed capture source identities") from error
+    blobs = {}
+    for line in output.splitlines():
+        metadata, path = line.split("\t", 1)
+        mode, kind, blob = metadata.split()
+        if mode in ("100644", "100755") and kind == "blob":
+            blobs[path] = blob
+    missing = set(CAPTURE_SOURCE_PATHS) - blobs.keys()
+    if missing:
+        raise ValueError("Missing committed capture source identities: " + ", ".join(sorted(missing)))
+    return {path: dict(git_blob_id=blobs[path], captured_file_sha256=captured[path]) for path in CAPTURE_SOURCE_PATHS}
 
 
 def fixture(name):
@@ -364,6 +413,7 @@ def verify_native(prepared, identity):
     service, source, edited = prepared["service"], prepared["source"], prepared["edited"]
     if not identity.get("actual_git_head") or identity.get("working_tree_dirty") is not False:
         raise ValueError("Native readback requires a clean actual Git identity")
+    sources = capture_source_identity(identity)
     executable = service.settings.native_executable()
     config = locate_config(executable, os.environ)
     if config is None:
@@ -374,6 +424,11 @@ def verify_native(prepared, identity):
         source_snapshot_sha256=identity["source_snapshot_sha256"], native_executed=False, status="failed",
         typed_joint_recognition="unverified", motion_verification="not_run",
         executable_sha256=binary_sha, source_config_sha256=config_sha,
+        product_source_identity={path: sources[path] for path in PRODUCT_PATHS},
+        auxiliary_source_identity={path: sources[path] for path in CAPTURE_SOURCE_PATHS if path not in PRODUCT_PATHS},
+        producer_source_identity=sources["tools/verify_p12_joint_roundtrip.py"],
+        fixture_source_identity=sources["tests/data/p12-roundtrip-fixtures.json"],
+        source_identity_scope="Required critical call paths and producer/fixture/tests/lock; full source snapshot remains separate",
         scope="Owned synthetic single-file definition export roundtrip in a separate export process",
         differences=[], strict_card_differences=None, format_normalizations=[])
     saved_main, saved_before = None, None
@@ -494,6 +549,7 @@ def main():
         identity = execution_identity(ROOT)
         if not identity["actual_git_head"] or identity["working_tree_dirty"] is not False:
             parser.error("Native fixture requires a clean actual Git checkout")
+        capture_source_identity(identity)
         config = locate_config(args.executable, os.environ)
         if config is None:
             parser.error("An initialized native configuration is required")
