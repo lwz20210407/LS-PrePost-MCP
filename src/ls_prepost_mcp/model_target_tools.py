@@ -120,6 +120,10 @@ class ModelTargetTools:
         """P04-P06, P12: sets (ids / select / selector), boundary conditions and loads (add_boundary with a
         declared unit system), contacts (add_contact recipes), parts (add_part / set_part) and joints.
 
+        Node create_set also supports representation=generate with [begin,end] ranges,
+        generate_increment with {begin,end,increment} rows, or add with child set_ids.
+        These are mutually exclusive with materialized ids/select/selector; other set kinds stay lists.
+
         Joint: {"op": "add_joint", "kind": "revolute", "a": {"part": 1}, "b": {"part": 2},
         "origin": [0, 0, 0], "axis": [0, 1, 0]}. kind: spherical, revolute, cylindrical, planar,
         universal (second_axis), translational, locking, rotational_motor / translational_motor

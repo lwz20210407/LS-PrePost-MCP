@@ -12,8 +12,9 @@ import numpy as np
 
 from . import lists
 from ._identity import exact_integer
-from .fields import FieldError, format_value, single_line
+from .fields import FieldError, format_value, is_free_format, parse_number, single_line, stray_text
 from .layouts import Unsupported
+from .text import body
 
 if TYPE_CHECKING:
     from .blocks import Block
@@ -49,7 +50,27 @@ class Definition:
 def range_rows(deck: KeywordDeck, block: Block):
     base, _ = lists.base_name(block.name)
     if base == GENERATE:
-        pairs = lists.ranges(block, deck._long(block))
+        long = deck._long(block)
+        width = 20 if long else 10
+        _, _, indices = lists.split(block)
+        pairs = []
+        for index in indices:
+            line = block.lines[index]
+            text = body(line)
+            spans = [(width * n, width) for n in range(8)]
+            if stray_text(line, spans, long, tolerant=False) or (not is_free_format(line) and text[8*width:].strip()):
+                raise Unsupported("Node generation range row has excess fields; definition was not truncated")
+            values = lists._values(line, width, 8)
+            if len(values) % 2 and parse_number(values[-1]) not in (None, 0):
+                raise Unsupported("Node generation range row has an incomplete begin/end pair")
+            # Each AST card has four pairs. Pad omitted CSV columns per card;
+            # never pair an omitted end with the next card's begin.
+            numbers = [0 if (value := parse_number(text)) is None else value for text in values]
+            numbers += [0] * (8 - len(numbers))
+            for first, last in zip(numbers[::2], numbers[1::2]):
+                if first == last == 0:
+                    continue
+                pairs.append((first, last))
         triples = [(first, last, 1) for first, last in pairs]
     elif base == INCREMENT:
         triples = [tuple(deck.get(block, name, row=row).value for name in ("bbeg", "bend", "incr"))

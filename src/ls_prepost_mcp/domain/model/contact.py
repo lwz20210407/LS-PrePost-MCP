@@ -88,7 +88,10 @@ def _surface(deck: KeywordDeck, spec: dict) -> tuple[np.ndarray, np.ndarray, np.
 def _slave(deck: KeywordDeck, spec: dict) -> tuple[np.ndarray, np.ndarray]:
     """Slave node IDs and their contact thickness."""
     if "node_set" in spec:
-        ids = np.unique(np.asarray(_set_members(deck, "*SET_NODE", int(spec["node_set"])), dtype=np.int64))
+        from .node_sets import NodeSets, integer
+
+        sid = integer(spec["node_set"], "Node set SID", positive=True)
+        ids = np.unique(np.asarray(NodeSets(deck, allow_collect_lists=True).resolve(sid), dtype=np.int64))
         return ids, np.zeros(len(ids))
     faces, thickness, _ = _surface(deck, spec)
     ids = np.unique(faces)

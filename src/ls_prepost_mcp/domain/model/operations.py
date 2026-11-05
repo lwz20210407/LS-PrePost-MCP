@@ -134,7 +134,7 @@ def read_fields(path: str, keyword: str, match: dict | None = None, fields: list
     """Named fields of every block (and row) matching ``keyword`` and ``match``."""
     deck = KeywordDeck.load(path, include_paths)
     results = []
-    for block, row in deck.find(keyword, **(match or {})):
+    for block, row in _matching(deck, keyword, match or {}):
         try:
             results.append({**_site(block), "row": row, "fields": _values(deck, block, row, fields)})
         except (Unsupported, FieldError, KeyError) as error:
@@ -142,8 +142,20 @@ def read_fields(path: str, keyword: str, match: dict | None = None, fields: list
     return {"keyword": keyword, "match": match or {}, "count": len(results), "results": results}
 
 
+def _matching(deck: KeywordDeck, keyword: str, match: dict):
+    """Node-set identities are discrete for both read and edit entry points."""
+    criteria = dict(match)
+    if keyword.upper().startswith("*SET_NODE") and "sid" in criteria:
+        from .node_sets import integer
+
+        sid = integer(criteria.pop("sid"), "Node set SID", positive=True)
+        return [(block, row) for block, row in deck.find(keyword, **criteria)
+                if integer(deck.get(block, "sid", row=row).value, "Node set SID", positive=True) == sid]
+    return deck.find(keyword, **criteria)
+
+
 def _target(deck: KeywordDeck, edit: dict) -> tuple[object, int | None]:
-    hits = deck.find(edit["keyword"], **edit.get("match", {}))
+    hits = _matching(deck, edit["keyword"], edit.get("match", {}))
     if len(hits) != 1:
         raise FieldError(f"{edit['keyword']} {edit.get('match', {})} matches {len(hits)} targets; need exactly 1")
     return hits[0]
@@ -350,7 +362,13 @@ def _apply(deck: KeywordDeck, edit: dict) -> list[Change]:
         return [deck.set_parameter(edit["name"], edit["value"], edit.get("file"))]
     if op == "set_members":
         block, _ = _target(deck, edit)
-        return [deck.set_members(block, [int(i) for i in edit["members"]])]
+        if block.name == "*SET_NODE" or block.name.startswith("*SET_NODE_"):
+            from ._identity import exact_integer
+
+            members = [exact_integer(value, "Node-set member identity") for value in edit["members"]]
+        else:
+            members = [int(i) for i in edit["members"]]
+        return [deck.set_members(block, members)]
     if op == "set_points":
         block, _ = _target(deck, edit)
         return [deck.set_points(block, [(float(a), float(o)) for a, o in edit["points"]])]
