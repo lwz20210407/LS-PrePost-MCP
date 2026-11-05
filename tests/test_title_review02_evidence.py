@@ -53,3 +53,11 @@ def test_active_title_evidence_matches_product_blobs_not_only_test_blobs():
                 ["git", "rev-parse", "HEAD:" + path], cwd=ROOT, text=True
             ).strip()
             assert current == recorded, f"Product {path} changed: supersede or refresh the title evidence"
+
+
+def test_current_title_evidence_includes_guarded_family_reader_dependency():
+    evidence = json.loads(EVIDENCE.read_text(encoding="utf8"))
+    if evidence["validity"] == "current_for_recorded_product_blobs":
+        assert "src/ls_prepost_mcp/domain/results/family.py" in {
+            identity["path"] for identity in evidence["product_source_identity"]
+        }, "Active title evidence omits the guarded result-family reader dependency"

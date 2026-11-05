@@ -5,6 +5,7 @@ import re
 from importlib.metadata import version
 from pathlib import Path
 
+from .domain.results.family import reading_family
 from .domain.results.time_validation import validate_d3plot_times
 from .jobs import fingerprint
 from .native.versions import dependency_supported
@@ -25,15 +26,16 @@ def selected_database(path, states, fields):
         raise RuntimeError("Result layout is verified against LASSO 2.0.4")
     ids(states, "states", 10000)
     # Read only time metadata first, then only selected states/fields.
-    meta = D3plot(str(path), state_array_filter=["timesteps"], buffered_reading=True)
-    times = validate_d3plot_times(meta.arrays["timesteps"])
-    if max(states) > len(times):
-        raise ValueError("State outside database")
-    selected = sorted(states)
-    db = D3plot(str(path), state_filter={s-1 for s in selected},
-                state_array_filter=[*fields, "timesteps"], buffered_reading=True)
-    if not np.array_equal(db.arrays["timesteps"], times[[s-1 for s in selected]]):
-        raise ValueError("Reader state selection did not match requested time mapping")
+    with reading_family(path) as reader:
+        meta = reader.open(constructor=D3plot, state_array_filter=["timesteps"], buffered_reading=True)
+        times = validate_d3plot_times(meta.arrays["timesteps"])
+        if max(states) > len(times):
+            raise ValueError("State outside database")
+        selected = sorted(states)
+        db = reader.open(constructor=D3plot, state_filter={s-1 for s in selected},
+                         state_array_filter=[*fields, "timesteps"], buffered_reading=True)
+        if not np.array_equal(db.arrays["timesteps"], times[[s-1 for s in selected]]):
+            raise ValueError("Reader state selection did not match requested time mapping")
     return db, {s: i for i, s in enumerate(selected)}
 
 
