@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from . import lists
+from ._identity import exact_integer
 from .fields import FieldError, format_value, single_line
 from .layouts import Unsupported
 
@@ -26,9 +27,7 @@ SUPPORTED = LIST | {GENERATE, INCREMENT, ADD}
 
 
 def integer(value, name, *, positive=False):
-    if isinstance(value, bool) or not isinstance(value, (int, np.integer)):
-        raise FieldError(f"{name} must be an integer")
-    value = int(value)
+    value = exact_integer(value, name)
     if positive and value <= 0:
         raise FieldError(f"{name} must be positive")
     return value
