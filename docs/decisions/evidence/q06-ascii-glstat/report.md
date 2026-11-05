@@ -47,3 +47,23 @@ Q06保持partial：其余ASCII库、更多GLSTAT布局/分量/版本、完整bin
 相关测试worker141通过/4跳过，根独立本地重跑116通过。此为内部复核，不是独立外部审阅，也未新增Q12原生能量验收。
 新run同时登记共享`ascii_records`、严格读取器及nullable读取器的产品blob，原始报告与空patch的SHA登记在evidence.json。
 Q06/Q12仍partial；binout、MATSUM、MPP与生产native_check均不在本结构抽取范围。
+
+## matsum-integration-009d717
+
+干净 `009d717133edf96f5a993ac834c46e154592f58b` 在 MATSUM 接入初期另跑原有 GLSTAT 两例，2 passed，各101帧，源/配置/程序/目录不变。它只证明当时两条 GLSTAT 正例；后续内部审阅发现严格语法与增长读取 P1，不能把这轮正例描述为旧产品没有缺陷。
+这轮实际报告 SHA 与源码 blob 已追加，be51589、0fffdda 两轮完整记录保留；没有给 MATSUM 登记原生通过。
+
+## bounded-shared-scan-85ff7a3
+
+最终干净产品提交 `85ff7a308f3e7872e3abfb0e41e1de991f7d81ef` 修改共享读行器的运行时字节预算后，再次执行既有4.13两例，2 passed，各101帧，固定容差不变。
+时间最大差 1.7750000011473865e-09；kinetic/internal 数值最大差 4.155000007249887e-10 / 3.0269999911070045e-05。
+实际进程使用 -nographics、正常退出且未超时；输入族、源目录、配置与程序身份前后均不变。完整产品/测试 blob 与原始报告 SHA 见 [evidence.json](evidence.json)。
+
+| 检查 | 范围 | 结果 | 有效性 |
+|---|---|---|---|
+| 009d717 GLSTAT 原生 | 既有单样本 KE/IE 各101帧 | 2通过；之后发现严格读入 P1 | 历史限定正例，已被最新产品记录接替 |
+| 85ff7a3 GLSTAT 原生 | 同一4.13程序/单样本/两个分量 | 2通过，全记录固定容差及身份守卫通过 | 当前有限 L2，仅登记分量 |
+| MATSUM | 此轮只做 L1 公共读测 | 未执行 MATSUM 原生比较 | gap，保持 partial |
+
+前文表格的“当前有效”仅对应各自登记 revision 和产品 blob；新的运行时预算实现不得沿用旧 blob 当作当前源码证明。
+Q12 默认总量预算仍为 None，缺项 nullable/墙能策略未改变。此处不外推更多 GLSTAT 布局、分量、版本、MATSUM、binout 或 MPP/SMP 等价。

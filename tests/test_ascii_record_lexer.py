@@ -3,7 +3,12 @@ import string
 
 import pytest
 
-from ls_prepost_mcp.domain.results.ascii_records import RecordTooLong, bounded_lines, tokenize_scalar
+from ls_prepost_mcp.domain.results.ascii_records import (
+    ByteBudgetExceeded,
+    RecordTooLong,
+    bounded_lines,
+    tokenize_scalar,
+)
 
 
 @pytest.mark.parametrize("line,label,value,suffix,width", [
@@ -67,3 +72,48 @@ def test_line_size_and_decoding_are_explicit_independent_policies(tmp_path):
     assert lines == ["\ufffd\n"] + ["a\n"] * 100  # No implicit total-file or UTF-8-strict policy.
     with pytest.raises(RecordTooLong):
         list(bounded_lines(source, max_record_chars=1, encoding="utf-8-sig", errors="replace"))
+
+
+def test_explicit_byte_budget_counts_bom_and_crlf_as_source_bytes(tmp_path):
+    source = tmp_path / "text"
+    source.write_bytes(b"\xef\xbb\xbfa\r\n")
+    with pytest.raises(ByteBudgetExceeded):
+        list(bounded_lines(source, max_record_chars=10, max_bytes=5, encoding="utf-8-sig", errors="strict"))
+    assert list(bounded_lines(source, max_record_chars=10, max_bytes=6,
+                              encoding="utf-8-sig", errors="strict")) == ["a\n"]
+
+
+def test_byte_budget_rechecks_open_descriptor_before_following_append(tmp_path, monkeypatch):
+    from ls_prepost_mcp.domain.results import ascii_records
+
+    source = tmp_path / "text"
+    source.write_bytes(b"a\nb\n")
+    original = ascii_records.os.fstat
+    descriptors = []
+
+    def recorded(descriptor):
+        descriptors.append(descriptor)
+        return original(descriptor)
+
+    monkeypatch.setattr(ascii_records.os, "fstat", recorded)
+    lines = bounded_lines(source, max_record_chars=10, max_bytes=8, encoding="utf8", errors="strict")
+    assert next(lines) == "a\n"
+    with source.open("ab") as stream:
+        stream.write(b"\n" * 10)
+    with pytest.raises(ByteBudgetExceeded):
+        next(lines)
+    assert len(descriptors) >= 3 and len(set(descriptors)) == 1
+    assert isinstance(descriptors[0], int)
+
+
+def test_default_does_not_add_a_total_byte_policy(tmp_path, monkeypatch):
+    from ls_prepost_mcp.domain.results import ascii_records
+
+    source = tmp_path / "text"
+    source.write_bytes(b"a\n" * 100)
+
+    def unexpected(*args):
+        pytest.fail("No caller budget means no fstat byte policy")
+
+    monkeypatch.setattr(ascii_records.os, "fstat", unexpected)
+    assert len(list(bounded_lines(source, max_record_chars=2, encoding="utf8", errors="strict"))) == 100
