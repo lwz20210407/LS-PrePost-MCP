@@ -1,6 +1,6 @@
 """M2 result-reading target tools, returning JobResult/v1 over the shared ``domain.results`` backends.
 
-``extract_database`` (tasks.yaml Q06) reads named ASCII RCFORC/SECFORC or a binout database (GLSTAT, MATSUM,
+``extract_database`` (tasks.yaml Q06) reads named ASCII GLSTAT/RCFORC/SECFORC or a binout database (GLSTAT, MATSUM,
 RCFORC, SECFORC, NODOUT, ELOUT, SLEOUT, NODFOR, SPCFORC, RBDOUT, NCFORC, DEFORC and the other
 LSDA families) by its stored column name, merged across every MPP shard beside the input. The
 reading and the merge rules live in :mod:`domain.results.lasso_backend` and
@@ -26,6 +26,7 @@ from .jobs import atomic_json, check_artifact
 BACKEND = "lasso-python"
 TOKEN = re.compile(r"[A-Za-z0-9_]+")
 MAX_ROWS = 1_000_000
+ASCII_DATABASES = frozenset(("glstat", "rcforc", "secforc"))
 
 
 def _result(status: str, data: dict, **fields: object) -> dict:
@@ -40,7 +41,7 @@ class ResultsTargetTools:
                          branch: str | None = None, shard: str | None = None,
                          entity_ids: list[int] | None = None, time_units: str = "time",
                          native_check: StrictBool = False) -> dict:
-        """Q06: read a named binout component across MPP shards, or one explicit ASCII rcforc/secforc.
+        """Q06: read a named binout component across MPP shards, or one explicit ASCII glstat/rcforc/secforc.
 
         ``path`` is one binout file (``binout`` or ``binout0000``); the other shards beside it are
         read and merged with the documented rules (united time samples where the stored entities
@@ -49,56 +50,76 @@ class ResultsTargetTools:
         nested level (``shell``, ``velocity/nodes``); ``component`` is the stored column name, not a
         UI number. ``entity_ids`` keeps only those stored IDs. ``shard`` reads a single named file.
         The CSV holds the time column and the component under its own name; ``units`` / ``time_units``
-        are declarations and nothing is converted. ASCII input must be named rcforc/secforc and
+        are declarations and nothing is converted. ASCII input must be named glstat/rcforc/secforc and
         match database; branch/shard are not applicable. Text components: x_force/y_force/z_force,
         x_moment/y_moment/z_moment; rcforc also mass, secforc also force_magnitude/moment_magnitude,
         x_centroid/y_centroid/z_centroid/area. Written sides, legend titles and original local-frame reference tags are retained;
         no frame transform, missing-value fill or interpolation. native_check=true independently
         exports up to 16 ASCII rcforc/secforc entity/side curves for x_force/y_force/z_force in
         headless LS-PrePost and compares all times/values. Reader values are never replaced.
+        ASCII GLSTAT supports kinetic_energy/internal_energy/total_energy/hourglass_energy/time_step,
+        returns a global scalar without entity IDs, and maps these explicit component aliases to
+        the original dotted-line labels retained in source_column_names (not binout variable claims).
+        Its source SHA256 is bound before/after reading; changed inputs fail without verified output.
         Other modes do not launch LS-PrePost; unsupported native comparisons fail explicitly."""
+        selected_backend = ("ls-dyna-ascii" if isinstance(path, str) and Path(path).name.casefold() == "glstat"
+                            else BACKEND)
         try:
             if type(native_check) is not bool:
                 raise ValueError("native_check must be true or false")
             parameters = self._database_parameters(database, component, units, branch, shard, entity_ids, time_units)
         except ValueError as error:
-            return _result("failed", {"database": database, "component": component, "backend": BACKEND},
+            return _result("failed", {"database": database, "component": component, "backend": selected_backend},
                            error=_error(error))
         try:
             source = self._database_source(path, parameters)
+            if source.name in ASCII_DATABASES:
+                selected_backend = "ls-dyna-ascii"
             if native_check:
                 from .database_native import FORCE_COMPONENTS
 
                 if source.name not in ("rcforc", "secforc") or component not in FORCE_COMPONENTS:
                     raise ValueError("native_check currently supports explicit ASCII RCFORC/SECFORC x_force/y_force/z_force only")
         except (ValueError, OSError) as error:
-            return _result("failed", {"database": database, "component": component, "backend": BACKEND},
+            return _result("failed", {"database": database, "component": component, "backend": selected_backend},
                            error=_error(error))
         directory, manifest = self.jobs.create("extract_database", {"source": str(source), **parameters,
                                                                    "native_check": native_check})
         try:
-            before = _sha256(source) if native_check else None
+            glstat = source.name == "glstat"
+            max_input_bytes = None
+            if glstat:
+                from .domain.results.ascii_glstat import MAX_BYTES, validate_size
+
+                validate_size(source)
+                max_input_bytes = MAX_BYTES
+            before = _sha256(source, max_bytes=max_input_bytes) if native_check or glstat else None
+            if before is not None:
+                manifest["inputs"] = [{"path": str(source), "sha256": before}]
             result = self._read_database(directory, source, parameters)
+            if glstat:
+                if _sha256(source, max_bytes=max_input_bytes) != before:
+                    raise ValueError("ASCII GLSTAT source changed during database extraction")
+                result["data"]["source_sha256"] = before
             if native_check:
                 from .database_native import compare_ascii_forces
 
                 comparison = compare_ascii_forces(self, source, result)
                 if _sha256(source) != before:
                     raise ValueError("ASCII source changed during native force comparison")
-                manifest["inputs"] = [{"path": str(source), "sha256": before}]
                 result["data"]["native_comparison"] = comparison
                 result["checks"] = [{"name": "native_force_agreement", "status": "passed"},
                                     {"name": "input_bytes_unchanged", "status": "passed"}]
                 result = JobResult.model_validate(result).model_dump(mode="json")
         except (ValueError, KeyError, TypeError, OSError, IndexError, EOFError, struct.error) as error:
             result = _result("failed", {"database": database, "branch": branch, "component": component,
-                                        "backend": "ls-dyna-ascii" if source.name in ("rcforc", "secforc")
+                                        "backend": "ls-dyna-ascii" if source.name in ASCII_DATABASES
                                         else BACKEND}, job_id=manifest["job_id"], error=_error(error))
         atomic_json(directory / "job.json", {**manifest, "status": result["status"], "result": result})
         return result
 
     def _database_source(self, path: str, parameters: dict | None = None) -> Path:
-        """Confine the explicit entry: ASCII rcforc/secforc or a standard binout family.
+        """Confine the explicit entry: ASCII glstat/rcforc/secforc or a standard binout family.
 
         Every binary shard/continuation passes the same allowed-root check. ASCII never
         opens companions or silently substitutes a sibling binout for the requested file.
@@ -106,17 +127,17 @@ class ResultsTargetTools:
         from .domain.results.mpp_shards import SHARD, lasso_reads, shards
 
         source = self.settings.input_path(path)
-        if source.name in ("rcforc", "secforc"):
+        if source.name in ASCII_DATABASES:
             if parameters is None:
-                raise ValueError("ASCII force input requires explicit extract_database parameters")
+                raise ValueError("ASCII result input requires explicit extract_database parameters")
             if source.name != parameters["database"]:
                 raise ValueError("ASCII filename must match the requested database")
             if parameters["branch"] is not None or parameters["shard"] is not None:
-                raise ValueError("ASCII force files do not accept binout branch or shard selection")
+                raise ValueError("ASCII result files do not accept binout branch or shard selection")
             return source
         if not SHARD.fullmatch(source.name):
             raise ValueError("extract_database reads binout files (binout or binoutNNNN); ASCII "
-                             f"input is limited to rcforc/secforc: {source.name}")
+                             f"input is limited to glstat/rcforc/secforc: {source.name}")
         for shard in shards(source):
             for file in lasso_reads(shard):
                 self.settings.input_path(str(file))
@@ -150,7 +171,11 @@ class ResultsTargetTools:
     def _read_database(self, directory: Path, source: Path, parameters: dict) -> dict:
         from .domain.results.lasso_backend import binout_curves
 
-        if source.name in ("rcforc", "secforc"):
+        if source.name == "glstat":
+            from .domain.results.ascii_glstat import read
+
+            curve = read(source, parameters["component"])
+        elif source.name in ("rcforc", "secforc"):
             from .domain.results.ascii_forces import read
 
             curve = read(source, parameters["database"], parameters["component"])
@@ -196,6 +221,10 @@ class ResultsTargetTools:
                 "merge": curve.get("merge", "per-shard read; time samples united where the stored entities match")}
         if "source_format" in curve:
             data["source_format"] = curve["source_format"]
+        if "source_kind" in curve:
+            data["source_kind"] = curve["source_kind"]
+        if "source_column_names" in curve:
+            data["source_column_names"] = curve["source_column_names"]
         return _result("succeeded", data, job_id=directory.name, artifacts=(artifact,),
                        warnings=tuple(curve.get("warnings", [])),
                        scope="explicit result database in the model's own units; no conversion")
@@ -238,10 +267,14 @@ class ResultsTargetTools:
         return [(stored[i], i, tags[i]) for i in chosen], ["time", "entity_id", *key, component]
 
 
-def _sha256(path: Path) -> str:
+def _sha256(path: Path, *, max_bytes: int | None = None) -> str:
     digest = hashlib.sha256()
+    total = 0
     with path.open("rb") as stream:
         for block in iter(lambda: stream.read(1 << 20), b""):
+            total += len(block)
+            if max_bytes is not None and total > max_bytes:
+                raise ValueError("ASCII GLSTAT source exceeds its input-size bound while hashing")
             digest.update(block)
     return digest.hexdigest()
 

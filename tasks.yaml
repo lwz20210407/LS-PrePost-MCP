@@ -549,6 +549,8 @@ tasks:
       - ASCII RCFORC/SECFORC 保留接触两侧、legend 标题和截面 ac ID 原文参考标记（不推断坐标系）；五份公开文件全部可用列已核对。三向力的旧登记代码在 4.13/4.10 各七项原生对照通过；当前元数据、其余 ASCII 库和力矩/重心等原生对照仍缺
       - MPP 合并结果与单机结果一致性未验证：公开语料中没有同一模型的 MPP/SMP 成对算例（corpus:mpp_binout）；分片合并只有合成 LSDA 用例
       - 两份公开 ASCII 力文件已有 2952 个正例时间/数值对照；这不代表 binout 全库的 LSPP/LASSO 一致性，后者仍待完成
+    notes:
+      - 新增严格ASCII GLSTAT全局能量/时间步曲线，输入SHA前后绑定；6公开文件28曲线12123值相等。干净be51589的4.13已登记样本kinetic/internal全101帧各通过，仅有限L2，不启用通用native_check
     evidence:
       - src/ls_prepost_mcp/domain/results/ascii_forces.py
       - tests/test_ascii_force_database.py
@@ -559,6 +561,9 @@ tasks:
       - tests/test_database_native_check.py
       - tests/test_database_forces_native.py
       - docs/decisions/evidence/q06-native-forces/report.md
+      - tests/test_ascii_glstat_database.py
+      - tests/test_ascii_glstat_native.py
+      - docs/decisions/evidence/q06-ascii-glstat/report.md
     acceptance:
       - GLSTAT、MATSUM、RCFORC、SECFORC、NODOUT、ELOUT、SLEOUT、NODFOR、SPCFORC、RBDOUT、NCFORC、DEFORC 各一个用例
       - 按名称指定分量（不用 UI 编号）；返回单位与原始列名
