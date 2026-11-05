@@ -30,7 +30,6 @@ def discovered(service):
 
 @pytest.mark.parametrize("changed", ["manifest", "core", "provider"])
 def test_stale_discovered_contract_is_refused_before_edit(tmp_path, monkeypatch, private_registry, changed):
-    pytest.importorskip("ansys.dyna.core")
     _, manifest = private_registry
     service = Service(Settings(tmp_path / "work"))
     before = discovered(service)

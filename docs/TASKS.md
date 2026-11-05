@@ -65,8 +65,8 @@
 
 缺口：
 
-- 六个材料族与两个 EOS 已有引擎配方（edit_keywords 的 add_material / add_eos / add_section），Part 关联 add_part / set_part 已有；尚未登记为 run_recipe 的 T2 配方
-- 保存后 LSPP 原生重开核对未做（原生侧，见 P11）
+- {'model': '候选只验证主机 AST/L1；更多可选参数组合、布局与版本尚未核实，依赖 pydyna extra，不外推物理校准正确性'}
+- 新 T2 配方保存重开后的原生 Part Data ID/字段/关联回读仍未做，通用 P11 不替代此项验收
 
 ### P04 集合创建
 
