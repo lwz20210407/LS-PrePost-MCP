@@ -246,13 +246,20 @@ tasks:
     release: v0.5
     milestone: M3
     layer: T1
+    owner: codex
     target_tools: [create_entities]
     depends_on: [P04]
     status: partial
     existing: [create_gui_spc, create_gui_prescribed_motion, create_gui_segment_pressure, create_gui_nonreflecting_boundary, create_gui_nodal_load, create_entities]
     gaps:
-      - 九类边界与载荷已有配方（create_entities / add_boundary）；R11 求解核对记录不在仓库
-      - 保存后 LSPP 原生重开核对未做（原生侧，见 P11）
+      - R11 物理求解核对记录不在仓库，当前源码的物理响应与 typed 原生边界对象识别未验证
+      - 仅自有单文件九类定义在 4.13/4.10 保存/实际重开/导出核对；Include 树、更多目标/选项/真实模型仍未覆盖
+      - ITS 一般语义未证；墙 ID1/title 空仅具名构建单墙非 DISPLAY 的观察表示，不作通用默认或编号适配；单位只由调用者声明
+    notes:
+      - 171 修无损身份与分配失败原子性，保已加载 Include/参数 Scope/dirty edits/warnings；1289、1274、907 各组旧红及合法2512 LF bytes golden 分列，不冒称全在同一旧 main 实跑
+      - actual clean3da/9b3 两版各九类、各3真实headless job通过，L2仅自有关键字定义往返；source/native_expected/actual、strict59、37文档写出规则与6受限观察记录分列，非一一相加计数，剩余差异0；typed/physics不升等级
+      - 原8e r1三job比较失败保留，analysis-only不算新原生；actual3da显式41来源、readonly私有配置完整byte/stat与每job来源、双exe/源树/目录/空库存守卫通过，globals仅被动观察，内部账核不等于用户安排外审
+    evidence: [src/ls_prepost_mcp/domain/model/loads.py, tests/test_load_identity_inputs.py, tests/test_load_atomicity.py, tests/test_boundary_roundtrip_contract.py, tests/test_boundary_native_readback.py, tests/test_boundary_readback_evidence.py, tools/verify_p05_boundary_roundtrip.py, tests/data/p05-boundary-roundtrip.json, docs/decisions/evidence/p05-boundary-readback/report.md]
     acceptance:
       - SPC、规定运动、节点力、Segment 压力、重力、初速度、刚性墙、CNRB、无反射边界各有一个 L2 用例
       - 曲线（DEFINE_CURVE）与载荷引用正确，单位由调用者声明
@@ -414,6 +421,7 @@ tasks:
     status: partial
     existing: [create_entities, check_model]
     notes:
+      - 171 actual3da显式41（含loads.ensure_curve）两版六case/18真实job复验通过后切active；1289原40+后验补档与全部旧run/checkpoint原值保存；仅单文件定义往返，R1 strict/格式分列，typed/运动学仍未证
       - 原be0/80/1b/28 capture/checkpoint/恢复计量对象保留；1289 source40私有配置source新增六case/18进程并单独切active，semantic全同、原严格R1差异/格式归一化分列；typed Joint识别仍unverified、motion未运行，整体partial
       - 九类 add_joint 与双向刚体 Part/已有节点刚体/新节点刚体连接已有实现；本轮修复无损身份校验、CNRB 大 PID 精确查找及合并 MOTOR_ID 卡片边界
       - docs/decisions/evidence/p12-joint-readback/report.md 登记同 be0 源的 4.13/4.10 各三份自有单文件定义往返，六 case 共 18 个真实 headless 进程；按手工预置核对节点、Part/连接、Joint 字段、集合及曲线，R1 严格原差与窄格式分类分列，40 来源仅为 provenance 而非全功能覆盖
