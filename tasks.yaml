@@ -229,10 +229,11 @@ tasks:
       - Selector 适配不支持按特征角的外表面和变形构型；Increment 含洞/反向、参数化成员或范围、i10 紧凑创建尚未核实，明确拒绝
       - 旧d139原raw与950域拒绝历史保留；01a在ce76构建的自有单文件四节点/三组LIST、GENERATE、ADD仅成员有限原生通过，ADD顺序不符；Include、非4.13/其他构建、完整保存重开ID与顺序、通用table关系仍未证，不作通用编号适配
     notes:
+      - helper(None)执行路径后actual clean342b显式13来源（含model_target_tools/contact_report/contact）单4.13一个headless job重新有限验证；四UID回环与三sets membership相同、ADD顺序false，逐product raw哈希来自当次完整663快照，旧1289/01a/950/d139与b757其他context原值保留
       - typed writes源1289重新验证同ce76构建、自有单文件四节点三sets成员仅413单次1进程，实际private配置input与global被动观察分开；旧01a/950/d139对象不改，ADD顺序仍false，不外推Include/其他构建或完整顺序验收
       - 具名完整node_ids与四项internal_id/user_id排序位置及双向回环先闭合，再按该构建已存静态路径验证集合槽位；01a新单次native三成员一致、LIST/Gen顺序一致、ADD顺序false，六own与两版本源配置SHA/size/mtime守卫通过，整体仍partial
       - 内部审阅修复 range 尾项/超字段静默丢弃、Node 消费者有损身份与SID近似匹配/比较；精确 d139 相关515通过/1跳过，公开Include四文件1946节点四定义12成员独立L1核对通过，整体保持partial
-    evidence: [src/ls_prepost_mcp/domain/model/node_sets.py, tests/test_node_set_composition.py, tests/test_node_set_review_boundaries.py, tests/test_selector_identity_exact.py, tools/verify_node_set_composition.py, docs/decisions/evidence/p04-node-composition/report.md, tools/verify_node_set_user_ids.py, tests/test_node_set_native_identity.py, tests/test_node_set_native_membership_evidence.py, docs/decisions/evidence/p04-native-membership/report.md, docs/decisions/evidence/p04-typed-writes-refresh/report.md]
+    evidence: [src/ls_prepost_mcp/domain/model/node_sets.py, tests/test_node_set_composition.py, tests/test_node_set_review_boundaries.py, tests/test_selector_identity_exact.py, tools/verify_node_set_composition.py, docs/decisions/evidence/p04-node-composition/report.md, tools/verify_node_set_user_ids.py, tests/test_node_set_native_identity.py, tests/test_node_set_native_membership_evidence.py, docs/decisions/evidence/p04-native-membership/report.md, docs/decisions/evidence/p04-typed-writes-refresh/report.md, docs/decisions/evidence/contact-geometry-refresh/p04-membership/report.md]
     acceptance:
       - 节点 / 单元 / Part / Segment 集合可由 Selector（ID、Part、盒、球、平面、外表面）生成
       - 集合成员与 Selector 独立计算结果逐 ID 一致

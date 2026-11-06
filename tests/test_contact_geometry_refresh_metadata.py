@@ -9,7 +9,7 @@ import pytest
 
 from tools import contact_geometry_evidence as context
 
-TASKS = ("P03", "P05", "P12", "P06_identity", "P06_geometry")
+TASKS = ("P03", "P04", "P05", "P12", "P06_identity", "P06_geometry")
 
 
 def _strings(value):
