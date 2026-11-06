@@ -277,6 +277,10 @@ tasks:
     depends_on: [P04]
     status: partial
     existing: [create_entities]
+    notes:
+      - 接触A/B目标与CID复用shared exact_integer，拒bool/小数身份和scalar文本/bytes/mapping成员容器；nested Mapping过滤器先copy规范化，合法1.0/整数文本/常规序列与五配方字节保持，仍仅L1
+      - clean85c707合main1735后相关87项实际通过，内部Mapping终验4项；身份规范化先于分配，不宣称其他形状/引用/物理失败均已事务化，未改geometry/check_model或原生验收
+    evidence: [src/ls_prepost_mcp/domain/model/contacts.py, tests/test_contact_target_identities.py, tests/test_contact_identity_evidence.py, tests/data/p06-contact-identity-golden.json, docs/decisions/evidence/p06-contact-identities/report.md]
     gaps:
       - 五类接触配方已有（create_entities / add_contact）；原生 Contact Check 初始穿透报告未接
       - 引擎的几何穿透估算 check_contacts 未接成工具
