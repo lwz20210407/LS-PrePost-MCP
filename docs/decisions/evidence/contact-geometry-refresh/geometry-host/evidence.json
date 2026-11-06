@@ -1,0 +1,682 @@
+{
+  "actual_git_revision": "b75759754c7fa1a830de4b7703847f34cff95eaf",
+  "working_tree_dirty": false,
+  "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "source_snapshot_sha256": "4426fc9e60f68936db44d5f1f444993732477df3c2bf85cee0c4d860a9a9db68",
+  "source_unchanged": true,
+  "native_executed": false,
+  "dependency_versions": {
+    "ansys-dyna-core": "0.12.1",
+    "numpy": "2.4.6",
+    "mcp": "1.30.0"
+  },
+  "product_source_identity": [
+    {
+      "path": "src/ls_prepost_mcp/compact_server.py",
+      "git_blob_id": "f7d3b70a69e856033f993fce676fa36f83044a66",
+      "captured_worktree_raw_sha256": "b3b440d5d13168ab6181c9b4b249a2861e53f48092535edded0f02d74cf144d8",
+      "sha256_actual": "b3b440d5d13168ab6181c9b4b249a2861e53f48092535edded0f02d74cf144d8"
+    },
+    {
+      "path": "src/ls_prepost_mcp/config.py",
+      "git_blob_id": "a63023b60176e4dc757e876345a0403dc55fd770",
+      "captured_worktree_raw_sha256": "5d8736de37c7df76c5e95657efda1785ed4c149a618b655cd870f01b7d85a5ce",
+      "sha256_actual": "5d8736de37c7df76c5e95657efda1785ed4c149a618b655cd870f01b7d85a5ce"
+    },
+    {
+      "path": "src/ls_prepost_mcp/core/contracts.py",
+      "git_blob_id": "43126d7c12aa28647d9c0d70e4da1edc37ac5847",
+      "captured_worktree_raw_sha256": "1962deab163fae9a2362f006c10baf5ac9d3804d37ca73c3575554583b56a5e9",
+      "sha256_actual": "1962deab163fae9a2362f006c10baf5ac9d3804d37ca73c3575554583b56a5e9"
+    },
+    {
+      "path": "src/ls_prepost_mcp/core/validation.py",
+      "git_blob_id": "9dfb095e5345bf5c26d1a561624b1205f61e196b",
+      "captured_worktree_raw_sha256": "f7eefa428f84802cce1dba12d6b32d61198542055c7ae600a00dee2420988c9c",
+      "sha256_actual": "f7eefa428f84802cce1dba12d6b32d61198542055c7ae600a00dee2420988c9c"
+    },
+    {
+      "path": "src/ls_prepost_mcp/data/operations.json",
+      "git_blob_id": "e5c3a39c7a196103eed03f44dad3d711ee2d4f87",
+      "captured_worktree_raw_sha256": "f491e479dd51bfd13d4f66c6b3a0688c95cde44eba8018639aa8e2ce8f213588",
+      "sha256_actual": "f491e479dd51bfd13d4f66c6b3a0688c95cde44eba8018639aa8e2ce8f213588"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/_identity.py",
+      "git_blob_id": "a32f506df79f2142581b78bf2fa97092bc8a62ff",
+      "captured_worktree_raw_sha256": "458c3f6a1f6e3523f0a30cae55bae451d42bf5a9e14cf227a92eec8d603b6c85",
+      "sha256_actual": "458c3f6a1f6e3523f0a30cae55bae451d42bf5a9e14cf227a92eec8d603b6c85"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/access.py",
+      "git_blob_id": "a07323c01b32b0fbe282c76873b4c8bc73a4a3ad",
+      "captured_worktree_raw_sha256": "74e8646b2d9e556e050f000ba20d9e9ae82722f738a5cc3eef3bab102e2e59f3",
+      "sha256_actual": "74e8646b2d9e556e050f000ba20d9e9ae82722f738a5cc3eef3bab102e2e59f3"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/blocks.py",
+      "git_blob_id": "45ec1d7941ad3e36cc7d0c4cfbe83ca9e066791d",
+      "captured_worktree_raw_sha256": "fbd148ca578fbe6934603bba30e789886df3ff4223494ba6d0b948192db01480",
+      "sha256_actual": "fbd148ca578fbe6934603bba30e789886df3ff4223494ba6d0b948192db01480"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/cards.py",
+      "git_blob_id": "e22438a0268df4314adeb37c91ac5d88bea72dbb",
+      "captured_worktree_raw_sha256": "2584fe5a72fe71c21ea76b6f41e41762e5e6dcc2e9cf08799accb1776803ec5e",
+      "sha256_actual": "2584fe5a72fe71c21ea76b6f41e41762e5e6dcc2e9cf08799accb1776803ec5e"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/contact.py",
+      "git_blob_id": "b713e6a3d24745bca6a4b19ad5e69b34b8e860f7",
+      "captured_worktree_raw_sha256": "d7a8a674353098ae8777493ee4cf9474a331ca3dd23159bf7d8f7d85d69ca622",
+      "sha256_actual": "d7a8a674353098ae8777493ee4cf9474a331ca3dd23159bf7d8f7d85d69ca622"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/contact_report.py",
+      "git_blob_id": "b199213b33e591c6ad4ffbb0d8d3c2145ae1ce05",
+      "captured_worktree_raw_sha256": "1835498f9581e83673545e8ec0bf799749602226fffb4df34b280e32d5a2f530",
+      "sha256_actual": "1835498f9581e83673545e8ec0bf799749602226fffb4df34b280e32d5a2f530"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/contacts.py",
+      "git_blob_id": "3d7043bde194eaa8a784127c7d02111065d55c1b",
+      "captured_worktree_raw_sha256": "09c282c388e3e70ca6eb0afb7e5e8f0be8dc93f4569b09de38ea554e3db268ee",
+      "sha256_actual": "09c282c388e3e70ca6eb0afb7e5e8f0be8dc93f4569b09de38ea554e3db268ee"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/deck.py",
+      "git_blob_id": "0764117cb94370e3edb0d4f507ca0c4c1db198dc",
+      "captured_worktree_raw_sha256": "8569740f8b3ec6b911b129c52c39c0e1dca78f94ccf3a1b3430a326b650f2cdd",
+      "sha256_actual": "8569740f8b3ec6b911b129c52c39c0e1dca78f94ccf3a1b3430a326b650f2cdd"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/fields.py",
+      "git_blob_id": "4956da477eb7d0d86a85443f3febae7dc6d35644",
+      "captured_worktree_raw_sha256": "e2262493cd64a6f6cc42cf77d55f30beb150f60b1bda6424f55f8043c76cb02b",
+      "sha256_actual": "e2262493cd64a6f6cc42cf77d55f30beb150f60b1bda6424f55f8043c76cb02b"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/geometry.py",
+      "git_blob_id": "a5fe4c24ed630119b5c48641fbff10eae834327b",
+      "captured_worktree_raw_sha256": "a183a72fdc1fce1e06cd9ceadb5f9731468da3b1943ed33fa34c98f402190e21",
+      "sha256_actual": "a183a72fdc1fce1e06cd9ceadb5f9731468da3b1943ed33fa34c98f402190e21"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/includes.py",
+      "git_blob_id": "9d62c28cbdb610a596b275cd0c737482535c0571",
+      "captured_worktree_raw_sha256": "02f18328199c51887744157d0e0e933ae45c24ceb6222b105f02dd9a3721891d",
+      "sha256_actual": "02f18328199c51887744157d0e0e933ae45c24ceb6222b105f02dd9a3721891d"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/keyword_docs.py",
+      "git_blob_id": "5e730a130119cc462f675fbd4faf1b9723e7dd32",
+      "captured_worktree_raw_sha256": "b9de37b23e9a19c531173d28031bf8fc1910637b574402249ebbd87d2e947f00",
+      "sha256_actual": "b9de37b23e9a19c531173d28031bf8fc1910637b574402249ebbd87d2e947f00"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/layouts.py",
+      "git_blob_id": "2b0f1893746e16b1795ac4055e7dc9c016e81ce6",
+      "captured_worktree_raw_sha256": "b5b6e03e8db644b58d833dc0b156839716b2058875b0642c92f2bc5acfaca9d0",
+      "sha256_actual": "b5b6e03e8db644b58d833dc0b156839716b2058875b0642c92f2bc5acfaca9d0"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/links.py",
+      "git_blob_id": "12ca5b8553ffd5b7ebc0c857f7135c3bbbab8512",
+      "captured_worktree_raw_sha256": "137e6f41f71f6384a5c28b3e2753ea7be5ae13782eff2b963c5122e9f6676e3c",
+      "sha256_actual": "137e6f41f71f6384a5c28b3e2753ea7be5ae13782eff2b963c5122e9f6676e3c"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/lists.py",
+      "git_blob_id": "3fca714f6d393c57a6349438a93053aeebe831ff",
+      "captured_worktree_raw_sha256": "66c7bf53bc0b07972203e00a4b47093e28bb3f4e8a101565608fb76047d8764e",
+      "sha256_actual": "66c7bf53bc0b07972203e00a4b47093e28bb3f4e8a101565608fb76047d8764e"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/matching.py",
+      "git_blob_id": "3dcb403bd734e66317dff96d6573ee090d4056d9",
+      "captured_worktree_raw_sha256": "8519e391deb5d1c591048483008d2b71eeec429a1f7192bc3a9403e2b6b990d0",
+      "sha256_actual": "8519e391deb5d1c591048483008d2b71eeec429a1f7192bc3a9403e2b6b990d0"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/materials.py",
+      "git_blob_id": "ce8e7ccb9be9dc4d9890a75c3f810ea0febfb960",
+      "captured_worktree_raw_sha256": "1c10ce3a25fe962237623afec482000d37faf1538834b676b8b87fe90e49a87b",
+      "sha256_actual": "1c10ce3a25fe962237623afec482000d37faf1538834b676b8b87fe90e49a87b"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/node_sets.py",
+      "git_blob_id": "64137af18892347bddffb651005263c8239ce649",
+      "captured_worktree_raw_sha256": "e23fedc60dfc9aa3c33a24c1169779c582e6aa3b7bdfaa2bff6463f314df1e7d",
+      "sha256_actual": "e23fedc60dfc9aa3c33a24c1169779c582e6aa3b7bdfaa2bff6463f314df1e7d"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/operations.py",
+      "git_blob_id": "9d970f7ced57a69e685705ce75a415f52732c0cd",
+      "captured_worktree_raw_sha256": "1a5e0137d16771deeeaf928e94c6096c04f1379d8462bf7ced6c94e41a8c3c6f",
+      "sha256_actual": "1a5e0137d16771deeeaf928e94c6096c04f1379d8462bf7ced6c94e41a8c3c6f"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/parameters.py",
+      "git_blob_id": "035ab3e61d8ec8a4c588779380664fcbef901852",
+      "captured_worktree_raw_sha256": "2286c9784d7fb19b32bf611c0babae94e5e37ec9bb2d4de5ee25a8f8cf92f22d",
+      "sha256_actual": "2286c9784d7fb19b32bf611c0babae94e5e37ec9bb2d4de5ee25a8f8cf92f22d"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/persist.py",
+      "git_blob_id": "cfcd83547e7c549a6ea78acf1160acdc0d16dbb8",
+      "captured_worktree_raw_sha256": "0bbaa8ae265b6a2c92fe774085c5480e6a9ed1b7b31ce472975027665e2d5bf2",
+      "sha256_actual": "0bbaa8ae265b6a2c92fe774085c5480e6a9ed1b7b31ce472975027665e2d5bf2"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/preflight.py",
+      "git_blob_id": "1fda5108d3d32d0e25f9e607ce7a61ca00daf4fb",
+      "captured_worktree_raw_sha256": "ea7a40c1883740c7560306113093d56dfe259f4b22c8f55fb87d422d63d6145f",
+      "sha256_actual": "ea7a40c1883740c7560306113093d56dfe259f4b22c8f55fb87d422d63d6145f"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/references.py",
+      "git_blob_id": "7eab7fb8f0eaba45d0fe0c847a0f64c9a8f4f8fd",
+      "captured_worktree_raw_sha256": "0bf1dbdefd412c31747e4446ce7e7f619045c9e1a3a97d14308aee6bfc86d0f1",
+      "sha256_actual": "0bf1dbdefd412c31747e4446ce7e7f619045c9e1a3a97d14308aee6bfc86d0f1"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/schema.py",
+      "git_blob_id": "d49f4b0d7ae6d53d6e6ba20b67260f798849e62c",
+      "captured_worktree_raw_sha256": "554b97b09407c869b36b3a979ad8256f88d636d13470c8ef9adfcf7f6468655d",
+      "sha256_actual": "554b97b09407c869b36b3a979ad8256f88d636d13470c8ef9adfcf7f6468655d"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/scope.py",
+      "git_blob_id": "5f0dceed52859292f30dc4ca0a6d56c4b4469864",
+      "captured_worktree_raw_sha256": "911f04bccfdec52c3df9ea12bf254e4c1d32eb7d4aa2390098eab1fbb46cb5e0",
+      "sha256_actual": "911f04bccfdec52c3df9ea12bf254e4c1d32eb7d4aa2390098eab1fbb46cb5e0"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/sets.py",
+      "git_blob_id": "dc024c17d3be0511f5bf13e56b535599013afe79",
+      "captured_worktree_raw_sha256": "c50ab8df00612a570c77fec5c4fd3b91fa0b7995f9c72e669fab5d8dffcf60c0",
+      "sha256_actual": "c50ab8df00612a570c77fec5c4fd3b91fa0b7995f9c72e669fab5d8dffcf60c0"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/tables.py",
+      "git_blob_id": "e4f73691e6ff618e0f51dc5c5e0cd6503ee4b099",
+      "captured_worktree_raw_sha256": "f5f17a339c3f95e551501125694ac9dab95090404b0c15749b0cbb09ad9812bf",
+      "sha256_actual": "f5f17a339c3f95e551501125694ac9dab95090404b0c15749b0cbb09ad9812bf"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/text.py",
+      "git_blob_id": "0bb03417887eba8088ab6a5c82870b4f87c23b3c",
+      "captured_worktree_raw_sha256": "ab5f2d589db8a5f0beff8c830ab241b8529b4a0a60c39574b014965fdbbc549d",
+      "sha256_actual": "ab5f2d589db8a5f0beff8c830ab241b8529b4a0a60c39574b014965fdbbc549d"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/tree.py",
+      "git_blob_id": "58e685c97ba5047c59de00440e5605ba77c05a4d",
+      "captured_worktree_raw_sha256": "805233ff9d3b7f0c7c3b492eec80893284833cac3aafb1eb2487046acb7a8cce",
+      "sha256_actual": "805233ff9d3b7f0c7c3b492eec80893284833cac3aafb1eb2487046acb7a8cce"
+    },
+    {
+      "path": "src/ls_prepost_mcp/jobs.py",
+      "git_blob_id": "edc9de41fe5d444f2c25a3cb09617b6851292732",
+      "captured_worktree_raw_sha256": "529f2a4a07308c6cb5f0815e37355de7de1ae871bac55b42a853361fa9e930ce",
+      "sha256_actual": "529f2a4a07308c6cb5f0815e37355de7de1ae871bac55b42a853361fa9e930ce"
+    },
+    {
+      "path": "src/ls_prepost_mcp/model_target_tools.py",
+      "git_blob_id": "fdd65225e44435aa09848e4ec6c15366c90af439",
+      "captured_worktree_raw_sha256": "cbb55dbf1311cae5e4126f83d2de0353efabe247f81290a8f8d3ad6d7d5a4879",
+      "sha256_actual": "cbb55dbf1311cae5e4126f83d2de0353efabe247f81290a8f8d3ad6d7d5a4879"
+    },
+    {
+      "path": "src/ls_prepost_mcp/operation_registry.py",
+      "git_blob_id": "bade38b427c77c50c6268d15e556ba4018933477",
+      "captured_worktree_raw_sha256": "ebea0bea72737cac592186c95774d6c007637387a2c62c8d253f106a54b056ab",
+      "sha256_actual": "ebea0bea72737cac592186c95774d6c007637387a2c62c8d253f106a54b056ab"
+    },
+    {
+      "path": "src/ls_prepost_mcp/server.py",
+      "git_blob_id": "7d891e870a96c4e375b0a0f5f397a2140800ebc4",
+      "captured_worktree_raw_sha256": "8eb6cd1c8f1ae1b7617a92298c2e23bfb22bad5195d2b86ac510029f3a239619",
+      "sha256_actual": "8eb6cd1c8f1ae1b7617a92298c2e23bfb22bad5195d2b86ac510029f3a239619"
+    },
+    {
+      "path": "src/ls_prepost_mcp/service.py",
+      "git_blob_id": "3206a328b3c93559cb8c84669bad2e068d2dd1f3",
+      "captured_worktree_raw_sha256": "3b13a568499099a6e80dcc01d5e25b6cc06faf4c0f36b00ca9ca8705a1121e46",
+      "sha256_actual": "3b13a568499099a6e80dcc01d5e25b6cc06faf4c0f36b00ca9ca8705a1121e46"
+    }
+  ],
+  "test_source_identity": [
+    {
+      "path": "tests/test_contact_geometry_report.py",
+      "git_blob_id": "f9ba4cd5793bb7e6fcb5035450c0d7e2e030192d",
+      "captured_worktree_raw_sha256": "5dcda7d5ff8d79fea2f41f639bcdedfc49ae6bf746cef40204bb59d69f02a479",
+      "sha256_actual": "5dcda7d5ff8d79fea2f41f639bcdedfc49ae6bf746cef40204bb59d69f02a479"
+    },
+    {
+      "path": "tests/test_contact_geometry_mcp.py",
+      "git_blob_id": "f5d98a270718b99e70c288160e5da23fb9d2b12d",
+      "captured_worktree_raw_sha256": "a3de7fbb27634b20f0405d2578bb128ff14d73c14c7114d9869053f876e5087a",
+      "sha256_actual": "a3de7fbb27634b20f0405d2578bb128ff14d73c14c7114d9869053f876e5087a"
+    },
+    {
+      "path": "tests/test_keyword_engine_contact.py",
+      "git_blob_id": "6e5d6e247ff2cbb6de2322227eba683d03b39a77",
+      "captured_worktree_raw_sha256": "af777d4195ed37eabc327b5b8525234ad677a94094791a19b562b206c6d6dab1",
+      "sha256_actual": "af777d4195ed37eabc327b5b8525234ad677a94094791a19b562b206c6d6dab1"
+    },
+    {
+      "path": "tests/test_keyword_engine_properties.py",
+      "git_blob_id": "ca7778c8b528a36bfe0f44e0e41f22cba68a09d5",
+      "captured_worktree_raw_sha256": "a8b88ef04a91a3d4afd164ff8ad7b1a21e5d5d2ce1eff56bdcd658d9f7418bec",
+      "sha256_actual": "a8b88ef04a91a3d4afd164ff8ad7b1a21e5d5d2ce1eff56bdcd658d9f7418bec"
+    }
+  ],
+  "schema_version": 1,
+  "task_id": "P06",
+  "context_role": "p06_geometry",
+  "status": "partial",
+  "verification_level": "L1",
+  "validity": "current_for_recorded_product_blobs",
+  "product_identity_not_all_feature_coverage": true,
+  "provider_name": "ansys-dyna-core",
+  "provider_version": "0.12.1",
+  "source_hash_alias": "sha256_actual aliases this execution's captured_worktree_raw_sha256; portable identity uses Git blobs",
+  "l1_run": {
+    "passed": 90,
+    "cases": [
+      {
+        "name": "test_opt_in_uses_true_tetrahedron_not_only_its_axis_aligned_box",
+        "passed": true
+      },
+      {
+        "name": "test_default_and_explicit_none_do_not_call_contact_geometry",
+        "passed": true
+      },
+      {
+        "name": "test_candidates_only_add_warning_and_never_an_objective_defect",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[False]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[True]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[options2]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[on]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[0]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[options5]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[options6]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[options7]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[options8]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[options9]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[options10]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[options11]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[options12]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[options13]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[options14]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[options15]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[options16]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[options17]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[options18]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[options19]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[options20]",
+        "passed": true
+      },
+      {
+        "name": "test_bad_options_reject_before_loading_any_deck[options21]",
+        "passed": true
+      },
+      {
+        "name": "test_explicit_geometry_conflicts_with_include_mesh_false_before_io",
+        "passed": true
+      },
+      {
+        "name": "test_opt_in_reuses_the_one_loaded_deck",
+        "passed": true
+      },
+      {
+        "name": "test_zero_report_limit_still_evaluates_and_counts_candidates",
+        "passed": true
+      },
+      {
+        "name": "test_tolerance_uses_model_coordinates_and_filters_the_candidate",
+        "passed": true
+      },
+      {
+        "name": "test_unsupported_and_single_surface_are_not_checked[*CONTACT_AUTOMATIC_SINGLE_SURFACE]",
+        "passed": true
+      },
+      {
+        "name": "test_unsupported_and_single_surface_are_not_checked[*CONTACT_AUTOMATIC_SURFACE_TO_SURFACE_MORTAR]",
+        "passed": true
+      },
+      {
+        "name": "test_unsupported_surface_type_is_not_checked",
+        "passed": true
+      },
+      {
+        "name": "test_missing_master_and_empty_slave_are_not_false_zero",
+        "passed": true
+      },
+      {
+        "name": "test_each_calculation_budget_reports_not_checked[max_slave_nodes-1-max_slave_nodes]",
+        "passed": true
+      },
+      {
+        "name": "test_each_calculation_budget_reports_not_checked[max_master_triangles-1-max_master_triangles]",
+        "passed": true
+      },
+      {
+        "name": "test_each_calculation_budget_reports_not_checked[max_cells-1-max_cells]",
+        "passed": true
+      },
+      {
+        "name": "test_each_calculation_budget_reports_not_checked[max_pairs-1-max_pairs]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_limit_aggregates_omissions_without_running_kernel",
+        "passed": true
+      },
+      {
+        "name": "test_far_slave_is_unsearched_and_not_a_zero_result",
+        "passed": true
+      },
+      {
+        "name": "test_nonfinite_geometry_is_not_checked[nan]",
+        "passed": true
+      },
+      {
+        "name": "test_nonfinite_geometry_is_not_checked[inf]",
+        "passed": true
+      },
+      {
+        "name": "test_nonfinite_geometry_is_not_checked[-inf]",
+        "passed": true
+      },
+      {
+        "name": "test_degenerate_master_is_not_checked",
+        "passed": true
+      },
+      {
+        "name": "test_pair_budget_precedes_pair_repeat_and_narrow_phase",
+        "passed": true
+      },
+      {
+        "name": "test_cell_budget_and_overflow_guard_precede_repeat[1e+20]",
+        "passed": true
+      },
+      {
+        "name": "test_cell_budget_and_overflow_guard_precede_repeat[inf]",
+        "passed": true
+      },
+      {
+        "name": "test_cell_budget_and_overflow_guard_precede_repeat[nan]",
+        "passed": true
+      },
+      {
+        "name": "test_cell_product_cannot_overflow_into_a_small_allocation",
+        "passed": true
+      },
+      {
+        "name": "test_surface_budget_precedes_existing_face_expansion[*ELEMENT_SOLID]",
+        "passed": true
+      },
+      {
+        "name": "test_surface_budget_precedes_existing_face_expansion[*ELEMENT_SOLID_ORTHO]",
+        "passed": true
+      },
+      {
+        "name": "test_requested_geometry_coverage_is_incomplete_without_changing_keyword_checks[budget]",
+        "passed": true
+      },
+      {
+        "name": "test_requested_geometry_coverage_is_incomplete_without_changing_keyword_checks[unsupported]",
+        "passed": true
+      },
+      {
+        "name": "test_requested_geometry_coverage_is_incomplete_without_changing_keyword_checks[near_field]",
+        "passed": true
+      },
+      {
+        "name": "test_complete_geometry_coverage_and_zero_contact_are_explicit[True]",
+        "passed": true
+      },
+      {
+        "name": "test_complete_geometry_coverage_and_zero_contact_are_explicit[False]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_geometry_schema_and_coverage_cross_real_stdio[full]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_geometry_schema_and_coverage_cross_real_stdio[compact]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_geometry_options_reject_before_deck_or_sdk_access[True]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_geometry_options_reject_before_deck_or_sdk_access[options1]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_geometry_options_reject_before_deck_or_sdk_access[options2]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_geometry_options_reject_before_deck_or_sdk_access[options3]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_geometry_options_reject_before_deck_or_sdk_access[options4]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_geometry_options_reject_before_deck_or_sdk_access[options5]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_geometry_options_reject_before_deck_or_sdk_access[options6]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_geometry_options_reject_before_deck_or_sdk_access[options7]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_geometry_options_reject_before_deck_or_sdk_access[options8]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_geometry_options_reject_before_deck_or_sdk_access[options9]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_geometry_none_and_mesh_conflict_need_no_optional_sdk",
+        "passed": true
+      },
+      {
+        "name": "test_overlapping_solids_report_depth",
+        "passed": true
+      },
+      {
+        "name": "test_gap_reports_nothing",
+        "passed": true
+      },
+      {
+        "name": "test_shell_thickness_offset",
+        "passed": true
+      },
+      {
+        "name": "test_contact_blocks_are_checked",
+        "passed": true
+      },
+      {
+        "name": "test_single_surface_contact_part_set_is_a_reference",
+        "passed": true
+      },
+      {
+        "name": "test_every_material_recipe_reads_back[elastic]",
+        "passed": true
+      },
+      {
+        "name": "test_every_material_recipe_reads_back[johnson_cook]",
+        "passed": true
+      },
+      {
+        "name": "test_every_material_recipe_reads_back[piecewise_linear_plasticity]",
+        "passed": true
+      },
+      {
+        "name": "test_every_material_recipe_reads_back[plastic_kinematic]",
+        "passed": true
+      },
+      {
+        "name": "test_every_material_recipe_reads_back[rigid]",
+        "passed": true
+      },
+      {
+        "name": "test_every_material_recipe_reads_back[simplified_johnson_cook]",
+        "passed": true
+      },
+      {
+        "name": "test_missing_and_unknown_parameters_are_refused",
+        "passed": true
+      },
+      {
+        "name": "test_unset_fields_stay_blank_for_dependent_defaults",
+        "passed": true
+      },
+      {
+        "name": "test_nonzero_defaults_are_written_and_given_values_keep_their_digits",
+        "passed": true
+      },
+      {
+        "name": "test_eos_section_hourglass_and_parts",
+        "passed": true
+      },
+      {
+        "name": "test_every_contact_recipe[automatic_surface_to_surface-a0-b0-params0]",
+        "passed": true
+      },
+      {
+        "name": "test_every_contact_recipe[automatic_single_surface-all-None-params1]",
+        "passed": true
+      },
+      {
+        "name": "test_every_contact_recipe[eroding_surface_to_surface-a2-b2-params2]",
+        "passed": true
+      },
+      {
+        "name": "test_every_contact_recipe[tied_surface_to_surface_offset-a3-b3-params3]",
+        "passed": true
+      },
+      {
+        "name": "test_every_contact_recipe[automatic_nodes_to_surface-a4-b4-params4]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_refusals",
+        "passed": true
+      },
+      {
+        "name": "test_edit_deck_property_and_contact_ops",
+        "passed": true
+      }
+    ]
+  },
+  "raw_receipts": {
+    "task": "P06_geometry",
+    "passed": 90,
+    "skipped": 0,
+    "product_sources": 39,
+    "test_and_fixture_sources": 4,
+    "raw_proof_sha256": "997cd481dab971b01b8f48290ecca97b526a6337b1a312d2ca2a027eadda3760",
+    "source_before_sha256": "69c10fc882a2e6e0e0293c2aa0a3c02a571166a69761bca94031d95fe46c4912",
+    "source_after_sha256": "69c10fc882a2e6e0e0293c2aa0a3c02a571166a69761bca94031d95fe46c4912",
+    "stdout_sha256": "31a0bbe0051cec013ac8a39f7cb9f5cc419a3a24613058801fba280e2a41a84e",
+    "junit_sha256": "54b7f09f30b11280c1a65ae8678b192eb8dc6d06c521aed6ac715b19b2ab6363"
+  },
+  "pytest_files": [
+    "tests/test_contact_geometry_report.py",
+    "tests/test_contact_geometry_mcp.py",
+    "tests/test_keyword_engine_contact.py",
+    "tests/test_keyword_engine_properties.py"
+  ],
+  "overlapping_role_runs_not_unique_coverage": true,
+  "limits": [
+    "Selected critical dependencies, not a whole-program dependency proof",
+    "Host L1 only; not native Contact Check, solver response, GUI or task acceptance"
+  ],
+  "report": "report.md",
+  "report_sha256_lf": "036904c0a8155e4e767a6daa70c009ee88e3b0d620f153cd9197d5b831598937",
+  "internal_readonly_review": {
+    "receipt_sha256": "23011917ad4f38f5b0a5259ba0cb949d711688aa23041b37a01b373a06459a2e",
+    "conclusion": "Limited recorded-scope audit passed; no new P0/P1 accounting defect found",
+    "independent_external_done_review": false,
+    "private_ledger_published": false
+  },
+  "source_snapshot_scope": "Actual clean b757 capture-time inventory of 662 source files; later curation is separate"
+}

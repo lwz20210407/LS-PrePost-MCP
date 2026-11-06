@@ -8,7 +8,8 @@
 
 | 跟踪任务 | 当前状态与交付 |
 |---|---|
-| P06 身份 | 独立补修plural contacts.py目标/CID与身份序列形状，main51c5真实28红、Git对象overlay3红及bcfa UserDict2红均保留；clean85c707合main1735后87主机回归、SDK缺席11/54skip、内部4控制过。五合法配方字节保持，无geometry/check_model/原生变化；恢复后身份/证据相关142项与七检查通过，待精确PR头正式CI，P06仍partial |
+| P06 身份 | #174精确d8d五项CI通过已合main06b8；旧51c5真实28红、overlay3红、bcfa UserDict2红与clean85的87项/内部4控制原值保留。几何接线后actual cleanb757原执行集87项与35关键来源真刷新，新context不重绑旧记录；P06仍partial/L1 |
+| P06 几何 / 依赖来源 | check_model只读contact_geometry opt-in已接，预算/覆盖缺口不充零，native_verified=false；actual cleanb757独立geometry host90/39来源、P03原60/显式24、身份87/35及offline wheel785079B/221成员/9旧refs与原Elastic pin通过，各host角色重叠不累计。P05两版6job、P12两版18job按当前43来源真刷新，typed/物理/原生Contact Check不升级；五份新context/报告独立于原40/41，待精确PR头正式CI |
 | Q01 / Q05 | #129 已退回 partial；#130 已修 Part 标题/PID 口径；#136 已修删除标记并补非零节点的 4.13/4.10 对照。广泛结果覆盖与独立审阅仍待补 |
 | I01 / P02 / P11 / I02 | #131–#134 已修访问点守卫、搜索路径另存、必需检查失败的总状态、真实另存树原生重开；保留首轮失败及旧证据 |
 | A10 / I05 | #137 已限制去重概念数；#139 已在精确头五项 CI 通过后自审合入查询端拆词和证据复跑。真实 API 来源与检索质量仍有缺口 |

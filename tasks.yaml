@@ -201,11 +201,12 @@ tasks:
       - model: 候选只验证主机 AST/L1；更多可选参数组合、布局与版本尚未核实，依赖 pydyna extra，不外推物理校准正确性
       - 新 T2 配方保存重开后的原生 Part Data ID/字段/关联回读仍未做，通用 P11 不替代此项验收
     notes:
+      - check_deck几何helper接线后actual cleanb757原四文件60主机/stdio与新offline wheel785079B刷新，P03显式24关键来源含operations数据与contact helper/kernel；221成员分类/GitLF核对及9旧refs/原Elastic pin控制通过，各角色重叠不累计，仍非原生PartData/物理验收
       - I08客户端元数据变更后clean7fb原四文件60及新offline wheel778992B真刷新，显式21来源加同次完整snapshot归档registry数据1项共22；未把补档说成原producer显式22或重跑，旧02b/1ba及98题对象保持
       - typed named后台deck076变更后以actual1ba重放原四文件60 L1及full/compact stdio，offline wheel778549B确含新deck并以source-doc pin执行；旧02b/P03目录和98题结果不改，retrieval11源未变不重建已回收索引，仍非native物理验收
       - 六 MAT/两个 EOS 及一个 JC+Gruneisen+solid+Part 原子配方已登记为 model: keyword/L1 candidate；find/index 给来源/schema pin，旧引用漂移先拒，bare ID 显式 latest；无新T1或原生执行
       - clean02b1a9d专属60项通过，内部有限peer及实体离线wheel/提取目录/MCP full与compact另有控制，不累计重叠数；新增9条公开配方来源后的原98题真实重放保留全部历史与API缺口
-    evidence: [src/ls_prepost_mcp/model_recipes.py, src/ls_prepost_mcp/data/model_recipes.json, tests/test_model_recipes.py, tests/test_model_recipe_pins.py, tests/test_model_recipe_knowledge.py, tests/test_model_recipes_mcp.py, docs/decisions/evidence/p03-model-recipes/report.md, docs/decisions/evidence/a10-model-recipes-refresh/report.md, docs/decisions/evidence/p03-typed-writes-refresh/report.md, docs/decisions/evidence/p03-migration-metadata-refresh/report.md]
+    evidence: [src/ls_prepost_mcp/model_recipes.py, src/ls_prepost_mcp/data/model_recipes.json, tests/test_model_recipes.py, tests/test_model_recipe_pins.py, tests/test_model_recipe_knowledge.py, tests/test_model_recipes_mcp.py, docs/decisions/evidence/p03-model-recipes/report.md, docs/decisions/evidence/a10-model-recipes-refresh/report.md, docs/decisions/evidence/p03-typed-writes-refresh/report.md, docs/decisions/evidence/p03-migration-metadata-refresh/report.md, docs/decisions/evidence/contact-geometry-refresh/p03-host/report.md]
     acceptance:
       - 常用材料族 MAT_001/003/015/020/024/098 及 EOS 至少各一个配方，字段名来自关键字定义
       - Part 关联修改后引用检查通过，原生重开后 Part Data 读回一致
@@ -256,10 +257,11 @@ tasks:
       - 仅自有单文件九类定义在 4.13/4.10 保存/实际重开/导出核对；Include 树、更多目标/选项/真实模型仍未覆盖
       - ITS 一般语义未证；墙 ID1/title 空仅具名构建单墙非 DISPLAY 的观察表示，不作通用默认或编号适配；单位只由调用者声明
     notes:
+      - contact helper接线后actual cleanb757显式43关键来源（product36）两版各3真实headless job再验，strict59/doc37/obs6/剩余0保持；当前独立context与旧41/失败历史分开，逐job exe仅stat并由外层前后完整SHA衔接，typed/physics/ITS一般语义不升级
       - 171 修无损身份与分配失败原子性，保已加载 Include/参数 Scope/dirty edits/warnings；1289、1274、907 各组旧红及合法2512 LF bytes golden 分列，不冒称全在同一旧 main 实跑
       - actual clean3da/9b3 两版各九类、各3真实headless job通过，L2仅自有关键字定义往返；source/native_expected/actual、strict59、37文档写出规则与6受限观察记录分列，非一一相加计数，剩余差异0；typed/physics不升等级
       - 原8e r1三job比较失败保留，analysis-only不算新原生；actual3da显式41来源、readonly私有配置完整byte/stat与每job来源、双exe/源树/目录/空库存守卫通过，globals仅被动观察，内部账核不等于用户安排外审
-    evidence: [src/ls_prepost_mcp/domain/model/loads.py, tests/test_load_identity_inputs.py, tests/test_load_atomicity.py, tests/test_boundary_roundtrip_contract.py, tests/test_boundary_native_readback.py, tests/test_boundary_readback_evidence.py, tools/verify_p05_boundary_roundtrip.py, tests/data/p05-boundary-roundtrip.json, docs/decisions/evidence/p05-boundary-readback/report.md]
+    evidence: [src/ls_prepost_mcp/domain/model/loads.py, tests/test_load_identity_inputs.py, tests/test_load_atomicity.py, tests/test_boundary_roundtrip_contract.py, tests/test_boundary_native_readback.py, tests/test_boundary_readback_evidence.py, tools/verify_p05_boundary_roundtrip.py, tests/data/p05-boundary-roundtrip.json, docs/decisions/evidence/p05-boundary-readback/report.md, docs/decisions/evidence/contact-geometry-refresh/p05-boundary/report.md]
     acceptance:
       - SPC、规定运动、节点力、Segment 压力、重力、初速度、刚性墙、CNRB、无反射边界各有一个 L2 用例
       - 曲线（DEFINE_CURVE）与载荷引用正确，单位由调用者声明
@@ -278,12 +280,13 @@ tasks:
     status: partial
     existing: [create_entities]
     notes:
+      - check_model新增只读contact_geometry opt-in主机候选，默认/显式None与既有路径一致，预算缺口不伪装为零穿透；actual cleanb757身份87/关键来源35、独立geometry角色90/关键来源39通过，各角色重叠不累计且native_verified=false，仍仅L1
       - 接触A/B目标与CID复用shared exact_integer，拒bool/小数身份和scalar文本/bytes/mapping成员容器；nested Mapping过滤器先copy规范化，合法1.0/整数文本/常规序列与五配方字节保持，仍仅L1
       - clean85c707合main1735后相关87项实际通过，内部Mapping终验4项；身份规范化先于分配，不宣称其他形状/引用/物理失败均已事务化，未改geometry/check_model或原生验收
-    evidence: [src/ls_prepost_mcp/domain/model/contacts.py, tests/test_contact_target_identities.py, tests/test_contact_identity_evidence.py, tests/data/p06-contact-identity-golden.json, docs/decisions/evidence/p06-contact-identities/report.md]
+    evidence: [src/ls_prepost_mcp/domain/model/contacts.py, src/ls_prepost_mcp/domain/model/contact.py, src/ls_prepost_mcp/domain/model/contact_report.py, tests/test_contact_target_identities.py, tests/test_contact_identity_evidence.py, tests/test_contact_geometry_report.py, tests/test_contact_geometry_mcp.py, tests/test_contact_geometry_evidence_context.py, tests/test_contact_geometry_refresh_metadata.py, tests/data/p06-contact-identity-golden.json, docs/decisions/evidence/p06-contact-identities/report.md, docs/decisions/evidence/contact-geometry-refresh/geometry-host/report.md, docs/decisions/evidence/contact-geometry-refresh/p06-identity/report.md]
     gaps:
       - 五类接触配方已有（create_entities / add_contact）；原生 Contact Check 初始穿透报告未接
-      - 引擎的几何穿透估算 check_contacts 未接成工具
+      - 几何估算仅以check_model的contact_geometry opt-in接为只读主机候选；更多几何/真实模型误报、覆盖缺口与原生Contact Check对照仍未覆盖
     acceptance:
       - AUTOMATIC_SURFACE_TO_SURFACE、AUTOMATIC_SINGLE_SURFACE、ERODING_SURFACE_TO_SURFACE、TIED_SURFACE_TO_SURFACE_OFFSET、AUTOMATIC_NODES_TO_SURFACE 各一个配方
       - 主从面可用 Part / Part 集 / Segment 集指定，引用检查通过
@@ -425,6 +428,7 @@ tasks:
     status: partial
     existing: [create_entities, check_model]
     notes:
+      - contact helper接线后actual cleanb757显式43关键来源（product34+aux9）两版各三case/9真实job再验，strict0/2/0与motor两项格式规则分列且剩余0；新current独立文件，旧40/41全部原值保留，typed/运动学不升级
       - 171 actual3da显式41（含loads.ensure_curve）两版六case/18真实job复验通过后切active；1289原40+后验补档与全部旧run/checkpoint原值保存；仅单文件定义往返，R1 strict/格式分列，typed/运动学仍未证
       - 原be0/80/1b/28 capture/checkpoint/恢复计量对象保留；1289 source40私有配置source新增六case/18进程并单独切active，semantic全同、原严格R1差异/格式归一化分列；typed Joint识别仍unverified、motion未运行，整体partial
       - 九类 add_joint 与双向刚体 Part/已有节点刚体/新节点刚体连接已有实现；本轮修复无损身份校验、CNRB 大 PID 精确查找及合并 MOTOR_ID 卡片边界
@@ -435,7 +439,7 @@ tasks:
       - 仅验证普通单文件关键字定义保存/实际重开/导出往返；Include 树、typed Joint 原生对象识别、GUI 会话及其他版本仍未覆盖
       - 当前源码的运动学/R11 与所选变形体节点新建节点刚体的动态算例尚未完成；广泛真实模型误报和过约束仍需相应复核
       - 未做：*CONSTRAINED_JOINT_STIFFNESS（限位、摩擦）的创建；齿轮、齿条、滑轮、螺旋、等速、HARMONIC 只登记，不做几何检查
-    evidence: [src/ls_prepost_mcp/domain/model/joints.py, src/ls_prepost_mcp/domain/model/joint_checks.py, tests/test_joint_identity_inputs.py, tests/test_joint_exact_body_lookup.py, tests/test_joint_instance_reader.py, tests/test_joint_native_format.py, tests/test_joint_source_identity.py, tests/test_joint_native_readback.py, tests/test_joint_readback_evidence.py, tools/verify_p12_joint_roundtrip.py, docs/decisions/evidence/p12-joint-readback/report.md, docs/decisions/evidence/p12/report.md, docs/decisions/evidence/p12-joint-readback/typed-writes-refresh-1289.md]
+    evidence: [src/ls_prepost_mcp/domain/model/joints.py, src/ls_prepost_mcp/domain/model/joint_checks.py, tests/test_joint_identity_inputs.py, tests/test_joint_exact_body_lookup.py, tests/test_joint_instance_reader.py, tests/test_joint_native_format.py, tests/test_joint_source_identity.py, tests/test_joint_native_readback.py, tests/test_joint_readback_evidence.py, tools/verify_p12_joint_roundtrip.py, docs/decisions/evidence/p12-joint-readback/report.md, docs/decisions/evidence/p12/report.md, docs/decisions/evidence/p12-joint-readback/typed-writes-refresh-1289.md, docs/decisions/evidence/contact-geometry-refresh/p12-joint/report.md]
     acceptance:
       - 九类运动副各一个配方，节点对按 R17 Vol I *CONSTRAINED_JOINT 的规则放置，两侧刚体归属正确，引用检查通过
       - 每类运动副的 R11 算例与解析解或官方示例一致，运动学量误差小于 1%
