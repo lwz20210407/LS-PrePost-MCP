@@ -11,9 +11,11 @@ from tools.native_regression import execution_identity
 MATCHING = "src/ls_prepost_mcp/domain/model/matching.py"
 IDENTITY = "src/ls_prepost_mcp/domain/model/_identity.py"
 LOADS = "src/ls_prepost_mcp/domain/model/loads.py"
+CONTACT_REPORT = "src/ls_prepost_mcp/domain/model/contact_report.py"
+CONTACT = "src/ls_prepost_mcp/domain/model/contact.py"
 
 
-@pytest.mark.parametrize("missing", [MATCHING, IDENTITY, LOADS])
+@pytest.mark.parametrize("missing", [MATCHING, IDENTITY, LOADS, CONTACT_REPORT, CONTACT])
 def test_missing_required_source_is_rejected_before_native_or_configuration_io(tmp_path, missing):
     identity = execution_identity(verifier.ROOT)
     identity["working_tree_dirty"] = False  # isolate the source gate from the existing dirty-tree guard
@@ -52,7 +54,9 @@ def test_required_dependency_set_explicitly_includes_matching_and_exact_identity
 def test_direct_joint_curve_helper_is_an_explicit_product_and_capture_dependency():
     assert LOADS in verifier.PRODUCT_PATHS
     assert LOADS in verifier.CAPTURE_SOURCE_PATHS
-    assert len(verifier.CAPTURE_SOURCE_PATHS) == 41
+    assert {CONTACT_REPORT, CONTACT} <= set(verifier.PRODUCT_PATHS)
+    assert len(verifier.PRODUCT_PATHS) == 34
+    assert len(verifier.CAPTURE_SOURCE_PATHS) == 43
 
 
 def test_source_gate_binds_both_git_blob_and_actual_captured_bytes(source_fixture):
