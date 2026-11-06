@@ -10,6 +10,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -38,6 +39,8 @@ PRODUCT_PATHS = (
     "src/ls_prepost_mcp/domain/model/layouts.py", "src/ls_prepost_mcp/domain/model/node_sets.py",
     "src/ls_prepost_mcp/domain/model/sets.py", "src/ls_prepost_mcp/domain/model/operations.py",
     "src/ls_prepost_mcp/domain/model/matching.py", "src/ls_prepost_mcp/domain/model/_identity.py",
+    "src/ls_prepost_mcp/model_target_tools.py", "src/ls_prepost_mcp/domain/model/contact_report.py",
+    "src/ls_prepost_mcp/domain/model/contact.py",
 )
 
 PROGRAM = '''import json
@@ -152,11 +155,30 @@ def _directory(path):
     return result
 
 
+def source_identity(identity):
+    """Admit all selected products from the actual full snapshot before native/configuration IO."""
+    captured = identity.get("source_files")
+    if not isinstance(captured, dict):
+        raise ValueError("Missing required P04 capture source hashes")
+    for path in PRODUCT_PATHS:
+        digest = captured.get(path)
+        if (not isinstance(digest, str) or re.fullmatch(r"[0-9a-f]{64}", digest) is None
+                or not (ROOT / path).is_file() or sha(ROOT / path) != digest):
+            raise ValueError("Missing or changed required P04 capture source: " + path)
+    revision = identity.get("actual_git_head", "")
+    if re.fullmatch(r"[0-9a-f]{40}", revision) is None:
+        raise ValueError("Missing committed P04 capture source revision")
+    return [dict(path=path, git_blob_id=subprocess.check_output(
+        ["git", "rev-parse", revision + ":" + path], cwd=ROOT, text=True, timeout=10).strip(),
+        captured_file_sha256=captured[path]) for path in PRODUCT_PATHS]
+
+
 def run(executable, output):
     """A single owned, serial, opt-in headless process through the existing APIs."""
     identity = execution_identity(ROOT)
     if not identity.get("actual_git_head") or identity["working_tree_dirty"] is not False:
         raise ValueError("A clean committed producer and product checkout is required")
+    products = source_identity(identity)
     if not output.is_absolute() or is_network(str(output)) or output.exists() or output.resolve().is_relative_to(ROOT):
         raise ValueError("Use a fresh, local, absolute output directory outside the checkout")
     if native_processes():
@@ -188,9 +210,7 @@ def run(executable, output):
         producer_sha256=sha(Path(__file__)), script_sha256=hashlib.sha256(PROGRAM.encode()).hexdigest(),
         source_before=original, created_model_sha256=sha(model), binary_before=before,
         native_executed=False, status="failed", graphics=False, solver_executed=False,
-        product_source_identity=[dict(path=p, git_blob_id=subprocess.check_output(
-            ["git", "rev-parse", identity["actual_git_head"] + ":" + p], cwd=ROOT, text=True, timeout=10).strip())
-            for p in PRODUCT_PATHS])
+        product_source_identity=products)
     try:
         prepared = service.prepare_native_program("python", code=PROGRAM,
             outputs=[dict(name="node-set-identities.json", kind="json")], expected_counts=dict(nodes=4))

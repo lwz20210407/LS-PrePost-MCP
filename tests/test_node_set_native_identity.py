@@ -1,5 +1,6 @@
 """A source-bound storage rule needs the complete independent native ID/rank table."""
 import copy
+import hashlib
 import json
 import sys
 from types import SimpleNamespace
@@ -170,3 +171,57 @@ def test_directory_identity_includes_new_entries_and_empty_directories(tmp_path)
     (tmp_path / "new-empty-dir").mkdir()
     assert _directory(tmp_path) != before
     assert _directory(tmp_path)["new-empty-dir"] == dict(kind="directory")
+
+
+@pytest.mark.parametrize("missing", ["src/ls_prepost_mcp/model_target_tools.py",
+    "src/ls_prepost_mcp/domain/model/contact_report.py", "src/ls_prepost_mcp/domain/model/contact.py",
+    "src/ls_prepost_mcp/domain/model/operations.py"])
+def test_missing_product_source_rejects_before_native_or_configuration_io(tmp_path, monkeypatch, missing):
+    from tools import verify_node_set_user_ids as verifier
+
+    identity = verifier.execution_identity(verifier.ROOT)
+    identity["working_tree_dirty"] = False  # isolate source admission from the dirty-tree guard
+    del identity["source_files"][missing]
+    monkeypatch.setattr(verifier, "execution_identity", lambda root: identity)
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("Missing source must reject before process/configuration/native IO")
+
+    for name in ("native_processes", "require_installation", "locate_config", "Service"):
+        monkeypatch.setattr(verifier, name, forbidden)
+    output = tmp_path / "not-created"
+    with pytest.raises(ValueError, match="required P04 capture source"):
+        verifier.run(tmp_path / "not-used.exe", output)
+    assert not output.exists()
+
+
+def test_p04_product_scope_includes_the_executed_check_helpers_without_touching_other_capture_scopes():
+    from tools import verify_node_set_user_ids as verifier
+    from tools import verify_p05_boundary_roundtrip as p05
+    from tools import verify_p12_joint_roundtrip as p12
+
+    assert len(verifier.PRODUCT_PATHS) == len(set(verifier.PRODUCT_PATHS)) == 13
+    assert {"src/ls_prepost_mcp/model_target_tools.py", "src/ls_prepost_mcp/domain/model/contact_report.py",
+            "src/ls_prepost_mcp/domain/model/contact.py"} <= set(verifier.PRODUCT_PATHS)
+    p04_instrumentation = {"tools/verify_node_set_user_ids.py", "tests/test_node_set_native_identity.py",
+                           "tests/test_node_set_native_membership_evidence.py"}
+    assert p04_instrumentation.isdisjoint(p05.CAPTURE_SOURCE_PATHS)
+    assert p04_instrumentation.isdisjoint(p12.CAPTURE_SOURCE_PATHS)
+
+
+def test_each_product_proof_keeps_the_actual_full_snapshot_hash(tmp_path, monkeypatch):
+    from tools import verify_node_set_user_ids as verifier
+
+    paths = ("selected/source.py",)
+    target = tmp_path / paths[0]
+    target.parent.mkdir()
+    target.write_bytes(b"# owned source\n")
+    digest = hashlib.sha256(target.read_bytes()).hexdigest()
+    identity = dict(actual_git_head="a" * 40, source_files={paths[0]: digest})
+    monkeypatch.setattr(verifier, "ROOT", tmp_path)
+    monkeypatch.setattr(verifier, "PRODUCT_PATHS", paths)
+    monkeypatch.setattr(verifier.subprocess, "check_output", lambda *args, **kwargs: "b" * 40 + "\n")
+    assert verifier.source_identity(identity) == [dict(path=paths[0], git_blob_id="b" * 40, captured_file_sha256=digest)]
+    target.write_bytes(b"# changed after snapshot\n")
+    with pytest.raises(ValueError, match="required P04 capture source"):
+        verifier.source_identity(identity)
