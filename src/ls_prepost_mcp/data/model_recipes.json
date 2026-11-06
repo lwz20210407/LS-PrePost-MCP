@@ -152,6 +152,45 @@
         "elform": "int",
         "aet": "int"
       }
+    },
+    "control": {
+      "termination": {
+        "endtim": "float",
+        "endcyc": "int",
+        "dtmin": "float",
+        "endeng": "float",
+        "endmas": "float"
+      },
+      "timestep": {
+        "tssfac": "float",
+        "dtinit": "float",
+        "isdo": "int",
+        "tslimt": "float",
+        "dt2ms": "float",
+        "lctm": "int",
+        "erode": "int",
+        "ms1st": "int"
+      },
+      "hourglass": {
+        "ihq": "int",
+        "qh": "float"
+      },
+      "energy": {
+        "hgen": "int",
+        "rwen": "int",
+        "slnten": "int",
+        "rylen": "int"
+      },
+      "d3plot": {
+        "dt": "float",
+        "lcdt": "int",
+        "npltc": "int",
+        "psetid": "int"
+      },
+      "ascii": {
+        "dt": "float",
+        "binary": "int"
+      }
     }
   },
   "recipes": [
@@ -283,6 +322,120 @@
         "Gruneisen",
         "Part",
         "solid"
+      ]
+    },
+    {
+      "id": "model:control-termination",
+      "name": "Termination time",
+      "description": "P10 explicit caller values through the existing atomic set_control operation; no physical defaults or native verification.",
+      "task_id": "P10",
+      "family": "control",
+      "core_recipe": "termination",
+      "tags": [
+        "P10",
+        "control",
+        "output",
+        "termination"
+      ],
+      "keyword": "*CONTROL_TERMINATION"
+    },
+    {
+      "id": "model:control-timestep",
+      "name": "Time-step controls",
+      "description": "P10 explicit caller values through the existing atomic set_control operation; no physical defaults or native verification.",
+      "task_id": "P10",
+      "family": "control",
+      "core_recipe": "timestep",
+      "tags": [
+        "P10",
+        "control",
+        "output",
+        "timestep"
+      ],
+      "keyword": "*CONTROL_TIMESTEP"
+    },
+    {
+      "id": "model:control-hourglass",
+      "name": "Global hourglass controls",
+      "description": "P10 explicit caller values through the existing atomic set_control operation; no physical defaults or native verification.",
+      "task_id": "P10",
+      "family": "control",
+      "core_recipe": "hourglass",
+      "tags": [
+        "P10",
+        "control",
+        "output",
+        "hourglass"
+      ],
+      "keyword": "*CONTROL_HOURGLASS"
+    },
+    {
+      "id": "model:control-energy",
+      "name": "Energy controls",
+      "description": "P10 explicit caller values through the existing atomic set_control operation; no physical defaults or native verification.",
+      "task_id": "P10",
+      "family": "control",
+      "core_recipe": "energy",
+      "tags": [
+        "P10",
+        "control",
+        "output",
+        "energy"
+      ],
+      "keyword": "*CONTROL_ENERGY"
+    },
+    {
+      "id": "model:output-d3plot",
+      "name": "Binary d3plot interval",
+      "description": "P10 explicit caller values through the existing atomic set_control operation; no physical defaults or native verification.",
+      "task_id": "P10",
+      "family": "control",
+      "core_recipe": "d3plot",
+      "tags": [
+        "P10",
+        "control",
+        "output",
+        "d3plot"
+      ],
+      "keyword": "*DATABASE_BINARY_D3PLOT"
+    },
+    {
+      "id": "model:output-ascii",
+      "name": "ASCII output intervals",
+      "description": "P10 explicit caller values through the existing atomic set_control operation; no physical defaults or native verification.",
+      "task_id": "P10",
+      "family": "control",
+      "core_recipe": "ascii",
+      "tags": [
+        "P10",
+        "control",
+        "output",
+        "ascii"
+      ]
+    },
+    {
+      "id": "model:control-output",
+      "name": "Atomic control and output story",
+      "description": "Termination, d3plot, selected ASCII outputs and global hourglass in one atomic host transaction; optional explicit timestep and energy controls.",
+      "task_id": "P10",
+      "family": "control_bundle",
+      "components": [
+        "termination",
+        "d3plot",
+        "ascii",
+        "hourglass"
+      ],
+      "optional_components": [
+        "timestep",
+        "energy"
+      ],
+      "tags": [
+        "P10",
+        "control",
+        "output",
+        "termination",
+        "hourglass",
+        "atomic"
       ]
     }
   ]

@@ -15,7 +15,8 @@ from tests.test_model_recipes import ROOT, STEEL, specimen
 def private_registry(tmp_path, monkeypatch):
     repository = tmp_path / "registry-repository"
     package = repository / "src/ls_prepost_mcp"
-    for relative in ("data/model_recipes.json", "domain/model/materials.py", "automation/recipes.py", "core/validation.py"):
+    for relative in ("data/model_recipes.json", "domain/model/materials.py", "domain/model/controls.py",
+                     "automation/recipes.py", "core/validation.py"):
         target = package / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / "src/ls_prepost_mcp" / relative, target)
