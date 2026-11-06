@@ -12,7 +12,7 @@
 | `check_gui_keywords` | P09 | session_id*: string |
 | `check_gui_shell_quality` | P09 | session_id*: string; thresholds*: object; units*: string |
 | `check_gui_solid_quality` | P09 | session_id*: string; checks*: array; units*: string; capture_failed_ids: boolean |
-| `check_model` | P09, P12 | model*: string; thresholds: union/ref; coincident_tolerance: union/ref; include_mesh: boolean |
+| `check_model` | P09, P12 | model*: string; thresholds: union/ref; coincident_tolerance: union/ref; include_mesh: boolean; contact_geometry: union/ref |
 | `checkpoint_gui_session` | P11 | session_id*: string |
 | `close_gui_session` | I08 | session_id*: string; save_checkpoint: boolean |
 | `combine_gui_selections` | G03 | session_id*: string; entity_type*: string; left_ids*: array; right_ids*: array; operation: string |

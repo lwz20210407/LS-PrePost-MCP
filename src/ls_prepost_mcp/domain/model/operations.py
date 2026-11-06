@@ -17,6 +17,7 @@ import numpy as np
 
 from . import (
     contact,
+    contact_report,
     contacts,
     controls,
     coordinates,
@@ -466,13 +467,17 @@ def edit_deck(path: str, edits: list[dict], *, output_dir: str | None = None, in
 
 
 def check_deck(path: str, include_paths: tuple[str, ...] = (), thresholds: dict | None = None,
-               coincident_tol: float | None = None, include_mesh: bool = True) -> dict:
+               coincident_tol: float | None = None, include_mesh: bool = True,
+               contact_geometry: dict | None = None) -> dict:
     """Model check without LS-PrePost (P09): includes, parameters, references and element quality.
 
     Errors are objective defects (missing includes, include cycles, parameter errors, dangling
     or duplicate IDs, inverted/degenerate elements). Quality metrics are judged only against
     the given ``thresholds``.
+    Explicit ``contact_geometry={}`` adds bounded geometry candidates, never objective defects
+    or native Contact Check evidence. None leaves the existing checks unchanged.
     """
+    geometry_options = contact_report.options(contact_geometry, include_mesh)
     deck = KeywordDeck.load(path, include_paths)
     errors = [{"kind": "include", "message": w} for w in deck.warnings
               if w.startswith(("Missing include", "Include cycle"))]
@@ -523,6 +528,12 @@ def check_deck(path: str, include_paths: tuple[str, ...] = (), thresholds: dict 
                 warnings.append(f"{noise['nodes_affected']} nodes have coordinate round-off below "
                                 f"{noise['tolerance']:.3g} on axes {''.join(noise['noisy_axes'])}; "
                                 "clean_coordinates snaps them to one value per cluster")
+    if geometry_options is not None:
+        result["contact_geometry"] = geometry_report = contact_report.estimate(deck, geometry_options)
+        if geometry_report["coverage"]["candidate_nodes_found"]:
+            warnings.append("Contact geometry estimate found candidate penetrations; native Contact Check is unverified")
+        if geometry_report["not_checked"]:
+            warnings.append("Contact geometry estimate has unevaluated contacts; see contact_geometry.not_checked")
     result["errors"] = errors
     result["unchecked"] = unchecked
     result["complete"] = not unchecked  # ok=True only means no defect was found in what was read

@@ -87,17 +87,20 @@ class ModelTargetTools:
         return _result("model_info", "succeeded", data, scope="keyword deck and its includes")
 
     def check_model(self, model: str, thresholds: dict | None = None, coincident_tolerance: float | None = None,
-                    include_mesh: bool = True) -> dict:
+                    include_mesh: bool = True, contact_geometry: dict | None = None) -> dict:
         """P09: includes, parameters, dangling/duplicate references, element quality against the given
         thresholds, coordinate round-off, free-format field widths and short prescribed-motion curves.
-        Execution succeeds when the check ran; findings are reported as checks, not as a failure."""
+        Execution succeeds when the check ran; findings are reported as checks, not as a failure.
+        Opt-in contact_geometry={} adds bounded keyword geometry candidates in model coordinates;
+        options may lower hard limits or set tolerance. It requires include_mesh=True and does
+        not verify native Contact Check or add objective defects. None does no geometry work."""
         from .domain.model.operations import check_deck
 
         source = self._input(model)
         try:
             with self._guard():
                 report = check_deck(str(source), thresholds=thresholds, coincident_tol=coincident_tolerance,
-                                    include_mesh=include_mesh)
+                                    include_mesh=include_mesh, contact_geometry=contact_geometry)
         except (ValueError, KeyError, TypeError, OSError, RecursionError) as error:
             return _result("check_model", "failed", {"model": str(source)}, error=_error(error))
         kinds = sorted({e["kind"] for e in report["errors"]})
