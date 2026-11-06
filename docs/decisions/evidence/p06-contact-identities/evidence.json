@@ -1,0 +1,674 @@
+{
+  "schema_version": 1,
+  "task_id": "P06",
+  "status": "partial",
+  "verification_level": "L1",
+  "native_executed": false,
+  "scope": "Contact construction target/CID identity precision and identity-collection shapes only; no geometry/check_model/signature or general transaction changes",
+  "actual_git_revision": "85c707699b90a336969d102e767c6d7a9080277f",
+  "working_tree_dirty": false,
+  "source_unchanged": true,
+  "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "source_snapshot_sha256": "929704fce1b15d15845321adfd4a2cfdb31d4c79db69904718f1f5045087381b",
+  "validity": "current_for_recorded_product_blobs",
+  "product_identity_not_all_feature_coverage": true,
+  "product_source_identity": [
+    {
+      "path": "src/ls_prepost_mcp/domain/model/_identity.py",
+      "git_blob_id": "a32f506df79f2142581b78bf2fa97092bc8a62ff",
+      "sha256_actual": "458c3f6a1f6e3523f0a30cae55bae451d42bf5a9e14cf227a92eec8d603b6c85"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/contacts.py",
+      "git_blob_id": "3d7043bde194eaa8a784127c7d02111065d55c1b",
+      "sha256_actual": "09c282c388e3e70ca6eb0afb7e5e8f0be8dc93f4569b09de38ea554e3db268ee"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/contact.py",
+      "git_blob_id": "40bd0a6f2f0e7599ca85fd1a7e557874a68f23c4",
+      "sha256_actual": "079332d333305bded54d031fef48291b7a7186c66b34da9edd378e49ca37fd6a"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/cards.py",
+      "git_blob_id": "e22438a0268df4314adeb37c91ac5d88bea72dbb",
+      "sha256_actual": "2584fe5a72fe71c21ea76b6f41e41762e5e6dcc2e9cf08799accb1776803ec5e"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/schema.py",
+      "git_blob_id": "d49f4b0d7ae6d53d6e6ba20b67260f798849e62c",
+      "sha256_actual": "554b97b09407c869b36b3a979ad8256f88d636d13470c8ef9adfcf7f6468655d"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/keyword_docs.py",
+      "git_blob_id": "5e730a130119cc462f675fbd4faf1b9723e7dd32",
+      "sha256_actual": "b9de37b23e9a19c531173d28031bf8fc1910637b574402249ebbd87d2e947f00"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/fields.py",
+      "git_blob_id": "4956da477eb7d0d86a85443f3febae7dc6d35644",
+      "sha256_actual": "e2262493cd64a6f6cc42cf77d55f30beb150f60b1bda6424f55f8043c76cb02b"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/layouts.py",
+      "git_blob_id": "2b0f1893746e16b1795ac4055e7dc9c016e81ce6",
+      "sha256_actual": "b5b6e03e8db644b58d833dc0b156839716b2058875b0642c92f2bc5acfaca9d0"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/geometry.py",
+      "git_blob_id": "a5fe4c24ed630119b5c48641fbff10eae834327b",
+      "sha256_actual": "a183a72fdc1fce1e06cd9ceadb5f9731468da3b1943ed33fa34c98f402190e21"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/sets.py",
+      "git_blob_id": "dc024c17d3be0511f5bf13e56b535599013afe79",
+      "sha256_actual": "c50ab8df00612a570c77fec5c4fd3b91fa0b7995f9c72e669fab5d8dffcf60c0"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/node_sets.py",
+      "git_blob_id": "64137af18892347bddffb651005263c8239ce649",
+      "sha256_actual": "e23fedc60dfc9aa3c33a24c1169779c582e6aa3b7bdfaa2bff6463f314df1e7d"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/lists.py",
+      "git_blob_id": "3fca714f6d393c57a6349438a93053aeebe831ff",
+      "sha256_actual": "66c7bf53bc0b07972203e00a4b47093e28bb3f4e8a101565608fb76047d8764e"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/tables.py",
+      "git_blob_id": "e4f73691e6ff618e0f51dc5c5e0cd6503ee4b099",
+      "sha256_actual": "f5f17a339c3f95e551501125694ac9dab95090404b0c15749b0cbb09ad9812bf"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/materials.py",
+      "git_blob_id": "ce8e7ccb9be9dc4d9890a75c3f810ea0febfb960",
+      "sha256_actual": "1c10ce3a25fe962237623afec482000d37faf1538834b676b8b87fe90e49a87b"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/deck.py",
+      "git_blob_id": "0764117cb94370e3edb0d4f507ca0c4c1db198dc",
+      "sha256_actual": "8569740f8b3ec6b911b129c52c39c0e1dca78f94ccf3a1b3430a326b650f2cdd"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/matching.py",
+      "git_blob_id": "3dcb403bd734e66317dff96d6573ee090d4056d9",
+      "sha256_actual": "8519e391deb5d1c591048483008d2b71eeec429a1f7192bc3a9403e2b6b990d0"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/blocks.py",
+      "git_blob_id": "45ec1d7941ad3e36cc7d0c4cfbe83ca9e066791d",
+      "sha256_actual": "fbd148ca578fbe6934603bba30e789886df3ff4223494ba6d0b948192db01480"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/text.py",
+      "git_blob_id": "0bb03417887eba8088ab6a5c82870b4f87c23b3c",
+      "sha256_actual": "ab5f2d589db8a5f0beff8c830ab241b8529b4a0a60c39574b014965fdbbc549d"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/parameters.py",
+      "git_blob_id": "035ab3e61d8ec8a4c588779380664fcbef901852",
+      "sha256_actual": "2286c9784d7fb19b32bf611c0babae94e5e37ec9bb2d4de5ee25a8f8cf92f22d"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/scope.py",
+      "git_blob_id": "5f0dceed52859292f30dc4ca0a6d56c4b4469864",
+      "sha256_actual": "911f04bccfdec52c3df9ea12bf254e4c1d32eb7d4aa2390098eab1fbb46cb5e0"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/links.py",
+      "git_blob_id": "12ca5b8553ffd5b7ebc0c857f7135c3bbbab8512",
+      "sha256_actual": "137e6f41f71f6384a5c28b3e2753ea7be5ae13782eff2b963c5122e9f6676e3c"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/references.py",
+      "git_blob_id": "7eab7fb8f0eaba45d0fe0c847a0f64c9a8f4f8fd",
+      "sha256_actual": "0bf1dbdefd412c31747e4446ce7e7f619045c9e1a3a97d14308aee6bfc86d0f1"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/includes.py",
+      "git_blob_id": "9d62c28cbdb610a596b275cd0c737482535c0571",
+      "sha256_actual": "02f18328199c51887744157d0e0e933ae45c24ceb6222b105f02dd9a3721891d"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/tree.py",
+      "git_blob_id": "58e685c97ba5047c59de00440e5605ba77c05a4d",
+      "sha256_actual": "805233ff9d3b7f0c7c3b492eec80893284833cac3aafb1eb2487046acb7a8cce"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/access.py",
+      "git_blob_id": "a07323c01b32b0fbe282c76873b4c8bc73a4a3ad",
+      "sha256_actual": "74e8646b2d9e556e050f000ba20d9e9ae82722f738a5cc3eef3bab102e2e59f3"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/preflight.py",
+      "git_blob_id": "1fda5108d3d32d0e25f9e607ce7a61ca00daf4fb",
+      "sha256_actual": "ea7a40c1883740c7560306113093d56dfe259f4b22c8f55fb87d422d63d6145f"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/persist.py",
+      "git_blob_id": "cfcd83547e7c549a6ea78acf1160acdc0d16dbb8",
+      "sha256_actual": "0bbaa8ae265b6a2c92fe774085c5480e6a9ed1b7b31ce472975027665e2d5bf2"
+    },
+    {
+      "path": "src/ls_prepost_mcp/domain/model/operations.py",
+      "git_blob_id": "c30fd8d7f86bb4e6aedf053be7afa68785e2c391",
+      "sha256_actual": "577b65d97c5a65ec8ae58ebd39bd4d670bf28edd3805f429d56f35e4068fe030"
+    },
+    {
+      "path": "src/ls_prepost_mcp/model_target_tools.py",
+      "git_blob_id": "05d65bc6cb38535773b3114456e6ac407f5d151a",
+      "sha256_actual": "24c6e49ab98ff651d0d9742507412538040a1ac1be49b6bbf56cf274c1703774"
+    },
+    {
+      "path": "src/ls_prepost_mcp/service.py",
+      "git_blob_id": "3206a328b3c93559cb8c84669bad2e068d2dd1f3",
+      "sha256_actual": "3b13a568499099a6e80dcc01d5e25b6cc06faf4c0f36b00ca9ca8705a1121e46"
+    },
+    {
+      "path": "src/ls_prepost_mcp/config.py",
+      "git_blob_id": "a63023b60176e4dc757e876345a0403dc55fd770",
+      "sha256_actual": "5d8736de37c7df76c5e95657efda1785ed4c149a618b655cd870f01b7d85a5ce"
+    },
+    {
+      "path": "src/ls_prepost_mcp/jobs.py",
+      "git_blob_id": "edc9de41fe5d444f2c25a3cb09617b6851292732",
+      "sha256_actual": "529f2a4a07308c6cb5f0815e37355de7de1ae871bac55b42a853361fa9e930ce"
+    },
+    {
+      "path": "src/ls_prepost_mcp/core/contracts.py",
+      "git_blob_id": "43126d7c12aa28647d9c0d70e4da1edc37ac5847",
+      "sha256_actual": "1962deab163fae9a2362f006c10baf5ac9d3804d37ca73c3575554583b56a5e9"
+    },
+    {
+      "path": "src/ls_prepost_mcp/core/validation.py",
+      "git_blob_id": "9dfb095e5345bf5c26d1a561624b1205f61e196b",
+      "sha256_actual": "f7eefa428f84802cce1dba12d6b32d61198542055c7ae600a00dee2420988c9c"
+    }
+  ],
+  "test_source_identity": [
+    {
+      "path": "tests/test_contact_target_identities.py",
+      "git_blob_id": "024f9960937d2e53304b0f082c2daa784eca8c2e",
+      "sha256_actual": "644ef66b09ee030fd00ada81631d92b3205ffbaab26f8dd579ac70a49a4d8dba"
+    },
+    {
+      "path": "tests/test_keyword_engine_contact.py",
+      "git_blob_id": "6e5d6e247ff2cbb6de2322227eba683d03b39a77",
+      "sha256_actual": "af777d4195ed37eabc327b5b8525234ad677a94094791a19b562b206c6d6dab1"
+    },
+    {
+      "path": "tests/test_keyword_engine_properties.py",
+      "git_blob_id": "ca7778c8b528a36bfe0f44e0e41f22cba68a09d5",
+      "sha256_actual": "a8b88ef04a91a3d4afd164ff8ad7b1a21e5d5d2ce1eff56bdcd658d9f7418bec"
+    },
+    {
+      "path": "tests/data/p06-contact-identity-golden.json",
+      "git_blob_id": "22242e8620695878d73d492387d331783f14ff28",
+      "sha256_actual": "dc55d0cb3204e8af41d0ef510434f1d2f7002d7035e4678c710cde0fbf3567f8"
+    }
+  ],
+  "provider_name": "ansys-dyna-core",
+  "provider_version": "0.12.1",
+  "l1_run": {
+    "passed": 87,
+    "cases": [
+      {
+        "name": "test_public_contact_creation_refuses_nonidentity_target_instead_of_binding_existing_one[True-a-part]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_creation_refuses_nonidentity_target_instead_of_binding_existing_one[True-a-part_set]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_creation_refuses_nonidentity_target_instead_of_binding_existing_one[True-a-segment_set]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_creation_refuses_nonidentity_target_instead_of_binding_existing_one[True-a-shell_set]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_creation_refuses_nonidentity_target_instead_of_binding_existing_one[True-b-part]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_creation_refuses_nonidentity_target_instead_of_binding_existing_one[True-b-part_set]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_creation_refuses_nonidentity_target_instead_of_binding_existing_one[True-b-segment_set]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_creation_refuses_nonidentity_target_instead_of_binding_existing_one[True-b-shell_set]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_creation_refuses_nonidentity_target_instead_of_binding_existing_one[1.5-a-part]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_creation_refuses_nonidentity_target_instead_of_binding_existing_one[1.5-a-part_set]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_creation_refuses_nonidentity_target_instead_of_binding_existing_one[1.5-a-segment_set]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_creation_refuses_nonidentity_target_instead_of_binding_existing_one[1.5-a-shell_set]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_creation_refuses_nonidentity_target_instead_of_binding_existing_one[1.5-b-part]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_creation_refuses_nonidentity_target_instead_of_binding_existing_one[1.5-b-part_set]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_creation_refuses_nonidentity_target_instead_of_binding_existing_one[1.5-b-segment_set]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_creation_refuses_nonidentity_target_instead_of_binding_existing_one[1.5-b-shell_set]",
+        "passed": true
+      },
+      {
+        "name": "test_nested_contact_part_identities_are_rejected_before_selection_or_set_allocation[True-parts]",
+        "passed": true
+      },
+      {
+        "name": "test_nested_contact_part_identities_are_rejected_before_selection_or_set_allocation[True-exterior]",
+        "passed": true
+      },
+      {
+        "name": "test_nested_contact_part_identities_are_rejected_before_selection_or_set_allocation[True-select]",
+        "passed": true
+      },
+      {
+        "name": "test_nested_contact_part_identities_are_rejected_before_selection_or_set_allocation[1.5-parts]",
+        "passed": true
+      },
+      {
+        "name": "test_nested_contact_part_identities_are_rejected_before_selection_or_set_allocation[1.5-exterior]",
+        "passed": true
+      },
+      {
+        "name": "test_nested_contact_part_identities_are_rejected_before_selection_or_set_allocation[1.5-select]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_id_is_not_truncated_or_taken_from_a_flag[True]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_id_is_not_truncated_or_taken_from_a_flag[1.5]",
+        "passed": true
+      },
+      {
+        "name": "test_existing_node_set_identity_contract_is_kept[True-False]",
+        "passed": true
+      },
+      {
+        "name": "test_existing_node_set_identity_contract_is_kept[1.5-False]",
+        "passed": true
+      },
+      {
+        "name": "test_existing_node_set_identity_contract_is_kept[1.0-True]",
+        "passed": true
+      },
+      {
+        "name": "test_existing_node_set_identity_contract_is_kept[1-True]",
+        "passed": true
+      },
+      {
+        "name": "test_all_contact_identity_validation_precedes_dependency_creation[b]",
+        "passed": true
+      },
+      {
+        "name": "test_all_contact_identity_validation_precedes_dependency_creation[cid]",
+        "passed": true
+      },
+      {
+        "name": "test_invalid_contact_identity_needs_no_keyword_provider_or_deck_lookup[True]",
+        "passed": true
+      },
+      {
+        "name": "test_invalid_contact_identity_needs_no_keyword_provider_or_deck_lookup[1.5]",
+        "passed": true
+      },
+      {
+        "name": "test_exact_integer_input_forms_keep_the_same_contact_bytes[1_0]",
+        "passed": true
+      },
+      {
+        "name": "test_exact_integer_input_forms_keep_the_same_contact_bytes[1.0_0]",
+        "passed": true
+      },
+      {
+        "name": "test_exact_integer_input_forms_keep_the_same_contact_bytes[1_1]",
+        "passed": true
+      },
+      {
+        "name": "test_exact_integer_input_forms_keep_the_same_contact_bytes[ 1 ]",
+        "passed": true
+      },
+      {
+        "name": "test_exact_integer_input_forms_keep_the_same_contact_bytes[value4]",
+        "passed": true
+      },
+      {
+        "name": "test_exact_integer_input_forms_keep_the_same_contact_bytes[1.0_1]",
+        "passed": true
+      },
+      {
+        "name": "test_exact_integer_input_forms_keep_the_same_contact_bytes[value6]",
+        "passed": true
+      },
+      {
+        "name": "test_exact_integer_input_forms_keep_the_same_contact_bytes[value7]",
+        "passed": true
+      },
+      {
+        "name": "test_all_five_existing_contact_definitions_keep_baseline_bytes_and_physical_inputs[0]",
+        "passed": true
+      },
+      {
+        "name": "test_all_five_existing_contact_definitions_keep_baseline_bytes_and_physical_inputs[1]",
+        "passed": true
+      },
+      {
+        "name": "test_all_five_existing_contact_definitions_keep_baseline_bytes_and_physical_inputs[2]",
+        "passed": true
+      },
+      {
+        "name": "test_all_five_existing_contact_definitions_keep_baseline_bytes_and_physical_inputs[3]",
+        "passed": true
+      },
+      {
+        "name": "test_all_five_existing_contact_definitions_keep_baseline_bytes_and_physical_inputs[4]",
+        "passed": true
+      },
+      {
+        "name": "test_explicit_zero_contact_id_keeps_its_existing_meaning",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_parts_requires_id_sequence_not_an_ambiguous_scalar_container[text]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_parts_requires_id_sequence_not_an_ambiguous_scalar_container[mapping]",
+        "passed": true
+      },
+      {
+        "name": "test_public_contact_parts_requires_id_sequence_not_an_ambiguous_scalar_container[bytes]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_identity_sequences_are_shape_checked_before_provider_lookup[12-nodes]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_identity_sequences_are_shape_checked_before_provider_lookup[12-exterior]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_identity_sequences_are_shape_checked_before_provider_lookup[12-select]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_identity_sequences_are_shape_checked_before_provider_lookup[value1-nodes]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_identity_sequences_are_shape_checked_before_provider_lookup[value1-exterior]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_identity_sequences_are_shape_checked_before_provider_lookup[value1-select]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_identity_sequences_are_shape_checked_before_provider_lookup[\\x01\\x02-nodes]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_identity_sequences_are_shape_checked_before_provider_lookup[\\x01\\x02-exterior]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_identity_sequences_are_shape_checked_before_provider_lookup[\\x01\\x02-select]",
+        "passed": true
+      },
+      {
+        "name": "test_existing_part_id_sequence_forms_remain_supported_without_caller_mutation[list]",
+        "passed": true
+      },
+      {
+        "name": "test_existing_part_id_sequence_forms_remain_supported_without_caller_mutation[tuple]",
+        "passed": true
+      },
+      {
+        "name": "test_existing_part_id_sequence_forms_remain_supported_without_caller_mutation[asarray]",
+        "passed": true
+      },
+      {
+        "name": "test_nested_mapping_filter_cannot_bypass_contact_part_identity_checks[select]",
+        "passed": true
+      },
+      {
+        "name": "test_nested_mapping_filter_cannot_bypass_contact_part_identity_checks[exterior]",
+        "passed": true
+      },
+      {
+        "name": "test_legal_nested_mapping_filter_is_preserved_without_mutating_the_caller[select]",
+        "passed": true
+      },
+      {
+        "name": "test_legal_nested_mapping_filter_is_preserved_without_mutating_the_caller[exterior]",
+        "passed": true
+      },
+      {
+        "name": "test_overlapping_solids_report_depth",
+        "passed": true
+      },
+      {
+        "name": "test_gap_reports_nothing",
+        "passed": true
+      },
+      {
+        "name": "test_shell_thickness_offset",
+        "passed": true
+      },
+      {
+        "name": "test_contact_blocks_are_checked",
+        "passed": true
+      },
+      {
+        "name": "test_single_surface_contact_part_set_is_a_reference",
+        "passed": true
+      },
+      {
+        "name": "test_every_material_recipe_reads_back[elastic]",
+        "passed": true
+      },
+      {
+        "name": "test_every_material_recipe_reads_back[johnson_cook]",
+        "passed": true
+      },
+      {
+        "name": "test_every_material_recipe_reads_back[piecewise_linear_plasticity]",
+        "passed": true
+      },
+      {
+        "name": "test_every_material_recipe_reads_back[plastic_kinematic]",
+        "passed": true
+      },
+      {
+        "name": "test_every_material_recipe_reads_back[rigid]",
+        "passed": true
+      },
+      {
+        "name": "test_every_material_recipe_reads_back[simplified_johnson_cook]",
+        "passed": true
+      },
+      {
+        "name": "test_missing_and_unknown_parameters_are_refused",
+        "passed": true
+      },
+      {
+        "name": "test_unset_fields_stay_blank_for_dependent_defaults",
+        "passed": true
+      },
+      {
+        "name": "test_nonzero_defaults_are_written_and_given_values_keep_their_digits",
+        "passed": true
+      },
+      {
+        "name": "test_eos_section_hourglass_and_parts",
+        "passed": true
+      },
+      {
+        "name": "test_every_contact_recipe[automatic_surface_to_surface-a0-b0-params0]",
+        "passed": true
+      },
+      {
+        "name": "test_every_contact_recipe[automatic_single_surface-all-None-params1]",
+        "passed": true
+      },
+      {
+        "name": "test_every_contact_recipe[eroding_surface_to_surface-a2-b2-params2]",
+        "passed": true
+      },
+      {
+        "name": "test_every_contact_recipe[tied_surface_to_surface_offset-a3-b3-params3]",
+        "passed": true
+      },
+      {
+        "name": "test_every_contact_recipe[automatic_nodes_to_surface-a4-b4-params4]",
+        "passed": true
+      },
+      {
+        "name": "test_contact_refusals",
+        "passed": true
+      },
+      {
+        "name": "test_edit_deck_property_and_contact_ops",
+        "passed": true
+      }
+    ],
+    "log_sha256": "77a7dfb33438285337b33899ba00782e68cc404bcb66a958e75be1b3ff12ca0d",
+    "junit_sha256": "23ee3b89103de846e165d37951e81705d89ad536d7000178809506276602f11e",
+    "producer_sha256": "4a906055b883aa07a7117dc38d80867c19a6c9badea4213797e17ac04a544c28"
+  },
+  "original_main_regression": {
+    "actual_product_revision": "51c5f6bb39c2ec19a521266c16f0ceb8690e1209",
+    "product_contacts_git_blob": "8acdfbc2be4c59954879f6f5be5ddf5b1447084d",
+    "product_contacts_sha256": "16e509fcf627a686958bf4b779607d55b3416125f997978b7fb48e1a76c0f996",
+    "new_test_sha256": "f442ebfbfd961195dff4200398c8ab1ced972d5c39712a1de94a5ed46c384201",
+    "new_tests_working_tree": true,
+    "failed": 28,
+    "passed": 14,
+    "seconds": 12.44,
+    "native_requested": false,
+    "log_sha256": "693b57df4d50c38fcde466e35ecf2c324032005104d57b7e6cf392899efdba13"
+  },
+  "ambiguous_collection_regression": {
+    "actual_main_product_revision": "51c5f6bb39c2ec19a521266c16f0ceb8690e1209",
+    "main_contacts_git_blob": "8acdfbc2be4c59954879f6f5be5ddf5b1447084d",
+    "old_code_git_lf_sha256": "90390feae89c884a99b6971f26bfe1a5e389278b1a5cea8e0e3d839b10499652",
+    "execution_mode": "exact old contacts Git-object definitions overlaid only in this disposable Python process; no disk edits",
+    "rest_of_product_revision": "51c5f6bb39c2ec19a521266c16f0ceb8690e1209",
+    "native_requested": false,
+    "failed": 3,
+    "deselected": 58,
+    "log_sha256": "e00e4e284fe77e9a42061b53da46ab0ca5d3c8b756e31b15f19832a190bbb900",
+    "clean_checkout_claimed": false
+  },
+  "invalidated_test_iteration": {
+    "log_sha256": "1aefd770f0452e27a144cec2636e48190950b2606457c89621da498131bd3bd9",
+    "failed": 18,
+    "passed": 24,
+    "cause": "Test asserted data.written, which is not exposed by JobResult. Correct acceptance uses failed/no artifacts/no emitted keyword files.",
+    "second_product_defect_claimed": false
+  },
+  "previous_capture": {
+    "actual_git_revision": "bcfaafe055321c13c95c453a37bb1f41a7c4cd65",
+    "passed": 83,
+    "capture_sha256": "858bf0d3c5e0ab7d9df34f5838c5e4d25428cbe5dc7e464f07c8c142cd5fe19d",
+    "superseded_for_current_contacts_source": true
+  },
+  "nested_mapping_review": {
+    "old_product_revision": "bcfaafe055321c13c95c453a37bb1f41a7c4cd65",
+    "old_new_tests_working_tree": true,
+    "old_failed": 2,
+    "old_deselected": 63,
+    "old_log_sha256": "90a07bafb68f3cd24c10678e4cefddeba55c18ded640503fcf0c641b3c39215d",
+    "final_product_revision": "85c707699b90a336969d102e767c6d7a9080277f",
+    "final_independent_controls_passed": 4,
+    "final_receipt_sha256": "2488e84004cc88491e5ade8801826f75427795608345f8a73770cd164a2c2920",
+    "kind": "internal Codex cross-review, not user-arranged external done review"
+  },
+  "optional_provider_absent": {
+    "passed": 11,
+    "skipped": 54,
+    "process_local_only": true,
+    "log_sha256": "9f6e509f0e6fb743b05e24bbf882b92e28383eb8af199fdbbad5153da724fe66"
+  },
+  "golden": {
+    "path": "tests/data/p06-contact-identity-golden.json",
+    "cases": 5,
+    "source_revision": "51c5f6bb39c2ec19a521266c16f0ceb8690e1209",
+    "role": "Valid-input keyword byte preservation, not native/physical correctness",
+    "sha256_actual": "dc55d0cb3204e8af41d0ef510434f1d2f7002d7035e4678c710cde0fbf3567f8"
+  },
+  "dependency_scope": {
+    "p12_before_171": {
+      "product_files": 31,
+      "capture_scope_files": 40,
+      "contacts_selected": false,
+      "producer_sha256": "cbae169cb62e86f893efe58822d17036ba43d6da1d5c119e31eaa37283f78e1f"
+    },
+    "p12_after_171": {
+      "product_files": 32,
+      "capture_scope_files": 41,
+      "contacts_selected": false,
+      "producer_sha256": "370f3d1ec8961f072e11257045a792c8d370047e11abbacff35461199826e878"
+    },
+    "p05_after_171": {
+      "product_files": 34,
+      "capture_scope_files": 41,
+      "contacts_selected": false,
+      "producer_sha256": "62f9f758b93489d40cf4d3779ddb4acc4e0b5ae8be34f113f945a8300f77a128"
+    },
+    "limits": "Declaration membership is not a whole-program proof. contacts is imported; the changed bodies are conditionally called for add_contact. The separate P03 tripwire covers only its JC story.",
+    "native_executed": false
+  },
+  "p03_tripwire": {
+    "passed": 1,
+    "deselected": 50,
+    "scope": "Only existing JC material story; not all nine recipes or whole-program proof",
+    "log_sha256": "965978ce1893ed83fb5c678a7245052ff01501407f9ed111b1d2350d7fe9282c"
+  },
+  "current_unrelated_source_gates": {
+    "passed": 3,
+    "scope": "Selected current P03/P05/P12 binding gates only; no native replay",
+    "log_sha256": "c257d7e6ba74ca5f09edb100874e35c6cadab8aa277fb012d00f43fcfebd9d47"
+  },
+  "unchanged": [
+    "geometry algorithm",
+    "check_model options/signature",
+    "physical parameters/defaults",
+    "five valid recipe keyword outputs",
+    "task acceptance/release/status"
+  ],
+  "limits": [
+    "Only identity normalization is pre-allocation; other target-shape, missing-reference and physical-field failures retain their existing stages",
+    "P06 native Contact Check and geometric tool exposure remain separate unfinished scope"
+  ],
+  "report": "report.md",
+  "report_sha256_lf": "4a6ce28b6d55325937530ab53da736ed560fd29167fe08e0ead6de64e82e32be"
+}
