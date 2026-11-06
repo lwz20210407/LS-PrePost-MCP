@@ -51,11 +51,15 @@ def estimate(deck: KeywordDeck, settings: dict) -> dict:
         site = {key: entry[key] for key in ("keyword", "file", "line") if key in entry}
         candidates.extend({"contact_index": index, **site, **row}
                           for row in entry.get("nodes", entry.get("partial_candidates", [])))
+    total = len(deck.blocks("*CONTACT_*"))
+    complete = not not_checked
     return {
         "method": "keyword_triangle_gap", "native_verified": False, "read_only": True,
         "units": "model_coordinates", "tolerance": settings["tolerance"],
         "coverage": {
-            "total_contacts": len(deck.blocks("*CONTACT_*")),
+            "complete": complete,
+            "status": "not_applicable" if total == 0 else "passed" if complete else "missing",
+            "total_contacts": total,
             "evaluated_contacts": len(evaluated),
             "not_checked_contacts": sum(entry.get("omitted_contacts", 1) for entry in not_checked),
             "candidate_nodes_reported": len(candidates),

@@ -93,7 +93,9 @@ class ModelTargetTools:
         Execution succeeds when the check ran; findings are reported as checks, not as a failure.
         Opt-in contact_geometry={} adds bounded keyword geometry candidates in model coordinates;
         options may lower hard limits or set tolerance. It requires include_mesh=True and does
-        not verify native Contact Check or add objective defects. None does no geometry work."""
+        not verify native Contact Check or add objective defects. Incomplete requested geometry
+        makes data.complete false, with its own optional coverage check; all_blocks_read retains
+        keyword coverage semantics. Zero contacts is not_applicable/complete. None does no geometry work."""
         from .domain.model.operations import check_deck
 
         source = self._input(model)
@@ -105,8 +107,12 @@ class ModelTargetTools:
             return _result("check_model", "failed", {"model": str(source)}, error=_error(error))
         kinds = sorted({e["kind"] for e in report["errors"]})
         checks = [CheckResult(name="objective_defects", status="failed" if report["errors"] else "passed", required=False),
-                  CheckResult(name="all_blocks_read", status="passed" if report["complete"] else "missing", required=False)]
+                  CheckResult(name="all_blocks_read", status="missing" if report["unchecked"] else "passed", required=False)]
         checks += [CheckResult(name=f"defect:{kind}", status="failed", required=False) for kind in kinds]
+        if "contact_geometry" in report:
+            checks.append(CheckResult(name="contact_geometry_coverage", required=False,
+                                      status=report["contact_geometry"]["coverage"]["status"],
+                                      source_path=("data", "contact_geometry", "coverage")))
         return _result("check_model", "succeeded", report, checks=checks, warnings=tuple(report["warnings"][:50]),
                        scope="keyword deck and its includes")
 

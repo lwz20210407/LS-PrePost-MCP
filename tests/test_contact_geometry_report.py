@@ -52,7 +52,7 @@ def test_candidates_only_add_warning_and_never_an_objective_defect(model):
     baseline = service.check_model(str(path))
     result = service.check_model(str(path), contact_geometry={})
     assert result["data"]["errors"] == baseline["data"]["errors"]
-    assert result["checks"] == baseline["checks"]
+    assert [row for row in result["checks"] if row["name"] != "contact_geometry_coverage"] == baseline["checks"]
     assert result["warnings"] and any("geometr" in item.lower() for item in result["warnings"])
 
 
@@ -222,3 +222,55 @@ def test_surface_budget_precedes_existing_face_expansion(model, monkeypatch, key
     path.write_text(text, encoding="ascii")
     monkeypatch.setattr(contact, "exterior_segments", lambda *a, **kw: pytest.fail("Face expansion must not run"))
     assert "max_master_triangles" in estimate(model, max_master_triangles=1)["not_checked"][0]["reason"]
+
+
+@pytest.mark.parametrize("mode", ["budget", "unsupported", "near_field"])
+def test_requested_geometry_coverage_is_incomplete_without_changing_keyword_checks(model, mode):
+    path, service = model
+    text = path.read_text()
+    if mode == "unsupported":
+        text = text.replace("*CONTACT_AUTOMATIC_NODES_TO_SURFACE", "*CONTACT_AUTOMATIC_SINGLE_SURFACE")
+    elif mode == "near_field":
+        text = text.replace("             0.8             0.8             0.8", "             100             100             100")
+    path.write_text(text, encoding="ascii")
+    baseline = service.check_model(str(path))
+    result = service.check_model(str(path), contact_geometry={"max_pairs": 1} if mode == "budget" else {})
+    assert result["status"] == "succeeded"
+    assert result["data"]["complete"] is False
+    geometry = result["data"]["contact_geometry"]
+    assert geometry["coverage"]["complete"] is False
+    assert geometry["coverage"]["status"] == "missing"
+    assert geometry["coverage"]["not_checked_contacts"] == 1
+    assert geometry["not_checked"][0]["checked"] is False
+    checks = {row["name"]: row for row in result["checks"]}
+    assert checks["contact_geometry_coverage"]["status"] == "missing"
+    assert checks["contact_geometry_coverage"]["required"] is False
+    assert checks["contact_geometry_coverage"]["source_path"] == ["data", "contact_geometry", "coverage"]
+    assert [row for row in result["checks"] if row["name"] != "contact_geometry_coverage"] == baseline["checks"]
+    assert result["data"]["unchecked"] == baseline["data"]["unchecked"]
+    assert result["data"]["errors"] == baseline["data"]["errors"]
+    if mode == "near_field":
+        assert geometry["candidates"][0]["node"] == 6
+
+
+@pytest.mark.parametrize("has_contact", [True, False])
+def test_complete_geometry_coverage_and_zero_contact_are_explicit(model, has_contact):
+    path, service = model
+    if not has_contact:
+        text = path.read_text()
+        path.write_text(text[:text.index("*CONTACT_")] + "*END\n", encoding="ascii")
+    baseline = service.check_model(str(path))
+    result = service.check_model(str(path), contact_geometry={})
+    assert result["status"] == "succeeded"
+    assert result["data"]["complete"] is True
+    geometry = result["data"]["contact_geometry"]
+    expected_status = "passed" if has_contact else "not_applicable"
+    assert geometry["coverage"]["complete"] is True
+    assert geometry["coverage"]["status"] == expected_status
+    assert geometry["coverage"]["total_contacts"] == int(has_contact)
+    assert not geometry["not_checked"]
+    checks = {row["name"]: row for row in result["checks"]}
+    assert checks["contact_geometry_coverage"]["status"] == expected_status
+    assert checks["contact_geometry_coverage"]["required"] is False
+    assert result["data"]["errors"] == baseline["data"]["errors"]
+    assert [row for row in result["checks"] if row["name"] != "contact_geometry_coverage"] == baseline["checks"]

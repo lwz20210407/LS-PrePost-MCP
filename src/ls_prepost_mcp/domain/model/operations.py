@@ -476,6 +476,8 @@ def check_deck(path: str, include_paths: tuple[str, ...] = (), thresholds: dict 
     the given ``thresholds``.
     Explicit ``contact_geometry={}`` adds bounded geometry candidates, never objective defects
     or native Contact Check evidence. None leaves the existing checks unchanged.
+    ``complete`` covers every explicitly requested check; ``unchecked`` only lists unread
+    keyword/reference/mesh blocks. A zero-contact geometry request is vacuously complete.
     """
     geometry_options = contact_report.options(contact_geometry, include_mesh)
     deck = KeywordDeck.load(path, include_paths)
@@ -528,15 +530,18 @@ def check_deck(path: str, include_paths: tuple[str, ...] = (), thresholds: dict 
                 warnings.append(f"{noise['nodes_affected']} nodes have coordinate round-off below "
                                 f"{noise['tolerance']:.3g} on axes {''.join(noise['noisy_axes'])}; "
                                 "clean_coordinates snaps them to one value per cluster")
+    geometry_complete = True
     if geometry_options is not None:
         result["contact_geometry"] = geometry_report = contact_report.estimate(deck, geometry_options)
+        geometry_complete = geometry_report["coverage"]["complete"]
         if geometry_report["coverage"]["candidate_nodes_found"]:
             warnings.append("Contact geometry estimate found candidate penetrations; native Contact Check is unverified")
         if geometry_report["not_checked"]:
             warnings.append("Contact geometry estimate has unevaluated contacts; see contact_geometry.not_checked")
     result["errors"] = errors
     result["unchecked"] = unchecked
-    result["complete"] = not unchecked  # ok=True only means no defect was found in what was read
+    result["complete"] = not unchecked and geometry_complete
+    # ok=True only means no objective defect was found in what was evaluated.
     result["ok"] = not errors
     return result
 
