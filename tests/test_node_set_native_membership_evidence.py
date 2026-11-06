@@ -3,25 +3,23 @@ import ast
 import copy
 import hashlib
 import json
+import re
 import subprocess
 from pathlib import Path
 
 import pytest
 
+from tools.contact_geometry_evidence import read_evidence
+from tools.verify_node_set_user_ids import PRODUCT_PATHS
+
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "docs/decisions/evidence/p04-typed-writes-refresh/evidence.json"
 BINARY = "ce76fdf75a2f14c0a3e94964809ddd178934d04381f7f31e1e1eb05592bd5414"
-REQUIRED_PRODUCTS = {
-    "src/ls_prepost_mcp/service.py", "src/ls_prepost_mcp/programs.py",
-    "src/ls_prepost_mcp/domain/model/deck.py", "src/ls_prepost_mcp/domain/model/fields.py",
-    "src/ls_prepost_mcp/domain/model/layouts.py", "src/ls_prepost_mcp/domain/model/node_sets.py",
-    "src/ls_prepost_mcp/domain/model/sets.py", "src/ls_prepost_mcp/domain/model/operations.py",
-    "src/ls_prepost_mcp/domain/model/matching.py", "src/ls_prepost_mcp/domain/model/_identity.py",
-}
+REQUIRED_PRODUCTS = set(PRODUCT_PATHS)
 
 
-def evidence():
-    return json.loads(EVIDENCE.read_text(encoding="utf8"))
+def evidence(*, current=False):
+    return read_evidence("P04", historical=not current)
 
 
 def git(*args):
@@ -61,37 +59,56 @@ def _configuration_scope(data):
     assert observation["required_input"] is False and observation["isolation_proven"] is False
 
 
-def test_current_membership_evidence_binds_consumer_producer_and_test_sources():
-    data = evidence()
+def _source_binding(data, *, current):
     assert data["task_status"] == "partial" and data["validity"] == "current_for_recorded_product_blobs"
     assert data["working_tree_dirty"] is False
     assert data["git_diff_sha256"] == hashlib.sha256(b"").hexdigest()
     products = data["product_source_identity"]
-    assert {item["path"] for item in products} == REQUIRED_PRODUCTS
+    if current:
+        assert len(products) == len(REQUIRED_PRODUCTS) == 13
+        assert {item["path"] for item in products} == REQUIRED_PRODUCTS
+        assert all(re.fullmatch(r"[0-9a-f]{64}", item["captured_file_sha256"]) for item in products)
     assert data["producer_source_identity"]["path"] == "tools/verify_node_set_user_ids.py"
     assert data["test_source_identity"]["path"] == "tests/test_node_set_native_identity.py"
     if git("rev-parse", "--is-shallow-repository").strip() == b"true":
         pytest.skip("Source-bound historical proof requires complete Git history")
     for item in [*products, data["producer_source_identity"], data["test_source_identity"]]:
         actual = git("rev-parse", data["actual_git_revision"] + ":" + item["path"]).decode().strip()
-        current = git("rev-parse", "HEAD:" + item["path"]).decode().strip()
-        assert actual == item["git_blob_id"] == current, "Native membership evidence is stale: " + item["path"]
+        assert actual == item["git_blob_id"], "Recorded membership source identity changed: " + item["path"]
+        if current:
+            assert actual == git("rev-parse", "HEAD:" + item["path"]).decode().strip(), "Native membership evidence is stale: " + item["path"]
         if "repository_lf_sha256" in item:
             source = git("show", data["actual_git_revision"] + ":" + item["path"])
             assert hashlib.sha256(source.replace(b"\r\n", b"\n")).hexdigest() == item["repository_lf_sha256"]
     producer = git("show", data["actual_git_revision"] + ":" + data["producer_source_identity"]["path"]).decode("utf8")
     constants = {}
     for node in ast.parse(producer).body:
-        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id in ("PROGRAM", "SOURCE") for t in node.targets):
+        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id in ("PROGRAM", "SOURCE", "PRODUCT_PATHS") for t in node.targets):
             constants[node.targets[0].id] = ast.literal_eval(node.value)
+    assert {item["path"] for item in products} == set(constants["PRODUCT_PATHS"])
+    assert len(constants["PRODUCT_PATHS"]) == (13 if current else 10)
     assert hashlib.sha256(constants["PROGRAM"].encode()).hexdigest() == data["native_run"]["script_sha256"]
     assert hashlib.sha256(constants["SOURCE"].encode("ascii")).hexdigest() == data["fixture"]["source_sha256"]
-    report = (EVIDENCE.parent / data["report"]).read_text(encoding="utf8")
+    from tools.contact_geometry_evidence import evidence_path
+
+    report = evidence_path("P04", historical=not current).with_name(data["report"]).read_text(encoding="utf8")
     assert hashlib.sha256(report.encode()).hexdigest() == data["report_sha256_lf"]
 
 
-def test_native_membership_is_finite_and_does_not_claim_add_definition_order():
+def test_current_membership_evidence_binds_consumer_producer_and_test_sources():
+    data = evidence(current=True)
+    _source_binding(data, current=True)
+    _finite_membership(data)
+
+
+def test_historical10_keeps_its_actual_sources_without_certifying_current13():
     data = evidence()
+    _source_binding(data, current=False)
+    with pytest.raises(AssertionError):
+        _source_binding(data, current=True)
+
+
+def _finite_membership(data):
     native = data["native_run"]
     assert native["native_executed"] is True and native["actual_native_processes"] == 1
     assert native["status"] == native["domain_proof_status"] == "passed" and native["engine_api_status"] == "succeeded"
@@ -120,6 +137,10 @@ def test_native_membership_is_finite_and_does_not_claim_add_definition_order():
     assert [sets[sid]["definition_order_equal"] for sid in (101, 202, 303)] == [True, True, False]
     assert native["saved_tree_path_reopen_or_native_export_claim"] is False
     _configuration_scope(data)
+
+
+def test_native_membership_is_finite_and_does_not_claim_add_definition_order():
+    _finite_membership(evidence())
 
 
 def test_static_provenance_does_not_publish_vendor_code_or_hide_old_refusal():

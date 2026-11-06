@@ -157,10 +157,25 @@ def test_missing_loads_identity_rejects_before_executable_io():
         verifier.verify_native({}, identity)
 
 
+@pytest.mark.parametrize("name", ["contact_report", "contact"])
+def test_missing_contact_check_helper_rejects_before_configuration_or_native_io(monkeypatch, name):
+    identity = verifier.execution_identity(verifier.ROOT)
+    identity["working_tree_dirty"] = False
+    del identity["source_files"][f"src/ls_prepost_mcp/domain/model/{name}.py"]
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("Required source rejection must precede configuration or native IO")
+
+    monkeypatch.setattr(verifier, "locate_config", forbidden)
+    with pytest.raises(ValueError, match="required capture source"):
+        verifier.verify_native({}, identity)
+
+
 def test_full_dependency_gate_explicitly_binds_identity_matching_and_loads():
-    for name in ("_identity", "matching", "loads", "schema", "cards", "lists", "tables"):
+    for name in ("_identity", "matching", "loads", "schema", "cards", "lists", "tables", "contact_report", "contact"):
         assert f"src/ls_prepost_mcp/domain/model/{name}.py" in verifier.PRODUCT_PATHS
     assert "tests/data/p05-boundary-roundtrip.json" in verifier.CAPTURE_SOURCE_PATHS
+    assert len(verifier.PRODUCT_PATHS) == 36 and len(verifier.CAPTURE_SOURCE_PATHS) == 43
 
 
 @pytest.mark.parametrize("fault", ["pid", "graphics", "returncode", "timed_out", "status", "required_check"])

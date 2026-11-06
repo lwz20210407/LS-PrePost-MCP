@@ -10,6 +10,7 @@ lists these assumptions. Nothing is changed.
 """
 from __future__ import annotations
 
+from contextlib import nullcontext
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -25,6 +26,60 @@ if TYPE_CHECKING:
 ASSUMPTIONS = ["shell contact thickness = section T1 (element thickness cards and SST/MST/SFST not applied)",
                "segment sets are one-sided with their written orientation and zero thickness",
                "penetrations deeper than about one master face size are not searched"]
+
+HARD_LIMITS = dict(max_contacts=100, max_slave_nodes=100_000, max_master_triangles=200_000,
+                   max_cells=1_000_000, max_pairs=1_000_000, max_report=50)
+SUPPORTED_CONTACTS = frozenset(("*CONTACT_AUTOMATIC_SURFACE_TO_SURFACE", "*CONTACT_AUTOMATIC_SINGLE_SURFACE",
+    "*CONTACT_ERODING_SURFACE_TO_SURFACE", "*CONTACT_TIED_SURFACE_TO_SURFACE_OFFSET", "*CONTACT_AUTOMATIC_NODES_TO_SURFACE"))
+
+
+class GeometryBudgetError(FieldError):
+    """An estimate was not admitted; it is not a zero-penetration result."""
+
+
+class GeometryBudget:
+    def __init__(self, limits):
+        self.limits = limits
+        self.used = dict.fromkeys(("max_slave_nodes", "max_master_triangles", "max_cells", "max_pairs"), 0)
+        self.reported = 0
+
+    def claim(self, key, amount):
+        amount = int(amount)
+        if amount < 0 or amount > self.limits[key] - self.used[key]:
+            raise GeometryBudgetError(f"{key} budget not admitted ({amount} requested)")
+        self.used[key] += amount
+
+    def bound(self, key, amount):
+        if amount > self.limits[key] - self.used[key]:
+            raise GeometryBudgetError(f"{key} conservative surface expansion budget not admitted")
+
+
+def _surface_admission(deck, spec, budget, slave=False):
+    """Bound existing builders before they expand element faces/list rows."""
+    if "segment_set" in spec:
+        matches = []
+        for block in deck.blocks("*SET_SEGMENT*"):
+            if deck.get(block, "sid").value == spec["segment_set"]:
+                matches.append(block)
+        if len(matches) > 1:
+            raise FieldError("Multiple/collected segment definitions are not evaluated by this estimate")
+        count = sum(len(deck.layout(block).rows) for block in matches)
+        estimate = count * (4 if slave else 2)
+    else:
+        if "part_set" in spec:
+            operands = sum(max(0, len(block.lines) - 2) * 8 for block in deck.blocks("*SET_PART*")
+                           if deck.get(block, "sid").value == spec["part_set"])
+            budget.bound("max_slave_nodes" if slave else "max_master_triangles", operands)
+        # geometry.elements materializes the whole block before Part filtering.
+        # This deliberately conservative upper bound does not invent coverage.
+        solids = shells = 0
+        for block in deck.iter_blocks():
+            if block.name == "*ELEMENT_SOLID" or block.name.startswith("*ELEMENT_SOLID_"):
+                solids += len(deck.layout(block).rows)
+            elif block.name == "*ELEMENT_SHELL" or block.name.startswith("*ELEMENT_SHELL_"):
+                shells += len(deck.layout(block).rows)
+        estimate = (6 * solids + shells) * (4 if slave else 2)
+    budget.bound("max_slave_nodes" if slave else "max_master_triangles", estimate)
 
 
 def _set_members(deck: KeywordDeck, prefix: str, sid: int) -> list[int]:
@@ -58,8 +113,10 @@ def _shell_thickness(deck: KeywordDeck, part: int) -> float:
     raise FieldError(f"*SECTION_SHELL {secid} of part {part} not found")
 
 
-def _surface(deck: KeywordDeck, spec: dict) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def _surface(deck: KeywordDeck, spec: dict, budget=None, *, slave=False) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """``(faces[m, 4], thickness[m], two_sided[m])``; triangles as ``a b c c``."""
+    if budget is not None:
+        _surface_admission(deck, spec, budget, slave)
     if "segment_set" in spec:
         sid = int(spec["segment_set"])
         for block in deck.blocks("*SET_SEGMENT*"):
@@ -85,27 +142,56 @@ def _surface(deck: KeywordDeck, spec: dict) -> tuple[np.ndarray, np.ndarray, np.
             np.concatenate([np.zeros(len(solid), dtype=bool), np.ones(len(shells), dtype=bool)]))
 
 
-def _slave(deck: KeywordDeck, spec: dict) -> tuple[np.ndarray, np.ndarray]:
+def _slave(deck: KeywordDeck, spec: dict, budget=None) -> tuple[np.ndarray, np.ndarray]:
     """Slave node IDs and their contact thickness."""
     if "node_set" in spec:
         from .node_sets import NodeSets, integer
 
         sid = integer(spec["node_set"], "Node set SID", positive=True)
-        ids = np.unique(np.asarray(NodeSets(deck, allow_collect_lists=True).resolve(sid), dtype=np.int64))
+        kwargs = {"max_work": budget.limits["max_slave_nodes"] - budget.used["max_slave_nodes"]} if budget else {}
+        index = NodeSets(deck, allow_collect_lists=True, **kwargs)
+        if budget is not None:
+            # The shared resolver builds each LIST operand before its work
+            # check. Bound that pre-existing allocation with a conservative
+            # eight-slots-per-data-line estimate, without another list parser.
+            estimate = sum(max(0, len(block.lines) - 2) * 8 for blocks in index.blocks.values() for block in blocks)
+            budget.bound("max_slave_nodes", estimate)
+        ids = np.unique(np.asarray(index.resolve(sid), dtype=np.int64))
         return ids, np.zeros(len(ids))
-    faces, thickness, _ = _surface(deck, spec)
+    faces, thickness, _ = _surface(deck, spec, budget, slave=True)
     ids = np.unique(faces)
     per_node = np.zeros(len(ids))
     np.maximum.at(per_node, np.searchsorted(ids, faces.ravel()), np.repeat(thickness, 4))
     return ids, per_node
 
 
-def _cells(points_min: np.ndarray, points_max: np.ndarray, size: float) -> tuple[np.ndarray, np.ndarray]:
+def _cells(points_min: np.ndarray, points_max: np.ndarray, size: float, budget=None) -> tuple[np.ndarray, np.ndarray]:
     """``(owner, cell keys)`` for every grid cell overlapped by each box."""
-    low = np.floor(points_min / size).astype(np.int64)
-    high = np.floor(points_max / size).astype(np.int64)
+    if budget is not None:
+        if not np.isfinite(size) or size <= 0:
+            raise GeometryBudgetError("grid size is not finite/positive")
+        with np.errstate(over="ignore", invalid="ignore", divide="ignore"):
+            lo, hi = np.floor(points_min / size), np.floor(points_max / size)
+        if not (np.isfinite(lo).all() and np.isfinite(hi).all()) or (np.abs(lo) >= 2**60).any() or (np.abs(hi) >= 2**60).any():
+            raise GeometryBudgetError("coordinate grid range is not admitted")
+        low, high = lo.astype(np.int64), hi.astype(np.int64)
+    else:
+        low = np.floor(points_min / size).astype(np.int64)
+        high = np.floor(points_max / size).astype(np.int64)
     span = high - low + 1
-    counts = span.prod(axis=1)
+    if budget is not None:
+        counts, total = [], 0
+        for row in span:
+            count = int(row[0]) * int(row[1]) * int(row[2])
+            if count < 1:
+                raise GeometryBudgetError("invalid cell span")
+            total += count
+            budget.bound("max_cells", total)
+            counts.append(count)
+        budget.claim("max_cells", total)
+        counts = np.asarray(counts, dtype=np.int64)
+    else:
+        counts = span.prod(axis=1)
     owner = np.repeat(np.arange(len(low)), counts)
     rank = np.arange(int(counts.sum())) - np.repeat(np.cumsum(counts) - counts, counts)
     sx, sy = span[owner, 0], span[owner, 1]
@@ -169,15 +255,37 @@ def _pseudonormals(tri: np.ndarray, tri_nodes: np.ndarray) -> tuple[np.ndarray, 
 
 
 def check_penetration(deck: KeywordDeck, slave: dict, master: dict, tolerance: float = 0.0,
-                      max_report: int = 200) -> dict:
+                      max_report: int = 200, *, budget=None) -> dict:
     """Initial penetrations of ``slave`` nodes into the ``master`` surface (read-only)."""
+    if budget is not None:
+        # Existing geometry helpers read the complete node table, including
+        # unrelated nodes. Admit that allocation before calling them as well.
+        node_rows = sum(len(deck.layout(block).rows) for block in deck.blocks("*NODE"))
+        if node_rows > budget.limits["max_slave_nodes"] + 4 * budget.limits["max_master_triangles"]:
+            raise GeometryBudgetError("whole-model node table exceeds conservative geometry allocation budget")
     node_ids, xyz = nodes(deck)
+    if budget is not None:
+        if not np.isfinite(xyz).all():
+            raise FieldError("Non-finite contact coordinates")
+        if (node_ids <= 0).any() or len(np.unique(node_ids)) != len(node_ids):
+            raise FieldError("Geometry estimate requires unique positive model node IDs")
     lookup = _index(node_ids)
-    faces, master_thickness, two_sided = _surface(deck, master)
-    slave_ids, slave_thickness = _slave(deck, slave)
+    faces, master_thickness, two_sided = _surface(deck, master, budget)
+    slave_ids, slave_thickness = _slave(deck, slave, budget)
     report = {"slave_nodes": int(len(slave_ids)), "master_faces": int(len(faces)), "assumptions": ASSUMPTIONS}
     if not len(faces) or not len(slave_ids):
+        if budget is not None:
+            raise FieldError("Empty master surface or slave selection was not evaluated")
         return {**report, "penetrating": 0, "max_depth": 0.0, "nodes": []}
+    if budget is not None:
+        budget.claim("max_slave_nodes", len(slave_ids))
+        budget.bound("max_master_triangles", 2 * len(faces))
+        if not (np.isfinite(master_thickness).all() and np.isfinite(slave_thickness).all()):
+            raise FieldError("Non-finite contact coordinates or thickness")
+        if (master_thickness < 0).any() or (slave_thickness < 0).any():
+            raise FieldError("Negative shell contact thickness")
+        if np.isin(slave_ids, faces).any():
+            raise FieldError("Shared-node/self contact is not evaluated by this geometry estimate")
     if (lookup[np.concatenate([faces.ravel(), slave_ids])] < 0).any():
         raise FieldError("Contact surfaces use undefined nodes")
     corners = xyz[lookup[faces]]  # [m, 4, 3]
@@ -185,14 +293,25 @@ def check_penetration(deck: KeywordDeck, slave: dict, master: dict, tolerance: f
     tri_nodes = np.concatenate([faces[:, [0, 1, 2]], faces[:, [0, 2, 3]]])
     tri_face = np.concatenate([np.arange(len(faces)), np.arange(len(faces))])
     real = np.linalg.norm(np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0]), axis=1) > 0
+    if budget is not None:
+        if not np.all(np.bincount(tri_face[real], minlength=len(faces))):
+            raise FieldError("Degenerate master faces are not evaluated")
+        budget.claim("max_master_triangles", int(real.sum()))
     tri, tri_nodes, tri_face = tri[real], tri_nodes[real], tri_face[real]
     face_normal, edge_normal, vertex_normal = _pseudonormals(tri, tri_nodes)
+    if budget is not None and not all(np.isfinite(value).all() for value in (face_normal, edge_normal, vertex_normal)):
+        raise FieldError("Non-finite contact pseudonormals")
     reach = float(0.5 * (slave_thickness.max() + master_thickness.max()) + tolerance)
     extent = np.ptp(tri, axis=1).max(axis=1)
     search = reach + float(max(np.percentile(extent, 95), 1e-12))  # nodes up to one face size away
     size = float(np.percentile(extent, 95)) + 2 * search
-    owner, face_keys = _cells(tri.min(axis=1) - search, tri.max(axis=1) + search, size)
+    owner, face_keys = _cells(tri.min(axis=1) - search, tri.max(axis=1) + search, size, budget)
     points = xyz[lookup[slave_ids]]
+    if budget is not None:
+        with np.errstate(over="ignore", invalid="ignore", divide="ignore"):
+            grid = np.floor(points / size)
+        if not np.isfinite(grid).all() or (np.abs(grid) >= 2**60).any():
+            raise GeometryBudgetError("slave coordinate grid range is not admitted")
     node_keys = np.floor(points / size).astype(np.int64)
     _, dense = np.unique(np.concatenate([face_keys, node_keys]), axis=0, return_inverse=True)
     dense = dense.ravel()
@@ -200,6 +319,8 @@ def check_penetration(deck: KeywordDeck, slave: dict, master: dict, tolerance: f
     order = np.argsort(face_cell, kind="stable")
     low = np.searchsorted(face_cell[order], node_cell, "left")
     count = np.searchsorted(face_cell[order], node_cell, "right") - low
+    if budget is not None:
+        budget.claim("max_pairs", sum(int(value) for value in count))
     node_index = np.repeat(np.arange(len(slave_ids)), count)
     rank = np.arange(int(count.sum())) - np.repeat(np.cumsum(count) - count, count)
     tri_index = owner[order[low[node_index] + rank]]
@@ -224,10 +345,16 @@ def check_penetration(deck: KeywordDeck, slave: dict, master: dict, tolerance: f
     offset = 0.5 * (slave_thickness[node_index] + master_thickness[face])
     distance = np.where(two_sided[face], gap, signed)
     depth = offset - distance
+    if budget is not None and not (np.isfinite(gap).all() and np.isfinite(side).all() and np.isfinite(depth).all()):
+        raise FieldError("Non-finite nearest-feature geometry was not evaluated")
     hit = depth > tolerance
     found = sorted(zip(depth[hit].tolist(), slave_ids[node_index[hit]].tolist(), face[hit].tolist()), reverse=True)
-    return {**report, "penetrating": len(found), "max_depth": found[0][0] if found else 0.0,
-            "nodes": [{"node": n, "depth": d, "master_face": faces[f].tolist()} for d, n, f in found[:max_report]]}
+    result = {**report, "penetrating": len(found), "max_depth": found[0][0] if found else 0.0,
+              "nodes": [{"node": n, "depth": d, "master_face": faces[f].tolist()} for d, n, f in found[:max_report]]}
+    if budget is not None:
+        result["coverage"] = dict(slave_nodes=len(slave_ids), nearest_feature_evaluated=len(pick),
+                                  unsearched_slave_nodes=len(slave_ids) - len(pick))
+    return result
 
 
 SURFACE_CODES = {0: "segment_set", 2: "part_set", 3: "parts", 4: "node_set", 6: "part_set"}
@@ -240,19 +367,33 @@ def _spec(code: int, ident: int, side: str) -> dict | None:
     return {kind: [ident] if kind == "parts" else ident}
 
 
-def contact_checks(deck: KeywordDeck, tolerance: float = 0.0, max_report: int = 50) -> list[dict]:
+def contact_checks(deck: KeywordDeck, tolerance: float = 0.0, max_report: int = 50, *, budget=None) -> list[dict]:
     """Penetration check of every *CONTACT block: SURFA (slave) into SURFB (master).
 
     Surface types 0 (segment set), 2/6 (part set), 3 (part) and 4 (node set, SURFA only) are
     checked; other types are listed as not checked with the reason.
     """
     results = []
-    for block in deck.blocks("*CONTACT_*"):
+    blocks = deck.blocks("*CONTACT_*")
+    for index, block in enumerate(blocks):
         entry = {"keyword": block.name, "file": str(block.file.path), "line": block.line_number}
+        if budget is not None:
+            if index >= budget.limits["max_contacts"]:
+                results.append({"checked": False, "reason": "max_contacts budget not admitted",
+                                "omitted_contacts": len(blocks) - index})
+                break
+            if block.name not in SUPPORTED_CONTACTS or "SINGLE_SURFACE" in block.name:
+                results.append({**entry, "checked": False, "reason": "unsupported or self/single-surface contact"})
+                continue
         try:
             present = {info.name for info in deck.layout(block).fields}
             names = ("surfa", "surfb", "surfatyp", "surfbtyp") if "surfa" in present else ("ssid", "msid", "sstyp", "mstyp")
-            a, b, a_type, b_type = (int(deck.get(block, name).value or 0) for name in names)
+            if budget is None:
+                a, b, a_type, b_type = (int(deck.get(block, name).value or 0) for name in names)
+            else:
+                from ._identity import exact_integer
+
+                a, b, a_type, b_type = (exact_integer(deck.get(block, name).value or 0, name) for name in names)
         except (FieldError, KeyError, Unsupported) as error:
             results.append({**entry, "checked": False, "reason": f"fields not readable: {error}"})
             continue
@@ -266,10 +407,20 @@ def contact_checks(deck: KeywordDeck, tolerance: float = 0.0, max_report: int = 
                             "supported by the keyword-level check"})
             continue
         try:
-            found = check_penetration(deck, slave, master, tolerance, max_report)
-        except (FieldError, KeyError, Unsupported) as error:
+            limit = max_report if budget is None else max(0, max_report - budget.reported)
+            context = np.errstate(over="raise", invalid="raise", divide="raise") if budget else nullcontext()
+            with context:
+                found = check_penetration(deck, slave, master, tolerance, limit, budget=budget)
+        except (FieldError, KeyError, Unsupported, FloatingPointError, OverflowError) as error:
             results.append({**entry, "checked": False, "reason": str(error)})
             continue
+        if budget is not None:
+            budget.reported += len(found["nodes"])
+            if found["coverage"]["unsearched_slave_nodes"]:
+                results.append({**entry, "checked": False, "reason": "near-field search coverage is incomplete",
+                                "coverage": found["coverage"], "partial_candidates": found["nodes"],
+                                "partial_penetrating": found["penetrating"]})
+                continue
         results.append({**entry, "checked": True, "slave": slave, "master": master, **found})
     return results
 

@@ -8,7 +8,8 @@
 
 | 跟踪任务 | 当前状态与交付 |
 |---|---|
-| P06 身份 | 独立补修plural contacts.py目标/CID与身份序列形状，main51c5真实28红、Git对象overlay3红及bcfa UserDict2红均保留；clean85c707合main1735后87主机回归、SDK缺席11/54skip、内部4控制过。五合法配方字节保持，无geometry/check_model/原生变化；恢复后身份/证据相关142项与七检查通过，待精确PR头正式CI，P06仍partial |
+| P06 身份 | #174精确d8d五项CI通过已合main06b8；旧51c5真实28红、overlay3红、bcfa UserDict2红与clean85的87项/内部4控制原值保留。几何接线后actual cleanb757原执行集87项与35关键来源真刷新，新context不重绑旧记录；P06仍partial/L1 |
+| P06 几何 / 依赖来源 | check_model只读contact_geometry opt-in已接，预算/覆盖缺口不充零，native_verified=false；actual cleanb757独立geometry host90/39来源、P03原60/显式24、身份87/35及offline wheel785079B/221成员/9旧refs与原Elastic pin通过，各host角色重叠不累计。P05两版6job、P12两版18job按当前43来源真刷新，typed/物理/原生Contact Check不升级；五份新context/报告独立于原40/41，待精确PR头正式CI |
 | Q01 / Q05 | #129 已退回 partial；#130 已修 Part 标题/PID 口径；#136 已修删除标记并补非零节点的 4.13/4.10 对照。广泛结果覆盖与独立审阅仍待补 |
 | I01 / P02 / P11 / I02 | #131–#134 已修访问点守卫、搜索路径另存、必需检查失败的总状态、真实另存树原生重开；保留首轮失败及旧证据 |
 | A10 / I05 | #137 已限制去重概念数；#139 已在精确头五项 CI 通过后自审合入查询端拆词和证据复跑。真实 API 来源与检索质量仍有缺口 |
@@ -21,7 +22,7 @@
 | Q05 | #156时程及#161限定4.13/default的beam轴力native_check均五项CI全绿合入；正式两样本26条力/时间差0、身份守卫通过；版本策略归统一能力表，仍partial |
 | Q06 | #160与#163已在各精确头五CI全绿后合入，#163进入49cd217；NODOUT九平动列6公共231147值、raw/unknown life与来源门禁已有，未原生仍L1；eroded_he有限审计不足以命名映射，保留gap |
 | I01 结果族 | #162已在6212430精确头五项CI全绿后合入d946f1e；raw路径分类及P11来源过期已修，a20两版P11/beam/标题真重跑，原门禁保留；仍partial |
-| P04 | #168精确c9/正式41983364875五SUCCESS已合main15921；四owned节点/三sets有限成员成立、ADD order false。typed writes后1289另真复验413单1，旧01a/950/d139保留，private input与global passive分开，仍partial |
+| P04 | #168已合；#175 CI指出旧operations来源过期后actual clean342b显式13来源、单4.13一个headless job真复验，四owned节点/三sets membership成立、ADD order false；PROGRAM/SOURCE/动作未改。新context独立选择，旧1289/01a/950/d139及b757五context不改；controller/child OS创建未观测、host时间不冒充OS时间，private input与global passive分开，仍partial |
 | P12 | #165已合；#171 actual3da/9b3显式41含loads的两版六case/18job真复验后切active；1289原40后验补档及旧be0等对象原值保留；strict R1/格式分列，typed Joint识别与运动学仍未证，partial |
 | P05 | #171 无损身份/原子性/Include上下文恢复已修；actual3da/9b3九类单文件在两版各3job通过，strict59、37文档写出规则与6受限观察分列，剩差0；原8e failed3与analysis-only保留。P05六+P12十八共24实际job私有配置输入/源/目录守卫及内部逐账复核通过，typed/物理/R11未证，partial；待精确五CI |
 | P02 / I07 / P11 | #166已合；#169 named setter修复源码eeff，actual1289/611d unified65已完成：P11双版46+P12双版18+P04单1，批准只读private input保持、globals仅passive，旧身份不改绑。标题eeff15/3同八源不重跑；已按精确5d/正式42022286623五SUCCESS合main9301，未升级done |

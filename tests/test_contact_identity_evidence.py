@@ -9,6 +9,13 @@ from pathlib import Path
 
 import pytest
 
+from tools.contact_geometry_evidence import (
+    P06_IDENTITY_PRODUCT_PATHS,
+    P06_IDENTITY_TEST_PATHS,
+    read_evidence,
+    require_host_products,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 FOLDER = ROOT / "docs/decisions/evidence/p06-contact-identities"
 PATH = FOLDER / "evidence.json"
@@ -31,14 +38,19 @@ def _current_blobs(data):
     return dict(zip(paths, _git("hash-object", "--", *paths).splitlines(), strict=True))
 
 
-def _assert_bindings(data, current):
+def _assert_bindings(data, current=None):
     recorded = _recorded_tree(data["actual_git_revision"])
-    assert len(data["product_source_identity"]) == 34 and len(data["test_source_identity"]) == 4
-    assert "src/ls_prepost_mcp/domain/model/contacts.py" in current
+    if current is None:
+        assert len(data["product_source_identity"]) == 34 and len(data["test_source_identity"]) == 4
+    else:
+        require_host_products(data, "P06_identity")
+        assert {item["path"] for item in data["test_source_identity"]} == set(P06_IDENTITY_TEST_PATHS)
+        assert "src/ls_prepost_mcp/domain/model/contacts.py" in current
     for key in ("product_source_identity", "test_source_identity"):
         for item in data[key]:
             assert recorded[item["path"]] == item["git_blob_id"]
-            assert current[item["path"]] == item["git_blob_id"], "P06 contact identity evidence source drift: " + item["path"]
+            if current is not None:
+                assert current[item["path"]] == item["git_blob_id"], "P06 contact identity evidence source drift: " + item["path"]
             assert re.fullmatch(r"[0-9a-f]{64}", item["sha256_actual"])
 
 
@@ -55,7 +67,9 @@ def _strings(value):
 
 
 def test_contact_identity_evidence_binds_current_sources_and_historical_test_objects():
-    data = json.loads(PATH.read_text(encoding="utf8"))
+    data = read_evidence("P06_identity")
+    assert data["status"] == "partial" and data["verification_level"] == "L1" and data["native_executed"] is False
+    assert data["working_tree_dirty"] is False and data["source_unchanged"] is True
     _assert_bindings(data, _current_blobs(data))
     try:
         provider = importlib.metadata.version(data["provider_name"])
@@ -67,17 +81,25 @@ def test_contact_identity_evidence_binds_current_sources_and_historical_test_obj
 
 @pytest.mark.parametrize("path", ["src/ls_prepost_mcp/domain/model/contacts.py",
                                   "src/ls_prepost_mcp/domain/model/_identity.py",
+                                  "src/ls_prepost_mcp/domain/model/contact_report.py",
                                   "tests/data/p06-contact-identity-golden.json"])
-def test_contact_identity_evidence_rejects_changed_product_or_golden(path):
-    data = json.loads(PATH.read_text(encoding="utf8"))
-    current = _current_blobs(data)
+def test_contact_identity_evidence_rejects_changed_product_or_golden(monkeypatch, path):
+    # A policy-only unit fixture; never a replacement for an actual host capture.
+    tests = P06_IDENTITY_TEST_PATHS
+    data = dict(actual_git_revision="f" * 40, product_source_identity=[
+        dict(path=item, git_blob_id="b" * 40, sha256_actual="c" * 64) for item in P06_IDENTITY_PRODUCT_PATHS],
+        test_source_identity=[dict(path=item, git_blob_id="b" * 40, sha256_actual="c" * 64) for item in tests])
+    current = {item: "b" * 40 for item in (*P06_IDENTITY_PRODUCT_PATHS, *tests)}
+    recorded = dict(current)
+    monkeypatch.setattr(__import__(__name__, fromlist=["_recorded_tree"]), "_recorded_tree", lambda revision: recorded)
     current[path] = "0" * 40
     with pytest.raises(AssertionError, match="source drift"):
         _assert_bindings(data, current)
 
 
 def test_contact_identity_evidence_does_not_upgrade_scope_or_hide_iterations():
-    data = json.loads(PATH.read_text(encoding="utf8"))
+    data = read_evidence("P06_identity", historical=True)
+    _assert_bindings(data)
     assert data["status"] == "partial" and data["verification_level"] == "L1" and data["native_executed"] is False
     assert data["working_tree_dirty"] is False and data["source_unchanged"] is True
     assert data["actual_git_revision"] == "85c707699b90a336969d102e767c6d7a9080277f"
