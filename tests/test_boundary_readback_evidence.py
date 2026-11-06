@@ -10,6 +10,7 @@ import pytest
 
 from tests import test_joint_readback_evidence as joint_gate
 from tools import verify_p05_boundary_roundtrip as verifier
+from tools.contact_geometry_evidence import read_evidence
 
 ROOT = Path(__file__).resolve().parents[1]
 FOLDER = ROOT / "docs/decisions/evidence/p05-boundary-readback"
@@ -28,16 +29,28 @@ def _blob(revision, path):
     return _tree(revision)[path]
 
 
-def _active(data):
-    assert data["status"] == "partial" and data["verification_level"] == "L2"
-    checkpoint = data["source_checkpoints"][data["active_source_checkpoint"]]
+def _source_identity(checkpoint, *, current=True):
     sources = checkpoint["capture_source_identity"]
-    assert checkpoint["id"] == data["active_source_checkpoint"] and checkpoint["working_tree_dirty"] is False
-    assert set(sources) == set(verifier.CAPTURE_SOURCE_PATHS) and len(sources) == 41
+    declared = set(joint_gate._declared_capture_paths(checkpoint["actual_git_revision"], "tools/verify_p05_boundary_roundtrip.py"))
+    assert set(sources) == declared
+    if current:
+        assert declared == set(verifier.CAPTURE_SOURCE_PATHS) and len(declared) == 43
+        assert "post_capture_dependency_identity" not in checkpoint
+    else:
+        assert len(declared) == 41
     for path, item in sources.items():
         assert re.fullmatch(r"[0-9a-f]{64}", item["captured_file_sha256"])
         assert _blob(checkpoint["actual_git_revision"], path) == item["git_blob_id"]
-        assert _blob("HEAD", path) == item["git_blob_id"], path
+        if current:
+            assert _blob("HEAD", path) == item["git_blob_id"], path
+    return sources
+
+
+def _active(data, *, current=True):
+    assert data["status"] == "partial" and data["verification_level"] == "L2"
+    checkpoint = data["source_checkpoints"][data["active_source_checkpoint"]]
+    assert checkpoint["id"] == data["active_source_checkpoint"] and checkpoint["working_tree_dirty"] is False
+    sources = _source_identity(checkpoint, current=current)
     selected = [row for row in data["native_captures"] if row["id"] in data["active_run_ids"]]
     assert len(selected) == len(set(data["active_run_ids"])) == 2
     assert {row["profile"]["version"] for row in selected} == {"4.13", "4.10"}
@@ -73,18 +86,16 @@ def _active(data):
 
 
 def test_actual_active_boundary_evidence_matches_all_current_portable_source_blobs():
-    _active(json.loads(EVIDENCE.read_text(encoding="utf8")))
+    _active(read_evidence("P05"))
 
 
-@pytest.mark.parametrize("path", ["src/ls_prepost_mcp/domain/model/loads.py", "src/ls_prepost_mcp/domain/model/matching.py",
-                                  "src/ls_prepost_mcp/domain/model/fields.py", "src/ls_prepost_mcp/engine/environment.py",
-                                  "tools/verify_p05_boundary_roundtrip.py", "tests/data/p05-boundary-roundtrip.json"])
-def test_boundary_active_source_drift_is_rejected(monkeypatch, path):
-    original = _blob
+@pytest.mark.parametrize("path", verifier.CAPTURE_SOURCE_PATHS)
+def test_boundary_current43_source_drift_is_rejected(current43_checkpoint, monkeypatch, path):
+    checkpoint, blobs = current43_checkpoint
     monkeypatch.setattr(__import__(__name__, fromlist=["_blob"]), "_blob",
-                        lambda revision, item: "0" * 40 if revision == "HEAD" and item == path else original(revision, item))
+                        lambda revision, item: "0" * 40 if revision == "HEAD" and item == path else blobs[item])
     with pytest.raises(AssertionError):
-        _active(json.loads(EVIDENCE.read_text(encoding="utf8")))
+        _source_identity(checkpoint)
 
 
 @pytest.mark.parametrize("fault", ["private_bytes", "process_source", "passive_as_input", "semantic", "observed_ITS", "wall_id"])
@@ -104,7 +115,7 @@ def test_boundary_evidence_cannot_hide_input_or_definition_changes(fault):
     else:
         row["native_definition_projection"]["boundaries"]["*RIGIDWALL_PLANAR_ID"]["id"] = 2
     with pytest.raises(AssertionError):
-        _active(data)
+        _active(data, current=False)
 
 
 def test_failed_first_native_attempt_and_analysis_are_not_promoted_to_success():
@@ -126,23 +137,23 @@ def test_report_hash_and_compact_public_metadata_have_no_private_paths():
     assert data["internal_readonly_audit"]["independent_external_review"] is False
 
 
-def test_actual_joint_active_selection_uses_explicit41_without_legacy_helper_fallback():
+def test_historical_joint_selection_keeps_its_actual_explicit41_without_backfill():
     data = json.loads(P12.read_text(encoding="utf8"))
     checkpoint = data["source_checkpoints"][data["active_source_checkpoint"]]
     assert checkpoint["actual_git_revision"] == "3da18f1f924ac499aa66dc49675d25280a855f54"
     assert len(checkpoint["capture_source_identity"]) == 41 and "post_capture_dependency_identity" not in checkpoint
     assert "src/ls_prepost_mcp/domain/model/loads.py" in checkpoint["capture_source_identity"]
-    assert len(joint_gate._active(data)) == 6
+    assert len(joint_gate._active(data, current=False)) == 6
 
 
 @pytest.mark.parametrize("path", ["src/ls_prepost_mcp/domain/model/loads.py", "tools/verify_p12_joint_roundtrip.py",
                                   "tests/data/p12-roundtrip-fixtures.json", "src/ls_prepost_mcp/domain/model/matching.py"])
-def test_actual_joint_active41_rejects_current_source_drift(monkeypatch, path):
+def test_historical_joint41_rejects_changed_recorded_source(monkeypatch, path):
     original = joint_gate._blob
     monkeypatch.setattr(joint_gate, "_blob", lambda revision, item: "0" * 40
-                        if revision == "HEAD" and item == path else original(revision, item))
+                        if revision == "3da18f1f924ac499aa66dc49675d25280a855f54" and item == path else original(revision, item))
     with pytest.raises(AssertionError):
-        joint_gate._active(json.loads(P12.read_text(encoding="utf8")))
+        joint_gate._active(json.loads(P12.read_text(encoding="utf8")), current=False)
 
 
 def test_joint_old_capture_objects_and_checkpoints_remain_identical_to_pre_curation_git():
@@ -155,3 +166,36 @@ def test_joint_old_capture_objects_and_checkpoints_remain_identical_to_pre_curat
     for key, value in old["source_checkpoints"].items():
         assert current["source_checkpoints"][key] == value
     assert len(current["native_captures"]) == len(old["native_captures"]) + 6
+
+
+@pytest.fixture
+def current43_checkpoint(monkeypatch):
+    """Source-policy unit fixture only; never published as an actual capture."""
+    data = read_evidence("P05", historical=True)
+    checkpoint = data["source_checkpoints"][data["active_source_checkpoint"]]
+    checkpoint["actual_git_revision"] = "f" * 40
+    for name in ("contact_report", "contact"):
+        checkpoint["capture_source_identity"][f"src/ls_prepost_mcp/domain/model/{name}.py"] = {
+            "git_blob_id": "b" * 40, "captured_file_sha256": "c" * 64}
+    blobs = {path: item["git_blob_id"] for path, item in checkpoint["capture_source_identity"].items()}
+    monkeypatch.setattr(__import__(__name__, fromlist=["_blob"]), "_blob", lambda revision, path: blobs[path])
+    monkeypatch.setattr(joint_gate, "_declared_capture_paths", lambda *args: verifier.CAPTURE_SOURCE_PATHS)
+    return checkpoint, blobs
+
+
+@pytest.mark.parametrize("name", ["contact_report", "contact"])
+def test_boundary_current43_cannot_omit_either_contact_helper(current43_checkpoint, name):
+    checkpoint, _ = current43_checkpoint
+    assert len(_source_identity(checkpoint)) == 43
+    path = f"src/ls_prepost_mcp/domain/model/{name}.py"
+    checkpoint["post_capture_dependency_identity"] = {path: checkpoint["capture_source_identity"].pop(path)}
+    with pytest.raises(AssertionError):
+        _source_identity(checkpoint)
+
+
+def test_historical_boundary41_validates_but_cannot_substitute_for_current43():
+    data = read_evidence("P05", historical=True)
+    assert len(_active(data, current=False)) == 2
+    checkpoint = data["source_checkpoints"][data["active_source_checkpoint"]]
+    with pytest.raises(AssertionError):
+        _source_identity(checkpoint)

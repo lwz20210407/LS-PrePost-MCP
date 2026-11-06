@@ -1,4 +1,4 @@
-"""Only selected immutable native runs must match the current portable source blobs."""
+"""Current43 is strict; historical40/41 bind their actual recorded producer and Git objects."""
 
 import ast
 import copy
@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+from tools.contact_geometry_evidence import read_evidence
 from tools.verify_p12_joint_roundtrip import CAPTURE_SOURCE_PATHS
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,7 +19,6 @@ LOADS = "src/ls_prepost_mcp/domain/model/loads.py"
 PRODUCER = "tools/verify_p12_joint_roundtrip.py"
 LEGACY_REVISION = "1289eb4edadb77b71d3ee90928d3fec0716e8465"
 LEGACY_CHECKPOINT = "typed-writes-1289-private-source40"
-LEGACY_INSTRUMENTATION = {PRODUCER, "tests/test_joint_source_identity.py"}
 
 
 @lru_cache(maxsize=None)
@@ -39,9 +39,9 @@ def _dependency_blob(revision, path):
 
 
 @lru_cache(maxsize=None)
-def _declared_capture_paths(revision):
+def _declared_capture_paths(revision, producer=PRODUCER):
     """Read only the recorded producer's two literal declarations, never execute it."""
-    source = subprocess.check_output(["git", "show", revision + ":" + PRODUCER], cwd=ROOT, text=True, encoding="utf8", timeout=10)
+    source = subprocess.check_output(["git", "show", revision + ":" + producer], cwd=ROOT, text=True, encoding="utf8", timeout=10)
     assignments = {target.id: node.value for node in ast.parse(source).body if isinstance(node, ast.Assign)
                    for target in node.targets if isinstance(target, ast.Name)}
     product = assignments["PRODUCT_PATHS"]
@@ -100,32 +100,34 @@ def _configuration(run):
             assert after["bytes_equal_before"] and all(after[k] == before[k] for k in ("sha256", "size", "mtime_ns"))
 
 
-def _source_identity(checkpoint):
+def _source_identity(checkpoint, *, current=True):
     sources = checkpoint["capture_source_identity"]
     declared = set(_declared_capture_paths(checkpoint["actual_git_revision"]))
-    legacy = LOADS not in declared
-    if legacy:
+    legacy = len(declared) == 40
+    if current:
+        assert declared == set(CAPTURE_SOURCE_PATHS) and len(declared) == 43
+        assert "post_capture_dependency_identity" not in checkpoint
+    elif legacy:
         assert checkpoint["actual_git_revision"] == LEGACY_REVISION and checkpoint["id"] == LEGACY_CHECKPOINT
-        assert declared == set(CAPTURE_SOURCE_PATHS) - {LOADS} and len(declared) == 40
+        assert LOADS not in declared
     else:
-        assert declared == set(CAPTURE_SOURCE_PATHS) and len(declared) == 41
+        assert len(declared) == 41 and LOADS in declared
     assert set(sources) == declared
     assert "src/ls_prepost_mcp/domain/model/matching.py" in sources
     assert "src/ls_prepost_mcp/domain/model/_identity.py" in sources
     for path, identity in sources.items():
         assert re.fullmatch(r"[0-9a-f]{64}", identity["captured_file_sha256"])
         assert _blob(checkpoint["actual_git_revision"], path) == identity["git_blob_id"]
-        if not (legacy and path in LEGACY_INSTRUMENTATION):
+        if current:
             assert _blob("HEAD", path) == identity["git_blob_id"], path
-    if not legacy:
+    if current or not legacy:
         return sources
-    # The two legacy instrumentation files bind their actual recorded bytes, not current instrumentation.
+    # This original post-capture archive is historical only and never satisfies current43.
     dependency = checkpoint["post_capture_dependency_identity"][LOADS]
     assert LOADS not in sources and len(sources) == 40
     assert dependency["actual_git_revision"] == checkpoint["actual_git_revision"]
     assert dependency["archival_kind"] == "post_capture_dependency_from_actual_full_snapshot_not_original_explicit40"
     assert _dependency_blob(checkpoint["actual_git_revision"], LOADS) == dependency["git_blob_id"]
-    assert _dependency_blob("HEAD", LOADS) == dependency["git_blob_id"], LOADS
     assert {row["version"] for row in dependency["contexts"]} == {"4.13", "4.10"}
     for context in dependency["contexts"]:
         assert context["full_source_snapshot_sha256"] == checkpoint["source_snapshot_sha256"]
@@ -134,10 +136,10 @@ def _source_identity(checkpoint):
     return sources
 
 
-def _active(data):
+def _active(data, *, current=True):
     checkpoint = data["source_checkpoints"][data["active_source_checkpoint"]]
     assert checkpoint["id"] == data["active_source_checkpoint"]
-    sources = _source_identity(checkpoint)
+    sources = _source_identity(checkpoint, current=current)
     identifiers = data["active_run_ids"]
     assert len(identifiers) == len(set(identifiers)) == 6
     runs = {run["id"]: run for run in data["native_captures"]}
@@ -167,7 +169,7 @@ def _active(data):
 
 
 def test_selected_joint_captures_bind_current_products_and_preserve_profile_facts():
-    data = json.loads(EVIDENCE.read_text(encoding="utf8"))
+    data = read_evidence("P12")
     runs = _active(data)
     for run in runs:
         if run["profile"]["version"] == "4.10":
@@ -183,11 +185,11 @@ def test_inactive_history_keeps_its_original_identity_without_matching_current_s
     old = next(run for run in data["native_captures"] if run["id"] not in data["active_run_ids"])
     revision = old["actual_git_revision"]
     old["source_identity"] = {"intentionally_not_current": True}  # inactive objects do not drive the gate
-    _active(data)
+    _active(data, current=False)
     assert old["actual_git_revision"] == revision
 
 
-def test_changed_active_matching_blob_is_rejected_even_if_every_run_repeats_it():
+def test_changed_historical_matching_blob_is_rejected_even_if_every_run_repeats_it():
     data = json.loads(EVIDENCE.read_text(encoding="utf8"))
     path = "src/ls_prepost_mcp/domain/model/matching.py"
     data["source_checkpoints"][data["active_source_checkpoint"]]["capture_source_identity"][path]["git_blob_id"] = "0" * 40
@@ -195,14 +197,14 @@ def test_changed_active_matching_blob_is_rejected_even_if_every_run_repeats_it()
         if run["id"] in data["active_run_ids"]:
             run["capture_source_identity"][path]["git_blob_id"] = "0" * 40
     with pytest.raises(AssertionError):
-        _active(data)
+        _active(data, current=False)
 
 
-def test_active_source_gate_uses_git_objects_not_platform_worktree_hashes(monkeypatch):
+def test_historical_source_gate_uses_git_objects_not_platform_worktree_hashes(monkeypatch):
     data = copy.deepcopy(json.loads(EVIDENCE.read_text(encoding="utf8")))
     # Raw Windows capture hashes remain evidence; CI must not rehash LF checkout bytes as if they were that capture.
     monkeypatch.setattr(Path, "read_bytes", lambda self: pytest.fail("Portable source gate must use Git blobs"))
-    _active(data)
+    _active(data, current=False)
 
 
 def test_private_inputs_stable_with_changed_passive_globals_remain_valid():
@@ -213,7 +215,7 @@ def test_private_inputs_stable_with_changed_passive_globals_remain_valid():
             observation = run["global_environment_observation"]
             observation["after"] = copy.deepcopy(observation["before"])
             observation["after"]["4.10"]["sha256"] = "0" * 64
-    _active(data)
+    _active(data, current=False)
 
 
 def test_changed_private_input_is_refused_even_when_passive_globals_are_stable():
@@ -223,7 +225,7 @@ def test_changed_private_input_is_refused_even_when_passive_globals_are_stable()
     observation["after"] = copy.deepcopy(observation["before"])
     run["private_configuration_input_guards"]["inputs"]["4.13"]["after"]["sha256"] = "0" * 64
     with pytest.raises(AssertionError):
-        _active(data)
+        _active(data, current=False)
 
 
 def test_legacy_live_context_still_rejects_changed_global_configuration_inputs():
@@ -235,16 +237,12 @@ def test_legacy_live_context_still_rejects_changed_global_configuration_inputs()
         _configuration(run)
 
 
-def test_changed_current_loads_dependency_rejects_an_otherwise_complete_capture(monkeypatch):
-    data = json.loads(EVIDENCE.read_text(encoding="utf8"))
-    original, current = _dependency_blob, _blob
-    module = __import__(__name__, fromlist=["_dependency_blob", "_blob"])
-    monkeypatch.setattr(module, "_dependency_blob",
-                        lambda revision, item: "0" * 40 if revision == "HEAD" and item == LOADS else original(revision, item))
-    monkeypatch.setattr(module, "_blob",
-                        lambda revision, item: "0" * 40 if revision == "HEAD" and item == LOADS else current(revision, item))
+def test_changed_current_loads_dependency_rejects_an_otherwise_complete_capture(current43_checkpoint, monkeypatch):
+    checkpoint, blobs = current43_checkpoint
+    monkeypatch.setattr(__import__(__name__, fromlist=["_blob"]), "_blob",
+                        lambda revision, item: "0" * 40 if revision == "HEAD" and item == LOADS else blobs[item])
     with pytest.raises(AssertionError):
-        _active(data)
+        _source_identity(checkpoint)
 
 
 def test_legacy40_uses_its_actual_literal_producer_declaration_and_required_archive():
@@ -255,7 +253,7 @@ def test_legacy40_uses_its_actual_literal_producer_declaration_and_required_arch
     assert set(paths) == set(checkpoint["capture_source_identity"])
     del checkpoint["post_capture_dependency_identity"][LOADS]
     with pytest.raises(KeyError):
-        _source_identity(checkpoint)
+        _source_identity(checkpoint, current=False)
 
 
 def test_recorded_capture_declaration_is_only_parsed_and_not_executed(monkeypatch):
@@ -266,14 +264,14 @@ def test_recorded_capture_declaration_is_only_parsed_and_not_executed(monkeypatc
 
 
 @pytest.mark.parametrize("path", ["src/ls_prepost_mcp/domain/model/joints.py", "tests/data/p12-roundtrip-fixtures.json"])
-def test_legacy40_transition_does_not_exempt_other_runtime_or_auxiliary_sources(monkeypatch, path):
+def test_historical40_still_binds_its_recorded_runtime_and_auxiliary_sources(monkeypatch, path):
     data = json.loads(EVIDENCE.read_text(encoding="utf8"))
     checkpoint = data["source_checkpoints"][LEGACY_CHECKPOINT]
     original = _blob
     monkeypatch.setattr(__import__(__name__, fromlist=["_blob"]), "_blob",
-                        lambda revision, item: "0" * 40 if revision == "HEAD" and item == path else original(revision, item))
+                        lambda revision, item: "0" * 40 if revision == LEGACY_REVISION and item == path else original(revision, item))
     with pytest.raises(AssertionError):
-        _source_identity(checkpoint)
+        _source_identity(checkpoint, current=False)
 
 
 @pytest.mark.parametrize("fault", ["revision", "checkpoint", "producer_blob", "source_test_blob"])
@@ -288,18 +286,21 @@ def test_legacy40_transition_cannot_accept_another_capture_or_changed_recorded_i
         path = PRODUCER if fault == "producer_blob" else "tests/test_joint_source_identity.py"
         checkpoint["capture_source_identity"][path]["git_blob_id"] = "0" * 40
     with pytest.raises(AssertionError):
-        _source_identity(checkpoint)
+        _source_identity(checkpoint, current=False)
 
 
 @pytest.fixture
-def future41_checkpoint(monkeypatch):
+def current43_checkpoint(monkeypatch):
     """Synthetic source-policy fixture, not a native run or published capture."""
     data = json.loads(EVIDENCE.read_text(encoding="utf8"))
     checkpoint = copy.deepcopy(data["source_checkpoints"][LEGACY_CHECKPOINT])
     dependency = checkpoint.pop("post_capture_dependency_identity")[LOADS]
-    checkpoint["actual_git_revision"], checkpoint["id"] = "f" * 40, "synthetic-future41"
+    checkpoint["actual_git_revision"], checkpoint["id"] = "f" * 40, "synthetic-current43-source-policy-only"
     checkpoint["capture_source_identity"][LOADS] = {
         "git_blob_id": dependency["git_blob_id"], "captured_file_sha256": dependency["captured_file_sha256"]}
+    for name in ("contact_report", "contact"):
+        checkpoint["capture_source_identity"][f"src/ls_prepost_mcp/domain/model/{name}.py"] = {
+            "git_blob_id": "b" * 40, "captured_file_sha256": "c" * 64}
     blobs = {path: item["git_blob_id"] for path, item in checkpoint["capture_source_identity"].items()}
     monkeypatch.setattr(__import__(__name__, fromlist=["_blob"]), "_blob", lambda revision, path: blobs[path])
     monkeypatch.setattr(__import__(__name__, fromlist=["_declared_capture_paths"]), "_declared_capture_paths",
@@ -307,19 +308,34 @@ def future41_checkpoint(monkeypatch):
     return checkpoint, blobs
 
 
-def test_future41_requires_explicit_helper_without_post_capture_fallback(future41_checkpoint):
-    checkpoint, _ = future41_checkpoint
-    assert len(_source_identity(checkpoint)) == 41
-    del checkpoint["capture_source_identity"][LOADS]
+@pytest.mark.parametrize("missing", [LOADS, "src/ls_prepost_mcp/domain/model/contact_report.py",
+                                     "src/ls_prepost_mcp/domain/model/contact.py"])
+def test_current43_requires_explicit_helpers_without_post_capture_fallback(current43_checkpoint, missing):
+    checkpoint, _ = current43_checkpoint
+    assert len(_source_identity(checkpoint)) == 43
+    omitted = checkpoint["capture_source_identity"].pop(missing)
+    checkpoint["post_capture_dependency_identity"] = {missing: omitted}
     with pytest.raises(AssertionError):
         _source_identity(checkpoint)
 
 
-@pytest.mark.parametrize("path", [LOADS, PRODUCER, "tests/test_joint_source_identity.py",
-                                  "src/ls_prepost_mcp/domain/model/matching.py"])
-def test_future41_keeps_every_current_product_and_instrumentation_identity_strict(future41_checkpoint, monkeypatch, path):
-    checkpoint, blobs = future41_checkpoint
+@pytest.mark.parametrize("path", CAPTURE_SOURCE_PATHS)
+def test_current43_keeps_every_product_and_instrumentation_identity_strict(current43_checkpoint, monkeypatch, path):
+    checkpoint, blobs = current43_checkpoint
     monkeypatch.setattr(__import__(__name__, fromlist=["_blob"]), "_blob",
                         lambda revision, item: "0" * 40 if revision == "HEAD" and item == path else blobs[item])
     with pytest.raises(AssertionError):
         _source_identity(checkpoint)
+
+
+def test_historical_selected_joint_runs_still_validate_against_their_actual_sources():
+    data = read_evidence("P12", historical=True)
+    assert len(_active(data, current=False)) == 6
+
+
+@pytest.mark.parametrize("which", [LEGACY_CHECKPOINT, "active"])
+def test_historical40_or41_cannot_substitute_for_current43(which):
+    data = read_evidence("P12", historical=True)
+    key = data["active_source_checkpoint"] if which == "active" else which
+    with pytest.raises(AssertionError):
+        _source_identity(data["source_checkpoints"][key])

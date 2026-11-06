@@ -127,7 +127,7 @@
 缺口：
 
 - 五类接触配方已有（create_entities / add_contact）；原生 Contact Check 初始穿透报告未接
-- 引擎的几何穿透估算 check_contacts 未接成工具
+- 几何估算仅以check_model的contact_geometry opt-in接为只读主机候选；更多几何/真实模型误报、覆盖缺口与原生Contact Check对照仍未覆盖
 
 ### P07 规则网格生成
 

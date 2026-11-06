@@ -32,6 +32,7 @@ PRODUCT_PATHS = tuple("src/ls_prepost_mcp/" + path for path in (
     "domain/model/matching.py", "domain/model/fields.py", "domain/model/layouts.py",
     "domain/model/schema.py", "domain/model/cards.py", "domain/model/keyword_docs.py",
     "domain/model/blocks.py", "domain/model/text.py", "domain/model/geometry.py",
+    "domain/model/contact_report.py", "domain/model/contact.py",
     "domain/model/access.py", "domain/model/preflight.py", "domain/model/persist.py",
     "domain/model/node_sets.py", "domain/model/sets.py", "domain/model/selectors.py",
     "domain/model/operations.py", "domain/model/references.py", "domain/model/lists.py",

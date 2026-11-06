@@ -6,8 +6,9 @@ from pathlib import Path
 
 import pytest
 
+from tools.contact_geometry_evidence import read_evidence, require_host_products
+
 ROOT = Path(__file__).resolve().parents[1]
-ACTIVE = ROOT / "docs/decisions/evidence/p03-active.json"
 MCP_REGISTRATION_PRODUCTS = {
     "src/ls_prepost_mcp/operation_registry.py",
     "src/ls_prepost_mcp/data/operations.json",
@@ -17,10 +18,7 @@ MCP_REGISTRATION_PRODUCTS = {
 
 
 def read():
-    pointer = json.loads(ACTIVE.read_text(encoding="utf8"))
-    evidence = ROOT / pointer["active_product_evidence"]
-    assert evidence.resolve().is_relative_to((ROOT / "docs/decisions/evidence").resolve())
-    return json.loads(evidence.read_text(encoding="utf8"))
+    return read_evidence("P03", historical=True)
 
 
 def require_registration_identity(evidence):
@@ -28,7 +26,7 @@ def require_registration_identity(evidence):
     assert MCP_REGISTRATION_PRODUCTS <= paths, "Host/stdio evidence omitted a consumed MCP registration dependency"
 
 
-def test_current_host_evidence_lists_all_consumed_mcp_registration_sources():
+def test_historical_host_evidence_lists_its_recorded_mcp_registration_sources():
     require_registration_identity(read())
 
 
@@ -76,7 +74,7 @@ def test_host_recipe_evidence_keeps_l1_scope_and_every_original_a10_object():
     assert not any(prefix in text for prefix in ("F:\\", "D:\\", "C:\\"))
 
 
-def test_current_host_recipe_evidence_binds_actual_product_and_test_git_objects():
+def test_historical_host_recipe_evidence_binds_actual_product_and_test_git_objects():
     shallow = subprocess.run(["git", "rev-parse", "--is-shallow-repository"], cwd=ROOT, capture_output=True, text=True)
     if shallow.returncode or shallow.stdout.strip() == "true":
         pytest.skip("Historical product binding requires a complete Git checkout")
@@ -85,8 +83,6 @@ def test_current_host_recipe_evidence_binds_actual_product_and_test_git_objects(
         for item in evidence[key]:
             recorded = subprocess.check_output(["git", "rev-parse", evidence["actual_git_revision"] + ":" + item["path"]], cwd=ROOT, text=True).strip()
             assert recorded == item["git_blob_id"]
-            if key == "product_source_identity" and evidence["validity"] == "current_for_recorded_product_blobs":
-                require_current_product_identity(item, recorded)
     preserved = evidence["old_a10_objects_preserved"]
     for name, expected in preserved["git_blob_ids"].items():
         relative = preserved["directory"] + "/" + name
@@ -110,3 +106,20 @@ def test_new_backend_refresh_preserves_original_host_bytes_and_does_not_claim_ne
     assert retrieval["original_11_retrieval_product_git_blobs_unchanged"] is True
     assert retrieval["original_98_queries_replayed"] is False and retrieval["full_index_rebuilt"] is False
     assert retrieval["old_sqlite_reopened"] is False
+
+
+def test_current_host_recipe_evidence_binds_all_explicit24_products():
+    evidence = read_evidence("P03")
+    require_host_products(evidence, "P03")
+    require_registration_identity(evidence)
+    assert evidence["status"] == "partial" and evidence["verification_level"] == "L1"
+    assert evidence["native_executed"] is False and evidence["working_tree_dirty"] is False
+    assert all(case["passed"] for case in evidence["l1_run"]["cases"])
+    assert evidence["l1_run"]["passed"] == len(evidence["l1_run"]["cases"])
+    for key in ("product_source_identity", "test_source_identity"):
+        for item in evidence[key]:
+            recorded = subprocess.check_output(["git", "rev-parse", evidence["actual_git_revision"] + ":" + item["path"]],
+                                               cwd=ROOT, text=True, timeout=10).strip()
+            assert recorded == item["git_blob_id"]
+            if key == "product_source_identity":
+                require_current_product_identity(item, recorded)
