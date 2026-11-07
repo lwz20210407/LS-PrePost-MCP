@@ -1,6 +1,6 @@
 """M2 result-reading target tools, returning JobResult/v1 over the shared ``domain.results`` backends.
 
-``extract_database`` (tasks.yaml Q06) reads named ASCII GLSTAT/MATSUM/NODOUT/RCFORC/SECFORC or a binout database (GLSTAT, MATSUM,
+``extract_database`` (tasks.yaml Q06) reads named ASCII GLSTAT/MATSUM/NODOUT/SLEOUT/RCFORC/SECFORC or a binout database (GLSTAT, MATSUM,
 RCFORC, SECFORC, NODOUT, ELOUT, SLEOUT, NODFOR, SPCFORC, RBDOUT, NCFORC, DEFORC and the other
 LSDA families) by its stored column name, merged across every MPP shard beside the input. The
 reading and the merge rules live in :mod:`domain.results.lasso_backend` and
@@ -26,7 +26,7 @@ from .jobs import atomic_json, check_artifact
 BACKEND = "lasso-python"
 TOKEN = re.compile(r"[A-Za-z0-9_]+")
 MAX_ROWS = 1_000_000
-ASCII_DATABASES = frozenset(("glstat", "matsum", "nodout", "rcforc", "secforc"))
+ASCII_DATABASES = frozenset(("glstat", "matsum", "nodout", "sleout", "rcforc", "secforc"))
 
 
 def _result(status: str, data: dict, **fields: object) -> dict:
@@ -41,7 +41,7 @@ class ResultsTargetTools:
                          branch: str | None = None, shard: str | None = None,
                          entity_ids: list[int] | None = None, time_units: str = "time",
                          native_check: StrictBool = False) -> dict:
-        """Q06: named binout components across MPP shards, or explicit ASCII glstat/matsum/nodout/rcforc/secforc.
+        """Q06: named binout components across MPP shards, or explicit ASCII glstat/matsum/nodout/sleout/rcforc/secforc.
 
         ``path`` is one binout file (``binout`` or ``binout0000``); the other shards beside it are
         read and merged with the documented rules (united time samples where the stored entities
@@ -50,7 +50,7 @@ class ResultsTargetTools:
         nested level (``shell``, ``velocity/nodes``); ``component`` is the stored column name, not a
         UI number. ``entity_ids`` keeps only those stored IDs. ``shard`` reads a single named file.
         The CSV holds the time column and the component under its own name; ``units`` / ``time_units``
-        are declarations and nothing is converted. ASCII input must be named glstat/matsum/nodout/rcforc/secforc and
+        are declarations and nothing is converted. ASCII input must be named glstat/matsum/nodout/sleout/rcforc/secforc and
         match database; branch/shard are not applicable. Text components: x_force/y_force/z_force,
         x_moment/y_moment/z_moment; rcforc also mass, secforc also force_magnitude/moment_magnitude,
         x_centroid/y_centroid/z_centroid/area. Written sides, legend titles and original local-frame reference tags are retained;
@@ -68,6 +68,10 @@ class ResultsTargetTools:
         ASCII NODOUT reads x/y/z_displacement, x/y/z_velocity and x/y/z_acceleration from their
         literal translation fields; printed node IDs and source labels are retained. Rotation tables
         are checked for complete pairs only. Curves are raw/unmasked: deletion validity is unknown.
+        ASCII SLEOUT reads side_a_energy/side_b_energy/frictional_energy from the three written
+        slave/master/frictional or surfa/surfb/frictional columns, retaining raw interface IDs and
+        source labels. Complete summaries are syntax-checked only, without conservation arithmetic.
+        Its curves are raw/unmasked with unknown deletion validity; sides are never combined.
         Other modes do not launch LS-PrePost; unsupported native comparisons fail explicitly."""
         selected_backend = ("ls-dyna-ascii" if isinstance(path, str) and Path(path).name.casefold() in ASCII_DATABASES
                             else BACKEND)
@@ -93,12 +97,13 @@ class ResultsTargetTools:
         directory, manifest = self.jobs.create("extract_database", {"source": str(source), **parameters,
                                                                    "native_check": native_check})
         try:
-            bounded_ascii = source.name in ("glstat", "matsum", "nodout")
+            bounded_ascii = source.name in ("glstat", "matsum", "nodout", "sleout")
             max_input_bytes = None
             if bounded_ascii:
-                from .domain.results import ascii_glstat, ascii_matsum, ascii_nodout
+                from .domain.results import ascii_glstat, ascii_matsum, ascii_nodout, ascii_sleout
 
-                reader = {"glstat": ascii_glstat, "matsum": ascii_matsum, "nodout": ascii_nodout}[source.name]
+                reader = {"glstat": ascii_glstat, "matsum": ascii_matsum,
+                          "nodout": ascii_nodout, "sleout": ascii_sleout}[source.name]
                 reader.validate_size(source)
                 max_input_bytes = reader.MAX_BYTES
             before = _sha256(source, max_bytes=max_input_bytes) if native_check or bounded_ascii else None
@@ -127,7 +132,7 @@ class ResultsTargetTools:
         return result
 
     def _database_source(self, path: str, parameters: dict | None = None) -> Path:
-        """Confine explicit ASCII glstat/matsum/nodout/rcforc/secforc or a standard binout family.
+        """Confine explicit ASCII glstat/matsum/nodout/sleout/rcforc/secforc or a standard binout family.
 
         Every binary shard/continuation passes the same allowed-root check. ASCII never
         opens companions or silently substitutes a sibling binout for the requested file.
@@ -145,7 +150,7 @@ class ResultsTargetTools:
             return source
         if not SHARD.fullmatch(source.name):
             raise ValueError("extract_database reads binout files (binout or binoutNNNN); ASCII "
-                             f"input is limited to glstat/matsum/nodout/rcforc/secforc: {source.name}")
+                             f"input is limited to glstat/matsum/nodout/sleout/rcforc/secforc: {source.name}")
         for shard in shards(source):
             for file in lasso_reads(shard):
                 self.settings.input_path(str(file))
@@ -189,6 +194,10 @@ class ResultsTargetTools:
             curve = read(source, parameters["component"])
         elif source.name == "nodout":
             from .domain.results.ascii_nodout import read
+
+            curve = read(source, parameters["component"])
+        elif source.name == "sleout":
+            from .domain.results.ascii_sleout import read
 
             curve = read(source, parameters["component"])
         elif source.name in ("rcforc", "secforc"):
