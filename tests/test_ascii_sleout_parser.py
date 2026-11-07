@@ -111,6 +111,12 @@ def test_orphan_table_syntax_cannot_be_dropped_as_preamble(prefix):
         parse((prefix+sample()).splitlines(True), "side_a_energy")
 
 
+@pytest.mark.parametrize("prefix", ["71 1.0 2.0\n", "71 1.0 2.0 3.0 4.0\n", "71\n"])
+def test_incomplete_or_extra_orphan_numeric_records_are_not_titles(prefix):
+    with pytest.raises(ValueError, match="outside an active time block"):
+        parse((prefix+frame(0, 1, FIRST)).splitlines(True), "side_a_energy")
+
+
 @pytest.mark.parametrize("component", ["slave", "master", "total_energy", "frictional", "1"])
 def test_only_the_three_declared_aliases_are_exported(component):
     with pytest.raises(ValueError, match="component"):

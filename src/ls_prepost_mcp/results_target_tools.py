@@ -100,10 +100,14 @@ class ResultsTargetTools:
             bounded_ascii = source.name in ("glstat", "matsum", "nodout", "sleout")
             max_input_bytes = None
             if bounded_ascii:
-                from .domain.results import ascii_glstat, ascii_matsum, ascii_nodout, ascii_sleout
+                if source.name == "sleout":
+                    from .domain.results import ascii_sleout
 
-                reader = {"glstat": ascii_glstat, "matsum": ascii_matsum,
-                          "nodout": ascii_nodout, "sleout": ascii_sleout}[source.name]
+                    reader = ascii_sleout
+                else:
+                    from .domain.results import ascii_glstat, ascii_matsum, ascii_nodout
+
+                    reader = {"glstat": ascii_glstat, "matsum": ascii_matsum, "nodout": ascii_nodout}[source.name]
                 reader.validate_size(source)
                 max_input_bytes = reader.MAX_BYTES
             before = _sha256(source, max_bytes=max_input_bytes) if native_check or bounded_ascii else None

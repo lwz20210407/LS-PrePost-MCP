@@ -3,6 +3,8 @@
 Supported column layouts are slave/master/frictional and surfa/surfb/frictional.
 The aliases name written positions, without certifying keyword/UI identities or
 combining sides, applying validity masks, or calculating energy conservation.
+Only non-row-like prose and optional legend records are supported as preamble;
+ambiguous numeric titles/orphan records are rejected rather than distinguished.
 """
 from __future__ import annotations
 
@@ -103,12 +105,13 @@ def parse(lines, component):
             continue
         if current is None:
             tokens = text.split()
-            # Reserve table controls and row-shaped records even before a time
-            # header, so a damaged orphan row cannot become innocuous preamble.
-            row_like = (len(tokens) == 4 and (tokens[0][0] in "+-*0123456789"
-                        or all(NUMBER.fullmatch(token) for token in tokens[1:])))
+            # Numeric-leading preamble is ambiguous with an orphan ID/row and
+            # is rejected regardless of column count, rather than guessed to
+            # be a model title. Also reserve damaged IDs followed by scalars.
+            row_like = (tokens[0][0] in "+-*0123456789" or tokens[0].casefold() in ("nan", "inf", "infinity")
+                        or (len(tokens) > 1 and all(NUMBER.fullmatch(token) for token in tokens[1:])))
             if text.startswith("#") or normalized.startswith(("summary", "total ", "friction energy")) or row_like:
-                raise ResultsError("SLEOUT table syntax outside an active time block")
+                raise ResultsError("Unsupported SLEOUT preamble/table syntax outside an active time block")
             continue
         if text.startswith("#"):
             header = HEADER.fullmatch(text)
