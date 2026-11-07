@@ -8,7 +8,8 @@ from ls_prepost_mcp.model_recipes import knowledge_documents
 def test_every_host_candidate_is_a_real_public_index_source(tmp_path, monkeypatch):
     monkeypatch.setenv("LSPP_MANUAL_INDEX", str(tmp_path / "never-read-private-manual"))
     documents = [doc for doc in repository_documents() if doc.source_id == "model-recipe-registry"]
-    assert len(documents) == 9
+    assert len(documents) == 16
+    assert sum(json.loads(doc.text)["task_id"] == "P10" for doc in documents) == 7
     for doc in documents:
         assert doc.category == "recipe" and doc.visibility == "public" and doc.license == "MIT"
         assert doc.locator.startswith("repo://src/ls_prepost_mcp/data/model_recipes.json#model:")

@@ -26,8 +26,13 @@ PRODUCT_PATHS = [
     "src/ls_prepost_mcp/domain/model/keyword_docs.py", "src/ls_prepost_mcp/data/search_glossary.json",
     "src/ls_prepost_mcp/model_recipes.py", "src/ls_prepost_mcp/data/model_recipes.json",
     "src/ls_prepost_mcp/automation/recipes.py", "src/ls_prepost_mcp/domain/model/materials.py",
-    "src/ls_prepost_mcp/core/validation.py",
+    "src/ls_prepost_mcp/core/validation.py", "src/ls_prepost_mcp/domain/model/controls.py",
 ]
+MODEL_RECIPE_INPUT_PATHS = (
+    "src/ls_prepost_mcp/model_recipes.py", "src/ls_prepost_mcp/data/model_recipes.json",
+    "src/ls_prepost_mcp/automation/recipes.py", "src/ls_prepost_mcp/domain/model/materials.py",
+    "src/ls_prepost_mcp/domain/model/controls.py", "src/ls_prepost_mcp/core/validation.py",
+)
 
 
 def sha256(data):
@@ -51,6 +56,17 @@ def file_identity(relative, revision):
     blob = subprocess.check_output(["git", "rev-parse", f"{revision}:{relative}"], cwd=ROOT,
                                    text=True, timeout=15).strip()
     return dict(path=relative, git_blob=blob, sha256_lf=sha256(data.replace(b"\r\n", b"\n")))
+
+
+def index_input_paths(root=ROOT):
+    """Explicit repository inputs for the real build capture, including every model pin source."""
+    paths = ["src/ls_prepost_mcp/data/commands.tsv", "src/ls_prepost_mcp/native/commands.py",
+             "docs/KNOWN_ISSUES.md", "docs/INSTALL.md", "src/ls_prepost_mcp/data/keyword_fieldless_review.json", "uv.lock"]
+    paths += list(MODEL_RECIPE_INPUT_PATHS)
+    paths += [path.relative_to(root).as_posix() for folder, pattern in (
+        ("examples/workflows", "*.json"), ("src/ls_prepost_mcp/native/recipes", "**/recipe.yaml"))
+        for path in sorted((root / folder).glob(pattern))]
+    return paths
 
 
 def index_metadata(path):
@@ -160,14 +176,7 @@ def refresh(index, build_report, destination):
         index=index_info, historical_source=dict(path=history_path, revision=history["actual_git_revision"]),
         sets={})
     build_revision = build["actual_git_revision"]
-    input_paths = ["src/ls_prepost_mcp/data/commands.tsv", "src/ls_prepost_mcp/native/commands.py",
-                   "docs/KNOWN_ISSUES.md", "docs/INSTALL.md", "src/ls_prepost_mcp/data/keyword_fieldless_review.json", "uv.lock"]
-    input_paths += ["src/ls_prepost_mcp/model_recipes.py", "src/ls_prepost_mcp/data/model_recipes.json",
-                    "src/ls_prepost_mcp/automation/recipes.py", "src/ls_prepost_mcp/domain/model/materials.py"]
-    input_paths.append("src/ls_prepost_mcp/core/validation.py")
-    input_paths += [path.relative_to(ROOT).as_posix() for folder, pattern in (
-        ("examples/workflows", "*.json"), ("src/ls_prepost_mcp/native/recipes", "**/recipe.yaml"))
-        for path in sorted((ROOT / folder).glob(pattern))]
+    input_paths = index_input_paths(ROOT)
     provider = importlib.metadata.distribution("ansys-dyna-core")
     evidence["index"]["build"] = dict(actual_git_revision=build_revision, working_tree_dirty=False,
         command="python -B tools/build_knowledge_index.py --all-keywords --output <public-index.sqlite>",

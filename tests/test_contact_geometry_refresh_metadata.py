@@ -10,6 +10,19 @@ import pytest
 from tools import contact_geometry_evidence as context
 
 TASKS = ("P03", "P04", "P05", "P12", "P06_identity", "P06_geometry")
+ARCHIVED_CAPTURES = {
+    "P03": "p03-host", "P04": "p04-membership", "P05": "p05-boundary", "P12": "p12-joint",
+    "P06_identity": "p06-identity", "P06_geometry": "geometry-host",
+}
+
+
+def archived_path(task):
+    return context.INDEX.parent / ARCHIVED_CAPTURES[task] / "evidence.json"
+
+
+def archived_capture(task):
+    """The completed b757 archive stays separate from later current-P03 selection."""
+    return json.loads(archived_path(task).read_text(encoding="utf8"))
 
 
 def _strings(value):
@@ -26,8 +39,8 @@ def _strings(value):
 
 @pytest.mark.parametrize("task", TASKS)
 def test_each_actual_refresh_context_has_bound_report_and_no_private_paths(task):
-    path = context.evidence_path(task)
-    data = context.read_evidence(task)
+    path = archived_path(task)
+    data = archived_capture(task)
     assert len(path.read_bytes()) < 512 * 1024
     report = path.with_name(data["report"]).read_bytes().replace(b"\r\n", b"\n")
     assert hashlib.sha256(report).hexdigest() == data["report_sha256_lf"]
@@ -39,7 +52,7 @@ def test_completed_host_roles_keep_their_actual_nonadditive_execution_sets():
     index = json.loads(context.INDEX.read_text(encoding="utf8"))
     assert index["state"] == "actual_captures_archived" and index["role_counts_not_additive"]
     for task, count, products in (("P03", 60, 24), ("P06_identity", 87, 35), ("P06_geometry", 90, 39)):
-        data = context.read_evidence(task)
+        data = archived_capture(task)
         assert data["actual_git_revision"] == index["actual_git_revision"]
         assert data["source_snapshot_sha256"] == index["source_snapshot_sha256"]
         assert data["l1_run"]["passed"] == len(data["l1_run"]["cases"]) == count
@@ -47,14 +60,14 @@ def test_completed_host_roles_keep_their_actual_nonadditive_execution_sets():
         assert data["overlapping_role_runs_not_unique_coverage"] is True and data["native_executed"] is False
         tests = {item["path"] for item in data["test_source_identity"]}
         assert ("tests/test_contact_geometry_mcp.py" in tests) == (task == "P06_geometry")
-    geometry = context.read_evidence("P06_geometry")
+    geometry = archived_capture("P06_geometry")
     expected = set(context.P06_IDENTITY_PRODUCT_PATHS) | {"src/ls_prepost_mcp/" + path for path in (
         "server.py", "compact_server.py", "operation_registry.py", "data/operations.json")}
     assert {item["path"] for item in geometry["product_source_identity"]} == expected
 
 
 def test_offline_wheel_accounts_for_all221_members_against_its_actual_git_source():
-    data = context.read_evidence("P03")
+    data = archived_capture("P03")
     wheel = data["wheel"]
     assert wheel["actual_source_revision"] == data["actual_git_revision"]
     assert wheel["offline_build"] and not wheel["pip_install_performed"] and not wheel["native_executed"]
@@ -100,7 +113,7 @@ def test_offline_wheel_accounts_for_all221_members_against_its_actual_git_source
 def test_native_per_job_stat_and_outer_full_hash_layers_remain_distinct():
     identifiers = []
     for task, jobs in (("P05", 6), ("P12", 18)):
-        data = context.read_evidence(task)
+        data = archived_capture(task)
         assert data["current_context_native_jobs"] == jobs
         assert data["current_native_validation"]["task_acceptance_complete"] is False
         for run in data["native_captures"]:

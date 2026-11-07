@@ -1,4 +1,4 @@
-"""P03 host keyword recipes: frozen contracts, existing atomic AST operations.
+"""P03/P10 host keyword recipes: frozen contracts, existing atomic AST operations.
 
 These L1 candidates are not embedded Python/native programs.  No physical
 default or unit conversion is supplied by this registry.
@@ -15,7 +15,7 @@ from pathlib import Path
 
 from .core.contracts import JobResult
 from .core.validation import unit_label
-from .domain.model import access
+from .domain.model import access, controls
 from .domain.model.materials import EOS, MATERIALS, SECTIONS
 from .jobs import atomic_json
 
@@ -25,9 +25,25 @@ REFERENCE = re.compile(r"model:[a-z][a-z0-9_-]{0,79}")
 VERSIONED_REFERENCE = re.compile(r"(model:[a-z][a-z0-9_-]{0,79})(?:@([a-f0-9]{64}))?")
 MAX_BYTES = 1024 * 1024
 FAMILIES = {"material": MATERIALS, "eos": EOS, "section": SECTIONS}
+CONTROL_CONTRACTS = {**controls.RECIPES, "ascii": (None, ("dt",), ("binary",))}
+CONTROL_REQUIRED = ("termination", "d3plot", "ascii", "hourglass")
+CONTROL_OPTIONAL = ("timestep", "energy")
 ID_FIELDS = {"material": "mid", "eos": "eosid", "section": "secid"}
 JSON_TYPES = {"int": "integer", "float": "number", "str": "string"}
 SCOPE = "Host keyword AST creation/reference checks only; no unit conversion, native Part Data readback or physical calibration verification"
+CONTROL_SCOPE = "Host keyword control/output edits and reference checks only; no unit conversion, native reopen or physical response verification"
+
+
+def _contract(family, name):
+    return (CONTROL_CONTRACTS if family == "control" else FAMILIES[family])[name]
+
+
+def _task(row):
+    return row.get("task_id", "P03")
+
+
+def _scope(row):
+    return CONTROL_SCOPE if _task(row) == "P10" else SCOPE
 
 
 def _sha(raw):
@@ -66,12 +82,13 @@ def load_registry(repository=None):
     if provider.get("package") != "ansys-dyna-core" or not isinstance(provider.get("version"), str) or not provider["version"]:
         raise ValueError("Model recipe field snapshot must identify its schema provider")
     for family, group in types.items():
-        if family not in FAMILIES or not isinstance(group, dict):
+        if family not in {*FAMILIES, "control"} or not isinstance(group, dict):
             raise ValueError("Unknown model recipe field family")
         for name, fields in group.items():
-            if name not in FAMILIES[family] or not isinstance(fields, dict):
+            contracts = CONTROL_CONTRACTS if family == "control" else FAMILIES[family]
+            if name not in contracts or not isinstance(fields, dict):
                 raise ValueError("Unknown underlying model recipe")
-            _, required, optional = FAMILIES[family][name]
+            _, required, optional = _contract(family, name)
             if set(fields) != set(required + optional) or any(not isinstance(kind, str) or kind not in JSON_TYPES for kind in fields.values()):
                 raise ValueError("Model recipe field snapshot drifted from its existing core contract")
     found = {}
@@ -90,13 +107,24 @@ def load_registry(repository=None):
         elif family == "assembly":
             if row.get("components") != dict(material="johnson_cook", eos="gruneisen", section="solid"):
                 raise ValueError("Unregistered host model assembly")
+        elif family == "control":
+            name = row["core_recipe"]
+            if name not in types.get("control", {}) or row.get("keyword") != _contract(family, name)[0]:
+                raise ValueError("Host control recipe differs from its core contract")
+        elif family == "control_bundle":
+            if (row.get("components") != list(CONTROL_REQUIRED)
+                    or row.get("optional_components") != list(CONTROL_OPTIONAL)):
+                raise ValueError("Unregistered host control bundle")
         else:
             raise ValueError("Unregistered host model recipe family")
+        if _task(row) != ("P10" if family in ("control", "control_bundle") else "P03"):
+            raise ValueError("Host model recipe task differs from its family")
         found[ident] = copy.deepcopy(row)
     identity = dict(definition=dict(locator="repo://" + MANIFEST_RELATIVE, sha256=_sha(raw),
                                     sha256_lf=_sha(raw.replace(b"\r\n", b"\n")), bytes=len(raw)),
                     provider=_source(Path(__file__), "repo://src/ls_prepost_mcp/model_recipes.py"),
                     field_contract=_source(PACKAGE / "domain/model/materials.py", "repo://src/ls_prepost_mcp/domain/model/materials.py"),
+                    control_field_contract=_source(PACKAGE / "domain/model/controls.py", "repo://src/ls_prepost_mcp/domain/model/controls.py"),
                     parameter_validation=_source(PACKAGE / "automation/recipes.py", "repo://src/ls_prepost_mcp/automation/recipes.py"),
                     unit_validation=_source(PACKAGE / "core/validation.py", "repo://src/ls_prepost_mcp/core/validation.py"))
     return found, types, payload["provider_metadata"], identity
@@ -116,12 +144,16 @@ def _id():
 
 
 def _field_schema(types, family, name):
-    _, required, optional = FAMILIES[family][name]
+    _, required, optional = _contract(family, name)
     properties = {}
     for field in required + optional:
         kind = types[family][name][field]
         properties[field] = _text() if kind == "str" else dict(type=JSON_TYPES[kind])
     result = _object(properties, required)
+    if family == "control" and name == "ascii":
+        properties["names"] = dict(type="array", minItems=1, maxItems=len(controls.ASCII), uniqueItems=True,
+                                   items=dict(type="string", enum=list(controls.ASCII)))
+        result["required"] = ["names", *required]
     if family == "material" and name == "piecewise_linear_plasticity":
         result["description"] = "The existing keyword engine also requires SIGY or an existing LCSS curve; final reference/semantic checks remain in that engine."
     elif family == "eos" and name == "linear_polynomial":
@@ -132,6 +164,13 @@ def _field_schema(types, family, name):
 def parameter_schema(row, types):
     properties = dict(units=dict(type="string", minLength=1, maxLength=100, pattern=r"\S",
                                 description="Caller-declared unit system; no unit inference or conversion"))
+    if row["family"] == "control":
+        properties["params"] = _field_schema(types, "control", row["core_recipe"])
+        return _object(properties, ("units", "params"))
+    if row["family"] == "control_bundle":
+        for name in CONTROL_REQUIRED + CONTROL_OPTIONAL:
+            properties[name] = _field_schema(types, "control", name)
+        return _object(properties, ("units", *CONTROL_REQUIRED))
     if row["family"] in ("material", "eos"):
         family = row["family"]
         ident = ID_FIELDS[family]
@@ -159,29 +198,33 @@ def describe(row, types, provider, identity):
     schema = parameter_schema(row, types)
     return dict(schema_version=1, id=row["id"], reference=pinned_reference(row, schema, provider, identity),
                 reference_policy="pinned", name=row["name"], description=row["description"],
-                task_id="P03", channel="keyword", backend="keyword", tier="candidate", verification_level="L1",
+                task_id=_task(row), channel="keyword", backend="keyword", tier="candidate", verification_level="L1",
                 parameters=schema, tags=row["tags"], input_kind="keyword", contexts=["host"],
-                versions_verified=[], l2_case=None, native_executed=False, requires_model=True, scope=SCOPE,
+                versions_verified=[], l2_case=None, native_executed=False, requires_model=True, scope=_scope(row),
                 requirements=dict(optional_extra="pydyna", package="ansys-dyna-core", field_schema_snapshot_version=provider["version"]),
                 provider_snapshot=provider, source=identity,
-                execution_modes=dict(host_keyword=dict(status="verified_offline", evidence="P03 host AST tests; no native Part Data readback")))
+                execution_modes=dict(host_keyword=dict(status="verified_offline", evidence=(
+                    "P10 host control/output AST tests; no native reopen" if _task(row) == "P10"
+                    else "P03 host AST tests; no native Part Data readback"))))
 
 
 def candidates(wanted, task_id, channel):
-    if task_id and task_id != "P03" or channel and channel != "keyword":
+    if task_id and task_id not in ("P03", "P10") or channel and channel != "keyword":
         return []
     from .knowledge_index import terms
 
     rows, types, provider, identity = load_registry()
     hits = []
     for row in rows.values():
+        if task_id and task_id != _task(row):
+            continue
         score = len(wanted & set(terms(" ".join((row["id"], row["name"], row["description"], *row["tags"])))))
         if not wanted or score:
             hits.append((score, describe(row, types, provider, identity)))
     return hits
 
 
-def _provider_check(row, types, provider):
+def _provider_check(row, types, provider, values):
     """Confirm the snapshot against the existing public schema provider, not a parser."""
     from .domain.model.keyword_docs import _cards
     from .domain.model.schema import _pydyna_class
@@ -192,16 +235,26 @@ def _provider_check(row, types, provider):
         raise ValueError("Host model recipe requires the project's pydyna extra") from error
     if version != provider["version"]:
         raise ValueError("Host model recipe schema-provider version changed; refresh its registered field snapshot")
-    components = ({row["family"]: row["core_recipe"]} if row["family"] != "assembly" else row["components"])
-    for family, name in components.items():
-        keyword = FAMILIES[family][name][0]
-        cls, _ = _pydyna_class(keyword)
-        actual = {}
-        for card in _cards(cls, keyword):
-            for field in card["fields"]:
-                actual.setdefault(field["name"], set()).add(field["type"])
-        if any(actual.get(field) != {kind} for field, kind in types[family][name].items()):
-            raise ValueError("Model recipe field-type snapshot differs from the current schema provider")
+    if row["family"] == "assembly":
+        components = list(row["components"].items())
+    elif row["family"] == "control_bundle":
+        components = [("control", name) for name in CONTROL_REQUIRED + CONTROL_OPTIONAL if name in values]
+    else:
+        components = [(row["family"], row["core_recipe"])]
+    for family, name in components:
+        if family == "control" and name == "ascii":
+            params = values["ascii"] if row["family"] == "control_bundle" else values["params"]
+            keywords = ["*DATABASE_" + selected.upper() for selected in params["names"]]
+        else:
+            keywords = [_contract(family, name)[0]]
+        for keyword in keywords:
+            cls, _ = _pydyna_class(keyword)
+            actual = {}
+            for card in _cards(cls, keyword):
+                for field in card["fields"]:
+                    actual.setdefault(field["name"], set()).add(field["type"])
+            if any(actual.get(field) != {kind} for field, kind in types[family][name].items()):
+                raise ValueError("Model recipe field-type snapshot differs from the current schema provider")
 
 
 def _finite_and_printable(value):
@@ -224,6 +277,10 @@ def _finite_and_printable(value):
 
 
 def _operations(row, values):
+    if row["family"] in ("control", "control_bundle"):
+        names = (row["core_recipe"],) if row["family"] == "control" else CONTROL_REQUIRED + CONTROL_OPTIONAL
+        return [dict(op="set_control", recipe=name, params=values["params"] if row["family"] == "control" else values[name],
+                     units=values["units"]) for name in names if row["family"] == "control" or name in values]
     if row["family"] != "assembly":
         family = row["family"]
         ident = ID_FIELDS[family]
@@ -267,7 +324,7 @@ def run(service, reference, parameters, model, file_type, session_id, launch_mod
     values = validate_parameters(schema, copy.deepcopy(parameters))
     _finite_and_printable(values)
     values["units"] = unit_label(values["units"])
-    _provider_check(row, types, provider)
+    _provider_check(row, types, provider, values)
     # Freeze the complete validated definition/values before dispatch.  This is
     # exactly one existing AST transaction, never incremental output writes.
     operations = _operations(row, values)
@@ -277,7 +334,7 @@ def run(service, reference, parameters, model, file_type, session_id, launch_mod
                     reference_policy="pinned" if selected_version is not None else "explicit_latest",
                     origin="bundled_model_registry_snapshot", backend="keyword", verification_level="L1",
                     source=identity, provider_snapshot=provider, parameters=values, native_executed=False,
-                    versions_verified=[], scope=SCOPE)
+                    versions_verified=[], scope=_scope(row))
     outcome = JobResult(**{**outcome.model_dump(exclude={"comparison_data"}), "operation": "run_recipe", "backend": "keyword",
                           "data": dict(outcome.data, recipe=metadata)})
     if outcome.job_id:
@@ -296,7 +353,7 @@ def knowledge_documents(repository):
         body = dict(id=row["id"], reference=pinned_reference(row, schema, provider, identity), reference_policy="pinned",
                     keyword=row.get("keyword"), description=row["description"], tags=row["tags"],
                     channel="keyword", backend="keyword", input_kind="keyword", requires_model=True,
-                    verification_level="L1", tier="candidate", versions_verified=[], native_executed=False, scope=SCOPE,
+                    task_id=_task(row), verification_level="L1", tier="candidate", versions_verified=[], native_executed=False, scope=_scope(row),
                     requirements=dict(optional_extra="pydyna", package="ansys-dyna-core", field_schema_snapshot_version=provider["version"]),
                     parameters=schema, field_provider_snapshot=provider)
         yield Document("model-recipe-registry", "recipe", row["name"], json.dumps(body, ensure_ascii=False, sort_keys=True),

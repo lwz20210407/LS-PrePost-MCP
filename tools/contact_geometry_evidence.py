@@ -12,6 +12,7 @@ P03_PRODUCT_PATHS = tuple("src/ls_prepost_mcp/" + path for path in (
     "domain/model/layouts.py", "domain/model/schema.py", "domain/model/cards.py", "domain/model/persist.py",
     "domain/model/references.py", "domain/model/keyword_docs.py", "server.py", "compact_server.py",
     "operation_registry.py", "data/operations.json", "domain/model/contact_report.py", "domain/model/contact.py",
+    "domain/model/controls.py",
 ))
 P06_IDENTITY_PRODUCT_PATHS = tuple("src/ls_prepost_mcp/" + path for path in (
     "domain/model/_identity.py", "domain/model/contacts.py", "domain/model/contact.py", "domain/model/cards.py",
