@@ -107,13 +107,14 @@ def validate_case(case):
         if any(row[0] not in nodes for row in data["spc"]):
             raise ValueError("Fixture constraint references an undefined node")
     original, expected = case["input"], case["expected"]
-    sentinel_ids = {n for e in original["elements"] if e["pid"] == 1 for n in e["nodes"]}
+    sentinel_part = _uid(case["sentinel_part_id"])
+    sentinel_ids = {n for e in original["elements"] if e["pid"] == sentinel_part for n in e["nodes"]}
     for section in ("parts", "materials", "sections"):
         if expected[section] != original[section]:
             raise ValueError("Geometry oracle may not rewrite shared properties")
     if {r[0]: r for r in expected["nodes"] if r[0] in sentinel_ids} != {r[0]: r for r in original["nodes"] if r[0] in sentinel_ids}:
         raise ValueError("Oracle changes an unselected sentinel coordinate/UID")
-    if [r for r in expected["elements"] if r["pid"] == 1] != [r for r in original["elements"] if r["pid"] == 1]:
+    if [r for r in expected["elements"] if r["pid"] == sentinel_part] != [r for r in original["elements"] if r["pid"] == sentinel_part]:
         raise ValueError("Oracle changes an unselected sentinel connection")
     if [r for r in expected["node_sets"] if r["id"] == 51] != [r for r in original["node_sets"] if r["id"] == 51]:
         raise ValueError("Oracle changes a sentinel reference")
@@ -406,6 +407,8 @@ def job_plan():
             jobs=[dict(role="typed_geometry", api="Service._native", action="gui_mesh_state", graphics=False, session=None),
                   dict(role="keyword_retention", api="Service.export_keyword", action="export_keyword", graphics=False, session=None)],
             future_proves=["DataCenter user node coordinates/connectivity/Part membership", "independent keyword reference retention"],
+            not_compared=["part_visibility", "selection_ids", "selection_types"],
+            headless_caution="The existing action also calls check_if_part_is_active_u and selection_ids; read-only source is not headless ABI proof. Require actual BatchEngine graphics=False/-nographics, never GUI/session fallback.",
             pending="root-leased first headless ABI pilot; no inference from source availability or fake tests"),
         mandatory_future_admission=["source_identity before private profiles/output", "explicit readonly dual-profile full fingerprints",
             "per-role validate_job_pair and per-job validate_staged_bridge", "owned request/staged input SHA binding",

@@ -23,6 +23,16 @@ def test_source_admission_precedes_profile_and_output(tmp_path, monkeypatch):
     assert not (tmp_path / "must-not-exist").exists()
 
 
+def test_pilot_user_labels_cannot_coincide_with_internal_one_based_indices():
+    from tools import verify_p08_mesh_roundtrip as verifier
+
+    for case in verifier.fixture()["cases"]:
+        for data in (case["input"], case["expected"]):
+            assert {r["id"] for r in data["parts"]} == {13, 29}
+            assert min(r[0] for r in data["nodes"]) > len(data["nodes"])
+            assert min(r["id"] for r in data["elements"]) > len(data["elements"])
+
+
 @pytest.mark.parametrize("case_id", ["translate", "rotate", "reflect", "copy", "merge", "normals", "renumber", "delete"])
 def test_offline_public_mesh_ops_matches_independent_tables(tmp_path, monkeypatch, case_id):
     pytest.importorskip("ansys.dyna.core")

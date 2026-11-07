@@ -121,7 +121,7 @@ def test_fake_typed_data_matches_hand_oracle_by_uid_not_array_position(case_id):
 
 
 @pytest.mark.parametrize("change", ["unselected_coordinate", "selected_coordinate", "internal_ids", "unselected_connection",
-    "membership", "count", "duplicate", "uid_bool", "coordinate_bool", "part_bool"])
+    "membership", "internal_parts", "count", "duplicate", "uid_bool", "coordinate_bool", "part_bool"])
 def test_corrupted_typed_observation_never_passes(change):
     case = verifier.case_spec("translate")
     data = typed_observation(case)
@@ -135,6 +135,8 @@ def test_corrupted_typed_observation_never_passes(change):
         data["elements"][0]["nodes"].reverse()
     elif change == "membership":
         data["part_elements"] = {"1": [11, 22], "2": []}
+    elif change == "internal_parts":
+        data["part_ids"] = [1, 2]
     elif change == "count":
         data["counts"]["nodes"] += 1
     elif change == "duplicate":
@@ -150,6 +152,15 @@ def test_corrupted_typed_observation_never_passes(change):
     except ValueError:
         return
     assert differences
+
+
+def test_visibility_or_selection_observations_are_not_geometry_pass_criteria():
+    case = verifier.case_spec("translate")
+    data = typed_observation(case)
+    data.update(part_visibility={"13": True, "29": True}, selection_ids=[11, 22], selection_types=None)
+    assert verifier.compare_typed(data, case) == []
+    data["nodes"][0][1] += .01
+    assert verifier.compare_typed(data, case)
 
 
 @pytest.mark.parametrize("identity", [None, {}, {"actual_git_head": "a" * 40, "working_tree_dirty": True}])
