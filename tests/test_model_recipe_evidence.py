@@ -108,7 +108,7 @@ def test_new_backend_refresh_preserves_original_host_bytes_and_does_not_claim_ne
     assert retrieval["old_sqlite_reopened"] is False
 
 
-def test_current_host_recipe_evidence_binds_all_explicit24_products():
+def test_current_host_recipe_evidence_binds_all_explicit25_products():
     evidence = read_evidence("P03")
     require_host_products(evidence, "P03")
     require_registration_identity(evidence)

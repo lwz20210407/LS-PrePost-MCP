@@ -11,7 +11,7 @@ import pytest
 from tools.refresh_knowledge_evidence import PRODUCT_PATHS, SETS, check_active_product_sources, validate_suite
 
 ROOT = Path(__file__).resolve().parents[1]
-EVIDENCE = ROOT / "docs/decisions/evidence/a10-model-recipes-refresh"
+EVIDENCE = ROOT / "docs/decisions/evidence/a10-control-recipes-refresh"
 
 
 def artifacts():
@@ -67,6 +67,32 @@ def test_active_product_binding_rejects_source_drift_even_with_valid_historical_
     (tmp_path / PRODUCT_PATHS[0]).write_bytes(b"changed retrieval implementation\n")
     with pytest.raises(ValueError, match="stale after product source change"):
         check_active_product_sources(evidence, tmp_path)
+
+
+def test_active_product_binding_rejects_omitted_control_pin_source(tmp_path):
+    identities = []
+    for relative in PRODUCT_PATHS:
+        if relative == "src/ls_prepost_mcp/domain/model/controls.py":
+            continue
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"public product fixture\n")
+        identities.append(dict(path=relative, sha256_lf=hashlib.sha256(path.read_bytes()).hexdigest()))
+    with pytest.raises(ValueError, match="every retrieval product source"):
+        check_active_product_sources(dict(product_source_identity=identities), tmp_path)
+
+
+def test_index_input_declarations_cover_each_actual_model_pin_source(tmp_path):
+    from ls_prepost_mcp.model_recipes import load_registry
+    from tools.refresh_knowledge_evidence import MODEL_RECIPE_INPUT_PATHS, index_input_paths
+
+    _, _, _, identity = load_registry()
+    pin_sources = {row["locator"].removeprefix("repo://") for row in identity.values()}
+    assert "src/ls_prepost_mcp/domain/model/controls.py" in pin_sources
+    assert len(pin_sources) == 6 and pin_sources == set(MODEL_RECIPE_INPUT_PATHS)
+    assert len(PRODUCT_PATHS) == 12 and pin_sources <= set(PRODUCT_PATHS)
+    declared = index_input_paths(tmp_path)
+    assert len(declared) == len(set(declared)) and pin_sources <= set(declared)
 
 
 def test_evidence_has_product_runner_query_and_corpus_blob_identities():
