@@ -1,4 +1,4 @@
-"""P08 small owned offline oracles and readback admission; no native dispatch in this stage."""
+"""P08 bounded owned oracles; native two-job readback requires explicit opt-in."""
 from __future__ import annotations
 
 import argparse
@@ -10,11 +10,14 @@ import os
 import re
 import stat
 import subprocess
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
+
+import psutil
 
 from ls_prepost_mcp.config import Settings
 from ls_prepost_mcp.core.contracts import Selector
 from ls_prepost_mcp.domain.model import KeywordDeck, access
+from ls_prepost_mcp.domain.model.includes import is_network
 from ls_prepost_mcp.gui_mesh import mesh_index
 from ls_prepost_mcp.native.versions import require_capability, require_installation
 from ls_prepost_mcp.service import Service
@@ -42,7 +45,7 @@ PRODUCT_PATHS = tuple("src/ls_prepost_mcp/" + p for p in (
 CAPTURE_SOURCE_PATHS = PRODUCT_PATHS + (
     "tools/verify_p08_mesh_roundtrip.py", "tools/verify_p05_boundary_roundtrip.py", "tools/native_regression.py",
     "tests/data/p08-mesh-roundtrip.json", "tests/test_p08_mesh_roundtrip_contract.py",
-    "tests/test_p08_mesh_roundtrip_guards.py", "pyproject.toml", "uv.lock",
+    "tests/test_p08_mesh_roundtrip_guards.py", "tests/test_p08_mesh_roundtrip_native.py", "pyproject.toml", "uv.lock",
 )
 BRIDGE_SOURCES = {"bridge.py": "src/ls_prepost_mcp/embedded.py",
     "native_commands.py": "src/ls_prepost_mcp/native/commands.py",
@@ -62,6 +65,13 @@ def fixture():
 
 def case_spec(ident):
     return copy.deepcopy(next(c for c in fixture()["cases"] if c["id"] == ident))
+
+
+def _local_path(value):
+    text = os.fspath(value)
+    if is_network(text) or PureWindowsPath(text).is_reserved():
+        raise ValueError("Network and device paths are not supported")
+    return Path(text)
 
 
 def _uid(value):
@@ -286,7 +296,7 @@ def prepare_case(directory, ident, identity):
     source_identity(identity)
     spec = case_spec(ident)
     validate_case(spec)
-    directory = Path(directory)
+    directory = _local_path(directory)
     if directory.resolve().is_relative_to(ROOT.resolve()):
         raise ValueError("Owned outputs must stay outside the checkout")
     directory.mkdir(parents=True, exist_ok=False)
@@ -340,8 +350,9 @@ def profile_inputs_identity(inputs):
     if not isinstance(inputs, dict) or set(inputs) != {"4.13", "4.10"}:
         raise ValueError("Declare both readonly private profiles")
     output = {}
+    locations = {version: (_local_path(row["executable"]), _local_path(row["source"])) for version, row in inputs.items()}
     for version, row in inputs.items():
-        executable, source = Path(row["executable"]), Path(row["source"])
+        executable, source = locations[version]
         shared._regular(source)
         before = source.stat()
         readonly = bool(getattr(before, "st_file_attributes", 0) & 1) if hasattr(before, "st_file_attributes") else not bool(before.st_mode & stat.S_IWUSR)
@@ -382,12 +393,13 @@ def validate_job_binding(manifest, expected_action, profile):
     if (manifest.get("status") != "succeeded" or manifest.get("action") != expected_action
             or manifest.get("execution_mode") != "nographics" or process.get("launch_mode") != "c"
             or process.get("timed_out") is not False or manifest.get("session_id") is not None
+            or type(process.get("returncode")) is not int
             or manifest.get("native_channel") != "embedded_python"
             or process.get("process_isolation") != "windows_job"):
         raise ValueError("Native role/mode/Windows Job binding mismatch")
     argv, executable = process.get("argv", []), manifest.get("executable", {})
-    if (not argv or any(str(value).startswith("w=") for value in argv) or Path(argv[0]).resolve() != Path(profile["executable_path"])
-            or Path(executable.get("path", "")).resolve() != Path(profile["executable_path"])):
+    if (not argv or any(str(value).startswith("w=") for value in argv) or _local_path(argv[0]).resolve() != _local_path(profile["executable_path"])
+            or _local_path(executable.get("path", "")).resolve() != _local_path(profile["executable_path"])):
         raise ValueError("Per-job executable path differs from selected profile")
     outer = profile["executable"]
     if any(executable.get(k) != outer[k] for k in ("size", "mtime_ns")):
@@ -396,7 +408,7 @@ def validate_job_binding(manifest, expected_action, profile):
     if not stat_only and executable.get("sha256") != outer["sha256"]:
         raise ValueError("Per-job executable hash is neither exact nor documented stat-only")
     config = process.get("configuration", {})
-    if (Path(config.get("source", "")).resolve() != Path(profile["source"])
+    if (_local_path(config.get("source", "")).resolve() != _local_path(profile["source"])
             or config.get("source_sha256") != profile["configuration"]["sha256"] or config.get("source_modified") is not False):
         raise ValueError("Native job used another private configuration")
     return dict(job_id=uid, expected_action=expected_action, pid=process["pid"],
@@ -420,6 +432,261 @@ def validate_job_pair(typed, exported, profile):
     return dict(record_validation_only=True, bindings=bindings)
 
 
+def _small_bytes(path, limit=2 * 1024 * 1024):
+    path = _local_path(path)
+    shared._regular(path)
+    before = path.stat()
+    with path.open("rb") as stream:
+        opened = os.fstat(stream.fileno())
+        raw = stream.read(limit + 1)
+        closed = os.fstat(stream.fileno())
+    shared._regular(path)
+    after = path.stat()
+    if (len(raw) > limit or len(raw) != before.st_size
+            or not (_stat_key(before) == _stat_key(opened) == _stat_key(closed) == _stat_key(after))):
+        raise ValueError("Bounded file changed while reading its complete bytes")
+    return raw
+
+
+def _json_file(path):
+    return json.loads(_small_bytes(path).decode("utf8"))
+
+
+def global_preferences_identity(paths):
+    """Passively observe only the two explicitly named files; never write/restore."""
+    if not isinstance(paths, dict) or set(paths) != {"4.13", "4.10"}:
+        raise ValueError("Specify both global preference monitoring paths")
+    result = {}
+    local_paths = {version: _local_path(value).absolute() for version, value in paths.items()}
+    for version, path in local_paths.items():
+        if not os.path.lexists(path):
+            result[version] = dict(path=str(path), exists=False)
+            continue
+        raw = _small_bytes(path)
+        info = path.stat()
+        result[version] = dict(path=str(path), exists=True, sha256=hashlib.sha256(raw).hexdigest(),
+                               size=len(raw), mtime_ns=info.st_mtime_ns, device=info.st_dev, inode=info.st_ino)
+    return result
+
+
+def _namespace(directory):
+    rows = []
+    for path in sorted(Path(directory).iterdir()):
+        info = path.lstat()
+        if path.is_symlink() or getattr(info, "st_file_attributes", 0) & 0x400:
+            raise ValueError("Protected namespace contains a reparse point")
+        rows.append((path.name, "directory" if stat.S_ISDIR(info.st_mode) else "file"))
+    return rows
+
+
+def native_inventory(profiles):
+    """Read process inventory for the two specified executable paths/names; never kill."""
+    paths = {str(Path(p["executable_path"]).resolve()).casefold() for p in profiles.values()}
+    names = {Path(p["executable_path"]).name.casefold() for p in profiles.values()}
+    result = []
+    for process in psutil.process_iter(["pid", "name", "exe"]):
+        info = process.info
+        if str(info.get("exe") or "").casefold() in paths or str(info.get("name") or "").casefold() in names:
+            result.append(info)
+    return sorted(result, key=lambda r: r["pid"])
+
+
+def _pid_jobs(root):
+    result = {}
+    for path in Path(root).glob("*/job.json"):
+        info = path.parent.lstat()
+        if path.parent.is_symlink() or getattr(info, "st_file_attributes", 0) & 0x400 or path.parent.parent.resolve() != Path(root).resolve():
+            raise ValueError("PID-bearing job namespace escaped its owned root")
+        manifest = _json_file(path)
+        process = (manifest.get("engine_result") or {}).get("data") or {}
+        if type(process.get("pid")) is int and process["pid"] > 0:
+            uid = manifest.get("job_id")
+            if uid != path.parent.name or re.fullmatch(r"[a-f0-9]{32}", str(uid)) is None or uid in result:
+                raise ValueError("PID-bearing job ownership/UUID mismatch")
+            result[uid] = dict(manifest_sha256=shared.sha(path), pid=process["pid"])
+    return result
+
+
+def _write_report(directory, name, value):
+    with (directory / name).open("x", encoding="utf8") as stream:
+        json.dump(shared._plain(value), stream, indent=2, allow_nan=False)
+
+
+def _admit_native_result(service, prepared, result, action, selected, captured, records, reports, label):
+    _write_report(reports, label + "-result.json", result)
+    if result.get("status") != "succeeded":
+        raise ValueError("Native API did not succeed; no retry or alternate mode")
+    uid = result.get("job_id")
+    if not isinstance(uid, str) or re.fullmatch(r"[a-f0-9]{32}", uid) is None or uid in records:
+        raise ValueError("Native response UUID is missing, duplicated or unowned")
+    directory = service.jobs.root / uid
+    info = directory.lstat()
+    if (not stat.S_ISDIR(info.st_mode) or directory.is_symlink() or getattr(info, "st_file_attributes", 0) & 0x400
+            or directory.parent.resolve() != service.jobs.root.resolve()):
+        raise ValueError("Native job escaped its owned batch root")
+    manifest = _json_file(directory / "job.json")
+    _write_report(reports, label + "-manifest.json", manifest)
+    if manifest.get("job_id") != uid:
+        raise ValueError("Native response/manifest UUID mismatch")
+    binding = validate_job_binding(manifest, action, selected)
+    if _local_path(manifest["engine_result"]["data"].get("cwd", "")).resolve() != directory.resolve():
+        raise ValueError("Native process cwd escaped its owned job")
+    validate_staged_bridge(directory, captured)
+    request, staged = _json_file(directory / "request.json"), directory / "input_data"
+    edited_bytes = _small_bytes(prepared["edited"], MAX_BYTES)
+    if (request.get("job_id") != uid or request.get("action") != action or request.get("parameters") != {}
+            or request.get("file_type") != "keyword" or request.get("raw_keyword_tree") or "input_tree" in manifest
+            or _local_path(request.get("job_directory", "")).resolve() != directory.resolve()
+            or _local_path(request.get("model", "")).resolve() != staged.resolve()
+            or _small_bytes(staged, MAX_BYTES) != edited_bytes
+            or hashlib.sha256(edited_bytes).hexdigest() != prepared["edited_identity"]["sha256"]):
+        raise ValueError("Native request/staged model differs from the admitted edited input")
+    source_input = manifest.get("input") or {}
+    if (_local_path(source_input.get("path", "")).resolve() != prepared["edited"].resolve()
+            or source_input.get("sha256") != prepared["edited_identity"]["sha256"]):
+        raise ValueError("Native manifest original input binding differs")
+    actual = _pid_jobs(service.jobs.root)
+    if len(actual) > 2 or set(actual) != {*records, uid}:
+        raise ValueError("PID-bearing job UUID set escaped the two-job plan")
+    files = [directory / name for name in (*BRIDGE_SOURCES, "request.json", "input_data", "job.json")]
+    records[uid] = dict(role=action, binding=binding, files={str(p): shared.sha(p) for p in files},
+                        child_os_creation_time="not_independently_observed")
+    return directory, manifest
+
+
+def verify_native_case(prepared, identity, inputs, version, global_preferences, reports, *, control_files=None):
+    """Exactly one owned case, at most two existing headless Service calls; no matrix."""
+    captured = source_identity(identity)  # Must precede every private/profile/output read.
+    if version not in ("4.13", "4.10"):
+        raise ValueError("An explicit central-policy profile is required")
+    case, reports = _local_path(prepared["directory"]), _local_path(reports)
+    _local_path(prepared["source"])
+    _local_path(prepared["edited"])
+    if prepared["spec"] != case_spec(prepared["spec"]["id"]):
+        raise ValueError("Prepared oracle differs from the admitted handwritten fixture")
+    profiles = profile_inputs_identity(inputs)
+    original_configs = {v: _small_bytes(row["source"]) for v, row in inputs.items()}
+    globals_before = global_preferences_identity(global_preferences)
+    controls = {str(_local_path(p)): digest for p, digest in (control_files or {}).items()}
+    controls_before = {p: hashlib.sha256(_small_bytes(p)).hexdigest() for p in controls}
+    if controls_before != controls:
+        raise ValueError("Private mapping JSON changed since its explicit admission")
+    case, reports = case.resolve(), reports.resolve()
+    if (reports.is_relative_to(case) or case.is_relative_to(reports)
+            or not prepared["source"].resolve().is_relative_to(case) or not prepared["edited"].resolve().is_relative_to(case)):
+        raise ValueError("Reports must be separate from the owned input parent namespace")
+    names_before = _namespace(prepared["source"].parent)
+    if native_inventory(profiles):
+        raise ValueError("Existing native processes prevent this bounded verification")
+    reports.mkdir(parents=True, exist_ok=False)
+    report = dict(status="failed", case=prepared["spec"]["id"], profile=version, maximum_native_jobs=2,
+        native_attempted=False, native_executed=False, typed_geometry_verified=False, L2_complete=False,
+        overall_task_accepted=False, performance_over_300000="not_tested", native_jobs={}, projection={},
+        source=identity, capture_source_identity=captured, profiles_before=profiles, global_before=globals_before,
+        control_file_sha256=controls_before,
+        global_preference_monitor=dict(source_kind="passive_environment_observation", isolation_proven=False,
+            scope="Only the two specified global preference files; not all APPDATA", writer_attribution="not_established",
+            monitoring="Before/after snapshots, not continuous", no_restore_or_global_file_edit=True),
+        execution_evidence_scope="Service results and recorded manifests; no independent process-lifetime attestation",
+        not_compared=["part_visibility", "selection_ids", "selection_types"],
+        native_retried=False, alternate_mode_or_GUI_or_session_started=False)
+    previous_env = {key: os.environ.get(key) for key in ("LSPP_CONFIG_SOURCE", "TEMP", "TMP")}
+    service, failure = None, None
+
+    def guards():
+        after_captured = source_identity(identity)
+        after_profiles = profile_inputs_identity(inputs)
+        after_configs = {v: _small_bytes(row["source"]) for v, row in inputs.items()}
+        after_globals = global_preferences_identity(global_preferences)
+        values = dict(source_unchanged=after_captured == captured, profiles_unchanged=after_profiles == profiles,
+            private_full_bytes_unchanged=after_configs == original_configs,
+            global_preferences_unchanged=after_globals == globals_before,
+            original_unchanged=shared._one_file(prepared["source"]) == prepared["source_identity"],
+            edited_unchanged=shared._one_file(prepared["edited"]) == prepared["edited_identity"],
+            original_parent_names_unchanged=_namespace(prepared["source"].parent) == names_before,
+            control_files_unchanged={p: hashlib.sha256(_small_bytes(p)).hexdigest() for p in controls} == controls_before,
+            no_native_processes_remain=not native_inventory(profiles),
+            admitted_job_files_unchanged=all(shared.sha(Path(p)) == digest
+                for row in report["native_jobs"].values() for p, digest in row["files"].items()))
+        report.update(profiles_after=after_profiles, global_after=after_globals)
+        if not values["global_preferences_unchanged"]:
+            report["status"] = "needs_global_preference_investigation"
+        if not all(values.values()):
+            raise ValueError("Fatal source/profile/config/global preference/input/namespace/job guard change: "
+                             + str([k for k, value in values.items() if not value]))
+        return values
+
+    try:
+        os.environ.update(LSPP_CONFIG_SOURCE=inputs[version]["source"], TEMP=str(case / "work"), TMP=str(case / "work"))
+        service = Service(Settings(case / "work", Path(inputs[version]["executable"]), (case,), timeout=60))
+        if service.jobs.root.resolve() != case / "work/jobs" or service._native_context.executor is not None or _pid_jobs(service.jobs.root):
+            raise ValueError("Fresh service must use only this case's batch root without a session or previous native jobs")
+        report["pre_native_guards"] = guards()
+        report["native_attempted"] = True
+        typed = service._native("gui_mesh_state", {}, model=str(prepared["edited"]), graphics=False)
+        _, typed_manifest = _admit_native_result(service, prepared, typed, "gui_mesh_state", profiles[version], captured,
+                                                  report["native_jobs"], reports, "typed")
+        report["after_typed_guards"] = guards()
+        report["projection"]["typed_differences"] = compare_typed(typed["data"], prepared["spec"])
+        if report["projection"]["typed_differences"]:
+            raise ValueError("Typed projection differs from the independent oracle")
+        exported = service.export_keyword(str(prepared["edited"]))
+        directory, manifest = _admit_native_result(service, prepared, exported, "export_keyword", profiles[version], captured,
+                                                   report["native_jobs"], reports, "export")
+        report["pair_binding"] = validate_job_pair(typed_manifest, manifest, profiles[version])
+        readback = directory / "model.k"
+        _small_bytes(readback, MAX_BYTES)
+        digest = shared.sha(readback)
+        for evidence in (exported, manifest):
+            artifacts = [row for row in evidence.get("artifacts", [])
+                if row.get("kind") == "keyword" and _local_path(row.get("path", "")).resolve() == readback.resolve()]
+            if len(artifacts) != 1 or artifacts[0].get("sha256") != digest:
+                raise ValueError("Ordinary export lacks the exact registered output artifact")
+        report["native_jobs"][exported["job_id"]]["files"][str(readback)] = digest
+        report["projection"]["export_differences"] = compare_export(readback, prepared["spec"])
+        if report["projection"]["export_differences"]:
+            raise ValueError("Export projection/reference retention differs from the independent oracle")
+        report["after_export_guards"] = guards()
+        report["status"] = "passed_case"
+    except BaseException as error:
+        failure = error
+        report["error"] = dict(type=type(error).__name__, message=str(error))
+    finally:
+        try:
+            report["final_guards"] = guards()
+        except BaseException as error:
+            failure = failure or error
+            report["final_guard_error"] = dict(type=type(error).__name__, message=str(error))
+        try:
+            if service is not None:
+                try:
+                    report["actual_pid_bearing_jobs"] = _pid_jobs(service.jobs.root)
+                    report["actual_native_job_count"] = len(report["actual_pid_bearing_jobs"])
+                    report["native_executed"] = bool(report["actual_pid_bearing_jobs"])
+                    if len(report["actual_pid_bearing_jobs"]) > 2:
+                        raise ValueError("Final job count exceeds the two-job ceiling")
+                except BaseException as error:
+                    failure = failure or error
+                    report["final_job_inventory_error"] = dict(type=type(error).__name__, message=str(error))
+            if failure is not None and report["status"] != "needs_global_preference_investigation":
+                report["status"] = "failed"
+            report["typed_geometry_verified"] = report["status"] == "passed_case" and report.get("actual_native_job_count") == 2
+            if report["typed_geometry_verified"]:
+                report["verified_scope"] = dict(case=prepared["spec"]["id"], profile=version,
+                    executable_sha256=profiles[version]["executable"]["sha256"], frame="reference",
+                    units=fixture()["units"], fields=["user node coordinates", "typed connectivity", "Part membership", "keyword references"])
+            _write_report(reports, "native-proof.json", report)
+        finally:
+            for key, value in previous_env.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
+    if failure is not None:
+        raise failure
+    return report
+
+
 def job_plan():
     return dict(native_executed=False, native_dispatch_enabled=False,
         units="caller-declared model coordinates, no conversion", frame="reference", identity="user UID plus entity kind, not internal index",
@@ -435,6 +702,7 @@ def job_plan():
         mandatory_future_admission=["source_identity before private profiles/output", "explicit readonly dual-profile full fingerprints",
             "per-role validate_job_pair and per-job validate_staged_bridge", "owned request/staged input SHA binding",
             "independent typed and keyword projections", "original/edited/source/profile after-guards and no residual native process"],
+        explicit_opt_in_dispatch_available=True, verification_scope="Only an actual individual case/build can be verified",
         physical_response="not_run", solver_or_GUI_equivalence="unverified")
 
 
@@ -445,16 +713,31 @@ def main(argv=None):
     parser.add_argument("--expected-head", required=True)
     parser.add_argument("--expected-source-snapshot", required=True)
     parser.add_argument("--run-native", action="store_true")
+    parser.add_argument("--profile", choices=("4.13", "4.10"))
+    parser.add_argument("--profiles", type=Path, help="Explicit dual readonly executable/configuration mapping with expected full SHA values")
+    parser.add_argument("--global-preferences", type=Path, help="Explicit mapping of the two global preference files to passively observe")
     args = parser.parse_args(argv)
     identity = execution_identity(ROOT)
     sources = source_identity(identity, args.expected_head, args.expected_source_snapshot)
+    _local_path(args.output)
     if args.run_native:
-        raise ValueError("Native dispatch is not enabled during offline preparation; root must approve the headless pilot")
+        if args.case == "all" or args.profile is None or args.profiles is None or args.global_preferences is None:
+            raise ValueError("Native opt-in requires one explicit case, profile, dual profiles and global preference mapping")
+        control_paths = tuple(_local_path(p) for p in (args.profiles, args.global_preferences))
+        control_bytes = {str(p): _small_bytes(p) for p in control_paths}
+        inputs, global_preferences = (json.loads(control_bytes[str(p)].decode("utf8")) for p in control_paths)
+        profile_inputs_identity(inputs)
+        global_preferences_identity(global_preferences)
     output = args.output.resolve()
     if output.is_relative_to(ROOT.resolve()) or not output.is_relative_to(ROOT.parent.resolve()):
         raise ValueError("Use fresh task-owned output outside the checkout")
     output.mkdir(parents=True, exist_ok=False)
     (output / "execution-context.json").write_text(json.dumps(identity, indent=2), encoding="utf8")
+    if args.run_native:
+        prepared = prepare_case(output / ("case-" + args.case), args.case, identity)
+        verify_native_case(prepared, identity, inputs, args.profile, global_preferences, output / "reports",
+                           control_files={p: hashlib.sha256(raw).hexdigest() for p, raw in control_bytes.items()})
+        return
     results = []
     for ident in CASE_IDS if args.case == "all" else (args.case,):
         prepared = prepare_case(output / ident, ident, identity)
