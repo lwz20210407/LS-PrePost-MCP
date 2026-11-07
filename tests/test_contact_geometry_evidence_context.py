@@ -12,8 +12,9 @@ from tools import verify_p12_joint_roundtrip as p12
 
 def test_refresh_scopes_are_explicit_and_distinct_from_history():
     index = json.loads(context.INDEX.read_text(encoding="utf8"))
-    assert len(context.P03_PRODUCT_PATHS) == 24 and len(context.P06_IDENTITY_PRODUCT_PATHS) == 35
+    assert len(context.P03_PRODUCT_PATHS) == 25 and len(context.P06_IDENTITY_PRODUCT_PATHS) == 35
     assert "src/ls_prepost_mcp/data/operations.json" in context.P03_PRODUCT_PATHS
+    assert "src/ls_prepost_mcp/domain/model/controls.py" in context.P03_PRODUCT_PATHS
     for paths in (context.P03_PRODUCT_PATHS, context.P06_IDENTITY_PRODUCT_PATHS, p05.PRODUCT_PATHS, p12.PRODUCT_PATHS):
         assert len(paths) == len(set(paths))
         assert {"src/ls_prepost_mcp/domain/model/contact_report.py", "src/ls_prepost_mcp/domain/model/contact.py"} <= set(paths)
@@ -57,6 +58,22 @@ def test_p03_current_scope_requires_operations_data_in_the_explicit_capture():
                                                if path != "src/ls_prepost_mcp/data/operations.json"])
     with pytest.raises(AssertionError, match="consumed host dependency"):
         context.require_host_products(incomplete, "P03")
+
+
+def test_p03_current_scope_rejects_missing_control_contract_source():
+    incomplete = dict(product_source_identity=[dict(path=path) for path in context.P03_PRODUCT_PATHS
+                                               if path != "src/ls_prepost_mcp/domain/model/controls.py"])
+    with pytest.raises(AssertionError, match="consumed host dependency"):
+        context.require_host_products(incomplete, "P03")
+
+
+def test_original_p03_24_archive_stays_readable_but_cannot_admit_current25():
+    path = context.INDEX.parent / "p03-host/evidence.json"
+    archived = json.loads(path.read_text(encoding="utf8"))
+    assert len(archived["product_source_identity"]) == 24
+    assert archived["actual_git_revision"] == "b75759754c7fa1a830de4b7703847f34cff95eaf"
+    with pytest.raises(AssertionError, match="consumed host dependency"):
+        context.require_host_products(archived, "P03")
 
 
 def test_current_geometry_host_capture_binds_its_own_protocol_test_and_actual_sources():
