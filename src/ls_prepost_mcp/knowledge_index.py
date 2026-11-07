@@ -208,6 +208,29 @@ def fieldless_document(record):
                     "keyword_docs://" + record.entity_key, "MIT", "public", record.version)
 
 
+def _search_text(row):
+    """Search registry functionality, keeping complete attributed JSON in documents.
+
+    Provider/version/evidence metadata describes provenance, not recipe actions.
+    Keep the full parameter schema searchable, including names, choices and help.
+    Invalid structured source data must fail rather than expose metadata as a fallback.
+    """
+    if row.source_id != "model-recipe-registry" or row.category != "recipe":
+        return row.text
+    try:
+        payload = json.loads(row.text)
+    except ValueError as error:
+        raise ValueError("Invalid model recipe search JSON") from error
+    if (not isinstance(payload, dict) or not isinstance(payload.get("id"), str)
+            or not isinstance(payload.get("description"), str) or not isinstance(payload.get("tags"), list)
+            or any(not isinstance(tag, str) for tag in payload["tags"])
+            or not isinstance(payload.get("parameters"), dict)
+            or payload.get("keyword") is not None and not isinstance(payload["keyword"], str)):
+        raise ValueError("Invalid model recipe search semantic fields")
+    return "\n".join([payload["id"], payload["description"], payload.get("keyword") or "", *payload["tags"],
+                      json.dumps(payload["parameters"], ensure_ascii=False, sort_keys=True)])
+
+
 def build_index(destination, documents, fields=(), fieldless=()):
     """Publish a complete index atomically; interrupted partials cannot block rebuilds."""
     path = Path(destination).resolve()
@@ -268,7 +291,7 @@ def build_index(destination, documents, fields=(), fieldless=()):
                 digest = hashlib.sha256(row.text.encode()).hexdigest()
                 db.execute("INSERT INTO documents VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (ident, *data.values(), digest))
                 tokens = _api_terms if row.category == "api" else terms
-                db.execute("INSERT INTO search_terms VALUES (?,?)", (ident, " ".join(tokens(row.title + " " + row.text))))
+                db.execute("INSERT INTO search_terms VALUES (?,?)", (ident, " ".join(tokens(row.title + " " + _search_text(row)))))
                 record = fieldless_map.get(row.title)
                 if record and fieldless_rows[row.title] is row:
                     db.execute("INSERT INTO keyword_without_fields VALUES (?,?,?,?,?,?)",
