@@ -361,6 +361,7 @@
 
 缺口：
 
+- ASCII SLEOUT仅两个已登记布局和三列raw能量有L1对照，其他格式、具名原生对照、接口CID/UI映射及物理总能量未验；数字前导外框记录按有限grammar拒绝，不判为非法LS-DYNA标题
 - extract_database（LASSO，不启动 LSPP）已按存储列名读取 12 类 binout 库，自动合并同目录 MPP 分片；重复 ID（RCFORC 的 side 0/1）按存储列区分。公开 binout（Bolt_B_Explicit、pyansys-heart）的 glstat / rcforc / nodout 与 lasso 直读逐值一致
 - ASCII RCFORC/SECFORC 保留接触两侧、legend 标题和截面 ac ID 原文参考标记（不推断坐标系）；五份公开文件全部可用列已核对。三向力的旧登记代码在 4.13/4.10 各七项原生对照通过；当前元数据、更多 ASCII 库和力矩/重心等原生对照仍缺
 - MPP 合并结果与单机结果一致性未验证：公开语料中没有同一模型的 MPP/SMP 成对算例（corpus:mpp_binout）；分片合并只有合成 LSDA 用例
