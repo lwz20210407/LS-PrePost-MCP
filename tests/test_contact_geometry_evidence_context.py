@@ -53,6 +53,17 @@ def test_missing_current_file_does_not_fall_back_to_available_history(tmp_path, 
         context.read_evidence("P03")
 
 
+@pytest.mark.parametrize("folder", ["p08-source-refresh", "g03-p09-source-refresh"])
+def test_each_fresh_context_directory_requires_the_runtime_capsule(tmp_path, monkeypatch, folder):
+    path = tmp_path / "docs/decisions/evidence" / folder / "p03-host/evidence.json"
+    path.parent.mkdir(parents=True)
+    path.write_text("{}", encoding="utf8")
+    monkeypatch.setattr(context, "ROOT", tmp_path)
+    monkeypatch.setattr(context, "evidence_path", lambda *args, **kwargs: path)
+    with pytest.raises(ValueError, match="capsule"):
+        context.read_evidence("P03")
+
+
 def test_p03_current_scope_requires_operations_data_in_the_explicit_capture():
     incomplete = dict(product_source_identity=[dict(path=path) for path in context.P03_PRODUCT_PATHS
                                                if path != "src/ls_prepost_mcp/data/operations.json"])

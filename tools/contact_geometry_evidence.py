@@ -49,7 +49,9 @@ def read_evidence(task, *, historical=False):
         expected = json.loads(INDEX.read_text(encoding="utf8"))["historical"][task]["sha256_lf"]
         assert hashlib.sha256(raw).hexdigest() == expected, "Historical evidence bytes changed: " + str(path)
     data = json.loads(raw)
-    if not historical and path.resolve().is_relative_to((ROOT / "docs/decisions/evidence/p08-source-refresh").resolve()):
+    capsule_folders = ("p08-source-refresh", "g03-p09-source-refresh")
+    if not historical and any(path.resolve().is_relative_to(
+            (ROOT / "docs/decisions/evidence" / folder).resolve()) for folder in capsule_folders):
         from tools.p08_refresh_capsule import validate_capsule
 
         validate_capsule(data, task, ROOT)

@@ -9,10 +9,13 @@ from pathlib import Path
 from tools.verify_p08_mesh_roundtrip import CAPTURE_SOURCE_PATHS, CASE_IDS, case_spec, compare_typed
 
 ROOT = Path(__file__).resolve().parents[1]
-FOLDER = ROOT / "docs/decisions/evidence/p08-mesh-readback"
+INDEX = ROOT / "docs/decisions/evidence/contact-geometry-refresh/context.json"
+SELECTION = json.loads(INDEX.read_text(encoding="utf8")).get("current_mesh_readback")
+FOLDER = ROOT / SELECTION["path"] if SELECTION else ROOT / "docs/decisions/evidence/p08-mesh-readback"
 
 
 def evidence():
+    assert FOLDER.resolve().is_relative_to((ROOT / "docs/decisions/evidence").resolve())
     return json.loads((FOLDER / "evidence.json").read_text(encoding="utf8"))
 
 
