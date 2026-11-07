@@ -55,6 +55,13 @@ def record(tmp_path, monkeypatch):
                                  for profile in gate.NATIVE_ROLES.get(task, {})})
         data = dict(actual_git_revision="a" * 40, source_snapshot_sha256=snapshot, working_tree_dirty=False,
                     native_executed=task not in gate.HOST_TASKS, p08_refresh_capsule=capsule)
+        if task == "P04":
+            data["native_run"] = dict(job_id=jobs[0]["job_id"])
+        elif task == "P10":
+            data["native_runs"] = [dict(native_job_ids=[job["job_id"] for job in jobs])]
+        elif task in gate.NATIVE_ROLES:
+            data.update(active_run_ids=["actual"], native_captures=[dict(id="actual", processes=[
+                dict(job_id=job["job_id"]) for job in jobs])])
         return root, data
     return make
 
@@ -158,3 +165,11 @@ def test_selector_can_leave_old_topic_but_not_evidence_root_or_fall_back_to_old_
 def test_runtime_contracts_reference_real_project_sources():
     paths = gate.HOST_SOURCES | gate.EMBEDDED_SOURCES | gate.PROGRAM_SOURCES
     assert all((context.ROOT / path).is_file() for path in paths)
+
+
+def test_capsule_cannot_replace_an_actual_domain_job_with_another_valid_uuid(record):
+    root, data = record("P10")
+    job = data["p08_refresh_capsule"]["native_jobs"][0]
+    job["job_id"] = job["engine_job_id"] = "f" * 32
+    with pytest.raises(ValueError, match="actual active domain jobs"):
+        gate.validate_capsule(data, "P10", root)

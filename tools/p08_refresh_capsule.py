@@ -75,6 +75,24 @@ def _sha(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
+def _domain_jobs(evidence, task):
+    if task == "P04":
+        identifiers = [evidence.get("native_run", {}).get("job_id")]
+    elif task == "P10":
+        runs = evidence.get("native_runs")
+        _require(isinstance(runs, list), "missing actual domain native runs")
+        identifiers = [uid for run in runs for uid in run.get("native_job_ids", [])]
+    else:
+        active, runs = evidence.get("active_run_ids"), evidence.get("native_captures")
+        _require(isinstance(active, list) and isinstance(runs, list), "missing actual active domain runs")
+        selected = [run for run in runs if run.get("id") in active]
+        _require(len(selected) == len(set(active)) == len(active), "active domain runs missing/duplicated")
+        identifiers = [process.get("job_id") for run in selected for process in run.get("processes", [])]
+    _require(identifiers and all(_hex(uid, 32) for uid in identifiers)
+             and len(identifiers) == len(set(identifiers)), "missing/duplicate actual domain job UUID")
+    return set(identifiers)
+
+
 def validate_capsule(evidence, task, root):
     """Reject missing/stale sources and unmeasured or wrong-role staged records."""
     _require(task in HOST_TASKS or task in NATIVE_ROLES, "unknown task runtime role")
@@ -179,3 +197,4 @@ def validate_capsule(evidence, task, root):
             _require(staged["program.py"].get("sha256_lf") == job["program_source_sha256_lf"], "generated program differs from intended source")
             _require(job.get("contract_program_sha256") == staged["program.py"]["sha256"], "contract does not bind staged program")
     _require(observed == NATIVE_ROLES[task], "native role counts/profiles incomplete")
+    _require(identifiers == _domain_jobs(evidence, task), "capsule job UUIDs differ from actual active domain jobs")
