@@ -146,6 +146,14 @@ def elements(deck: KeywordDeck, keyword: str, width: int,
     return table[:, 0], table[:, 1], table[:, 2:]
 
 
+def _shell_corners(conn: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Copy padded Tri3/Quad4 corners; identify only the existing N4=N3/0 Tri3 forms."""
+    triangle = (conn[:, 3] == conn[:, 2]) | (conn[:, 3] == 0)
+    corners = conn.copy()
+    corners[triangle, 3] = corners[triangle, 2]
+    return corners, triangle
+
+
 def _normalize(faces: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Collapsed quads of degenerate solids: first-appearance order, triangles padded (a b c c)."""
     ordered = np.empty_like(faces)
@@ -324,8 +332,13 @@ def select_elements(deck: KeywordDeck, keyword: str, *, parts: list[int] | None 
     if parts is not None:
         keep &= np.isin(pids, np.asarray(parts))
     if box is not None and eids.size:
+        triangle = None
+        if keyword == "*ELEMENT_SHELL":
+            conn, triangle = _shell_corners(conn)
         node_ids, xyz = nodes(deck)
         lookup = _index(node_ids)
         centroid = xyz[lookup[conn]].mean(axis=1)
+        if triangle is not None:
+            centroid[triangle] = xyz[lookup[conn[triangle, :3]]].mean(axis=1)
         keep &= ((centroid >= np.asarray(box[:3])) & (centroid <= np.asarray(box[3:]))).all(axis=1)
     return eids[keep]

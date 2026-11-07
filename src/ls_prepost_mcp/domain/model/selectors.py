@@ -26,7 +26,7 @@ import numpy as np
 from ...core import contracts as c
 from ._identity import exact_integer
 from .fields import FieldError
-from .geometry import _index, elements, exterior_segments, nodes
+from .geometry import _index, _shell_corners, elements, exterior_segments, nodes
 
 if TYPE_CHECKING:
     from .deck import KeywordDeck
@@ -104,10 +104,7 @@ def _universe(deck: KeywordDeck, entity: str) -> tuple[np.ndarray, np.ndarray | 
     eids, pids, conn = elements(deck, keyword, width)
     triangle = None
     if entity == "shell" and conn.size:
-        # Existing Tri3 forms use N4=N3 or N4=0; neither adds a fourth corner.
-        triangle = (conn[:, 3] == conn[:, 2]) | (conn[:, 3] == 0)
-        conn = conn.copy()
-        conn[triangle, 3] = conn[triangle, 2]
+        conn, triangle = _shell_corners(conn)
     node_ids, xyz = nodes(deck)
     lookup = _index(node_ids)
     if conn.size and (conn.max() >= lookup.size or (lookup[conn] < 0).any()):

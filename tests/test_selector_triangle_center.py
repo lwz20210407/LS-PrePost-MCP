@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from ls_prepost_mcp.domain.model import FieldError, KeywordDeck
-from ls_prepost_mcp.domain.model.geometry import elements
+from ls_prepost_mcp.domain.model.geometry import elements, select_elements
 from ls_prepost_mcp.domain.model.selectors import resolve, selector
 
 
@@ -73,6 +73,34 @@ def test_quad_spatial_predicates_keep_four_corner_mean(tmp_path, keyword_sdk, ki
     before = path.read_bytes()
     assert resolve(deck, dict(entity_type="shell", predicate=_predicate(kind, [1.5, 1.5, 0]))).tolist() == [41]
     assert resolve(deck, dict(entity_type="shell", predicate=_predicate(kind, [1, 1, 0]))).tolist() == []
+    assert path.read_bytes() == before
+
+
+@pytest.mark.parametrize("n4", [33, 0, None], ids=["repeat", "zero", "blank"])
+def test_legacy_triangle_box_matches_selector_without_mutation(tmp_path, keyword_sdk, n4):
+    path, deck = _load(tmp_path, n4)
+    before = path.read_bytes()
+    conn_before = elements(deck, "*ELEMENT_SHELL", 4)[2].copy()
+    refs_before = deck.references(True)
+    for center, expected in (([1, 1, 0], [41]), ([.75, 1.5, 0], [])):
+        predicate = _predicate("box", center)
+        box = predicate["minimum"] + predicate["maximum"]
+        assert select_elements(deck, "*ELEMENT_SHELL", box=box).tolist() == expected
+        assert resolve(deck, dict(entity_type="shell", predicate=predicate)).tolist() == expected
+    assert path.read_bytes() == before
+    assert np.array_equal(elements(deck, "*ELEMENT_SHELL", 4)[2], conn_before)
+    assert deck.references(True).defined == refs_before.defined
+
+
+def test_legacy_quad_box_and_element_order_remain_unchanged(tmp_path, keyword_sdk):
+    path, _ = _load(tmp_path, quad=True)
+    # Reading order is intentionally different from sorted user-ID order.
+    row = "".join(f"{v:8d}" for v in (41, 7, 11, 22, 44, 33))
+    path.write_bytes(path.read_bytes().replace(row.encode(), (row.replace(f"{41:8d}", f"{81:8d}", 1) + "\n" + row).encode()))
+    before = path.read_bytes()
+    predicate = _predicate("box", [1.5, 1.5, 0])
+    box = predicate["minimum"] + predicate["maximum"]
+    assert select_elements(KeywordDeck.load(path), "*ELEMENT_SHELL", box=box).tolist() == [81, 41]
     assert path.read_bytes() == before
 
 
