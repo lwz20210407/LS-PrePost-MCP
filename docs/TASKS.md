@@ -203,8 +203,8 @@
 
 缺口：
 
-- 终止 / 时间步 / 全局沙漏 / 能量 / d3plot / 34 个 ASCII 库已登记为 run_recipe 六叶及原子组合候选，复用 set_control；L1 参数/事务与两种 MCP 路由已测，原生保存重开仍待本轮证据，不代表物理验收
-- 保存后 LSPP 原生重开核对未做（原生侧，见 P11）
+- 终止 / 时间步 / 全局沙漏 / 能量 / d3plot / 34 个 ASCII 库已登记为 run_recipe 六叶及原子组合候选，复用 set_control；L1 参数/事务与两种 MCP 路由已测，actual0162两版各3job核八卡显式字段保留；不代表全部ASCII库、typed控制卡或物理验收
+- 实际新pin run_recipe→saved root重开→ordinary export已在4.13/4.10验证调用者八卡字段、几何和引用；34个ASCII库中其余31个的覆盖、typed_control_recognition与求解器响应仍未验，状态保持partial
 
 ### P11 保存并原生重开验证
 

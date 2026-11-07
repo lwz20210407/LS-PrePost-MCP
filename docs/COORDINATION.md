@@ -8,9 +8,9 @@
 
 | 跟踪任务 | 当前状态与交付 |
 |---|---|
-| P10 | 六叶控制/输出及原子组合已实现，113定点与内部15控制通过；原P03参数合同保留，旧内容pin明确过期。原生8卡回读工具并行准备；P03显式25/A10显式12来源、一次新公开索引及98冻结题回放待实际干净源捕获，仍partial |
+| P10 / A10 | 六叶及原子组合完成；actual0162两版6个headless job核八卡显式值/几何/引用，51关键来源当前不变；新80e P03 60与P10 108主机、wheel及单R2公开98题通过。R1截图召回回退已保留，通用FTS语义投影恢复15/24；均partial，待精确PR头五CI |
 | P06 身份 | #174精确d8d五项CI通过已合main06b8；旧51c5真实28红、overlay3红、bcfa UserDict2红与clean85的87项/内部4控制原值保留。几何接线后actual cleanb757原执行集87项与35关键来源真刷新，新context不重绑旧记录；P06仍partial/L1 |
-| P06 几何 / 依赖来源 | check_model只读contact_geometry opt-in已接，预算/覆盖缺口不充零，native_verified=false；actual cleanb757独立geometry host90/39来源、P03原60/显式24、身份87/35及offline wheel785079B/221成员/9旧refs与原Elastic pin通过，各host角色重叠不累计。P05两版6job、P12两版18job按当前43来源真刷新，typed/物理/原生Contact Check不升级；五份新context/报告独立于原40/41，待精确PR头正式CI |
+| P06 几何 / 依赖来源 | #175五项CI通过已合main21978，check_model只读contact_geometry opt-in已接，预算/覆盖缺口不充零，native_verified=false；actual cleanb757独立geometry host90/39来源、P03原60/显式24、身份87/35及offline wheel785079B/221成员/9旧refs与原Elastic pin通过，各host角色重叠不累计。P05两版6job、P12两版18job按当前43来源真刷新，typed/物理/原生Contact Check不升级；五份新context/报告独立于原40/41，待精确PR头正式CI |
 | Q01 / Q05 | #129 已退回 partial；#130 已修 Part 标题/PID 口径；#136 已修删除标记并补非零节点的 4.13/4.10 对照。广泛结果覆盖与独立审阅仍待补 |
 | I01 / P02 / P11 / I02 | #131–#134 已修访问点守卫、搜索路径另存、必需检查失败的总状态、真实另存树原生重开；保留首轮失败及旧证据 |
 | A10 / I05 | #137 已限制去重概念数；#139 已在精确头五项 CI 通过后自审合入查询端拆词和证据复跑。真实 API 来源与检索质量仍有缺口 |
@@ -57,3 +57,5 @@ Q01/Q05 及其他任务今后改为 done 前，须按用户安排完成独立审
 - 只用 merge 同步主干。CI 后主干出现重叠文件改动时，重新同步并验证。
 - headless 原生串行执行，记录 revision、dirty 状态、输入及产物身份；GUI/UU 没有新窗口时保留待测。
 - 公开仓库不提交受限语料、私有路径、安装手册、原生日志或凭据；复用共享环境，不建每任务环境。
+
+P08 下一项：selector-only 的合并重复节点/统一法向会误作用全局，clean21978两红→独立fe73两绿及56定点通过；不混入P10源，8项原生用例工具另行准备，未执行新Native/30万模型。
