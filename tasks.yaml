@@ -611,6 +611,7 @@ tasks:
     status: partial
     existing: [extract_database, extract_native_binout_curve, extract_native_ascii_curve, extract_binout_curve, extract_binout_table, extract_ascii_curve]
     gaps:
+      - "ASCII SPCFORC仅两种已登记local布局有L1读取；不支持多set同节点、global/其他格式，local基底未知、未作坐标转换或具名原生比较。entity_metadata数组保完整source列序，用stored_columns对齐筛选实体；没有删除有效性或物理守恒认证"
       - ASCII SLEOUT仅两个已登记布局和三列raw能量有L1对照，其他格式、具名原生对照、接口CID/UI映射及物理总能量未验；数字前导外框记录按有限grammar拒绝，不判为非法LS-DYNA标题
       - extract_database（LASSO，不启动 LSPP）已按存储列名读取 12 类 binout 库，自动合并同目录 MPP 分片；重复 ID（RCFORC 的 side 0/1）按存储列区分。公开 binout（Bolt_B_Explicit、pyansys-heart）的 glstat / rcforc / nodout 与 lasso 直读逐值一致
       - ASCII RCFORC/SECFORC 保留接触两侧、legend 标题和截面 ac ID 原文参考标记（不推断坐标系）；五份公开文件全部可用列已核对。三向力的旧登记代码在 4.13/4.10 各七项原生对照通过；当前元数据、更多 ASCII 库和力矩/重心等原生对照仍缺
@@ -619,6 +620,8 @@ tasks:
       - ASCII MATSUM已接5个具名能量列并在3公共源49460值逐值核对；直接MATSUM原生具名对照、更多布局/列仍缺，eroded_he尚无受支持映射且对应量明确拒绝；不可把共享GLSTAT回归当MATSUM原生证据
       - ASCII NODOUT仅9个具名平动分量，保留原始节点ID/写出框架且删除有效性unknown；更多布局、坐标/转动导出和具名原生比较仍缺。合法MLP隐式指数下溢属产品float64表示限制，不当源错误或静默填0
     notes:
+      - "ASCII SPCFORC新增六个原始local节点force/moment分量，setid仅原文引用非CSID；actual clean d86两源9成功导出270192值exact、3未存moment实际failed且不补0，完整695源码/输入守卫通过；真实135000moment均为源中真0，非零moment仅自有合成oracle，仍L1/partial"
+      - "SPCFORC包装层修改后actual d86真实刷新原两SLEOUT14490值及六NODOUT231147值与两拒绝负例，62host UUID及Source/input/目录守卫均通过；此前0c9和cdc记录原字节保留，新current证据指针有Git/LF严格门禁，不改旧hash冒领复跑"
       - ASCII SLEOUT新增side_a/side_b/frictional三列原始能量读取，保留slave/master或surfa/surfb标签与printed接口ID，不认证keyword CID/UI；actual clean0c9两源6曲线14490值逐值相同，6757非零，原始输入与689源码前后守卫通过，L1/partial、无Native
       - SLEOUT包装层变更后actual0c9真实重跑六NODOUT/54曲线231147值和两拒绝负例；私有R2收尾审计误要求空data导致原proof failed，后验只读严格复核保留四项失败上下文/空numeric payload与56UUID，未重跑或改原proof；旧cdc对象原值保留，新来源独立归档
       - NODOUT干净cdc1957在6公共正例54曲线231147值逐值一致；双表同step/time按平动/转动区分，转动只验完整性不导出，436相关/9跳过及两拒绝负例分计。无NODOUT原生记录，仍L1
@@ -656,6 +659,18 @@ tasks:
       - tools/verify_ascii_sleout_corpus.py
       - docs/decisions/evidence/q06-ascii-sleout/report.md
       - docs/decisions/evidence/q06-sleout-source-refresh/nodout/report.md
+      - src/ls_prepost_mcp/domain/results/ascii_spcforc.py
+      - tests/test_ascii_spcforc_parser.py
+      - tests/test_ascii_spcforc_database.py
+      - tests/test_ascii_spcforc_corpus.py
+      - tests/test_ascii_spcforc_evidence.py
+      - tests/test_spcforc_metadata_indexing.py
+      - tools/verify_ascii_spcforc_corpus.py
+      - tools/current_ascii_evidence.py
+      - docs/decisions/evidence/q06-ascii-spcforc/report.md
+      - docs/decisions/evidence/q06-current.json
+      - docs/decisions/evidence/q06-spcforc-source-refresh/sleout/report.md
+      - docs/decisions/evidence/q06-spcforc-source-refresh/nodout/report.md
     acceptance:
       - GLSTAT、MATSUM、RCFORC、SECFORC、NODOUT、ELOUT、SLEOUT、NODFOR、SPCFORC、RBDOUT、NCFORC、DEFORC 各一个用例
       - 按名称指定分量（不用 UI 编号）；返回单位与原始列名
