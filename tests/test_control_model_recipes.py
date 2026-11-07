@@ -32,6 +32,11 @@ OLD_P03 = [
 
 
 @pytest.fixture
+def sdk():
+    pytest.importorskip("ansys.dyna.core")
+
+
+@pytest.fixture
 def model(tmp_path, monkeypatch):
     source = tmp_path / "input.k"
     source.write_text("*KEYWORD\n*END\n", encoding="ascii")
@@ -57,6 +62,7 @@ def test_p10_catalog_has_six_leaves_and_atomic_story_without_native_claims(model
 
 
 @pytest.mark.parametrize("reference,keyword,params", CASES)
+@pytest.mark.usefixtures("sdk")
 def test_leaf_writes_only_caller_values(model, reference, keyword, params):
     source, service = model
     before = source.read_bytes()
@@ -87,6 +93,7 @@ def test_each_leaf_requires_units_before_edit(model, monkeypatch, reference, par
         service.run_recipe(reference, {"params": params}, str(source))
 
 
+@pytest.mark.usefixtures("sdk")
 def test_ascii_whitelist_uses_existing_34_core_names(model):
     source, service = model
     result = service.run_recipe("model:output-ascii", dict(units="g-mm-us", params=dict(names=list(controls.ASCII), dt=.1, binary=0)), str(source))
@@ -135,6 +142,7 @@ def test_composite_requires_every_explicit_component_before_edit(model, monkeypa
         service.run_recipe("model:control-output", values, str(source))
 
 
+@pytest.mark.usefixtures("sdk")
 def test_composite_dispatches_once_and_late_engine_failure_publishes_nothing(model, monkeypatch):
     source, service = model
     calls = []
@@ -164,6 +172,7 @@ def test_real_pre_p10_content_pins_stale_before_any_edit(model, monkeypatch, old
         service.run_recipe(old_reference, {}, str(source))
 
 
+@pytest.mark.usefixtures("sdk")
 def test_newly_discovered_p03_pin_and_bare_latest_remain_functional(model):
     source, service = model
     row = next(r for r in service.find_recipe(task_id="P03", include_candidates=True) if r["id"] == "model:mat-001-elastic")
@@ -175,6 +184,7 @@ def test_newly_discovered_p03_pin_and_bare_latest_remain_functional(model):
     assert latest["status"] == "succeeded" and latest["data"]["recipe"]["reference_policy"] == "explicit_latest"
 
 
+@pytest.mark.usefixtures("sdk")
 def test_positive_output_curve_reference_is_not_bypassed(model):
     source, service = model
     result = service.run_recipe("model:output-d3plot", dict(units="g-mm-us", params=dict(dt=1., lcdt=987)), str(source))
@@ -193,6 +203,7 @@ def test_p10_documents_carry_the_discovered_pin_without_building_an_index(model)
         assert by_id[row["id"]]["task_id"] == "P10"
 
 
+@pytest.mark.usefixtures("sdk")
 def test_control_provider_type_drift_refuses_before_edit(model, monkeypatch):
     from ls_prepost_mcp import model_recipes
 
