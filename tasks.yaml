@@ -1065,6 +1065,8 @@ tasks:
     target_tools: [query_entities]
     status: partial
     existing: [list_nodes, get_element_connectivity, inspect_gui_mesh]
+    notes:
+      - 合法keyword Tri3的第四槽0/空白已按共享几何规范化为重复N3，Identify保留四槽并标明非raw表示；Part只计3真实节点，真实缺失节点仍拒绝。actual65db干净提交相关46通过/1跳过，旧2911同测试选27项8失败19通过；此主机修复不替代历史原生证据，仍partial
     gaps:
       - 'query_entities 已用共享关键字引擎和 LASSO 实现只读节点/solid/shell/Part 查询，支持 Include、空白字段、同连接后缀、指定状态的标量值与变形坐标；d3plot 材料/截面关键字用户 ID 未存储时返回 null 和 partial，不猜测同目录 .k；beam/tshell、完整结果几何 Selector 与材料显式映射待补，任务保持 partial'
       - 'PR #98（反重力，2026-10-22 关闭未合，分支 antigravity/G04-entity-identify 保留）另写了按空白切分的关键字解析器：空白字段坐标读错，不处理 *INCLUDE 和 _THICKNESS 等后缀（公开 main.k 15390 个单元报 0 个仍 succeeded），d3plot 同目录任意 .k 被当作配套模型。重做时模型侧须用 domain/model 关键字引擎，结果侧复用 lasso_backend'
@@ -1077,6 +1079,8 @@ tasks:
       - tests/test_entity_sparse_index.py
       - tests/test_entity_query_native.py
       - docs/decisions/evidence/g04-entity-query/report.md
+      - tests/test_entity_keyword_triangles.py
+      - docs/decisions/evidence/g04-keyword-triangles/report.md
 
 # ---------------------------------------------------------------------------
 # 基础设施（不计入用户任务进度，但里程碑退出依赖它们）
