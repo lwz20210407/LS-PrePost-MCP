@@ -8,6 +8,7 @@
 
 | 跟踪任务 | 当前状态与交付 |
 |---|---|
+| G03 / P09 | actual clean2911修合法Tri3三点质心与普通BEAM基础端点质量；集成110项、SDK缺席11过45跳、旧壳/实体完整报告两组字节等价。两版八MeshOp32job和默认31job按当前源真实刷新，新context保actual2911，旧8ffc及其它历史原值保留；A10 12产品/27输入不变无新索引/98题；仍partial，详见[G03/P09报告](decisions/evidence/g03-p09-regressions/report.md) |
 | P10 / A10 | #176最终ba03五CI全绿merge main ebb2817，main push亦成功；8ffc选择范围共享源变更后相关默认源验证实际刷新，A10 12产品/27输入不变不重建索引或冒领98新查询；仍partial |
 | P06 身份 | #174精确d8d五项CI通过已合main06b8；旧51c5真实28红、overlay3红、bcfa UserDict2红与clean85的87项/内部4控制原值保留。几何接线后actual cleanb757原执行集87项与35关键来源真刷新，新context不重绑旧记录；P06仍partial/L1 |
 | P06 几何 / 依赖来源 | #175五项CI通过已合main21978，check_model只读contact_geometry opt-in已接，预算/覆盖缺口不充零，native_verified=false；actual cleanb757独立geometry host90/39来源、P03原60/显式24、身份87/35及offline wheel785079B/221成员/9旧refs与原Elastic pin通过，各host角色重叠不累计。P05两版6job、P12两版18job按当前43来源真刷新，typed/物理/原生Contact Check不升级；五份新context/报告独立于原40/41，待精确PR头正式CI |

@@ -518,8 +518,10 @@ def check_deck(path: str, include_paths: tuple[str, ...] = (), thresholds: dict 
                          "not_checked": joint_report["not_checked"][:20]}}
     unchecked = [f"References not read: {name} x{count}" for name, count in report.unchecked.items()]
     unchecked += [f"Joint check not verified: {u.get('keyword', '')} {u['reason']}" for u in joint_report["unverified"][:20]]
+    quality_complete = True
     if include_mesh:
         checked = quality.check_quality(deck, thresholds, coincident_tol)
+        quality_complete = checked.get("quality_coverage", {}).get("complete", True)
         errors += checked["errors"]
         unchecked += [f"Mesh block not read: {item}" for item in checked["unchecked_mesh_blocks"]]
         result["quality"] = {k: v for k, v in checked.items() if k != "errors"}
@@ -540,7 +542,7 @@ def check_deck(path: str, include_paths: tuple[str, ...] = (), thresholds: dict 
             warnings.append("Contact geometry estimate has unevaluated contacts; see contact_geometry.not_checked")
     result["errors"] = errors
     result["unchecked"] = unchecked
-    result["complete"] = not unchecked and geometry_complete
+    result["complete"] = not unchecked and geometry_complete and quality_complete
     # ok=True only means no objective defect was found in what was evaluated.
     result["ok"] = not errors
     return result

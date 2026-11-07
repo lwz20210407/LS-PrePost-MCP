@@ -332,7 +332,8 @@ tasks:
       - 选择范围回归已修：只传selector时merge_duplicate_nodes与unify_shell_normals复用共享G03选择器，旧main21978同一外置测试两红、fe73两绿；未选实体与引用保持
       - 干净actual8ffc两版各8项、每项typed DataCenter加ordinary keyword export共32个真实headless job通过，非连续user UID/参考坐标/连接/Part归属及未选sentinel逐值核对；不是GUI操作或求解器响应等价
       - source62/完整676文件快照、两readonly profile、指定两global prefs及input目录/原文件/job桥与请求输出守卫前后均通过；只记录指定全局文件被动观测，不宣称整个APPDATA隔离
-    evidence: [src/ls_prepost_mcp/domain/model/operations.py, tests/test_mesh_selector_scope.py, tools/verify_p08_mesh_roundtrip.py, tests/data/p08-mesh-roundtrip.json, tests/test_p08_mesh_roundtrip_contract.py, tests/test_p08_mesh_roundtrip_guards.py, tests/test_p08_mesh_roundtrip_native.py, tests/test_p08_mesh_readback_evidence.py, docs/decisions/evidence/p08-mesh-readback/report.md]
+      - G03/P09共享几何、选择器、质量与Ops变更后，actual clean2911两版八项32job及P04/P05/P12/P10默认31job真实重跑并独立新归档；旧8ffc记录原值保留，不升级大模型性能或完整任务验收
+    evidence: [src/ls_prepost_mcp/domain/model/operations.py, tests/test_mesh_selector_scope.py, tools/verify_p08_mesh_roundtrip.py, tests/data/p08-mesh-roundtrip.json, tests/test_p08_mesh_roundtrip_contract.py, tests/test_p08_mesh_roundtrip_guards.py, tests/test_p08_mesh_roundtrip_native.py, tests/test_p08_mesh_readback_evidence.py, docs/decisions/evidence/p08-mesh-readback/report.md, docs/decisions/evidence/g03-p09-mesh-readback/report.md]
     acceptance:
       - v0.5 范围：平移、旋转、镜像、复制、合并重复节点、法向统一、按范围重编号、删除单元（8 项）各一个 L2 用例
       - 每项：选中实体坐标/连接按预期变化，未选实体逐值不变，引用检查通过
@@ -350,8 +351,12 @@ tasks:
     target_tools: [check_model]
     status: partial
     existing: [check_gui_keywords, check_gui_shell_quality, check_gui_solid_quality, inspect_mesh_quality, inspect_gui_mesh_quality, validate_model_references, check_model]
+    notes:
+      - 普通ELEMENT_BEAM复用shared AST读EID/PID/N1/N2并报告稳定端点长度；仅显式普通SECTION_BEAM ELFORM1/2/4/5/11/12/13/14分类零长客观缺陷，6/7/8/9及未知/隐式形式保留未评估覆盖，不填默认物理阈值
+      - exact clean2911集成相关110项通过，SDK缺席模拟11过45跳非完整minimal；原main四红、未读取节点/歧义身份/非有限数和TSHELL缺口分列，15节点三单元旧完整报告两组字节等价；只读与unchecked原义保持，仍partial/L1
+    evidence: [src/ls_prepost_mcp/domain/model/quality.py, src/ls_prepost_mcp/domain/model/operations.py, tests/test_beam_quality_contract.py, tests/test_g03_p09_regression_evidence.py, docs/decisions/evidence/g03-p09-regressions/report.md]
     gaps:
-      - check_model 汇总引用 / 重复 / 质量 / 坐标舍入 / 自由格式列宽 / 规定运动曲线长度；梁与厚壳质量未覆盖
+      - check_model 汇总引用 / 重复 / 质量 / 坐标舍入 / 自由格式列宽 / 规定运动曲线长度；普通梁仅新增端点长度与显式普通ELFORM零长缺陷，特殊/未知形式、梁力学与厚壳质量仍未覆盖
       - 与原生 Keyword Check 的交叉核对未做
     acceptance:
       - 一次调用汇总 Keyword Check、壳/实体/四面体质量、重复节点、未引用对象、悬空引用，每条问题带实体 ID
@@ -1035,6 +1040,10 @@ tasks:
     depends_on: [I02]
     status: partial
     existing: [select_gui_entities, select_gui_nodes_by_box, select_gui_nodes_by_sphere, select_gui_nodes_by_plane, select_gui_shell_topology, combine_gui_selections, save_gui_selection_buffer, load_gui_selection_buffer]
+    notes:
+      - 参考坐标空间Selector与legacy盒选共用Tri3角点归一化，合法N4=N3/0/空白只计三个真实角点；raw连接/输入/引用及quad既有行为保留，未扩展到变形坐标或d3plot一致性验收
+      - 手写三角形真质心1,1而旧填充均值0.75,1.5：cleanmain外置一红/quad一绿，legacy另三红/顺序一绿；actual clean2911集成110项通过，后续两版有限网格32job仅验证共享源兼容，不冒作新增Tri3原生选择或完整G03验收
+    evidence: [src/ls_prepost_mcp/domain/model/geometry.py, src/ls_prepost_mcp/domain/model/selectors.py, tests/test_selector_triangle_center.py, tests/test_g03_p09_regression_evidence.py, docs/decisions/evidence/g03-p09-regressions/report.md]
     gaps:
       - 选择逻辑分散在 8 个工具；只在参考坐标；实体外表面传播未认证
     acceptance:

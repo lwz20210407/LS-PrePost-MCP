@@ -26,7 +26,7 @@ import numpy as np
 from ...core import contracts as c
 from ._identity import exact_integer
 from .fields import FieldError
-from .geometry import _index, elements, exterior_segments, nodes
+from .geometry import _index, _shell_corners, elements, exterior_segments, nodes
 
 if TYPE_CHECKING:
     from .deck import KeywordDeck
@@ -102,11 +102,16 @@ def _universe(deck: KeywordDeck, entity: str) -> tuple[np.ndarray, np.ndarray | 
         return np.asarray(sorted(deck.references(False).defined.get("part", set())), dtype=np.int64), None, None
     keyword, width = ELEMENTS[entity]
     eids, pids, conn = elements(deck, keyword, width)
+    triangle = None
+    if entity == "shell" and conn.size:
+        conn, triangle = _shell_corners(conn)
     node_ids, xyz = nodes(deck)
     lookup = _index(node_ids)
     if conn.size and (conn.max() >= lookup.size or (lookup[conn] < 0).any()):
         raise FieldError(f"{keyword} rows reference undefined nodes")
     centroid = xyz[lookup[conn]].mean(axis=1) if conn.size else np.empty((0, 3))
+    if triangle is not None:
+        centroid[triangle] = xyz[lookup[conn[triangle, :3]]].mean(axis=1)
     return eids, centroid, pids
 
 
