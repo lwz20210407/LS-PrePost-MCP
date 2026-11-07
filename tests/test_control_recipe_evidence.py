@@ -1,6 +1,5 @@
 """Current P10 evidence is source-bound; archived material evidence stays immutable."""
 import hashlib
-import json
 import re
 import subprocess
 from pathlib import Path
@@ -8,7 +7,6 @@ from pathlib import Path
 from tools.contact_geometry_evidence import evidence_path, read_evidence
 
 ROOT = Path(__file__).resolve().parents[1]
-EVIDENCE = ROOT / "docs/decisions/evidence/p10-control-output/evidence.json"
 
 
 def strings(value):
@@ -26,7 +24,7 @@ def strings(value):
 def test_control_recipe_evidence_retains_actual_scope_and_explicit_native_projection():
     from tools.verify_p10_control_roundtrip import CAPTURE_SOURCE_PATHS, fixture
 
-    data = json.loads(EVIDENCE.read_text(encoding="utf8"))
+    data = read_evidence("P10")
     assert data["status"] == "partial" and data["task_acceptance_complete"] is False
     assert data["working_tree_dirty"] is False and data["native_executed"] is True
     assert data["typed_control_recognition"] == "unverified" and data["physical_response"] == "not_run"
@@ -61,9 +59,9 @@ def test_control_recipe_evidence_retains_actual_scope_and_explicit_native_projec
 
 
 def test_new_control_contexts_have_reports_and_preserve_prior_capture_bytes():
-    data = json.loads(EVIDENCE.read_text(encoding="utf8"))
+    data = read_evidence("P10")
     p03 = read_evidence("P03")
-    for path, evidence in ((EVIDENCE, data), (evidence_path("P03"), p03)):
+    for path, evidence in ((evidence_path("P10"), data), (evidence_path("P03"), p03)):
         assert len(path.read_bytes()) < 512 * 1024
         report = path.with_name(evidence["report"]).read_bytes().replace(b"\r\n", b"\n")
         assert hashlib.sha256(report).hexdigest() == evidence["report_sha256_lf"]
