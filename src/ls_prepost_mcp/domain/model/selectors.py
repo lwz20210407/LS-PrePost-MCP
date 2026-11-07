@@ -102,11 +102,19 @@ def _universe(deck: KeywordDeck, entity: str) -> tuple[np.ndarray, np.ndarray | 
         return np.asarray(sorted(deck.references(False).defined.get("part", set())), dtype=np.int64), None, None
     keyword, width = ELEMENTS[entity]
     eids, pids, conn = elements(deck, keyword, width)
+    triangle = None
+    if entity == "shell" and conn.size:
+        # Existing Tri3 forms use N4=N3 or N4=0; neither adds a fourth corner.
+        triangle = (conn[:, 3] == conn[:, 2]) | (conn[:, 3] == 0)
+        conn = conn.copy()
+        conn[triangle, 3] = conn[triangle, 2]
     node_ids, xyz = nodes(deck)
     lookup = _index(node_ids)
     if conn.size and (conn.max() >= lookup.size or (lookup[conn] < 0).any()):
         raise FieldError(f"{keyword} rows reference undefined nodes")
     centroid = xyz[lookup[conn]].mean(axis=1) if conn.size else np.empty((0, 3))
+    if triangle is not None:
+        centroid[triangle] = xyz[lookup[conn[triangle, :3]]].mean(axis=1)
     return eids, centroid, pids
 
 
