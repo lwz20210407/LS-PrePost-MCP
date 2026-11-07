@@ -14,3 +14,6 @@ Lease proof SHA256 `0d1856d78110e4d506c0f71c644940cceb3edb59464aaee8c3f6d921b3fa
 真实回归采用clean21978及保留的外部current-test overlay（确有test SHA）的两个失败；最早06b无test SHA记录不补造，不将本次Native/host重新绑定到旧版本。wheel首次collector取单个TextContent失败与同包R2修正分开保留，未改原proof/log；如果后续新source重建wheel，则另列实际新上下文。
 
 结果仅有限定义字段保留；typed_control_recognition仍unverified、physical_response=not_run。无R11/GUI，整体验收不完成；provider/recipe metadata维持L1，任务保持partial，原接受标准/版本不改。A10检索/索引另由独立证据负责，本报告不宣称其结果不变。
+
+
+后续仅测试兼容修复：首轮CI 7da0242 的Ubuntu 3.11为4640过/1失败，minimal为3415过/11失败，另外三任务因fail-fast取消，均未算绿。十个依赖PyDYNA的执行用例现局部声明SDK，44个发现/参数/旧pin用例保持无SDK执行；actual clean0d8有SDK54过，孤立SDK缺席模拟44过/10跳过（不是完整最小环境）。A08全目录测试两处显式取limit50，保留5/6断言、默认limit20/排序和警告；b2a独立模块实际通过。原80e的108项host及0162 Native来源不重绑，没有新Native或索引建库，最终完整矩阵由PR新头CI决定。
