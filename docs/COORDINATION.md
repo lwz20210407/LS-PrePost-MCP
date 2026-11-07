@@ -9,7 +9,7 @@
 | 跟踪任务 | 当前状态与交付 |
 |---|---|
 | G03 / P09 | #178精确703五项正式CI全绿，merge main5ec22b6。actual clean2911修合法Tri3三点质心与普通BEAM基础端点质量；集成110项、SDK缺席11过45跳、旧壳/实体完整报告两组字节等价。两版八MeshOp32job和默认31job按当前源真实刷新，新context保actual2911，旧8ffc及其它历史原值保留；A10 12产品/27输入不变无新索引/98题；仍partial，详见[G03/P09报告](decisions/evidence/g03-p09-regressions/report.md) |
-| G04 keyword Tri3 | 已修合法第四槽0/空白导致单元与Part识别失败；四槽规范化padding有显式元数据，原卡片/Include字节保持，真实缺节点仍拒。clean65db相关46通过/1跳，旧2911选27项8失败19通过；新主机证据独立归档，旧原生不重绑。已用merge同步#178，等待此PR精确头CI；仍partial，详见[G04报告](decisions/evidence/g04-keyword-triangles/report.md) |
+| G04 keyword Tri3 | 已修合法第四槽0/空白导致单元与Part识别失败；四槽规范化padding有显式元数据，原卡片/Include字节保持，真实缺节点仍拒。clean65db相关46通过/1跳，旧2911选27项8失败19通过；新主机证据独立归档，旧原生不重绑。#179精确f2e65五项CI通过，已merge main5fb08；仍partial，详见[G04报告](decisions/evidence/g04-keyword-triangles/report.md) |
 | P10 / A10 | #176最终ba03五CI全绿merge main ebb2817，main push亦成功；8ffc选择范围共享源变更后相关默认源验证实际刷新，A10 12产品/27输入不变不重建索引或冒领98新查询；仍partial |
 | P06 身份 | #174精确d8d五项CI通过已合main06b8；旧51c5真实28红、overlay3红、bcfa UserDict2红与clean85的87项/内部4控制原值保留。几何接线后actual cleanb757原执行集87项与35关键来源真刷新，新context不重绑旧记录；P06仍partial/L1 |
 | P06 几何 / 依赖来源 | #175五项CI通过已合main21978，check_model只读contact_geometry opt-in已接，预算/覆盖缺口不充零，native_verified=false；actual cleanb757独立geometry host90/39来源、P03原60/显式24、身份87/35及offline wheel785079B/221成员/9旧refs与原Elastic pin通过，各host角色重叠不累计。P05两版6job、P12两版18job按当前43来源真刷新，typed/物理/原生Contact Check不升级；五份新context/报告独立于原40/41，待精确PR头正式CI |
@@ -23,6 +23,7 @@
 | Q07 本轮 | #154 已合入9c3c614，PR/main五项CI全绿；4.13/4.10各20原生通过，默认14组数值逐位保持。任务仍partial |
 | I05 / A10 | #155零命中诊断已五项CI全绿合入；#159四冻结题集公开复跑14/20、22/30、15/24、13/24，根逐条重查引用/分数一致；补产品漂移与通用词形门禁，缺API来源与独立留出仍partial，#159精确头五项CI全绿已合入 |
 | Q05 | #156时程及#161限定4.13/default的beam轴力native_check均五项CI全绿合入；正式两样本26条力/时间差0、身份守卫通过；版本策略归统一能力表，仍partial |
+| Q06 SLEOUT / NODOUT来源 | actual clean0c9新增SLEOUT三原始能量列，两源6曲线14490值exact；数字孤行先真实red再修。包装层变更后NODOUT六源54曲线231147值及两拒绝负例已实跑；原host审计过严的failed proof保留，独立同批后验复核通过、无重跑。源码/输入守卫及所有旧对象保持，L1/partial/noNative；新PR等待精确五CI，详见[SLEOUT报告](decisions/evidence/q06-ascii-sleout/report.md)与[NODOUT来源报告](decisions/evidence/q06-sleout-source-refresh/nodout/report.md) |
 | Q06 | #160与#163已在各精确头五CI全绿后合入，#163进入49cd217；NODOUT九平动列6公共231147值、raw/unknown life与来源门禁已有，未原生仍L1；eroded_he有限审计不足以命名映射，保留gap |
 | I01 结果族 | #162已在6212430精确头五项CI全绿后合入d946f1e；raw路径分类及P11来源过期已修，a20两版P11/beam/标题真重跑，原门禁保留；仍partial |
 | P04 | #168已合；#175 CI指出旧operations来源过期后actual clean342b显式13来源、单4.13一个headless job真复验，四owned节点/三sets membership成立、ADD order false；PROGRAM/SOURCE/动作未改。新context独立选择，旧1289/01a/950/d139及b757五context不改；controller/child OS创建未观测、host时间不冒充OS时间，private input与global passive分开，仍partial |
