@@ -1,4 +1,4 @@
-"""Explicit evidence selection for the contact-geometry dependency refresh only."""
+"""Explicit evidence selection; new P08 refresh contexts require runtime capsules."""
 import hashlib
 import json
 from pathlib import Path
@@ -48,7 +48,12 @@ def read_evidence(task, *, historical=False):
     if historical:
         expected = json.loads(INDEX.read_text(encoding="utf8"))["historical"][task]["sha256_lf"]
         assert hashlib.sha256(raw).hexdigest() == expected, "Historical evidence bytes changed: " + str(path)
-    return json.loads(raw)
+    data = json.loads(raw)
+    if not historical and path.resolve().is_relative_to((ROOT / "docs/decisions/evidence/p08-source-refresh").resolve()):
+        from tools.p08_refresh_capsule import validate_capsule
+
+        validate_capsule(data, task, ROOT)
+    return data
 
 
 def require_host_products(evidence, task):

@@ -20,7 +20,7 @@ def test_refresh_scopes_are_explicit_and_distinct_from_history():
         assert {"src/ls_prepost_mcp/domain/model/contact_report.py", "src/ls_prepost_mcp/domain/model/contact.py"} <= set(paths)
     assert len(p05.CAPTURE_SOURCE_PATHS) == len(p12.CAPTURE_SOURCE_PATHS) == 43
     for task in index["current"]:
-        assert context.evidence_path(task).is_relative_to(context.INDEX.parent)
+        assert context.evidence_path(task).is_relative_to(context.ROOT / "docs/decisions/evidence")
         if task in index["historical"]:
             assert context.evidence_path(task) != context.evidence_path(task, historical=True)
 
