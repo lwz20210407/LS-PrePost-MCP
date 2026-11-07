@@ -309,6 +309,32 @@ def prepare_case(directory, ident, identity):
                 service=service, creation=creation)
 
 
+def _stat_key(info):
+    return info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns
+
+
+def _executable_stat(path):
+    info = path.lstat()
+    if not stat.S_ISREG(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
+        raise ValueError("Expected a regular non-reparse executable file")
+    return info
+
+
+def _executable_identity(path):
+    """Stream the whole executable without applying a keyword size limit."""
+    before = _executable_stat(path)
+    with path.open("rb") as stream:
+        opened = os.fstat(stream.fileno())
+        digest = hashlib.file_digest(stream, "sha256").hexdigest()
+        closed = os.fstat(stream.fileno())
+    after = _executable_stat(path)
+    if (not stat.S_ISREG(opened.st_mode) or not stat.S_ISREG(closed.st_mode)
+            or not (_stat_key(before) == _stat_key(opened) == _stat_key(closed) == _stat_key(after))):
+        raise ValueError("Executable changed while reading its complete bytes")
+    return dict(sha256=digest, size=after.st_size, mtime_ns=after.st_mtime_ns,
+                device=after.st_dev, inode=after.st_ino)
+
+
 def profile_inputs_identity(inputs):
     """Full readonly dual-profile fingerprints; no global preferences or C++ launch."""
     if not isinstance(inputs, dict) or set(inputs) != {"4.13", "4.10"}:
@@ -316,7 +342,6 @@ def profile_inputs_identity(inputs):
     output = {}
     for version, row in inputs.items():
         executable, source = Path(row["executable"]), Path(row["source"])
-        shared._regular(executable)
         shared._regular(source)
         before = source.stat()
         readonly = bool(getattr(before, "st_file_attributes", 0) & 1) if hasattr(before, "st_file_attributes") else not bool(before.st_mode & stat.S_IWUSR)
@@ -327,23 +352,20 @@ def profile_inputs_identity(inputs):
             raw = f.read(2 * 1024 * 1024 + 1)
             closed = os.fstat(f.fileno())
         after = source.stat()
-        def key(s):
-            return s.st_dev, s.st_ino, s.st_size, s.st_mtime_ns
-        if not (key(before) == key(opened) == key(closed) == key(after)) or len(raw) != before.st_size:
+        if not (_stat_key(before) == _stat_key(opened) == _stat_key(closed) == _stat_key(after)) or len(raw) != before.st_size:
             raise ValueError("Private configuration changed while reading complete bytes")
         configuration = dict(sha256=hashlib.sha256(raw).hexdigest(), size=len(raw), mtime_ns=after.st_mtime_ns,
                              device=after.st_dev, inode=after.st_ino, readonly=True)
-        exe_before = executable.stat()
-        fingerprint = shared._file_identity(executable)
-        exe_after = executable.stat()
-        if key(exe_before) != key(exe_after) or fingerprint["size"] != exe_after.st_size:
-            raise ValueError("Executable changed while measuring its complete fingerprint")
+        fingerprint = _executable_identity(executable)
         if (row.get("executable_sha256") != fingerprint["sha256"] or row.get("source_sha256") != configuration["sha256"]):
             raise ValueError("Profile full SHA differs from the explicit expected executable/configuration")
         policy = require_installation(executable, version=version)
         if policy["version_source"] != "file_version_resource":
             raise ValueError("Executable resource-backed policy is required")
         require_capability(executable, "batch")
+        final_executable = _executable_stat(executable)
+        if _stat_key(final_executable) != (fingerprint["device"], fingerprint["inode"], fingerprint["size"], fingerprint["mtime_ns"]):
+            raise ValueError("Executable changed while reading its version/batch policy")
         output[version] = dict(executable=fingerprint, configuration=configuration, source=str(source.resolve()),
                                executable_path=str(executable.resolve()), profile=policy,
                                directory_entries=sorted(p.name for p in source.parent.iterdir()))

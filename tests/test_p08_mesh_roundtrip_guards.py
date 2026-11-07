@@ -3,6 +3,7 @@ import copy
 import hashlib
 import json
 import stat
+from types import SimpleNamespace
 
 import pytest
 
@@ -190,6 +191,90 @@ def test_dual_private_profiles_require_full_expected_hashes_and_readonly(tmp_pat
     inputs["4.10"]["source_sha256"] = "0" * 64
     with pytest.raises(ValueError, match="full SHA"):
         verifier.profile_inputs_identity(inputs)
+
+
+def test_executable_fingerprint_does_not_use_keyword_size_limit(tmp_path, monkeypatch):
+    inputs, policy_calls = {}, []
+    monkeypatch.setattr(verifier.shared, "MAX_BYTES", 32)
+    for version in ("4.13", "4.10"):
+        folder = tmp_path / version
+        folder.mkdir()
+        exe, cfg = folder / "never-started.exe", folder / "lsppconf"
+        exe.write_bytes(b"synthetic executable bytes" * 4)
+        cfg.write_bytes(b"synthetic preferences")
+        cfg.chmod(stat.S_IREAD)
+        with pytest.raises(ValueError, match="bounded owned regular keyword"):
+            verifier.shared._regular(exe)
+        inputs[version] = dict(executable=str(exe), source=str(cfg),
+            executable_sha256=hashlib.sha256(exe.read_bytes()).hexdigest(),
+            source_sha256=hashlib.sha256(cfg.read_bytes()).hexdigest())
+    def installation(path, *, version):
+        policy_calls.append((str(path), version, "resource"))
+        return dict(version_source="file_version_resource")
+    monkeypatch.setattr(verifier, "require_installation", installation)
+    monkeypatch.setattr(verifier, "require_capability", lambda path, capability: policy_calls.append((str(path), capability)))
+    result = verifier.profile_inputs_identity(inputs)
+    assert set(result) == {"4.13", "4.10"}
+    for version, row in result.items():
+        assert row["executable"]["sha256"] == inputs[version]["executable_sha256"]
+        assert row["executable"]["size"] > verifier.shared.MAX_BYTES
+        assert (inputs[version]["executable"], version, "resource") in policy_calls
+        assert (inputs[version]["executable"], "batch") in policy_calls
+
+
+@pytest.mark.parametrize("kind", ["directory", "symlink", "reparse"])
+def test_executable_fingerprint_rejects_nonregular_or_reparse(tmp_path, monkeypatch, kind):
+    exe = tmp_path / "never-started.exe"
+    exe.write_bytes(b"synthetic executable")
+    original = type(exe).lstat
+    info = exe.lstat()
+    fake = SimpleNamespace(st_mode=stat.S_IFDIR if kind == "directory" else stat.S_IFLNK if kind == "symlink" else info.st_mode,
+                           st_file_attributes=0x400 if kind == "reparse" else 0)
+    monkeypatch.setattr(type(exe), "lstat", lambda path: fake if path == exe else original(path))
+    with pytest.raises(ValueError, match="regular non-reparse executable"):
+        verifier._executable_identity(exe)
+
+
+@pytest.mark.parametrize("change", ["opened_identity", "bytes_during_hash"])
+def test_executable_fingerprint_requires_same_file_and_stable_bytes(tmp_path, monkeypatch, change):
+    exe = tmp_path / "never-started.exe"
+    exe.write_bytes(b"synthetic executable")
+    if change == "opened_identity":
+        original = verifier.os.fstat
+        def changed_stat(fd):
+            info = original(fd)
+            return SimpleNamespace(st_mode=info.st_mode, st_dev=info.st_dev, st_ino=info.st_ino + 1,
+                                   st_size=info.st_size, st_mtime_ns=info.st_mtime_ns)
+        monkeypatch.setattr(verifier.os, "fstat", changed_stat)
+    else:
+        original = verifier.hashlib.file_digest
+        def changed_bytes(stream, algorithm):
+            digest = original(stream, algorithm)
+            exe.write_bytes(b"different longer synthetic executable")
+            return digest
+        monkeypatch.setattr(verifier.hashlib, "file_digest", changed_bytes)
+    with pytest.raises(ValueError, match="changed while reading its complete bytes"):
+        verifier._executable_identity(exe)
+
+
+@pytest.mark.parametrize("failure", ["keyword_limit", "config_limit", "writable"])
+def test_executable_guard_does_not_relax_private_config_limits(tmp_path, monkeypatch, failure):
+    exe, cfg = tmp_path / "never-started.exe", tmp_path / "lsppconf"
+    exe.write_bytes(b"synthetic executable bytes" * 4)
+    cfg.write_bytes(b"synthetic preferences")
+    if failure != "writable":
+        cfg.chmod(stat.S_IREAD)
+    if failure == "keyword_limit":
+        monkeypatch.setattr(verifier.shared, "MAX_BYTES", 4)
+    elif failure == "config_limit":
+        original = type(cfg).stat
+        info = cfg.stat()
+        fake = SimpleNamespace(st_file_attributes=1, st_mode=info.st_mode, st_size=2 * 1024 * 1024 + 1)
+        monkeypatch.setattr(type(cfg), "stat", lambda path, **kw: fake if path == cfg else original(path, **kw))
+    row = dict(executable=str(exe), source=str(cfg), executable_sha256=hashlib.sha256(exe.read_bytes()).hexdigest(),
+               source_sha256=hashlib.sha256(cfg.read_bytes()).hexdigest())
+    with pytest.raises(ValueError, match="bounded owned regular keyword|readonly and bounded"):
+        verifier.profile_inputs_identity({"4.13": row, "4.10": row})
 
 
 def test_staged_bridge_and_native_helpers_must_match_admitted_bytes(tmp_path):
