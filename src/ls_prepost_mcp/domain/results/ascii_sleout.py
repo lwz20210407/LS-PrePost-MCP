@@ -108,7 +108,8 @@ def parse(lines, component):
             # Numeric-leading preamble is ambiguous with an orphan ID/row and
             # is rejected regardless of column count, rather than guessed to
             # be a model title. Also reserve damaged IDs followed by scalars.
-            row_like = (tokens[0][0] in "+-*0123456789" or tokens[0].casefold() in ("nan", "inf", "infinity")
+            row_like = (NUMBER.fullmatch(tokens[0]) is not None or tokens[0][0] in "+-*0123456789"
+                        or tokens[0].casefold() in ("nan", "inf", "infinity")
                         or (len(tokens) > 1 and all(NUMBER.fullmatch(token) for token in tokens[1:])))
             if text.startswith("#") or normalized.startswith(("summary", "total ", "friction energy")) or row_like:
                 raise ResultsError("Unsupported SLEOUT preamble/table syntax outside an active time block")

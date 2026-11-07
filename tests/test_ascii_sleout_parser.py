@@ -117,6 +117,17 @@ def test_incomplete_or_extra_orphan_numeric_records_are_not_titles(prefix):
         parse((prefix+frame(0, 1, FIRST)).splitlines(True), "side_a_energy")
 
 
+@pytest.mark.parametrize("prefix", [".5\n", " .5\n"])
+def test_decimal_orphan_numeric_records_are_not_titles(prefix):
+    with pytest.raises(ValueError, match="outside an active time block"):
+        parse((prefix+frame(0, 1, FIRST)).splitlines(True), "side_a_energy")
+
+
+def test_dot_prefixed_prose_is_still_supported_preamble():
+    result = parse((".model title\n"+frame(0, 1, FIRST)).splitlines(True), "side_a_energy")
+    assert result["values"] == [[1., -4.]]
+
+
 @pytest.mark.parametrize("component", ["slave", "master", "total_energy", "frictional", "1"])
 def test_only_the_three_declared_aliases_are_exported(component):
     with pytest.raises(ValueError, match="component"):
