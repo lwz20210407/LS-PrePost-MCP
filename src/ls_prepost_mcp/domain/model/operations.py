@@ -348,7 +348,7 @@ def _mesh_op(deck: KeywordDeck, edit: dict) -> dict:
             return renumber.renumber(deck, edit["kind"], {int(a): int(b) for a, b in edit["mapping"].items()})
         return renumber.renumber_range(deck, edit["kind"], int(edit["first"]), int(edit["last"]), int(edit["start"]))
     if op == "merge_duplicate_nodes":
-        ids = _ids(deck, edit, "node") if ("ids" in edit or "select" in edit) else None
+        ids = _ids(deck, edit, "node") if ("ids" in edit or "select" in edit or "selector" in edit) else None
         return renumber.merge_duplicate_nodes(deck, float(edit["tolerance"]), ids)
     if op == "delete_elements":
         return renumber.delete_elements(deck, edit["keyword"], _ids(deck, edit, "element"),
@@ -356,7 +356,7 @@ def _mesh_op(deck: KeywordDeck, edit: dict) -> dict:
     if op == "reverse_elements":
         return mesh.reverse_elements(deck, edit["keyword"], _ids(deck, edit, "element"))
     if op == "unify_shell_normals":
-        ids = _ids(deck, {**edit, "keyword": "*ELEMENT_SHELL"}, "element") if ("ids" in edit or "select" in edit) \
+        ids = _ids(deck, {**edit, "keyword": "*ELEMENT_SHELL"}, "element") if ("ids" in edit or "select" in edit or "selector" in edit) \
             else None
         return mesh.unify_shell_normals(deck, ids, edit.get("direction"))
     raise FieldError(f"Unknown mesh op {op!r}")

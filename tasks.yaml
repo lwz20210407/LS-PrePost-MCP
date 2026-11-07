@@ -328,6 +328,11 @@ tasks:
       - mesh_ops 已覆盖平移 / 旋转 / 镜像 / 复制 / 阵列 / 偏置 / 合并重复节点 / 法向统一 / 按范围重编号 / 删除单元
       - 30 万单元合并与重编号只在私有语料上测过，记录不在仓库
       - GUI 与文件后端的近重复工具仍在（I08 别名期内）
+    notes:
+      - 选择范围回归已修：只传selector时merge_duplicate_nodes与unify_shell_normals复用共享G03选择器，旧main21978同一外置测试两红、fe73两绿；未选实体与引用保持
+      - 干净actual8ffc两版各8项、每项typed DataCenter加ordinary keyword export共32个真实headless job通过，非连续user UID/参考坐标/连接/Part归属及未选sentinel逐值核对；不是GUI操作或求解器响应等价
+      - source62/完整676文件快照、两readonly profile、指定两global prefs及input目录/原文件/job桥与请求输出守卫前后均通过；只记录指定全局文件被动观测，不宣称整个APPDATA隔离
+    evidence: [src/ls_prepost_mcp/domain/model/operations.py, tests/test_mesh_selector_scope.py, tools/verify_p08_mesh_roundtrip.py, tests/data/p08-mesh-roundtrip.json, tests/test_p08_mesh_roundtrip_contract.py, tests/test_p08_mesh_roundtrip_guards.py, tests/test_p08_mesh_roundtrip_native.py, tests/test_p08_mesh_readback_evidence.py, docs/decisions/evidence/p08-mesh-readback/report.md]
     acceptance:
       - v0.5 范围：平移、旋转、镜像、复制、合并重复节点、法向统一、按范围重编号、删除单元（8 项）各一个 L2 用例
       - 每项：选中实体坐标/连接按预期变化，未选实体逐值不变，引用检查通过
