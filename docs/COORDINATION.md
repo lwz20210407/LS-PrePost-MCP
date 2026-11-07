@@ -4,10 +4,11 @@
 
 ## 当前工作
 
-截至 2026-11-05，按昨日交接恢复 Codex 内部多 Agent 并行；外部四 AI/AO 仍暂停。先收尾 I05/Q05/Q06，根代理统一共享文档和集成、原生 LSPP 串行。REA 仅在具体原生逻辑不明时按需使用，不恢复全量队列。
+截至 2026-11-07，按交接继续 Codex 内部多 Agent 并行；外部四 AI/AO 仍暂停。先收尾 I05/Q05/Q06，根代理统一共享文档和集成、原生 LSPP 串行。REA 仅在具体原生逻辑不明时按需使用，不恢复全量队列。
 
 | 跟踪任务 | 当前状态与交付 |
 |---|---|
+| P10 | 六叶控制/输出及原子组合已实现，113定点与内部15控制通过；原P03参数合同保留，旧内容pin明确过期。原生8卡回读工具并行准备；P03显式25/A10显式12来源、一次新公开索引及98冻结题回放待实际干净源捕获，仍partial |
 | P06 身份 | #174精确d8d五项CI通过已合main06b8；旧51c5真实28红、overlay3红、bcfa UserDict2红与clean85的87项/内部4控制原值保留。几何接线后actual cleanb757原执行集87项与35关键来源真刷新，新context不重绑旧记录；P06仍partial/L1 |
 | P06 几何 / 依赖来源 | check_model只读contact_geometry opt-in已接，预算/覆盖缺口不充零，native_verified=false；actual cleanb757独立geometry host90/39来源、P03原60/显式24、身份87/35及offline wheel785079B/221成员/9旧refs与原Elastic pin通过，各host角色重叠不累计。P05两版6job、P12两版18job按当前43来源真刷新，typed/物理/原生Contact Check不升级；五份新context/报告独立于原40/41，待精确PR头正式CI |
 | Q01 / Q05 | #129 已退回 partial；#130 已修 Part 标题/PID 口径；#136 已修删除标记并补非零节点的 4.13/4.10 对照。广泛结果覆盖与独立审阅仍待补 |
