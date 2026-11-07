@@ -101,7 +101,7 @@ def test_no_installation_keeps_bundled_and_legacy_queries(tmp_path, monkeypatch)
     service = Service(Settings(tmp_path))
     assert len(service.find_recipe()) == 5
     with pytest.warns(RuntimeWarning, match="not configured"):
-        found = service.find_recipe(include_candidates=True)
+        found = service.find_recipe(include_candidates=True, limit=50)
         bundled = [row for row in found if not row["id"].startswith("model:")]
         assert len(bundled) == 5
         assert {row["id"] for row in bundled} == {row["id"] for row in service.find_recipe()}
@@ -111,7 +111,7 @@ def test_no_installation_keeps_bundled_and_legacy_queries(tmp_path, monkeypatch)
         assert service.find_recipe("legacy", include_candidates=True)[0]["reference"] == old["artifacts"][0]["path"]
     monkeypatch.setenv("LSPP_TEMPLATE_ROOT", str(tmp_path / "absent"))
     with pytest.warns(RuntimeWarning, match="no supported catalog paths"):
-        found = service.find_recipe(include_candidates=True)
+        found = service.find_recipe(include_candidates=True, limit=50)
         assert len([row for row in found if not row["id"].startswith("model:")]) == 6
 
 
