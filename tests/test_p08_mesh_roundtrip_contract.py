@@ -69,12 +69,12 @@ def test_one_job_retention_is_not_claimed_as_typed_geometry():
     assert plan["native_executed"] is False
 
 
-def test_native_flag_cannot_dispatch_during_offline_preparation(tmp_path, monkeypatch):
+def test_native_flag_requires_explicit_single_case_and_private_inputs(tmp_path, monkeypatch):
     from tools import verify_p08_mesh_roundtrip as verifier
 
     monkeypatch.setattr(verifier, "execution_identity", lambda *a: {})
     monkeypatch.setattr(verifier, "source_identity", lambda *a, **kw: {})
-    with pytest.raises(ValueError, match="offline preparation"):
+    with pytest.raises(ValueError, match="one explicit case"):
         verifier.main(["--output", str(tmp_path / "never"), "--expected-head", "a" * 40,
                        "--expected-source-snapshot", "b" * 64, "--run-native"])
     assert not (tmp_path / "never").exists()
