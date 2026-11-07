@@ -181,6 +181,9 @@ def query_entities(service, path, selector, source_kind, state, quantity, units)
                 info = inspect_loaded_deck(deck)
                 node_ids, xyz = geometry.nodes(deck)
                 tables = {f: geometry.elements(deck, key, width) for f, (key, width) in FAMILIES.items()}
+                shell_ids, shell_parts, shell_conn = tables["shell"]
+                shell_conn, triangular_shells = geometry._shell_corners(shell_conn)
+                tables["shell"] = shell_ids, shell_parts, shell_conn
                 definitions = {int(row["pid"]): row for row in info["parts"]}
                 if len(definitions) != len(info["parts"]):
                     raise ValueError("Duplicate Part IDs cannot be identified unambiguously")
@@ -262,6 +265,17 @@ def query_entities(service, path, selector, source_kind, state, quantity, units)
             if xyz.shape != (node_ids.size, 3) or not np.isfinite(xyz).all():
                 raise ValueError("Node coordinates must be finite and aligned with stored user IDs")
             rows = _describe(kind, selected, node_ids, xyz, tables, parts, definitions, warnings)
+            if source_kind == "keyword" and kind == "shell":
+                triangular_ids = set(shell_ids[triangular_shells].tolist())
+                for row in rows:
+                    if row["entity_id"] in triangular_ids:
+                        row["connectivity_representation"] = {
+                            "topology": "tri3",
+                            "stored_slots": 4,
+                            "padding": "repeat_third_node",
+                            "normalized": True,
+                            "raw_keyword_connectivity": False,
+                        }
             if quantity is not None and selected.size:
                 if kind in FAMILIES:
                     key = (
