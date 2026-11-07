@@ -11,7 +11,10 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from ._identity import exact_integer
+from .fields import FieldError
 from .geometry import _index, elements, nodes
+from .layouts import Unsupported
 
 if TYPE_CHECKING:
     from .deck import KeywordDeck
@@ -184,6 +187,128 @@ def _defined(conn: np.ndarray, lookup: np.ndarray) -> np.ndarray:
     return found.all(axis=1)
 
 
+ORDINARY_BEAM_FORMS = frozenset((1, 2, 4, 5, 11, 12, 13, 14))
+
+
+def _beam_formulation(deck, pid):
+    """Explicit shared-AST field only; a blank/default/missing section is unknown."""
+    try:
+        parts = deck.find("*PART", pid=int(pid))
+        if len(parts) != 1:
+            return None
+        part, row = parts[0]
+        secid = exact_integer(deck.get(part, "secid", row=row).value, "beam section ID")
+        sections = deck.find("*SECTION_BEAM*", secid=secid)
+        if len(sections) != 1:
+            return None
+        section, row = sections[0]
+        value = deck.get(section, "elform", row=row)
+        return exact_integer(value.value, "beam ELFORM") if value.raw.strip() else None
+    except (FieldError, Unsupported, KeyError, ValueError, OverflowError):
+        return None
+
+
+def _beam_quality(deck, xyz, lookup, report, skipped, thresholds, keep_defined):
+    """Plain BEAM endpoint geometry through the shared AST; no section/orientation physics."""
+    blocks = [block for block in deck.iter_blocks() if block.name.startswith("*ELEMENT_")
+              and not any(block.name == name or block.name.startswith(name + "_")
+                          for name in ("*ELEMENT_SOLID", "*ELEMENT_SHELL"))]
+    if not blocks:
+        return
+    coverage = dict(complete=True, scope="declared host metrics by element family",
+                    beam_scope="endpoint_length_only", beam_lengths_checked=0, not_evaluated=[])
+    report["quality_coverage"] = coverage
+    report["unsupported_quality"] = []
+    tables = []
+    for block in blocks:
+        if block.name != "*ELEMENT_BEAM":
+            item = dict(keyword=block.name, reason="element variant/family quality is not evaluated")
+            report["unsupported_quality"].append(item)
+            coverage["not_evaluated"].append(item)
+            coverage["complete"] = False
+            continue
+        try:
+            rows = []
+            for key in deck.layout(block).rows:
+                values = [deck.get(block, field, row=key).value for field in ("eid", "pid", "n1", "n2")]
+                eid, pid, first, second = [exact_integer(0 if value is None else value, field)
+                                          for field, value in zip(("eid", "pid", "n1", "n2"), values)]
+                if eid <= 0 or any(abs(value) > np.iinfo(np.int64).max for value in (eid, pid, first, second)):
+                    raise FieldError("BEAM identities must fit positive EID / signed64 endpoint IDs")
+                rows.append((eid, pid, first, second))
+            if not rows:
+                coverage["complete"] = False
+                coverage["not_evaluated"].append(dict(keyword=block.name, reason="no readable BEAM rows"))
+            tables.extend(rows)
+        except (FieldError, Unsupported, KeyError, ValueError, OverflowError) as error:
+            skipped.append(f"{block.name} ({block.file.path.name}:{block.line_number}): {error}")
+            coverage["complete"] = False
+    if not tables:
+        return
+    table = np.asarray(tables, dtype=np.int64)
+    eids, pids, conn = table[:, 0], table[:, 1], table[:, 2:]
+    total = len(eids)
+    original_ids = eids.copy()
+    defined = _defined(conn, lookup)
+    pids = pids[defined]
+    eids, conn = keep_defined("beams", eids, conn)
+    if len(eids) != total:
+        coverage["complete"] = False
+        coverage["not_evaluated"].append(dict(keyword="*ELEMENT_BEAM", reason="undefined endpoint or unread node block",
+                                              ids=original_ids[~defined][:200].tolist()))
+    unique_eids, eid_counts = np.unique(original_ids, return_counts=True)
+    duplicates = unique_eids[eid_counts > 1]
+    # The shared _index already refuses duplicate/nonpositive node IDs.
+    ambiguous = np.isin(eids, duplicates)
+    if ambiguous.any():
+        report["errors"].append(dict(kind="beams_with_ambiguous_ids", count=int(ambiguous.sum()), ids=eids[ambiguous][:200].tolist()))
+        report["not_graded"].append(dict(kind="beams_with_ambiguous_ids", reason="duplicate BEAM element ID"))
+        coverage["not_evaluated"].append(dict(keyword="*ELEMENT_BEAM", reason="duplicate BEAM element ID",
+                                              ids=eids[ambiguous][:200].tolist()))
+        eids, pids, conn = eids[~ambiguous], pids[~ambiguous], conn[~ambiguous]
+        coverage["complete"] = False
+    if len(eids):
+        endpoints = xyz[lookup[conn]]
+        finite = np.isfinite(endpoints).all(axis=(1, 2))
+        with np.errstate(over="ignore", invalid="ignore"):
+            lengths = np.hypot.reduce(endpoints[:, 1] - endpoints[:, 0], axis=1)
+        measurable = finite & np.isfinite(lengths)
+        if not measurable.all():
+            report["not_graded"].append(dict(kind="beams_with_unmeasurable_length", count=int((~measurable).sum()),
+                ids=eids[~measurable][:200].tolist(), reason="non-finite coordinates or unrepresentable endpoint difference"))
+            coverage["not_evaluated"].append(dict(keyword="*ELEMENT_BEAM", reason="endpoint length is not finite/representable"))
+            coverage["complete"] = False
+            if not finite.all():
+                report["errors"].append(dict(kind="beams_with_non_finite_coordinates", count=int((~finite).sum()), ids=eids[~finite][:200].tolist()))
+        eids, pids, lengths = eids[measurable], pids[measurable], lengths[measurable]
+    else:
+        lengths = np.zeros(0)
+    forms = {int(pid): _beam_formulation(deck, pid) for pid in np.unique(pids)}
+    ordinary = np.asarray([forms[int(pid)] in ORDINARY_BEAM_FORMS for pid in pids], dtype=bool)
+    if not ordinary.all():
+        item = dict(keyword="*ELEMENT_BEAM", ids=eids[~ordinary][:200].tolist(),
+                    reason="zero-length defect classification not assessed for special/unknown/blank section ELFORM")
+        coverage["not_evaluated"].append(item)
+        report["unsupported_quality"].append(item)
+        coverage["complete"] = False
+    length_threshold = thresholds.get("length")
+    if length_threshold is not None and (type(length_threshold) not in (int, float) or not np.isfinite(length_threshold)):
+        raise FieldError("BEAM length threshold must be a finite number, not a Boolean")
+    with np.errstate(over="ignore", invalid="ignore"):
+        summary = _summary(eids, {"length": lengths}, thresholds, {"length"}) if len(eids) else {}
+    if len(eids):
+        largest = float(lengths.max())
+        summary["length"]["mean"] = float(np.mean(lengths / largest) * largest) if largest else 0.0
+    report["beams"] = dict(scope="endpoint_length_only", total_read=total, count=len(eids),
+        assumptions=["reference/model-coordinate N1-N2 distance only; explicit ELFORM admits zero-length error rules, not section/orientation mechanics"],
+        ordinary_zero_error_elforms=sorted(ORDINARY_BEAM_FORMS), zero_length_ids=eids[lengths == 0][:200].tolist(), **summary)
+    coverage["beam_lengths_checked"] = len(eids)
+    report["definitions"] = {**report["definitions"], "length": "BEAM N1-N2 Euclidean distance in model coordinates; basic geometry only"}
+    zero = (lengths == 0) & ordinary
+    if zero.any():
+        report["errors"].append(dict(kind="zero_length_beams", count=int(zero.sum()), ids=eids[zero][:200].tolist()))
+
+
 def check_quality(deck: KeywordDeck, thresholds: dict | None = None, coincident_tol: float | None = None) -> dict:
     """Element quality distributions, objective errors and optional coincident-node pairs."""
     thresholds = thresholds or {}
@@ -241,6 +366,7 @@ def check_quality(deck: KeywordDeck, thresholds: dict | None = None, coincident_
         bad = values["area"] <= 0
         if bad.any():
             report["errors"].append({"kind": "zero_area_shells", "count": int(bad.sum()), "ids": eids[bad][:200].tolist()})
+    _beam_quality(deck, xyz, lookup, report, skipped, thresholds, keep_defined)
     unused = np.setdiff1d(node_ids, np.asarray(sorted(used), dtype=np.int64))
     note = "may be used by beams, masses, constraints or sets"
     if skipped:
