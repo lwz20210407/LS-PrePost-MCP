@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "scope": "Finite host evidence selection only; consumers enforce current product Git/LF identity",
+  "current": {
+    "sleout": {
+      "path": "docs/decisions/evidence/q06-spcforc-source-refresh/sleout/evidence.json",
+      "evidence_sha256_lf": "e62fdc9eed95a0de16e5affa27255a56e2df35d45b53b793051dccb270e124b7",
+      "report_sha256_lf": "08476c3999cff8eda8f954e4fc2b5a1d262c9802daa6f387415c6fb3998dfe48"
+    },
+    "nodout": {
+      "path": "docs/decisions/evidence/q06-spcforc-source-refresh/nodout/evidence.json",
+      "evidence_sha256_lf": "43089fb80979deaf2a1c511812af4f3d8cae6f6f1399c508306fe68675b85430",
+      "report_sha256_lf": "6a804e85334a73c66d06fc563fb74b0d71a58c7965308794ff7801fb1c2c8792"
+    },
+    "spcforc": {
+      "path": "docs/decisions/evidence/q06-ascii-spcforc/evidence.json",
+      "evidence_sha256_lf": "e50aeae97b1f221837a40f4a393304372d5ac272bcd3891daac12dc473f8efd7",
+      "report_sha256_lf": "8aa290392d5d8c56196b5d97acb5f2525d986bd76e40d9c9d85934794120b4ff"
+    }
+  },
+  "history": {
+    "sleout_0c9": {
+      "path": "docs/decisions/evidence/q06-ascii-sleout/evidence.json",
+      "evidence_sha256_lf": "c9ad13ecb12f53e2861e493d3e0dd4ba3592a4085e1954f6aca7e3c26f023043",
+      "report_sha256_lf": "0d382c9d5f6f3d54a2696e014eb8d9d8177dbcc305ec207f910dc03816bf86b2"
+    },
+    "nodout_cdc": {
+      "path": "docs/decisions/evidence/q06-ascii-nodout/evidence.json",
+      "evidence_sha256_lf": "8e6079c5cfc854933c2f2c810a358dc29fa778e00664338b68e84f152d2aa8a5",
+      "report_sha256_lf": "22cad6219ca544b12a7a1487ecd2c01f42aac238836aff209758a92ff04b0fed"
+    },
+    "nodout_0c9": {
+      "path": "docs/decisions/evidence/q06-sleout-source-refresh/nodout/evidence.json",
+      "evidence_sha256_lf": "e43f8aa6cd1e3d21df858d30962d07c093c1ff255dd4a96d5f007a07c7e4fb80",
+      "report_sha256_lf": "1d47c701136c78d234ca8b3a05b4c8f3c1fe69f5cd47e9423569d135b8bae18d"
+    }
+  }
+}

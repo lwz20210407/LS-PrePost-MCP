@@ -1,14 +1,15 @@
 """Q06 SLEOUT captures retain finite scope and portable product identities."""
 import hashlib
-import json
 from pathlib import Path
+
+from tools.current_ascii_evidence import read_current_ascii_evidence, read_historical_ascii_evidence
 
 ROOT = Path(__file__).resolve().parents[1]
 DIRECTORY = ROOT / "docs/decisions/evidence/q06-ascii-sleout"
 
 
 def record():
-    return json.loads((DIRECTORY / "evidence.json").read_text(encoding="utf8"))
+    return read_current_ascii_evidence(ROOT, "sleout")
 
 
 def test_sleout_capture_matches_current_product_and_verifier_lf_sources():
@@ -52,7 +53,7 @@ def test_sleout_actual_public_capture_is_finite_and_keeps_input_source_guards():
 
 
 def test_sleout_history_and_report_do_not_turn_development_into_current_native_acceptance():
-    evidence = record()
+    evidence = read_historical_ascii_evidence(ROOT, "sleout_0c9")
     assert [r["failed"] for r in evidence["regressions"]] == [6, 3, 2]
     assert len({r["actual_git_revision"] for r in evidence["regressions"]}) == 3
     assert all(r["mock_missing_feature"] is False for r in evidence["regressions"])

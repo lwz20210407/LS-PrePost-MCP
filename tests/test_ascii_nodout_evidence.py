@@ -1,14 +1,14 @@
 """Current public NODOUT readback remains tied to its actual reader and wrapper."""
 import hashlib
-import json
 import subprocess
 from pathlib import Path
 
 import pytest
 
+from tools.current_ascii_evidence import read_current_ascii_evidence, read_historical_ascii_evidence
+
 ROOT = Path(__file__).resolve().parents[1]
 HISTORY = ROOT / "docs/decisions/evidence/q06-ascii-nodout"
-CURRENT = ROOT / "docs/decisions/evidence/q06-sleout-source-refresh/nodout/evidence.json"
 HISTORY_SHA256_LF = {
     "evidence.json": "8e6079c5cfc854933c2f2c810a358dc29fa778e00664338b68e84f152d2aa8a5",
     "report.md": "22cad6219ca544b12a7a1487ecd2c01f42aac238836aff209758a92ff04b0fed",
@@ -16,11 +16,7 @@ HISTORY_SHA256_LF = {
 
 
 def current_evidence():
-    if (ROOT / "src/ls_prepost_mcp/domain/results/ascii_sleout.py").exists():
-        # A new wrapper cannot fall back to an old capture when refresh data is missing.
-        assert CURRENT.is_file(), "Refresh public NODOUT readback after the SLEOUT wrapper change"
-        return json.loads(CURRENT.read_text(encoding="utf8"))
-    return json.loads((HISTORY / "evidence.json").read_text(encoding="utf8"))
+    return read_current_ascii_evidence(ROOT, "nodout")
 
 
 def test_nodout_public_evidence_binds_the_reader_wrapper_and_scanner():
@@ -59,7 +55,7 @@ def test_nodout_historical_records_remain_unchanged_after_current_refresh():
 
 
 def test_nodout_posthoc_audit_preserves_original_failure_and_precise_negative_context():
-    evidence = current_evidence()
+    evidence = read_historical_ascii_evidence(ROOT, "nodout_0c9")
     assert evidence["original_capture_status"] == "failed"
     assert evidence["posthoc_audit_status"] == "accepted_exact_r2_metadata_context_contract"
     assert evidence["new_product_jobs_started"] == 0

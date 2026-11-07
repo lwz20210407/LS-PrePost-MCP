@@ -23,7 +23,8 @@
 | Q07 本轮 | #154 已合入9c3c614，PR/main五项CI全绿；4.13/4.10各20原生通过，默认14组数值逐位保持。任务仍partial |
 | I05 / A10 | #155零命中诊断已五项CI全绿合入；#159四冻结题集公开复跑14/20、22/30、15/24、13/24，根逐条重查引用/分数一致；补产品漂移与通用词形门禁，缺API来源与独立留出仍partial，#159精确头五项CI全绿已合入 |
 | Q05 | #156时程及#161限定4.13/default的beam轴力native_check均五项CI全绿合入；正式两样本26条力/时间差0、身份守卫通过；版本策略归统一能力表，仍partial |
-| Q06 SLEOUT / NODOUT来源 | actual clean0c9新增SLEOUT三原始能量列，两源6曲线14490值exact；数字孤行先真实red再修。包装层变更后NODOUT六源54曲线231147值及两拒绝负例已实跑；原host审计过严的failed proof保留，独立同批后验复核通过、无重跑。源码/输入守卫及所有旧对象保持，L1/partial/noNative；新PR等待精确五CI，详见[SLEOUT报告](decisions/evidence/q06-ascii-sleout/report.md)与[NODOUT来源报告](decisions/evidence/q06-sleout-source-refresh/nodout/report.md) |
+| Q06 SPCFORC / 旧读取兼容 | actual clean d86新增local节点force/moment六具名读取，9导出270192值exact，3missing moment失败不补0；新旧来源74host作业角色分列且无Native，旧SLEOUT/NODOUT原scope真正刷新。当前证据统一经q06-current封存LF指针并严格比当前产品Git/LF，旧0c9/cdc保原值；L1/partial、真实moment非0及原生仍gap，待本PR精确五CI。详见[SPCFORC报告](decisions/evidence/q06-ascii-spcforc/report.md) |
+| Q06 SLEOUT / NODOUT来源 | actual clean0c9新增SLEOUT三原始能量列，两源6曲线14490值exact；数字孤行先真实red再修。包装层变更后NODOUT六源54曲线231147值及两拒绝负例已实跑；原host审计过严的failed proof保留，独立同批后验复核通过、无重跑。源码/输入守卫及所有旧对象保持，L1/partial/noNative；#180精确61f72五CI通过merge main6b3d70，详见[SLEOUT报告](decisions/evidence/q06-ascii-sleout/report.md)与[NODOUT来源报告](decisions/evidence/q06-sleout-source-refresh/nodout/report.md) |
 | Q06 | #160与#163已在各精确头五CI全绿后合入，#163进入49cd217；NODOUT九平动列6公共231147值、raw/unknown life与来源门禁已有，未原生仍L1；eroded_he有限审计不足以命名映射，保留gap |
 | I01 结果族 | #162已在6212430精确头五项CI全绿后合入d946f1e；raw路径分类及P11来源过期已修，a20两版P11/beam/标题真重跑，原门禁保留；仍partial |
 | P04 | #168已合；#175 CI指出旧operations来源过期后actual clean342b显式13来源、单4.13一个headless job真复验，四owned节点/三sets membership成立、ADD order false；PROGRAM/SOURCE/动作未改。新context独立选择，旧1289/01a/950/d139及b757五context不改；controller/child OS创建未观测、host时间不冒充OS时间，private input与global passive分开，仍partial |
